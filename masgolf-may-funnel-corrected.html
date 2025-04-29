@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF® | 5월, 가족과 함께하는 특별한 골프</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Montserrat:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #333333;
+            background-color: #FFFFFF;
+        }
+        
+        .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1618523410579-fa8af193e297?q=80&w=2069&auto=format&fit=crop');
+            background-position: center;
+            background-size: cover;
+        }
+        
+        .gold-button {
+            background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .gold-button:hover {
+            background: linear-gradient(135deg, #e5c100 0%, #c69500 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(218, 165, 32, 0.2);
+        }
+        
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD700, transparent);
+        }
+        
+        .bg-navy {
+            background-color: #002147;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 -->
+    <nav class="bg-black bg-opacity-90 text-white py-4 px-6 md:px-12">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-xl font-semibold montserrat tracking-wider">MASGOLF<sup>®</sup></div>
+            <div class="hidden md:flex space-x-6 text-sm">
+                <a href="#" class="hover:text-[#FFD700] transition duration-300">브랜드 스토리</a>
+                <a href="#" class="hover:text-[#FFD700] transition duration-300">제품 라인업</a>
+                <a href="#" class="hover:text-[#FFD700] transition duration-300">시타 센터</a>
+                <a href="#" class="hover:text-[#FFD700] transition duration-300">고객 이야기</a>
+                <a href="#" class="hover:text-[#FFD700] transition duration-300">문의</a>
+            </div>
+            <div class="md:hidden">
+                <button class="text-white">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 히어로 섹션 -->
+    <section class="hero-section min-h-screen flex items-center text-white py-16">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center">
+                <p class="text-[#FFD700] mb-4 tracking-widest">5월, 가정의 달 특별한 순간</p>
+                <h1 class="montserrat text-4xl md:text-6xl font-light leading-tight mb-6">아들과 함께 걷던 그 페어웨이,<br>당신이 가장 빛나던 순간입니다</h1>
+                <p class="text-xl md:text-2xl mb-8 font-light">시간은 흘러도, 티샷의 설렘은 변함없이</p>
+                <p class="mb-10 text-gray-200 max-w-2xl mx-auto leading-relaxed">
+                    가족과 함께하는 골프, 그 시간은 언제나 특별합니다. 하지만 당신이 먼저 날아가는 드라이버 샷을 보여줄 때, 그 순간이 더욱 빛납니다.
+                </p>
+                <a href="#special-offer" class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg">
+                    5월, 가족과의 라운드를 더 특별하게
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 공감 형성 섹션 -->
+    <section class="py-24 bg-white">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="flex flex-col md:flex-row items-center gap-12 mb-16">
+                <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=2070&auto=format&fit=crop" 
+                         alt="골프를 치는 중년 남성" class="w-full h-80 object-cover">
+                    <div class="p-6 text-center">
+                        <p class="text-gray-600 italic">한때는 가족들의 박수를 받던 드라이버 샷</p>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1535131749469-b60d4a815c96?q=80&w=2070&auto=format&fit=crop" 
+                         alt="즐겁게 골프 치는 시니어" class="w-full h-80 object-cover">
+                    <div class="p-6 text-center">
+                        <p class="text-gray-600 italic">그 자부심을 다시 느껴보세요</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="max-w-3xl mx-auto bg-[#F1F1F5] p-8 md:p-12 rounded-2xl shadow-lg">
+                <div class="text-center mb-8">
+                    <h2 class="montserrat text-3xl mb-4 text-[#111111]">한 시니어 골퍼의 이야기</h2>
+                    <div class="section-divider w-24 mx-auto mb-6"></div>
+                </div>
+                
+                <p class="text-[#333333] leading-relaxed mb-4">
+                    이OO님(67세)은 얼마 전까지 아들과의 라운드가 부담스러웠습니다. 30m 가까이 줄어든 비거리 때문이었죠.
+                </p>
+                <p class="text-[#333333] leading-relaxed mb-4 italic">
+                    "아버지께서 한창 때는 항상 저보다 더 멀리 치셨는데..."
+                </p>
+                <p class="text-[#333333] leading-relaxed mb-4">
+                    아들의 말이 마음에 남았습니다. 그러던 어느 날, MASGOLF<sup>®</sup>를 만난 후, 다시 그 전성기의 느낌을 되찾았습니다.
+                </p>
+                <p class="text-[#333333] leading-relaxed mb-4">
+                    지금은 아들과의 라운드가 기다려진다고 합니다.
+                </p>
+                <div class="text-right mt-6">
+                    <p class="text-[#DAA520] montserrat italic">- 이OO님, MASGOLF<sup>®</sup> 고객 -</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 기술 소개 섹션 -->
+    <section class="py-24 bg-[#F1F1F5]">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="text-center mb-16">
+                <h2 class="montserrat text-4xl mb-4 text-[#111111]">당신의 골프 인생에 다시 한 번, 황금기를</h2>
+                <div class="section-divider w-32 mx-auto mb-6"></div>
+                <p class="text-[#777777] max-w-2xl mx-auto">
+                    오랜 세월 쌓아온 경험과 기술, 그 위에 MASGOLF<sup>®</sup>의 혁신 기술이 더해지면 당신은 다시 페어웨이의 주인공이 됩니다.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 기술 1 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 flex items-center justify-center mb-6">
+                        <img src="https://images.unsplash.com/photo-1593111774240-d449235c3d74?q=80&w=2070&auto=format&fit=crop" 
+                             alt="골프 클럽 디테일" class="h-full object-contain">
+                    </div>
+                    <h3 class="montserrat text-xl mb-4 text-[#111111]">일본 JFE 티타늄으로 완성된<br>초박형 페이스</h3>
+                    <p class="text-[#333333] leading-relaxed">
+                        일본 프리미엄 티타늄 소재로 제작된 초박형 페이스로 부드러운 타구감과 뛰어난 반발력을 경험해보세요. DAIDO 티타늄의 특별한 성능이 당신의 스윙에 날개를 달아드립니다.
+                    </p>
+                </div>
+                
+                <!-- 기술 2 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 flex items-center justify-center mb-6">
+                        <img src="https://images.unsplash.com/photo-1560955176-e91af86c3a53?q=80&w=1888&auto=format&fit=crop" 
+                             alt="골프 클럽 스윙" class="h-full object-contain">
+                    </div>
+                    <h3 class="montserrat text-xl mb-4 text-[#111111]">반발계수 0.87의<br>시간을 되돌린 듯한 반발력</h3>
+                    <p class="text-[#333333] leading-relaxed">
+                        젊은 시절 느꼈던 그 시원한 타구감을 다시. 임팩트 순간의 에너지 손실을 최소화하여 평균 25m 더 멀리, 예전의 비거리를 되찾아드립니다.
+                    </p>
+                </div>
+                
+                <!-- 기술 3 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 flex items-center justify-center mb-6">
+                        <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=2070&auto=format&fit=crop" 
+                             alt="골프 피팅" class="h-full object-contain">
+                    </div>
+                    <h3 class="montserrat text-xl mb-4 text-[#111111]">MASGOLF<sup>®</sup> 독점 개발<br>NGS 샤프트 시스템</h3>
+                    <p class="text-[#333333] leading-relaxed">
+                        50년 골프 인생의 경험과 지혜에 어울리는 맞춤 피팅. 당신의 스윙 특성을 고려한 NGS 샤프트로 완벽한 조화를 이룹니다. 10년 샤프트 교환 옵션으로 안심하세요.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 가정의 달 특별 패키지 -->
+    <section id="special-offer" class="py-24 bg-white">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="text-center mb-16">
+                <h2 class="montserrat text-4xl mb-4 text-[#111111]">5월, 가족과 함께하는 특별한 선물</h2>
+                <div class="section-divider w-32 mx-auto mb-6"></div>
+                <p class="text-[#777777] max-w-2xl mx-auto">
+                    가정의 달을 맞아, 소중한 사람들과 함께하는 골프의 즐거움을 더욱 특별하게 만들어드립니다.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 패키지 1 -->
+                <div class="rounded-xl overflow-hidden shadow-lg h-full">
+                    <div class="h-56">
+                        <img src="https://images.unsplash.com/photo-1529113241001-b495badd8d44?q=80&w=2071&auto=format&fit=crop" 
+                             alt="아버지와 아들" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-8 bg-[#F1F1F5] h-full">
+                        <h3 class="montserrat text-xl mb-4 text-[#111111]">아버지와 아들의 추억 패키지</h3>
+                        <p class="text-[#333333] leading-relaxed mb-6">
+                            같은 모델, 두 세대의 피팅 - 아버지와 아들이 함께 즐기는 MASGOLF<sup>®</sup>. 서로의 스윙을 더 이해하고, 더 깊은 대화의 시간을 선물합니다.
+                        </p>
+                        <p class="text-[#DAA520] font-medium">5월 한정 특별 혜택을 확인하세요</p>
+                    </div>
+                </div>
+                
+                <!-- 패키지 2 -->
+                <div class="rounded-xl overflow-hidden shadow-lg h-full">
+                    <div class="h-56">
+                        <img src="https://images.unsplash.com/photo-1547119957-637f8679db1e?q=80&w=1964&auto=format&fit=crop" 
+                             alt="가족 골프" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-8 bg-[#F1F1F5] h-full">
+                        <h3 class="montserrat text-xl mb-4 text-[#111111]">가족 행복 라운드 패키지</h3>
+                        <p class="text-[#333333] leading-relaxed mb-6">
+                            MASGOLF<sup>®</sup> 드라이버와 함께하는 가족 라운드 특별 이벤트. 전용 필드에서 가족과 함께하는 특별한 하루를 계획해보세요.
+                        </p>
+                        <p class="text-[#DAA520] font-medium">5월 한정 시타 체험 후 예약 가능</p>
+                    </div>
+                </div>
+                
+                <!-- 패키지 3 -->
+                <div class="rounded-xl overflow-hidden shadow-lg h-full">
+                    <div class="h-56">
+                        <img src="https://images.unsplash.com/photo-1529318174642-779f8df31a90?q=80&w=1972&auto=format&fit=crop" 
+                             alt="노부부 골프" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-8 bg-[#F1F1F5] h-full">
+                        <h3 class="montserrat text-xl mb-4 text-[#111111]">평생의 동반자 패키지</h3>
+                        <p class="text-[#333333] leading-relaxed mb-6">
+                            부부가 함께 성장하는 골프 여정, MASGOLF<sup>®</sup>가 동행합니다. 부부 맞춤 피팅과 레슨으로 더욱 행복한 라운드를 만듭니다.
+                        </p>
+                        <p class="text-[#DAA520] font-medium">5월 부부 방문 시 특별 혜택</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 사회적 증거 섹션 -->
+    <section class="py-24 bg-[#F1F1F5]">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="text-center mb-16">
+                <h2 class="montserrat text-4xl mb-4 text-[#111111]">가족들에게 더욱 존경받는 골퍼가 되다</h2>
+                <div class="section-divider w-32 mx-auto mb-6"></div>
+                <p class="text-[#777777] max-w-2xl mx-auto">
+                    골프는 단순한 운동이 아닌, 세대를 이어주는 다리입니다. MASGOLF<sup>®</sup>와 함께라면, 그 다리는 더욱 견고해집니다.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 후기 1 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="text-[#FFD700]">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-[#333333] italic mb-6 leading-relaxed">
+                        "아들과의 라운드가 이제 설렘으로 가득합니다. 제가 먼저 티샷하는 날에는 항상 MASGOLF<sup>®</sup>를 꺼냅니다."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white">박</span>
+                        </div>
+                        <div>
+                            <p class="font-medium">박○○님</p>
+                            <p class="text-sm text-[#777777]">65세</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 후기 2 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="text-[#FFD700]">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-[#333333] italic mb-6 leading-relaxed">
+                        "손자에게 멋진 스윙을 보여줄 수 있어 행복합니다. 비거리가 늘어난 것도 좋지만, 더 일관된 샷이 나와 즐겁습니다."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white">김</span>
+                        </div>
+                        <div>
+                            <p class="font-medium">김○○님</p>
+                            <p class="text-sm text-[#777777]">72세</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 후기 3 -->
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="text-[#FFD700]">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                    <p class="text-[#333333] italic mb-6 leading-relaxed">
+                        "아버지의 날 선물로 받은 MASGOLF<sup>®</sup>, 이제는 제 보물입니다. 조금 적응이 필요했지만, 이제는 필드에서 가장 믿음직한 동반자입니다."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white">이</span>
+                        </div>
+                        <div>
+                            <p class="font-medium">이○○님</p>
+                            <p class="text-sm text-[#777777]">58세</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 부드러운 초대 (CTA) 섹션 -->
+    <section class="py-24 bg-gradient-to-b from-amber-50 to-amber-100">
+        <div class="container mx-auto px-6 md:px-12 text-center">
+            <h2 class="montserrat text-4xl mb-6 text-[#111111]">5월, 가장 빛나는 순간을 다시 만드세요</h2>
+            <p class="text-[#333333] max-w-2xl mx-auto mb-12 leading-relaxed">
+                가족과 함께하는 필드 위에서, 당신은 여전히 주인공입니다. 그 자부심을 다시 한번, MASGOLF<sup>®</sup>가 함께합니다.
+            </p>
+            
+            <a href="#" class="gold-button inline-block px-10 py-5 rounded-full text-black text-lg font-medium tracking-wide shadow-lg mb-8">
+                전성기의 순간으로
+            </a>
+            
+            <p class="text-[#333333] mt-6">
+                가정의 달 특별 체험 공간이 마련되어 있습니다
+            </p>
+            <p class="text-[#333333]">
+                가족과 함께 방문하시면 더욱 특별한 경험을 선사해 드립니다
+            </p>
+        </div>
+    </section>
+
+    <!-- 매장 정보 및 푸터 -->
+    <footer class="bg-[#002147] text-gray-300 py-16">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="grid md:grid-cols-3 gap-12 mb-12">
+                <div>
+                    <h3 class="text-white text-lg mb-4 montserrat">MASGOLF<sup>®</sup></h3>
+                    <p class="mb-4 leading-relaxed">
+                        MASGOLF<sup>®</sup>는 2003년부터 당신의 골프 여정에 함께해 왔습니다. 5월, 소중한 가족과의 시간을 더욱 특별하게 만들어 드리겠습니다.
+                    </p>
+                    <p class="text-sm mt-4">
+                        사업자명: MASGOLF<sup>®</sup> | 대표자명: 김탁수<br>
+                        사업자등록번호: 877-07-00641<br>
+                        통신판매업신고번호: 제 2017-수원영통-0623호
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-white text-lg mb-4 montserrat">시타 센터</h3>
+                    <p class="mb-4">
+                        주소: 수원시 영통구 법조로 149번길 200<br>
+                        (광교 갤러리아에서 차량 5분)
+                    </p>
+                    <p class="mb-4">
+                        방문 상담 예약: 031-215-0013<br>
+                        비거리 상담: 080-028-8888 (무료)
+                    </p>
+                    <p class="mb-2">
+                        영업시간: 월-금 09:00 - 18:00<br>
+                        주말은 예약제로 운영합니다
+                    </p>
+                    <p class="mt-4 text-[#FFD700]">
+                        가족과 함께 방문하시면 환영합니다
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-white text-lg mb-4 montserrat">연락처</h3>
+                    <p class="mb-2">이메일: support@masgolf.co.kr</p>
+                    <p class="mb-2">브랜드: hello@masgolf.co.kr</p>
+                    <p class="mb-4">다양한 배송 옵션 제공</p>
+                    <p class="mb-6">
+                        <a href="https://www.mas9golf.com/" class="text-[#FFD700] hover:underline">www.mas9golf.com</a><br>
+                        <a href="https://www.masgolf.co.kr/" class="text-[#FFD700] hover:underline">www.masgolf.co.kr</a>
+                    </p>
+                    <div class="flex space-x-4 mt-6">
+                        <a href="https://blog.naver.com/massgoogolf" target="_blank" class="text-white hover:text-[#FFD700] transition duration-300">
+                            <i class="fab fa-blogger"></i>
+                        </a>
+                        <a href="https://smartstore.naver.com/mas9golf" target="_blank" class="text-white hover:text-[#FFD700] transition duration-300">
+                            <i class="fas fa-store"></i>
+                        </a>
+                        <a href="http://pf.kakao.com/_vSVuV" target="_blank" class="text-white hover:text-[#FFD700] transition duration-300">
+                            <i class="fas fa-comment"></i>
+                        </a>
+                        <a href="http://pf.kakao.com/_vSVuV/chat" target="_blank" class="text-white hover:text-[#FFD700] transition duration-300">
+                            <i class="fas fa-comments"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-sm text-gray-500">
+                <p>© 2025 MASGOLF<sup>®</sup> All Rights Reserved. 상표권 등록일: 2003-07-31</p>
+                <div class="flex space-x-4 mt-2">
+                    <a href="#" class="hover:text-gray-300 transition duration-300">개인정보처리방침</a>
+                    <a href="#" class="hover:text-gray-300 transition duration-300">이용약관</a>
+                    <a href="#" class="hover:text-gray-300 transition duration-300">사이트맵</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
