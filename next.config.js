@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   // 정적 파일 export 설정
   output: 'export',
+  trailingSlash: true,
   // 이미지 최적화 비활성화 (정적 export에 필요)
   images: {
     unoptimized: true,

@@ -1,11 +1,11 @@
 import Head from 'next/head'
 
 export default function Home() {
-  if (typeof window !== 'undefined') {
-    window.location.href = '/versions/funnel-2025-05.html';
-  }
-  
-  return null;
+  return (
+    <Head>
+      <meta httpEquiv="refresh" content="0;url=/versions/funnel-2025-05.html" />
+    </Head>
+  )
 }
 
 export async function getStaticProps() {
