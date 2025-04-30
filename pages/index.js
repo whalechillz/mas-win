@@ -1,11 +1,7 @@
 import { useEffect } from 'react'
 
 export default function Home() {
-  useEffect(() => {
-    window.location.href = '/versions/funnel-2025-05.html'
-  }, [])
-  
-  return null
+  return <div>리다이렉트 중...</div>;
 }
 
 export async function getStaticProps() {

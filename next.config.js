@@ -12,11 +12,12 @@ const nextConfig = {
   basePath: '',
   assetPrefix: '',
   // 리다이렉션 설정
-  async rewrites() {
+  async redirects() {
     return [
       {
         source: '/',
         destination: '/versions/funnel-2025-05.html',
+        permanent: false,
       },
     ];
   },
