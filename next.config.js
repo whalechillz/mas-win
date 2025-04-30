@@ -9,6 +9,15 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/masgolf-may-funnel.html',
+        permanent: false,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig 
