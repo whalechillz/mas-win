@@ -2,7 +2,7 @@ import Head from 'next/head'
 
 export default function Home() {
   if (typeof window !== 'undefined') {
-    window.location.replace('/versions/funnel-2025-05.html');
+    window.location.href = '/versions/funnel-2025-05.html';
   }
   
   return null;
