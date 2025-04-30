@@ -2,10 +2,11 @@ import Head from 'next/head'
 import Image from 'next/image'
 
 export default function Home() {
-  if (typeof window !== 'undefined') {
-    window.location.href = '/masgolf-may-funnel.html';
-  }
-  return null;
+  return (
+    <div>
+      <meta httpEquiv="refresh" content="0;url=/masgolf-may-funnel.html" />
+    </div>
+  )
 }
 
 // 정적 생성을 위한 설정
