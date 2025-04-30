@@ -20,20 +20,48 @@
         }
         
         .hero-section {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/assets/hero/hero_father_son_golf_1080x1920.jpg');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/hero/hero_father_son_golf_1080x1920.jpg');
             background-position: center;
             background-size: cover;
         }
         
         .gold-button {
             background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
         
         .gold-button:hover {
             background: linear-gradient(135deg, #e5c100 0%, #c69500 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(218, 165, 32, 0.2);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(218, 165, 32, 0.3);
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .fade-in {
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
         
         .section-divider {
@@ -70,14 +98,25 @@
     <section class="hero-section min-h-screen flex items-center text-white py-16">
         <div class="container mx-auto px-6 md:px-12">
             <div class="max-w-3xl mx-auto text-center">
-                <p class="text-[#FFD700] mb-4 tracking-widest">5월, 가정의 달 특별한 순간</p>
-                <h1 class="montserrat text-3xl md:text-5xl font-light leading-tight mb-6">아들과 함께 걷던 그 페어웨이,<br>당신이 가장 빛나던 순간입니다</h1>
-                <p class="text-xl md:text-2xl mb-8 font-light">시간은 흘러도, 티샷의 설렘은 변함없이</p>
-                <p class="mb-10 text-gray-200 max-w-2xl mx-auto leading-relaxed">
-                    가족과 함께하는 골프, 그 시간은 언제나 특별합니다. 하지만 당신이 먼저 날아가는 드라이버 샷을 보여줄 때, 그 순간이 더욱 빛납니다.
+                <p class="text-[#FFD700] mb-4 tracking-widest fade-in-up">5월, 가족과 함께하는 특별한 순간</p>
+                
+                <h1 class="montserrat text-3xl md:text-5xl font-light leading-tight mb-5 fade-in-up" style="animation-delay: 0.2s">
+                    <span class="block">아들과 걷던 그 페어웨이,</span>
+                    <span class="block mt-2">비거리는 줄었어도 박수는 더 커졌습니다</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl mb-6 font-light fade-in-up" style="animation-delay: 0.4s">
+                    시간은 흘러도, 골프 인생의 빛나는 순간은 이제부터입니다
                 </p>
-                <a href="https://www.mas9golf.com/try-a-massgoo" class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg">
-                    5월, 가족과의 라운드를 더 특별하게
+                
+                <p class="mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed fade-in" style="animation-delay: 0.6s">
+                    가족과 함께하는 골프, 그 시간은 언제나 특별합니다. MASGOLF<sup>®</sup>와 함께할 때, 당신은 다시 한번 페어웨이의 주인공이 되고, 가족의 자랑이 됩니다.
+                </p>
+                
+                <a href="https://www.mas9golf.com/try-a-massgoo" 
+                   class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 fade-in-up" 
+                   style="animation-delay: 0.8s">
+                    전성기의 순간으로 돌아가기
                 </a>
             </div>
         </div>
