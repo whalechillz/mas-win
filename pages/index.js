@@ -1,11 +1,12 @@
 import Head from 'next/head'
-import Image from 'next/image'
 
 export default function Home() {
   return (
-    <div>
-      <meta httpEquiv="refresh" content="0;url=/masgolf-may-funnel.html" />
-    </div>
+    <>
+      <Head>
+        <meta httpEquiv="refresh" content="0;url=/masgolf-may-funnel.html" />
+      </Head>
+    </>
   )
 }
 
