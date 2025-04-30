@@ -2,6 +2,20 @@ import Head from 'next/head'
 import Image from 'next/image'
 
 export default function Home() {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/masgolf-may-funnel.html';
+  }
+  return null;
+}
+
+// 정적 생성을 위한 설정
+export async function getStaticProps() {
+  return {
+    props: {},
+  };
+}
+
+export function Home() {
   return (
     <>
       <Head>
