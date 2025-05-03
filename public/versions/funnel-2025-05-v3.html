@@ -24,13 +24,12 @@
 
         /* Parallax Background for Hero Section */
         .hero-section {
-            position: relative; /* Needed for absolute positioning of background */
-            overflow: hidden; /* Hide overflowing background */
-            /* Replaced local image with Unsplash free image */
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1509048180911-f9d559460183?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80'); /* Golf course background */
+            position: relative;
+            overflow: hidden;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/hero/hero_father_son_golf_1080x1920.jpg');
             background-position: center;
             background-size: cover;
-            background-attachment: fixed; /* Parallax effect */
+            background-attachment: fixed;
         }
 
         /* Sticky Header Scroll Effect */
@@ -110,13 +109,6 @@
          .faq-toggle.active i {
             transform: rotate(45deg);
          }
-
-         /* Lottie Animation Container Styling */
-        #lottie-container {
-            width: 300px; /* Adjust size as needed */
-            height: 300px; /* Adjust size as needed */
-            margin: 40px auto; /* Center and add margin */
-        }
 
          /* Mobile fixed button adjustment */
          body {
@@ -216,19 +208,6 @@
                     });
                 });
             });
-
-             // Lottie Animation Loading
-            const animationContainer = document.getElementById('lottie-container');
-            if (animationContainer) {
-                const animation = lottie.loadAnimation({
-                    container: animationContainer, // the dom element that will contain the animation
-                    renderer: 'svg', // render mode
-                    loop: true, // loop animation
-                    autoplay: true, // start animation right away
-                    // Using a generic golf-related Lottie animation URL
-                    path: 'https://assets3.lottiefiles.com/packages/lf20_ez2ws08h.json' // Example Lottie JSON URL (Golf Swing)
-                });
-            }
         });
     </script>
 </head>
@@ -297,14 +276,14 @@
         <div class="container mx-auto px-6 md:px-12">
             <div class="flex flex-col md:flex-row items-center gap-12 mb-16">
                 <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg hover-lift">
-                    <img src="https://images.unsplash.com/photo-1572515855812-b3844b0247d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&q=80"
+                    <img src="/assets/story/senior_golfer_smiling_1080x1350.jpg"
                          alt="골프를 치는 중년 남성" class="w-full h-80 object-cover">
                     <div class="p-6 text-center">
                         <p class="text-gray-600 italic">한때는 가족들의 박수를 받던 드라이버 샷</p>
                     </div>
                 </div>
                 <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg hover-lift">
-                    <img src="https://images.unsplash.com/photo-1572515855812-b3844b0247d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&q=80"
+                    <img src="/assets/story/senior_golfer_swinging_1080x1350.jpg"
                          alt="즐겁게 골프 치는 시니어" class="w-full h-80 object-cover">
                     <div class="p-6 text-center">
                         <p class="text-gray-600 italic">그 자부심을 다시 느껴보세요</p>
@@ -350,7 +329,7 @@
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="h-48 flex items-center justify-center mb-6">
-                         <img src="https://images.unsplash.com/photo-1612304536744-1b0652f80013?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
+                         <img src="/assets/product/titanium_club_face_1200x800.jpg"
                              alt="골프 클럽 디테일" class="h-full object-contain">
                     </div>
                     <h3 class="montserrat text-xl mb-4 text-[#111111]">일본 JFE 티타늄으로 완성된<br>초박형 페이스</h3>
@@ -361,7 +340,7 @@
 
                 <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="h-48 flex items-center justify-center mb-6">
-                         <img src="https://images.unsplash.com/photo-1588098494604-c06b7f9d3e6d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
+                         <img src="/assets/product/driver_impact_1200x800.jpg"
                              alt="골프 클럽 스윙" class="h-full object-contain">
                     </div>
                     <h3 class="montserrat text-xl mb-4 text-[#111111]">반발계수 0.87의<br>시간을 되돌린 듯한 반발력</h3>
@@ -372,7 +351,7 @@
 
                 <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="h-48 flex items-center justify-center mb-6">
-                         <img src="https://images.unsplash.com/photo-1598246527660-d9332176f3a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
+                         <img src="/assets/product/premium_golf_shaft_detail_1200x800.jpg"
                              alt="골프 피팅" class="h-full object-contain">
                     </div>
                     <h3 class="montserrat text-xl mb-4 text-[#111111]">MASGOLF<sup>®</sup> 독점 개발<br>NGS 샤프트 시스템</h3>
@@ -397,7 +376,7 @@
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="rounded-xl overflow-hidden shadow-lg h-full hover-lift">
                     <div class="h-56">
-                         <img src="https://images.unsplash.com/photo-1572515855812-b3844b0247d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&q=80"
+                         <img src="/assets/package/father_son_teeoff_package_1080x1350.jpg"
                              alt="아버지와 아들" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 bg-[#F1F1F5] h-full">
@@ -413,7 +392,7 @@
 
                 <div class="rounded-xl overflow-hidden shadow-lg h-full hover-lift">
                     <div class="h-56">
-                         <img src="https://images.unsplash.com/photo-1572515855812-b3844b0247d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&q=80"
+                         <img src="/assets/package/family_golf_playing_1080x1350.jpg"
                              alt="가족 골프" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 bg-[#F1F1F5] h-full">
@@ -427,7 +406,7 @@
 
                 <div class="rounded-xl overflow-hidden shadow-lg h-full hover-lift">
                     <div class="h-56">
-                         <img src="https://images.unsplash.com/photo-1572515855812-b3844b0247d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&q=80"
+                         <img src="/assets/package/couple_golf_round_1080x1350.jpg"
                              alt="노부부 골프" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 bg-[#F1F1F5] h-full">
@@ -468,7 +447,7 @@
                     </p>
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4 overflow-hidden">
-                            <img src="https://placehold.co/50x50/CCCCCC/333333?text=User1" alt="박○○님 아바타" class="w-full h-full object-cover">
+                            <img src="/assets/review/golfer_avatar_512x512_01.jpg" alt="박○○님 아바타" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="font-medium">박○○님</p>
@@ -492,7 +471,7 @@
                     </p>
                     <div class="flex items-center">
                          <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4 overflow-hidden">
-                            <img src="https://placehold.co/50x50/CCCCCC/333333?text=User2" alt="김○○님 아바타" class="w-full h-full object-cover">
+                            <img src="/assets/review/golfer_avatar_512x512_02.jpg" alt="김○○님 아바타" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="font-medium">김○○님</p>
@@ -516,7 +495,7 @@
                     </p>
                     <div class="flex items-center">
                          <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4 overflow-hidden">
-                            <img src="https://placehold.co/50x50/CCCCCC/333333?text=User3" alt="이○○님 아바타" class="w-full h-full object-cover">
+                            <img src="/assets/review/golfer_avatar_512x512_03.jpg" alt="이○○님 아바타" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="font-medium">이○○님</p>
@@ -663,7 +642,7 @@
                 <div class="p-8 md:p-10">
                     <div class="flex flex-col md:flex-row items-center">
                         <div class="w-full md:w-1/3 mb-6 md:mb-0 md:pr-8">
-                             <img src="https://placehold.co/400x300/FFD700/002147?text=Special+Offer+Coupon" alt="5월 혜택 쿠폰" class="w-full h-auto rounded-lg shadow-md">
+                             <img src="/assets/package/fitting_experience_coupon.jpg" alt="5월 혜택 쿠폰" class="w-full h-auto rounded-lg shadow-md">
                         </div>
                         <div class="w-full md:w-2/3">
                             <h3 class="montserrat text-2xl mb-4 text-[#111111]">5월 가정의 달 특별 선물 패키지</h3>
