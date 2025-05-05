@@ -2,79 +2,135 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MASGOLF® | 5월, 가족과 함께하는 특별한 골프</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.13/lottie.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Montserrat:wght@300;400;500;600&display=swap');
-        
+        /* Custom CSS for specific effects */
         body {
             font-family: 'Noto Sans KR', sans-serif;
             color: #333333;
-            background-color: #FFFFFF;
+            background-color: #000;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
-        
+
         .montserrat {
             font-family: 'Montserrat', sans-serif;
         }
-        
+
+        /* Parallax Background for Hero Section */
         .hero-section {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/hero/hero_father_son_golf_1080x1920.jpg');
+            position: relative;
+            overflow: hidden;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url('/assets/hero/hero_father_son_golf_1080x1920.jpg');
             background-position: center;
             background-size: cover;
+            background-attachment: fixed;
+            margin-top: 0;
+            padding-top: 0;
+            min-height: calc(100vh - 48px);
         }
-        
+        @media (max-width: 767px) {
+            .hero-section {
+                background-attachment: scroll;
+            }
+        }
+
+        /* Sticky Header Scroll Effect */
+        .header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: transparent; /* Initial transparent background */
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: background-color 0.3s ease-in-out, padding 0.3s ease-in-out;
+        }
+
+        .header.scrolled {
+            background-color: #002147; /* Navy background on scroll */
+            padding: 10px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Gold Button Hover Animation */
         .gold-button {
             background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
             transition: all 0.4s ease;
         }
-        
+
         .gold-button:hover {
             background: linear-gradient(135deg, #e5c100 0%, #c69500 100%);
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 15px 30px rgba(218, 165, 32, 0.3);
         }
-        
-        .fade-in-up {
-            animation: fadeInUp 1s ease-out;
+
+        /* Scroll Reveal Animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-        
-        .fade-in {
-            animation: fadeIn 1.5s ease-out;
+
+        .scroll-reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+
+        /* Glassmorphism UI Elements */
+        .glassmorphism {
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
+            backdrop-filter: blur(10px); /* Apply blur effect */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Light border */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Soft shadow */
         }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        
+
+        /* Section Divider Style */
         .section-divider {
             height: 3px;
             background: linear-gradient(90deg, transparent, #FFD700, transparent);
         }
-        
+
+        /* Navy Background */
         .bg-navy {
             background-color: #002147;
         }
+
+        /* Hover effect for cards/steps */
+        .hover-lift:hover {
+             transform: translateY(-5px);
+             transition: transform 0.3s ease-in-out;
+        }
+
+        /* FAQ Toggle Icon Animation */
+        .faq-toggle i {
+            transition: transform 0.3s ease-in-out;
+        }
+         .faq-toggle.active i {
+            transform: rotate(45deg);
+         }
+
+         /* Mobile fixed button adjustment */
+         body {
+             padding-bottom: 80px; /* Add padding to body to prevent content being hidden by fixed button */
+         }
+         @media (min-width: 768px) {
+             body {
+                 padding-bottom: 0; /* No padding needed on desktop */
+             }
+         }
+
     </style>
     <script>
-        // 전화 클릭 추적 함수
+        // 전화 클릭 추적 함수 (Preserved from original)
         function trackPhoneCall(location) {
             console.log('Phone call tracked:', location);
             if (typeof gtag !== 'undefined') {
@@ -86,34 +142,96 @@
             return true;
         }
 
-        // 모바일 메뉴 토글 기능
+        // DOMContentLoaded event listener for initial setup and animations
         document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Menu Toggle (Preserved from original)
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const mobileMenu = document.getElementById('mobileMenu');
-            
+
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function() {
                     mobileMenu.classList.toggle('hidden');
                 });
             }
+
+            // Sticky Header Scroll Effect
+            const header = document.querySelector('.header');
+            window.addEventListener('scroll', () => {
+              if (window.scrollY > 50) { // Adjust scroll threshold as needed
+                header.classList.add('scrolled');
+              } else {
+                header.classList.remove('scrolled');
+              }
+            });
+
+            // Scroll Reveal Animation using Intersection Observer
+            const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+
+            const observer = new IntersectionObserver((entries) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('is-visible');
+                  // Optionally stop observing once visible
+                  // observer.unobserve(entry.target);
+                }
+                // Optional: remove class when out of view to re-animate on scroll back
+                // else {
+                //     entry.target.classList.remove('is-visible');
+                // }
+              });
+            }, {
+              threshold: 0.1 // Percentage of the target element which is visible to trigger the callback
+            });
+
+            scrollRevealElements.forEach(element => {
+              observer.observe(element);
+            });
+
+             // Initial check for elements already in view on page load
+            scrollRevealElements.forEach(element => {
+                if (element.getBoundingClientRect().top < window.innerHeight) {
+                    element.classList.add('is-visible');
+                }
+            });
+
+
+            // FAQ Toggle Functionality (Enhanced from original)
+            const faqToggles = document.querySelectorAll('.faq-toggle');
+
+            faqToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+
+                    // Toggle content visibility and 'active' class
+                    content.classList.toggle('hidden');
+                    this.classList.toggle('active');
+
+                    // Close other open FAQ items
+                    faqToggles.forEach(otherToggle => {
+                        if (otherToggle !== this && otherToggle.classList.contains('active')) {
+                            otherToggle.classList.remove('active');
+                            otherToggle.nextElementSibling.classList.add('hidden');
+                        }
+                    });
+                });
+            });
         });
     </script>
 </head>
 <body>
-    <!-- 상단 전화번호 표시 (데스크톱 및 모바일) -->
     <div class="bg-black text-white py-2 px-6">
         <div class="container mx-auto flex justify-center md:justify-end items-center space-x-6 text-sm">
-            <a href="tel:080-028-8888" onclick="trackPhoneCall('top_consultation')" class="flex items-center hover:text-[#FFD700] transition">
+            <a href="tel:080-028-8888" onclick="trackPhoneCall('top_consultation')" class="flex items-center hover:text-[#FFD700] transition duration-300">
                 <i class="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 비거리 상담: 080-028-8888 (무료)
             </a>
-            <a href="tel:031-215-0013" onclick="trackPhoneCall('top_appointment')" class="flex items-center hover:text-[#FFD700] transition">
+            <a href="tel:031-215-0013" onclick="trackPhoneCall('top_appointment')" class="flex items-center hover:text-[#FFD700] transition duration-300">
                 <i class="fas fa-calendar-check mr-2 text-[#FFD700]"></i> 시타 예약: 031-215-0013
             </a>
         </div>
     </div>
 
-    <!-- 네비게이션 - 모바일 메뉴 추가 -->
-    <nav class="bg-black bg-opacity-90 text-white py-4 px-6 md:px-12 md:mt-0">
+    <nav class="header bg-opacity-90 text-white px-6 md:px-12">
         <div class="container mx-auto flex justify-between items-center">
             <div class="text-xl font-semibold montserrat tracking-wider">MASGOLF<sup>®</sup></div>
             <div class="hidden md:flex space-x-6 text-sm">
@@ -124,12 +242,11 @@
                 <a href="https://www.mas9golf.com/contact" class="hover:text-[#FFD700] transition duration-300">문의</a>
             </div>
             <div class="md:hidden">
-                <button id="mobileMenuButton" class="text-white">
+                <button id="mobileMenuButton" class="text-white text-xl">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
         </div>
-        <!-- 모바일 메뉴 -->
         <div id="mobileMenu" class="hidden md:hidden mt-4 pt-4 border-t border-gray-700">
             <div class="flex flex-col space-y-3 px-6">
                 <a href="https://www.mas9golf.com/about-massgoo" class="hover:text-[#FFD700] transition duration-300">브랜드 스토리</a>
@@ -141,56 +258,53 @@
         </div>
     </nav>
 
-    <!-- 히어로 섹션 -->
-    <section class="hero-section min-h-screen flex items-center text-white py-16">
-        <div class="container mx-auto px-6 md:px-12">
+    <section class="hero-section flex items-center text-white py-16">
+        <div class="container mx-auto px-6 md:px-12 scroll-reveal">
             <div class="max-w-3xl mx-auto text-center">
-                <p class="text-[#FFD700] mb-3 tracking-widest fade-in-up">5월, 가족의 달</p>
-                
-                <h1 class="montserrat text-4xl md:text-5xl font-light leading-tight mb-4 fade-in-up" style="animation-delay: 0.2s">
+                <p class="text-[#FFD700] mb-3 tracking-widest">5월, 가족의 달</p>
+
+                <h1 class="montserrat text-4xl md:text-5xl font-light leading-tight mb-4">
                     <span class="block">비거리는 줄었지만</span>
                     <span class="block mt-2">아들의 박수는 커졌습니다</span>
                 </h1>
-                
-                <p class="text-xl md:text-2xl mb-5 font-light fade-in-up" style="animation-delay: 0.4s">
+
+                <p class="text-xl md:text-2xl mb-5 font-light">
                     60세, 당신의 골프 전성기는 이제부터입니다
                 </p>
-                
-                <a href="https://www.mas9golf.com/try-a-massgoo" 
-                   class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 fade-in-up" 
-                   style="animation-delay: 0.6s">
+
+                <a href="https://www.mas9golf.com/try-a-massgoo"
+                   class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg">
                     전성기의 순간으로
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- 공감 형성 섹션 -->
-    <section class="py-24 bg-white">
+    <section class="py-24 bg-white scroll-reveal">
         <div class="container mx-auto px-6 md:px-12">
             <div class="flex flex-col md:flex-row items-center gap-12 mb-16">
-                <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg">
-                    <img src="/assets/story/senior_golfer_smiling_1080x1350.jpg" 
+                <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg hover-lift">
+                    <img src="/assets/story/senior_golfer_smiling_1080x1350.jpg"
                          alt="골프를 치는 중년 남성" class="w-full h-80 object-cover">
                     <div class="p-6 text-center">
                         <p class="text-gray-600 italic">한때는 가족들의 박수를 받던 드라이버 샷</p>
                     </div>
                 </div>
-                <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg">
-                    <img src="/assets/story/senior_golfer_swinging_1080x1350.jpg" 
+                <div class="w-full md:w-1/2 bg-gray-100 rounded-xl overflow-hidden shadow-lg hover-lift">
+                    <img src="/assets/story/senior_golfer_swinging_1080x1350.jpg"
                          alt="즐겁게 골프 치는 시니어" class="w-full h-80 object-cover">
                     <div class="p-6 text-center">
                         <p class="text-gray-600 italic">그 자부심을 다시 느껴보세요</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="max-w-3xl mx-auto bg-[#F1F1F5] p-8 md:p-12 rounded-2xl shadow-lg">
+
+            <div class="max-w-3xl mx-auto bg-[#F1F1F5] p-8 md:p-12 rounded-2xl shadow-lg glassmorphism">
                 <div class="text-center mb-8">
                     <h2 class="montserrat text-3xl mb-4 text-[#111111]">한 시니어 골퍼의 이야기</h2>
                     <div class="section-divider w-24 mx-auto mb-6"></div>
                 </div>
-                
+
                 <p class="text-[#333333] leading-relaxed mb-4">
                     이OO님(67세)은 얼마 전까지 아들과의 라운드가 부담스러웠습니다. 30m 가까이 줄어든 비거리 때문이었죠.
                 </p>
@@ -210,8 +324,7 @@
         </div>
     </section>
 
-    <!-- 기술 소개 섹션 -->
-    <section class="py-24 bg-[#F1F1F5]">
+    <section class="py-24 bg-[#F1F1F5] scroll-reveal">
         <div class="container mx-auto px-6 md:px-12">
             <div class="text-center mb-16">
                 <h2 class="montserrat text-4xl mb-4 text-[#111111]">당신의 골프 인생에 다시 한 번, 황금기를</h2>
@@ -220,12 +333,11 @@
                     오랜 세월 쌓아온 경험과 기술, 그 위에 MASGOLF<sup>®</sup>의 혁신 기술이 더해지면 당신은 다시 페어웨이의 주인공이 됩니다.
                 </p>
             </div>
-            
+
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- 기술 1 -->
-                <div class="bg-white rounded-xl p-8 shadow-lg transition-transform duration-300 hover:scale-105">
+                <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="h-48 flex items-center justify-center mb-6">
-                        <img src="/assets/product/titanium_club_face_1200x800.jpg" 
+                         <img src="/assets/product/titanium_club_face_1200x800.jpg"
                              alt="골프 클럽 디테일" class="h-full object-contain">
                     </div>
                     <h3 class="montserrat text-xl mb-4 text-[#111111]">일본 JFE 티타늄으로 완성된<br>초박형 페이스</h3>
@@ -233,11 +345,10 @@
                         일본 프리미엄 티타늄 소재로 제작된 초박형 페이스로 부드러운 타구감과 뛰어난 반발력을 경험해보세요. DAIDO 티타늄의 특별한 성능이 당신의 스윙에 날개를 달아드립니다.
                     </p>
                 </div>
-                
-                <!-- 기술 2 -->
-                <div class="bg-white rounded-xl p-8 shadow-lg transition-transform duration-300 hover:scale-105">
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="h-48 flex items-center justify-center mb-6">
-                        <img src="/assets/product/driver_impact_1200x800.jpg" 
+                         <img src="/assets/product/driver_impact_1200x800.jpg"
                              alt="골프 클럽 스윙" class="h-full object-contain">
                     </div>
                     <h3 class="montserrat text-xl mb-4 text-[#111111]">반발계수 0.87의<br>시간을 되돌린 듯한 반발력</h3>
@@ -245,11 +356,10 @@
                         젊은 시절 느꼈던 그 시원한 타구감을 다시. 임팩트 순간의 에너지 손실을 최소화하여 평균 25m 더 멀리, 예전의 비거리를 되찾아드립니다.
                     </p>
                 </div>
-                
-                <!-- 기술 3 -->
-                <div class="bg-white rounded-xl p-8 shadow-lg transition-transform duration-300 hover:scale-105">
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="h-48 flex items-center justify-center mb-6">
-                        <img src="/assets/product/premium_golf_shaft_detail_1200x800.jpg" 
+                         <img src="/assets/product/premium_golf_shaft_detail_1200x800.jpg"
                              alt="골프 피팅" class="h-full object-contain">
                     </div>
                     <h3 class="montserrat text-xl mb-4 text-[#111111]">MASGOLF<sup>®</sup> 독점 개발<br>NGS 샤프트 시스템</h3>
@@ -261,8 +371,7 @@
         </div>
     </section>
 
-    <!-- 가정의 달 특별 패키지 -->
-    <section id="special-offer" class="py-24 bg-white">
+    <section id="special-offer" class="py-24 bg-white scroll-reveal">
         <div class="container mx-auto px-6 md:px-12">
             <div class="text-center mb-16">
                 <h2 class="montserrat text-4xl mb-4 text-[#111111]">5월, 가족과 함께하는 특별한 선물</h2>
@@ -271,12 +380,11 @@
                     가정의 달을 맞아, 소중한 사람들과 함께하는 골프의 즐거움을 더욱 특별하게 만들어드립니다.
                 </p>
             </div>
-            
+
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- 패키지 1 -->
-                <div class="rounded-xl overflow-hidden shadow-lg h-full">
+                <div class="rounded-xl overflow-hidden shadow-lg h-full hover-lift">
                     <div class="h-56">
-                        <img src="/assets/package/father_son_teeoff_package_1080x1350.jpg" 
+                         <img src="/assets/package/father_son_teeoff_package_1080x1350.jpg"
                              alt="아버지와 아들" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 bg-[#F1F1F5] h-full">
@@ -285,15 +393,14 @@
                             같은 모델, 두 세대의 피팅 - 아버지와 아들이 함께 즐기는 MASGOLF<sup>®</sup>. 서로의 스윙을 더 이해하고, 더 깊은 대화의 시간을 선물합니다.
                         </p>
                         <p class="text-[#DAA520] font-medium">
-                            <a href="https://www.mas9golf.com/try-a-massgoo">5월 한정 특별 혜택을 확인하세요</a>
+                            <a href="https://www.mas9golf.com/try-a-massgoo" class="hover:underline">5월 한정 특별 혜택을 확인하세요</a>
                         </p>
                     </div>
                 </div>
-                
-                <!-- 패키지 2 -->
-                <div class="rounded-xl overflow-hidden shadow-lg h-full">
+
+                <div class="rounded-xl overflow-hidden shadow-lg h-full hover-lift">
                     <div class="h-56">
-                        <img src="/assets/package/family_golf_playing_1080x1350.jpg" 
+                         <img src="/assets/package/family_golf_playing_1080x1350.jpg"
                              alt="가족 골프" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 bg-[#F1F1F5] h-full">
@@ -304,11 +411,10 @@
                         <p class="text-[#DAA520] font-medium">5월 한정 시타 체험 후 예약 가능</p>
                     </div>
                 </div>
-                
-                <!-- 패키지 3 -->
-                <div class="rounded-xl overflow-hidden shadow-lg h-full">
+
+                <div class="rounded-xl overflow-hidden shadow-lg h-full hover-lift">
                     <div class="h-56">
-                        <img src="/assets/package/couple_golf_round_1080x1350.jpg" 
+                         <img src="/assets/package/couple_golf_round_1080x1350.jpg"
                              alt="노부부 골프" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 bg-[#F1F1F5] h-full">
@@ -323,8 +429,7 @@
         </div>
     </section>
 
-    <!-- 사회적 증거 섹션 -->
-    <section class="py-24 bg-[#F1F1F5]">
+    <section class="py-24 bg-[#F1F1F5] scroll-reveal">
         <div class="container mx-auto px-6 md:px-12">
             <div class="text-center mb-16">
                 <h2 class="montserrat text-4xl mb-4 text-[#111111]">가족들에게 더욱 존경받는 골퍼가 되다</h2>
@@ -333,10 +438,9 @@
                     골프는 단순한 운동이 아닌, 세대를 이어주는 다리입니다. MASGOLF<sup>®</sup>와 함께라면, 그 다리는 더욱 견고해집니다.
                 </p>
             </div>
-            
+
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- 후기 1 -->
-                <div class="bg-white rounded-xl p-8 shadow-lg">
+                <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="flex items-center mb-6">
                         <div class="text-[#FFD700]">
                             <i class="fas fa-star"></i>
@@ -350,8 +454,8 @@
                         "아들과의 라운드가 이제 설렘으로 가득합니다. 제가 먼저 티샷하는 날에는 항상 MASGOLF<sup>®</sup>를 꺼냅니다."
                     </p>
                     <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
-                            <img src="/assets/review/golfer_avatar_512x512_01.jpg" alt="박○○님 아바타" class="w-12 h-12 rounded-full object-cover">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4 overflow-hidden">
+                            <img src="/assets/review/golfer_avatar_512x512_01.jpg" alt="박○○님 아바타" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="font-medium">박○○님</p>
@@ -359,9 +463,8 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- 후기 2 -->
-                <div class="bg-white rounded-xl p-8 shadow-lg">
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="flex items-center mb-6">
                         <div class="text-[#FFD700]">
                             <i class="fas fa-star"></i>
@@ -375,8 +478,8 @@
                         "손자에게 멋진 스윙을 보여줄 수 있어 행복합니다. 비거리가 늘어난 것도 좋지만, 더 일관된 샷이 나와 즐겁습니다."
                     </p>
                     <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
-                            <img src="/assets/review/golfer_avatar_512x512_02.jpg" alt="김○○님 아바타" class="w-12 h-12 rounded-full object-cover">
+                         <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4 overflow-hidden">
+                            <img src="/assets/review/golfer_avatar_512x512_02.jpg" alt="김○○님 아바타" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="font-medium">김○○님</p>
@@ -384,9 +487,8 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- 후기 3 -->
-                <div class="bg-white rounded-xl p-8 shadow-lg">
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover-lift">
                     <div class="flex items-center mb-6">
                         <div class="text-[#FFD700]">
                             <i class="fas fa-star"></i>
@@ -400,8 +502,8 @@
                         "아버지의 날 선물로 받은 MASGOLF<sup>®</sup>, 이제는 제 보물입니다. 조금 적응이 필요했지만, 이제는 필드에서 가장 믿음직한 동반자입니다."
                     </p>
                     <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
-                            <img src="/assets/review/golfer_avatar_512x512_03.jpg" alt="이○○님 아바타" class="w-12 h-12 rounded-full object-cover">
+                         <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4 overflow-hidden">
+                            <img src="/assets/review/golfer_avatar_512x512_03.jpg" alt="이○○님 아바타" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="font-medium">이○○님</p>
@@ -413,18 +515,29 @@
         </div>
     </section>
 
-    <!-- 부드러운 초대 (CTA) 섹션 -->
-    <section class="py-24 bg-gradient-to-b from-amber-50 to-amber-100">
+     <section class="py-24 bg-white scroll-reveal">
+        <div class="container mx-auto px-6 md:px-12 text-center">
+            <h2 class="montserrat text-4xl mb-4 text-[#111111]">MASGOLF와 함께하는 즐거운 라운딩</h2>
+            <div class="section-divider w-32 mx-auto mb-6"></div>
+            <div id="lottie-container"></div>
+            <p class="text-[#777777] max-w-2xl mx-auto mt-6">
+                MASGOLF<sup>®</sup>의 혁신적인 기술이 당신의 스윙에 활력을 불어넣습니다.
+            </p>
+        </div>
+    </section>
+
+
+    <section class="py-24 bg-gradient-to-b from-amber-50 to-amber-100 scroll-reveal">
         <div class="container mx-auto px-6 md:px-12 text-center">
             <h2 class="montserrat text-4xl mb-6 text-[#111111]">5월, 가장 빛나는 순간을 다시 만드세요</h2>
             <p class="text-[#333333] max-w-2xl mx-auto mb-12 leading-relaxed">
                 가족과 함께하는 필드 위에서, 당신은 여전히 주인공입니다. 그 자부심을 다시 한번, MASGOLF<sup>®</sup>가 함께합니다.
             </p>
-            
+
             <a href="#" class="gold-button inline-block px-10 py-5 rounded-full text-black text-lg font-medium tracking-wide shadow-lg mb-8">
                 전성기의 순간으로
             </a>
-            
+
             <p class="text-[#333333] mt-6">
                 가정의 달 특별 체험 공간이 마련되어 있습니다
             </p>
@@ -434,8 +547,7 @@
         </div>
     </section>
 
-    <!-- FAQ 섹션 -->
-    <section class="py-20 bg-white">
+    <section class="py-20 bg-white scroll-reveal">
         <div class="container mx-auto px-6 md:px-12">
             <div class="text-center mb-16">
                 <h2 class="montserrat text-4xl mb-4 text-[#111111]">자주 묻는 질문</h2>
@@ -444,10 +556,9 @@
                     MASGOLF<sup>®</sup>와 5월 가정의 달 특별 혜택에 관한 궁금증을 해결해 드립니다.
                 </p>
             </div>
-            
+
             <div class="max-w-3xl mx-auto">
-                <!-- FAQ 아이템 1 -->
-                <div class="mb-4 border-b border-gray-200 pb-4">
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
                     <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
                         <span>5월 가정의 달 특별 혜택은 어떻게 받을 수 있나요?</span>
                         <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
@@ -462,9 +573,8 @@
                         <p>방문 예약 및 전화 주문은 031-215-0013으로 연락주시면 안내해 드립니다.</p>
                     </div>
                 </div>
-                
-                <!-- FAQ 아이템 2 -->
-                <div class="mb-4 border-b border-gray-200 pb-4">
+
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
                     <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
                         <span>MASGOLF<sup>®</sup> 클럽은 어디에서 구매할 수 있나요?</span>
                         <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
@@ -483,9 +593,8 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- FAQ 아이템 3 -->
-                <div class="mb-4 border-b border-gray-200 pb-4">
+
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
                     <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
                         <span>MASGOLF<sup>®</sup> 드라이버의 비거리 향상 효과가 정말인가요?</span>
                         <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
@@ -500,9 +609,8 @@
                         <p>실제 효과는 개인의 스윙 특성에 따라 차이가 있을 수 있으므로, 무료 시타 체험을 통해 직접 확인해보시는 것을 권장합니다.</p>
                     </div>
                 </div>
-                
-                <!-- FAQ 아이템 4 -->
-                <div class="mb-4 border-b border-gray-200 pb-4">
+
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
                     <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
                         <span>10년 샤프트 교환 옵션은 어떻게 이용하나요?</span>
                         <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
@@ -518,9 +626,8 @@
                         <p>자세한 사항은 031-215-0013으로 문의주시거나 시타 센터를 방문하셔서 상담 받으실 수 있습니다.</p>
                     </div>
                 </div>
-                
-                <!-- FAQ 아이템 5 -->
-                <div class="mb-4 border-b border-gray-200 pb-4">
+
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
                     <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
                         <span>맞춤 피팅은 어떻게 진행되나요?</span>
                         <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
@@ -537,14 +644,52 @@
                         <p>피팅은 약 1시간 정도 소요되며, 가족과 함께 방문하시면 각자에게 맞는 맞춤 피팅을 동시에 받으실 수 있습니다.</p>
                     </div>
                 </div>
+
+                <!-- Q6. 할인 혜택은 어떻게 적용되나요? -->
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
+                  <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
+                    <span>할인 혜택은 어떻게 적용되나요?</span>
+                    <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
+                  </button>
+                  <div class="faq-content hidden mt-3 text-[#333333] text-sm leading-relaxed">
+                    <p class="mb-3">
+                      MASGOLF의 5월 혜택은 고객님의 구매 이력과 보유 제품에 따라 자동 적용됩니다.
+                    </p>
+                    <ul class="list-disc pl-5 mb-3 space-y-1">
+                      <li><strong>신규 고객</strong>: 타사 드라이버 반납 시 기본 10만 원 보상 + 최대 15.7% 할인 (95만 원 기준)</li>
+                      <li><strong>기존 고객</strong>: 1년 이내 15% / 2년 이상 최대 35% 혜택 제공</li>
+                      <li><strong>블랙·골드 고객</strong>: 블랙 20 / 골드 40 등 별도 맞춤 혜택 적용</li>
+                    </ul>
+                    <p>
+                      방문 또는 전화 상담 시 <strong>모델명 확인만으로 쿠폰 자동 적용</strong>이 가능하며,<br>
+                      퍼널 내 예약 시에도 혜택이 반영됩니다.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Q7. 고반발 드라이버는 규제 대상인가요? -->
+                <div class="mb-4 border-b border-gray-200 pb-4 glassmorphism hover-lift p-4 rounded-lg">
+                  <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#111111] hover:text-[#DAA520] transition">
+                    <span>고반발 드라이버는 규제 대상인가요?</span>
+                    <i class="fas fa-plus text-[#DAA520] transition-transform duration-300"></i>
+                  </button>
+                  <div class="faq-content hidden mt-3 text-[#333333] text-sm leading-relaxed">
+                    <p class="mb-3">
+                      MASGOLF 드라이버는 비공인 고반발 제품으로, <strong>공식 대회에서는 사용이 제한될 수 있습니다.</strong>
+                    </p>
+                    <p>
+                      다만 <strong>일반 라운드, 동호회 경기, 개인 연습용 사용에는 전혀 문제 없습니다.</strong><br>
+                      60대 이상 시니어 골퍼 대부분이 사용하는 합법적인 거리 회복용 드라이버입니다.
+                    </p>
+                  </div>
+                </div>
             </div>
-            
-            <!-- 쿠폰 정보 카드 -->
-            <div class="mt-16 max-w-4xl mx-auto bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl overflow-hidden shadow-lg">
+
+            <div class="mt-16 max-w-4xl mx-auto bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl overflow-hidden shadow-lg glassmorphism hover-lift">
                 <div class="p-8 md:p-10">
                     <div class="flex flex-col md:flex-row items-center">
                         <div class="w-full md:w-1/3 mb-6 md:mb-0 md:pr-8">
-                            <img src="/assets/package/fitting_experience_coupon.jpg" alt="5월 혜택 쿠폰" class="w-full h-auto rounded-lg shadow-md">
+                             <img src="/assets/package/fitting_experience_coupon.jpg" alt="5월 혜택 쿠폰" class="w-full h-auto rounded-lg shadow-md">
                         </div>
                         <div class="w-full md:w-2/3">
                             <h3 class="montserrat text-2xl mb-4 text-[#111111]">5월 가정의 달 특별 선물 패키지</h3>
@@ -572,7 +717,6 @@
         </div>
     </section>
 
-    <!-- 매장 정보 및 푸터 -->
     <footer class="bg-[#002147] text-gray-300 py-16">
         <div class="container mx-auto px-6 md:px-12">
             <div class="grid md:grid-cols-3 gap-12 mb-12">
@@ -587,7 +731,7 @@
                         통신판매업신고번호: 제 2017-수원영통-0623호
                     </p>
                 </div>
-                
+
                 <div>
                     <h3 class="text-white text-lg mb-4 montserrat">시타 센터</h3>
                     <p class="mb-4">
@@ -606,7 +750,7 @@
                         가족과 함께 방문하시면 환영합니다
                     </p>
                 </div>
-                
+
                 <div>
                     <h3 class="text-white text-lg mb-4 montserrat">연락처</h3>
                     <p class="mb-2">이메일: support@masgolf.co.kr</p>
@@ -632,19 +776,18 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="border-t border-gray-800 pt-8 text-sm text-gray-500">
                 <p>© 2025 MASGOLF<sup>®</sup> All Rights Reserved. 상표권 등록일: 2003-07-31</p>
                 <div class="flex space-x-4 mt-2">
                     <a href="https://www.mas9golf.com/about-massgoo-policies" class="hover:text-gray-300 transition duration-300">개인정보처리방침</a>
                     <a href="https://www.mas9golf.com/about-massgoo-policies" class="hover:text-gray-300 transition duration-300">이용약관</a>
-                    <a href="https://www.mas9golf.com" class="hover:text-gray-300 transition duration-300">사이트맵</a>
+                    <a href="https://www.masgolf.co.kr" class="hover:text-gray-300 transition duration-300">사이트맵</a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- 하단 고정 전화 버튼 (모바일용) -->
     <div class="fixed bottom-0 left-0 w-full bg-[#002147] text-white py-3 md:hidden z-50">
         <div class="container mx-auto flex justify-between items-center px-4">
             <a href="tel:080-028-8888" onclick="trackPhoneCall('mobile_consultation')" class="flex-1 text-center py-3 bg-[#FFD700] text-black rounded-l-lg font-medium">
@@ -656,42 +799,7 @@
         </div>
     </div>
 
-    <!-- 모바일에서 하단 여백 추가 -->
     <div class="h-20 md:h-0"></div>
 
-    <!-- FAQ 작동을 위한 JavaScript 추가 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const faqToggles = document.querySelectorAll('.faq-toggle');
-            
-            faqToggles.forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const content = this.nextElementSibling;
-                    const icon = this.querySelector('i');
-                    
-                    // 토글 콘텐츠 표시/숨김
-                    content.classList.toggle('hidden');
-                    
-                    // 아이콘 회전 (+ → ×)
-                    if (content.classList.contains('hidden')) {
-                        icon.classList.remove('transform', 'rotate-45');
-                    } else {
-                        icon.classList.add('transform', 'rotate-45');
-                    }
-                    
-                    // 다른 모든 FAQ 닫기 (아코디언 효과)
-                    faqToggles.forEach(otherToggle => {
-                        if (otherToggle !== toggle) {
-                            const otherContent = otherToggle.nextElementSibling;
-                            const otherIcon = otherToggle.querySelector('i');
-                            
-                            otherContent.classList.add('hidden');
-                            otherIcon.classList.remove('transform', 'rotate-45');
-                        }
-                    });
-                });
-            });
-        });
-    </script>
 </body>
-</html>
+</html> 
