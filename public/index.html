@@ -4,8 +4,23 @@
     <meta charset="utf-8">
     <title>MASGOLF | 5월, 가족과 함께하는 특별한 골프</title>
     <meta http-equiv="refresh" content="0;url=/versions/funnel-2025-05.html">
+    <style>
+      body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #fff; }
+      .spinner {
+        width: 48px; height: 48px;
+        border: 6px solid #eee;
+        border-top: 6px solid #002147;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        100% { transform: rotate(360deg); }
+      }
+      .msg { font-size: 1.1rem; color: #222; }
+    </style>
 </head>
 <body>
-    <p>리다이렉트 중...</p>
+  <div class="spinner"></div>
 </body>
 </html> 
