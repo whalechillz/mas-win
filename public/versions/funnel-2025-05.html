@@ -220,12 +220,16 @@
     </script>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WPBX97JG"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
     <div class="bg-black text-white py-2 px-6">
         <div class="container mx-auto flex justify-center md:justify-end items-center space-x-6 text-sm">
-            <a href="tel:080-028-8888" onclick="trackPhoneCall('top_consultation')" class="flex items-center hover:text-[#FFD700] transition duration-300">
+            <a href="tel:080-028-8888" onclick="dataLayer.push({event: 'cta_click', cta_type: 'tel', cta_label: '무료 비거리 상담'});trackPhoneCall('top_consultation')" class="flex items-center hover:text-[#FFD700] transition duration-300">
                 <i class="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 비거리 상담: 080-028-8888 (무료)
             </a>
-            <a href="tel:031-215-0013" onclick="trackPhoneCall('top_appointment')" class="flex items-center hover:text-[#FFD700] transition duration-300">
+            <a href="tel:031-215-0013" onclick="dataLayer.push({event: 'cta_click', cta_type: 'tel', cta_label: '시타 예약'});trackPhoneCall('top_appointment')" class="flex items-center hover:text-[#FFD700] transition duration-300">
                 <i class="fas fa-calendar-check mr-2 text-[#FFD700]"></i> 시타 예약: 031-215-0013
             </a>
         </div>
@@ -272,8 +276,7 @@
                     60세, 당신의 골프 전성기는 이제부터입니다
                 </p>
 
-                <a href="https://www.mas9golf.com/try-a-massgoo"
-                   class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg">
+                <a href="https://www.mas9golf.com/try-a-massgoo" onclick="dataLayer.push({event: 'cta_click', cta_type: 'link', cta_label: '전성기의 순간으로'});" class="gold-button inline-block px-8 py-4 rounded-full text-black font-medium tracking-wide shadow-lg">
                     전성기의 순간으로
                 </a>
             </div>
@@ -534,7 +537,7 @@
                 가족과 함께하는 필드 위에서, 당신은 여전히 주인공입니다. 그 자부심을 다시 한번, MASGOLF<sup>®</sup>가 함께합니다.
             </p>
 
-            <a href="https://www.mas9golf.com/try-a-massgoo" class="gold-button inline-block px-10 py-5 rounded-full text-black text-lg font-medium tracking-wide shadow-lg mb-8">
+            <a href="https://www.mas9golf.com/try-a-massgoo" onclick="dataLayer.push({event: 'cta_click', cta_type: 'link', cta_label: '전성기의 순간으로(하단)'});" class="gold-button inline-block px-10 py-5 rounded-full text-black text-lg font-medium tracking-wide shadow-lg mb-8">
                 전성기의 순간으로
             </a>
 
@@ -707,7 +710,7 @@
                             </ul>
                             <p class="text-[#333333] italic">※ 방문 예약 시 "5월 가정의 달 이벤트"를 언급해주세요.</p>
                             <div class="mt-6 text-center">
-                                <a href="tel:031-215-0013" onclick="trackPhoneCall('coupon_call')" class="gold-button inline-block px-6 py-3 rounded-full text-black font-medium tracking-wide shadow-lg">
+                                <a href="tel:031-215-0013" onclick="dataLayer.push({event: 'cta_click', cta_type: 'tel', cta_label: '지금 예약하기'});trackPhoneCall('coupon_call')" class="gold-button inline-block px-6 py-3 rounded-full text-black font-medium tracking-wide shadow-lg">
                                     <i class="fas fa-phone-alt mr-2"></i> 지금 예약하기: 031-215-0013
                                 </a>
                             </div>
@@ -791,10 +794,10 @@
 
     <div class="fixed bottom-0 left-0 w-full bg-[#002147] text-white py-3 md:hidden z-50">
         <div class="container mx-auto flex justify-between items-center px-4">
-            <a href="tel:080-028-8888" onclick="trackPhoneCall('mobile_consultation')" class="flex-1 text-center py-3 bg-[#FFD700] text-black rounded-l-lg font-medium">
+            <a href="tel:080-028-8888" onclick="dataLayer.push({event: 'cta_click', cta_type: 'tel', cta_label: '무료 비거리 상담(하단)'});trackPhoneCall('mobile_consultation')" class="flex-1 text-center py-3 bg-[#FFD700] text-black rounded-l-lg font-medium">
                 <i class="fas fa-phone-alt mr-1"></i> 무료 비거리 상담
             </a>
-            <a href="https://www.mas9golf.com/try-a-massgoo" class="flex-1 text-center py-3 bg-white text-black rounded-r-lg font-medium">
+            <a href="https://www.mas9golf.com/try-a-massgoo" onclick="dataLayer.push({event: 'cta_click', cta_type: 'link', cta_label: '시타 예약(하단)'});" class="flex-1 text-center py-3 bg-white text-black rounded-r-lg font-medium">
                 <i class="fas fa-calendar-check mr-1"></i> 시타 예약
             </a>
         </div>
@@ -802,5 +805,35 @@
 
     <div class="h-20 md:h-0"></div>
 
+    <script>
+    // 체류 시간 이벤트 (3초, 5초, 10초)
+    (function() {
+      var fired3 = false, fired5 = false, fired10 = false;
+      setTimeout(function() {
+        if (!fired3) { dataLayer.push({event: 'stay_3s'}); fired3 = true; }
+      }, 3000);
+      setTimeout(function() {
+        if (!fired5) { dataLayer.push({event: 'stay_5s'}); fired5 = true; }
+      }, 5000);
+      setTimeout(function() {
+        if (!fired10) { dataLayer.push({event: 'stay_10s'}); fired10 = true; }
+      }, 10000);
+    })();
+    // 스크롤 이벤트 (50%, 75%)
+    (function() {
+      var fired50 = false, fired75 = false;
+      window.addEventListener('scroll', function() {
+        var scrollTop = window.scrollY || window.pageYOffset;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var scrollPercent = (scrollTop / docHeight) * 100;
+        if (!fired50 && scrollPercent >= 50) {
+          dataLayer.push({event: 'scroll_50'}); fired50 = true;
+        }
+        if (!fired75 && scrollPercent >= 75) {
+          dataLayer.push({event: 'scroll_75'}); fired75 = true;
+        }
+      });
+    })();
+    </script>
 </body>
 </html> 
