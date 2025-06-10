@@ -5,8 +5,13 @@ module.exports = {
       return [
         {
           source: '/',
-          destination: '/versions/funnel-2025-05.html',
+          destination: '/funnel-2025-06',
           permanent: false,
+        },
+        {
+          source: '/versions/funnel-2025-06',
+          destination: '/versions/funnel-2025-06.html',
+          permanent: true,
         },
       ];
     },
