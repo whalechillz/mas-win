@@ -64,6 +64,7 @@ export default function Funnel202506() {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <script src="https://cdn.tailwindcss.com"></script>
         <style dangerouslySetInnerHTML={{ __html: `
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
           @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
@@ -154,7 +155,7 @@ export default function Funnel202506() {
               </div>
             </div>
             <p className="text-center text-gray-400 mt-6 text-lg">
-              실제 MASGOLF® 고객의 라운드 영상 - <span className="text-[#FFD700]">알지 카트</span>에서의 위대한 순간
+              실제 MASGOLF® 고객의 라운드 영상 - <span className="text-[#FFD700]">40년 경력 골퍼</span>의 완벽한 하루
             </p>
           </div>
         </div>
