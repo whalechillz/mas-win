@@ -26,7 +26,7 @@ export default function Funnel202506() {
 
   // Experience counter animation
   useEffect(() => {
-    const target = 40
+    const target = 30
     const increment = target / 100
     let current = 0
     const timer = setInterval(() => {
@@ -236,7 +236,7 @@ export default function Funnel202506() {
               </div>
             </div>
             <p className="text-center text-gray-400 mt-6 text-lg">
-              실제 MASGOLF® 고객의 라운드 영상 - <span className="text-[#FFD700]">40년 경력 골퍼</span>의 완벽한 하루
+              실제 MASGOLF® 고객의 라운드 영상 - <span className="text-[#FFD700]">30년 경력 골퍼</span>의 완벽한 하루
             </p>
           </div>
         </div>
@@ -250,7 +250,7 @@ export default function Funnel202506() {
           </h2>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
           <p className="text-xl text-center text-gray-300 mb-8 scroll-reveal">
-            40년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
+            30년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
           </p>
           <div className="text-center mb-16">
             <div className="inline-flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm">
@@ -306,7 +306,7 @@ export default function Funnel202506() {
           </h2>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
           <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
-            40년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
+            30년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
           </p>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -331,13 +331,14 @@ export default function Funnel202506() {
                   JFE/DAIDO 티타늄으로 제작된 초박형 페이스는 당신의 경험있는 스윙에 최고의 반발력을 선사합니다. 프리미엄 골퍼를 위한 프리미엄 소재입니다.
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="bg-[#FFD700]/10 rounded-lg px-4 py-2 face-thickness-trigger">
-                    <span className="text-[#FFD700] font-bold text-lg">{faceThickness}mm</span>
-                    <span className="text-gray-400 text-sm ml-2">초박형 페이스</span>
+                  <div className="bg-[#FFD700]/20 rounded-lg px-6 py-4 face-thickness-trigger">
+                    <span className="text-[#FFD700] font-bold text-4xl md:text-5xl">{faceThickness}mm</span>
+                    <span className="text-gray-300 text-sm md:text-base ml-2 block">초박형 페이스</span>
                   </div>
-                  <div className="text-gray-400 text-sm">
-                    <i className="fas fa-arrow-down text-[#FFD700] mr-1"></i>
-                    더 얇은 페이스, 더 강한 반발
+                  <div className="text-gray-300">
+                    <i className="fas fa-arrow-down text-[#FFD700] mr-2"></i>
+                    더 얇은 페이스,<br/>
+                    더 강한 반발
                   </div>
                 </div>
               </div>
@@ -385,7 +386,7 @@ export default function Funnel202506() {
               <div className="p-8 bg-[#1a1a1a]">
                 <h3 className="text-2xl font-bold text-[#FFD700] mb-4">NGS 프라임 샤프트<br />마스터 에디션</h3>
                 <p className="text-gray-300 mb-4">
-                  40년 경력 골퍼의 스윙 특성을 완벽 분석하여 개발된 독점 샤프트. 10년 교환 보장으로 평생 파트너가 됩니다.
+                  30년 경력 골퍼의 스윙 특성을 완벽 분석하여 개발된 독점 샤프트. 10년 교환 보장으로 평생 파트너가 됩니다.
                 </p>
                 <div className="bg-[#FFD700]/10 rounded-lg px-4 py-2 inline-block">
                   <span className="text-[#FFD700] font-bold text-sm">✓ 10년 무료 교체 보증</span>
@@ -404,7 +405,7 @@ export default function Funnel202506() {
           </h2>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
           <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
-            40년 이상의 골프 경력을 가진 시니어 골퍼들이 MASGOLF®와 함께한 황금기 경험담
+            30년 이상의 골프 경력을 가진 시니어 골퍼들이 MASGOLF®와 함께한 황금기 경험담
           </p>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -418,7 +419,7 @@ export default function Funnel202506() {
                 />
                 <div>
                   <h4 className="text-white font-bold">최○○님</h4>
-                  <p className="text-[#FFD700] text-sm">68세, 43년 경력</p>
+                  <p className="text-[#FFD700] text-sm">68세, 35년 경력</p>
                 </div>
               </div>
               <div className="flex text-[#FFD700] mb-4">
@@ -429,7 +430,7 @@ export default function Funnel202506() {
                 <i className="fas fa-star"></i>
               </div>
               <p className="text-gray-300 italic">
-                "43년 골프를 쳤지만, MASGOLF®로 바꾸고 나서야 진짜 인생 황금기가 시작된 것 같습니다. 동반자들이 '정말 잘 치신다'고 인정해주네요."
+                "35년 골프를 쳤지만, MASGOLF®로 바꾸고 나서야 진짜 인생 황금기가 시작된 것 같습니다. 동반자들이 '정말 잘 치신다'고 인정해주네요."
               </p>
             </div>
 
@@ -443,7 +444,7 @@ export default function Funnel202506() {
                 />
                 <div>
                   <h4 className="text-white font-bold">정○○님</h4>
-                  <p className="text-[#FFD700] text-sm">65세, 40년 경력</p>
+                  <p className="text-[#FFD700] text-sm">65세, 32년 경력</p>
                 </div>
               </div>
               <div className="flex text-[#FFD700] mb-4">
@@ -454,7 +455,7 @@ export default function Funnel202506() {
                 <i className="fas fa-star"></i>
               </div>
               <p className="text-gray-300 italic">
-                "회사 임원진 모임에서 제가 가장 멀리 치게 되었습니다. 40년 골프 인생에서 가장 자신감 넘치는 시기입니다. 정말 감사합니다."
+                "회사 임원진 모임에서 제가 가장 멀리 치게 되었습니다. 32년 골프 인생에서 가장 자신감 넘치는 시기입니다. 정말 감사합니다."
               </p>
             </div>
 
@@ -468,7 +469,7 @@ export default function Funnel202506() {
                 />
                 <div>
                   <h4 className="text-white font-bold">김○○님</h4>
-                  <p className="text-[#FFD700] text-sm">62세, 38년 경력</p>
+                  <p className="text-[#FFD700] text-sm">62세, 30년 경력</p>
                 </div>
               </div>
               <div className="flex text-[#FFD700] mb-4">
@@ -624,7 +625,7 @@ export default function Funnel202506() {
                 onClick={() => setActiveFAQ(activeFAQ === 4 ? null : 4)}
                 className="flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4"
               >
-                <span>40년 경력 골퍼에게도 정말 효과가 있을까요?</span>
+                <span>30년 경력 골퍼에게도 정말 효과가 있을까요?</span>
                 <i className={`fas fa-plus text-[#FFD700] transition-transform duration-300 ${activeFAQ === 4 ? 'rotate-45' : ''}`}></i>
               </button>
               <div className={`mt-3 text-[#666] px-4 ${activeFAQ === 4 ? '' : 'hidden'}`}>
@@ -649,7 +650,7 @@ export default function Funnel202506() {
             지금이 당신의 인생 황금기입니다
           </h2>
           <p className="text-xl text-gray-300 mb-12 scroll-reveal">
-            40년의 경험이 MASGOLF®의 기술과 만날 때, 필드의 진정한 주인공이 됩니다
+            30년의 경험이 MASGOLF®의 기술과 만날 때, 필드의 진정한 주인공이 됩니다
           </p>
           
           <div className="flex flex-col md:flex-row gap-6 justify-center items-center mb-12">
@@ -695,7 +696,7 @@ export default function Funnel202506() {
           <div className="mb-8">
             <h3 className="text-[#FFD700] text-2xl font-bold mb-4">MASGOLF® Premium</h3>
             <p className="text-gray-500">
-              40년의 경험이 만나는 특별한 순간
+            30년의 경험이 만나는 특별한 순간
             </p>
           </div>
           
