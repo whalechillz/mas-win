@@ -174,7 +174,7 @@ export default function Funnel202506() {
                   onPlay={() => document.getElementById('playButton')?.classList.add('hidden')}
                   onPause={() => document.getElementById('playButton')?.classList.remove('hidden')}
                 >
-                  <source src="/assets/campaigns/2025-06/primetime-golfer-daily.mp4" type="video/mp4" />
+                  <source src="/assets/campaigns/2025-06/golden-time-golfer-story.mp4" type="video/mp4" />
                   브라우저가 비디오 재생을 지원하지 않습니다.
                 </video>
                 <div 
