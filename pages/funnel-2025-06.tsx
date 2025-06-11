@@ -89,11 +89,12 @@ export default function Funnel202506() {
             <i className="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 황금기 상담: 080-028-8888 (무료)
           </a>
           <a 
-            href="tel:031-215-0013" 
-            onClick={() => trackPhoneCall('top_appointment')} 
+            href="https://www.mas9golf.com/try-a-massgoo" 
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center hover:text-[#FFD700] transition duration-300"
           >
-            <i className="fas fa-calendar-check mr-2 text-[#FFD700]"></i> 골든아워 시타: 031-215-0013
+            <i className="fas fa-calendar-check mr-2 text-[#FFD700]"></i> 골든아워 시타: 예약하기
           </a>
         </div>
       </div>
@@ -425,8 +426,9 @@ export default function Funnel202506() {
               황금기 상담 신청
             </a>
             <a 
-              href="tel:031-215-0013" 
-              onClick={() => trackPhoneCall('cta_fitting')}
+              href="https://www.mas9golf.com/try-a-massgoo" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-transparent border-2 border-[#FFD700] text-[#FFD700] font-bold py-5 px-12 rounded-full text-lg hover:bg-[#FFD700] hover:text-[#1a2847] transform hover:scale-105 transition-all duration-300 flex items-center"
             >
               <i className="fas fa-golf-ball mr-3"></i>
@@ -466,9 +468,9 @@ export default function Funnel202506() {
               <i className="fas fa-phone-alt mr-2"></i>
               080-028-8888
             </a>
-            <a href="tel:031-215-0013" className="hover:text-[#FFD700] transition">
-              <i className="fas fa-map-marker-alt mr-2"></i>
-              031-215-0013
+            <a href="https://www.mas9golf.com/try-a-massgoo" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD700] transition">
+              <i className="fas fa-calendar-check mr-2"></i>
+              시타 예약하기
             </a>
           </div>
           
