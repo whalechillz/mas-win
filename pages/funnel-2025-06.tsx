@@ -123,12 +123,12 @@ export default function Funnel202506() {
                   id="primeTimeVideo"
                   className="w-full rounded-xl shadow-lg"
                   controls
-                  poster="/assets/hero/golf-course-aerial.jpg"
+                  poster="/assets/hero/hero_father_son_golf_1080x1920.jpg"
                   preload="metadata"
                   onPlay={() => document.getElementById('playButton')?.classList.add('hidden')}
                   onPause={() => document.getElementById('playButton')?.classList.remove('hidden')}
                 >
-                  <source src="/assets/0611.mp4" type="video/mp4" />
+                  <source src="/assets/campaigns/2025-06/primetime-golfer-daily.mp4" type="video/mp4" />
                   브라우저가 비디오 재생을 지원하지 않습니다.
                 </video>
                 <div 
@@ -203,6 +203,91 @@ export default function Funnel202506() {
               <p className="text-gray-300">
                 필드에서 보여지는 당신의 실력과 리더십은 모든 동반자들이 인정하는 진정한 골퍼의 모습입니다.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Features Section */}
+      <section className="py-20 px-6 bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
+        <div className="container mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+            프라임타임을 완성하는 프리미엄 기술
+          </h2>
+          <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
+          <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+            40년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* 일본 프리미엄 티타늄 골드 에디션 */}
+            <div className="bg-gradient-to-br from-[#D4AF37] to-[#B8941F] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal">
+              <div className="relative h-64">
+                <img 
+                  src="/assets/product/titanium_club_face_1200x800.jpg" 
+                  alt="일본 프리미엄 티타늄" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                    <i className="fas fa-medal text-white text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 bg-[#1a1a1a]">
+                <h3 className="text-2xl font-bold text-[#FFD700] mb-4">일본 프리미엄 티타늄<br />골드 에디션</h3>
+                <p className="text-gray-300">
+                  JFE/DAIDO 티타늄으로 제작된 초박형 페이스는 당신의 경험있는 스윙에 최고의 반발력을 선사합니다. 프리미엄 골퍼를 위한 프리미엄 소재입니다.
+                </p>
+              </div>
+            </div>
+
+            {/* 반발계수 0.87 */}
+            <div className="bg-gradient-to-br from-[#1a2847] to-[#0f1a2f] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style={{transitionDelay: '0.2s'}}>
+              <div className="relative h-64">
+                <img 
+                  src="/assets/product/driver_impact_1200x800.jpg" 
+                  alt="반발계수 0.87" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-7xl font-bold text-white mb-2">0.87</div>
+                    <div className="text-[#FFD700] text-lg font-medium">최대 반발계수</div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 bg-[#1a1a1a]">
+                <h3 className="text-2xl font-bold text-white mb-4">반발계수 0.87<br />경험자를 위한 파워</h3>
+                <p className="text-gray-300">
+                  규격을 초월한 반발력으로 평균 25m의 추가 비거리를 제공합니다. 당신의 스윙 경험과 만나 시너지를 극대화합니다.
+                </p>
+              </div>
+            </div>
+
+            {/* NGS 프라임 샤프트 */}
+            <div className="bg-gradient-to-br from-[#8B4513] to-[#654321] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style={{transitionDelay: '0.4s'}}>
+              <div className="relative h-64">
+                <img 
+                  src="/assets/product/premium_golf_shaft_detail_1200x800.jpg" 
+                  alt="NGS 프라임 샤프트" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                    <i className="fas fa-cogs text-white text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 bg-[#1a1a1a]">
+                <h3 className="text-2xl font-bold text-[#FFD700] mb-4">NGS 프라임 샤프트<br />마스터 에디션</h3>
+                <p className="text-gray-300">
+                  40년 경력 골퍼의 스윙 특성을 완벽 분석하여 개발된 독점 샤프트. 10년 교환 보장으로 평생 파트너가 됩니다.
+                </p>
+              </div>
             </div>
           </div>
         </div>
