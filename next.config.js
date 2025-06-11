@@ -1,7 +1,7 @@
 // next.config.js
 /** @type {import('next').NextConfig} */
 module.exports = {
-    output: 'export',
+    // output: 'export', // 동적 라우팅을 위해 주석 처리
     images: {
       unoptimized: true,
     },

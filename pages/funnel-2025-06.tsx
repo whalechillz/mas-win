@@ -99,20 +99,35 @@ export default function Funnel202506() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] py-20 px-6">
-        <div className="container mx-auto text-center text-white">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+      <section className="relative bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] py-20 px-6 min-h-[600px] flex items-center" 
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=2070&auto=format&fit=crop')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="container mx-auto text-center text-white relative z-10">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 drop-shadow-2xl">
             당신이 필드의 진짜 주인공인 이유
           </h1>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-8"></div>
-          <p className="text-xl md:text-2xl mb-12 text-gray-300">
+          <p className="text-xl md:text-2xl mb-12 text-gray-100 drop-shadow-lg">
             40년의 경험, 축적된 노하우, 그리고 MASGOLF®의 혁신 기술이 만나는 순간
           </p>
+          <div className="mt-8">
+            <a 
+              href="#video-section"
+              className="inline-block bg-[#FFD700] text-black px-8 py-4 rounded-full font-bold hover:bg-[#FFC700] transform hover:scale-105 transition-all duration-300 shadow-xl"
+            >
+              인생 황금기 영상 보기 <i className="fas fa-play-circle ml-2"></i>
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Video Section - 프라임타임 골퍼의 하루 */}
-      <section className="py-20 px-6 bg-[#0a0a0a]">
+      <section id="video-section" className="py-20 px-6 bg-[#0a0a0a]">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-12 scroll-reveal">
             인생 황금기 골퍼의 하루
@@ -124,7 +139,6 @@ export default function Funnel202506() {
                   id="primeTimeVideo"
                   className="w-full rounded-xl shadow-lg"
                   controls
-                  poster="/assets/hero/hero_father_son_golf_1080x1920.jpg"
                   preload="metadata"
                   onPlay={() => document.getElementById('playButton')?.classList.add('hidden')}
                   onPause={() => document.getElementById('playButton')?.classList.remove('hidden')}
