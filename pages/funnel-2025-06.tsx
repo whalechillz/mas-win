@@ -314,8 +314,8 @@ export default function Funnel202506() {
             <div className="bg-gradient-to-br from-[#D4AF37] to-[#B8941F] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal">
               <div className="relative h-64">
                 <img 
-                  src="/assets/product/titanium_club_face_1200x800.jpg" 
-                  alt="일본 프리미엄 티타늄" 
+                  src="/assets/product/titanium-face-2.2mm.jpg" 
+                  alt="일본 프리미엄 티타늄 2.2mm" 
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
