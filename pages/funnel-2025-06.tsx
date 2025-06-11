@@ -294,6 +294,103 @@ export default function Funnel202506() {
         </div>
       </section>
 
+      {/* Customer Reviews Section */}
+      <section className="py-20 px-6 bg-[#0a0a0a]">
+        <div className="container mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+            프라임타임을 경험한 동료들의 이야기
+          </h2>
+          <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
+          <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+            40년 이상의 골프 경력을 가진 시니어 골퍼들이 MASGOLF®와 함께한 프라임타임 경험담
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* 후기 1 */}
+            <div className="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 scroll-reveal">
+              <div className="flex items-center mb-6">
+                <img 
+                  src="/assets/review/golfer_avatar_512x512_01.jpg" 
+                  alt="최○○님" 
+                  className="w-16 h-16 rounded-full mr-4 border-2 border-[#FFD700]"
+                />
+                <div>
+                  <h4 className="text-white font-bold">최○○님</h4>
+                  <p className="text-[#FFD700] text-sm">68세, 43년 경력</p>
+                </div>
+              </div>
+              <div className="flex text-[#FFD700] mb-4">
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+              </div>
+              <p className="text-gray-300 italic">
+                "43년 골프를 쳤지만, MASGOLF®로 바꾸고 나서야 진짜 프라임타임이 시작된 것 같습니다. 동반자들이 '정말 잘 치신다'고 인정해주네요."
+              </p>
+            </div>
+
+            {/* 후기 2 */}
+            <div className="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style={{transitionDelay: '0.2s'}}>
+              <div className="flex items-center mb-6">
+                <img 
+                  src="/assets/review/golfer_avatar_512x512_02.jpg" 
+                  alt="정○○님" 
+                  className="w-16 h-16 rounded-full mr-4 border-2 border-[#FFD700]"
+                />
+                <div>
+                  <h4 className="text-white font-bold">정○○님</h4>
+                  <p className="text-[#FFD700] text-sm">65세, 40년 경력</p>
+                </div>
+              </div>
+              <div className="flex text-[#FFD700] mb-4">
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+              </div>
+              <p className="text-gray-300 italic">
+                "회사 임원진 모임에서 제가 가장 멀리 치게 되었습니다. 40년 골프 인생에서 가장 자신감 넘치는 시기입니다. 정말 감사합니다."
+              </p>
+            </div>
+
+            {/* 후기 3 */}
+            <div className="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style={{transitionDelay: '0.4s'}}>
+              <div className="flex items-center mb-6">
+                <img 
+                  src="/assets/review/golfer_avatar_512x512_03.jpg" 
+                  alt="김○○님" 
+                  className="w-16 h-16 rounded-full mr-4 border-2 border-[#FFD700]"
+                />
+                <div>
+                  <h4 className="text-white font-bold">김○○님</h4>
+                  <p className="text-[#FFD700] text-sm">62세, 38년 경력</p>
+                </div>
+              </div>
+              <div className="flex text-[#FFD700] mb-4">
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+              </div>
+              <p className="text-gray-300 italic">
+                "젊은 골퍼들이 부러워하는 일관된 샷을 구사할 수 있게 되었습니다. 경험과 기술이 만나니 이런 결과가 나오는군요."
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-[#FFD700] text-lg font-medium">
+              <i className="fas fa-trophy mr-2"></i>
+              프라임타임 고객 만족도 98%
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-6 bg-gradient-to-br from-[#1a2847] to-[#0f1a2f]">
         <div className="container mx-auto text-center">
