@@ -57,8 +57,8 @@ export default function Funnel202506() {
   return (
     <div className="min-h-screen bg-black">
       <Head>
-        <title>MASGOLF | 6월 프라임타임 퍼널</title>
-        <meta name="description" content="MASGOLF 6월 프라임타임 퍼널 - 40년 경력 골퍼를 위한 특별한 경험과 혜택" />
+        <title>MASGOLF | 6월 인생 황금기 캠페인</title>
+        <meta name="description" content="MASGOLF 6월 인생 황금기 캠페인 - 40년 경력 골퍼를 위한 특별한 경험과 혜택" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -86,7 +86,7 @@ export default function Funnel202506() {
             onClick={() => trackPhoneCall('top_consultation')} 
             className="flex items-center hover:text-[#FFD700] transition duration-300"
           >
-            <i className="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 프라임타임 상담: 080-028-8888 (무료)
+            <i className="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 황금기 상담: 080-028-8888 (무료)
           </a>
           <a 
             href="tel:031-215-0013" 
@@ -115,7 +115,7 @@ export default function Funnel202506() {
       <section className="py-20 px-6 bg-[#0a0a0a]">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-12 scroll-reveal">
-            프라임타임 골퍼의 하루
+            인생 황금기 골퍼의 하루
           </h2>
           <div className="max-w-4xl mx-auto">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#1a2847] to-[#0f1a2f] p-4">
@@ -150,7 +150,7 @@ export default function Funnel202506() {
               <div className="mt-4 text-center">
                 <div className="inline-flex items-center bg-[#FFD700]/10 rounded-full px-4 py-2">
                   <i className="fas fa-play-circle text-[#FFD700] mr-2"></i>
-                  <span className="text-[#FFD700] font-medium">프라임타임 골퍼의 하루</span>
+                  <span className="text-[#FFD700] font-medium">인생 황금기 골퍼의 하루</span>
                 </div>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function Funnel202506() {
       <section className="py-20 px-6 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
-            프라임타임을 완성하는 프리미엄 기술
+            인생 황금기를 완성하는 프리미엄 기술
           </h2>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
           <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
@@ -298,11 +298,11 @@ export default function Funnel202506() {
       <section className="py-20 px-6 bg-[#0a0a0a]">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
-            프라임타임을 경험한 동료들의 이야기
+            인생 황금기를 경험한 동료들의 이야기
           </h2>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
           <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
-            40년 이상의 골프 경력을 가진 시니어 골퍼들이 MASGOLF®와 함께한 프라임타임 경험담
+            40년 이상의 골프 경력을 가진 시니어 골퍼들이 MASGOLF®와 함께한 황금기 경험담
           </p>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -327,7 +327,7 @@ export default function Funnel202506() {
                 <i className="fas fa-star"></i>
               </div>
               <p className="text-gray-300 italic">
-                "43년 골프를 쳤지만, MASGOLF®로 바꾸고 나서야 진짜 프라임타임이 시작된 것 같습니다. 동반자들이 '정말 잘 치신다'고 인정해주네요."
+                "43년 골프를 쳤지만, MASGOLF®로 바꾸고 나서야 진짜 인생 황금기가 시작된 것 같습니다. 동반자들이 '정말 잘 치신다'고 인정해주네요."
               </p>
             </div>
 
@@ -385,7 +385,7 @@ export default function Funnel202506() {
           <div className="text-center mt-12">
             <p className="text-[#FFD700] text-lg font-medium">
               <i className="fas fa-trophy mr-2"></i>
-              프라임타임 고객 만족도 98%
+              황금기 고객 만족도 98%
             </p>
           </div>
         </div>
@@ -395,7 +395,7 @@ export default function Funnel202506() {
       <section className="py-20 px-6 bg-gradient-to-br from-[#1a2847] to-[#0f1a2f]">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 scroll-reveal">
-            지금이 당신의 프라임타임입니다
+            지금이 당신의 인생 황금기입니다
           </h2>
           <p className="text-xl text-gray-300 mb-12 scroll-reveal">
             40년의 경험이 MASGOLF®의 기술과 만날 때, 필드의 진정한 주인공이 됩니다
@@ -408,7 +408,7 @@ export default function Funnel202506() {
               className="gold-button bg-[#FFD700] text-[#1a2847] font-bold py-5 px-12 rounded-full text-lg hover:bg-[#FFE55C] transform hover:scale-105 transition-all duration-300 shadow-2xl flex items-center"
             >
               <i className="fas fa-phone-alt mr-3"></i>
-              무료 상담 신청하기
+              황금기 상담 신청
             </a>
             <a 
               href="tel:031-215-0013" 
@@ -416,7 +416,7 @@ export default function Funnel202506() {
               className="bg-transparent border-2 border-[#FFD700] text-[#FFD700] font-bold py-5 px-12 rounded-full text-lg hover:bg-[#FFD700] hover:text-[#1a2847] transform hover:scale-105 transition-all duration-300 flex items-center"
             >
               <i className="fas fa-golf-ball mr-3"></i>
-              골든아워 시타 예약
+              황금기 시타 예약
             </a>
           </div>
 
@@ -460,7 +460,7 @@ export default function Funnel202506() {
           
           <div className="border-t border-gray-800 pt-8">
             <p className="text-sm text-gray-600">
-              © 2025 MASGOLF®. All rights reserved. | 프라임타임 6월 특별 캠페인
+              © 2025 MASGOLF®. All rights reserved. | 인생 황금기 6월 특별 캠페인
             </p>
           </div>
         </div>
