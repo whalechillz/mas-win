@@ -6,6 +6,7 @@ export default function Funnel202506() {
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false)
   const [experienceCount, setExperienceCount] = useState(0)
   const [corCount, setCorCount] = useState(0)
+  const [faceThickness, setFaceThickness] = useState(2.4)
   const [activeFAQ, setActiveFAQ] = useState<number|null>(null)
 
   // Phone call tracking
@@ -65,6 +66,41 @@ export default function Funnel202506() {
     observer.observe(corElement)
     return () => observer.disconnect()
   }, [corCount])
+
+  // Face thickness animation (2.4 -> 2.2) - triggered when element is visible
+  useEffect(() => {
+    const faceElement = document.querySelector('.face-thickness-trigger')
+    if (!faceElement) return
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && faceThickness === 2.4) {
+          const start = 2.4
+          const end = 2.2
+          const duration = 2000 // 2 seconds
+          const startTime = Date.now()
+          
+          const animate = () => {
+            const currentTime = Date.now()
+            const elapsed = currentTime - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            
+            const current = start - (start - end) * progress
+            setFaceThickness(Number(current.toFixed(2)))
+            
+            if (progress < 1) {
+              requestAnimationFrame(animate)
+            }
+          }
+          
+          requestAnimationFrame(animate)
+        }
+      })
+    }, { threshold: 0.5 })
+
+    observer.observe(faceElement)
+    return () => observer.disconnect()
+  }, [faceThickness])
 
   // Scroll reveal animation
   useEffect(() => {
@@ -217,8 +253,9 @@ export default function Funnel202506() {
             40년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
           </p>
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-6 text-sm">
+            <div className="inline-flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm">
               <span className="text-[#FFD700] font-medium"><i className="fas fa-check-circle mr-2"></i>반발계수 0.87</span>
+              <span className="text-[#FFD700] font-medium face-thickness-trigger"><i className="fas fa-check-circle mr-2"></i>페이스 {faceThickness}mm</span>
               <span className="text-[#FFD700] font-medium"><i className="fas fa-check-circle mr-2"></i>10년 무료 교체</span>
               <span className="text-[#FFD700] font-medium"><i className="fas fa-check-circle mr-2"></i>평균 25m 추가</span>
             </div>
@@ -290,9 +327,19 @@ export default function Funnel202506() {
               </div>
               <div className="p-8 bg-[#1a1a1a]">
                 <h3 className="text-2xl font-bold text-[#FFD700] mb-4">일본 프리미엄 티타늄<br />골드 에디션</h3>
-                <p className="text-gray-300">
+                <p className="text-gray-300 mb-4">
                   JFE/DAIDO 티타늄으로 제작된 초박형 페이스는 당신의 경험있는 스윙에 최고의 반발력을 선사합니다. 프리미엄 골퍼를 위한 프리미엄 소재입니다.
                 </p>
+                <div className="flex items-center gap-4">
+                  <div className="bg-[#FFD700]/10 rounded-lg px-4 py-2 face-thickness-trigger">
+                    <span className="text-[#FFD700] font-bold text-lg">{faceThickness}mm</span>
+                    <span className="text-gray-400 text-sm ml-2">초박형 페이스</span>
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    <i className="fas fa-arrow-down text-[#FFD700] mr-1"></i>
+                    더 얇은 페이스, 더 강한 반발
+                  </div>
+                </div>
               </div>
             </div>
 
