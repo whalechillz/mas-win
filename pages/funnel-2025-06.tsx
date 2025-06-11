@@ -130,7 +130,7 @@ export default function Funnel202506() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] py-20 px-6 min-h-[600px] flex items-center" 
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=2070&auto=format&fit=crop')`,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('/assets/hero/golden-time-senior-golfer.jpeg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -468,7 +468,13 @@ export default function Funnel202506() {
               </p>
             </div>
 
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30" 
+              style={{
+                backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15)), url('/assets/campaigns/2025-06/fitting-session-golden-hour.jpeg')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
               <i className="fas fa-clock text-4xl text-[#002147] mb-4"></i>
               <h3 className="text-xl font-bold text-[#002147] mb-4">골든아워 시타회</h3>
               <p className="text-[#002147] opacity-80">
