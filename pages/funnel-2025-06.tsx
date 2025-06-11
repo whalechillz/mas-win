@@ -39,21 +39,32 @@ export default function Funnel202506() {
     return () => clearInterval(timer)
   }, [])
 
-  // COR counter animation (0.87)
+  // COR counter animation (0.87) - triggered when element is visible
   useEffect(() => {
-    const target = 0.87
-    const increment = target / 100
-    let current = 0
-    const timer = setInterval(() => {
-      current += increment
-      if (current >= target) {
-        current = target
-        clearInterval(timer)
-      }
-      setCorCount(Number(current.toFixed(2)))
-    }, 30)
-    return () => clearInterval(timer)
-  }, [])
+    const corElement = document.querySelector('.cor-counter-trigger')
+    if (!corElement) return
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && corCount === 0) {
+          const target = 0.87
+          const increment = target / 100
+          let current = 0
+          const timer = setInterval(() => {
+            current += increment
+            if (current >= target) {
+              current = target
+              clearInterval(timer)
+            }
+            setCorCount(Number(current.toFixed(2)))
+          }, 30)
+        }
+      })
+    }, { threshold: 0.5 })
+
+    observer.observe(corElement)
+    return () => observer.disconnect()
+  }, [corCount])
 
   // Scroll reveal animation
   useEffect(() => {
@@ -222,7 +233,7 @@ export default function Funnel202506() {
 
             {/* 기술의 완성 */}
             <div className="bg-[#1a2847] rounded-2xl p-8 text-center hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style={{transitionDelay: '0.2s'}}>
-              <div className="bg-[#FFD700] rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+              <div className="bg-[#FFD700] rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 cor-counter-trigger">
                 <span className="text-[#1a2847] text-3xl font-bold">{corCount}</span>
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">기술의 완성</h3>
@@ -290,8 +301,8 @@ export default function Funnel202506() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-7xl font-bold text-white mb-2">0.87</div>
+                  <div className="text-center cor-counter-trigger">
+                    <div className="text-7xl font-bold text-white mb-2">{corCount || '0.00'}</div>
                     <div className="text-[#FFD700] text-lg font-medium">최대 반발계수</div>
                   </div>
                 </div>
@@ -519,8 +530,8 @@ export default function Funnel202506() {
                   <li><span className="font-medium">5년 이상 고객</span>: 기본 20% 할인</li>
                   <li><span className="font-medium">2년 이상 고객</span>: 기본 15% 할인</li>
                   <li><span className="font-medium">동반자 추천</span>: 추천인 15% 할인, 피추천인 15% 할인</li>
-                  <li><span className="font-medium">황금기 챌린지 참가자</span>: 추가 10% 할인</li>
-                  <li><span className="font-medium">쿠폰 중복 적용</span>: 최대 50% 할인까지 가능</li>
+                  <li><span className="font-medium">마쓰구 드라이버 보상</span>: 골드 40만원, 블랙 20만원</li>
+                  <li><span className="font-medium">중복 적용 가능</span>: 할인과 보상 프로그램 모두 적용</li>
                 </ul>
                 <p>상담 시 골프 경력을 말씀해 주시면 최적의 혜택을 안내해 드립니다.</p>
               </div>
@@ -604,7 +615,7 @@ export default function Funnel202506() {
               <div className="text-[#FFD700] text-5xl font-bold mb-2">{experienceCount}년+</div>
               <p className="text-gray-400">평균 골프 경력</p>
             </div>
-            <div className="text-center">
+            <div className="text-center cor-counter-trigger">
               <div className="text-[#FFD700] text-5xl font-bold mb-2">{corCount}</div>
               <p className="text-gray-400">반발계수</p>
             </div>
