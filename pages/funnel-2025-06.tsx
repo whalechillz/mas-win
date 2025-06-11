@@ -5,6 +5,7 @@ export default function Funnel202506() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false)
   const [experienceCount, setExperienceCount] = useState(0)
+  const [corCount, setCorCount] = useState(0)
   const [activeFAQ, setActiveFAQ] = useState<number|null>(null)
 
   // Phone call tracking
@@ -34,6 +35,22 @@ export default function Funnel202506() {
         clearInterval(timer)
       }
       setExperienceCount(Math.floor(current))
+    }, 30)
+    return () => clearInterval(timer)
+  }, [])
+
+  // COR counter animation (0.87)
+  useEffect(() => {
+    const target = 0.87
+    const increment = target / 100
+    let current = 0
+    const timer = setInterval(() => {
+      current += increment
+      if (current >= target) {
+        current = target
+        clearInterval(timer)
+      }
+      setCorCount(Number(current.toFixed(2)))
     }, 30)
     return () => clearInterval(timer)
   }, [])
@@ -109,12 +126,16 @@ export default function Funnel202506() {
         }}
       >
         <div className="container mx-auto text-center text-white relative z-10">
+          <div className="inline-block bg-[#FFD700] text-black px-6 py-2 rounded-full text-sm font-bold mb-6 animate-pulse">
+            6월 인생 황금기 특별 캠페인
+          </div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 drop-shadow-2xl">
-            당신이 필드의 진짜 주인공인 이유
+            <span className="block text-[#FFD700] mb-4">{experienceCount}년 골프 경력,</span>
+            <span className="block">이제야 진짜 시작입니다</span>
           </h1>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-8"></div>
           <p className="text-xl md:text-2xl mb-12 text-gray-100 drop-shadow-lg">
-            40년의 경험, 축적된 노하우, 그리고 MASGOLF®의 혁신 기술이 만나는 순간
+            경험 많은 골퍼의 인생 황금기가 시작되는 6월
           </p>
           <div className="mt-8">
             <a 
@@ -202,11 +223,11 @@ export default function Funnel202506() {
             {/* 기술의 완성 */}
             <div className="bg-[#1a2847] rounded-2xl p-8 text-center hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style={{transitionDelay: '0.2s'}}>
               <div className="bg-[#FFD700] rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                <i className="fas fa-chart-line text-[#1a2847] text-4xl"></i>
+                <span className="text-[#1a2847] text-3xl font-bold">{corCount}</span>
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">기술의 완성</h3>
               <p className="text-gray-300">
-                반복과 수 0.87의 MASGOLF® 드라이버가 당신의 경험에 25m의 추가 비거리를 선사합니다.
+                반발계수 {corCount}의 MASGOLF® 드라이버가 당신의 경험에 25m의 추가 비거리를 선사합니다.
               </p>
             </div>
 
@@ -406,6 +427,148 @@ export default function Funnel202506() {
         </div>
       </section>
 
+      {/* June Special Campaign - 황금기 챌린지 */}
+      <section className="py-20 px-6 bg-gradient-to-br from-[#FFD700] to-[#FFA500] scroll-reveal">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-[#002147] mb-6 scroll-reveal">
+            6월 황금기 챌린지
+          </h2>
+          <p className="text-[#002147] max-w-2xl mx-auto mb-12 text-lg leading-relaxed">
+            경험 많은 골퍼들을 위한 특별한 6월 한정 이벤트가 시작됩니다
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+              <i className="fas fa-trophy text-4xl text-[#002147] mb-4"></i>
+              <h3 className="text-xl font-bold text-[#002147] mb-4">황금기 챌린지</h3>
+              <p className="text-[#002147] opacity-80">
+                매장 방문자 중 최장 비거리 기록 고객<br/>
+                리무진 골프투어 무료 이용권 제공
+              </p>
+            </div>
+
+            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+              <i className="fas fa-handshake text-4xl text-[#002147] mb-4"></i>
+              <h3 className="text-xl font-bold text-[#002147] mb-4">동반자 인정 프로그램</h3>
+              <p className="text-[#002147] opacity-80">
+                추천인 15% 할인<br/>
+                피추천인 15% 할인<br/>
+                "이 분과 라운드하고 싶다" 추천 이벤트
+              </p>
+            </div>
+
+            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+              <i className="fas fa-clock text-4xl text-[#002147] mb-4"></i>
+              <h3 className="text-xl font-bold text-[#002147] mb-4">골든아워 시타회</h3>
+              <p className="text-[#002147] opacity-80">
+                6월 한정 오후 4-6시 황금시간대 특별 시타<br/>
+                전문 프로의 1:1 스윙 분석 포함
+              </p>
+            </div>
+          </div>
+
+          <a href="https://www.mas9golf.com/try-a-massgoo" target="_blank" rel="noopener noreferrer" className="gold-button bg-[#002147] hover:bg-[#003366] text-white inline-block px-10 py-5 rounded-full text-lg font-medium tracking-wide shadow-lg">
+            6월 황금기 챌린지 신청하기
+          </a>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 px-6 bg-white scroll-reveal">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-[#002147] mb-4">자주 묻는 질문</h2>
+            <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-6"></div>
+            <p className="text-[#777777] max-w-2xl mx-auto">
+              MASGOLF®와 6월 황금기 캠페인에 관한 궁금증을 해결해 드립니다
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <div className="mb-4 border-b border-gray-200 pb-4">
+              <button 
+                onClick={() => setActiveFAQ(activeFAQ === 1 ? null : 1)}
+                className="flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4"
+              >
+                <span>황금기 챌린지는 어떻게 참여하나요?</span>
+                <i className={`fas fa-plus text-[#FFD700] transition-transform duration-300 ${activeFAQ === 1 ? 'rotate-45' : ''}`}></i>
+              </button>
+              <div className={`mt-3 text-[#666] px-4 ${activeFAQ === 1 ? '' : 'hidden'}`}>
+                <p className="mb-4">황금기 챌린지는 경험 많은 골퍼들을 위한 특별 이벤트입니다:</p>
+                <ul className="list-disc pl-5 mb-4 space-y-2">
+                  <li><span className="font-medium">참가 방법</span>: MASGOLF® 시타 센터 방문 후 신청</li>
+                  <li><span className="font-medium">챌린지 내용</span>: MASGOLF® 드라이버로 최장 비거리 기록</li>
+                  <li><span className="font-medium">시상</span>: 매장 방문자 중 최장 기록 고객에게 리무진 골프투어 무료 이용권</li>
+                  <li><span className="font-medium">참가자 혜택</span>: 참가자 전원 특별 할인 제공</li>
+                </ul>
+                <p>031-215-0013으로 연락주시면 자세한 참가 안내를 받으실 수 있습니다.</p>
+              </div>
+            </div>
+
+            <div className="mb-4 border-b border-gray-200 pb-4">
+              <button 
+                onClick={() => setActiveFAQ(activeFAQ === 2 ? null : 2)}
+                className="flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4"
+              >
+                <span>6월 황금기 할인 혜택은 어떻게 적용되나요?</span>
+                <i className={`fas fa-plus text-[#FFD700] transition-transform duration-300 ${activeFAQ === 2 ? 'rotate-45' : ''}`}></i>
+              </button>
+              <div className={`mt-3 text-[#666] px-4 ${activeFAQ === 2 ? '' : 'hidden'}`}>
+                <p className="mb-4">6월 황금기 할인은 경험 많은 골퍼를 위한 특별 혜택입니다:</p>
+                <ul className="list-disc pl-5 mb-4 space-y-2">
+                  <li><span className="font-medium">5년 이상 고객</span>: 기본 20% 할인</li>
+                  <li><span className="font-medium">2년 이상 고객</span>: 기본 15% 할인</li>
+                  <li><span className="font-medium">동반자 추천</span>: 추천인 15% 할인, 피추천인 15% 할인</li>
+                  <li><span className="font-medium">황금기 챌린지 참가자</span>: 추가 10% 할인</li>
+                  <li><span className="font-medium">쿠폰 중복 적용</span>: 최대 50% 할인까지 가능</li>
+                </ul>
+                <p>상담 시 골프 경력을 말씀해 주시면 최적의 혜택을 안내해 드립니다.</p>
+              </div>
+            </div>
+
+            <div className="mb-4 border-b border-gray-200 pb-4">
+              <button 
+                onClick={() => setActiveFAQ(activeFAQ === 3 ? null : 3)}
+                className="flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4"
+              >
+                <span>골든아워 시타회는 일반 시타와 어떻게 다른가요?</span>
+                <i className={`fas fa-plus text-[#FFD700] transition-transform duration-300 ${activeFAQ === 3 ? 'rotate-45' : ''}`}></i>
+              </button>
+              <div className={`mt-3 text-[#666] px-4 ${activeFAQ === 3 ? '' : 'hidden'}`}>
+                <p className="mb-4">골든아워 시타회는 6월 한정으로 진행되는 프리미엄 체험 프로그램입니다:</p>
+                <ul className="list-disc pl-5 mb-4 space-y-2">
+                  <li><span className="font-medium">시간</span>: 오후 4-6시 황금시간대 (조명이 가장 아름다운 시간)</li>
+                  <li><span className="font-medium">서비스</span>: 전문 프로의 1:1 스윙 분석 및 맞춤 피팅</li>
+                  <li><span className="font-medium">환경</span>: 실제 필드와 유사한 조건에서 체험</li>
+                  <li><span className="font-medium">특전</span>: 개인별 스윙 데이터 제공 및 향후 개선 방향 컨설팅</li>
+                </ul>
+                <p>예약은 선착순이며, 하루 최대 8명까지만 진행됩니다.</p>
+              </div>
+            </div>
+
+            <div className="mb-4 border-b border-gray-200 pb-4">
+              <button 
+                onClick={() => setActiveFAQ(activeFAQ === 4 ? null : 4)}
+                className="flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4"
+              >
+                <span>40년 경력 골퍼에게도 정말 효과가 있을까요?</span>
+                <i className={`fas fa-plus text-[#FFD700] transition-transform duration-300 ${activeFAQ === 4 ? 'rotate-45' : ''}`}></i>
+              </button>
+              <div className={`mt-3 text-[#666] px-4 ${activeFAQ === 4 ? '' : 'hidden'}`}>
+                <p className="mb-4">네, 오히려 경험 많은 골퍼일수록 MASGOLF®의 진가를 더 잘 느끼실 수 있습니다:</p>
+                <ul className="list-disc pl-5 mb-4 space-y-2">
+                  <li><span className="font-medium">스윙 안정성</span>: 오랜 경험으로 다져진 일관된 스윙과 고반발 기술의 시너지</li>
+                  <li><span className="font-medium">상황 판단력</span>: 코스 전략을 아는 만큼 추가 비거리의 활용도가 극대화됨</li>
+                  <li><span className="font-medium">체력적 한계 극복</span>: 나이로 인한 체력 저하를 기술로 보완</li>
+                  <li><span className="font-medium">자신감 회복</span>: 젊은 시절 비거리를 되찾아 플레이의 즐거움 극대화</li>
+                </ul>
+                <p>실제로 30년 이상 경력의 고객분들이 가장 높은 만족도를 보이고 계십니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-6 bg-gradient-to-br from-[#1a2847] to-[#0f1a2f]">
         <div className="container mx-auto text-center">
@@ -442,7 +605,7 @@ export default function Funnel202506() {
               <p className="text-gray-400">평균 골프 경력</p>
             </div>
             <div className="text-center">
-              <div className="text-[#FFD700] text-5xl font-bold mb-2">0.87</div>
+              <div className="text-[#FFD700] text-5xl font-bold mb-2">{corCount}</div>
               <p className="text-gray-400">반발계수</p>
             </div>
             <div className="text-center">
