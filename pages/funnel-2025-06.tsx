@@ -104,6 +104,10 @@ export default function Funnel202506() {
           .scroll-reveal { opacity: 0; transform: translateY(50px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
           .scroll-reveal.is-visible { opacity: 1; transform: translateY(0); }
           @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+          .hero-section { position: relative; overflow: hidden; }
+          .hero-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('/assets/hero/golden-time-senior-golfer.jpeg'); background-size: cover; background-position: center 60%; background-repeat: no-repeat; transform: scale(1.3); }
+          @media (min-width: 768px) { .hero-section::before { background-size: cover; background-position: center 40%; background-attachment: fixed; transform: scale(1.2); } }
+          @media (max-width: 767px) { .hero-section::before { background-size: cover; background-position: center 65%; transform: scale(1.4); } }
         `}} />
       </Head>
       {/* Top Contact Bar */}
@@ -128,14 +132,8 @@ export default function Funnel202506() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] py-20 px-6 min-h-[600px] flex items-center" 
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('/assets/hero/golden-time-senior-golfer.jpeg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
-        }}
-      >
+      <section className="hero-section bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] py-20 px-6 min-h-[700px] md:min-h-[800px] flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/80 z-[1]"></div>
         <div className="container mx-auto text-center text-white relative z-10">
           <div className="inline-block bg-[#FFD700] text-black px-6 py-2 rounded-full text-sm font-bold mb-6 animate-pulse">
             6월 인생 황금기 특별 캠페인
@@ -215,9 +213,16 @@ export default function Funnel202506() {
             인생 황금기를 완성하는 프리미엄 기술
           </h2>
           <div className="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
-          <p className="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+          <p className="text-xl text-center text-gray-300 mb-8 scroll-reveal">
             40년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
           </p>
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-6 text-sm">
+              <span className="text-[#FFD700] font-medium"><i className="fas fa-check-circle mr-2"></i>반발계수 0.87</span>
+              <span className="text-[#FFD700] font-medium"><i className="fas fa-check-circle mr-2"></i>10년 무료 교체</span>
+              <span className="text-[#FFD700] font-medium"><i className="fas fa-check-circle mr-2"></i>평균 25m 추가</span>
+            </div>
+          </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* 경험의 깊이 */}
@@ -332,9 +337,12 @@ export default function Funnel202506() {
               </div>
               <div className="p-8 bg-[#1a1a1a]">
                 <h3 className="text-2xl font-bold text-[#FFD700] mb-4">NGS 프라임 샤프트<br />마스터 에디션</h3>
-                <p className="text-gray-300">
+                <p className="text-gray-300 mb-4">
                   40년 경력 골퍼의 스윙 특성을 완벽 분석하여 개발된 독점 샤프트. 10년 교환 보장으로 평생 파트너가 됩니다.
                 </p>
+                <div className="bg-[#FFD700]/10 rounded-lg px-4 py-2 inline-block">
+                  <span className="text-[#FFD700] font-bold text-sm">✓ 10년 무료 교체 보증</span>
+                </div>
               </div>
             </div>
           </div>
