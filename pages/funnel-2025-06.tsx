@@ -487,7 +487,8 @@ export default function Funnel202506() {
               <h3 className="text-xl font-bold text-[#002147] mb-4">골든아워 시타회</h3>
               <p className="text-[#002147] opacity-80">
                 6월 한정 오후 4-6시 황금시간대 특별 시타<br/>
-                전문 프로의 1:1 스윙 분석 포함
+                전문 프로의 1:1 스윙 분석 포함<br/>
+                <span className="text-sm">(하루 3명, 총 30명 한정)</span>
               </p>
             </div>
           </div>
@@ -567,7 +568,7 @@ export default function Funnel202506() {
                   <li><span className="font-medium">환경</span>: 실제 필드와 유사한 조건에서 체험</li>
                   <li><span className="font-medium">특전</span>: 개인별 스윙 데이터 제공 및 향후 개선 방향 컨설팅</li>
                 </ul>
-                <p>예약은 선착순이며, 하루 최대 8명까지만 진행됩니다.</p>
+                <p>예약은 선착순이며, 하루 최대 3명까지만 진행됩니다. (총 30명 한정)</p>
               </div>
             </div>
 
