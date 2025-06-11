@@ -76,11 +76,22 @@
                         <p class="text-[#666]">필드에서 보여지는 당신의 실력과 리더십은 모든 동반자들이 인정하는 진정한 골퍼의 모습입니다.</p>
                     </div>
                 </div>
-                <div class="rounded-xl min-h-[400px] flex items-center justify-center text-white bg-gradient-to-br from-[#002147] to-[#003366]">
-                    <div class="text-center">
-                        <i class="fas fa-play-circle text-6xl text-[#FFD700] mb-4"></i>
-                        <h3 class="text-xl mb-2">프라임타임 골퍼의 하루</h3>
-                        <p class="text-sm opacity-80">실제 MASGOLF® 고객의 라운드 영상</p>
+                <div class="rounded-xl min-h-[400px] flex items-center justify-center text-white bg-gradient-to-br from-[#002147] to-[#003366] relative overflow-hidden">
+                    <video 
+                        class="absolute inset-0 w-full h-full object-cover"
+                        controls
+                        poster="../assets/hero/hero_father_son_golf_1080x1920.jpg"
+                        preload="metadata"
+                    >
+                        <source src="../assets/campaigns/2025-06/primetime-golfer-daily.mp4" type="video/mp4" />
+                        브라우저가 비디오 재생을 지원하지 않습니다.
+                    </video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="text-center bg-black/50 p-8 rounded-xl">
+                            <i class="fas fa-play-circle text-6xl text-[#FFD700] mb-4"></i>
+                            <h3 class="text-xl mb-2">프라임타임 골퍼의 하루</h3>
+                            <p class="text-sm opacity-80">실제 MASGOLF® 고객의 라운드 영상</p>
+                        </div>
                     </div>
                 </div>
             </div>
