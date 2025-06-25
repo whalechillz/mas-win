@@ -12,6 +12,25 @@ export default function Funnel202506() {
   // Phone call tracking
   const trackPhoneCall = (location: string) => {
     console.log('Phone call tracked:', location)
+    
+    // Google Ads 전환 추적
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-YOUR_CONVERSION_ID/YOUR_CONVERSION_LABEL',
+        'value': 1.0,
+        'currency': 'KRW'
+      })
+    }
+    
+    // GA4 이벤트 추적 (선택사항)
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'phone_click', {
+        'event_category': 'engagement',
+        'event_label': location,
+        'value': 1
+      })
+    }
+    
     return true
   }
 
