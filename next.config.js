@@ -12,17 +12,8 @@ module.exports = {
           destination: '/funnel-2025-06',
           permanent: false,
         },
-        // 정적 파일에서 동적 라우트로 리다이렉트
-        {
-          source: '/versions/funnel-2025-05.html',
-          destination: '/funnel-2025-05',
-          permanent: true,
-        },
-        {
-          source: '/versions/funnel-2025-06.html',
-          destination: '/funnel-2025-06',
-          permanent: true,
-        },
+        // 정적 파일 리다이렉트 제거 - HTML 파일 직접 접근 허용
+        // 5월, 6월 퍼널 페이지는 /versions/ 경로로 직접 접근
       ];
     },
   };
