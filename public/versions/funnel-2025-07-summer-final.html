@@ -772,7 +772,8 @@
         // 퀴즈 결과 저장
         async function saveQuizResult() {
             try {
-                const response = await fetch('/api/quiz-result', {
+                const baseUrl = window.location.origin;
+                const response = await fetch(baseUrl + '/api/quiz-result', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -871,7 +872,8 @@
             
             try {
                 // API로 전송
-                const response = await fetch('/api/booking', {
+                const baseUrl = window.location.origin;
+                const response = await fetch(baseUrl + '/api/booking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -906,7 +908,8 @@
             
             try {
                 // API로 전송
-                const response = await fetch('/api/contact', {
+                const baseUrl = window.location.origin;
+                const response = await fetch(baseUrl + '/api/contact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
