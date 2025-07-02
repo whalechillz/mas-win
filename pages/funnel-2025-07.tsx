@@ -6,7 +6,7 @@ export default function Funnel202507() {
 
   useEffect(() => {
     // 정적 HTML 파일로 리다이렉트
-    router.replace('/versions/funnel-2025-07-hot-summer-swing.html')
+    router.replace('/versions/funnel-2025-07-summer-final.html')
   }, [router])
 
   return (
