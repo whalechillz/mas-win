@@ -199,20 +199,55 @@
                 비거리, 정확도 향상을 위한 준비
             </p>
             
-            <div class="max-w-4xl mx-auto">
-                <div class="relative rounded-2xl overflow-hidden shadow-2xl">
-                    <div class="bg-gradient-to-br from-red-900 to-black p-1">
-                        <div class="bg-black rounded-xl p-8 text-center">
-                            <div class="shine-effect inline-block">
-                                <img src="/assets/product/driver_impact_1200x800.jpg" 
-                                     alt="MAS 드라이버 헤드" 
-                                     class="w-full max-w-md mx-auto rounded-lg">
-                            </div>
-                            <p class="text-gray-400 mt-6">
-                                <i class="fas fa-play-circle text-red-500 mr-2"></i>
-                                헤드 클로즈업 - 빛 반사 효과로 활기 표현
-                            </p>
+            <div class="max-w-6xl mx-auto">
+                <!-- 헤드 클로즈업 이미지 그리드 -->
+                <div class="grid md:grid-cols-3 gap-6 mb-12">
+                    <div class="relative group">
+                        <div class="shine-effect overflow-hidden rounded-xl">
+                            <img src="/assets/campaigns/2025-07/secret-force-pro3.jpg" 
+                                 alt="시크리트포스 PRO 3" 
+                                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500">
                         </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-white font-bold">시크리트포스 PRO 3</h4>
+                            <p class="text-red-500">2.3mm 고반발 페이스</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <div class="shine-effect overflow-hidden rounded-xl">
+                            <img src="/assets/campaigns/2025-07/secret-weapon-black.jpg" 
+                                 alt="시크리트웨폰 블랙" 
+                                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-white font-bold">시크리트웨폰 블랙</h4>
+                            <p class="text-red-500">2.2mm 저중심 설계</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <div class="shine-effect overflow-hidden rounded-xl">
+                            <img src="/assets/campaigns/2025-07/secret-force-v3.jpg" 
+                                 alt="시크리트포스 V3" 
+                                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-white font-bold">시크리트포스 V3</h4>
+                            <p class="text-red-500">2.4mm 최강 반발력</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 빛 반사 효과 설명 -->
+                <div class="bg-gradient-to-br from-red-900 to-black p-1 rounded-2xl max-w-4xl mx-auto">
+                    <div class="bg-black rounded-xl p-8 text-center">
+                        <i class="fas fa-star text-red-500 text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold text-white mb-4">헤드 클로즈업 - 빛 반사 효과로 활기 표현</h3>
+                        <p class="text-gray-400">
+                            임팩트 순간 폭발적인 에너지를 표현하는 MAS 고반발 기술<br>
+                            태양보다 뜨거운 당신의 열정을 담아냅니다
+                        </p>
                     </div>
                 </div>
             </div>
@@ -295,19 +330,8 @@
                         <div id="recommendedProduct" class="bg-gray-800 rounded-xl p-8 mt-8">
                             <!-- 동적으로 생성됨 -->
                         </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                            <a href="#" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition">
-                                <i class="fas fa-calendar-check mr-2"></i>시타 예약
-                            </a>
-                            <a href="tel:080-028-8888" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
-                                <i class="fas fa-phone mr-2"></i>전화 상담
-                            </a>
-                            <a href="#" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
-                                <i class="fas fa-comment mr-2"></i>문의하기
-                            </a>
-                            <a href="#" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
-                                <i class="fas fa-info-circle mr-2"></i>상세보기
-                            </a>
+                        <div id="resultButtons" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                            <!-- 동적으로 생성됨 -->
                         </div>
                     </div>
                 </div>
@@ -689,15 +713,78 @@
         };
 
         const products = {
-            'stability-distance': { name: '시트리트포스 pro3', desc: '안정적인 비거리 향상' },
-            'stability-direction': { name: '시트리트웨폰 블랙', desc: '정확한 방향성' },
-            'stability-comfort': { name: '시트리트포스 V3', desc: '편안한 스윙감' },
-            'power-distance': { name: '시트리트포스 pro3', desc: '파워풀한 비거리' },
-            'power-direction': { name: '시트리트웨폰 블랙', desc: '강력하고 정확한 샷' },
-            'power-comfort': { name: '시트리트포스 V3', desc: '부드러운 파워' },
-            'hybrid-distance': { name: '시트리트포스 pro3', desc: '균형잡힌 비거리' },
-            'hybrid-direction': { name: '시트리트웨폰 블랙', desc: '올라운드 정확성' },
-            'hybrid-comfort': { name: '시트리트포스 V3', desc: '편안한 올라운드' }
+            'stability-distance': { 
+                name: '시크리트포스 PRO 3', 
+                desc: '안정적인 비거리 향상',
+                spec: '2.3mm 고반발 헤드',
+                feature: '완벽한 티샷을 위한 업그레이드된 반발력',
+                link: 'https://www.mas9golf.com/secret-force-pro-3',
+                image: '/assets/campaigns/2025-07/secret-force-pro3.jpg'
+            },
+            'stability-direction': { 
+                name: '시크리트웨폰 블랙', 
+                desc: '정확한 방향성',
+                spec: '2.2mm 고반발 페이스',
+                feature: '안정적인 저중심 설계와 맑고 청아한 타구음',
+                link: 'https://www.mas9golf.com/secret-weapon-black',
+                image: '/assets/campaigns/2025-07/secret-weapon-black.jpg'
+            },
+            'stability-comfort': { 
+                name: '시크리트포스 V3', 
+                desc: '편안한 스윙감',
+                spec: '2.4mm 초강력 페이스',
+                feature: '한계를 넘는 비거리 혁신',
+                link: 'https://www.mas9golf.com/secret-force-v3',
+                image: '/assets/campaigns/2025-07/secret-force-v3.jpg'
+            },
+            'power-distance': { 
+                name: '시크리트포스 PRO 3', 
+                desc: '파워풀한 비거리',
+                spec: '2.3mm 고반발 헤드',
+                feature: '검도 27년차 고객 227m 비거리 달성',
+                link: 'https://www.mas9golf.com/secret-force-pro-3',
+                image: '/assets/campaigns/2025-07/secret-force-pro3.jpg'
+            },
+            'power-direction': { 
+                name: '시크리트웨폰 블랙', 
+                desc: '강력하고 정확한 샷',
+                spec: '2.2mm 저중심 설계',
+                feature: '더 멀리, 더 정확하게',
+                link: 'https://www.mas9golf.com/secret-weapon-black',
+                image: '/assets/campaigns/2025-07/secret-weapon-black.jpg'
+            },
+            'power-comfort': { 
+                name: '시크리트포스 V3', 
+                desc: '부드러운 파워',
+                spec: '2.4mm 강력한 티샷',
+                feature: '프로 대회 수준을 초월하는 드라이버',
+                link: 'https://www.mas9golf.com/secret-force-v3',
+                image: '/assets/campaigns/2025-07/secret-force-v3.jpg'
+            },
+            'hybrid-distance': { 
+                name: '시크리트포스 PRO 3', 
+                desc: '균형잡힌 비거리',
+                spec: '2.3mm 정확한 두께',
+                feature: '실제 고객 60대 비거리 20m 증가',
+                link: 'https://www.mas9golf.com/secret-force-pro-3',
+                image: '/assets/campaigns/2025-07/secret-force-pro3.jpg'
+            },
+            'hybrid-direction': { 
+                name: '시크리트웨폰 블랙', 
+                desc: '올라운드 정확성',
+                spec: '2.2mm 업그레이드 반발력',
+                feature: '60대 골퍼 비거리 15m 향상 비결',
+                link: 'https://www.mas9golf.com/secret-weapon-black',
+                image: '/assets/campaigns/2025-07/secret-weapon-black.jpg'
+            },
+            'hybrid-comfort': { 
+                name: '시크리트포스 V3', 
+                desc: '편안한 올라운드',
+                spec: '2.4mm 고반발 페이스',
+                feature: 'V2에서 V3로 업그레이드, 2년간의 신뢰',
+                link: 'https://www.mas9golf.com/secret-force-v3',
+                image: '/assets/campaigns/2025-07/secret-force-v3.jpg'
+            }
         };
 
         function selectAnswer(step, value) {
@@ -735,15 +822,44 @@
             
             // 결과 표시
             const resultHTML = `
-                <h4 class="text-2xl font-bold text-red-500 mb-4">${product.name}</h4>
-                <p class="text-gray-300 mb-6">${product.desc}</p>
-                <div class="bg-red-900/20 rounded-xl p-6">
-                    <p class="text-gray-400 mb-2">현재 비거리: <span class="text-white font-bold">${quizData.distance}m</span></p>
-                    <p class="text-gray-400">예상 비거리: <span class="text-red-500 font-bold text-2xl">${quizData.distance + 25}m</span></p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <img src="${product.image}" alt="${product.name}" class="w-full rounded-xl shadow-2xl">
+                    </div>
+                    <div>
+                        <h4 class="text-3xl font-bold text-red-500 mb-2">${product.name}</h4>
+                        <p class="text-xl text-gray-300 mb-4">${product.desc}</p>
+                        <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                            <p class="text-white font-bold mb-2"><i class="fas fa-cog text-red-500 mr-2"></i>${product.spec}</p>
+                            <p class="text-gray-400">${product.feature}</p>
+                        </div>
+                        <div class="bg-red-900/20 rounded-xl p-6">
+                            <p class="text-gray-400 mb-2">현재 비거리: <span class="text-white font-bold">${quizData.distance}m</span></p>
+                            <p class="text-gray-400">예상 비거리: <span class="text-red-500 font-bold text-2xl">${quizData.distance + 25}m</span></p>
+                        </div>
+                    </div>
                 </div>
             `;
             
             document.getElementById('recommendedProduct').innerHTML = resultHTML;
+            
+            // CTA 버튼 생성
+            const buttonsHTML = `
+                <a href="https://www.mas9golf.com/try-a-massgoo" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition">
+                    <i class="fas fa-calendar-check mr-2"></i>시타 예약
+                </a>
+                <a href="tel:080-028-8888" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
+                    <i class="fas fa-phone mr-2"></i>전화 상담
+                </a>
+                <a href="#contact-form" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
+                    <i class="fas fa-comment mr-2"></i>문의하기
+                </a>
+                <a href="${product.link}" target="_blank" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
+                    <i class="fas fa-info-circle mr-2"></i>상세보기
+                </a>
+            `;
+            
+            document.getElementById('resultButtons').innerHTML = buttonsHTML;
             document.getElementById('step3').classList.remove('active');
             document.getElementById('result').classList.add('active');
         }
