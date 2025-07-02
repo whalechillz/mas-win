@@ -1,117 +1,73 @@
-# MAS Golf 웹사이트
+# MASGOLF 웹사이트
 
-공식 MAS Golf 웹사이트 및 캠페인 페이지
+골프 클럽 판매를 위한 Next.js 기반 랜딩 페이지 프로젝트입니다.
 
-## 🏌️ 프로젝트 구조
+## 기술 스택
 
-```
-win.masgolf.co.kr/
-├── pages/
-│   ├── admin.js                    # 관리자 대시보드
-│   ├── campaign/
-│   │   ├── 2025-07.js             # 7월 캠페인 라우트
-│   │   └── july-2025.js           # 7월 캠페인 (환경변수 연동)
-│   └── api/
-│       └── slack-notify.js         # Slack 알림 API
-├── public/
-│   ├── assets/
-│   │   └── campaigns/
-│   │       └── 2025-07/           # 7월 캠페인 이미지
-│   └── versions/
-│       └── funnel-2025-07-complete.html  # 7월 캠페인 페이지
-├── scripts/
-│   └── supabase-schema.sql        # 데이터베이스 스키마
-└── docs/
-    └── campaign-2025-07-setup.md  # 설정 가이드
-
-```
-
-## 🚀 시작하기
-
-### 1. 의존성 설치
-```bash
-npm install
-# 또는
-yarn install
-```
-
-### 2. 환경 변수 설정
-`.env.local` 파일 생성:
-```bash
-cp .env.example .env.local
-```
-
-필수 값 입력:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SLACK_WEBHOOK_URL` (선택사항)
-
-### 3. 개발 서버 실행
-```bash
-npm run dev
-# 또는
-yarn dev
-```
-
-### 4. 빌드
-```bash
-npm run build
-# 또는
-yarn build
-```
-
-## 📱 주요 페이지
-
-### 사용자 페이지
-- **7월 캠페인**: `/campaign/2025-07` 또는 `/campaign/july-2025`
-- **정적 HTML**: `/versions/funnel-2025-07-complete.html`
-
-### 관리자 페이지
-- **대시보드**: `/admin`
-- Supabase 인증 필요
-
-## 🛠 기술 스택
-
-- **프레임워크**: Next.js
+- **프레임워크**: Next.js 14
+- **언어**: JavaScript/TypeScript
 - **스타일링**: Tailwind CSS
 - **데이터베이스**: Supabase
-- **알림**: Slack Webhooks
+- **알림**: Slack Webhook
 - **배포**: Vercel
 
-## 📊 캠페인 기능
+## 프로젝트 구조
 
-### 7월 썸머 스페셜
-1. **비거리 비교 애니메이션**
-   - 현재 비거리 입력
-   - MAS 클럽 사용 시 예상 비거리 시각화
-   
-2. **맞춤 클럽 추천 퀴즈**
-   - 스윙 스타일 분석
-   - 중요 요소 파악
-   - 개인화된 제품 추천
+```
+/pages
+  /api          - API 라우트
+  /admin        - 관리자 페이지
+  /campaign     - 캠페인 페이지
+  funnel-*.tsx  - 퍼널 페이지들
 
-3. **예약 및 문의**
-   - 시타 예약 시스템
-   - 전화 상담 연결
-   - 문의 접수 폼
+/public
+  /assets       - 이미지 및 정적 파일
+  /versions     - HTML 랜딩 페이지
 
-4. **관리자 기능**
-   - 실시간 예약/문의 확인
-   - 상태 관리
-   - Slack 알림
+/components     - React 컴포넌트
+/styles         - 글로벌 스타일
+```
 
-## 🔐 보안
+## 환경 설정
 
-- Supabase Row Level Security 적용
-- 환경 변수로 민감한 정보 관리
-- 서버사이드 API로 Slack 통신
+`.env.local` 파일에 다음 환경 변수 설정:
 
-## 📞 지원
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+SLACK_WEBHOOK_URL=your_slack_webhook_url
+ADMIN_PASS=admin_password
+```
 
-- **전화**: 080-028-8888
-- **이메일**: support@masgolf.com
-- **문서**: `/docs/campaign-2025-07-setup.md`
+## 개발 서버 실행
 
-## 📝 라이선스
+```bash
+npm install
+npm run dev
+```
 
-© 2025 MAS Golf. All rights reserved.
+## 배포
+
+Vercel을 사용한 배포:
+
+```bash
+vercel --prod
+```
+
+## API 엔드포인트
+
+- `/api/contact` - 문의 접수
+- `/api/booking` - 시타 예약
+- `/api/quiz-result` - 퀴즈 결과 저장
+- `/api/admin-login` - 관리자 로그인
+
+## 주요 페이지
+
+- `/funnel-2025-07` - 7월 여름 캠페인
+- `/funnel-2025-06` - 6월 프라임타임 캠페인
+- `/funnel-2025-05` - 5월 가정의달 캠페인
+- `/admin` - 관리자 대시보드
+
+## 백업 정보
+
+`/backup-2025-01` 디렉토리에 이전 버전 및 임시 파일들이 백업되어 있습니다.
