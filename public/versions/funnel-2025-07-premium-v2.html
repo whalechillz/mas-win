@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF | 뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* 카드 플립 애니메이션 */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 400px;
+            perspective: 1000px;
+        }
+        
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+        
+        /* 그라데이션 효과 */
+        .summer-gradient {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+        }
+        
+        .cool-gradient {
+            background: linear-gradient(135deg, #00D4FF 0%, #0090FF 100%);
+        }
+        
+        .dark-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        
+        /* 스크롤 애니메이션 */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .scroll-reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 네온 효과 */
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.8),
+                         0 0 20px rgba(255, 107, 53, 0.6),
+                         0 0 30px rgba(255, 107, 53, 0.4);
+        }
+        
+        /* 비거리 비교 애니메이션 */
+        .distance-bar {
+            height: 40px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .distance-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 2s ease-out;
+        }
+        
+        /* 카운터 애니메이션 */
+        @keyframes countUp {
+            from { content: "0"; }
+            to { content: attr(data-count); }
+        }
+        
+        /* 퀴즈 카드 스타일 */
+        .quiz-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-black">
+    <!-- 탑 바 -->
+    <div class="bg-gradient-to-r from-[#FF6B35] to-[#F7931E] text-white py-3 px-6 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-sm font-medium">
+                <i class="fas fa-sun mr-2"></i>7월 한정 썸머 스페셜 진행중
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="tel:080-028-8888" class="flex items-center hover:text-yellow-100 transition">
+                    <i class="fas fa-phone-alt mr-2"></i>080-028-8888
+                </a>
+                <a href="#" class="bg-white text-[#FF6B35] px-4 py-1 rounded-full text-sm font-bold hover:bg-yellow-100 transition">
+                    시타 예약
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 영역1: 메인 비주얼 -->
+    <section class="relative h-screen flex items-center justify-center overflow-hidden">
+        <!-- 배경 이미지 -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-black opacity-50"></div>
+            <img src="/assets/campaigns/2025-07/indoor-golf-swing.jpg" 
+                 alt="실내 골프 스윙" 
+                 class="w-full h-full object-cover">
+        </div>
+        
+        <!-- 컨텐츠 -->
+        <div class="relative z-10 text-center text-white px-6">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                <span class="block mb-4">뜨거운 여름,</span>
+                <span class="block text-[#FF6B35] neon-glow">완벽한 스윙</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 opacity-90">
+                품격 있는 퍼포먼스를 위한 준비
+            </p>
+            
+            <!-- 헤드 클로즈업 이미지와 빛 반사 효과 -->
+            <div class="relative inline-block mt-8">
+                <div class="absolute inset-0 bg-gradient-to-r from-[#FF6B35] to-[#F7931E] blur-3xl opacity-50 animate-pulse"></div>
+                <img src="/assets/product/driver_impact_1200x800.jpg" 
+                     alt="MAS9 드라이버 헤드" 
+                     class="relative w-64 h-auto rounded-lg shadow-2xl">
+            </div>
+        </div>
+        
+        <!-- 스크롤 인디케이터 -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <i class="fas fa-chevron-down text-white text-2xl"></i>
+        </div>
+    </section>
+
+    <!-- 영역2: 퀴즈 섹션 - 당신의 여름 스윙 스타일은? -->
+    <section class="py-20 bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+                당신의 <span class="text-[#FF6B35]">여름 스윙 스타일</span>은?
+            </h2>
+            <p class="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+                스타일에 맞는 최적의 클럽을 찾아보세요
+            </p>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- 정밀형 카드 -->
+                <div class="flip-card scroll-reveal">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front summer-gradient p-8 flex flex-col items-center justify-center text-white">
+                            <i class="fas fa-crosshairs text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold mb-4">정밀형</h3>
+                            <p class="text-lg">Precision Style</p>
+                            <div class="mt-6">
+                                <span class="bg-white/20 px-4 py-2 rounded-full text-sm">
+                                    클릭하여 상세보기
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-white p-8 flex flex-col justify-center">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">정밀형 골퍼를 위한</h3>
+                            <h4 class="text-xl text-[#FF6B35] font-bold mb-4">MAS9 PRECISION</h4>
+                            <ul class="text-gray-600 space-y-2 mb-6">
+                                <li><i class="fas fa-check text-[#FF6B35] mr-2"></i>정확한 타구를 위한 최적 밸런스</li>
+                                <li><i class="fas fa-check text-[#FF6B35] mr-2"></i>일관된 스윙 궤도 지원</li>
+                                <li><i class="fas fa-check text-[#FF6B35] mr-2"></i>컨트롤 중시 설계</li>
+                            </ul>
+                            <a href="#" class="summer-gradient text-white px-6 py-3 rounded-full text-center font-bold hover:opacity-90 transition">
+                                자세히 보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 파워형 카드 -->
+                <div class="flip-card scroll-reveal" style="animation-delay: 0.2s">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front cool-gradient p-8 flex flex-col items-center justify-center text-white">
+                            <i class="fas fa-rocket text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold mb-4">파워형</h3>
+                            <p class="text-lg">Power Style</p>
+                            <div class="mt-6">
+                                <span class="bg-white/20 px-4 py-2 rounded-full text-sm">
+                                    클릭하여 상세보기
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-white p-8 flex flex-col justify-center">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">파워형 골퍼를 위한</h3>
+                            <h4 class="text-xl text-[#0090FF] font-bold mb-4">MAS9 POWER</h4>
+                            <ul class="text-gray-600 space-y-2 mb-6">
+                                <li><i class="fas fa-check text-[#0090FF] mr-2"></i>최대 반발계수 0.87</li>
+                                <li><i class="fas fa-check text-[#0090FF] mr-2"></i>평균 25m 비거리 증가</li>
+                                <li><i class="fas fa-check text-[#0090FF] mr-2"></i>강력한 임팩트 전달</li>
+                            </ul>
+                            <a href="#" class="cool-gradient text-white px-6 py-3 rounded-full text-center font-bold hover:opacity-90 transition">
+                                자세히 보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 복합형 카드 -->
+                <div class="flip-card scroll-reveal" style="animation-delay: 0.4s">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front dark-gradient p-8 flex flex-col items-center justify-center text-white">
+                            <i class="fas fa-infinity text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold mb-4">복합형</h3>
+                            <p class="text-lg">Hybrid Style</p>
+                            <div class="mt-6">
+                                <span class="bg-white/20 px-4 py-2 rounded-full text-sm">
+                                    클릭하여 상세보기
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-white p-8 flex flex-col justify-center">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">복합형 골퍼를 위한</h3>
+                            <h4 class="text-xl text-gray-800 font-bold mb-4">MAS9 HYBRID</h4>
+                            <ul class="text-gray-600 space-y-2 mb-6">
+                                <li><i class="fas fa-check text-gray-800 mr-2"></i>정밀성과 파워의 완벽한 조화</li>
+                                <li><i class="fas fa-check text-gray-800 mr-2"></i>상황별 최적 퍼포먼스</li>
+                                <li><i class="fas fa-check text-gray-800 mr-2"></i>올라운드 플레이 지원</li>
+                            </ul>
+                            <a href="#" class="dark-gradient text-white px-6 py-3 rounded-full text-center font-bold hover:opacity-90 transition">
+                                자세히 보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역3: 클럽 성능 3종 강조 -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-16 scroll-reveal">
+                여름을 이기는 <span class="text-[#FF6B35]">3가지 핵심 기술</span>
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- 초박형 페이스 -->
+                <div class="text-center scroll-reveal">
+                    <div class="relative mb-8">
+                        <div class="absolute inset-0 summer-gradient opacity-20 blur-3xl"></div>
+                        <div class="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-8 h-48 flex items-center justify-center">
+                            <div>
+                                <div class="text-6xl font-bold text-[#FF6B35] montserrat">2.2</div>
+                                <div class="text-xl text-gray-600">mm</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">초박형 페이스</h3>
+                    <p class="text-gray-600">
+                        일본산 프리미엄 티타늄으로<br>
+                        극한의 반발력 실현
+                    </p>
+                </div>
+
+                <!-- 반발계수 -->
+                <div class="text-center scroll-reveal" style="animation-delay: 0.2s">
+                    <div class="relative mb-8">
+                        <div class="absolute inset-0 cool-gradient opacity-20 blur-3xl"></div>
+                        <div class="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-8 h-48 flex items-center justify-center">
+                            <div>
+                                <div class="text-6xl font-bold text-[#0090FF] montserrat">0.87</div>
+                                <div class="text-xl text-gray-600">COR</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">최대 반발계수</h3>
+                    <p class="text-gray-600">
+                        규격을 초월한 반발력으로<br>
+                        압도적인 비거리 증가
+                    </p>
+                </div>
+
+                <!-- 독점 샤프트 -->
+                <div class="text-center scroll-reveal" style="animation-delay: 0.4s">
+                    <div class="relative mb-8">
+                        <div class="absolute inset-0 dark-gradient opacity-20 blur-3xl"></div>
+                        <div class="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-8 h-48 flex items-center justify-center">
+                            <div>
+                                <i class="fas fa-award text-6xl text-gray-800"></i>
+                                <div class="text-lg text-gray-600 mt-2">독점개발</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">NGS 샤프트</h3>
+                    <p class="text-gray-600">
+                        50-60대 골퍼 전용 설계<br>
+                        10년 무료 교체 보증
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역4: 평균 비거리 증가 강조 -->
+    <section class="py-20 bg-gradient-to-b from-gray-100 to-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-16 scroll-reveal">
+                확실한 <span class="text-[#FF6B35]">비거리 증가</span>의 증명
+            </h2>
+            
+            <div class="max-w-4xl mx-auto">
+                <!-- 비거리 비교 차트 -->
+                <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12">
+                    <div class="space-y-8">
+                        <!-- 일반 클럽 -->
+                        <div class="scroll-reveal">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-lg font-bold text-gray-700">일반 골프클럽</h4>
+                                <span class="text-2xl font-bold text-gray-500">210m</span>
+                            </div>
+                            <div class="distance-bar bg-gray-200">
+                                <div class="distance-fill bg-gray-400" style="width: 84%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- MAS9 클럽 -->
+                        <div class="scroll-reveal" style="animation-delay: 0.5s">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-lg font-bold text-[#FF6B35]">MAS9 골프클럽</h4>
+                                <span class="text-2xl font-bold text-[#FF6B35]">235m</span>
+                            </div>
+                            <div class="distance-bar bg-orange-100">
+                                <div class="distance-fill summer-gradient" style="width: 94%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 증가량 표시 -->
+                    <div class="text-center mt-12 pt-8 border-t border-gray-200">
+                        <div class="inline-flex items-center gap-4">
+                            <div class="text-6xl font-bold text-[#FF6B35] montserrat">+25</div>
+                            <div class="text-left">
+                                <div class="text-2xl font-bold text-gray-800">미터</div>
+                                <div class="text-gray-600">평균 비거리 증가</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 추가 설명 -->
+                <div class="text-center mt-8">
+                    <p class="text-gray-600">
+                        * 50-60대 남성 골퍼 100명 대상 실측 데이터 평균값
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역5: 고객 후기 -->
+    <section class="py-20 bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-16 scroll-reveal">
+                여름을 극복한 <span class="text-[#FF6B35]">고객님들의 이야기</span>
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- 후기 1 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 scroll-reveal">
+                    <div class="flex items-center mb-6">
+                        <img src="/assets/review/golfer_avatar_512x512_01.jpg" 
+                             alt="김○○님" 
+                             class="w-16 h-16 rounded-full border-2 border-[#FF6B35]">
+                        <div class="ml-4">
+                            <h4 class="text-white font-bold">김○○님</h4>
+                            <p class="text-[#FF6B35] text-sm">58세, 싱글 핸디캐퍼</p>
+                        </div>
+                    </div>
+                    <div class="flex text-[#FF6B35] mb-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic">
+                        "가을 라운드가 더 기대돼요! MAS9를 사용한 뒤 비거리가 확실히 늘어난 느낌입니다. 무더운 여름에도 일관된 샷이 가능했어요."
+                    </p>
+                </div>
+
+                <!-- 후기 2 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 scroll-reveal" style="animation-delay: 0.2s">
+                    <div class="flex items-center mb-6">
+                        <img src="/assets/review/golfer_avatar_512x512_02.jpg" 
+                             alt="박○○님" 
+                             class="w-16 h-16 rounded-full border-2 border-[#FF6B35]">
+                        <div class="ml-4">
+                            <h4 class="text-white font-bold">박○○님</h4>
+                            <p class="text-[#FF6B35] text-sm">62세, 20년 경력</p>
+                        </div>
+                    </div>
+                    <div class="flex text-[#FF6B35] mb-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic">
+                        "MAS9 드라이버는 제 여름 필드의 보물! 정확한 샷으로 친구들에게 멋진 모습을 보여줬습니다. 특히 반발력이 정말 놀라워요."
+                    </p>
+                </div>
+
+                <!-- 후기 3 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 scroll-reveal" style="animation-delay: 0.4s">
+                    <div class="flex items-center mb-6">
+                        <img src="/assets/review/golfer_avatar_512x512_03.jpg" 
+                             alt="이○○님" 
+                             class="w-16 h-16 rounded-full border-2 border-[#FF6B35]">
+                        <div class="ml-4">
+                            <h4 class="text-white font-bold">이○○님</h4>
+                            <p class="text-[#FF6B35] text-sm">55세, 15년 경력</p>
+                        </div>
+                    </div>
+                    <div class="flex text-[#FF6B35] mb-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic">
+                        "MAS9의 가벼운 그립으로 지인들과의 골프가 자신감으로 가득합니다. 무더위에도 끝까지 편안하게 플레이할 수 있었어요."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역6: 방문 고객 선물 패키지 -->
+    <section class="py-20 summer-gradient">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto text-center text-white">
+                <h2 class="text-4xl md:text-5xl font-bold mb-8 scroll-reveal">
+                    7월 방문 고객 <span class="text-yellow-300">특별 혜택</span>
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <!-- 선물 1: 쿨링 타올 -->
+                    <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-8 border border-white/30 scroll-reveal">
+                        <div class="text-6xl mb-4">🎁</div>
+                        <h3 class="text-2xl font-bold mb-4">고급 스포츠 쿨링 타올</h3>
+                        <p class="text-lg mb-2">방문 고객 전원 증정</p>
+                        <p class="text-sm opacity-80">5만원 상당 | 즉시 냉각 기능</p>
+                    </div>
+                    
+                    <!-- 선물 2: 할인 혜택 -->
+                    <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-8 border border-white/30 scroll-reveal" style="animation-delay: 0.2s">
+                        <div class="text-6xl mb-4">💰</div>
+                        <h3 class="text-2xl font-bold mb-4">최대 20% 할인</h3>
+                        <p class="text-lg mb-2">드라이버 전 제품</p>
+                        <p class="text-sm opacity-80">7월 31일까지 한정</p>
+                    </div>
+                </div>
+                
+                <!-- CTA 버튼 -->
+                <a href="#" class="inline-block bg-white text-[#FF6B35] px-12 py-5 rounded-full text-xl font-bold hover:bg-yellow-100 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                    <i class="fas fa-calendar-check mr-3"></i>지금 바로 시타 예약하기
+                </a>
+                
+                <p class="mt-8 text-sm opacity-80">
+                    * 선물은 한정 수량으로 조기 소진될 수 있습니다
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역7: 자주 묻는 질문 -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-16 scroll-reveal">
+                자주 묻는 질문
+            </h2>
+            
+            <div class="max-w-3xl mx-auto space-y-4">
+                <!-- FAQ 1 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden scroll-reveal">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFAQ(1)">
+                        <span class="font-medium text-gray-800">여름철 고온에서도 클럽 성능이 유지되나요?</span>
+                        <i class="fas fa-chevron-down text-[#FF6B35] transition-transform" id="faq-icon-1"></i>
+                    </button>
+                    <div class="hidden px-6 pb-4" id="faq-content-1">
+                        <p class="text-gray-600">
+                            네, MAS9 클럽은 45°C까지 성능 변화가 없는 특수 티타늄을 사용합니다. 열 변형 방지 기술과 UV 코팅으로 한여름에도 동일한 성능을 발휘합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden scroll-reveal" style="animation-delay: 0.1s">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFAQ(2)">
+                        <span class="font-medium text-gray-800">50-60대 골퍼에게 특별히 어떤 장점이 있나요?</span>
+                        <i class="fas fa-chevron-down text-[#FF6B35] transition-transform" id="faq-icon-2"></i>
+                    </button>
+                    <div class="hidden px-6 pb-4" id="faq-content-2">
+                        <p class="text-gray-600">
+                            초경량 설계로 체력 부담을 줄이고, 고반발 기술로 적은 힘으로도 긴 비거리를 낼 수 있습니다. 또한 안정적인 스윙을 도와 일관된 샷을 구사할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden scroll-reveal" style="animation-delay: 0.2s">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFAQ(3)">
+                        <span class="font-medium text-gray-800">시타 후 구매하지 않아도 되나요?</span>
+                        <i class="fas fa-chevron-down text-[#FF6B35] transition-transform" id="faq-icon-3"></i>
+                    </button>
+                    <div class="hidden px-6 pb-4" id="faq-content-3">
+                        <p class="text-gray-600">
+                            물론입니다. 시타는 구매 강요 없이 편안하게 체험하실 수 있습니다. 전문 피터가 스윙 분석과 맞춤 상담을 제공하며, 쿨링 타올은 방문만 하셔도 증정합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden scroll-reveal" style="animation-delay: 0.3s">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFAQ(4)">
+                        <span class="font-medium text-gray-800">AS와 품질 보증은 어떻게 되나요?</span>
+                        <i class="fas fa-chevron-down text-[#FF6B35] transition-transform" id="faq-icon-4"></i>
+                    </button>
+                    <div class="hidden px-6 pb-4" id="faq-content-4">
+                        <p class="text-gray-600">
+                            샤프트 10년 무료 교체, 헤드 5년 품질 보증을 제공합니다. 전국 AS 센터에서 즉시 처리 가능하며, 열 변형 등 하자 발생 시 무상 교체해 드립니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ 5 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden scroll-reveal" style="animation-delay: 0.4s">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFAQ(5)">
+                        <span class="font-medium text-gray-800">7월 프로모션 혜택을 자세히 알고 싶어요</span>
+                        <i class="fas fa-chevron-down text-[#FF6B35] transition-transform" id="faq-icon-5"></i>
+                    </button>
+                    <div class="hidden px-6 pb-4" id="faq-content-5">
+                        <p class="text-gray-600">
+                            7월 한정으로 드라이버 20% 할인, 방문 고객 전원 쿨링 타올 증정, 구매 고객 대상 남해 골프 리조트 2박 3일 여행권 추첨 이벤트를 진행합니다. 080-028-8888로 문의하시면 자세한 안내를 받으실 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 최종 CTA -->
+    <section class="py-20 bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-8 scroll-reveal">
+                지금, 여름을 이기는 스윙을 시작하세요
+            </h2>
+            <p class="text-xl text-gray-300 mb-12 scroll-reveal">
+                MAS9와 함께라면 무더위도 즐거운 라운딩이 됩니다
+            </p>
+            
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center">
+                <a href="tel:080-028-8888" 
+                   class="summer-gradient text-white px-12 py-5 rounded-full text-lg font-bold hover:opacity-90 transform hover:scale-105 transition-all duration-300 shadow-2xl flex items-center">
+                    <i class="fas fa-phone-alt mr-3"></i>
+                    무료 상담 전화
+                </a>
+                <a href="#" 
+                   class="bg-transparent border-2 border-[#FF6B35] text-[#FF6B35] px-12 py-5 rounded-full text-lg font-bold hover:bg-[#FF6B35] hover:text-white transform hover:scale-105 transition-all duration-300 flex items-center">
+                    <i class="fas fa-calendar-check mr-3"></i>
+                    시타 예약하기
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="bg-black text-gray-400 py-12 px-6 border-t border-gray-800">
+        <div class="container mx-auto text-center">
+            <div class="mb-8">
+                <h3 class="text-[#FF6B35] text-2xl font-bold mb-4">MASGOLF®</h3>
+                <p class="text-gray-500">
+                    뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비
+                </p>
+            </div>
+            
+            <div class="flex justify-center space-x-8 mb-8">
+                <a href="tel:080-028-8888" class="hover:text-[#FF6B35] transition">
+                    <i class="fas fa-phone-alt mr-2"></i>
+                    080-028-8888
+                </a>
+                <a href="#" class="hover:text-[#FF6B35] transition">
+                    <i class="fas fa-map-marker-alt mr-2"></i>
+                    매장 찾기
+                </a>
+                <a href="#" class="hover:text-[#FF6B35] transition">
+                    <i class="fas fa-calendar mr-2"></i>
+                    시타 예약
+                </a>
+            </div>
+            
+            <p class="text-sm text-gray-600">
+                © 2025 MASGOLF®. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ 토글 함수
+        function toggleFAQ(id) {
+            const content = document.getElementById(`faq-content-${id}`);
+            const icon = document.getElementById(`faq-icon-${id}`);
+            
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        }
+
+        // 스크롤 애니메이션
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            const scrollElements = document.querySelectorAll('.scroll-reveal');
+            scrollElements.forEach(element => {
+                observer.observe(element);
+            });
+
+            // 비거리 바 애니메이션
+            const distanceBars = document.querySelectorAll('.distance-fill');
+            distanceBars.forEach(bar => {
+                observer.observe(bar);
+            });
+        });
+    </script>
+</body>
+</html>
