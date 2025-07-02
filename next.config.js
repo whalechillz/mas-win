@@ -5,6 +5,14 @@ module.exports = {
     images: {
       unoptimized: true,
     },
+    // 빌드에서 백업 디렉토리 제외
+    webpack: (config) => {
+      config.module.rules.push({
+        test: /\.(tsx?|jsx?)$/,
+        exclude: /backup-2025-01/,
+      });
+      return config;
+    },
     async redirects() {
       return [
         {
