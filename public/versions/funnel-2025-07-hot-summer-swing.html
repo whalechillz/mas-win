@@ -81,7 +81,7 @@
         .hero-section {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: url('/assets/campaigns/2025-07/hero-summer-golf-mas.jpg') center center/cover;
         }
         
         .summer-gradient {
@@ -292,13 +292,12 @@
 
     <!-- Hero Section -->
     <section class="hero-section py-20 px-6 min-h-[700px] md:min-h-[800px] flex items-center relative overflow-hidden">
-        <!-- 배경 이미지/패턴 -->
-        <div class="absolute inset-0">
-            <div class="absolute inset-0 bg-gradient-to-br from-[#1e3c72] to-[#2a5298]"></div>
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-0 right-0 w-96 h-96 bg-yellow-300 rounded-full blur-3xl"></div>
-                <div class="absolute bottom-0 left-0 w-96 h-96 bg-orange-300 rounded-full blur-3xl"></div>
-            </div>
+        <!-- 배경 오버레이 -->
+        <div class="absolute inset-0 bg-gradient-to-b from-black/60 to-black/70 z-0"></div>
+        <!-- 여름 효과 -->
+        <div class="absolute inset-0 opacity-10 z-[1]">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-yellow-300 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-96 h-96 bg-orange-300 rounded-full blur-3xl"></div>
         </div>
         
         <div class="container mx-auto text-center text-white relative z-10">
