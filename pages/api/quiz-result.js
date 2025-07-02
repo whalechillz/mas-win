@@ -1,9 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,6 +10,14 @@ export default async function handler(req, res) {
 
   try {
     const { style, priority, current_distance, recommended_product } = req.body;
+
+    // Supabase 연결 확인
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase credentials not configured');
+      throw new Error('Database configuration error');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // IP 주소와 User Agent 가져오기
     const ip_address = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -29,11 +35,17 @@ export default async function handler(req, res) {
         user_agent
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, data });
   } catch (error) {
     console.error('Quiz result error:', error);
-    res.status(500).json({ error: 'Failed to save quiz result' });
+    res.status(500).json({ 
+      error: 'Failed to save quiz result',
+      message: error.message 
+    });
   }
 }
