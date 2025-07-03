@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       throw error;
     }
 
-    // Slack 알림 전송
+    // Slack 알림 전송 - 일단 비활성화
     const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
     
     if (slackWebhookUrl) {
@@ -79,11 +79,9 @@ export default async function handler(req, res) {
       };
 
       try {
-        await fetch(slackWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(slackMessage)
-        });
+        // node-fetch 대신 axios 사용을 위해 임시로 Slack 알림 비활성화
+        console.log('Slack notification would be sent:', slackMessage);
+        // 실제 전송은 일단 건너뛰기
       } catch (slackError) {
         console.error('Slack notification error:', slackError);
         // Slack 에러는 무시하고 계속 진행
