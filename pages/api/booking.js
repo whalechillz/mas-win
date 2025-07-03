@@ -18,7 +18,15 @@ export default async function handler(req, res) {
   try {
     const { name, phone, date, time, club } = req.body;
     
-    console.log('Booking received:', { name, phone, date, time, club });
+    console.log('Booking request received:', { name, phone, date, time, club });
+
+    // 필수 필드 확인
+    if (!name || !phone || !date || !time) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '필수 정보가 누락되었습니다.' 
+      });
+    }
 
     // 데이터 삽입 시도
     const { data, error } = await supabase
@@ -28,17 +36,39 @@ export default async function handler(req, res) {
         phone,
         date,
         time,
-        club,
+        club: club || '',
         status: 'pending'
       }])
       .select();
 
     if (error) {
       console.error('Supabase error:', error);
-      return res.status(200).json({ 
+      
+      // 테이블이 없는 경우
+      if (error.code === '42P01') {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'bookings 테이블이 존재하지 않습니다. 데이터베이스를 확인해주세요.',
+          error: error.message
+        });
+      }
+      
+      // RLS 정책 문제
+      if (error.code === '42501') {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'RLS 정책으로 인해 접근이 거부되었습니다.',
+          error: error.message,
+          hint: 'ALTER TABLE bookings DISABLE ROW LEVEL SECURITY; 실행 필요'
+        });
+      }
+      
+      return res.status(500).json({ 
         success: false, 
         message: 'DB 저장 실패',
-        error: error.message
+        error: error.message,
+        code: error.code,
+        details: error.details
       });
     }
 
@@ -47,14 +77,15 @@ export default async function handler(req, res) {
     return res.status(200).json({ 
       success: true, 
       message: '예약이 완료되었습니다.',
-      data: data[0]
+      data: data && data[0] ? data[0] : null
     });
     
   } catch (error) {
     console.error('Booking error:', error);
     res.status(500).json({ 
-      error: 'Failed to process booking',
-      message: error.message
+      success: false,
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
     });
   }
 }
