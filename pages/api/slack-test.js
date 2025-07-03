@@ -1,5 +1,13 @@
 export default async function handler(req, res) {
-  const webhookUrl = 'https://hooks.slack.com/services/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';
+  // 환경 변수에서 webhook URL 가져오기
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+  
+  if (!webhookUrl) {
+    return res.status(500).json({ 
+      success: false,
+      error: 'Slack webhook URL not configured' 
+    });
+  }
   
   try {
     const response = await fetch(webhookUrl, {
