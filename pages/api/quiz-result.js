@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabaseClient';
+import { sendSlackNotification } from '../../lib/slackNotify';
 
 export default async function handler(req, res) {
   // CORS 설정
@@ -20,38 +20,16 @@ export default async function handler(req, res) {
     
     console.log('Quiz result received:', { style, priority, current_distance, recommended_product });
 
-    // IP 주소와 User Agent 가져오기
-    const ip_address = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const user_agent = req.headers['user-agent'];
+    // 슬랙 알림 전송
+    const slackMessage = `🏌️ 새로운 퀴즈 결과!\n스타일: ${style}\n우선순위: ${priority}\n현재 거리: ${current_distance}\n추천 제품: ${recommended_product}`;
+    await sendSlackNotification(slackMessage);
 
-    // 데이터 삽입 시도
-    const { data, error } = await supabase
-      .from('quiz_results')
-      .insert([{
-        style,
-        priority,
-        current_distance,
-        recommended_product,
-        ip_address,
-        user_agent
-      }])
-      .select();
-
-    if (error) {
-      console.error('Supabase error:', error);
-      return res.status(200).json({ 
-        success: false, 
-        message: 'DB 저장 실패',
-        error: error.message
-      });
-    }
-
-    console.log('Quiz result saved successfully:', data);
+    console.log('Slack notification sent successfully');
 
     return res.status(200).json({ 
       success: true, 
       message: '퀴즈 결과가 저장되었습니다.',
-      data: data[0]
+      data: { style, priority, current_distance, recommended_product }
     });
     
   } catch (error) {
