@@ -1,11 +1,7 @@
 {
   "functions": {
     "pages/api/*.js": {
-      "runtime": "nodejs18.x"
+      "maxDuration": 10
     }
-  },
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://yyytjudftrvpmcnppaymw.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE"
   }
 }
