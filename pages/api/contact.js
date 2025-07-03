@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabaseClient';
+import { sendSlackNotification } from '../../lib/slackNotify';
 
 export default async function handler(req, res) {
   // CORS 헤더 추가
@@ -41,6 +42,10 @@ export default async function handler(req, res) {
     }
 
     console.log('Contact saved successfully:', data);
+
+    // 슬랙 알림 전송 (실패해도 계속 진행)
+    const slackMessage = `📢 새로운 문의!\n이름: ${name}\n전화: ${phone}\n통화 가능 시간: ${call_times}`;
+    await sendSlackNotification(slackMessage);
 
     return res.status(200).json({ 
       success: true, 
