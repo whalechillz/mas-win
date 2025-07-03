@@ -1,3 +1,8 @@
+const { createClient } = require('@supabase/supabase-js');
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
 export default async function handler(req, res) {
   // CORS 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,12 +22,40 @@ export default async function handler(req, res) {
     const { style, priority, current_distance, recommended_product } = req.body;
     
     console.log('Quiz result received:', { style, priority, current_distance, recommended_product });
-    
-    // 임시로 성공 응답만 반환 (DB 저장 없이)
+
+    // Supabase 연결 확인
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase credentials not configured');
+      throw new Error('Database configuration error');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // IP 주소와 User Agent 가져오기
+    const ip_address = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const user_agent = req.headers['user-agent'];
+
+    // Supabase에 저장
+    const { data, error } = await supabase
+      .from('quiz_results')
+      .insert({
+        style,
+        priority,
+        current_distance,
+        recommended_product,
+        ip_address,
+        user_agent
+      });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+
     res.status(200).json({ 
       success: true, 
       message: '퀴즈 결과가 저장되었습니다.',
-      data: { style, priority, current_distance, recommended_product }
+      data 
     });
     
   } catch (error) {
