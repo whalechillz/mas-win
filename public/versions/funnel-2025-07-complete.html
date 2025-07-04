@@ -1712,27 +1712,53 @@
             const masDistance = userDistance + 25;
             const maxDistance = Math.max(masDistance, 300);
             
-            // 비거리 표시
+            // 비거리 초기 표시
             document.getElementById('normalDistance').textContent = userDistance + 'm';
-            document.getElementById('masDistance').textContent = masDistance + 'm';
+            document.getElementById('masDistance').textContent = userDistance + 'm'; // 초기값은 같게 설정
             
             // 비교 영역 표시
             document.getElementById('distanceComparison').classList.remove('hidden');
             
-            // 골프공 애니메이션
+            // 타사 드라이버 먼저 애니메이션
             setTimeout(() => {
                 const normalBall = document.getElementById('normalBall');
-                const masBall = document.getElementById('masBall');
-                
                 normalBall.style.setProperty('--distance', `${(userDistance / maxDistance) * 90}%`);
-                masBall.style.setProperty('--distance', `${(masDistance / maxDistance) * 90}%`);
-                
                 normalBall.classList.add('ball-animate');
-                masBall.classList.add('ball-animate');
                 
-                // 증가량 숫자 애니메이션
-                animateDistanceIncrease();
+                // 1초 후 MAS 드라이버 애니메이션
+                setTimeout(() => {
+                    const masBall = document.getElementById('masBall');
+                    masBall.style.setProperty('--distance', `${(masDistance / maxDistance) * 90}%`);
+                    masBall.classList.add('ball-animate');
+                    
+                    // MAS 비거리 숫자 애니메이션
+                    animateMasDistance(userDistance, masDistance);
+                    
+                    // 증가량 숫자 애니메이션
+                    setTimeout(() => {
+                        animateDistanceIncrease();
+                    }, 1000);
+                }, 1000);
             }, 100);
+        }
+        
+        // MAS 비거리 숫자 애니메이션
+        function animateMasDistance(start, end) {
+            const element = document.getElementById('masDistance');
+            if (!element) return;
+            
+            let current = start;
+            const duration = 1500; // 1.5초
+            const increment = (end - start) / (duration / 16);
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current) + 'm';
+            }, 16);
         }
         
         // 거리 증가 숫자 애니메이션
