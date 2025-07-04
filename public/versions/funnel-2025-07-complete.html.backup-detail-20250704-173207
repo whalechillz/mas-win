@@ -901,22 +901,6 @@
     </footer>
 
     <script>
-        
-        // 더 자세히 보기 토글
-        function toggleMoreSpecs() {
-            const moreSpecs = document.getElementById('moreSpecs');
-            const moreSpecsText = document.getElementById('moreSpecsText');
-            
-            if (moreSpecs.classList.contains('hidden')) {
-                moreSpecs.classList.remove('hidden');
-                moreSpecsText.innerHTML = '<i class="fas fa-chevron-up mr-1"></i>간단히 보기';
-            } else {
-                moreSpecs.classList.add('hidden');
-                moreSpecsText.innerHTML = '<i class="fas fa-chevron-down mr-1"></i>더 자세히 보기';
-            }
-        }
-        
-        // 퀴즈 로직
         // 퀴즈 로직
         const quizData = {
             style: '',
@@ -924,7 +908,6 @@
             distance: 0
         };
 
-        
         
         const products = {
             'stability-distance': { 
@@ -935,23 +918,18 @@
                 hookingDesc: '검도 27년차 고객님이 227m 달성! 당신의 안정적인 스윙에 25m를 더합니다.',
                 link: 'https://www.mas9golf.com/secret-force-pro-3',
                 image: '/assets/campaigns/2025-07/secret-force-pro3.jpg',
-                // 기본 스펙
+                // 상세 스펙
                 faceThickness: '2.3mm',
                 cor: '0.87',
                 headVolume: '460cc',
                 shaft: 'NGS 전용',
                 loftAngle: '9°/10°',
                 lieAngle: '59°',
-                weight: '285-296g',
-                kickPoint: 'Mid Low',
-                // 추가 상세 스펙
-                balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
-                ballSpeed: '48-50 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R1/R2 (스페셜 오더)',
-                material: '일본산 티타늄'
+                weight: '288-300g',
+                material: '일본산 티타늄',
+                kickPoint: 'Low',
+                shaftFlex: 'R/SR/S',
+                balance: 'D0'
             },
             'stability-direction': { 
                 name: '시크리트웨폰 블랙', 
@@ -967,16 +945,11 @@
                 shaft: 'NGS 저중심',
                 loftAngle: '10°',
                 lieAngle: '59.5°',
-                weight: '268-296g',
+                weight: '285-294g',
+                material: '프리미엄 티타늄',
                 kickPoint: 'Mid Low/Low',
-                // 추가 상세 스펙
-                balance: 'D2/D0',
-                shaftFreq: '202-240 cpm',
-                ballSpeed: '48-62 m/s',
-                grip: '35/45',
-                length: '45.75"',
-                shaftFlex: 'R2/S (스페셜 오더)',
-                material: '프리미엄 티타늄'
+                shaftFlex: 'R1/R/SR',
+                balance: 'D1/D0'
             },
             'stability-comfort': { 
                 name: '시크리트포스 V3', 
@@ -992,16 +965,11 @@
                 shaft: 'NGS V3 전용',
                 loftAngle: '9°/10°',
                 lieAngle: '59°',
-                weight: '285-296g',
-                kickPoint: 'Mid Low',
-                // 추가 상세 스펙
-                balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
-                ballSpeed: '48-50 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R1/R2 (스페셜 오더)',
-                material: 'JFE 티타늄'
+                weight: '288-300g',
+                material: 'JFE 티타늄',
+                kickPoint: 'Low',
+                shaftFlex: 'R/SR/S',
+                balance: 'D0'
             },
             'power-distance': { 
                 name: '시크리트포스 PRO 3', 
@@ -1017,15 +985,11 @@
                 shaft: 'NGS 전용',
                 loftAngle: '9°/10°',
                 lieAngle: '59°',
-                weight: '285-296g',
-                kickPoint: 'Mid Low',
-                balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
-                ballSpeed: '48-50 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R1/R2 (스페셜 오더)',
-                material: '일본산 티타늄'
+                weight: '288-300g',
+                material: '일본산 티타늄',
+                kickPoint: 'Low',
+                shaftFlex: 'R/SR/S',
+                balance: 'D0'
             },
             'power-direction': { 
                 name: '시크리트웨폰 블랙', 
@@ -1041,15 +1005,11 @@
                 shaft: 'NGS 저중심',
                 loftAngle: '10°',
                 lieAngle: '59.5°',
-                weight: '268-296g',
+                weight: '285-294g',
+                material: '프리미엄 티타늄',
                 kickPoint: 'Mid Low/Low',
-                balance: 'D2/D0',
-                shaftFreq: '202-240 cpm',
-                ballSpeed: '48-62 m/s',
-                grip: '35/45',
-                length: '45.75"',
-                shaftFlex: 'R2/S (스페셜 오더)',
-                material: '프리미엄 티타늄'
+                shaftFlex: 'R1/R/SR',
+                balance: 'D1/D0'
             },
             'power-comfort': { 
                 name: '시크리트포스 V3', 
@@ -1065,15 +1025,11 @@
                 shaft: 'NGS V3 전용',
                 loftAngle: '9°/10°',
                 lieAngle: '59°',
-                weight: '285-296g',
-                kickPoint: 'Mid Low',
-                balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
-                ballSpeed: '48-50 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R1/R2 (스페셜 오더)',
-                material: 'JFE 티타늄'
+                weight: '288-300g',
+                material: 'JFE 티타늄',
+                kickPoint: 'Low',
+                shaftFlex: 'R/SR/S',
+                balance: 'D0'
             },
             'hybrid-distance': { 
                 name: '시크리트포스 PRO 3', 
@@ -1089,15 +1045,11 @@
                 shaft: 'NGS 전용',
                 loftAngle: '9°/10°',
                 lieAngle: '59°',
-                weight: '285-296g',
-                kickPoint: 'Mid Low',
-                balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
-                ballSpeed: '48-50 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R1/R2 (스페셜 오더)',
-                material: '일본산 티타늄'
+                weight: '288-300g',
+                material: '일본산 티타늄',
+                kickPoint: 'Low',
+                shaftFlex: 'R/SR/S',
+                balance: 'D0'
             },
             'hybrid-direction': { 
                 name: '시크리트웨폰 블랙', 
@@ -1113,15 +1065,11 @@
                 shaft: 'NGS 저중심',
                 loftAngle: '10°',
                 lieAngle: '59.5°',
-                weight: '268-296g',
+                weight: '285-294g',
+                material: '프리미엄 티타늄',
                 kickPoint: 'Mid Low/Low',
-                balance: 'D2/D0',
-                shaftFreq: '202-240 cpm',
-                ballSpeed: '48-62 m/s',
-                grip: '35/45',
-                length: '45.75"',
-                shaftFlex: 'R2/S (스페셜 오더)',
-                material: '프리미엄 티타늄'
+                shaftFlex: 'R1/R/SR',
+                balance: 'D1/D0'
             },
             'hybrid-comfort': { 
                 name: '시크리트포스 V3', 
@@ -1137,15 +1085,11 @@
                 shaft: 'NGS V3 전용',
                 loftAngle: '9°/10°',
                 lieAngle: '59°',
-                weight: '285-296g',
-                kickPoint: 'Mid Low',
-                balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
-                ballSpeed: '48-50 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R1/R2 (스페셜 오더)',
-                material: 'JFE 티타늄'
+                weight: '288-300g',
+                material: 'JFE 티타늄',
+                kickPoint: 'Low',
+                shaftFlex: 'R/SR/S',
+                balance: 'D0'
             }
         };
 
@@ -1218,32 +1162,6 @@
                     <div class="text-gray-400">킥 포인트:</div>
                     <div class="text-white font-bold">${product.kickPoint || 'Low'}</div>
                 </div>
-                
-                <!-- 더 자세히 보기 -->
-                <div id="moreSpecs" class="hidden mt-4 pt-4 border-t border-gray-700">
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="text-gray-400">가변형 밸런스:</div>
-                        <div class="text-white font-bold">${product.balance || 'D0'}</div>
-                        <div class="text-gray-400">샤프트 진동수:</div>
-                        <div class="text-white font-bold">${product.shaftFreq || '220 cpm'}</div>
-                        <div class="text-gray-400">맞춤 볼스피드:</div>
-                        <div class="text-white font-bold">${product.ballSpeed || '54 m/s'}</div>
-                        <div class="text-gray-400">탄성 그립:</div>
-                        <div class="text-white font-bold">${product.grip || '45'}</div>
-                        <div class="text-gray-400">최적의 길이:</div>
-                        <div class="text-white font-bold">${product.length || '45.75"'}</div>
-                        <div class="text-gray-400">샤프트 플렉스:</div>
-                        <div class="text-white font-bold">${product.shaftFlex || 'R/SR/S'}</div>
-                        <div class="text-gray-400">소재:</div>
-                        <div class="text-white font-bold">${product.material || '티타늄'}</div>
-                    </div>
-                </div>
-                
-                <button onclick="toggleMoreSpecs()" class="mt-4 text-yellow-300 hover:text-yellow-200 transition text-sm font-medium">
-                    <span id="moreSpecsText">
-                        <i class="fas fa-chevron-down mr-1"></i>더 자세히 보기
-                    </span>
-                </button>
             </div>
             
             <!-- 특별한 이유 -->
