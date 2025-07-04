@@ -11,13 +11,5 @@ module.exports = {
   images: {
     unoptimized: true,
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/funnel-2025-06',
-        permanent: false,
-      },
-    ];
-  },
+  // 리다이렉트 제거 - 메인 페이지가 index.js를 직접 사용하도록 함
 };
