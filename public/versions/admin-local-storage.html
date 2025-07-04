@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF 관리자 - 신청 현황</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-8">MASGOLF 신청 현황 (로컬 스토리지)</h1>
+        
+        <!-- 시타 예약 섹션 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center justify-between">
+                <span><i class="fas fa-calendar-check text-blue-500 mr-2"></i>시타 예약</span>
+                <button onclick="exportToCSV('bookings')" class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600">
+                    <i class="fas fa-download mr-2"></i>CSV 다운로드
+                </button>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="border p-2 text-left">번호</th>
+                            <th class="border p-2 text-left">이름</th>
+                            <th class="border p-2 text-left">연락처</th>
+                            <th class="border p-2 text-left">희망 날짜</th>
+                            <th class="border p-2 text-left">희망 시간</th>
+                            <th class="border p-2 text-left">관심 클럽</th>
+                            <th class="border p-2 text-left">신청 시간</th>
+                            <th class="border p-2 text-left">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTable">
+                        <!-- 동적으로 생성됨 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="bookingsEmpty" class="text-gray-500 text-center py-8 hidden">
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <p>아직 시타 예약이 없습니다.</p>
+            </div>
+        </div>
+
+        <!-- 문의 섹션 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center justify-between">
+                <span><i class="fas fa-comment text-purple-500 mr-2"></i>문의 내역</span>
+                <button onclick="exportToCSV('contacts')" class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600">
+                    <i class="fas fa-download mr-2"></i>CSV 다운로드
+                </button>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="border p-2 text-left">번호</th>
+                            <th class="border p-2 text-left">이름</th>
+                            <th class="border p-2 text-left">연락처</th>
+                            <th class="border p-2 text-left">통화 가능 시간</th>
+                            <th class="border p-2 text-left">신청 시간</th>
+                            <th class="border p-2 text-left">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsTable">
+                        <!-- 동적으로 생성됨 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="contactsEmpty" class="text-gray-500 text-center py-8 hidden">
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <p>아직 문의가 없습니다.</p>
+            </div>
+        </div>
+
+        <!-- 통계 섹션 -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">총 시타 예약</h3>
+                <p class="text-3xl font-bold text-blue-500" id="totalBookings">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">총 문의</h3>
+                <p class="text-3xl font-bold text-purple-500" id="totalContacts">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">오늘 신청</h3>
+                <p class="text-3xl font-bold text-green-500" id="todayTotal">0</p>
+            </div>
+        </div>
+
+        <!-- 관리 기능 -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h3 class="text-lg font-bold mb-4 text-red-700">
+                <i class="fas fa-exclamation-triangle mr-2"></i>데이터 관리
+            </h3>
+            <p class="text-sm text-gray-700 mb-4">
+                주의: 이 데이터는 브라우저의 로컬 스토리지에만 저장되어 있습니다. 
+                브라우저 데이터를 삭제하면 모든 정보가 사라집니다.
+            </p>
+            <div class="flex gap-4">
+                <button onclick="if(confirm('정말로 모든 데이터를 삭제하시겠습니까?')) clearAllData()" 
+                        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    <i class="fas fa-trash mr-2"></i>모든 데이터 삭제
+                </button>
+                <button onclick="location.reload()" 
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    <i class="fas fa-sync mr-2"></i>새로고침
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 데이터 로드 및 표시
+        function loadData() {
+            const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            
+            // 시타 예약 표시
+            const bookingsTable = document.getElementById('bookingsTable');
+            const bookingsEmpty = document.getElementById('bookingsEmpty');
+            
+            if (bookings.length > 0) {
+                bookingsEmpty.classList.add('hidden');
+                bookingsTable.innerHTML = bookings.map((booking, index) => `
+                    <tr>
+                        <td class="border p-2">${index + 1}</td>
+                        <td class="border p-2">${booking.name}</td>
+                        <td class="border p-2">
+                            <a href="tel:${booking.phone}" class="text-blue-500 hover:underline">
+                                ${booking.phone}
+                            </a>
+                        </td>
+                        <td class="border p-2">${booking.date}</td>
+                        <td class="border p-2">${booking.time}</td>
+                        <td class="border p-2">${booking.club}</td>
+                        <td class="border p-2">${formatDate(booking.created_at)}</td>
+                        <td class="border p-2">
+                            <button onclick="deleteItem('bookings', ${index})" 
+                                    class="text-red-500 hover:bg-red-50 p-1 rounded">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                bookingsEmpty.classList.remove('hidden');
+                bookingsTable.innerHTML = '';
+            }
+            
+            // 문의 표시
+            const contactsTable = document.getElementById('contactsTable');
+            const contactsEmpty = document.getElementById('contactsEmpty');
+            
+            if (contacts.length > 0) {
+                contactsEmpty.classList.add('hidden');
+                contactsTable.innerHTML = contacts.map((contact, index) => `
+                    <tr>
+                        <td class="border p-2">${index + 1}</td>
+                        <td class="border p-2">${contact.name}</td>
+                        <td class="border p-2">
+                            <a href="tel:${contact.phone}" class="text-blue-500 hover:underline">
+                                ${contact.phone}
+                            </a>
+                        </td>
+                        <td class="border p-2">${contact.callTimes || '-'}</td>
+                        <td class="border p-2">${formatDate(contact.created_at)}</td>
+                        <td class="border p-2">
+                            <button onclick="deleteItem('contacts', ${index})" 
+                                    class="text-red-500 hover:bg-red-50 p-1 rounded">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                contactsEmpty.classList.remove('hidden');
+                contactsTable.innerHTML = '';
+            }
+            
+            // 통계 업데이트
+            document.getElementById('totalBookings').textContent = bookings.length;
+            document.getElementById('totalContacts').textContent = contacts.length;
+            
+            // 오늘 신청 계산
+            const today = new Date().toDateString();
+            const todayBookings = bookings.filter(b => new Date(b.created_at).toDateString() === today).length;
+            const todayContacts = contacts.filter(c => new Date(c.created_at).toDateString() === today).length;
+            document.getElementById('todayTotal').textContent = todayBookings + todayContacts;
+        }
+        
+        // 날짜 포맷
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('ko-KR');
+        }
+        
+        // 항목 삭제
+        function deleteItem(type, index) {
+            if (confirm('정말로 삭제하시겠습니까?')) {
+                const data = JSON.parse(localStorage.getItem(type) || '[]');
+                data.splice(index, 1);
+                localStorage.setItem(type, JSON.stringify(data));
+                loadData();
+            }
+        }
+        
+        // 모든 데이터 삭제
+        function clearAllData() {
+            localStorage.removeItem('bookings');
+            localStorage.removeItem('contacts');
+            loadData();
+        }
+        
+        // CSV 내보내기
+        function exportToCSV(type) {
+            const data = JSON.parse(localStorage.getItem(type) || '[]');
+            if (data.length === 0) {
+                alert('내보낼 데이터가 없습니다.');
+                return;
+            }
+            
+            let csv = '';
+            if (type === 'bookings') {
+                csv = '번호,이름,연락처,희망날짜,희망시간,관심클럽,신청시간\n';
+                data.forEach((item, index) => {
+                    csv += `${index + 1},"${item.name}","${item.phone}","${item.date}","${item.time}","${item.club}","${formatDate(item.created_at)}"\n`;
+                });
+            } else {
+                csv = '번호,이름,연락처,통화가능시간,신청시간\n';
+                data.forEach((item, index) => {
+                    csv += `${index + 1},"${item.name}","${item.phone}","${item.callTimes || '-'}","${formatDate(item.created_at)}"\n`;
+                });
+            }
+            
+            // BOM 추가 (한글 깨짐 방지)
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `masgolf_${type}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 페이지 로드 시 데이터 표시
+        document.addEventListener('DOMContentLoaded', loadData);
+        
+        // 5초마다 자동 새로고침 (옵션)
+        // setInterval(loadData, 5000);
+    </script>
+</body>
+</html>
