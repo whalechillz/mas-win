@@ -202,6 +202,124 @@
             to { transform: rotate(360deg); }
         }
 
+        /* 사은품 캐러셀 */
+        .gift-carousel {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 20px;
+        }
+        
+        .gift-carousel-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        
+        .gift-slide {
+            min-width: 100%;
+            height: 400px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gift-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .gift-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px;
+        }
+        
+        .gift-carousel-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .carousel-dot.active {
+            background: white;
+            width: 30px;
+            border-radius: 6px;
+        }
+        
+        /* 가격대별 사은품 */
+        .gift-tier {
+            background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+            border: 2px solid rgba(255,0,0,0.3);
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .gift-tier:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,0,0,0.6);
+            box-shadow: 0 20px 40px rgba(255,0,0,0.2);
+        }
+        
+        .gift-tier::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* 미니 갤러리 */
+        .mini-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .mini-gallery img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .mini-gallery img:hover {
+            transform: scale(1.05);
+        }
+
         /* 거리 비교 성공 애니메이션 */
         @keyframes successPulse {
             0%, 100% { transform: scale(1); opacity: 1; }
@@ -484,9 +602,18 @@
                     </div>
                 </div>
                 
-                <p class="text-lg text-red-400 font-bold mb-6">
-                    + 구매 금액별 로얄샬루트 21년 추가 증정!
-                </p>
+                <div class="bg-gradient-to-r from-yellow-900/30 to-transparent rounded-xl p-4 mb-6">
+                    <p class="text-lg text-yellow-300 font-bold mb-2">
+                        + 구매 금액별 로얄샬루트 21년 차등 증정!
+                    </p>
+                    <div class="text-sm text-gray-300">
+                        15만원대: 500ml | 20만원대: 700ml | 30만원대: 1000ml
+                    </div>
+                    <div class="flex justify-center gap-4 mt-3">
+                        <img src="/temp/SALUTE21-01.jpg" alt="로얄샬루트 21년" class="w-24 h-24 object-cover rounded-lg border border-yellow-600/50">
+                        <img src="/temp/SALUTE21-02.png" alt="로얄샬루트 21년" class="w-24 h-24 object-cover rounded-lg border border-yellow-600/50">
+                    </div>
+                </div>
                 
                 <div class="flex justify-center gap-4">
                     <a href="tel:080-028-8888" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition">
@@ -553,6 +680,129 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역4.5: 가격대별 맞춤 사은품 -->  
+    <section class="py-20 px-6 bg-gradient-to-br from-black via-red-950/10 to-black">
+        <div class="container mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+                가격대별 <span class="text-red-500">프리미엄 사은품</span>
+            </h2>
+            <p class="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+                당신의 선택에 따른 특별한 선물
+            </p>
+            
+            <!-- 가격대별 사은품 그리드 -->
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- 15만원대: 시크리트포스 V3 -->
+                <div class="gift-tier scroll-reveal">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">시크리트포스 V3</h3>
+                        <p class="text-3xl font-black text-red-500">15만원대</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-black/50 rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">🎁 기본 사은품</h4>
+                            <p class="text-gray-300">프리미엄 쿨링 타올 + 쿨토시 세트</p>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-red-900/30 to-transparent rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">🥃 추가 사은품</h4>
+                            <p class="text-white font-bold">로얄샬루트 21년 (500ml)</p>
+                            <p class="text-gray-400 text-sm">(시가 15만원 상당)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mini-gallery">
+                        <img src="/temp/쿨링타올.jpeg" alt="쿨링타올" onclick="showImageModal('/temp/쿨링타올.jpeg', '프리미엄 쿨링타올')">
+                        <img src="/temp/쿨토시.jpg" alt="쿨토시" onclick="showImageModal('/temp/쿨토시.jpg', '스포츠 쿨토시')">
+                        <img src="/temp/SALUTE21-01.jpg" alt="로얄샬루트21-1" onclick="showImageModal('/temp/SALUTE21-01.jpg', '로얄샬루트 21년 500ml')">
+                        <img src="/temp/SALUTE21-02.png" alt="로얄샬루트21-2" onclick="showImageModal('/temp/SALUTE21-02.png', '로얄샬루트 21년 500ml')">
+                    </div>
+                </div>
+                
+                <!-- 20만원대: 시크리트포스 PRO3 -->
+                <div class="gift-tier scroll-reveal" style="animation-delay: 0.2s">
+                    <div class="relative">
+                        <div class="absolute -top-4 -right-4 bg-red-600 text-white px-4 py-1 rounded-full text-sm font-bold">인기</div>
+                    </div>
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">시크리트포스 PRO 3</h3>
+                        <p class="text-3xl font-black text-red-500">20만원대</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-black/50 rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">🎁 기본 사은품</h4>
+                            <p class="text-gray-300">프리미엄 쿨링 타올 + 쿨토시 세트</p>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-red-900/30 to-transparent rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">🥃 추가 사은품</h4>
+                            <p class="text-white font-bold">로얄샬루트 21년 (700ml) + 전용 글라스</p>
+                            <p class="text-gray-400 text-sm">(시가 20만원 상당)</p>
+                        </div>
+                        
+                        <div class="bg-yellow-900/20 rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">⭐ 스페셜 혜택</h4>
+                            <p class="text-gray-300">샤프트 무료 업그레이드</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mini-gallery">
+                        <img src="/temp/쿨링타올.jpeg" alt="쿨링타올" onclick="showImageModal('/temp/쿨링타올.jpeg', '프리미엄 쿨링타올')">
+                        <img src="/temp/쿨토시.jpg" alt="쿨토시" onclick="showImageModal('/temp/쿨토시.jpg', '스포츠 쿨토시')">
+                        <img src="/temp/SALUTE21-01.jpg" alt="로얄샬루트21-1" onclick="showImageModal('/temp/SALUTE21-01.jpg', '로얄샬루트 21년 700ml')">
+                        <img src="/temp/SALUTE21-02.png" alt="로얄샬루트21-2" onclick="showImageModal('/temp/SALUTE21-02.png', '로얄샬루트 21년 700ml')">
+                    </div>
+                </div>
+                
+                <!-- 30만원대: 시크리트웨폰 블랙 -->
+                <div class="gift-tier scroll-reveal" style="animation-delay: 0.4s">
+                    <div class="relative">
+                        <div class="absolute -top-4 -right-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-4 py-1 rounded-full text-sm font-bold">VIP</div>
+                    </div>
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">시크리트웨폰 블랙</h3>
+                        <p class="text-3xl font-black text-red-500">30만원대</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-black/50 rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">🎁 기본 사은품</h4>
+                            <p class="text-gray-300">프리미엄 쿨링 타올 + 쿨토시 세트</p>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-red-900/30 to-transparent rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">🥃 추가 사은품</h4>
+                            <p class="text-white font-bold">로얄샬루트 21년 (1000ml) 리미티드 에디션</p>
+                            <p class="text-gray-400 text-sm">(시가 30만원 상당)</p>
+                        </div>
+                        
+                        <div class="bg-yellow-900/20 rounded-lg p-4">
+                            <h4 class="text-yellow-300 font-bold mb-2">⭐ VIP 혜택</h4>
+                            <p class="text-gray-300">샤프트 무료 업그레이드 + 그립 무료 교체 + VIP 관리 서비스 1년</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mini-gallery">
+                        <img src="/temp/쿨링타올.jpeg" alt="쿨링타올" onclick="showImageModal('/temp/쿨링타올.jpeg', '프리미엄 쿨링타올')">
+                        <img src="/temp/쿨토시.jpg" alt="쿨토시" onclick="showImageModal('/temp/쿨토시.jpg', '스포츠 쿨토시')">
+                        <img src="/temp/SALUTE21-01.jpg" alt="로얄샬루트21-1" onclick="showImageModal('/temp/SALUTE21-01.jpg', '로얄샬루트 21년 1000ml 리미티드')">
+                        <img src="/temp/SALUTE21-02.png" alt="로얄샬루트21-2" onclick="showImageModal('/temp/SALUTE21-02.png', '로얄샬루트 21년 1000ml 리미티드')">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 추가 안내 -->
+            <div class="text-center mt-12">
+                <p class="text-gray-400 text-sm">
+                    * 모든 사은품은 한정 수량으로 조기 소진될 수 있습니다<br>
+                    * 7월 31일까지 방문 시타 고객에 한함
+                </p>
             </div>
         </div>
     </section>
@@ -637,13 +887,66 @@
         </div>
     </section>
 
-    <!-- 영역6: 7월 고객 선물 패키지 -->
+    <!-- 영역6: 7월 고객 선물 패키지 (개선된 버전) -->
     <section class="py-20 px-6 summer-gradient">
         <div class="container mx-auto">
-            <div class="max-w-4xl mx-auto text-center text-white">
+            <div class="max-w-5xl mx-auto text-center text-white">
                 <h2 class="text-4xl md:text-5xl font-bold mb-8 scroll-reveal">
                     7월 방문 고객 <span class="text-yellow-300">특별 혜택</span>
                 </h2>
+                
+                <!-- 사은품 캐러셀 -->
+                <div class="gift-carousel mb-12 scroll-reveal">
+                    <div class="gift-carousel-track" id="giftCarouselTrack">
+                        <!-- 슬라이드 1: 쿨링 타올 -->
+                        <div class="gift-slide">
+                            <img src="/temp/쿨링타올.jpeg" alt="프리미엄 쿨링타올">
+                            <div class="gift-overlay">
+                                <h3 class="text-3xl font-bold mb-2">프리미엄 쿨링 타올</h3>
+                                <p class="text-lg mb-2">즉시 냉각 기능으로 체감온도 -5°C</p>
+                                <p class="text-sm opacity-80">자외선 차단 기능 포함</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 슬라이드 2: 쿨토시 -->
+                        <div class="gift-slide">
+                            <img src="/temp/쿨토시.jpg" alt="스포츠 쿨토시">
+                            <div class="gift-overlay">
+                                <h3 class="text-3xl font-bold mb-2">스포츠 쿨토시</h3>
+                                <p class="text-lg mb-2">팔 전체를 시원하게 보호</p>
+                                <p class="text-sm opacity-80">고탄력 원단으로 편안한 착용감</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 슬라이드 3: 로얄샬루트 1 -->
+                        <div class="gift-slide">
+                            <img src="/temp/SALUTE21-01.jpg" alt="로얄샬루트 21년">
+                            <div class="gift-overlay">
+                                <h3 class="text-3xl font-bold mb-2">로얄샬루트 21년</h3>
+                                <p class="text-lg mb-2">스코틀랜드 최고급 위스키</p>
+                                <p class="text-sm opacity-80">구매 금액별 추가 증정</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 슬라이드 4: 로얄샬루트 2 -->
+                        <div class="gift-slide">
+                            <img src="/temp/SALUTE21-02.png" alt="로얄샬루트 21년 디테일">
+                            <div class="gift-overlay">
+                                <h3 class="text-3xl font-bold mb-2">품격의 선물</h3>
+                                <p class="text-lg mb-2">21년 숙성의 깊은 맛</p>
+                                <p class="text-sm opacity-80">한정 수량 특별 증정</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 캐러셀 네비게이션 -->
+                    <div class="gift-carousel-nav">
+                        <div class="carousel-dot active" onclick="goToSlide(0)"></div>
+                        <div class="carousel-dot" onclick="goToSlide(1)"></div>
+                        <div class="carousel-dot" onclick="goToSlide(2)"></div>
+                        <div class="carousel-dot" onclick="goToSlide(3)"></div>
+                    </div>
+                </div>
                 
                 <div class="grid md:grid-cols-2 gap-8 mb-12">
                     <!-- 선물 1: 쿨링 세트 -->
@@ -753,6 +1056,23 @@
                         <p class="text-gray-400">
                             080-028-8888로 전화하시거나 시타 예약 시 자동으로 순번이 배정됩니다. 현재 남은 인원은 상담 시 안내받으실 수 있습니다.
                         </p>
+                    </div>
+                </div>
+                
+                <!-- FAQ 6: 사은품 관련 -->
+                <div class="bg-black border border-red-900 rounded-lg overflow-hidden scroll-reveal" style="animation-delay: 0.5s">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-red-900/10 transition" onclick="toggleFAQ(6)">
+                        <span class="font-medium text-white">로얄샬루트 21년은 어떤 제품인가요?</span>
+                        <i class="fas fa-chevron-down text-red-500 transition-transform" id="faq-icon-6"></i>
+                    </button>
+                    <div class="hidden px-6 pb-4" id="faq-content-6">
+                        <p class="text-gray-400">
+                            스코틀랜드 최고급 블렌디드 위스키로, 21년 이상 숙성된 원액만을 사용한 프리미엄 제품입니다. 왕실 예포 21발의 의미를 담은 품격 있는 선물로, 특별한 분들께만 드리는 한정 사은품입니다.
+                        </p>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <img src="/temp/SALUTE21-01.jpg" alt="로얄샬루트 21년" class="rounded-lg w-full h-32 object-cover">
+                            <img src="/temp/SALUTE21-02.png" alt="로얄샬루트 21년" class="rounded-lg w-full h-32 object-cover">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1570,7 +1890,50 @@
 
             // 3초 후 팝업 자동 표시
             setTimeout(showPopup, 3000);
+            
+            // 캐러셀 자동 재생 시작
+            if (typeof startAutoSlide === 'function') {
+                startAutoSlide();
+            }
         });
+        
+        // 사은품 캐러셀
+        let currentSlide = 0;
+        const slides = 4;
+        let autoSlideInterval;
+        
+        function goToSlide(index) {
+            currentSlide = index;
+            const track = document.getElementById('giftCarouselTrack');
+            if (track) {
+                track.style.transform = `translateX(-${index * 100}%)`;
+            }
+            
+            // 도트 업데이트
+            document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+            
+            // 자동 슬라이드 재시작
+            clearInterval(autoSlideInterval);
+            startAutoSlide();
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides;
+            goToSlide(currentSlide);
+        }
+        
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(nextSlide, 4000);
+        }
+        
+        // 이미지 모달
+        function showImageModal(src, caption) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('modalCaption').textContent = caption;
+            document.getElementById('imageModal').classList.add('show');
+        }
     </script>
 </body>
 </html>
