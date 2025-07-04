@@ -38,3 +38,27 @@
 - 환경변수(.env.local)에 ADMIN_PASS 값 추가 필요 (예: ADMIN_PASS=원하는비밀번호)
 - 관리자 인증 UI/UX 개선(필요시)
 - 추가 퍼널 파일 접근/관리 기능 확장(필요시) 
+
+## 2024-06-13
+
+### 작업 내역
+- `public/versions` 폴더의 HTML 파일들을 Git에 추가
+- `pages/api/html/` 디렉토리 전체를 Git에 추가
+- 기타 변경된 파일(예: next.config.js, pages/campaign/2025-07.js 등) 포함 전체 변경사항 커밋
+- 커밋 메시지: `Fix: Add static HTML files and API handler`
+- 원격 저장소(main 브랜치)로 푸시 완료
+
+### 변경된 파일
+- public/versions/*.html
+- pages/api/html/*
+- next.config.js
+- pages/campaign/2025-07.js
+- scripts/check-git-files.sh
+
+### 작업 목적
+- 정적 HTML 파일 및 API 핸들러를 Git에 반영하여 배포 시 누락 방지
+- 라우팅 및 정적 파일 제공 문제 해결
+
+### 남은 작업
+- 배포 후 정상 동작 확인
+- 필요시 추가 라우팅/핸들러 개선 
