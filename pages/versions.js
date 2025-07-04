@@ -5,8 +5,6 @@ export default function VersionsPage() {
     { name: '2025년 6월 프라임타임', file: 'funnel-2025-06-prime-time.html' },
     { name: '2025년 6월 프라임타임 (테이블)', file: 'funnel-2025-06-prime-time-tables.html' },
     { name: '2025년 7월 완성본', file: 'funnel-2025-07-complete.html' },
-    { name: '2025년 7월 프리미엄 V2', file: 'funnel-2025-07-premium-v2.html' },
-    { name: '2025년 7월 썸머 파이널', file: 'funnel-2025-07-summer-final.html' },
   ];
 
   return (
