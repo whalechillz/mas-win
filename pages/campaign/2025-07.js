@@ -1,20 +1,32 @@
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import Script from 'next/script';
 
 export default function Campaign202507() {
-  const router = useRouter();
-  
   useEffect(() => {
-    // 정적 HTML 파일로 리다이렉트
-    window.location.href = '/versions/funnel-2025-07-complete.html';
+    // 환경변수를 window 객체에 추가
+    window.SUPABASE_CONFIG = {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    };
   }, []);
-  
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-        <p className="mt-4 text-white">페이지 로딩중...</p>
-      </div>
-    </div>
+    <>
+      <Script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        strategy="beforeInteractive"
+      />
+      <iframe
+        src="/versions/funnel-2025-07-complete.html"
+        style={{
+          width: '100%',
+          height: '100vh',
+          border: 'none',
+          margin: 0,
+          padding: 0
+        }}
+        title="MAS Golf 7월 캠페인"
+      />
+    </>
   );
 }
