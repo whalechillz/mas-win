@@ -6,7 +6,7 @@
     <title>MASGOLF | 뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase 제거 (보안상 서버에서 처리) -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
         
@@ -185,16 +185,7 @@
     </style>
 </head>
 <body>
-    <!-- Supabase 설정 -->
-    <script>
-        // Supabase 초기화 (실제 프로젝트에서는 환경변수로 관리)
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Slack Webhook URL (실제 URL로 교체 필요)
-        const SLACK_WEBHOOK_URL = 'YOUR_SLACK_WEBHOOK_URL';
-    </script>
+
 
     <!-- 탑 바 -->
     <div class="summer-gradient text-white py-3 px-6 sticky top-0 z-50">
@@ -1133,32 +1124,20 @@
             const data = Object.fromEntries(formData);
             
             try {
-                // Supabase에 저장
-                if (window.supabase) {
-                    const { error } = await supabase
-                        .from('bookings')
-                        .insert([{
-                            name: data.name,
-                            phone: data.phone,
-                            date: data.date,
-                            time: data.time,
-                            club: data.club,
-                            created_at: new Date()
-                        }]);
-                    
-                    if (error) throw error;
-                }
+                // 서버로 전송 (실제 구현 시 서버 엔드포인트로 변경)
+                // const response = await fetch('/api/booking', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(data)
+                // });
                 
-                // Slack 알림
-                if (SLACK_WEBHOOK_URL) {
-                    await fetch(SLACK_WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            text: `새로운 시타 예약!\n이름: ${data.name}\n연락처: ${data.phone}\n날짜: ${data.date}\n시간: ${data.time}\n클럽: ${data.club}`
-                        })
-                    });
-                }
+                // 임시로 로컬 스토리지에 저장 (실제로는 서버에 저장)
+                const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+                bookings.push({
+                    ...data,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('bookings', JSON.stringify(bookings));
                 
                 alert('예약이 완료되었습니다. 곧 연락드리겠습니다.');
                 closeModal('bookingModal');
@@ -1181,30 +1160,20 @@
             };
             
             try {
-                // Supabase에 저장
-                if (window.supabase) {
-                    const { error } = await supabase
-                        .from('contacts')
-                        .insert([{
-                            name: data.name,
-                            phone: data.phone,
-                            call_times: data.callTimes,
-                            created_at: new Date()
-                        }]);
-                    
-                    if (error) throw error;
-                }
+                // 서버로 전송 (실제 구현 시 서버 엔드포인트로 변경)
+                // const response = await fetch('/api/contact', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(data)
+                // });
                 
-                // Slack 알림
-                if (SLACK_WEBHOOK_URL) {
-                    await fetch(SLACK_WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            text: `새로운 문의!\n이름: ${data.name}\n연락처: ${data.phone}\n통화가능시간: ${data.callTimes}`
-                        })
-                    });
-                }
+                // 임시로 로컬 스토리지에 저장 (실제로는 서버에 저장)
+                const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                contacts.push({
+                    ...data,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('contacts', JSON.stringify(contacts));
                 
                 alert('문의가 접수되었습니다. 선택하신 시간대에 연락드리겠습니다.');
                 closeModal('contactModal');
