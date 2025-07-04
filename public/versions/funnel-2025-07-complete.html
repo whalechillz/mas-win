@@ -34,6 +34,16 @@
             background: linear-gradient(135deg, #FF6B6B 0%, #FF0000 100%);
         }
         
+        /* 골드 그라데이션 텍스트 */
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255,215,0,0.5));
+        }
+        
         /* 스크롤 애니메이션 */
         .scroll-reveal {
             opacity: 0;
@@ -382,7 +392,7 @@
     <div class="summer-gradient text-white py-3 px-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="text-sm font-medium">
-                <i class="fas fa-fire mr-2"></i>7월 한정 썸머 스페셜 - 선착순 20명 20% 할인
+                <i class="fas fa-fire mr-2"></i>7월 한정 썸머 스페셜 - 선착순 20명 20% 할인 + 최대 30만원 상당 로얄샬루트 1000ml 증정
             </div>
             <div class="flex items-center space-x-6">
                 <a href="tel:080-028-8888" class="flex items-center hover:text-yellow-100 transition">
@@ -415,7 +425,7 @@
         <div class="relative z-10 text-center text-white px-6">
             <h1 class="text-5xl md:text-7xl font-black mb-6">
                 <span class="block mb-4">뜨거운 여름,</span>
-                <span class="block text-red-500" style="text-shadow: 0 0 30px rgba(255,0,0,0.8);">완벽한 스윙</span>
+                <span class="block gold-gradient-text text-6xl md:text-8xl" style="font-weight: 900;">완벽한 스윙</span>
             </h1>
             <p class="text-xl md:text-2xl mb-8 opacity-90">
                 품격 있는 퍼포먼스를 위한 준비
@@ -423,11 +433,8 @@
             
             <!-- CTA 버튼 -->
             <div class="mt-12">
-                <a href="#video-section" class="inline-block summer-gradient text-white px-10 py-4 rounded-full font-bold text-lg hover:scale-105 transition-all duration-300 shadow-2xl">
-                    <i class="fas fa-play-circle mr-2"></i>영상 보기
-                </a>
-                <a href="#quiz-section" class="inline-block bg-transparent border-2 border-red-500 text-red-500 px-10 py-4 rounded-full font-bold text-lg hover:bg-red-500 hover:text-white ml-4 transition-all duration-300">
-                    <i class="fas fa-question-circle mr-2"></i>나의 스타일 찾기
+                <a href="#quiz-section" class="inline-block bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-12 py-5 rounded-full font-bold text-xl hover:scale-105 transition-all duration-300 shadow-2xl">
+                    <i class="fas fa-golf-ball mr-3"></i>나만의 맞춤 클럽 찾기
                 </a>
             </div>
         </div>
@@ -544,7 +551,7 @@
                 <div id="distanceComparison" class="hidden">
                     <!-- 일반 클럽 -->
                     <div class="mb-8">
-                        <h4 class="text-lg font-bold text-gray-400 mb-2">일반 골프클럽</h4>
+                        <h4 class="text-lg font-bold text-gray-400 mb-2">타사 드라이버</h4>
                         <div class="relative bg-gray-800 h-20 rounded-lg overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-r from-gray-700 to-transparent opacity-50"></div>
                             <div id="normalBall" class="golf-ball"></div>
@@ -554,7 +561,7 @@
                     
                     <!-- MAS 클럽 -->
                     <div>
-                        <h4 class="text-lg font-bold text-red-500 mb-2">MAS 골프클럽</h4>
+                        <h4 class="text-lg font-bold text-red-500 mb-2">MAS 드라이버</h4>
                         <div class="relative bg-gray-800 h-20 rounded-lg overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-r from-red-900 to-transparent opacity-50"></div>
                             <div id="masBall" class="golf-ball"></div>
@@ -565,7 +572,7 @@
                     <!-- 증가량 표시 -->
                     <div class="text-center mt-12">
                         <div class="inline-flex items-center gap-4 bg-gradient-to-r from-red-900 to-black p-8 rounded-2xl">
-                            <div class="text-6xl font-black text-red-500 montserrat">+25</div>
+                            <div class="text-6xl font-black text-red-500 montserrat" id="distanceIncreaseNumber">+0</div>
                             <div class="text-left">
                                 <div class="text-2xl font-bold text-white">미터</div>
                                 <div class="text-gray-400">평균 비거리 증가</div>
@@ -1268,7 +1275,8 @@
             </div>
             
             <p class="text-sm text-gray-600">
-                © 2025 MASGOLF®. All rights reserved.
+                © 2025 MASGOLF®. All rights reserved.<br>
+                <span class="text-xs text-gray-700">Since 2003, 마쓰구의 브랜드 마스터로 22년의 전통</span>
             </p>
         </div>
     </footer>
@@ -1639,20 +1647,33 @@
             // CTA 버튼 생성
             
             const buttonsHTML = `
-                <button onclick="showBookingModal('${product.name}')" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition">
-                    <i class="fas fa-calendar-check mr-2"></i>시타 예약
-                </button>
-                <a href="tel:080-028-8888" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
-                    <i class="fas fa-phone mr-2"></i>전화 상담
-                </a>
-                <button onclick="showContactModal()" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
-                    <i class="fas fa-comment mr-2"></i>문의하기
-                </button>
+                <div class="flex justify-center gap-4">
+                    <button onclick="showBookingModal('${product.name}')" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition">
+                        <i class="fas fa-calendar-check mr-2"></i>시타 예약
+                    </button>
+                    <a href="tel:080-028-8888" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
+                        <i class="fas fa-phone mr-2"></i>전화 상담
+                    </a>
+                    <button onclick="showContactModal()" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
+                        <i class="fas fa-comment mr-2"></i>문의하기
+                    </button>
+                </div>
             `;
             
             document.getElementById('resultButtons').innerHTML = buttonsHTML;
             document.getElementById('step3').classList.remove('active');
             document.getElementById('result').classList.add('active');
+            
+            // 자동으로 비거리 비교 섹션으로 스크롤하고 애니메이션 실행
+            setTimeout(() => {
+                const comparisonSection = document.querySelector('#distanceComparison').closest('section');
+                if (comparisonSection) {
+                    comparisonSection.scrollIntoView({ behavior: 'smooth' });
+                    setTimeout(() => {
+                        showDistanceComparison(quizData.distance);
+                    }, 1000);
+                }
+            }, 500);
     // 예상 비거리 애니메이션
     setTimeout(() => {
         const expectedDistEl = document.getElementById('expectedDistance');
@@ -1676,11 +1697,16 @@
         }
 
         // 비거리 비교 애니메이션
-        function showDistanceComparison() {
-            const userDistance = parseInt(document.getElementById('userDistance').value);
+        function showDistanceComparison(autoDistance) {
+            const userDistance = autoDistance || parseInt(document.getElementById('userDistance').value);
             if (!userDistance) {
                 alert('비거리를 입력해주세요.');
                 return;
+            }
+            
+            // 입력값 자동 설정
+            if (autoDistance) {
+                document.getElementById('userDistance').value = autoDistance;
             }
             
             const masDistance = userDistance + 25;
@@ -1703,7 +1729,30 @@
                 
                 normalBall.classList.add('ball-animate');
                 masBall.classList.add('ball-animate');
+                
+                // 증가량 숫자 애니메이션
+                animateDistanceIncrease();
             }, 100);
+        }
+        
+        // 거리 증가 숫자 애니메이션
+        function animateDistanceIncrease() {
+            const element = document.getElementById('distanceIncreaseNumber');
+            if (!element) return;
+            
+            let current = 0;
+            const target = 25;
+            const duration = 2000;
+            const increment = target / (duration / 16);
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = `+${Math.floor(current)}`;
+            }, 16);
         }
 
         // FAQ 토글
