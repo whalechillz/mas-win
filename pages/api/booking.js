@@ -1,5 +1,5 @@
 import { sendSlackNotification } from '../../lib/slackNotify';
-import { supabase } from '../../lib/supabaseClient';
+import { supabaseAdmin } from '../../lib/supabaseClient';
 
 export default async function handler(req, res) {
   // CORS 설정
@@ -33,9 +33,9 @@ export default async function handler(req, res) {
     let slackSent = false;
     let savedData = null;
 
-    // 1. Supabase에 저장 시도
+    // 1. Supabase에 저장 시도 (Admin 클라이언트 사용)
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('bookings')
         .insert({
           name,
@@ -115,4 +115,3 @@ ${dbSaved && savedData ? `예약 ID: ${savedData.id}` : ''}`;
     });
   }
 }
-// Deploy time: Thu Jul  3 22:16:00 KST 2025

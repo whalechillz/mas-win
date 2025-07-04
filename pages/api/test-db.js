@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabaseClient';
+import { supabaseAdmin } from '../../lib/supabaseClient';
 
 export default async function handler(req, res) {
   // 환경변수 확인
@@ -9,12 +9,12 @@ export default async function handler(req, res) {
   });
 
   try {
-    // 테이블 확인
-    const { data: bookings, error: bookingsError } = await supabase
+    // 테이블 확인 (Admin 클라이언트 사용)
+    const { data: bookings, error: bookingsError } = await supabaseAdmin
       .from('bookings')
       .select('count');
     
-    const { data: contacts, error: contactsError } = await supabase
+    const { data: contacts, error: contactsError } = await supabaseAdmin
       .from('contacts')
       .select('count');
 
@@ -24,10 +24,11 @@ export default async function handler(req, res) {
       phone: '010-0000-0000',
       date: '2025-07-03',
       time: '14:00',
-      club: 'TEST'
+      club: 'TEST',
+      status: 'pending'
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('bookings')
       .insert([testData])
       .select();
@@ -53,7 +54,8 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     res.status(500).json({
-      error: error.message
+      error: error.message,
+      stack: error.stack
     });
   }
 }
