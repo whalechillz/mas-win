@@ -64,9 +64,9 @@ class DatabaseHandler {
                 .insert([{
                     name: bookingData.name,
                     phone: bookingData.phone,
-                    preferred_date: bookingData.preferredDate,
-                    preferred_time: bookingData.preferredTime,
-                    club_interest: bookingData.clubInterest
+                    date: bookingData.preferredDate,
+                    time: bookingData.preferredTime,
+                    club: bookingData.clubInterest
                 }])
                 .select();
             
