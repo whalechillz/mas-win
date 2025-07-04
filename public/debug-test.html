@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF 디버깅 테스트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 설정 파일 -->
+    <script src="/config.js"></script>
+    
+    <!-- 데이터베이스 핸들러 -->
+    <script src="/js/database-handler.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">MASGOLF 디버깅 테스트</h1>
+        
+        <!-- 상태 표시 -->
+        <div id="statusPanel" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">시스템 상태</h2>
+            <div id="statusContent" class="space-y-2">
+                <p>확인 중...</p>
+            </div>
+        </div>
+        
+        <!-- 테스트 버튼 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">테스트 작업</h2>
+            <div class="space-y-4">
+                <button onclick="testConnection()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    1. 데이터베이스 연결 테스트
+                </button>
+                
+                <button onclick="testBookingSave()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    2. 시타 예약 저장 테스트
+                </button>
+                
+                <button onclick="testContactSave()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    3. 문의 저장 테스트
+                </button>
+                
+                <button onclick="showDebugInfo()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    4. 디버그 정보 보기
+                </button>
+            </div>
+        </div>
+        
+        <!-- 로그 표시 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">실행 로그</h2>
+            <div id="logContent" class="bg-gray-100 p-4 rounded max-h-96 overflow-y-auto font-mono text-sm">
+                <p class="text-gray-500">로그가 여기에 표시됩니다...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let logElement = document.getElementById('logContent');
+        
+        // 로그 출력
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'text-green-600' : 
+                         type === 'error' ? 'text-red-600' : 
+                         'text-blue-600';
+            
+            logElement.innerHTML += `<p class="${color}">[${timestamp}] ${message}</p>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // 초기 상태 확인
+        window.onload = async function() {
+            updateStatus();
+            
+            // 자동 초기화 시도
+            addLog('페이지 로드 완료. 자동 초기화 시작...');
+            await testConnection();
+        };
+        
+        // 상태 업데이트
+        function updateStatus() {
+            const statusContent = document.getElementById('statusContent');
+            
+            const checks = [
+                { 
+                    label: 'Config.js 로드됨', 
+                    status: typeof SUPABASE_CONFIG !== 'undefined',
+                    details: typeof SUPABASE_CONFIG !== 'undefined' ? 'URL: ' + SUPABASE_CONFIG.url : '파일을 찾을 수 없음'
+                },
+                { 
+                    label: 'Supabase 라이브러리', 
+                    status: typeof window.supabase !== 'undefined',
+                    details: ''
+                },
+                { 
+                    label: 'DatabaseHandler 로드됨', 
+                    status: typeof window.dbHandler !== 'undefined',
+                    details: ''
+                },
+                { 
+                    label: '프로토콜', 
+                    status: window.location.protocol === 'https:',
+                    details: window.location.protocol
+                },
+                { 
+                    label: '현재 URL', 
+                    status: true,
+                    details: window.location.href
+                }
+            ];
+            
+            statusContent.innerHTML = checks.map(check => `
+                <div class="flex items-center space-x-2">
+                    <span class="${check.status ? 'text-green-500' : 'text-red-500'}">
+                        ${check.status ? '✓' : '✗'}
+                    </span>
+                    <span class="font-medium">${check.label}:</span>
+                    <span class="text-gray-600">${check.details}</span>
+                </div>
+            `).join('');
+        }
+        
+        // 1. 연결 테스트
+        async function testConnection() {
+            addLog('데이터베이스 연결 테스트 시작...');
+            updateStatus();
+            
+            try {
+                const result = await window.dbHandler.init();
+                
+                if (result) {
+                    addLog('데이터베이스 연결 성공!', 'success');
+                } else {
+                    addLog('데이터베이스 연결 실패', 'error');
+                }
+                
+                updateStatus();
+            } catch (error) {
+                addLog('연결 중 오류: ' + error.message, 'error');
+            }
+        }
+        
+        // 2. 예약 저장 테스트
+        async function testBookingSave() {
+            addLog('시타 예약 저장 테스트 시작...');
+            
+            const testData = {
+                name: '테스트 사용자',
+                phone: '010-1234-5678',
+                preferredDate: '2025-07-10',
+                preferredTime: '오전',
+                clubInterest: '시크리트포스 PRO 3'
+            };
+            
+            addLog('테스트 데이터: ' + JSON.stringify(testData));
+            
+            const result = await window.dbHandler.saveBooking(testData);
+            
+            if (result.success) {
+                addLog('예약 저장 성공!', 'success');
+                addLog('저장된 데이터 ID: ' + (result.data?.[0]?.id || 'N/A'));
+            } else {
+                addLog('예약 저장 실패: ' + result.error, 'error');
+                
+                // 폴백 시도
+                addLog('로컬 스토리지 폴백 시도...');
+                const fallbackResult = await window.dbHandler.saveToLocalStorage('booking', testData);
+                
+                if (fallbackResult.success) {
+                    addLog('로컬 스토리지 저장 성공!', 'success');
+                }
+            }
+        }
+        
+        // 3. 문의 저장 테스트
+        async function testContactSave() {
+            addLog('문의 저장 테스트 시작...');
+            
+            const testData = {
+                name: '테스트 문의자',
+                phone: '010-9876-5432',
+                callTime: '오후 2-4시'
+            };
+            
+            addLog('테스트 데이터: ' + JSON.stringify(testData));
+            
+            const result = await window.dbHandler.saveContact(testData);
+            
+            if (result.success) {
+                addLog('문의 저장 성공!', 'success');
+                addLog('저장된 데이터 ID: ' + (result.data?.[0]?.id || 'N/A'));
+            } else {
+                addLog('문의 저장 실패: ' + result.error, 'error');
+                
+                // 폴백 시도
+                addLog('로컬 스토리지 폴백 시도...');
+                const fallbackResult = await window.dbHandler.saveToLocalStorage('contact', testData);
+                
+                if (fallbackResult.success) {
+                    addLog('로컬 스토리지 저장 성공!', 'success');
+                }
+            }
+        }
+        
+        // 4. 디버그 정보 표시
+        function showDebugInfo() {
+            addLog('디버그 정보 수집 중...');
+            
+            const debugInfo = window.dbHandler.getDebugInfo();
+            
+            addLog('=== 디버그 정보 ===');
+            addLog('연결 상태: ' + (debugInfo.isConnected ? '연결됨' : '연결 안됨'));
+            addLog('Config 로드: ' + (debugInfo.configLoaded ? 'YES' : 'NO'));
+            addLog('Supabase 로드: ' + (debugInfo.supabaseLoaded ? 'YES' : 'NO'));
+            addLog('프로토콜: ' + debugInfo.environment.protocol);
+            addLog('호스트: ' + debugInfo.environment.host);
+            addLog('경로: ' + debugInfo.environment.pathname);
+            
+            if (debugInfo.errorLog.length > 0) {
+                addLog('=== 에러 로그 ===');
+                debugInfo.errorLog.forEach(log => {
+                    addLog(`[${log.timestamp}] ${log.message}`, log.type);
+                });
+            }
+            
+            // 콘솔에도 출력
+            console.log('전체 디버그 정보:', debugInfo);
+        }
+    </script>
+</body>
+</html>
