@@ -1,7 +1,21 @@
+import { useEffect } from 'react';
+
 export default function Campaign202507() {
+  useEffect(() => {
+    // API fix 스크립트 동적 로드
+    const script = document.createElement('script');
+    script.src = '/api-fix.js';
+    script.async = true;
+    document.head.appendChild(script);
+    
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   return (
     <iframe
-      src="/api/html/funnel-2025-07-complete.html"
+      src="/versions/funnel-2025-07-complete.html"
       style={{
         width: '100%',
         height: '100vh',
