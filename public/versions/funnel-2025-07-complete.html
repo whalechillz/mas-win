@@ -6,7 +6,11 @@
     <title>MASGOLF | 뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase 제거 (보안상 서버에서 처리) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 설정 파일 로드 -->
+    <script src="../../config.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
         
@@ -182,9 +186,41 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
             animation: shine 3s infinite;
         }
+        
+        /* 로딩 스피너 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <!-- Supabase 초기화 -->
+    <script>
+        // Supabase 클라이언트 초기화
+        let supabase = null;
+        
+        // config.js가 로드되었는지 확인
+        if (typeof SUPABASE_CONFIG !== 'undefined' && 
+            SUPABASE_CONFIG.url !== 'https://YOUR_PROJECT_REF.supabase.co') {
+            supabase = window.supabase.createClient(
+                SUPABASE_CONFIG.url,
+                SUPABASE_CONFIG.anonKey
+            );
+            console.log('Supabase 연결됨');
+        } else {
+            console.warn('Supabase 설정이 필요합니다. config.js 파일을 확인하세요.');
+        }
+    </script>
 
 
     <!-- 탑 바 -->
@@ -1120,24 +1156,56 @@
         // 폼 제출 처리
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // 버튼 상태 변경
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<span class="loading"></span> 처리중...';
+            submitButton.disabled = true;
+            
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
             
             try {
-                // 서버로 전송 (실제 구현 시 서버 엔드포인트로 변경)
-                // const response = await fetch('/api/booking', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(data)
-                // });
-                
-                // 임시로 로컬 스토리지에 저장 (실제로는 서버에 저장)
-                const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-                bookings.push({
-                    ...data,
-                    created_at: new Date().toISOString()
-                });
-                localStorage.setItem('bookings', JSON.stringify(bookings));
+                // Supabase에 저장
+                if (supabase) {
+                    const { error } = await supabase
+                        .from('bookings')
+                        .insert([{
+                            name: data.name,
+                            phone: data.phone,
+                            date: data.date,
+                            time: data.time,
+                            club: data.club
+                        }]);
+                    
+                    if (error) throw error;
+                    
+                    // Slack 알림 (서버 사이드에서 처리하는 것을 권장)
+                    if (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.slackWebhook && 
+                        SUPABASE_CONFIG.slackWebhook !== 'YOUR_SLACK_WEBHOOK_URL') {
+                        try {
+                            await fetch(SUPABASE_CONFIG.slackWebhook, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    text: `새로운 시타 예약!\n이름: ${data.name}\n연락처: ${data.phone}\n날짜: ${data.date}\n시간: ${data.time}\n클럽: ${data.club}`
+                                })
+                            });
+                        } catch (slackError) {
+                            console.error('Slack 알림 실패:', slackError);
+                        }
+                    }
+                } else {
+                    // Supabase가 설정되지 않은 경우 로컬 스토리지에 저장
+                    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+                    bookings.push({
+                        ...data,
+                        created_at: new Date().toISOString()
+                    });
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                    console.log('로컬 스토리지에 저장됨:', bookings);
+                }
                 
                 alert('예약이 완료되었습니다. 곧 연락드리겠습니다.');
                 closeModal('bookingModal');
@@ -1145,35 +1213,65 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('예약 중 오류가 발생했습니다. 전화로 문의해주세요.');
+            } finally {
+                // 버튼 원상 복구
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
             }
         });
 
         document.getElementById('contactForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // 버튼 상태 변경
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<span class="loading"></span> 처리중...';
+            submitButton.disabled = true;
+            
             const formData = new FormData(e.target);
             const callTimes = formData.getAll('callTime');
             
             const data = {
                 name: formData.get('name'),
                 phone: formData.get('phone'),
-                callTimes: callTimes.join(', ')
+                call_times: callTimes.join(', ')
             };
             
             try {
-                // 서버로 전송 (실제 구현 시 서버 엔드포인트로 변경)
-                // const response = await fetch('/api/contact', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(data)
-                // });
-                
-                // 임시로 로컬 스토리지에 저장 (실제로는 서버에 저장)
-                const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
-                contacts.push({
-                    ...data,
-                    created_at: new Date().toISOString()
-                });
-                localStorage.setItem('contacts', JSON.stringify(contacts));
+                // Supabase에 저장
+                if (supabase) {
+                    const { error } = await supabase
+                        .from('contacts')
+                        .insert([data]);
+                    
+                    if (error) throw error;
+                    
+                    // Slack 알림
+                    if (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.slackWebhook &&
+                        SUPABASE_CONFIG.slackWebhook !== 'YOUR_SLACK_WEBHOOK_URL') {
+                        try {
+                            await fetch(SUPABASE_CONFIG.slackWebhook, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    text: `새로운 문의!\n이름: ${data.name}\n연락처: ${data.phone}\n통화가능시간: ${data.call_times}`
+                                })
+                            });
+                        } catch (slackError) {
+                            console.error('Slack 알림 실패:', slackError);
+                        }
+                    }
+                } else {
+                    // Supabase가 설정되지 않은 경우 로컬 스토리지에 저장
+                    const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                    contacts.push({
+                        ...data,
+                        created_at: new Date().toISOString()
+                    });
+                    localStorage.setItem('contacts', JSON.stringify(contacts));
+                    console.log('로컬 스토리지에 저장됨:', contacts);
+                }
                 
                 alert('문의가 접수되었습니다. 선택하신 시간대에 연락드리겠습니다.');
                 closeModal('contactModal');
@@ -1181,6 +1279,10 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('문의 접수 중 오류가 발생했습니다. 전화로 문의해주세요.');
+            } finally {
+                // 버튼 원상 복구
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
             }
         });
 

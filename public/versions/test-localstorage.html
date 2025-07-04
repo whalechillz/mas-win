@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로컬 스토리지 테스트</title>
+</head>
+<body>
+    <h1>로컬 스토리지 테스트</h1>
+    
+    <button onclick="testSave()">테스트 저장</button>
+    <button onclick="testLoad()">테스트 로드</button>
+    <button onclick="clearTest()">테스트 삭제</button>
+    
+    <div id="result"></div>
+    
+    <h2>현재 저장된 데이터:</h2>
+    <pre id="current"></pre>
+    
+    <script>
+        function testSave() {
+            try {
+                const testData = {
+                    name: '테스트',
+                    phone: '010-1234-5678',
+                    time: new Date().toISOString()
+                };
+                
+                const existing = JSON.parse(localStorage.getItem('test_bookings') || '[]');
+                existing.push(testData);
+                localStorage.setItem('test_bookings', JSON.stringify(existing));
+                
+                document.getElementById('result').innerHTML = '✅ 저장 성공!';
+                showCurrent();
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ 에러: ' + error.message;
+                console.error(error);
+            }
+        }
+        
+        function testLoad() {
+            try {
+                const data = localStorage.getItem('test_bookings');
+                document.getElementById('result').innerHTML = '✅ 로드 성공: ' + (data || '데이터 없음');
+                showCurrent();
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ 에러: ' + error.message;
+                console.error(error);
+            }
+        }
+        
+        function clearTest() {
+            localStorage.removeItem('test_bookings');
+            document.getElementById('result').innerHTML = '🗑️ 삭제됨';
+            showCurrent();
+        }
+        
+        function showCurrent() {
+            const bookings = localStorage.getItem('bookings');
+            const contacts = localStorage.getItem('contacts');
+            const test = localStorage.getItem('test_bookings');
+            
+            document.getElementById('current').innerHTML = 
+                'bookings: ' + (bookings || 'null') + '\n\n' +
+                'contacts: ' + (contacts || 'null') + '\n\n' +
+                'test_bookings: ' + (test || 'null');
+        }
+        
+        // 페이지 로드 시 현재 상태 표시
+        showCurrent();
+        
+        // 로컬 스토리지 지원 확인
+        if (typeof(Storage) === "undefined") {
+            alert("이 브라우저는 로컬 스토리지를 지원하지 않습니다!");
+        }
+    </script>
+</body>
+</html>
