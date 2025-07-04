@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF 관리자 - Supabase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 설정 파일 로드 -->
+    <script src="/config.js"></script>
+    <script src="/js/database-handler.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">MASGOLF 관리자 페이지</h1>
+            <div class="text-sm text-gray-600">
+                <i class="fas fa-database mr-2"></i>Supabase 연동
+            </div>
+        </div>
+        
+        <!-- 연결 상태 -->
+        <div id="connectionStatus" class="mb-6 p-4 rounded-lg">
+            <i class="fas fa-circle mr-2"></i>
+            <span id="statusText">연결 확인 중...</span>
+        </div>
+        
+        <!-- 통계 섹션 -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">총 시타 예약</h3>
+                <p class="text-3xl font-bold text-blue-500" id="totalBookings">-</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">총 문의</h3>
+                <p class="text-3xl font-bold text-purple-500" id="totalContacts">-</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">오늘 신청</h3>
+                <p class="text-3xl font-bold text-green-500" id="todayTotal">-</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-2">이번 주 신청</h3>
+                <p class="text-3xl font-bold text-orange-500" id="weekTotal">-</p>
+            </div>
+        </div>
+        
+        <!-- 시타 예약 섹션 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center justify-between">
+                <span><i class="fas fa-calendar-check text-blue-500 mr-2"></i>시타 예약</span>
+                <div>
+                    <button onclick="refreshData('bookings')" class="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 mr-2">
+                        <i class="fas fa-sync mr-2"></i>새로고침
+                    </button>
+                    <button onclick="exportToCSV('bookings')" class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600">
+                        <i class="fas fa-download mr-2"></i>CSV 다운로드
+                    </button>
+                </div>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="border p-2 text-left">번호</th>
+                            <th class="border p-2 text-left">이름</th>
+                            <th class="border p-2 text-left">연락처</th>
+                            <th class="border p-2 text-left">희망 날짜</th>
+                            <th class="border p-2 text-left">희망 시간</th>
+                            <th class="border p-2 text-left">관심 클럽</th>
+                            <th class="border p-2 text-left">신청 시간</th>
+                            <th class="border p-2 text-left">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTable">
+                        <tr>
+                            <td colspan="8" class="border p-4 text-center text-gray-500">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>로딩 중...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 문의 섹션 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center justify-between">
+                <span><i class="fas fa-comment text-purple-500 mr-2"></i>문의 내역</span>
+                <div>
+                    <button onclick="refreshData('contacts')" class="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 mr-2">
+                        <i class="fas fa-sync mr-2"></i>새로고침
+                    </button>
+                    <button onclick="exportToCSV('contacts')" class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600">
+                        <i class="fas fa-download mr-2"></i>CSV 다운로드
+                    </button>
+                </div>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="border p-2 text-left">번호</th>
+                            <th class="border p-2 text-left">이름</th>
+                            <th class="border p-2 text-left">연락처</th>
+                            <th class="border p-2 text-left">통화 가능 시간</th>
+                            <th class="border p-2 text-left">신청 시간</th>
+                            <th class="border p-2 text-left">연락 여부</th>
+                            <th class="border p-2 text-left">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsTable">
+                        <tr>
+                            <td colspan="7" class="border p-4 text-center text-gray-500">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>로딩 중...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let supabase = null;
+        let bookingsData = [];
+        let contactsData = [];
+        
+        // Supabase 초기화
+        async function initSupabase() {
+            const statusEl = document.getElementById('connectionStatus');
+            const statusTextEl = document.getElementById('statusText');
+            
+            try {
+                if (typeof SUPABASE_CONFIG !== 'undefined' && 
+                    SUPABASE_CONFIG.url && 
+                    SUPABASE_CONFIG.anonKey) {
+                    
+                    supabase = window.supabase.createClient(
+                        SUPABASE_CONFIG.url,
+                        SUPABASE_CONFIG.anonKey
+                    );
+                    
+                    // 연결 테스트
+                    const { data, error } = await supabase
+                        .from('bookings')
+                        .select('count', { count: 'exact' });
+                    
+                    if (error) throw error;
+                    
+                    statusEl.className = 'mb-6 p-4 rounded-lg bg-green-100 text-green-700';
+                    statusTextEl.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Supabase 연결됨';
+                    
+                    // 데이터 로드
+                    await loadAllData();
+                    
+                } else {
+                    throw new Error('Supabase 설정이 없습니다.');
+                }
+            } catch (error) {
+                console.error('Supabase 초기화 실패:', error);
+                statusEl.className = 'mb-6 p-4 rounded-lg bg-red-100 text-red-700';
+                statusTextEl.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>연결 실패: ' + error.message;
+            }
+        }
+        
+        // 모든 데이터 로드
+        async function loadAllData() {
+            await loadBookings();
+            await loadContacts();
+            updateStats();
+        }
+        
+        // 시타 예약 로드
+        async function loadBookings() {
+            if (!supabase) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('bookings')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                bookingsData = data || [];
+                displayBookings();
+            } catch (error) {
+                console.error('예약 로드 실패:', error);
+                document.getElementById('bookingsTable').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="border p-4 text-center text-red-500">
+                            데이터 로드 실패: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // 문의 로드
+        async function loadContacts() {
+            if (!supabase) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('contacts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                contactsData = data || [];
+                displayContacts();
+            } catch (error) {
+                console.error('문의 로드 실패:', error);
+                document.getElementById('contactsTable').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="border p-4 text-center text-red-500">
+                            데이터 로드 실패: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // 시타 예약 표시
+        function displayBookings() {
+            const tbody = document.getElementById('bookingsTable');
+            
+            if (bookingsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="border p-4 text-center text-gray-500">예약이 없습니다.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = bookingsData.map((booking, index) => `
+                <tr>
+                    <td class="border p-2">${index + 1}</td>
+                    <td class="border p-2">${booking.name}</td>
+                    <td class="border p-2">${booking.phone}</td>
+                    <td class="border p-2">${formatDate(booking.date)}</td>
+                    <td class="border p-2">${booking.time}</td>
+                    <td class="border p-2">${booking.club || '-'}</td>
+                    <td class="border p-2">${formatDateTime(booking.created_at)}</td>
+                    <td class="border p-2">
+                        <button onclick="deleteBooking('${booking.id}')" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 문의 표시
+        function displayContacts() {
+            const tbody = document.getElementById('contactsTable');
+            
+            if (contactsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="border p-4 text-center text-gray-500">문의가 없습니다.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = contactsData.map((contact, index) => `
+                <tr class="${contact.contacted ? 'bg-gray-50' : ''}">
+                    <td class="border p-2">${index + 1}</td>
+                    <td class="border p-2">${contact.name}</td>
+                    <td class="border p-2">${contact.phone}</td>
+                    <td class="border p-2">${contact.call_times || '-'}</td>
+                    <td class="border p-2">${formatDateTime(contact.created_at)}</td>
+                    <td class="border p-2">
+                        <input type="checkbox" ${contact.contacted ? 'checked' : ''} 
+                               onchange="toggleContacted('${contact.id}', this.checked)">
+                    </td>
+                    <td class="border p-2">
+                        <button onclick="deleteContact('${contact.id}')" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 통계 업데이트
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            
+            document.getElementById('totalBookings').textContent = bookingsData.length;
+            document.getElementById('totalContacts').textContent = contactsData.length;
+            
+            const todayCount = bookingsData.filter(b => b.created_at.startsWith(today)).length +
+                              contactsData.filter(c => c.created_at.startsWith(today)).length;
+            document.getElementById('todayTotal').textContent = todayCount;
+            
+            const weekCount = bookingsData.filter(b => b.created_at >= weekAgo).length +
+                             contactsData.filter(c => c.created_at >= weekAgo).length;
+            document.getElementById('weekTotal').textContent = weekCount;
+        }
+        
+        // 삭제 함수들
+        async function deleteBooking(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('bookings')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                await loadBookings();
+                updateStats();
+            } catch (error) {
+                alert('삭제 실패: ' + error.message);
+            }
+        }
+        
+        async function deleteContact(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('contacts')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                await loadContacts();
+                updateStats();
+            } catch (error) {
+                alert('삭제 실패: ' + error.message);
+            }
+        }
+        
+        // 연락 여부 토글
+        async function toggleContacted(id, contacted) {
+            try {
+                const { error } = await supabase
+                    .from('contacts')
+                    .update({ contacted })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                await loadContacts();
+            } catch (error) {
+                alert('업데이트 실패: ' + error.message);
+            }
+        }
+        
+        // 새로고침
+        async function refreshData(type) {
+            if (type === 'bookings') {
+                await loadBookings();
+            } else {
+                await loadContacts();
+            }
+            updateStats();
+        }
+        
+        // CSV 다운로드
+        function exportToCSV(type) {
+            const data = type === 'bookings' ? bookingsData : contactsData;
+            const headers = type === 'bookings' 
+                ? ['이름', '연락처', '희망날짜', '희망시간', '관심클럽', '신청시간']
+                : ['이름', '연락처', '통화가능시간', '신청시간', '연락여부'];
+            
+            let csv = '\uFEFF' + headers.join(',') + '\n';
+            
+            data.forEach(item => {
+                if (type === 'bookings') {
+                    csv += `${item.name},${item.phone},${item.date},${item.time},${item.club || ''},${item.created_at}\n`;
+                } else {
+                    csv += `${item.name},${item.phone},${item.call_times || ''},${item.created_at},${item.contacted ? 'O' : 'X'}\n`;
+                }
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `masgolf_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+        
+        // 날짜 포맷
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+        
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return `${formatDate(dateStr)} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+        
+        // 페이지 로드 시 초기화
+        window.onload = initSupabase;
+    </script>
+</body>
+</html>
