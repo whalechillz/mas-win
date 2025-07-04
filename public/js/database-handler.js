@@ -118,7 +118,7 @@ class DatabaseHandler {
                 .insert([{
                     name: contactData.name,
                     phone: contactData.phone,
-                    call_time: contactData.callTime
+                    call_times: contactData.callTime
                 }])
                 .select();
             
