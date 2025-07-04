@@ -15,7 +15,7 @@ export default function Campaign202507() {
 
   return (
     <iframe
-      src="/versions/funnel-2025-07-complete.html"
+      src="/versions/funnel-2025-07-complete.html"  // 원래대로 complete 버전 사용
       style={{
         width: '100%',
         height: '100vh',
