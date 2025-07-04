@@ -201,43 +201,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        /* 거리 비교 성공 애니메이션 */
-        @keyframes successPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
-        }
-        
-        @keyframes glowEffect {
-            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); }
-            50% { box-shadow: 0 0 40px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 0, 0, 0.4); }
-        }
-        
-        .success-animation {
-            animation: successPulse 1s ease-in-out 3, glowEffect 3s ease-in-out;
-        }
-        
-        /* 부드러운 라인 애니메이션 */
-        @keyframes drawLine {
-            0% { width: 0%; opacity: 0; }
-            100% { width: 100%; opacity: 1; }
-        }
-        
-        .line-animation {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .line-animation::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #FFD700, transparent);
-            animation: drawLine 2s ease-out forwards;
-        }
-    </style>
     </style>
 </head>
 <body>
@@ -311,6 +274,71 @@
                 <a href="#quiz-section" class="inline-block bg-transparent border-2 border-red-500 text-red-500 px-10 py-4 rounded-full font-bold text-lg hover:bg-red-500 hover:text-white ml-4 transition-all duration-300">
                     <i class="fas fa-question-circle mr-2"></i>나의 스타일 찾기
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영상 섹션 -->
+    <section id="video-section" class="py-20 px-6 bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+                뜨거운 여름, <span class="text-red-500">우린 더 강해져야 합니다</span>
+            </h2>
+            <p class="text-xl text-center text-gray-300 mb-12 scroll-reveal">
+                비거리, 정확도 향상을 위한 준비
+            </p>
+            
+            <div class="max-w-6xl mx-auto">
+                <!-- 헤드 클로즈업 이미지 그리드 -->
+                <div class="grid md:grid-cols-3 gap-6 mb-12">
+                    <div class="relative group">
+                        <div class="shine-effect overflow-hidden rounded-xl">
+                            <img src="/assets/campaigns/2025-07/secret-force-pro3.jpg" 
+                                 alt="시크리트포스 PRO 3" 
+                                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-white font-bold">시크리트포스 PRO 3</h4>
+                            <p class="text-red-500">2.3mm 고반발 페이스</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <div class="shine-effect overflow-hidden rounded-xl">
+                            <img src="/assets/campaigns/2025-07/secret-weapon-black.jpg" 
+                                 alt="시크리트웨폰 블랙" 
+                                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-white font-bold">시크리트웨폰 블랙</h4>
+                            <p class="text-red-500">2.2mm 저중심 설계</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <div class="shine-effect overflow-hidden rounded-xl">
+                            <img src="/assets/campaigns/2025-07/secret-force-v3.jpg" 
+                                 alt="시크리트포스 V3" 
+                                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-white font-bold">시크리트포스 V3</h4>
+                            <p class="text-red-500">2.4mm 최강 반발력</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 빛 반사 효과 설명 -->
+                <div class="bg-gradient-to-br from-red-900 to-black p-1 rounded-2xl max-w-4xl mx-auto">
+                    <div class="bg-black rounded-xl p-8 text-center">
+                        <i class="fas fa-star text-red-500 text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold text-white mb-4">헤드 클로즈업 - 빛 반사 효과로 활기 표현</h3>
+                        <p class="text-gray-400">
+                            임팩트 순간 폭발적인 에너지를 표현하는 MAS 고반발 기술<br>
+                            태양보다 뜨거운 당신의 열정을 담아냅니다
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1018,61 +1046,28 @@
             
             // 결과 표시
             const resultHTML = `
-    <div class="grid md:grid-cols-2 gap-8 items-center">
-        <div>
-            <img src="${product.image}" alt="${product.name}" class="w-full rounded-xl shadow-2xl">
-        </div>
-        <div>
-            <h4 class="text-3xl font-bold text-red-500 mb-2">${product.name}</h4>
-            <p class="text-xl text-gray-300 mb-4">${product.desc}</p>
-            
-            <div class="bg-gray-800 rounded-lg p-4 mb-4">
-                <p class="text-white font-bold mb-2"><i class="fas fa-cog text-red-500 mr-2"></i>${product.spec}</p>
-                <p class="text-gray-400">${product.feature}</p>
-            </div>
-            
-            <!-- 상세 스펙 - 더 많은 정보 추가 -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-4 mb-4 border border-gray-700">
-                <p class="text-yellow-300 font-bold mb-3"><i class="fas fa-chart-bar mr-2"></i>상세 스펙</p>
-                <div class="grid grid-cols-2 gap-2 text-sm">
-                    <div class="text-gray-400">페이스 두께:</div>
-                    <div class="text-white font-bold">${product.faceThickness}</div>
-                    <div class="text-gray-400">반발계수:</div>
-                    <div class="text-white font-bold">${product.cor}</div>
-                    <div class="text-gray-400">헤드 체적:</div>
-                    <div class="text-white font-bold">${product.headVolume}</div>
-                    <div class="text-gray-400">샤프트:</div>
-                    <div class="text-white font-bold">${product.shaft}</div>
-                    <div class="text-gray-400">로프트 각도:</div>
-                    <div class="text-white font-bold">${product.loftAngle}</div>
-                    <div class="text-gray-400">라이 각도:</div>
-                    <div class="text-white font-bold">${product.lieAngle}</div>
-                    <div class="text-gray-400">중량:</div>
-                    <div class="text-white font-bold">${product.weight}</div>
-                    <div class="text-gray-400">소재:</div>
-                    <div class="text-white font-bold">${product.material}</div>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <img src="${product.image}" alt="${product.name}" class="w-full rounded-xl shadow-2xl">
+                    </div>
+                    <div>
+                        <h4 class="text-3xl font-bold text-red-500 mb-2">${product.name}</h4>
+                        <p class="text-xl text-gray-300 mb-4">${product.desc}</p>
+                        <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                            <p class="text-white font-bold mb-2"><i class="fas fa-cog text-red-500 mr-2"></i>${product.spec}</p>
+                            <p class="text-gray-400">${product.feature}</p>
+                        </div>
+                        <div class="bg-red-900/20 rounded-xl p-6">
+                            <p class="text-gray-400 mb-2">현재 비거리: <span class="text-white font-bold">${quizData.distance}m</span></p>
+                            <p class="text-gray-400">예상 비거리: <span class="text-red-500 font-bold text-2xl">${quizData.distance + 25}m</span></p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- 특별한 이유 -->
-            <div class="bg-gradient-to-br from-red-900/30 to-black/30 rounded-lg p-4 border border-red-800">
-                <p class="text-yellow-300 font-bold mb-2"><i class="fas fa-star mr-2"></i>특별한 이유</p>
-                <p class="text-gray-300 text-sm">${product.hookingDesc || '30년의 기술력과 특허받은 고반발 기술이 만나 당신의 스윙을 완성합니다.'}</p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 비거리 예상 박스를 하단으로 이동 -->
-    <div class="bg-red-900/20 rounded-xl p-6 mt-8 text-center">
-        <p class="text-gray-400 mb-2 text-lg">현재 비거리: <span class="text-white font-bold text-2xl">${quizData.distance}m</span></p>
-        <p class="text-gray-400 text-lg">예상 비거리: <span class="text-red-500 font-bold text-3xl" id="expectedDistance">${quizData.distance}m</span></p>
-    </div>
-`;
+            `;
             
             document.getElementById('recommendedProduct').innerHTML = resultHTML;
             
             // CTA 버튼 생성
-            
             const buttonsHTML = `
                 <button onclick="showBookingModal('${product.name}')" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition">
                     <i class="fas fa-calendar-check mr-2"></i>시타 예약
@@ -1083,6 +1078,9 @@
                 <button onclick="showContactModal()" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
                     <i class="fas fa-comment mr-2"></i>문의하기
                 </button>
+                <a href="${product.link}" target="_blank" class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-700 transition">
+                    <i class="fas fa-info-circle mr-2"></i>상세보기
+                </a>
             `;
             
             document.getElementById('resultButtons').innerHTML = buttonsHTML;
