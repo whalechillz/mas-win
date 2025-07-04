@@ -773,7 +773,7 @@
         async function saveQuizResult() {
             try {
                 const baseUrl = window.location.origin;
-                const response = await fetch(baseUrl + '/api/quiz-result', {
+                const response = await fetch('https://win-masgolf-co-kr-git-main-taksoo-kims-projects.vercel.app/api/quiz-result', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -873,7 +873,7 @@
             try {
                 // API로 전송
                 const baseUrl = window.location.origin;
-                const response = await fetch(baseUrl + '/api/booking', {
+                const response = await fetch('https://win-masgolf-co-kr-git-main-taksoo-kims-projects.vercel.app/api/booking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -914,7 +914,7 @@
                 const baseUrl = window.location.origin;
                 console.log('API URL:', baseUrl + '/api/contact');
                 
-                const response = await fetch(baseUrl + '/api/contact', {
+                const response = await fetch('https://win-masgolf-co-kr-git-main-taksoo-kims-projects.vercel.app/api/contact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
