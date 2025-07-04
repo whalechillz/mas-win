@@ -20,12 +20,18 @@ module.exports = {
         },
       ];
     },
-    // 커스텀 404 페이지 활성화
-    async rewrites() {
-      return {
-        beforeFiles: [],
-        afterFiles: [],
-        fallback: []
-      }
-    }
+    // 정적 파일 서빙 설정 추가
+    async headers() {
+      return [
+        {
+          source: '/:all*(html|css|js)',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=3600',
+            },
+          ],
+        },
+      ];
+    },
   };
