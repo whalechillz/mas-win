@@ -19,6 +19,10 @@ class DatabaseHandler {
                 throw new Error('SUPABASE_CONFIG가 정의되지 않았습니다. config.js를 확인하세요.');
             }
             
+            // URL 디버깅
+            this.log('Supabase URL: ' + SUPABASE_CONFIG.url);
+            this.log('Supabase Key 길이: ' + (SUPABASE_CONFIG.anonKey ? SUPABASE_CONFIG.anonKey.length : 0));
+            
             // 2. Supabase 라이브러리 확인
             if (typeof window.supabase === 'undefined') {
                 throw new Error('Supabase 라이브러리가 로드되지 않았습니다.');
@@ -30,19 +34,36 @@ class DatabaseHandler {
                 SUPABASE_CONFIG.anonKey
             );
             
-            // 4. 연결 테스트
-            const { data, error } = await this.supabase
-                .from('bookings')
-                .select('count')
-                .limit(1);
-            
-            if (error) {
-                throw new Error(`Supabase 연결 실패: ${error.message}`);
+            // 4. 연결 테스트 - 더 자세한 에러 정보
+            try {
+                const { data, error } = await this.supabase
+                    .from('bookings')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    this.log('Supabase 응답 에러: ' + JSON.stringify(error), 'error');
+                    throw new Error(`Supabase 연결 실패: ${error.message}`);
+                }
+                
+                this.isConnected = true;
+                this.log('DatabaseHandler 초기화 완료!', 'success');
+                return true;
+                
+            } catch (fetchError) {
+                this.log('Fetch 에러 상세: ' + fetchError.toString(), 'error');
+                
+                // URL 검증
+                try {
+                    const testResponse = await fetch(SUPABASE_CONFIG.url);
+                    this.log('URL 접근 가능', 'info');
+                } catch (urlError) {
+                    this.log('URL 접근 불가: ' + SUPABASE_CONFIG.url, 'error');
+                    this.log('DNS 해석 실패 가능성. URL을 다시 확인하세요.', 'error');
+                }
+                
+                throw fetchError;
             }
-            
-            this.isConnected = true;
-            this.log('DatabaseHandler 초기화 완료!', 'success');
-            return true;
             
         } catch (error) {
             this.logError('초기화 실패', error);
@@ -149,6 +170,7 @@ class DatabaseHandler {
             isConnected: this.isConnected,
             configLoaded: typeof SUPABASE_CONFIG !== 'undefined',
             supabaseLoaded: typeof window.supabase !== 'undefined',
+            supabaseUrl: typeof SUPABASE_CONFIG !== 'undefined' ? SUPABASE_CONFIG.url : 'N/A',
             errorLog: this.errorLog,
             environment: {
                 protocol: window.location.protocol,
