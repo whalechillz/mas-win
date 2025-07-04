@@ -32,7 +32,32 @@ export default async function handler(req, res) {
       });
     }
 
-    // 간단히 성공 응답만 반환
+    // 슬랙 알림 전송
+    try {
+      const slackResponse = await fetch(`${req.headers.origin || 'https://win.masgolf.co.kr'}/api/slack/notify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'contact',
+          data: {
+            name,
+            phone,
+            call_times: Array.isArray(call_times) ? call_times.join(', ') : '시간무관'
+          }
+        })
+      });
+
+      if (!slackResponse.ok) {
+        console.error('슬랙 알림 전송 실패');
+      }
+    } catch (slackError) {
+      console.error('슬랙 알림 에러:', slackError);
+      // 슬랙 알림 실패해도 문의는 계속 처리
+    }
+
+    // 성공 응답 반환
     return res.status(200).json({ 
       success: true, 
       message: '문의가 접수되었습니다. 선택하신 시간에 연락드리겠습니다.',
