@@ -1,7 +1,5 @@
-// next.config.js
 /** @type {import('next').NextConfig} */
 module.exports = {
-    // output: 'export', // 동적 라우팅을 위해 주석 처리
     images: {
       unoptimized: true,
     },
@@ -20,8 +18,14 @@ module.exports = {
           destination: '/funnel-2025-06',
           permanent: false,
         },
-        // 정적 파일 리다이렉트 제거 - HTML 파일 직접 접근 허용
-        // 5월, 6월 퍼널 페이지는 /versions/ 경로로 직접 접근
       ];
     },
+    // 커스텀 404 페이지 활성화
+    async rewrites() {
+      return {
+        beforeFiles: [],
+        afterFiles: [],
+        fallback: []
+      }
+    }
   };
