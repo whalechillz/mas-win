@@ -1,36 +1,10 @@
-// 슬랙 웹훅 알림 - 중복 방지 추가
-const recentRequests = new Map(); // 최근 요청 추적
-
+// 슬랙 웹훅 알림 - 심플하고 고급스러운 디자인
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { type, data } = req.body;
-  
-  // 중복 요청 체크 (전화번호 + 타입 기준, 30초 이내)
-  const requestKey = `${data.phone}-${type}`;
-  const now = Date.now();
-  const lastRequest = recentRequests.get(requestKey);
-  
-  if (lastRequest && (now - lastRequest) < 30000) { // 30초 이내 중복 요청
-    console.log('중복 요청 감지:', requestKey);
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Already processed',
-      duplicate: true 
-    });
-  }
-  
-  // 요청 시간 기록
-  recentRequests.set(requestKey, now);
-  
-  // 오래된 요청 정리 (1시간 이상)
-  for (const [key, time] of recentRequests.entries()) {
-    if (now - time > 3600000) {
-      recentRequests.delete(key);
-    }
-  }
 
   // 슬랙 웹훅 URL (환경변수로 관리)
   const webhookUrl = process.env.SLACK_WEBHOOK_URL;

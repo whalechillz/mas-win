@@ -38,7 +38,7 @@
     
     <!-- 설정 파일 로드 -->
     <script src="../../config.js"></script>
-    <script src="../../prevent-duplicate.js"></script>    
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
         
