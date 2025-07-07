@@ -421,6 +421,14 @@
             
             .floating-button-text .sub-text {
                 font-size: 12px;
+                line-height: 1.1;
+            }
+            
+            /* 선착순 텍스트 한 줄로 표시 */
+            .floating-button-text .sub-text:last-child {
+                display: flex;
+                flex-wrap: nowrap;
+                white-space: nowrap;
             }
             
             .gift-carousel {
@@ -1306,7 +1314,7 @@
         <div class="floating-button-text">
             <span class="main-text">상담만 받아도!</span>
             <span class="sub-text">쿨링세트 증정</span>
-            <span class="sub-text">선착순 <span class="remaining-count">13명</span> 남음!</span>
+            <span class="sub-text">선착순 <span class="remaining-count">13명</span> 남음</span>
         </div>
     </div>
     
@@ -1850,7 +1858,7 @@
     <!-- 긴급성 메시지 -->
     <div class="bg-gradient-to-r from-yellow-500 to-red-600 rounded-xl p-4 mt-6 text-white text-center animate-pulse">
         <p class="font-bold text-lg mb-1">🔥 오늘 예약 시 특별 혜택!</p>
-        <p class="text-sm">선착순 20명 중 <span class="text-yellow-300 font-bold remaining-count">13명</span>만 남았습니다!</p>
+        <p class="text-sm">선착순 30명 중 <span class="text-yellow-300 font-bold remaining-count">13명</span>만 남았습니다!</p>
     </div>
 `;
             
