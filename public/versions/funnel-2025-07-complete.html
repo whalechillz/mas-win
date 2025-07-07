@@ -1877,7 +1877,7 @@
             try {
                 // Supabase에 저장
                 if (supabase) {
-                    // 1. 기본 예약 정보 저장
+                    // 1. 기본 예약 정보 저장 (퀴즈 데이터 포함)
                     const { data: bookingResult, error: bookingError } = await supabase
                         .from('bookings')
                         .insert([{
@@ -1885,7 +1885,14 @@
                             phone: data.phone,
                             date: data.date,
                             time: data.time,
-                            club: data.club
+                            club: data.club,
+                            // 퀴즈 데이터 추가
+                            swing_style: quizData.style || null,
+                            priority: quizData.priority || null,  // Q2 답변 저장
+                            current_distance: quizData.distance || null,
+                            recommended_flex: quizData.recommendedFlex || null,
+                            expected_distance: quizData.expectedDistance || null,
+                            expected_distance: quizData.expectedDistance || null
                         }])
                         .select();
                     
@@ -1983,13 +1990,18 @@
             try {
                 // Supabase에 저장
                 if (supabase) {
-                    // 1. 기본 문의 정보만 저장
+                    // 1. 기본 문의 정보 저장 (퀴즈 데이터 포함)
                     const { data: contactResult, error } = await supabase
                         .from('contacts')
                         .insert([{
                             name: data.name,
                             phone: data.phone,
-                            call_times: data.call_times
+                            call_times: data.call_times,
+                            // 퀴즈 데이터 추가
+                            swing_style: quizData.style || null,
+                            priority: quizData.priority || null,  // Q2 답변 저장
+                            current_distance: quizData.distance || null,
+                            recommended_flex: quizData.recommendedFlex || null
                         }])
                         .select();
                     
