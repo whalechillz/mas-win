@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase RLS 정책 수정 가이드</title>
+</head>
+<body>
+    <h1>Supabase RLS 정책 수정 방법</h1>
+    
+    <h2>1. Supabase 대시보드 접속</h2>
+    <p>https://app.supabase.com 로 이동하여 로그인</p>
+    
+    <h2>2. RLS 정책 확인</h2>
+    <ol>
+        <li>좌측 메뉴에서 "Authentication" → "Policies" 클릭</li>
+        <li>bookings 테이블과 contacts 테이블 확인</li>
+        <li>RLS가 활성화되어 있다면 정책 추가 필요</li>
+    </ol>
+    
+    <h2>3. RLS 정책 추가 (bookings 테이블)</h2>
+    <pre>
+-- INSERT 정책 (누구나 예약 가능)
+CREATE POLICY "Enable insert for all users" ON bookings
+FOR INSERT WITH CHECK (true);
+
+-- SELECT 정책 (선택사항)
+CREATE POLICY "Enable read for all users" ON bookings
+FOR SELECT USING (true);
+    </pre>
+    
+    <h2>4. RLS 정책 추가 (contacts 테이블)</h2>
+    <pre>
+-- INSERT 정책 (누구나 문의 가능)
+CREATE POLICY "Enable insert for all users" ON contacts
+FOR INSERT WITH CHECK (true);
+    </pre>
+    
+    <h2>5. 또는 RLS 비활성화</h2>
+    <p>각 테이블에서 RLS 토글을 OFF로 설정 (보안상 권장하지 않음)</p>
+</body>
+</html>

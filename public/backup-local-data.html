@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로컬 데이터 백업 도구</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">로컬 스토리지 데이터 백업</h1>
+        
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-3">저장된 데이터</h2>
+            <div id="data-summary" class="bg-gray-100 p-4 rounded"></div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <button onclick="exportData()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                📥 데이터 내보내기 (JSON)
+            </button>
+            <button onclick="exportCSV()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                📊 엑셀용 CSV 내보내기
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-3">예약 데이터</h2>
+            <div id="bookings-table" class="overflow-x-auto"></div>
+        </div>
+        
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-3">문의 데이터</h2>
+            <div id="contacts-table" class="overflow-x-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // 데이터 로드 및 표시
+        function loadData() {
+            const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            
+            // 요약 정보
+            document.getElementById('data-summary').innerHTML = `
+                <p>📅 예약: ${bookings.length}건</p>
+                <p>💬 문의: ${contacts.length}건</p>
+                <p>💾 총 데이터: ${bookings.length + contacts.length}건</p>
+            `;
+            
+            // 예약 테이블
+            if (bookings.length > 0) {
+                let bookingHTML = '<table class="min-w-full table-auto border-collapse border border-gray-300">';
+                bookingHTML += '<thead><tr class="bg-gray-200">';
+                bookingHTML += '<th class="border px-4 py-2">날짜</th>';
+                bookingHTML += '<th class="border px-4 py-2">이름</th>';
+                bookingHTML += '<th class="border px-4 py-2">연락처</th>';
+                bookingHTML += '<th class="border px-4 py-2">시간</th>';
+                bookingHTML += '<th class="border px-4 py-2">클럽</th>';
+                bookingHTML += '<th class="border px-4 py-2">스윙</th>';
+                bookingHTML += '<th class="border px-4 py-2">비거리</th>';
+                bookingHTML += '<th class="border px-4 py-2">플렉스</th>';
+                bookingHTML += '</tr></thead><tbody>';
+                
+                bookings.forEach(booking => {
+                    bookingHTML += '<tr>';
+                    bookingHTML += `<td class="border px-4 py-2">${booking.date || '-'}</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.name || '-'}</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.phone || '-'}</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.time || '-'}</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.club || '-'}</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.swing_style || '-'}</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.current_distance || '-'}m</td>`;
+                    bookingHTML += `<td class="border px-4 py-2">${booking.recommended_flex || '-'}</td>`;
+                    bookingHTML += '</tr>';
+                });
+                
+                bookingHTML += '</tbody></table>';
+                document.getElementById('bookings-table').innerHTML = bookingHTML;
+            } else {
+                document.getElementById('bookings-table').innerHTML = '<p class="text-gray-500">예약 데이터가 없습니다.</p>';
+            }
+            
+            // 문의 테이블
+            if (contacts.length > 0) {
+                let contactHTML = '<table class="min-w-full table-auto border-collapse border border-gray-300">';
+                contactHTML += '<thead><tr class="bg-gray-200">';
+                contactHTML += '<th class="border px-4 py-2">날짜</th>';
+                contactHTML += '<th class="border px-4 py-2">이름</th>';
+                contactHTML += '<th class="border px-4 py-2">연락처</th>';
+                contactHTML += '<th class="border px-4 py-2">통화시간</th>';
+                contactHTML += '<th class="border px-4 py-2">스윙</th>';
+                contactHTML += '<th class="border px-4 py-2">비거리</th>';
+                contactHTML += '</tr></thead><tbody>';
+                
+                contacts.forEach(contact => {
+                    contactHTML += '<tr>';
+                    contactHTML += `<td class="border px-4 py-2">${new Date(contact.created_at).toLocaleDateString() || '-'}</td>`;
+                    contactHTML += `<td class="border px-4 py-2">${contact.name || '-'}</td>`;
+                    contactHTML += `<td class="border px-4 py-2">${contact.phone || '-'}</td>`;
+                    contactHTML += `<td class="border px-4 py-2">${contact.call_times || '-'}</td>`;
+                    contactHTML += `<td class="border px-4 py-2">${contact.swing_style || '-'}</td>`;
+                    contactHTML += `<td class="border px-4 py-2">${contact.current_distance || '-'}m</td>`;
+                    contactHTML += '</tr>';
+                });
+                
+                contactHTML += '</tbody></table>';
+                document.getElementById('contacts-table').innerHTML = contactHTML;
+            } else {
+                document.getElementById('contacts-table').innerHTML = '<p class="text-gray-500">문의 데이터가 없습니다.</p>';
+            }
+        }
+        
+        // JSON 내보내기
+        function exportData() {
+            const data = {
+                bookings: JSON.parse(localStorage.getItem('bookings') || '[]'),
+                contacts: JSON.parse(localStorage.getItem('contacts') || '[]'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `masgolf-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+        
+        // CSV 내보내기
+        function exportCSV() {
+            const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            
+            // 예약 CSV
+            let bookingCSV = '날짜,이름,연락처,시간,클럽,스윙스타일,현재비거리,추천플렉스,예상비거리\n';
+            bookings.forEach(b => {
+                bookingCSV += `${b.date},${b.name},${b.phone},${b.time},${b.club},${b.swing_style || ''},${b.current_distance || ''},${b.recommended_flex || ''},${b.expected_distance || ''}\n`;
+            });
+            
+            // 문의 CSV
+            let contactCSV = '\n\n문의내역\n날짜,이름,연락처,통화시간,스윙스타일,현재비거리\n';
+            contacts.forEach(c => {
+                contactCSV += `${new Date(c.created_at).toLocaleDateString()},${c.name},${c.phone},${c.call_times},${c.swing_style || ''},${c.current_distance || ''}\n`;
+            });
+            
+            const csv = bookingCSV + contactCSV;
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `masgolf-data-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+        
+        // 페이지 로드 시 실행
+        loadData();
+    </script>
+</body>
+</html>
