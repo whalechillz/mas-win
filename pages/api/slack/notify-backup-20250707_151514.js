@@ -19,53 +19,6 @@ export default async function handler(req, res) {
 
     if (type === 'booking') {
       // 시타 예약 알림
-      const fields = [
-        {
-          type: 'mrkdwn',
-          text: `*고객명:*\n${data.name}`
-        },
-        {
-          type: 'mrkdwn',
-          text: `*연락처:*\n${data.phone}`
-        },
-        {
-          type: 'mrkdwn',
-          text: `*희망날짜:*\n${data.date}`
-        },
-        {
-          type: 'mrkdwn',
-          text: `*희망시간:*\n${data.time}`
-        },
-        {
-          type: 'mrkdwn',
-          text: `*관심클럽:* ${data.club || '미정'}`
-        }
-      ];
-
-      // 퀴즈 데이터가 있으면 추가
-      if (data.swing_style || data.current_distance) {
-        fields.push({
-          type: 'mrkdwn',
-          text: `*스윙스타일:* ${data.swing_style || '-'}`
-        });
-        fields.push({
-          type: 'mrkdwn',
-          text: `*현재거리:* ${data.current_distance ? data.current_distance + 'm' : '-'}`
-        });
-        if (data.recommended_flex) {
-          fields.push({
-            type: 'mrkdwn',
-            text: `*추천플렉스:* ${data.recommended_flex}`
-          });
-        }
-        if (data.expected_distance) {
-          fields.push({
-            type: 'mrkdwn',
-            text: `*예상거리:* ${data.expected_distance}m (+${data.expected_distance - data.current_distance}m)`
-          });
-        }
-      }
-
       message = {
         text: '🎯 새로운 시타 예약이 접수되었습니다!',
         blocks: [
@@ -79,7 +32,31 @@ export default async function handler(req, res) {
           },
           {
             type: 'section',
-            fields: fields
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*고객명:*\n${data.name}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*연락처:*\n${data.phone}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*희망날짜:*\n${data.date}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*희망시간:*\n${data.time}`
+              }
+            ]
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*관심클럽:* ${data.club || '미정'}`
+            }
           },
           {
             type: 'context',
@@ -89,9 +66,6 @@ export default async function handler(req, res) {
                 text: `접수시간: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`
               }
             ]
-          },
-          {
-            type: 'divider'
           },
           {
             type: 'actions',
@@ -112,35 +86,6 @@ export default async function handler(req, res) {
       };
     } else if (type === 'contact') {
       // 상담 문의 알림
-      const fields = [
-        {
-          type: 'mrkdwn',
-          text: `*고객명:*\n${data.name}`
-        },
-        {
-          type: 'mrkdwn',
-          text: `*연락처:*\n${data.phone}`
-        }
-      ];
-
-      // 퀴즈 데이터가 있으면 추가
-      if (data.swing_style || data.current_distance) {
-        fields.push({
-          type: 'mrkdwn',
-          text: `*스윙스타일:* ${data.swing_style || '-'}`
-        });
-        fields.push({
-          type: 'mrkdwn',
-          text: `*현재거리:* ${data.current_distance ? data.current_distance + 'm' : '-'}`
-        });
-        if (data.recommended_flex) {
-          fields.push({
-            type: 'mrkdwn',
-            text: `*추천플렉스:* ${data.recommended_flex}`
-          });
-        }
-      }
-
       message = {
         text: '📞 새로운 상담 문의가 접수되었습니다!',
         blocks: [
@@ -154,7 +99,16 @@ export default async function handler(req, res) {
           },
           {
             type: 'section',
-            fields: fields
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*고객명:*\n${data.name}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*연락처:*\n${data.phone}`
+              }
+            ]
           },
           {
             type: 'section',
