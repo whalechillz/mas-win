@@ -5,5 +5,5 @@ const SUPABASE_CONFIG = {
     // Slack webhook URL - #01-ma-op 채널로 알림 전송
     // 아래 URL을 실제 Webhook URL로 교체하세요
     // 예: 'https://hooks.slack.com/services/T01234567/B01234567/XXXXXXXXXXXXXXXXXXXXXXXX'
-    slackWebhook: 'YOUR_SLACK_WEBHOOK_URL_FOR_01-ma-op'
+    slackWebhook: 'https://hooks.slack.com/services/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'
 };
