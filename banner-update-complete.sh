@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "상단 배너 수정 완료!"
+echo ""
+echo "✅ 변경된 내용:"
+echo "1. '7월 한정 썸머 스페셜' 다음 줄바꿈"
+echo "2. '21년 로얄살루트 700ml' 추가"
+echo "3. 전화번호와 버튼 세로 정렬"
+echo "4. 모바일 반응형 스타일 개선"
+echo ""
+echo "캐시 클리어를 위해 다음을 실행하세요:"
+echo "1. 브라우저 캐시 삭제 (Ctrl+Shift+R 또는 Cmd+Shift+R)"
+echo "2. Vercel 재배포: vercel --prod"
+echo ""
+echo "로컬 테스트:"
+echo "cd /Users/m2/MASLABS/win.masgolf.co.kr"
+echo "npm run dev"
