@@ -298,6 +298,17 @@
             transition: all 0.3s;
         }
         
+        /* 상단 배너 반응형 */
+        @media (max-width: 768px) {
+            .top-banner-left {
+                font-size: 12px;
+            }
+            .top-banner-left .ml-6 {
+                margin-left: 1rem;
+                font-size: 11px;
+            }
+        }
+        
         /* 모바일 반응형 개선 */
         @media (max-width: 768px) {
             .quiz-options {
@@ -455,10 +466,11 @@
     <!-- 탑 바 -->
     <div class="summer-gradient text-white py-3 px-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="text-sm font-medium">
-                <i class="fas fa-fire mr-2"></i>7월 한정 썸머 스페셜 - 최대 고급 위스키 증정
+            <div class="text-sm font-medium top-banner-left">
+                <i class="fas fa-fire mr-2"></i>7월 한정 썸머 스페셜<br>
+                <span class="ml-6">21년 로얄살루트 700ml</span>
             </div>
-            <div class="flex items-center space-x-6">
+            <div class="flex flex-col items-end space-y-2">
                 <a href="tel:080-028-8888" class="flex items-center hover:text-yellow-100 transition">
                     <i class="fas fa-phone-alt mr-2"></i>080-028-8888
                 </a>
