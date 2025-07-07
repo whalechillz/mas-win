@@ -1481,72 +1481,110 @@
             
             // 결과 표시
             const resultHTML = `
-    <div class="grid md:grid-cols-2 gap-8 items-center">
-        <div>
-            <img src="${product.image}" alt="${product.name}" class="w-full rounded-xl shadow-2xl">
+    <!-- 센터 정렬 레이아웃 -->
+    <div class="max-w-3xl mx-auto">
+        <!-- 제품 이미지 센터 정렬 -->
+        <div class="mb-8">
+            <img src="${product.image}" alt="${product.name}" class="w-full max-w-md mx-auto rounded-xl shadow-2xl">
         </div>
-        <div>
+        
+        <!-- 제품 정보 센터 정렬 -->
+        <div class="text-center">
             <h4 class="text-3xl font-bold text-red-500 mb-2">${product.name}</h4>
-            <p class="text-xl text-gray-300 mb-4">${product.desc}</p>
-            
-            <div class="bg-gray-800 rounded-lg p-4 mb-4">
-                <p class="text-white font-bold mb-2"><i class="fas fa-cog text-red-500 mr-2"></i>${product.spec}</p>
-                <p class="text-gray-400">${product.feature}</p>
-            </div>
-            
-            <!-- 상세 스펙 -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-4 mb-4 border border-gray-700">
-                <p class="text-yellow-300 font-bold mb-3"><i class="fas fa-chart-bar mr-2"></i>상세 스펙</p>
-                <div class="grid grid-cols-2 gap-2 text-sm">
-                    <div class="text-gray-400">페이스 두께:</div>
-                    <div class="text-white font-bold">${product.faceThickness || '2.3mm'}</div>
-                    <div class="text-gray-400">반발계수:</div>
-                    <div class="text-white font-bold">${product.cor || '0.87'}</div>
-                    <div class="text-gray-400">헤드 체적:</div>
-                    <div class="text-white font-bold">${product.headVolume || '460cc'}</div>
-                    <div class="text-gray-400">샤프트:</div>
-                    <div class="text-white font-bold">${product.shaft || 'NGS'}</div>
-                    <div class="text-gray-400">로프트 각도:</div>
-                    <div class="text-white font-bold">${product.loftAngle || '9°/10°'}</div>
-                    <div class="text-gray-400">라이 각도:</div>
-                    <div class="text-white font-bold">${product.lieAngle || '59°'}</div>
-                    <div class="text-gray-400">중량:</div>
-                    <div class="text-white font-bold">${product.weight || '290-300g'}</div>
-                    <div class="text-gray-400">킥 포인트:</div>
-                    <div class="text-white font-bold">${product.kickPoint || 'Low'}</div>
-                </div>
-                
-                <!-- 더 자세히 보기 -->
-                <div id="moreSpecs" class="hidden mt-4 pt-4 border-t border-gray-700">
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="text-gray-400">가변형 밸런스:</div>
-                        <div class="text-white font-bold">${product.balance || 'D0'}</div>
-                        <div class="text-gray-400">샤프트 진동수:</div>
-                        <div class="text-white font-bold">${product.shaftFreq || '220 cpm'}</div>
-                        <div class="text-gray-400">맞춤 볼스피드:</div>
-                        <div class="text-white font-bold">${product.ballSpeed || '54 m/s'}</div>
-                        <div class="text-gray-400">탄성 그립:</div>
-                        <div class="text-white font-bold">${product.grip || '45'}</div>
-                        <div class="text-gray-400">최적의 길이:</div>
-                        <div class="text-white font-bold">${product.length || '45.75"'}</div>
-                        <div class="text-gray-400">샤프트 플렉스:</div>
-                        <div class="text-white font-bold">${product.shaftFlex || 'R/SR/S'}</div>
-                        <div class="text-gray-400">소재:</div>
-                        <div class="text-white font-bold">${product.material || '티타늄'}</div>
+            <p class="text-xl text-gray-300 mb-8">${product.desc}</p>
+        </div>
+        
+        <!-- 스펙 정보 2컬럼 정렬 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- 헤드 정보 -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h5 class="text-lg font-bold text-white mb-4"><i class="fas fa-cog text-red-500 mr-2"></i>헤드 스펙</h5>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">페이스 두께:</span>
+                        <span class="text-white font-bold">${product.faceThickness || '2.3mm'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">반발계수:</span>
+                        <span class="text-white font-bold">${product.cor || '0.87'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">헤드 체적:</span>
+                        <span class="text-white font-bold">${product.headVolume || '460cc'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">라이 각도:</span>
+                        <span class="text-white font-bold">${product.lieAngle || '59°'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">로프트 각도:</span>
+                        <span class="text-white font-bold">${product.loftAngle || '9°/10°'}</span>
                     </div>
                 </div>
-                
-                <button onclick="toggleMoreSpecs()" class="mt-4 text-yellow-300 hover:text-yellow-200 transition text-sm font-medium">
-                    <span id="moreSpecsText">
-                        <i class="fas fa-chevron-down mr-1"></i>더 자세히 보기
-                    </span>
-                </button>
             </div>
             
-            <!-- 특별한 이유 -->
-            <div class="bg-gradient-to-br from-red-900/30 to-black/30 rounded-lg p-4 border border-red-800">
-                <p class="text-yellow-300 font-bold mb-2"><i class="fas fa-star mr-2"></i>특별한 이유</p>
-                <p class="text-gray-300 text-sm">${product.hookingDesc || '30년의 기술력과 특허받은 고반발 기술이 만나 당신의 스윙을 완성합니다.'}</p>
+            <!-- 샤프트 정보 -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h5 class="text-lg font-bold text-white mb-4"><i class="fas fa-chart-bar text-red-500 mr-2"></i>샤프트 스펙</h5>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">샤프트:</span>
+                        <span class="text-white font-bold">${product.shaft || 'NGS'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">중량:</span>
+                        <span class="text-white font-bold">${product.weight || '290-300g'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">킥 포인트:</span>
+                        <span class="text-white font-bold">${product.kickPoint || 'Low'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">플렉스:</span>
+                        <span class="text-white font-bold">${product.shaftFlex || 'R/SR/S'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">소재:</span>
+                        <span class="text-white font-bold">${product.material || '티타늄'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 더 자세히 보기 -->
+        <div class="text-center mb-8">
+            <button onclick="toggleMoreSpecs()" class="text-yellow-300 hover:text-yellow-200 transition text-sm font-medium">
+                <span id="moreSpecsText">
+                    <i class="fas fa-chevron-down mr-1"></i>더 자세히 보기
+                </span>
+            </button>
+            <div id="moreSpecs" class="hidden mt-4 bg-gray-800 rounded-lg p-6">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="text-left">
+                        <p class="text-gray-400 mb-1">밸런스</p>
+                        <p class="text-white font-bold">${product.balance || 'D0'}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-400 mb-1">샤프트 진동수</p>
+                        <p class="text-white font-bold">${product.shaftFreq || '220 cpm'}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-400 mb-1">볼스피드</p>
+                        <p class="text-white font-bold">${product.ballSpeed || '54 m/s'}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-400 mb-1">그립</p>
+                        <p class="text-white font-bold">${product.grip || '45'}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-400 mb-1">길이</p>
+                        <p class="text-white font-bold">${product.length || '45.75"'}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-400 mb-1">특징</p>
+                        <p class="text-white font-bold">${product.feature}</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
