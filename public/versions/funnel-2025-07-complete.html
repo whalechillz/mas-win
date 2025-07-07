@@ -548,7 +548,7 @@
                             <!-- 동적으로 생성됨 -->
                         </div>
                     </div>
-                </div>
+
             </div>
         </div>
     </section>
@@ -612,55 +612,7 @@
         </div>
     </section>
 
-    <!-- 영역3.5: 중간 후킹 - 사은품 미리보기 -->
-    <section class="py-16 px-6 bg-gradient-to-b from-black to-gray-900">
-        <div class="container mx-auto max-w-4xl">
-            <div class="bg-gradient-to-br from-red-900/20 to-black border-2 border-red-600 rounded-3xl p-8 text-center scroll-reveal">
-                <h3 class="text-3xl font-bold text-white mb-4">
-                    <i class="fas fa-gift text-yellow-300 mr-3"></i>
-                    지금 상담하시면 받으실 수 있는 선물
-                </h3>
-                <p class="text-xl text-gray-300 mb-8">
-                    골프 라운딩의 품격을 높여줄 프리미엄 사은품
-                </p>
-                
-                <div class="grid md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-black/50 rounded-xl p-4 border border-red-800/50">
-                        <img src="/temp/쿨링타올.jpeg" alt="프리미엄 쿨링타올" class="w-full h-48 object-cover rounded-lg mb-4">
-                        <h4 class="text-lg font-bold text-yellow-300">프리미엄 쿨링 타올</h4>
-                        <p class="text-gray-400 text-sm">즉시 냉각, UV차단 기능</p>
-                    </div>
-                    <div class="bg-black/50 rounded-xl p-4 border border-red-800/50">
-                        <img src="/temp/쿨토시.jpg" alt="스포츠 쿨토시" class="w-full h-48 object-cover rounded-lg mb-4">
-                        <h4 class="text-lg font-bold text-yellow-300">스포츠 쿨토시</h4>
-                        <p class="text-gray-400 text-sm">고탄력 원단, 완벽한 착용감</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-r from-yellow-900/30 to-transparent rounded-xl p-4 mb-6">
-                    <p class="text-lg text-yellow-300 font-bold mb-2">
-                        + 구매 금액별 프리미엄 위스키 증정!
-                    </p>
-                    <div class="text-sm text-gray-300">
-                        95만원: 발베니 12년 | 115만원: 발렌타인 21년 | 170만원: 로얄샬루트 21년
-                    </div>
-                    <div class="text-center mt-3 text-xs text-gray-400">
-                        * 매장 방문 시 직접 전달 또는 택배 발송
-                    </div>
-                </div>
-                
-                <div class="flex justify-center gap-4">
-                    <a href="tel:080-028-8888" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition">
-                        <i class="fas fa-phone mr-2"></i>지금 전화하기
-                    </a>
-                    <button onclick="document.getElementById('quiz-section').scrollIntoView({behavior: 'smooth'})" 
-                            class="bg-transparent border-2 border-red-600 text-red-500 px-8 py-3 rounded-full font-bold hover:bg-red-600 hover:text-white transition">
-                        계속 보기
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <!-- 영역4: 클럽 성능 3종 강조 -->
     <section class="py-20 px-6 bg-gray-900">
@@ -1034,6 +986,7 @@
                 <div class="text-white pr-4">
                     <p class="font-bold">상담만 받아도!</p>
                     <p class="text-sm">쿨링세트 증정</p>
+                    <p class="text-xs text-yellow-300 font-bold mt-1">선착순 13명 남음!</p>
                 </div>
             </div>
         </div>
@@ -1577,6 +1530,12 @@
     <div class="bg-red-900/20 rounded-xl p-6 mt-8 text-center">
         <p class="text-gray-400 mb-2 text-lg">현재 비거리: <span class="text-white font-bold text-2xl">${quizData.distance}m</span></p>
         <p class="text-gray-400 text-lg">예상 비거리: <span class="text-red-500 font-bold text-3xl" id="expectedDistance">${quizData.distance}m</span></p>
+    </div>
+    
+    <!-- 긴급성 메시지 -->
+    <div class="bg-gradient-to-r from-yellow-500 to-red-600 rounded-xl p-4 mt-6 text-white text-center animate-pulse">
+        <p class="font-bold text-lg mb-1">🔥 오늘 예약 시 특별 혜택!</p>
+        <p class="text-sm">선착순 20명 중 <span class="text-yellow-300 font-bold">13명</span>만 남았습니다!</p>
     </div>
 `;
             
