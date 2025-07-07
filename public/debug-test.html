@@ -3,232 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MASGOLF 디버깅 테스트</title>
+    <title>MASGOLF Slack 알림 디버깅</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 설정 파일 -->
-    <script src="/config.js"></script>
-    
-    <!-- 데이터베이스 핸들러 -->
-    <script src="/js/database-handler.js"></script>
+    <script src="config.js"></script>
 </head>
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8">MASGOLF 디버깅 테스트</h1>
+        <h1 class="text-3xl font-bold mb-8">🔧 MASGOLF Slack 알림 디버깅</h1>
         
-        <!-- 상태 표시 -->
-        <div id="statusPanel" class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4">시스템 상태</h2>
-            <div id="statusContent" class="space-y-2">
-                <p>확인 중...</p>
-            </div>
-        </div>
-        
-        <!-- 테스트 버튼 -->
+        <!-- 설정 확인 -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4">테스트 작업</h2>
-            <div class="space-y-4">
-                <button onclick="testConnection()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    1. 데이터베이스 연결 테스트
-                </button>
-                
-                <button onclick="testBookingSave()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    2. 시타 예약 저장 테스트
-                </button>
-                
-                <button onclick="testContactSave()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                    3. 문의 저장 테스트
-                </button>
-                
-                <button onclick="showDebugInfo()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                    4. 디버그 정보 보기
-                </button>
+            <h2 class="text-xl font-bold mb-4">📋 현재 설정</h2>
+            <div id="configStatus" class="space-y-2">
+                <p class="text-gray-600">설정을 확인하는 중...</p>
             </div>
         </div>
-        
-        <!-- 로그 표시 -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">실행 로그</h2>
-            <div id="logContent" class="bg-gray-100 p-4 rounded max-h-96 overflow-y-auto font-mono text-sm">
-                <p class="text-gray-500">로그가 여기에 표시됩니다...</p>
+
+        <!-- API 테스트 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">🚀 API 테스트</h2>
+            <button onclick="testSlackAPI()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                /api/slack-test 엔드포인트 테스트
+            </button>
+            <div id="apiResult" class="mt-4 p-4 bg-gray-100 rounded hidden">
+                <pre class="text-sm"></pre>
             </div>
+        </div>
+
+        <!-- 예약 알림 테스트 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">📅 예약 알림 테스트</h2>
+            <form id="bookingTestForm" class="space-y-4">
+                <input type="text" name="name" placeholder="이름" value="테스트 고객" 
+                       class="w-full p-2 border rounded">
+                <input type="tel" name="phone" placeholder="전화번호" value="010-1234-5678" 
+                       class="w-full p-2 border rounded">
+                <input type="date" name="date" value="2025-07-15" 
+                       class="w-full p-2 border rounded">
+                <select name="time" class="w-full p-2 border rounded">
+                    <option value="14:00">오후 2시</option>
+                    <option value="15:00">오후 3시</option>
+                </select>
+                <select name="club" class="w-full p-2 border rounded">
+                    <option value="시크리트포스 PRO 3">시크리트포스 PRO 3</option>
+                    <option value="시크리트웨폰 블랙">시크리트웨폰 블랙</option>
+                </select>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    예약 알림 보내기
+                </button>
+            </form>
+            <div id="bookingResult" class="mt-4 p-4 bg-gray-100 rounded hidden">
+                <pre class="text-sm"></pre>
+            </div>
+        </div>
+
+        <!-- 문의 알림 테스트 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">💬 문의 알림 테스트</h2>
+            <form id="contactTestForm" class="space-y-4">
+                <input type="text" name="name" placeholder="이름" value="문의 고객" 
+                       class="w-full p-2 border rounded">
+                <input type="tel" name="phone" placeholder="전화번호" value="010-9876-5432" 
+                       class="w-full p-2 border rounded">
+                <input type="text" name="call_times" placeholder="통화 가능 시간" value="오전 10시, 오후 2시" 
+                       class="w-full p-2 border rounded">
+                <button type="submit" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    문의 알림 보내기
+                </button>
+            </form>
+            <div id="contactResult" class="mt-4 p-4 bg-gray-100 rounded hidden">
+                <pre class="text-sm"></pre>
+            </div>
+        </div>
+
+        <!-- 직접 웹훅 테스트 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">🔗 직접 웹훅 테스트 (클라이언트)</h2>
+            <p class="text-sm text-red-500 mb-4">⚠️ 주의: 이 방법은 CORS 에러가 발생할 수 있습니다.</p>
+            <button onclick="testDirectWebhook()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                클라이언트에서 직접 웹훅 호출
+            </button>
+            <div id="directResult" class="mt-4 p-4 bg-gray-100 rounded hidden">
+                <pre class="text-sm"></pre>
+            </div>
+        </div>
+
+        <!-- 로그 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">📝 디버그 로그</h2>
+            <div id="debugLog" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm overflow-auto max-h-96">
+                <p>대기 중...</p>
+            </div>
+            <button onclick="clearLog()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                로그 지우기
+            </button>
         </div>
     </div>
-    
+
     <script>
-        let logElement = document.getElementById('logContent');
+        let logContent = [];
         
-        // 로그 출력
-        function addLog(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const color = type === 'success' ? 'text-green-600' : 
-                         type === 'error' ? 'text-red-600' : 
-                         'text-blue-600';
-            
-            logElement.innerHTML += `<p class="${color}">[${timestamp}] ${message}</p>`;
-            logElement.scrollTop = logElement.scrollHeight;
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('ko-KR');
+            const color = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-gray-400';
+            logContent.push(`<span class="${color}">[${timestamp}] ${message}</span>`);
+            document.getElementById('debugLog').innerHTML = logContent.join('<br>');
+            document.getElementById('debugLog').scrollTop = document.getElementById('debugLog').scrollHeight;
         }
         
-        // 초기 상태 확인
-        window.onload = async function() {
-            updateStatus();
+        function clearLog() {
+            logContent = [];
+            document.getElementById('debugLog').innerHTML = '<p>로그가 지워졌습니다.</p>';
+        }
+        
+        // 설정 확인
+        window.onload = function() {
+            const configStatus = document.getElementById('configStatus');
+            let html = '';
             
-            // 자동 초기화 시도
-            addLog('페이지 로드 완료. 자동 초기화 시작...');
-            await testConnection();
+            if (typeof SUPABASE_CONFIG !== 'undefined') {
+                html += '<p class="text-green-600">✅ SUPABASE_CONFIG 로드됨</p>';
+                html += `<p class="text-gray-600 ml-4">- URL: ${SUPABASE_CONFIG.url.substring(0, 30)}...</p>`;
+                html += `<p class="text-gray-600 ml-4">- Anon Key: ${SUPABASE_CONFIG.anonKey.substring(0, 30)}...</p>`;
+                
+                if (SUPABASE_CONFIG.slackWebhook && SUPABASE_CONFIG.slackWebhook !== 'YOUR_SLACK_WEBHOOK_URL_FOR_01-ma-op') {
+                    html += '<p class="text-green-600">✅ Slack Webhook 설정됨</p>';
+                    html += `<p class="text-gray-600 ml-4">- Webhook: ${SUPABASE_CONFIG.slackWebhook.substring(0, 50)}...</p>`;
+                } else {
+                    html += '<p class="text-red-600">❌ Slack Webhook 설정 안 됨</p>';
+                }
+            } else {
+                html += '<p class="text-red-600">❌ SUPABASE_CONFIG를 찾을 수 없음</p>';
+            }
+            
+            configStatus.innerHTML = html;
+            log('페이지 로드 완료');
         };
         
-        // 상태 업데이트
-        function updateStatus() {
-            const statusContent = document.getElementById('statusContent');
-            
-            const checks = [
-                { 
-                    label: 'Config.js 로드됨', 
-                    status: typeof SUPABASE_CONFIG !== 'undefined',
-                    details: typeof SUPABASE_CONFIG !== 'undefined' ? 'URL: ' + SUPABASE_CONFIG.url : '파일을 찾을 수 없음'
-                },
-                { 
-                    label: 'Supabase 라이브러리', 
-                    status: typeof window.supabase !== 'undefined',
-                    details: ''
-                },
-                { 
-                    label: 'DatabaseHandler 로드됨', 
-                    status: typeof window.dbHandler !== 'undefined',
-                    details: ''
-                },
-                { 
-                    label: '프로토콜', 
-                    status: window.location.protocol === 'https:',
-                    details: window.location.protocol
-                },
-                { 
-                    label: '현재 URL', 
-                    status: true,
-                    details: window.location.href
-                }
-            ];
-            
-            statusContent.innerHTML = checks.map(check => `
-                <div class="flex items-center space-x-2">
-                    <span class="${check.status ? 'text-green-500' : 'text-red-500'}">
-                        ${check.status ? '✓' : '✗'}
-                    </span>
-                    <span class="font-medium">${check.label}:</span>
-                    <span class="text-gray-600">${check.details}</span>
-                </div>
-            `).join('');
-        }
-        
-        // 1. 연결 테스트
-        async function testConnection() {
-            addLog('데이터베이스 연결 테스트 시작...');
-            updateStatus();
+        // API 테스트
+        async function testSlackAPI() {
+            log('API 테스트 시작...');
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.querySelector('pre').textContent = '요청 중...';
             
             try {
-                const result = await window.dbHandler.init();
+                const response = await fetch('/api/slack-test');
+                const data = await response.json();
                 
-                if (result) {
-                    addLog('데이터베이스 연결 성공!', 'success');
+                resultDiv.querySelector('pre').textContent = JSON.stringify(data, null, 2);
+                
+                if (data.success) {
+                    log('API 테스트 성공!', 'success');
                 } else {
-                    addLog('데이터베이스 연결 실패', 'error');
+                    log(`API 테스트 실패: ${data.error}`, 'error');
                 }
-                
-                updateStatus();
             } catch (error) {
-                addLog('연결 중 오류: ' + error.message, 'error');
+                resultDiv.querySelector('pre').textContent = `Error: ${error.message}`;
+                log(`API 테스트 에러: ${error.message}`, 'error');
             }
         }
         
-        // 2. 예약 저장 테스트
-        async function testBookingSave() {
-            addLog('시타 예약 저장 테스트 시작...');
+        // 예약 알림 테스트
+        document.getElementById('bookingTestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            log('예약 알림 테스트 시작...');
             
-            const testData = {
-                name: '테스트 사용자',
-                phone: '010-1234-5678',
-                preferredDate: '2025-07-10',
-                preferredTime: '10:00:00',  // TIME 형식으로 변경
-                clubInterest: '시크리트포스 PRO 3'
-            };
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
             
-            addLog('테스트 데이터: ' + JSON.stringify(testData));
+            const resultDiv = document.getElementById('bookingResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.querySelector('pre').textContent = '요청 중...';
             
-            const result = await window.dbHandler.saveBooking(testData);
-            
-            if (result.success) {
-                addLog('예약 저장 성공!', 'success');
-                addLog('저장된 데이터 ID: ' + (result.data?.[0]?.id || 'N/A'));
-            } else {
-                addLog('예약 저장 실패: ' + result.error, 'error');
-                
-                // 폴백 시도
-                addLog('로컬 스토리지 폴백 시도...');
-                const fallbackResult = await window.dbHandler.saveToLocalStorage('booking', testData);
-                
-                if (fallbackResult.success) {
-                    addLog('로컬 스토리지 저장 성공!', 'success');
-                }
-            }
-        }
-        
-        // 3. 문의 저장 테스트
-        async function testContactSave() {
-            addLog('문의 저장 테스트 시작...');
-            
-            const testData = {
-                name: '테스트 문의자',
-                phone: '010-9876-5432',
-                callTime: '오후 2-4시'
-            };
-            
-            addLog('테스트 데이터: ' + JSON.stringify(testData));
-            
-            const result = await window.dbHandler.saveContact(testData);
-            
-            if (result.success) {
-                addLog('문의 저장 성공!', 'success');
-                addLog('저장된 데이터 ID: ' + (result.data?.[0]?.id || 'N/A'));
-            } else {
-                addLog('문의 저장 실패: ' + result.error, 'error');
-                
-                // 폴백 시도
-                addLog('로컬 스토리지 폴백 시도...');
-                const fallbackResult = await window.dbHandler.saveToLocalStorage('contact', testData);
-                
-                if (fallbackResult.success) {
-                    addLog('로컬 스토리지 저장 성공!', 'success');
-                }
-            }
-        }
-        
-        // 4. 디버그 정보 표시
-        function showDebugInfo() {
-            addLog('디버그 정보 수집 중...');
-            
-            const debugInfo = window.dbHandler.getDebugInfo();
-            
-            addLog('=== 디버그 정보 ===');
-            addLog('연결 상태: ' + (debugInfo.isConnected ? '연결됨' : '연결 안됨'));
-            addLog('Config 로드: ' + (debugInfo.configLoaded ? 'YES' : 'NO'));
-            addLog('Supabase 로드: ' + (debugInfo.supabaseLoaded ? 'YES' : 'NO'));
-            addLog('프로토콜: ' + debugInfo.environment.protocol);
-            addLog('호스트: ' + debugInfo.environment.host);
-            addLog('경로: ' + debugInfo.environment.pathname);
-            
-            if (debugInfo.errorLog.length > 0) {
-                addLog('=== 에러 로그 ===');
-                debugInfo.errorLog.forEach(log => {
-                    addLog(`[${log.timestamp}] ${log.message}`, log.type);
+            try {
+                const response = await fetch('/api/slack/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'booking',
+                        data: data
+                    })
                 });
+                
+                const result = await response.json();
+                resultDiv.querySelector('pre').textContent = JSON.stringify(result, null, 2);
+                
+                if (result.success) {
+                    log('예약 알림 전송 성공!', 'success');
+                } else {
+                    log(`예약 알림 전송 실패: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                resultDiv.querySelector('pre').textContent = `Error: ${error.message}`;
+                log(`예약 알림 에러: ${error.message}`, 'error');
+            }
+        });
+        
+        // 문의 알림 테스트
+        document.getElementById('contactTestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            log('문의 알림 테스트 시작...');
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            const resultDiv = document.getElementById('contactResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.querySelector('pre').textContent = '요청 중...';
+            
+            try {
+                const response = await fetch('/api/slack/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'contact',
+                        data: data
+                    })
+                });
+                
+                const result = await response.json();
+                resultDiv.querySelector('pre').textContent = JSON.stringify(result, null, 2);
+                
+                if (result.success) {
+                    log('문의 알림 전송 성공!', 'success');
+                } else {
+                    log(`문의 알림 전송 실패: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                resultDiv.querySelector('pre').textContent = `Error: ${error.message}`;
+                log(`문의 알림 에러: ${error.message}`, 'error');
+            }
+        });
+        
+        // 직접 웹훅 테스트
+        async function testDirectWebhook() {
+            log('직접 웹훅 테스트 시작...');
+            
+            const resultDiv = document.getElementById('directResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.querySelector('pre').textContent = '요청 중...';
+            
+            if (!SUPABASE_CONFIG || !SUPABASE_CONFIG.slackWebhook || 
+                SUPABASE_CONFIG.slackWebhook === 'YOUR_SLACK_WEBHOOK_URL_FOR_01-ma-op') {
+                resultDiv.querySelector('pre').textContent = 'Error: Slack Webhook URL이 설정되지 않았습니다.';
+                log('Slack Webhook URL이 설정되지 않음', 'error');
+                return;
             }
             
-            // 콘솔에도 출력
-            console.log('전체 디버그 정보:', debugInfo);
+            try {
+                log(`웹훅 URL: ${SUPABASE_CONFIG.slackWebhook.substring(0, 50)}...`);
+                
+                const response = await fetch(SUPABASE_CONFIG.slackWebhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: '🧪 디버그 테스트: 클라이언트에서 직접 보낸 메시지입니다!'
+                    })
+                });
+                
+                const result = await response.text();
+                resultDiv.querySelector('pre').textContent = `Status: ${response.status}\nResponse: ${result}`;
+                
+                if (response.ok) {
+                    log('직접 웹훅 테스트 성공!', 'success');
+                } else {
+                    log(`직접 웹훅 테스트 실패: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                resultDiv.querySelector('pre').textContent = `Error: ${error.message}\n\n주의: CORS 에러가 발생했다면 서버 API를 통해 테스트하세요.`;
+                log(`직접 웹훅 에러: ${error.message}`, 'error');
+            }
         }
     </script>
 </body>
