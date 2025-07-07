@@ -1,4 +1,4 @@
-// 슬랙 웹훅 알림을 위한 API 엔드포인트 - 개선된 디자인
+// 슬랙 웹훅 알림 - 심플하고 고급스러운 디자인
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -18,354 +18,70 @@ export default async function handler(req, res) {
     let message = {};
 
     if (type === 'booking') {
-      // 시타 예약 알림 - 개선된 디자인
-      const blocks = [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: '🎯 새로운 시타 예약이 접수되었습니다!',
-            emoji: true
-          }
-        },
-        {
-          type: 'divider'
-        },
-        // 고객 정보 섹션
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '*📋 고객 정보*'
-          }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*이름*\n${data.name}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*연락처*\n${data.phone}`
-            }
-          ]
-        },
-        // 예약 정보 섹션
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '*📅 예약 정보*'
-          }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*날짜*\n${data.date}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*시간*\n${data.time}`
-            }
-          ]
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*관심 클럽*\n${data.club || '미정'}`
-          }
-        }
-      ];
-
+      // 시타 예약 - 심플한 디자인
+      let text = `*🎯 시타 예약 접수*\n\n`;
+      text += `👤 *${data.name}*\n`;
+      text += `📞 ${data.phone}\n\n`;
+      text += `📅 ${data.date} ${data.time}\n`;
+      text += `🏌️ ${data.club || '미정'}`;
+      
       // 퀴즈 데이터가 있으면 추가
-      if (data.swing_style || data.current_distance) {
-        blocks.push(
-          {
-            type: 'divider'
-          },
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: '*🏌️ 골프 스타일 분석*'
-            }
-          },
-          {
-            type: 'section',
-            fields: [
-              {
-                type: 'mrkdwn',
-                text: `*스윙 스타일*\n${data.swing_style || '-'}`
-              },
-              {
-                type: 'mrkdwn',
-                text: `*중요 요소*\n${data.priority || '-'}`
-              }
-            ]
-          }
-        );
-
+      if (data.swing_style || data.priority || data.current_distance) {
+        text += '\n\n━━━━━━━━━━━━━━━━━━━';
+        if (data.swing_style) text += `\n• 스윙: ${data.swing_style}`;
+        if (data.priority) text += `\n• 중요: ${data.priority}`;
         if (data.current_distance) {
-          blocks.push({
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: '*📊 비거리 분석*'
-            }
-          });
-
-          const distanceFields = [
-            {
-              type: 'mrkdwn',
-              text: `*현재 비거리*\n${data.current_distance}m`
-            }
-          ];
-
-          if (data.expected_distance) {
-            distanceFields.push({
-              type: 'mrkdwn',
-              text: `*예상 비거리*\n${data.expected_distance}m (+${data.expected_distance - data.current_distance}m) 🚀`
-            });
-          }
-
-          blocks.push({
-            type: 'section',
-            fields: distanceFields
-          });
-
+          text += `\n• 비거리: ${data.current_distance}m`;
           if (data.recommended_flex) {
-            blocks.push({
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*🎯 추천 플렉스*\n${data.recommended_flex}`
-              },
-              accessory: {
-                type: 'button',
-                text: {
-                  type: 'plain_text',
-                  text: '✨ 최적화',
-                  emoji: true
-                },
-                style: 'primary',
-                value: 'optimized'
-              }
-            });
+            text += ` → ${data.recommended_flex} 추천`;
           }
         }
       }
 
-      // 하단 정보
-      blocks.push(
-        {
-          type: 'divider'
-        },
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: `⏰ 접수 시간: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`
-            }
-          ]
-        },
-        {
-          type: 'actions',
-          elements: [
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '📞 전화하기',
-                emoji: true
-              },
-              url: `tel:${data.phone}`,
-              style: 'primary'
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '💼 관리자 페이지',
-                emoji: true
-              },
-              url: 'https://win.masgolf.co.kr/admin'
-            }
-          ]
-        }
-      );
-
       message = {
-        text: '🎯 새로운 시타 예약이 접수되었습니다!',
-        blocks: blocks
+        text: text,
+        attachments: [{
+          color: '#FF0000',
+          footer: 'MASGOLF 시타 예약',
+          ts: Math.floor(Date.now() / 1000)
+        }]
       };
 
     } else if (type === 'contact') {
-      // 상담 문의 알림 - 개선된 디자인
-      const blocks = [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: '📞 새로운 상담 문의가 접수되었습니다!',
-            emoji: true
-          }
-        },
-        {
-          type: 'divider'
-        },
-        // 고객 정보
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '*👤 고객 정보*'
-          }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*이름*\n${data.name}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*연락처*\n${data.phone}`
-            }
-          ]
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*📱 통화 가능 시간*\n${data.call_times || '시간 무관'}`
-          }
-        }
-      ];
-
+      // 상담 문의 - 심플한 디자인
+      let text = `*📞 상담 문의 접수*\n\n`;
+      text += `👤 *${data.name}*\n`;
+      text += `📞 ${data.phone}\n\n`;
+      text += `⏰ ${data.call_times || '시간 무관'}`;
+      
       // 퀴즈 데이터가 있으면 추가
-      if (data.swing_style || data.current_distance) {
-        blocks.push(
-          {
-            type: 'divider'
-          },
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: '*🏌️ 고객 프로필*'
-            }
-          }
-        );
-
-        const profileFields = [];
-        
-        if (data.swing_style) {
-          profileFields.push({
-            type: 'mrkdwn',
-            text: `*스윙 스타일*\n${data.swing_style}`
-          });
-        }
-        
-        if (data.priority) {
-          profileFields.push({
-            type: 'mrkdwn',
-            text: `*중요 요소*\n${data.priority}`
-          });
-        }
-
-        if (profileFields.length > 0) {
-          blocks.push({
-            type: 'section',
-            fields: profileFields
-          });
-        }
-
+      if (data.swing_style || data.priority || data.current_distance) {
+        text += '\n\n━━━━━━━━━━━━━━━━━━━';
+        if (data.swing_style) text += `\n• 스윙: ${data.swing_style}`;
+        if (data.priority) text += `\n• 중요: ${data.priority}`;
         if (data.current_distance) {
-          blocks.push({
-            type: 'section',
-            fields: [
-              {
-                type: 'mrkdwn',
-                text: `*현재 비거리*\n${data.current_distance}m`
-              },
-              {
-                type: 'mrkdwn',
-                text: `*추천 플렉스*\n${data.recommended_flex || '분석 필요'}`
-              }
-            ]
-          });
+          text += `\n• 비거리: ${data.current_distance}m`;
+          if (data.recommended_flex) {
+            text += ` → ${data.recommended_flex} 추천`;
+          }
         }
       }
-
-      // 긴급도 표시
-      blocks.push(
-        {
-          type: 'divider'
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '⚠️ *즉시 연락 필요*\n고객이 상담을 기다리고 있습니다!'
-          }
-        },
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: `⏰ 접수 시간: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`
-            }
-          ]
-        },
-        {
-          type: 'actions',
-          elements: [
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '📞 즉시 전화',
-                emoji: true
-              },
-              url: `tel:${data.phone}`,
-              style: 'danger'
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '✅ 연락 완료',
-                emoji: true
-              },
-              style: 'primary',
-              value: 'contacted'
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '💼 관리자 페이지',
-                emoji: true
-              },
-              url: 'https://win.masgolf.co.kr/admin'
-            }
-          ]
-        }
-      );
+      
+      text += '\n\n⚠️ *즉시 연락 필요!*';
 
       message = {
-        text: '📞 새로운 상담 문의가 접수되었습니다!',
-        blocks: blocks
+        text: text,
+        attachments: [{
+          color: '#FFA500',
+          footer: 'MASGOLF 상담 문의',
+          ts: Math.floor(Date.now() / 1000)
+        }]
       };
     }
+
+    // 디버깅 로그
+    console.log('Slack 메시지 전송 시도:', webhookUrl);
+    console.log('메시지 내용:', JSON.stringify(message, null, 2));
 
     // 슬랙으로 메시지 전송
     const response = await fetch(webhookUrl, {
@@ -376,13 +92,16 @@ export default async function handler(req, res) {
       body: JSON.stringify(message),
     });
 
+    const responseText = await response.text();
+    console.log('Slack 응답:', response.status, responseText);
+    
     if (!response.ok) {
-      throw new Error('Slack 알림 전송 실패');
+      throw new Error(`Slack 전송 실패: ${response.status} - ${responseText}`);
     }
 
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Slack 알림 에러:', error);
-    res.status(500).json({ error: 'Failed to send Slack notification' });
+    res.status(500).json({ error: 'Failed to send Slack notification', details: error.message });
   }
 }
