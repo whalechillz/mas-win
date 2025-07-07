@@ -1,0 +1,39 @@
+// admin.tsx의 예약 테이블 부분만 수정
+// 1. 테이블 헤더에 추가 (기존 헤더 다음에)
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관심 클럽</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">스윙타입</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">현재거리</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">추천플렉스</th>
+
+// 2. 테이블 바디에 추가 (기존 club 데이터 다음에)
+<td className="px-6 py-4">
+  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+    {booking.club || '미정'}
+  </span>
+</td>
+<td className="px-6 py-4 text-sm text-gray-900">
+  {booking.swing_style || '-'}
+</td>
+<td className="px-6 py-4 text-sm text-gray-900">
+  {booking.current_distance ? `${booking.current_distance}m` : '-'}
+</td>
+<td className="px-6 py-4 text-sm text-gray-900">
+  {booking.recommended_flex || '-'}
+</td>
+
+// 3. 문의 테이블도 동일하게 추가
+// 헤더에:
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">통화 가능 시간</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">스윙타입</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">현재거리</th>
+
+// 바디에:
+<td className="px-6 py-4 text-sm text-gray-900">
+  {contact.call_times || '시간무관'}
+</td>
+<td className="px-6 py-4 text-sm text-gray-900">
+  {contact.swing_style || '-'}
+</td>
+<td className="px-6 py-4 text-sm text-gray-900">
+  {contact.current_distance ? `${contact.current_distance}m` : '-'}
+</td>
