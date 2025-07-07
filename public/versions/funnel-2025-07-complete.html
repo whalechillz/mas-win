@@ -526,7 +526,8 @@
     <section id="quiz-section" class="py-20 px-6 bg-gray-900">
         <div class="container mx-auto max-w-4xl">
             <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
-                당신의 <span class="text-red-500">여름 스윙 스타일</span>은?
+                당신의 여름<br>
+                <span class="text-red-500">스윙 스타일</span>은?
             </h2>
             <p class="text-xl text-center text-gray-300 mb-12 scroll-reveal">
                 3가지 질문으로 찾는 나만의 맞춤 클럽
@@ -611,7 +612,8 @@
     <section class="py-20 px-6 bg-black">
         <div class="container mx-auto">
             <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-16 scroll-reveal">
-                확실한 <span class="text-red-500">비거리 증가</span>의 증명
+                확실한 비거리<br>
+                <span class="text-red-500">증가의 증명</span>
             </h2>
             
             <div class="max-w-4xl mx-auto">
@@ -672,7 +674,8 @@
     <section class="py-20 px-6 bg-gray-900">
         <div class="container mx-auto">
             <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-16 scroll-reveal">
-                여름을 이기는 <span class="text-red-500">3가지 핵심 기술</span>
+                여름을 이기는<br>
+                <span class="text-red-500">3가지 핵심 기술</span>
             </h2>
             
             <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -1726,19 +1729,22 @@
             `;
             
             document.getElementById('resultButtons').innerHTML = buttonsHTML;
+            // Step 3를 숨기고 비거리 비교 섹션으로 이동
             document.getElementById('step3').classList.remove('active');
-            document.getElementById('result').classList.add('active');
             
-            // 자동으로 비거리 비교 섹션으로 스크롤하고 애니메이션 실행
-            setTimeout(() => {
-                const comparisonSection = document.querySelector('#distanceComparison').closest('section');
-                if (comparisonSection) {
-                    comparisonSection.scrollIntoView({ behavior: 'smooth' });
+            // 비거리 비교 섹션으로 스크롤하고 애니메이션 실행
+            const comparisonSection = document.querySelector('#distanceComparison').closest('section');
+            if (comparisonSection) {
+                comparisonSection.scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => {
+                    showDistanceComparison(quizData.distance);
+                    // 비거리 애니메이션 후에 제품 추천 표시
                     setTimeout(() => {
-                        showDistanceComparison(quizData.distance);
-                    }, 1000);
-                }
-            }, 500);
+                        document.getElementById('result').classList.add('active');
+                        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 3000);
+                }, 1000);
+            }
     // 예상 비거리 애니메이션
     setTimeout(() => {
         const expectedDistEl = document.getElementById('expectedDistance');
