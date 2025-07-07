@@ -604,6 +604,9 @@ export default function AdminDashboard() {
                           {booking.swing_style || '-'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
+                          {booking.priority || '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
                           {booking.current_distance ? `${booking.current_distance}m` : '-'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
@@ -693,6 +696,9 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {contact.swing_style || '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {contact.priority || '-'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {contact.current_distance ? `${contact.current_distance}m` : '-'}
