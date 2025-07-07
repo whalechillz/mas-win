@@ -14,6 +14,21 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Slack webhook URL not configured' });
   }
 
+  // 전화번호 포맷팅 함수
+  const formatPhoneNumber = (phone) => {
+    const numbers = phone.replace(/[^0-9]/g, '');
+    if (numbers.length === 11) {
+      return numbers.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+    } else if (numbers.length === 10) {
+      if (numbers.startsWith('02')) {
+        return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3');
+      } else {
+        return numbers.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+      }
+    }
+    return phone;
+  };
+
   try {
     let message = {};
 
@@ -21,7 +36,7 @@ export default async function handler(req, res) {
       // 시타 예약 - 심플한 디자인
       let text = `*🎯 시타 예약 접수*\n\n`;
       text += `👤 *${data.name}*\n`;
-      text += `📞 ${data.phone}\n\n`;
+      text += `📞 ${formatPhoneNumber(data.phone)}\n\n`;
       text += `📅 ${data.date} ${data.time}\n`;
       text += `🏌️ ${data.club || '미정'}`;
       
@@ -51,7 +66,7 @@ export default async function handler(req, res) {
       // 상담 문의 - 심플한 디자인
       let text = `*📞 상담 문의 접수*\n\n`;
       text += `👤 *${data.name}*\n`;
-      text += `📞 ${data.phone}\n\n`;
+      text += `📞 ${formatPhoneNumber(data.phone)}\n\n`;
       text += `⏰ ${data.call_times || '시간 무관'}`;
       
       // 퀴즈 데이터가 있으면 추가

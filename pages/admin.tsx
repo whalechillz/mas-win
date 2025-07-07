@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { formatPhoneNumber } from '../lib/formatters';
 
 // Lucide React 아이콘들을 직접 SVG로 구현
 const Calendar = ({ size = 24, className = "" }) => (
@@ -327,9 +328,9 @@ export default function AdminDashboard() {
     
     data.forEach(item => {
       if (type === 'bookings') {
-        csv += `${item.name},${item.phone},${item.date},${item.time},${item.club || ''},${item.created_at}\n`;
+        csv += `${item.name},${formatPhoneNumber(item.phone)},${item.date},${item.time},${item.club || ''},${item.created_at}\n`;
       } else {
-        csv += `${item.name},${item.phone},${item.call_times || ''},${item.created_at},${item.contacted ? 'O' : 'X'}\n`;
+        csv += `${item.name},${formatPhoneNumber(item.phone)},${item.call_times || ''},${item.created_at},${item.contacted ? 'O' : 'X'}\n`;
       }
     });
     
@@ -357,6 +358,7 @@ export default function AdminDashboard() {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
+      // 초는 제외
     }).format(date);
   };
 
@@ -586,7 +588,7 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{booking.name}</p>
-                            <p className="text-sm text-gray-500">{booking.phone}</p>
+                            <p className="text-sm text-gray-500">{formatPhoneNumber(booking.phone)}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -688,7 +690,7 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{contact.name}</p>
-                            <p className="text-sm text-gray-500">{contact.phone}</p>
+                            <p className="text-sm text-gray-500">{formatPhoneNumber(contact.phone)}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
