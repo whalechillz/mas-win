@@ -555,14 +555,14 @@
 <body>
     <!-- 날짜 기반 카운트다운 로직 -->
     <script>
-        // 7월 7일부터 31일까지 13명에서 0명으로 감소
+        // 7월 7일부터 31일까지 20명에서 0명으로 감소
         function getRemainingCount() {
             const startDate = new Date('2025-07-07');
             const endDate = new Date('2025-07-31');
             const today = new Date();
             
             // 날짜가 범위를 벗어난 경우
-            if (today < startDate) return 13;
+            if (today < startDate) return 20;
             if (today > endDate) return 0;
             
             // 전체 일수와 경과 일수 계산
@@ -570,7 +570,7 @@
             const elapsedDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
             
             // 비율에 따라 남은 인원 계산
-            const remainingCount = Math.max(0, Math.floor(13 - (13 * elapsedDays / totalDays)));
+            const remainingCount = Math.max(0, Math.floor(20 - (20 * elapsedDays / totalDays)));
             
             return remainingCount;
         }
