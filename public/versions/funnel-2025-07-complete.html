@@ -1221,6 +1221,46 @@
             distance: 0
         };
 
+        // 비거리에 따른 플렉스 추천 함수
+        function recommendFlexByDistance(distance) {
+            // 비거리를 기반으로 대략적인 진동수를 추정
+            let estimatedCPM;
+            let recommendedFlex;
+            let cpmRange;
+            
+            if (distance < 180) {
+                estimatedCPM = 175;  // R2
+                recommendedFlex = 'R2';
+                cpmRange = '171-180';
+            } else if (distance < 200) {
+                estimatedCPM = 185;  // R1
+                recommendedFlex = 'R1';
+                cpmRange = '181-190';
+            } else if (distance < 220) {
+                estimatedCPM = 195;  // R
+                recommendedFlex = 'R';
+                cpmRange = '191-200';
+            } else if (distance < 240) {
+                estimatedCPM = 205;  // SR
+                recommendedFlex = 'SR';
+                cpmRange = '201-210';
+            } else if (distance < 260) {
+                estimatedCPM = 215;  // S
+                recommendedFlex = 'S';
+                cpmRange = '211-220';
+            } else {
+                estimatedCPM = 225;  // S (강한)
+                recommendedFlex = 'S';
+                cpmRange = '220 이상';
+            }
+            
+            return {
+                flex: recommendedFlex,
+                cpm: estimatedCPM,
+                cpmRange: cpmRange
+            };
+        }
+
         
         
         const products = {
@@ -1475,9 +1515,17 @@
             
             quizData.distance = parseInt(distance);
             
+            // 비거리에 따른 플렉스 추천
+            const flexRecommendation = recommendFlexByDistance(quizData.distance);
+            
             // 추천 제품 결정
             const productKey = `${quizData.style}-${quizData.priority}`;
             const product = products[productKey];
+            
+            // 제품에 추천 플렉스 정보 추가
+            product.recommendedFlex = flexRecommendation.flex;
+            product.recommendedCPM = flexRecommendation.cpm;
+            product.cpmRange = flexRecommendation.cpmRange;
             
             // 결과 표시
             const resultHTML = `
@@ -1543,6 +1591,10 @@
                         <span class="text-gray-400">플렉스:</span>
                         <span class="text-white font-bold">${product.shaftFlex || 'R/SR/S'}</span>
                     </div>
+                    <div class="flex justify-between bg-red-600 bg-opacity-20 p-2 rounded-lg -mx-2">
+                        <span class="text-yellow-300">추천 플렉스:</span>
+                        <span class="text-yellow-300 font-bold">${product.recommendedFlex}</span>
+                    </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">소재:</span>
                         <span class="text-white font-bold">${product.material || '티타늄'}</span>
@@ -1567,6 +1619,7 @@
                     <div class="text-left">
                         <p class="text-gray-400 mb-1">샤프트 진동수</p>
                         <p class="text-white font-bold">${product.shaftFreq || '220 cpm'}</p>
+                        <p class="text-yellow-300 text-xs mt-1">추천: ${product.cpmRange} cpm</p>
                     </div>
                     <div class="text-left">
                         <p class="text-gray-400 mb-1">볼스피드</p>
@@ -1592,7 +1645,11 @@
     <!-- 비거리 예상 박스 -->
     <div class="bg-red-900/20 rounded-xl p-6 mt-8 text-center">
         <p class="text-gray-400 mb-2 text-lg">현재 비거리: <span class="text-white font-bold text-2xl">${quizData.distance}m</span></p>
-        <p class="text-gray-400 text-lg">예상 비거리: <span class="text-red-500 font-bold text-3xl" id="expectedDistance">${quizData.distance}m</span></p>
+        <p class="text-gray-400 text-lg mb-4">예상 비거리: <span class="text-red-500 font-bold text-3xl" id="expectedDistance">${quizData.distance}m</span></p>
+        <div class="border-t border-gray-700 pt-4 mt-4">
+            <p class="text-yellow-300 font-bold text-lg">당신에게 최적화된 플렉스: ${product.recommendedFlex}</p>
+            <p class="text-gray-400 text-sm mt-1">샤프트 진동수 ${product.cpmRange} cpm 범위</p>
+        </div>
     </div>
     
     <!-- 긴급성 메시지 -->
