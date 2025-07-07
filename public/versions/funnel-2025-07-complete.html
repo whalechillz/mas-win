@@ -1234,29 +1234,29 @@
             let cpmRange;
             
             if (distance < 180) {
-                estimatedCPM = 175;  // R2
+                estimatedCPM = 202;  // R2
                 recommendedFlex = 'R2';
-                cpmRange = '171-180';
+                cpmRange = '202';
             } else if (distance < 200) {
-                estimatedCPM = 185;  // R1
+                estimatedCPM = 212;  // R1
                 recommendedFlex = 'R1';
-                cpmRange = '181-190';
+                cpmRange = '212';
             } else if (distance < 220) {
-                estimatedCPM = 195;  // R
+                estimatedCPM = 220;  // R
                 recommendedFlex = 'R';
-                cpmRange = '191-200';
+                cpmRange = '220';
             } else if (distance < 240) {
-                estimatedCPM = 205;  // SR
+                estimatedCPM = 230;  // SR
                 recommendedFlex = 'SR';
-                cpmRange = '201-210';
+                cpmRange = '230';
             } else if (distance < 260) {
-                estimatedCPM = 215;  // S
+                estimatedCPM = 240;  // S
                 recommendedFlex = 'S';
-                cpmRange = '211-220';
+                cpmRange = '240';
             } else {
-                estimatedCPM = 225;  // S (강한)
+                estimatedCPM = 240;  // S (강한)
                 recommendedFlex = 'S';
-                cpmRange = '220 이상';
+                cpmRange = '240+';
             }
             
             return {
@@ -1288,7 +1288,7 @@
                 kickPoint: 'Mid Low',
                 // 추가 상세 스펙
                 balance: 'D1/C9',
-                shaftFreq: '202-212 cpm',
+                shaftFreq: '212-220 cpm',
                 ballSpeed: '48-50 m/s',
                 grip: '45/35',
                 length: '45.75"',
