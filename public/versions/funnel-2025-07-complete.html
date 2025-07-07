@@ -1521,6 +1521,7 @@
                     'comfort': '편안함'
                 };
                 quizData.priorityText = priorityTexts[value];
+                console.log('Priority selected:', value, '->', quizData.priorityText);
             }
             
             // 다음 단계로
@@ -1887,8 +1888,8 @@
                             time: data.time,
                             club: data.club,
                             // 퀴즈 데이터 추가
-                            swing_style: quizData.style || null,
-                            priority: quizData.priorityText || quizData.priority || null,  // Q2 답변 저장
+                            swing_style: quizData.styleText || null,  // 스윙 스타일 (한글)
+                            priority: quizData.priorityText || null,  // Q2 답변 저장 (한글)
                             current_distance: quizData.distance || null,
                             recommended_flex: quizData.recommendedFlex || null,
                             expected_distance: quizData.expectedDistance || null,
@@ -1998,8 +1999,8 @@
                             phone: data.phone,
                             call_times: data.call_times,
                             // 퀴즈 데이터 추가
-                            swing_style: quizData.style || null,
-                            priority: quizData.priorityText || quizData.priority || null,  // Q2 답변 저장
+                            swing_style: quizData.styleText || null,  // 스윙 스타일 (한글)
+                            priority: quizData.priorityText || null,  // Q2 답변 저장 (한글)
                             current_distance: quizData.distance || null,
                             recommended_flex: quizData.recommendedFlex || null
                         }])
