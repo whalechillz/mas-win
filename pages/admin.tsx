@@ -573,9 +573,6 @@ export default function AdminDashboard() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">고객 정보</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">예약 정보</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관심 클럽</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">스윙타입</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">현재거리</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">추천플렉스</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">신청 시간</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
                     </tr>
@@ -589,12 +586,6 @@ export default function AdminDashboard() {
                             <p className="text-sm text-gray-500">{booking.phone}</p>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.swing_style || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.current_distance ? `${contact.current_distance}m` : '-'}
-                        </td>
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{formatDate(booking.date)}</p>
@@ -605,15 +596,6 @@ export default function AdminDashboard() {
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {booking.club || '미정'}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {booking.swing_style || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {booking.current_distance ? `${booking.current_distance}m` : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {booking.recommended_flex || '-'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {formatDateTime(booking.created_at)}
@@ -680,8 +662,6 @@ export default function AdminDashboard() {
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">고객 정보</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">통화 가능 시간</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">스윙타입</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">현재거리</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">신청 시간</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
@@ -698,12 +678,6 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {contact.call_times || '시간무관'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.swing_style || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {contact.current_distance ? `${contact.current_distance}m` : '-'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {formatDateTime(contact.created_at)}

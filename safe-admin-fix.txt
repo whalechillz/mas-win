@@ -1,0 +1,27 @@
+// 안전한 방법: 예약 테이블에만 스윙 스타일 추가
+
+// 1. 테이블 헤더 찾기 (약 720번째 줄)
+// 원본:
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관심 클럽</th>
+
+// 수정: 바로 다음 줄에 추가
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관심 클럽</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">스윙타입</th>
+
+// 2. 테이블 바디 찾기 (약 750번째 줄)
+// 원본:
+<td className="px-6 py-4">
+  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+    {booking.club || '미정'}
+  </span>
+</td>
+
+// 수정: 해당 </td> 다음에 추가
+<td className="px-6 py-4">
+  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+    {booking.club || '미정'}
+  </span>
+</td>
+<td className="px-6 py-4 text-sm text-gray-900">
+  {booking.swing_style || '-'}
+</td>
