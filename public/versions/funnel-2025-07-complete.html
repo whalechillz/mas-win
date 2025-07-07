@@ -1803,20 +1803,28 @@
                     
                     if (error) throw error;
                     
-                    // Slack 알림 (서버 사이드에서 처리하는 것을 권장)
-                    if (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.slackWebhook && 
-                        SUPABASE_CONFIG.slackWebhook !== 'YOUR_SLACK_WEBHOOK_URL') {
-                        try {
-                            await fetch(SUPABASE_CONFIG.slackWebhook, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    text: `새로운 시타 예약!\n이름: ${data.name}\n연락처: ${data.phone}\n날짜: ${data.date}\n시간: ${data.time}\n클럽: ${data.club}`
-                                })
-                            });
-                        } catch (slackError) {
-                            console.error('Slack 알림 실패:', slackError);
+                    // Slack 알림을 서버 API를 통해 전송
+                    try {
+                        const slackResponse = await fetch('/api/slack/notify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'booking',
+                                data: {
+                                    name: data.name,
+                                    phone: data.phone,
+                                    date: data.date,
+                                    time: data.time,
+                                    club: data.club
+                                }
+                            })
+                        });
+                        
+                        if (!slackResponse.ok) {
+                            console.error('Slack 알림 실패:', await slackResponse.text());
                         }
+                    } catch (slackError) {
+                        console.error('Slack 알림 에러:', slackError);
                     }
                 } else {
                     // Supabase가 설정되지 않은 경우 로컬 스토리지에 저장
@@ -1869,20 +1877,26 @@
                     
                     if (error) throw error;
                     
-                    // Slack 알림
-                    if (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.slackWebhook &&
-                        SUPABASE_CONFIG.slackWebhook !== 'YOUR_SLACK_WEBHOOK_URL') {
-                        try {
-                            await fetch(SUPABASE_CONFIG.slackWebhook, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    text: `새로운 문의!\n이름: ${data.name}\n연락처: ${data.phone}\n통화가능시간: ${data.call_times}`
-                                })
-                            });
-                        } catch (slackError) {
-                            console.error('Slack 알림 실패:', slackError);
+                    // Slack 알림을 서버 API를 통해 전송
+                    try {
+                        const slackResponse = await fetch('/api/slack/notify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'contact',
+                                data: {
+                                    name: data.name,
+                                    phone: data.phone,
+                                    call_times: data.call_times
+                                }
+                            })
+                        });
+                        
+                        if (!slackResponse.ok) {
+                            console.error('Slack 알림 실패:', await slackResponse.text());
                         }
+                    } catch (slackError) {
+                        console.error('Slack 알림 에러:', slackError);
                     }
                 } else {
                     // Supabase가 설정되지 않은 경우 로컬 스토리지에 저장
