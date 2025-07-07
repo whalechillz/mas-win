@@ -20,7 +20,7 @@ export default function Funnel202507() {
 
   return (
     <iframe
-      src={`/versions/funnel-2025-07-complete.html?v=${timestamp}&banner=updated2`}
+      src={`/versions/funnel-2025-07-complete.html?v=${timestamp}&ui=updated`}
       style={{
         width: '100%',
         height: '100vh',

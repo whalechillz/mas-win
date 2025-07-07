@@ -84,19 +84,7 @@
             transform: translateY(0);
         }
         
-        /* 플로팅 배너 */
-        .floating-banner {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 1000;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+        /* 플로팅 배너 삭제 - 새로운 플로팅 버튼으로 대체 */
         
         /* 퀴즈 카드 */
         .quiz-step {
@@ -336,10 +324,15 @@
                 font-size: 1.5rem;
             }
             
-            .floating-banner {
-                bottom: 20px;
-                right: 20px;
-                transform: scale(0.9);
+            /* 플로팅 버튼 모바일 반응형 */
+            .fixed.bottom-20 {
+                bottom: 60px;
+            }
+            .fixed.bottom-20 button span {
+                display: none;
+            }
+            .fixed.bottom-20 .text-left p:last-child {
+                display: none;
             }
             
             .gift-carousel {
@@ -1022,20 +1015,36 @@
         </div>
     </section>
 
-    <!-- 플로팅 배너 -->
-    <div class="floating-banner">
-        <div class="bg-gradient-to-r from-red-600 to-red-800 rounded-full shadow-2xl p-4 cursor-pointer" onclick="showPopup()">
-            <div class="flex items-center space-x-3">
-                <div class="bg-white rounded-full p-3">
-                    <i class="fas fa-gift text-red-600 text-xl"></i>
-                </div>
-                <div class="text-white pr-4">
-                    <p class="font-bold">상담만 받아도!</p>
-                    <p class="text-sm">쿨링세트 증정</p>
-                    <p class="text-xs text-yellow-300 font-bold mt-1">선착순 13명 남음!</p>
-                </div>
+    <!-- 플로팅 버튼 -->
+    <div class="fixed bottom-20 right-4 md:right-8 z-50 flex flex-col gap-3">
+        <!-- 전화상담 버튼 (상단) -->
+        <a href="tel:080-028-8888" class="bg-gradient-to-r from-red-600 to-red-800 text-white px-6 py-4 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3">
+            <i class="fas fa-phone text-xl"></i>
+            <div class="text-left">
+                <p class="font-bold text-base">전화상담</p>
+                <p class="text-xs opacity-90">080-028-8888</p>
             </div>
+        </a>
+        
+        <!-- 하단 버튼들 -->
+        <div class="flex gap-3">
+            <!-- 시타예약 버튼 -->
+            <button onclick="showBookingModal()" class="bg-white text-red-600 px-5 py-3 rounded-full shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2 font-bold">
+                <i class="fas fa-calendar-check"></i>
+                <span>시타예약</span>
+            </button>
+            
+            <!-- 문의하기 버튼 -->
+            <button onclick="showContactModal()" class="bg-gray-800 text-white px-5 py-3 rounded-full shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2 font-bold">
+                <i class="fas fa-comment"></i>
+                <span>문의하기</span>
+            </button>
         </div>
+        
+        <!-- 상담만 받아도 팝업 트리거 -->
+        <button onclick="showPopup()" class="bg-yellow-500 text-black px-4 py-2 rounded-full text-sm font-bold animate-pulse shadow-lg hover:bg-yellow-400 transition">
+            <i class="fas fa-gift mr-2"></i>상담만 받아도 쿨링세트!
+        </button>
     </div>
 
     <!-- 팝업 -->
