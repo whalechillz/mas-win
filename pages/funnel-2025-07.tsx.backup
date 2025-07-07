@@ -9,18 +9,13 @@ export default function Funnel202507() {
     document.head.appendChild(script);
     
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
+      document.head.removeChild(script);
     };
   }, []);
 
-  // 캐시 방지를 위한 타임스탬프 추가
-  const timestamp = new Date().getTime();
-
   return (
     <iframe
-      src={`/versions/funnel-2025-07-complete.html?v=${timestamp}`}
+      src="/versions/funnel-2025-07-complete.html"
       style={{
         width: '100%',
         height: '100vh',

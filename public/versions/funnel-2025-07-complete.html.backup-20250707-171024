@@ -1888,7 +1888,7 @@
                             club: data.club,
                             // 퀴즈 데이터 추가
                             swing_style: quizData.style || null,
-                            priority: quizData.priorityText || quizData.priority || null,  // Q2 답변 저장
+                            priority: quizData.priority || null,  // Q2 답변 저장
                             current_distance: quizData.distance || null,
                             recommended_flex: quizData.recommendedFlex || null,
                             expected_distance: quizData.expectedDistance || null,
@@ -1904,7 +1904,7 @@
                             .from('quiz_results')
                             .insert([{
                                 style: quizData.style,
-                                priority: quizData.priorityText || quizData.priority || null,
+                                priority: quizData.priority,
                                 current_distance: quizData.distance,
                                 recommended_prod: quizData.recommendedFlex,
                                 ip_address: bookingResult[0].id.toString(), // booking ID를 참조로 사용
@@ -1999,7 +1999,7 @@
                             call_times: data.call_times,
                             // 퀴즈 데이터 추가
                             swing_style: quizData.style || null,
-                            priority: quizData.priorityText || quizData.priority || null,  // Q2 답변 저장
+                            priority: quizData.priority || null,  // Q2 답변 저장
                             current_distance: quizData.distance || null,
                             recommended_flex: quizData.recommendedFlex || null
                         }])
