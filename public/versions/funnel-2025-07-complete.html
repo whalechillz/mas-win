@@ -996,26 +996,26 @@
                 <!-- 가격대별 사은품 상세 -->
                 <div class="grid md:grid-cols-3 gap-4 mb-12">
                     <div class="bg-black/20 backdrop-blur rounded-lg p-6 text-center">
-                        <p class="text-2xl font-bold mb-2">95만원</p>
-                        <h4 class="text-base font-medium text-gray-300 mb-3">시크리트포스 V3</h4>
+                        <h4 class="text-xl font-bold text-white mb-2">시크리트포스 V3</h4>
+                        <p class="text-2xl font-bold text-red-400 mb-3">95만원</p>
                         <p class="text-sm mb-2">쿨링 세트 +</p>
                         <p class="text-lg font-bold text-yellow-300">발베니 12년</p>
                         <p class="text-xs text-gray-400 mt-1">프리미엄 싱글몰트</p>
                     </div>
                     <div class="bg-black/20 backdrop-blur rounded-lg p-6 text-center border-2 border-yellow-500">
                         <div class="text-xs bg-red-600 text-white px-2 py-1 rounded-full inline-block mb-2">인기</div>
-                        <p class="text-2xl font-bold mb-2">115만원</p>
-                        <h4 class="text-base font-medium text-gray-300 mb-3">시크리트포스 PRO 3</h4>
+                        <h4 class="text-xl font-bold text-white mb-2">시크리트포스 PRO 3</h4>
+                        <p class="text-2xl font-bold text-red-400 mb-3">115만원</p>
                         <p class="text-sm mb-2">쿨링 세트 +</p>
                         <p class="text-lg font-bold text-yellow-300">발렌타인 21년</p>
                         <p class="text-xs text-gray-400 mt-1">스페셜 에디션</p>
                     </div>
                     <div class="bg-gradient-to-r from-yellow-900/30 to-black/30 backdrop-blur rounded-lg p-6 text-center">
                         <div class="text-xs bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full inline-block mb-2">VIP</div>
-                        <p class="text-2xl font-bold mb-2">170만원</p>
-                        <h4 class="text-base font-medium text-gray-300 mb-3">시크리트웨폰 블랙</h4>
+                        <h4 class="text-xl font-bold text-white mb-2">시크리트웨폰 블랙</h4>
+                        <p class="text-2xl font-bold text-red-400 mb-3">170만원</p>
                         <p class="text-sm mb-2">쿨링 세트 +</p>
-                        <p class="text-lg font-bold text-yellow-300">고급 위스키</p>
+                        <p class="text-lg font-bold text-yellow-300">로얄 살루트 21년</p>
                         <p class="text-xs text-gray-400 mt-1">리미티드 에디션</p>
                     </div>
                 </div>
@@ -1036,7 +1036,8 @@
                 <p class="mt-8 text-sm opacity-80">
                     * 선물은 한정 수량으로 조기 소진될 수 있습니다<br>
                     * 위스키는 매장 방문 시 직접 전달 또는 택배 발송으로 제공됩니다<br>
-                    * 7월 31일까지 방문 시타 고객에 한함
+                    * 7월 31일까지 방문 시타 고객에 한함<br>
+                    * 주류는 만 19세 이상 성인에게만 증정되며, 미성년자에게는 제공되지 않습니다
                 </p>
             </div>
         </div>
@@ -1097,8 +1098,17 @@
                     </button>
                     <div class="hidden px-6 pb-4" id="faq-content-4">
                         <p class="text-gray-400">
-                            구매 상품의 가격에 따라 로얄 살루트 21년산, 발렌타인 21년산, 발베니 12년산 상품이 차등 지급(성인에 한하여)됩니다. 결제 시 현장에서 곱바로 지급되며 원하시는 주소로 택배 발송도 가능합니다.
+                            구매 상품의 가격에 따라 차등 지급됩니다:<br>
+                            - 95만원: 발베니 12년 (프리미엄 싱글몰트)<br>
+                            - 115만원: 발렌타인 21년 (스페셜 에디션)<br>
+                            - 170만원: 로얄 살루트 21년 (리미티드 에디션)<br><br>
+                            모두 최고급 프리미엄 위스키로, 21년 이상 숙성된 원액만을 사용한 특별한 제품입니다. MAS 골프 클럽 구매 고객님께만 드리는 특별한 사은품입니다.<br><br>
+                            성인(만 19세 이상)에게만 증정됩니다. 결제 시 현장에서 직접 지급되며, 원하시는 주소로 택배 발송도 가능합니다.
                         </p>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <img src="/temp/SALUTE21-01.jpg" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
+                            <img src="/temp/SALUTE21-02.png" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
+                        </div>
                     </div>
                 </div>
 
@@ -1115,22 +1125,7 @@
                     </div>
                 </div>
                 
-                <!-- FAQ 6: 사은품 관련 -->
-                <div class="bg-black border border-red-900 rounded-lg overflow-hidden scroll-reveal" style="animation-delay: 0.5s">
-                    <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-red-900/10 transition" onclick="toggleFAQ(6)">
-                        <span class="font-medium text-white">고급 위스키는 어떤 제품인가요?</span>
-                        <i class="fas fa-chevron-down text-red-500 transition-transform" id="faq-icon-6"></i>
-                    </button>
-                    <div class="hidden px-6 pb-4" id="faq-content-6">
-                        <p class="text-gray-400">
-                            최고급 프리미엄 위스키로, 21년 이상 숙성된 원액만을 사용한 특별한 제품입니다. MAS 골프 클럽 구매 고객님께만 드리는 특별한 사은품입니다.
-                        </p>
-                        <div class="grid grid-cols-2 gap-4 mt-4">
-                            <img src="/temp/SALUTE21-01.jpg" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
-                            <img src="/temp/SALUTE21-02.png" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </div>
     </section>
