@@ -225,6 +225,43 @@ const Activity = ({ size = 24, className = "" }) => (
   </svg>
 );
 
+const Layers = ({ size = 24, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+    <polyline points="2 17 12 22 22 17"></polyline>
+    <polyline points="2 12 12 17 22 12"></polyline>
+  </svg>
+);
+
+const Bug = ({ size = 24, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="8" height="14" x="8" y="6" rx="4"></rect>
+    <path d="m19 7-3 2"></path>
+    <path d="m5 7 3 2"></path>
+    <path d="m19 19-3-2"></path>
+    <path d="m5 19 3-2"></path>
+    <path d="M20 13h-4"></path>
+    <path d="M4 13h4"></path>
+    <path d="m10 4 1 2"></path>
+    <path d="m14 4-1 2"></path>
+  </svg>
+);
+
+const Megaphone = ({ size = 24, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m3 11 18-5v12L3 14v-3z"></path>
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+  </svg>
+);
+
+const ExternalLink = ({ size = 24, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+    <polyline points="15 3 21 3 21 9"></polyline>
+    <line x1="10" y1="14" x2="21" y2="3"></line>
+  </svg>
+);
+
 // Supabase configuration
 const supabaseUrl = 'https://yyytjudftvpmcnppaymw.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
@@ -249,6 +286,42 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // 버전 관리 데이터
+  const versions = [
+    { name: '2025년 5월 버전', file: 'funnel-2025-05.html', status: '종료' },
+    { name: '2025년 6월 기본', file: 'funnel-2025-06.html', status: '종료' },
+    { name: '쿠폰 및 할인 정책', file: 'coupon-policy.html', status: '활성' },
+    { name: '2025년 7월 완성본', file: 'funnel-2025-07-complete.html', status: '활성' },
+  ];
+
+  // 캠페인 데이터
+  const campaigns = [
+    { 
+      month: '2025년 5월', 
+      name: '가정의 달 캠페인',
+      status: '종료',
+      startDate: '2025-05-01',
+      endDate: '2025-05-31',
+      url: '/funnel-2025-05'
+    },
+    { 
+      month: '2025년 6월', 
+      name: '프라임타임 캠페인',
+      status: '종료',
+      startDate: '2025-06-01',
+      endDate: '2025-06-30',
+      url: '/funnel-2025-06'
+    },
+    { 
+      month: '2025년 7월', 
+      name: '여름 특별 캠페인',
+      status: '진행중',
+      startDate: '2025-07-01',
+      endDate: '2025-07-31',
+      url: '/funnel-2025-07'
+    },
+  ];
 
   // 인증 체크
   useEffect(() => {
@@ -585,12 +658,12 @@ export default function AdminDashboard() {
         
         {/* Navigation */}
         <nav className="px-6">
-          <div className="flex space-x-8">
-            {['overview', 'bookings', 'contacts'].map((tab) => (
+          <div className="flex space-x-8 overflow-x-auto">
+            {['overview', 'bookings', 'contacts', 'versions', 'campaigns', 'debug'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                   activeTab === tab
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -599,6 +672,9 @@ export default function AdminDashboard() {
                 {tab === 'overview' && '대시보드'}
                 {tab === 'bookings' && '시타 예약'}
                 {tab === 'contacts' && '문의 관리'}
+                {tab === 'versions' && '버전 관리'}
+                {tab === 'campaigns' && '캠페인 관리'}
+                {tab === 'debug' && '디버그'}
               </button>
             ))}
           </div>
@@ -924,6 +1000,202 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'versions' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Layers className="w-6 h-6 text-blue-600" />
+                  버전 관리
+                </h2>
+                <div className="text-sm text-gray-500">
+                  총 {versions.length}개 버전
+                </div>
+              </div>
+              
+              <div className="grid gap-4">
+                {versions.map((version, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-3 h-3 rounded-full ${version.status === '활성' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">{version.name}</h3>
+                          <p className="text-sm text-gray-500">{version.file}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          version.status === '활성' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {version.status}
+                        </span>
+                        <a
+                          href={`/versions/${version.file}`}
+                          target="_blank"
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                          <ExternalLink size={14} />
+                          보기
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <a
+                  href="/versions"
+                  target="_blank"
+                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  <ExternalLink size={16} />
+                  <span>버전 목록 페이지로 이동</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'campaigns' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Megaphone className="w-6 h-6 text-purple-600" />
+                  월별 캠페인 관리
+                </h2>
+                <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  새 캠페인 추가
+                </button>
+              </div>
+              
+              <div className="grid gap-4">
+                {campaigns.map((campaign, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{campaign.month} - {campaign.name}</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          기간: {campaign.startDate} ~ {campaign.endDate}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          campaign.status === '진행중' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                        <a
+                          href={campaign.url}
+                          target="_blank"
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                        >
+                          <ExternalLink size={14} />
+                          페이지 보기
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">캠페인 템플릿</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li>• 계절별 프로모션</li>
+                      <li>• 신제품 출시 캠페인</li>
+                      <li>• 기념일 특별 할인</li>
+                    </ul>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">빠른 작업</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li>• 캠페인 복제하기</li>
+                      <li>• 일정 수정하기</li>
+                      <li>• 성과 분석 보기</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'debug' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Bug className="w-6 h-6 text-red-600" />
+                  디버그 도구
+                </h2>
+              </div>
+              
+              <div className="grid gap-6">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-4">시스템 상태</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">데이터베이스 연결</span>
+                      <span className="text-green-600 font-medium">정상</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Slack 알림</span>
+                      <span className="text-green-600 font-medium">활성</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">캐시 상태</span>
+                      <span className="text-gray-900 font-medium">사용 중</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">API 상태</span>
+                      <span className="text-green-600 font-medium">정상</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-4">테스트 도구</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href="/debug-test.html"
+                      target="_blank"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    >
+                      <Bug size={16} />
+                      디버그 페이지
+                    </a>
+                    <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors">
+                      캐시 초기화
+                    </button>
+                    <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors">
+                      로그 확인
+                    </button>
+                    <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors">
+                      API 테스트
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-4">최근 에러 로그</h3>
+                  <div className="bg-gray-50 rounded p-3 text-sm font-mono text-gray-600">
+                    <p>[2025-07-08 10:30:15] INFO: 시스템 정상 작동 중</p>
+                    <p>[2025-07-08 09:45:32] INFO: 데이터베이스 연결 성공</p>
+                    <p>[2025-07-08 09:00:00] INFO: 서버 재시작 완료</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
