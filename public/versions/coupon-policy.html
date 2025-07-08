@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF® | 쿠폰 및 할인 정책</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #333333;
+            background-color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* 전체 화면 너비 사용 */
+        .container {
+            width: 100%;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+        }
+        
+        .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #002147 0%, #003366 100%);
+            min-height: 400px;
+        }
+        
+        .gold-button {
+            background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+            transition: all 0.4s ease;
+        }
+        
+        .gold-button:hover {
+            background: linear-gradient(135deg, #e5c100 0%, #c69500 100%);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(218, 165, 32, 0.3);
+        }
+        
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD700, transparent);
+        }
+        
+        /* 표 스타일 */
+        .custom-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 2rem 0;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .custom-table th {
+            background: #002147;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .custom-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .custom-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .custom-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .policy-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .policy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 30px rgba(0,0,0,0.12);
+        }
+    </style>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id=GTM-WPBX97JG';f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WPBX97JG');</script>
+    <!-- End Google Tag Manager -->
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WPBX97JG"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!-- 상단 전화번호 표시 -->
+    <div class="bg-black text-white py-2 px-6">
+        <div class="container mx-auto flex justify-center md:justify-end items-center space-x-6 text-sm">
+            <a href="tel:080-028-8888" class="flex items-center hover:text-[#FFD700] transition">
+                <i class="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 비거리 상담: 080-028-8888 (무료)
+            </a>
+            <a href="tel:031-215-0013" class="flex items-center hover:text-[#FFD700] transition">
+                <i class="fas fa-calendar-check mr-2 text-[#FFD700]"></i> 시타 예약: 031-215-0013
+            </a>
+        </div>
+    </div>
+
+    <!-- 네비게이션 -->
+    <nav class="bg-black bg-opacity-90 text-white py-4 px-6 md:px-12">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-xl font-semibold montserrat tracking-wider">MASGOLF<sup>®</sup></div>
+            <div class="hidden md:flex space-x-6 text-sm">
+                <a href="https://www.mas9golf.com/about-massgoo" class="hover:text-[#FFD700] transition">브랜드 스토리</a>
+                <a href="https://www.mas9golf.com/mens-high-rebound-drivers" class="hover:text-[#FFD700] transition">제품 라인업</a>
+                <a href="https://www.mas9golf.com/try-a-massgoo" class="hover:text-[#FFD700] transition">시타 센터</a>
+                <a href="https://www.mas9golf.com/customer-stories" class="hover:text-[#FFD700] transition">고객 이야기</a>
+                <a href="https://www.mas9golf.com/contact" class="hover:text-[#FFD700] transition">문의</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 히어로 섹션 -->
+    <section class="hero-section flex items-center text-white py-20">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center">
+                <h1 class="montserrat text-4xl md:text-5xl font-light leading-tight mb-6">
+                    MASGOLF<sup>®</sup> 쿠폰 및 할인 정책
+                </h1>
+                
+                <p class="text-xl mb-8 font-light">
+                    고객님의 지속적인 사랑에 보답하는 혜택 정책
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 정책 개요 섹션 -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="text-center mb-12">
+                <h2 class="montserrat text-3xl md:text-4xl mb-4">1. 정책 개요</h2>
+                <div class="section-divider w-32 mx-auto mb-6"></div>
+            </div>
+            
+            <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
+                <div class="policy-card text-center">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-[#FFD700] rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">고객 중심</h3>
+                    <p class="text-gray-600">구매 시기별 맞춤형 혜택으로 모든 고객님께 가치 제공</p>
+                </div>
+                
+                <div class="policy-card text-center">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-[#FFD700] rounded-full flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">투명한 기준</h3>
+                    <p class="text-gray-600">명확한 할인율과 사용 기간으로 신뢰성 있는 정책 운영</p>
+                </div>
+                
+                <div class="policy-card text-center">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-[#FFD700] rounded-full flex items-center justify-center">
+                        <i class="fas fa-gift text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">장기 고객 우대</h3>
+                    <p class="text-gray-600">오래 함께해주신 고객님께 더 큰 혜택 제공</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 쿠폰 발행 기준표 섹션 -->
+    <section class="py-20 bg-[#F1F1F5]">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="text-center mb-12">
+                <h2 class="montserrat text-3xl md:text-4xl mb-4">2. 쿠폰 발행 기준</h2>
+                <div class="section-divider w-32 mx-auto mb-6"></div>
+            </div>
+            
+            <div class="max-w-6xl mx-auto">
+                <h3 class="text-2xl font-bold mb-6 text-[#002147]">2-1. 발행 기준표</h3>
+                <div class="overflow-x-auto">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>구매 경과 기간</th>
+                                <th>할인율</th>
+                                <th>사용 기간</th>
+                                <th>재발급 여부</th>
+                                <th>재발급 사유</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-medium">1개월</td>
+                                <td class="text-center">10%</td>
+                                <td>발행일 기준 14일</td>
+                                <td class="text-center">불가</td>
+                                <td>해당 없음</td>
+                                <td>첫 구매 후 만족도 유도</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">1년</td>
+                                <td class="text-center">15%</td>
+                                <td>발행일 기준 30일</td>
+                                <td class="text-center">1회 가능</td>
+                                <td>고객 요청 시 감사 의미로 발급</td>
+                                <td>멤버십 등급 연동 가능</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">2년</td>
+                                <td class="text-center">제품군별 정책 따름</td>
+                                <td>발행일 기준 7~14일</td>
+                                <td class="text-center">조건부 가능</td>
+                                <td>2년차 보상 캠페인 명목</td>
+                                <td>하단 3항 참조</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">5년</td>
+                                <td class="text-center">20%</td>
+                                <td>발행일 기준 30일</td>
+                                <td class="text-center">1회 가능</td>
+                                <td>장기 고객 감사 명목</td>
+                                <td>재발급 시 내부 이력 관리 필요</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">10년</td>
+                                <td class="text-center">조건부 검토</td>
+                                <td>한정 운영</td>
+                                <td class="text-center">필요 시 검토</td>
+                                <td>창립기념, 브랜드 캠페인 명분</td>
+                                <td>일반 운영 제외</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 제품군별 추가 할인 정책 섹션 -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-6xl mx-auto">
+                <h3 class="text-2xl font-bold mb-6 text-[#002147]">3. 제품군별 추가 할인 정책 (2년차 대상 포함)</h3>
+                <div class="overflow-x-auto">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>제품군</th>
+                                <th>대표 제품</th>
+                                <th>기본 보상 혜택</th>
+                                <th>추가 할인 가능 여부</th>
+                                <th>최대 할인 권장 기준</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-medium">블랙군</td>
+                                <td>V3, PRO3</td>
+                                <td>반납 시 20만원 감면</td>
+                                <td>추가 할인 15% 적용 가능</td>
+                                <td>실질 할인율 약 30~35%</td>
+                                <td>기간 제한 필요</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">골드군</td>
+                                <td>골드2, 웨폰4.1</td>
+                                <td>반납 시 40만원 감면</td>
+                                <td>추가 할인은 금액 기준 권장 (10만원 이내)</td>
+                                <td>총 할인액 50만원 이내 권장</td>
+                                <td>브랜드 이미지 고려</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 정책 활용 안내 섹션 -->
+    <section class="py-20 bg-[#F1F1F5]">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="text-center mb-12">
+                <h2 class="montserrat text-3xl md:text-4xl mb-4">4. 정책 활용 안내</h2>
+                <div class="section-divider w-32 mx-auto mb-6"></div>
+            </div>
+            
+            <div class="max-w-5xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div class="policy-card">
+                        <h4 class="text-xl font-bold mb-4 text-[#002147]">
+                            <i class="fas fa-check-circle text-[#FFD700] mr-2"></i>
+                            쿠폰 사용 방법
+                        </h4>
+                        <ul class="space-y-3 text-gray-700">
+                            <li><i class="fas fa-chevron-right text-[#FFD700] mr-2"></i>발급받은 쿠폰 코드를 온라인 또는 오프라인에서 제시</li>
+                            <li><i class="fas fa-chevron-right text-[#FFD700] mr-2"></i>사용 기간 내에만 적용 가능</li>
+                            <li><i class="fas fa-chevron-right text-[#FFD700] mr-2"></i>다른 프로모션과 중복 적용 불가</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="policy-card">
+                        <h4 class="text-xl font-bold mb-4 text-[#002147]">
+                            <i class="fas fa-info-circle text-[#FFD700] mr-2"></i>
+                            주의사항
+                        </h4>
+                        <ul class="space-y-3 text-gray-700">
+                            <li><i class="fas fa-chevron-right text-[#FFD700] mr-2"></i>쿠폰은 본인만 사용 가능</li>
+                            <li><i class="fas fa-chevron-right text-[#FFD700] mr-2"></i>현금으로 교환 불가</li>
+                            <li><i class="fas fa-chevron-right text-[#FFD700] mr-2"></i>분실 시 재발급 불가 (재발급 조건 해당 시 제외)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-[#002147] text-white rounded-xl p-8 text-center">
+                    <h4 class="text-2xl font-bold mb-4">쿠폰 관련 문의</h4>
+                    <p class="mb-6">할인 정책에 대한 자세한 문의는 고객센터로 연락주세요</p>
+                    <div class="flex flex-col md:flex-row gap-4 justify-center">
+                        <a href="tel:080-028-8888" class="gold-button inline-block px-6 py-3 rounded-full text-black font-medium">
+                            <i class="fas fa-phone-alt mr-2"></i>080-028-8888 (무료)
+                        </a>
+                        <a href="mailto:support@masgolf.co.kr" class="bg-white text-[#002147] inline-block px-6 py-3 rounded-full font-medium hover:bg-gray-100 transition">
+                            <i class="fas fa-envelope mr-2"></i>이메일 문의
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="bg-[#002147] text-gray-300 py-16">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="grid md:grid-cols-3 gap-12 mb-12">
+                <div>
+                    <h3 class="text-white text-lg mb-4 montserrat">MASGOLF<sup>®</sup></h3>
+                    <p class="mb-4 leading-relaxed">
+                        MASGOLF<sup>®</sup>는 2003년부터 시니어 골퍼의 비거리 향상을 위해 노력해왔습니다.
+                    </p>
+                    <p class="text-sm mt-4">
+                        사업자명: MASGOLF<sup>®</sup> | 대표자명: 김탁수<br>
+                        사업자등록번호: 877-07-00641<br>
+                        통신판매업신고번호: 제 2017-수원영통-0623호
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-white text-lg mb-4 montserrat">시타 센터</h3>
+                    <p class="mb-4">
+                        주소: 수원시 영통구 법조로 149번길 200<br>
+                        (광교 갤러리아에서 차량 5분)
+                    </p>
+                    <p class="mb-4">
+                        방문 상담 예약: 031-215-0013<br>
+                        비거리 상담: 080-028-8888 (무료)
+                    </p>
+                    <p class="mb-2">
+                        영업시간: 월-금 09:00 - 18:00<br>
+                        주말은 예약제로 운영합니다
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-white text-lg mb-4 montserrat">연락처</h3>
+                    <p class="mb-2">이메일: support@masgolf.co.kr</p>
+                    <p class="mb-6">
+                        <a href="https://www.mas9golf.com/" class="text-[#FFD700] hover:underline">www.mas9golf.com</a><br>
+                        <a href="https://www.masgolf.co.kr/" class="text-[#FFD700] hover:underline">www.masgolf.co.kr</a>
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="https://blog.naver.com/massgoogolf" target="_blank" class="text-white hover:text-[#FFD700] transition">
+                            <i class="fab fa-blogger"></i>
+                        </a>
+                        <a href="https://smartstore.naver.com/mas9golf" target="_blank" class="text-white hover:text-[#FFD700] transition">
+                            <i class="fas fa-store"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-sm text-gray-500">
+                <p>© 2025 MASGOLF<sup>®</sup> All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

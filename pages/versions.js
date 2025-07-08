@@ -2,8 +2,7 @@ export default function VersionsPage() {
   const versions = [
     { name: '2025년 5월 버전', file: 'funnel-2025-05.html' },
     { name: '2025년 6월 기본', file: 'funnel-2025-06.html' },
-    { name: '2025년 6월 프라임타임', file: 'funnel-2025-06-prime-time.html' },
-    { name: '2025년 6월 프라임타임 (테이블)', file: 'funnel-2025-06-prime-time-tables.html' },
+    { name: '쿠폰 및 할인 정책', file: 'coupon-policy.html' },
     { name: '2025년 7월 완성본', file: 'funnel-2025-07-complete.html' },
   ];
 
