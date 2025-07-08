@@ -4,10 +4,19 @@
 
 ## 📂 중요 문서 링크
 
+### 핵심 문서
 1. **[프로젝트 구조 가이드](./docs/PROJECT_STRUCTURE_GUIDE.md)** - 파일 구조와 수정 규칙
-2. **[전화번호 클릭 문제 해결](./docs/PHONE_CLICK_FIX_GUIDE.md)** - iframe 전화번호 이슈
-3. **[배포 체크리스트](./DEPLOY_CHECKLIST.md)** - 배포 전 확인사항
-4. **[Slack 설정 가이드](./SLACK_SETUP_GUIDE.md)** - 알림 설정
+2. **[사이트 구조](./docs/SITE_STRUCTURE.md)** - URL 및 페이지 구조
+3. **[변경 이력](./CHANGE_LOG.md)** - 수정 사항 기록
+4. **[배포 체크리스트](./DEPLOY_CHECKLIST.md)** - 배포 전 확인사항
+
+### 설정 가이드
+- **[설정 가이드 목록](./docs/setup/)** - 각종 서비스 설정
+  - Slack, Supabase, Google Ads, Vercel 등
+
+### 문제 해결
+- **[문제 해결 가이드](./docs/troubleshooting/)** - 일반적인 문제 해결
+  - iframe 전화번호, 한글 데이터, 캐시 등
 
 ## ⚡ 빠른 참조
 

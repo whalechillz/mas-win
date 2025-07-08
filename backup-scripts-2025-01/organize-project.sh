@@ -1,3 +1,73 @@
+#!/bin/bash
+
+# 프로젝트 구조 정리 스크립트 v2
+# 날짜: 2025년 1월
+
+echo "🏗️ 프로젝트 구조 정리 시작..."
+
+# 1. Setup/Config 문서 이동
+echo "📁 Setup 문서 정리 중..."
+SETUP_DOCS=(
+    "GOOGLE_ADS_CONVERSION_SETUP.md"
+    "SLACK_SETUP_GUIDE.md"
+    "SLACK_SIMPLE_DESIGN.md"
+    "SUPABASE_SETUP_GUIDE.md"
+    "VERCEL_ENV_SETUP.md"
+)
+
+for doc in "${SETUP_DOCS[@]}"; do
+    if [ -f "$doc" ]; then
+        mv "$doc" "docs/setup/"
+        echo "  ✓ $doc → docs/setup/"
+    fi
+done
+
+# 2. Troubleshooting 문서 이동
+echo "📁 문제 해결 문서 정리 중..."
+TROUBLESHOOTING_DOCS=(
+    "IFRAME_TEL_FIX_GUIDE.md"
+    "KOREAN_DATA_FIX.md"
+    "SLACK_TROUBLESHOOTING.md"
+    "STATIC_FILE_CACHE_FIX.md"
+    "TROUBLESHOOTING.md"
+)
+
+for doc in "${TROUBLESHOOTING_DOCS[@]}"; do
+    if [ -f "$doc" ]; then
+        mv "$doc" "docs/troubleshooting/"
+        echo "  ✓ $doc → docs/troubleshooting/"
+    fi
+done
+
+# 3. 테스트 파일 이동
+echo "📁 테스트 파일 정리 중..."
+if [ -f "test-booking.html" ]; then
+    mv "test-booking.html" "tests/"
+    echo "  ✓ test-booking.html → tests/"
+fi
+
+# 4. 임시/정리 관련 파일 백업
+echo "📁 임시 파일 백업 중..."
+TEMP_FILES=(
+    "CLEANUP_GUIDE.md"
+    "CLEANUP_PLAN.md"
+    "cleanup-scripts.sh"
+    "quick-cleanup.sh"
+    "iframe-parent-handler.tsx"
+)
+
+for file in "${TEMP_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        mv "$file" "backup-scripts-2025-01/"
+        echo "  ✓ $file → backup-scripts-2025-01/"
+    fi
+done
+
+# 5. 프로젝트 구조 업데이트
+echo "📝 프로젝트 구조 문서 업데이트 중..."
+
+# README.md 업데이트
+cat > README_NEW.md << 'EOF'
 # MASGOLF 웹사이트
 
 골프 클럽 판매를 위한 Next.js 기반 랜딩 페이지 프로젝트입니다.
@@ -82,3 +152,19 @@ win.masgolf.co.kr/
 - [설정 가이드](./docs/setup/) - 각종 서비스 설정 방법
 - [문제 해결](./docs/troubleshooting/) - 일반적인 문제 해결법
 - [API 문서](./pages/api/) - API 엔드포인트 설명
+EOF
+
+mv README_NEW.md README.md
+
+echo ""
+echo "✅ 프로젝트 구조 정리 완료!"
+echo ""
+echo "📊 정리 결과:"
+echo "  - Setup 문서: docs/setup/ 폴더로 이동"
+echo "  - 문제 해결 문서: docs/troubleshooting/ 폴더로 이동"
+echo "  - 테스트 파일: tests/ 폴더로 이동"
+echo "  - 임시 파일: backup-scripts-2025-01/ 폴더로 이동"
+echo ""
+echo "📍 현재 루트 디렉토리 상태:"
+ls -la | grep -E "\.md$|\.html$|\.sh$" | wc -l
+echo "개의 파일만 남음"
