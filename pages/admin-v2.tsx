@@ -4,7 +4,7 @@ import { Campaign, CampaignMetrics, calculateCampaignMetrics, generateMockPerfor
 import { UnifiedCampaignManager } from '../components/admin/campaigns/UnifiedCampaignManager';
 import { MetricCards, useRealtimeMetrics } from '../components/admin/dashboard/MetricCards';
 import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboard/ConversionFunnel';
-import { BookingManagement } from '../components/admin/bookings/BookingManagementFull';
+import { BookingManagement } from '../components/admin/bookings/BookingManagementV2';
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
 import { CampaignPerformanceDashboard } from '../components/admin/dashboard/CampaignPerformanceDashboard';
 import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
@@ -188,6 +188,7 @@ export default function AdminDashboard() {
   const [contacts, setContacts] = useState([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignSummary, setCampaignSummary] = useState(null);
+  const [quizStats, setQuizStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [refreshing, setRefreshing] = useState(false);
@@ -247,7 +248,8 @@ export default function AdminDashboard() {
         loadBookings(), 
         loadContacts(), 
         loadCampaigns(),
-        loadCampaignSummary()
+        loadCampaignSummary(),
+        loadQuizStats()
       ]);
     } finally {
       setLoading(false);
@@ -257,26 +259,86 @@ export default function AdminDashboard() {
   const loadBookings = async () => {
     if (!supabase) return;
     
+    // 새로운 구조 사용 - bookings_with_quiz 뷰에서 데이터 가져오기
     const { data, error } = await supabase
-      .from('bookings')
+      .from('bookings_with_quiz')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (!error) {
-      setBookings(data || []);
+    if (!error && data) {
+      console.log('Loaded bookings with quiz data:', data);
+      setBookings(data);
+    } else {
+      console.error('Error loading bookings with quiz:', error);
+      // 폴백: 기존 방식으로 시도
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          quiz_results (
+            name,
+            phone,
+            email,
+            swing_style,
+            priority,
+            current_distance,
+            recommended_flex,
+            expected_distance,
+            campaign_source
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (!fallbackError && fallbackData) {
+        console.log('Loaded bookings with join:', fallbackData);
+        setBookings(fallbackData);
+      }
     }
   };
 
   const loadContacts = async () => {
     if (!supabase) return;
     
+    // contacts_with_quiz 뷰 사용
     const { data, error } = await supabase
-      .from('contacts')
+      .from('contacts_with_quiz')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (!error) {
-      setContacts(data || []);
+    if (!error && data) {
+      setContacts(data);
+    } else {
+      // 폴백
+      const { data: fallbackData } = await supabase
+        .from('contacts')
+        .select(`
+          *,
+          quiz_results (
+            name,
+            phone,
+            email,
+            swing_style,
+            priority,
+            current_distance
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      setContacts(fallbackData || []);
+    }
+  };
+
+  // 퀴즈 통계 로드
+  const loadQuizStats = async () => {
+    if (!supabase) return;
+    
+    const { data, error } = await supabase
+      .from('quiz_conversion_stats')
+      .select('*')
+      .single();
+    
+    if (!error && data) {
+      setQuizStats(data);
     }
   };
 
@@ -373,19 +435,19 @@ export default function AdminDashboard() {
       sparklineData: [65, 70, 68, 72, 78, 82, 85, 90]
     },
     {
-      id: 'active-campaigns',
-      title: '활성 캠페인',
-      value: campaignSummary?.active_campaigns || 0,
-      change: 0,
+      id: 'quiz-completion',
+      title: '퀴즈 완료',
+      value: quizStats?.total_quiz_completed || 0,
+      change: quizStats?.booking_conversion_rate || 0,
       icon: <Lightning className="w-6 h-6" />,
       color: 'purple' as const,
-      trend: 'neutral' as const
+      trend: 'up' as const
     },
     {
       id: 'conversion-rate',
-      title: '평균 전환율',
-      value: campaignSummary?.avg_conversion_rate 
-        ? `${parseFloat(campaignSummary.avg_conversion_rate).toFixed(1)}%`
+      title: '예약 전환율',
+      value: quizStats?.booking_conversion_rate 
+        ? `${quizStats.booking_conversion_rate}%`
         : `${bookings.length > 0 ? ((bookings.length / (bookings.length + contacts.length)) * 100).toFixed(1) : 0}%`,
       change: 8.3,
       icon: <Activity className="w-6 h-6" />,
@@ -409,6 +471,7 @@ export default function AdminDashboard() {
 
   // 전환 깔때기 데이터 (실제 데이터 기반)
   const totalViews = campaignSummary?.total_views || 0;
+  const totalQuizCompleted = quizStats?.total_quiz_completed || 0;
   const totalInquiries = (campaignSummary?.total_inquiries || 0) + contacts.length;
   const totalBookings = (campaignSummary?.total_bookings || 0) + bookings.length;
 
@@ -421,11 +484,11 @@ export default function AdminDashboard() {
       icon: <Users className="w-5 h-5" />
     },
     {
-      name: '관심 표현',
-      value: Math.floor((totalViews || 5000) * 0.5),
-      percentage: 50,
+      name: '퀴즈 완료',
+      value: totalQuizCompleted,
+      percentage: totalViews > 0 ? (totalQuizCompleted / totalViews * 100) : 30,
       color: '#7C3AED',
-      icon: <Activity className="w-5 h-5" />
+      icon: <Lightning className="w-5 h-5" />
     },
     {
       name: '문의/상담',
@@ -477,6 +540,7 @@ export default function AdminDashboard() {
         (payload) => {
           console.log('예약 변경 감지:', payload);
           loadBookings();
+          loadQuizStats();
         }
       )
       .subscribe();
@@ -489,6 +553,20 @@ export default function AdminDashboard() {
         (payload) => {
           console.log('문의 변경 감지:', payload);
           loadContacts();
+          loadQuizStats();
+        }
+      )
+      .subscribe();
+    
+    // 퀴즈 결과 실시간 구독
+    const quizChannel = supabase
+      .channel('quiz-results-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'quiz_results' },
+        (payload) => {
+          console.log('퀴즈 결과 변경 감지:', payload);
+          loadQuizStats();
+          loadBookings();
         }
       )
       .subscribe();
@@ -498,6 +576,7 @@ export default function AdminDashboard() {
       campaignChannel.unsubscribe();
       bookingChannel.unsubscribe();
       contactChannel.unsubscribe();
+      quizChannel.unsubscribe();
     };
   }, [supabase]);
 
@@ -527,7 +606,7 @@ export default function AdminDashboard() {
                 MASGOLF Admin
               </h1>
               <span className="px-3 py-1 text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 rounded-full">
-                Premium Dashboard
+                Premium Dashboard v2
               </span>
             </div>
             <div className="flex items-center space-x-4">
@@ -603,7 +682,9 @@ export default function AdminDashboard() {
                             'date' in item ? 'bg-green-500' : 'bg-blue-500'
                           } animate-pulse`} />
                           <div>
-                            <p className="font-medium text-gray-900">{item.name}</p>
+                            <p className="font-medium text-gray-900">
+                              {item.name || (item.quiz_results && item.quiz_results.name) || '알 수 없음'}
+                            </p>
                             <p className="text-sm text-gray-500">
                               {'date' in item ? '시타 예약' : '문의 접수'}
                             </p>
@@ -621,7 +702,7 @@ export default function AdminDashboard() {
             {/* 캠페인 성과 요약 */}
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
               <h3 className="text-xl font-semibold mb-4">실시간 성과 요약</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4">
                   <p className="text-purple-100 text-sm">최고 성과 캠페인</p>
                   <p className="text-2xl font-bold mt-1">
@@ -632,16 +713,27 @@ export default function AdminDashboard() {
                   </p>
                 </div>
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4">
-                  <p className="text-purple-100 text-sm">총 캠페인 수</p>
-                  <p className="text-2xl font-bold mt-1">{campaignSummary?.total_campaigns || campaigns.length}</p>
+                  <p className="text-purple-100 text-sm">퀴즈 → 예약 전환율</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {quizStats?.booking_conversion_rate || 0}%
+                  </p>
                   <p className="text-purple-100 text-sm mt-2">
-                    활성 {campaignSummary?.active_campaigns || 0}개
+                    {quizStats?.quiz_to_booking || 0}명 전환
+                  </p>
+                </div>
+                <div className="bg-white/20 backdrop-blur rounded-lg p-4">
+                  <p className="text-purple-100 text-sm">퀴즈 → 문의 전환율</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {quizStats?.contact_conversion_rate || 0}%
+                  </p>
+                  <p className="text-purple-100 text-sm mt-2">
+                    {quizStats?.quiz_to_contact || 0}명 전환
                   </p>
                 </div>
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4">
                   <p className="text-purple-100 text-sm">DB 연동 상태</p>
-                  <p className="text-2xl font-bold mt-1">실시간</p>
-                  <p className="text-purple-100 text-sm mt-2">모든 데이터 연결됨</p>
+                  <p className="text-2xl font-bold mt-1">실시간 v2</p>
+                  <p className="text-purple-100 text-sm mt-2">새 구조 적용됨</p>
                 </div>
               </div>
             </div>

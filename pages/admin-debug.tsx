@@ -7,7 +7,6 @@ import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboa
 import { BookingManagement } from '../components/admin/bookings/BookingManagementFull';
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
 import { CampaignPerformanceDashboard } from '../components/admin/dashboard/CampaignPerformanceDashboard';
-import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
 
 // 기존 로그인 컴포넌트와 아이콘 컴포넌트들은 그대로 유지...
 const LoginForm = ({ onLogin }) => {
@@ -262,8 +261,12 @@ export default function AdminDashboard() {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (!error) {
-      setBookings(data || []);
+    if (!error && data) {
+      console.log('Loaded bookings:', data); // 디버깅용 로그
+      console.log('Sample booking:', data[0]); // 첫 번째 예약 데이터 확인
+      setBookings(data);
+    } else {
+      console.error('Error loading bookings:', error);
     }
   };
 
@@ -670,14 +673,11 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'bookings' && (
-          <div className="space-y-6">
-            <CustomerStyleAnalysis bookings={bookings} />
-            <BookingManagement 
-              bookings={bookings} 
-              supabase={supabase} 
-              onUpdate={loadBookings}
-            />
-          </div>
+          <BookingManagement 
+            bookings={bookings} 
+            supabase={supabase} 
+            onUpdate={loadBookings}
+          />
         )}
 
         {activeTab === 'contacts' && (

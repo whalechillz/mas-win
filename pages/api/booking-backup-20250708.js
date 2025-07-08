@@ -1,10 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://yyytjudftvpmcnppaymw.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 export default async function handler(req, res) {
   // CORS 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,21 +20,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { 
-      name, 
-      phone, 
-      date, 
-      time, 
-      club, 
-      swing_style, 
-      priority, 
-      current_distance, 
-      recommended_flex, 
-      expected_distance,
-      campaign_source 
-    } = req.body;
+    const { name, phone, date, time, club, swing_style, priority, current_distance, recommended_flex, expected_distance } = req.body;
     
-    console.log('Booking request:', req.body);
+    console.log('Booking request:', { name, phone, date, time, club });
 
     // 필수 필드 확인
     if (!name || !phone) {
@@ -49,32 +30,6 @@ export default async function handler(req, res) {
         success: false, 
         message: '이름과 연락처는 필수입니다.' 
       });
-    }
-
-    // Supabase에 데이터 저장
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert([{
-        name,
-        phone,
-        date: date || new Date().toISOString().split('T')[0], // 날짜가 없으면 오늘 날짜
-        time: time || '미정',
-        club: club || '추천 대기',
-        swing_style,
-        priority,
-        current_distance,
-        recommended_flex,
-        expected_distance,
-        campaign_source: campaign_source || 'funnel-2025-07',
-        status: '대기중'
-      }])
-      .select();
-
-    if (error) {
-      console.error('Supabase error:', error);
-      // DB 저장 실패해도 일단 성공으로 처리 (사용자 경험을 위해)
-    } else {
-      console.log('Booking saved to DB:', data);
     }
 
     // 슬랙 알림 전송
@@ -94,9 +49,7 @@ export default async function handler(req, res) {
             club: club || '추천 대기',
             swing_style,
             priority,
-            current_distance,
-            recommended_flex,
-            expected_distance
+            current_distance
           }
         })
       });
@@ -119,7 +72,7 @@ export default async function handler(req, res) {
         date: date || '미정',
         time: time || '미정',
         club: club || '추천 대기',
-        id: data && data[0] ? data[0].id : Date.now().toString()
+        id: Date.now().toString()
       }
     });
     
