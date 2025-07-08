@@ -55,9 +55,16 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   // 필터링된 문의 목록
   const filteredContacts = useMemo(() => {
     return contacts.filter(contact => {
-      // 검색어 필터
-      if (searchTerm && !contact.name.includes(searchTerm) && !contact.phone.includes(searchTerm)) {
-        return false;
+      // 검색어 필터 - 대소문자 구분 없이, 전화번호는 숫자만 비교
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const phoneDigits = contact.phone.replace(/\D/g, '');
+        const searchDigits = searchTerm.replace(/\D/g, '');
+        
+        if (!contact.name.toLowerCase().includes(searchLower) && 
+            !phoneDigits.includes(searchDigits)) {
+          return false;
+        }
       }
 
       // 상태 필터

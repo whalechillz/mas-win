@@ -89,9 +89,16 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
   // 필터링된 예약 목록
   const filteredBookings = useMemo(() => {
     return bookings.filter(booking => {
-      // 검색어 필터
-      if (searchTerm && !booking.name.includes(searchTerm) && !booking.phone.includes(searchTerm)) {
-        return false;
+      // 검색어 필터 - 대소문자 구분 없이, 전화번호는 숫자만 비교
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const phoneDigits = booking.phone.replace(/\D/g, '');
+        const searchDigits = searchTerm.replace(/\D/g, '');
+        
+        if (!booking.name.toLowerCase().includes(searchLower) && 
+            !phoneDigits.includes(searchDigits)) {
+          return false;
+        }
       }
 
       // 날짜 필터
@@ -449,7 +456,7 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                   <td className="px-4 py-3">
                     <span className="text-sm">{booking.club || '-'}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 relative">
                     {(booking.swing_style || booking.priority || booking.current_distance) ? (
                       <button
                         onClick={() => setShowDetails(showDetails === booking.id ? null : booking.id)}
@@ -462,7 +469,7 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                       <span className="text-sm text-gray-400">-</span>
                     )}
                     {showDetails === booking.id && (
-                      <div className="absolute z-10 mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg">
+                      <div className="absolute z-50 mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg w-48 left-0 top-full">
                         <p className="text-xs text-gray-600 mb-1">
                           <span className="font-medium">스타일:</span> {booking.swing_style || '-'}
                         </p>

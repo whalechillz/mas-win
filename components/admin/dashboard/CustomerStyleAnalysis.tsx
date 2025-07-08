@@ -75,8 +75,24 @@ export function CustomerStyleAnalysis({ bookings }: CustomerStyleAnalysisProps) 
             <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto">
               {(() => {
                 let currentAngle = -90;
+                const total = bookings.length || 1; // Division by zero 방지
+                
+                // 단일 항목일 때 (100%) 특별 처리
+                if (styleAnalysis.length === 1) {
+                  return (
+                    <>
+                      <circle cx="100" cy="100" r="80" fill={colors[0]} />
+                      <circle cx="100" cy="100" r="40" fill="white" />
+                    </>
+                  );
+                }
+                
                 return styleAnalysis.map((item, index) => {
-                  const angle = (item.value / bookings.length) * 360;
+                  const percentage = (item.value / total) * 100;
+                  const angle = (percentage / 100) * 360;
+                  
+                  if (angle === 0) return null; // 0도 세그먼트 건너뛰기
+                  
                   const startAngle = currentAngle;
                   const endAngle = currentAngle + angle;
                   currentAngle = endAngle;
@@ -95,6 +111,7 @@ export function CustomerStyleAnalysis({ bookings }: CustomerStyleAnalysisProps) 
                       fill={colors[index % colors.length]}
                       stroke="white"
                       strokeWidth="2"
+                      className="transition-all duration-300 hover:opacity-80"
                     />
                   );
                 });
