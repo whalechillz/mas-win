@@ -1,0 +1,1 @@
+cp /Users/m2/MASLABS/win.masgolf.co.kr/pages/admin.tsx /Users/m2/MASLABS/win.masgolf.co.kr/pages/admin.tsx.backup-20250708
