@@ -8,10 +8,21 @@ export default function Funnel202507() {
     script.async = true;
     document.head.appendChild(script);
     
+    // iframe에서 전화번호 클릭 메시지 처리
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'tel-link') {
+        console.log('전화번호 메시지 수신:', event.data.phoneNumber);
+        window.location.href = `tel:${event.data.phoneNumber}`;
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
     return () => {
       if (document.head.contains(script)) {
         document.head.removeChild(script);
       }
+      window.removeEventListener('message', handleMessage);
     };
   }, []);
 
