@@ -4,9 +4,6 @@ import { Campaign, CampaignMetrics, calculateCampaignMetrics, generateMockPerfor
 import { UnifiedCampaignManager } from '../components/admin/campaigns/UnifiedCampaignManager';
 import { MetricCards, useRealtimeMetrics } from '../components/admin/dashboard/MetricCards';
 import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboard/ConversionFunnel';
-import { BookingManagement } from '../components/admin/bookings/BookingManagementFull';
-import { ContactManagement } from '../components/admin/contacts/ContactManagement';
-import { CampaignPerformanceDashboard } from '../components/admin/dashboard/CampaignPerformanceDashboard';
 
 // 기존 로그인 컴포넌트와 아이콘 컴포넌트들은 그대로 유지...
 const LoginForm = ({ onLogin }) => {
@@ -648,40 +645,89 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'campaigns' && (
-          <div className="space-y-6">
-            <CampaignPerformanceDashboard
-              campaigns={campaigns}
-              bookings={bookings}
-              contacts={contacts}
-            />
-            <UnifiedCampaignManager
-              campaigns={campaigns}
-              onCampaignUpdate={(campaign) => {
-                // 캠페인 업데이트 시 DB에 저장
-                setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
-              }}
-              onCreateCampaign={() => {
-                // 새 캠페인 생성 모달 열기
-                console.log('새 캠페인 만들기');
-              }}
-            />
-          </div>
+          <UnifiedCampaignManager
+            campaigns={campaigns}
+            onCampaignUpdate={(campaign) => {
+              // 캠페인 업데이트 시 DB에 저장
+              setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
+            }}
+            onCreateCampaign={() => {
+              // 새 캠페인 생성 모달 열기
+              console.log('새 캠페인 만들기');
+            }}
+          />
         )}
 
         {activeTab === 'bookings' && (
-          <BookingManagement 
-            bookings={bookings} 
-            supabase={supabase} 
-            onUpdate={loadBookings}
-          />
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold mb-4">시타 예약 관리</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">고객명</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">연락처</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">예약일</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">시간</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">클럽</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">등록일</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {bookings.map((booking) => (
+                      <tr key={booking.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{booking.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPhoneNumber(booking.phone)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.time}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.club || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(booking.created_at).toLocaleDateString('ko-KR')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         )}
 
         {activeTab === 'contacts' && (
-          <ContactManagement 
-            contacts={contacts} 
-            supabase={supabase} 
-            onUpdate={loadContacts}
-          />
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold mb-4">문의 관리</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">고객명</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">연락처</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">통화가능시간</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">등록일</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {contacts.map((contact) => (
+                      <tr key={contact.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{contact.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPhoneNumber(contact.phone)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{contact.call_times || '시간무관'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            contact.contacted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {contact.contacted ? '연락완료' : '대기중'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(contact.created_at).toLocaleDateString('ko-KR')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

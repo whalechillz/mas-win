@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, phone, date, time, club } = req.body;
+    const { name, phone, date, time, club, swing_style, priority, current_distance, recommended_flex, expected_distance } = req.body;
     
     console.log('Booking request:', { name, phone, date, time, club });
 
@@ -46,7 +46,10 @@ export default async function handler(req, res) {
             phone,
             date: date || '미정',
             time: time || '미정',
-            club: club || '추천 대기'
+            club: club || '추천 대기',
+            swing_style,
+            priority,
+            current_distance
           }
         })
       });

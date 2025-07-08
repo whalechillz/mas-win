@@ -13,7 +13,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, phone, date, time, club, swing_style, priority, current_distance, recommended_flex, expected_distance } = req.body;
+    const { 
+      name, 
+      phone, 
+      date, 
+      time, 
+      club,
+      // 퀴즈 결과 (DB 컬럼명과 일치)
+      swing_style,
+      priority,
+      current_distance,
+      recommended_flex,
+      expected_distance,
+      campaign_source
+    } = req.body;
     
     // 필수 필드 확인
     if (!name || !phone || !date || !time) {
@@ -24,7 +37,7 @@ export default async function handler(req, res) {
     }
 
     // 직접 fetch로 Supabase API 호출
-    const SUPABASE_URL = 'https://yyytjudftrvpmcnppaymw.supabase.co';
+    const SUPABASE_URL = 'https://yyytjudftvpmcnppaymw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
     
     const response = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
@@ -46,6 +59,7 @@ export default async function handler(req, res) {
         current_distance: current_distance || null,
         recommended_flex: recommended_flex || null,
         expected_distance: expected_distance || null,
+        campaign_source: campaign_source || null,
         status: 'pending'
       })
     });
@@ -53,20 +67,44 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (response.ok) {
-      // Slack 알림 (선택사항)
+      // Slack 알림
       try {
         const slackMessage = `🎯 새로운 시타 예약!
 이름: ${name}
 전화: ${phone}
 날짜: ${date}
 시간: ${time}
-클럽: ${club || '미선택'}`;
+클럽: ${club || '미선택'}
+${swing_style ? `\n📊 퀴즈 결과:\n- 스윙 스타일: ${swing_style}\n- 우선순위: ${priority || '-'}\n- 현재 거리: ${current_distance || '-'}\n- 추천 플렉스: ${recommended_flex || '-'}\n- 예상 거리: ${expected_distance || '-'}` : ''}`;
         
-        // Slack 알림은 실패해도 무시
-        await fetch(process.env.SLACK_WEBHOOK_URL || '', {
+        // Slack webhook URL이 있을 때만 전송
+        if (process.env.SLACK_WEBHOOK_URL) {
+          await fetch(process.env.SLACK_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: slackMessage })
+          }).catch(() => {});
+        }
+
+        // 기존 Slack API도 시도
+        await fetch(`${req.headers.origin || 'https://win.masgolf.co.kr'}/api/slack/notify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: slackMessage })
+          body: JSON.stringify({
+            type: 'booking',
+            data: {
+              name,
+              phone,
+              date,
+              time,
+              club: club || '추천 대기',
+              swing_style,
+              priority,
+              current_distance,
+              recommended_flex,
+              expected_distance
+            }
+          })
         }).catch(() => {});
       } catch (e) {
         // Slack 에러 무시
