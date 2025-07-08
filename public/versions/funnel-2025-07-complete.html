@@ -2354,5 +2354,70 @@
         </div>
     </div>
 
+    <!-- iframe 전화번호 처리 -->
+    <script>
+    // 전화번호 클릭 처리 함수
+    function makePhoneCall(phoneNumber) {
+        // iOS 감지
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (window.parent !== window) {
+            // iframe 내부인 경우
+            console.log('iframe에서 전화 걸기:', phoneNumber);
+            
+            // 방법 1: parent로 메시지 전송
+            window.parent.postMessage({
+                type: 'tel-link',
+                phoneNumber: phoneNumber
+            }, '*');
+            
+            // 방법 2: 새 창에서 열기 (iOS에서 작동할 수 있음)
+            if (isIOS) {
+                const telWindow = window.open(`tel:${phoneNumber}`, '_blank');
+                if (telWindow) {
+                    setTimeout(() => telWindow.close(), 100);
+                }
+            }
+            
+            // 방법 3: top window 사용
+            try {
+                window.top.location.href = `tel:${phoneNumber}`;
+            } catch (e) {
+                console.log('top window 접근 불가:', e);
+            }
+        } else {
+            // iframe이 아닌 경우
+            window.location.href = `tel:${phoneNumber}`;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // 모든 전화번호 링크 찾기
+        const telLinks = document.querySelectorAll('a[href^="tel:"]');
+        console.log('전화번호 링크 개수:', telLinks.length);
+        
+        telLinks.forEach(link => {
+            // href를 data 속성으로 백업
+            const phoneNumber = link.getAttribute('href').replace('tel:', '');
+            link.setAttribute('data-phone', phoneNumber);
+            
+            // iOS에서는 href 제거 (iframe 내에서만)
+            if (window.parent !== window) {
+                link.removeAttribute('href');
+                link.style.cursor = 'pointer';
+                link.style.textDecoration = 'underline';
+            }
+            
+            // 클릭 이벤트 추가
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const phone = this.getAttribute('data-phone');
+                makePhoneCall(phone);
+            });
+        });
+    });
+    </script>
+
 </body>
 </html>
