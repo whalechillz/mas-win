@@ -1,6 +1,114 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { formatPhoneNumber } from '../lib/formatters';
 
+// 로그인 컴포넌트
+const LoginForm = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    console.log('Login attempt:', { username, password });
+
+    try {
+      const res = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+      console.log('Login response:', res.status, data);
+
+      if (res.ok) {
+        onLogin();
+      } else {
+        setError('아이디 또는 비밀번호가 잘못되었습니다.');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('로그인 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md w-full">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">MASGOLF Admin</h1>
+            <p className="text-gray-600 mt-2">관리자 로그인</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                아이디
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                비밀번호
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  로그인 중...
+                </span>
+              ) : (
+                '로그인'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-gray-500">
+            <p>로그인 정보는 관리자에게 문의하세요.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Lucide React 아이콘들을 직접 SVG로 구현
 const Calendar = ({ size = 24, className = "" }) => (
   <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -103,6 +211,14 @@ const FileText = ({ size = 24, className = "" }) => (
   </svg>
 );
 
+const LogOut = ({ size = 24, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+    <polyline points="16 17 21 12 16 7"></polyline>
+    <line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+
 const Activity = ({ size = 24, className = "" }) => (
   <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
@@ -131,6 +247,26 @@ export default function AdminDashboard() {
   const [filterDate, setFilterDate] = useState('all');
   const [selectedItems, setSelectedItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // 인증 체크
+  useEffect(() => {
+    // 쿠키 확인
+    const checkAuth = () => {
+      const cookies = document.cookie.split(';');
+      const authCookie = cookies.find(cookie => cookie.trim().startsWith('admin_auth='));
+      if (authCookie && authCookie.split('=')[1] === '1') {
+        setIsAuthenticated(true);
+      }
+      setCheckingAuth(false);
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
 
   // Initialize Supabase
   useEffect(() => {
@@ -289,6 +425,12 @@ export default function AdminDashboard() {
     return filtered;
   }, [contacts, searchTerm, filterDate]);
 
+  const handleLogout = () => {
+    // 쿠키 삭제
+    document.cookie = 'admin_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    setIsAuthenticated(false);
+  };
+
   const deleteBooking = async (id) => {
     if (!supabase || !confirm('정말 삭제하시겠습니까?')) return;
     
@@ -372,6 +514,21 @@ export default function AdminDashboard() {
     }).format(date);
   };
 
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">인증 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
   if (loading && !supabase) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -410,6 +567,13 @@ export default function AdminDashboard() {
               >
                 <RefreshCw size={16} />
                 <span>새로고침</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+              >
+                <LogOut size={16} />
+                <span>로그아웃</span>
               </button>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Activity size={16} />
