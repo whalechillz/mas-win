@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       inquiry_type,
       message,
       preferred_contact_time,
-      // 폴백을 위한 퀴즈 데이터
+      // 퀴즈 데이터
       swing_style,
       priority,
       current_distance,
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       if (existingQuiz) {
         finalQuizResultId = existingQuiz.id;
       } else if (name && phone) {
-        // 새 퀴즈 결과 생성
+        // 새 퀴즈 결과 생성 - 여기에 퀴즈 데이터 저장
         const { data: newQuiz, error: quizError } = await supabase
           .from('quiz_results')
           .insert({
@@ -71,14 +71,15 @@ export default async function handler(req, res) {
       }
     }
 
-    // 문의 생성 (기존 contacts 테이블 사용)
+    // 문의 생성 - quiz_result_id만 저장 (중복 필드 제거)
     const { data: contact, error } = await supabase
       .from('contacts')
       .insert({
         quiz_result_id: finalQuizResultId,
         name: name,
         phone: phone,
-        call_times: call_times || preferred_contact_time || '상담 가능 시간 미정'
+        call_times: call_times || preferred_contact_time || '상담 가능 시간 미정',
+        campaign_source: campaign_source || 'direct-contact'
       })
       .select()
       .single();

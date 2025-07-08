@@ -258,7 +258,7 @@ export default function AdminDashboard() {
     if (!supabase) return;
     
     const { data, error } = await supabase
-      .from('bookings')
+      .from('bookings_with_quiz')
       .select('*')
       .order('created_at', { ascending: false });
     
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
     if (!supabase) return;
     
     const { data, error } = await supabase
-      .from('contacts')
+      .from('contacts_with_quiz')
       .select('*')
       .order('created_at', { ascending: false });
     

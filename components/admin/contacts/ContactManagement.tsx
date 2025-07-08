@@ -10,6 +10,13 @@ interface Contact {
   created_at: string;
   memo?: string;
   campaign_source?: string;
+  quiz_result_id?: string;
+  // quiz_results에서 조인된 필드들 (뷰를 통해 가져옴)
+  swing_style?: string;
+  priority?: string;
+  current_distance?: string;
+  recommended_flex?: string;
+  expected_distance?: string;
 }
 
 interface ContactManagementProps {
@@ -17,6 +24,13 @@ interface ContactManagementProps {
   supabase: any;
   onUpdate: () => void;
 }
+
+// 검색 아이콘으로 변경
+const Search = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
 
 const MessageSquare = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,6 +56,18 @@ const Tag = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+const Info = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const Download = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+  </svg>
+);
+
 export function ContactManagement({ contacts, supabase, onUpdate }: ContactManagementProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -51,6 +77,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   const [editMemo, setEditMemo] = useState('');
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState('');
+  const [showDetails, setShowDetails] = useState<string | null>(null);
 
   // 필터링된 문의 목록
   const filteredContacts = useMemo(() => {
@@ -142,11 +169,14 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   // 엑셀 다운로드
   const downloadExcel = () => {
     const csvContent = [
-      ['고객명', '연락처', '통화가능시간', '상태', '메모', '캠페인', '등록일'],
+      ['고객명', '연락처', '통화가능시간', '스윙스타일', '우선순위', '현재거리', '상태', '메모', '캠페인', '등록일'],
       ...filteredContacts.map(contact => [
         contact.name,
         contact.phone,
         contact.call_times || '시간무관',
+        contact.swing_style || '-',
+        contact.priority || '-',
+        contact.current_distance || '-',
         contact.contacted ? '연락완료' : '대기중',
         contact.memo || '',
         contact.campaign_source || '-',
@@ -168,6 +198,16 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
       '오후': contacts.filter(c => c.call_times === '오후').length,
       '저녁': contacts.filter(c => c.call_times === '저녁').length,
       '시간무관': contacts.filter(c => !c.call_times || c.call_times === '시간무관').length,
+    };
+    return stats;
+  }, [contacts]);
+
+  // 스윙 스타일별 통계 추가
+  const swingStyleStats = useMemo(() => {
+    const stats = {
+      '안정형': contacts.filter(c => c.swing_style === '안정형').length,
+      '파워형': contacts.filter(c => c.swing_style === '파워형').length,
+      '복합형': contacts.filter(c => c.swing_style === '복합형').length,
     };
     return stats;
   }, [contacts]);
@@ -236,10 +276,10 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
       {/* 필터 및 검색 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          {/* 검색 */}
+          {/* 검색 - Search 아이콘으로 변경 */}
           <div className="flex-1">
             <div className="relative">
-              <MessageSquare className="absolute left-3 top-3 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="고객명 또는 연락처로 검색..."
@@ -287,9 +327,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
             onClick={downloadExcel}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+            <Download className="w-4 h-4" />
             엑셀 다운로드
           </button>
         </div>
@@ -365,6 +403,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">고객명</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">연락처</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">통화가능시간</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">스타일</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">캠페인</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">메모</th>
@@ -410,6 +449,32 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
                         {contact.call_times || '시간무관'}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 relative">
+                    {(contact.swing_style || contact.priority || contact.current_distance) ? (
+                      <button
+                        onClick={() => setShowDetails(showDetails === contact.id ? null : contact.id)}
+                        className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700"
+                      >
+                        <Info className="w-4 h-4" />
+                        {contact.swing_style || '상세보기'}
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-400">-</span>
+                    )}
+                    {showDetails === contact.id && (
+                      <div className="absolute z-50 mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg w-48 left-0 top-full">
+                        <p className="text-xs text-gray-600 mb-1">
+                          <span className="font-medium">스타일:</span> {contact.swing_style || '-'}
+                        </p>
+                        <p className="text-xs text-gray-600 mb-1">
+                          <span className="font-medium">우선순위:</span> {contact.priority || '-'}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          <span className="font-medium">현재거리:</span> {contact.current_distance || '-'}
+                        </p>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <button
