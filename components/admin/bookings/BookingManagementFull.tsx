@@ -33,7 +33,7 @@ const Calendar = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const Search = ({ className = "w-5 h-5" }) => (
+const Search = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
@@ -90,13 +90,15 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
   const filteredBookings = useMemo(() => {
     return bookings.filter(booking => {
       // 검색어 필터 - 대소문자 구분 없이, 전화번호는 숫자만 비교
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const phoneDigits = booking.phone.replace(/\D/g, '');
+      if (searchTerm && searchTerm.trim() !== '') {
+        const searchLower = searchTerm.toLowerCase().trim();
+        const phoneDigits = booking.phone ? booking.phone.replace(/\D/g, '') : '';
         const searchDigits = searchTerm.replace(/\D/g, '');
         
-        if (!booking.name.toLowerCase().includes(searchLower) && 
-            !phoneDigits.includes(searchDigits)) {
+        const nameMatch = booking.name ? booking.name.toLowerCase().includes(searchLower) : false;
+        const phoneMatch = searchDigits.length > 0 ? phoneDigits.includes(searchDigits) : false;
+        
+        if (!nameMatch && !phoneMatch) {
           return false;
         }
       }
@@ -317,13 +319,13 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
           {/* 검색 */}
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-3 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="고객명 또는 연락처로 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
           </div>
