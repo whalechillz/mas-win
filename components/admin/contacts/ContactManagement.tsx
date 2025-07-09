@@ -81,6 +81,31 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [detailsPosition, setDetailsPosition] = useState<{ [key: string]: 'top' | 'bottom' }>({});
 
+  // 스크롤바 스타일
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #F3E8FF;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #D8B4FE;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #C084FC;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   // 디버깅을 위한 로그 추가
   React.useEffect(() => {
     console.log('ContactManagement: 받은 contacts 데이터:', contacts);
@@ -447,7 +472,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
         )}
 
         {/* 문의 테이블 */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto pb-32"> {/* 하단 여백 추가 */}
           <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
@@ -551,9 +576,10 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
             
+            // 화면 하단 여백이 250px 미만이면 위쪽에 표시
             setDetailsPosition({
               ...detailsPosition,
-              [contact.id]: spaceBelow < 400 ? 'top' : 'bottom'
+              [contact.id]: spaceBelow < 250 ? 'top' : 'bottom'
             });
             setShowDetails(showDetails === contact.id ? null : contact.id);
           }}
@@ -568,51 +594,62 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
           )}
             {showDetails === contact.id && (
               <div 
-                className="absolute z-50 p-4 bg-white border-2 border-purple-200 rounded-xl shadow-2xl" 
+                className="absolute z-50 p-4 bg-white border-2 border-purple-200 rounded-xl shadow-2xl overflow-hidden" 
                 style={{
                   ...(detailsPosition[contact.id] === 'top' ? {
                     bottom: '100%',
                     marginBottom: '8px',
+                    maxHeight: `${Math.min(400, window.innerHeight - 100)}px`, // 화면 크기에 따라 동적 높이
                   } : {
                     top: '100%',
                     marginTop: '8px',
+                    maxHeight: `${Math.min(400, window.innerHeight - window.pageYOffset - 100)}px`, // 화면 하단 여백 고려
                   }),
-                  width: '400px',  // 고정 넓이로 변경
-                  maxHeight: '500px',
-                  overflowY: 'auto'
+                  width: '400px',
                 }}
                 onClick={() => setShowDetails(null)}
               >
-                <div className="space-y-4">
-                  <h4 className="font-bold text-lg text-gray-900 border-b-2 border-purple-200 pb-3">퀘즈 분석 결과</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-purple-50 p-3 rounded-lg">
-                      <span className="text-sm font-semibold text-purple-700 block mb-1">스윙 스타일</span>
-                      <span className="text-base text-gray-900 font-medium">{contact.swing_style || '-'}</span>
+                <div 
+                  className="h-full overflow-y-auto custom-scrollbar"
+                  style={{
+                    maxHeight: 'inherit',
+                    paddingRight: '8px',
+                    // Firefox 용 스크롤바 스타일
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#D8B4FE #F3E8FF'
+                  }}
+                >
+                  <div className="space-y-4 pb-2">
+                    <h4 className="font-bold text-lg text-gray-900 border-b-2 border-purple-200 pb-3 sticky top-0 bg-white">퀘즈 분석 결과</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-purple-50 p-3 rounded-lg hover:bg-purple-100 transition-colors">
+                        <span className="text-sm font-semibold text-purple-700 block mb-1">스윙 스타일</span>
+                        <span className="text-base text-gray-900 font-medium">{contact.swing_style || '-'}</span>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-lg hover:bg-blue-100 transition-colors">
+                        <span className="text-sm font-semibold text-blue-700 block mb-1">클럽 선택 우선순위</span>
+                        <span className="text-base text-gray-900 font-medium">{contact.priority || '-'}</span>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded-lg hover:bg-green-100 transition-colors">
+                        <span className="text-sm font-semibold text-green-700 block mb-1">현재 비거리</span>
+                        <span className="text-base text-gray-900 font-medium">{contact.current_distance ? contact.current_distance + 'm' : '-'}</span>
+                      </div>
+                      <div className="bg-yellow-50 p-3 rounded-lg hover:bg-yellow-100 transition-colors">
+                        <span className="text-sm font-semibold text-yellow-700 block mb-1">추천 플렉스</span>
+                        <span className="text-base text-gray-900 font-medium">{contact.recommended_flex || '-'}</span>
+                      </div>
+                      <div className="bg-indigo-50 p-3 rounded-lg hover:bg-indigo-100 transition-colors">
+                        <span className="text-sm font-semibold text-indigo-700 block mb-1">예상 비거리</span>
+                        <span className="text-base text-gray-900 font-medium">{contact.expected_distance ? contact.expected_distance + 'm' : '-'}</span>
+                      </div>
+                      <div className="bg-pink-50 p-3 rounded-lg hover:bg-pink-100 transition-colors">
+                        <span className="text-sm font-semibold text-pink-700 block mb-1">추천 클럽</span>
+                        <span className="text-base text-gray-900 font-medium">{contact.recommended_club || '-'}</span>
+                      </div>
                     </div>
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <span className="text-sm font-semibold text-blue-700 block mb-1">클럽 선택 우선순위</span>
-                      <span className="text-base text-gray-900 font-medium">{contact.priority || '-'}</span>
+                    <div className="pt-3 mt-3 border-t border-gray-200 text-center sticky bottom-0 bg-white">
+                      <p className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer">클릭하여 닫기</p>
                     </div>
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <span className="text-sm font-semibold text-green-700 block mb-1">현재 비거리</span>
-                      <span className="text-base text-gray-900 font-medium">{contact.current_distance ? contact.current_distance + 'm' : '-'}</span>
-                    </div>
-                    <div className="bg-yellow-50 p-3 rounded-lg">
-                      <span className="text-sm font-semibold text-yellow-700 block mb-1">추천 플렉스</span>
-                      <span className="text-base text-gray-900 font-medium">{contact.recommended_flex || '-'}</span>
-                    </div>
-                    <div className="bg-indigo-50 p-3 rounded-lg">
-                      <span className="text-sm font-semibold text-indigo-700 block mb-1">예상 비거리</span>
-                      <span className="text-base text-gray-900 font-medium">{contact.expected_distance ? contact.expected_distance + 'm' : '-'}</span>
-                    </div>
-                    <div className="bg-pink-50 p-3 rounded-lg">
-                      <span className="text-sm font-semibold text-pink-700 block mb-1">추천 클럽</span>
-                      <span className="text-base text-gray-900 font-medium">{contact.recommended_club || '-'}</span>
-                    </div>
-                  </div>
-                  <div className="pt-3 mt-3 border-t border-gray-200 text-center">
-                    <p className="text-sm text-gray-500">클릭하여 닫기</p>
                   </div>
                 </div>
               </div>
