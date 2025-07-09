@@ -79,6 +79,15 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   const [notes, setNotes] = useState('');
   const [showDetails, setShowDetails] = useState<string | null>(null);
 
+  // 디버깅을 위한 로그 추가
+  React.useEffect(() => {
+    console.log('ContactManagement: 받은 contacts 데이터:', contacts);
+    console.log('Contacts 배열 길이:', contacts ? contacts.length : 0);
+    if (contacts && contacts.length > 0) {
+      console.log('첫 번째 contact:', contacts[0]);
+    }
+  }, [contacts]);
+
   // 필터링된 문의 목록
   const filteredContacts = useMemo(() => {
     return contacts.filter(contact => {
@@ -213,6 +222,54 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
     };
     return stats;
   }, [contacts]);
+
+  // 데이터가 없을 때 표시할 빈 상태
+  if (!contacts || contacts.length === 0) {
+    return (
+      <div className="space-y-6">
+        {/* 통계 카드 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <p className="text-sm text-gray-500">전체 문의</p>
+            <p className="text-2xl font-bold text-gray-900">0</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <p className="text-sm text-gray-500">연락 대기</p>
+            <p className="text-2xl font-bold text-yellow-600">0</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <p className="text-sm text-gray-500">연락 완료</p>
+            <p className="text-2xl font-bold text-green-600">0</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <p className="text-sm text-gray-500">응답률</p>
+            <p className="text-2xl font-bold text-blue-600">0%</p>
+          </div>
+        </div>
+
+        {/* 빈 상태 메시지 */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div className="text-center">
+            <MessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">문의 데이터가 없습니다</h3>
+            <p className="text-gray-500 mb-4">
+              아직 고객 문의가 없거나 데이터베이스 연결에 문제가 있을 수 있습니다.
+            </p>
+            <button
+              onClick={() => {
+                console.log('Contacts 데이터 상태:', contacts);
+                console.log('Supabase 연결 상태:', supabase);
+                onUpdate();
+              }}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              데이터 새로고침
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -541,6 +598,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
             </tbody>
           </table>
 
+          {/* 필터링된 결과가 없을 때 */}
           {filteredContacts.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               검색 결과가 없습니다.

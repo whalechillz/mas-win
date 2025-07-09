@@ -257,26 +257,70 @@ export default function AdminDashboard() {
   const loadBookings = async () => {
     if (!supabase) return;
     
-    const { data, error } = await supabase
-      .from('bookings_with_quiz')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (!error) {
-      setBookings(data || []);
+    try {
+      // 먼저 bookings_with_quiz 뷰에서 시도
+      let { data, error } = await supabase
+        .from('bookings_with_quiz')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // 뷰가 없거나 에러가 발생하면 기본 bookings 테이블에서 조회
+      if (error || !data) {
+        console.log('bookings_with_quiz 뷰 조회 실패:', error);
+        const result = await supabase
+          .from('bookings')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        data = result.data;
+        error = result.error;
+      }
+      
+      if (!error && data) {
+        console.log('Bookings 데이터 로드 성공:', data.length, '개');
+        setBookings(data || []);
+      } else {
+        console.error('Bookings 데이터 로드 실패:', error);
+        setBookings([]);
+      }
+    } catch (err) {
+      console.error('Bookings 로드 중 예외 발생:', err);
+      setBookings([]);
     }
   };
 
   const loadContacts = async () => {
     if (!supabase) return;
     
-    const { data, error } = await supabase
-      .from('contacts_with_quiz')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (!error) {
-      setContacts(data || []);
+    try {
+      // 먼저 contacts_with_quiz 뷰에서 시도
+      let { data, error } = await supabase
+        .from('contacts_with_quiz')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // 뷰가 없거나 에러가 발생하면 기본 contacts 테이블에서 조회
+      if (error || !data) {
+        console.log('contacts_with_quiz 뷰 조회 실패:', error);
+        const result = await supabase
+          .from('contacts')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        data = result.data;
+        error = result.error;
+      }
+      
+      if (!error && data) {
+        console.log('Contacts 데이터 로드 성공:', data.length, '개');
+        setContacts(data || []);
+      } else {
+        console.error('Contacts 데이터 로드 실패:', error);
+        setContacts([]);
+      }
+    } catch (err) {
+      console.error('Contacts 로드 중 예외 발생:', err);
+      setContacts([]);
     }
   };
 
