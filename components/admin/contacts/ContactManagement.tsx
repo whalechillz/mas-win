@@ -568,7 +568,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
           )}
             {showDetails === contact.id && (
               <div 
-                className="absolute z-50 p-4 bg-white border border-gray-200 rounded-lg shadow-lg w-80 left-0 cursor-pointer" 
+                className="absolute z-50 p-4 bg-white border-2 border-purple-200 rounded-xl shadow-2xl" 
                 style={{
                   ...(detailsPosition[contact.id] === 'top' ? {
                     bottom: '100%',
@@ -577,41 +577,42 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
                     top: '100%',
                     marginTop: '8px',
                   }),
-                  maxHeight: '400px',
+                  width: '400px',  // 고정 넓이로 변경
+                  maxHeight: '500px',
                   overflowY: 'auto'
                 }}
                 onClick={() => setShowDetails(null)}
               >
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-gray-900 border-b pb-2">퀘즈 분석 결과</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600">스윙 스타일:</span>
-                      <span className="text-xs text-gray-900">{contact.swing_style || '-'}</span>
+                <div className="space-y-4">
+                  <h4 className="font-bold text-lg text-gray-900 border-b-2 border-purple-200 pb-3">퀘즈 분석 결과</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <span className="text-sm font-semibold text-purple-700 block mb-1">스윙 스타일</span>
+                      <span className="text-base text-gray-900 font-medium">{contact.swing_style || '-'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600">클럽 선택 우선순위:</span>
-                      <span className="text-xs text-gray-900">{contact.priority || '-'}</span>
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <span className="text-sm font-semibold text-blue-700 block mb-1">클럽 선택 우선순위</span>
+                      <span className="text-base text-gray-900 font-medium">{contact.priority || '-'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600">현재 비거리:</span>
-                      <span className="text-xs text-gray-900">{contact.current_distance ? contact.current_distance + 'm' : '-'}</span>
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <span className="text-sm font-semibold text-green-700 block mb-1">현재 비거리</span>
+                      <span className="text-base text-gray-900 font-medium">{contact.current_distance ? contact.current_distance + 'm' : '-'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600">추천 플렉스:</span>
-                      <span className="text-xs text-gray-900">{contact.recommended_flex || '-'}</span>
+                    <div className="bg-yellow-50 p-3 rounded-lg">
+                      <span className="text-sm font-semibold text-yellow-700 block mb-1">추천 플렉스</span>
+                      <span className="text-base text-gray-900 font-medium">{contact.recommended_flex || '-'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600">예상 비거리:</span>
-                      <span className="text-xs text-gray-900">{contact.expected_distance ? contact.expected_distance + 'm' : '-'}</span>
+                    <div className="bg-indigo-50 p-3 rounded-lg">
+                      <span className="text-sm font-semibold text-indigo-700 block mb-1">예상 비거리</span>
+                      <span className="text-base text-gray-900 font-medium">{contact.expected_distance ? contact.expected_distance + 'm' : '-'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600">추천 클럽:</span>
-                      <span className="text-xs text-gray-900 font-semibold">{contact.recommended_club || '-'}</span>
+                    <div className="bg-pink-50 p-3 rounded-lg">
+                      <span className="text-sm font-semibold text-pink-700 block mb-1">추천 클럽</span>
+                      <span className="text-base text-gray-900 font-medium">{contact.recommended_club || '-'}</span>
                     </div>
                   </div>
-                  <div className="pt-2 mt-2 border-t">
-                    <p className="text-xs text-gray-500">클릭하여 닫기</p>
+                  <div className="pt-3 mt-3 border-t border-gray-200 text-center">
+                    <p className="text-sm text-gray-500">클릭하여 닫기</p>
                   </div>
                 </div>
               </div>
