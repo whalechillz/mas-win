@@ -8,15 +8,16 @@ interface Contact {
   call_times?: string;
   contacted?: boolean;
   created_at: string;
-  memo?: string;
+  notes?: string;  // memo -> notes로 변경
   campaign_source?: string;
   quiz_result_id?: string;
-  // quiz_results에서 조인된 필드들 (뷰를 통해 가져옴)
+  // 이미 contacts 테이블에 있는 필드들
   swing_style?: string;
   priority?: string;
   current_distance?: string;
   recommended_flex?: string;
   expected_distance?: string;
+  recommended_club?: string; // 추가 예정
 }
 
 interface ContactManagementProps {
@@ -78,6 +79,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState('');
   const [showDetails, setShowDetails] = useState<string | null>(null);
+  const [detailsPosition, setDetailsPosition] = useState<{ [key: string]: 'top' | 'bottom' }>({});
 
   // 디버깅을 위한 로그 추가
   React.useEffect(() => {
@@ -134,7 +136,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   const saveMemo = async (id: string) => {
     const { error } = await supabase
       .from('contacts')
-      .update({ memo: editMemo })
+      .update({ notes: editMemo })  // memo -> notes
       .eq('id', id);
 
     if (!error) {
@@ -180,16 +182,19 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   // 엑셀 다운로드
   const downloadExcel = () => {
     const csvContent = [
-      ['고객명', '연락처', '통화가능시간', '스윙스타일', '우선순위', '현재거리', '상태', '메모', '캠페인', '등록일'],
+      ['고객명', '연락처', '통화가능시간', '스윙스타일', '클럽선택 우선순위', '현재거리', '추천플렉스', '예상거리', '추천클럽', '상태', '메모', '캠페인', '등록일'],
       ...filteredContacts.map(contact => [
         contact.name,
         contact.phone,
         contact.call_times || '시간무관',
         contact.swing_style || '-',
         contact.priority || '-',
-        contact.current_distance || '-',
+        contact.current_distance ? contact.current_distance + 'm' : '-',
+        contact.recommended_flex || '-',
+        contact.expected_distance ? contact.expected_distance + 'm' : '-',
+        contact.recommended_club || '-',
         contact.contacted ? '연락완료' : '대기중',
-        contact.memo || '',
+        contact.notes || '',  // memo -> notes
         contact.campaign_source || '-',
         new Date(contact.created_at).toLocaleString('ko-KR')
       ])
@@ -444,159 +449,236 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
         {/* 문의 테이블 */}
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={selectedContacts.length === filteredContacts.length && filteredContacts.length > 0}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedContacts(filteredContacts.map(c => c.id));
-                      } else {
-                        setSelectedContacts([]);
-                      }
-                    }}
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">고객명</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">연락처</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">통화가능시간</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">스타일</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">캠페인</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">메모</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">등록일</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">액션</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredContacts.map((contact) => (
-                <tr key={contact.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedContacts.includes(contact.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedContacts([...selectedContacts, contact.id]);
-                        } else {
-                          setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
-                        }
-                      }}
-                    />
-                  </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{contact.name}</td>
-                  <td className="px-4 py-3">
-                    <a
-                      href={`tel:${contact.phone}`}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                    >
-                      <Phone className="w-4 h-4" />
-                      {formatPhoneNumber(contact.phone)}
-                    </a>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        contact.call_times === '오전' ? 'bg-blue-100 text-blue-800' :
-                        contact.call_times === '오후' ? 'bg-green-100 text-green-800' :
-                        contact.call_times === '저녁' ? 'bg-purple-100 text-purple-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {contact.call_times || '시간무관'}
-                      </span>
+          <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+          <th className="px-4 py-3 text-left">
+          <input
+          type="checkbox"
+          checked={selectedContacts.length === filteredContacts.length && filteredContacts.length > 0}
+          onChange={(e) => {
+          if (e.target.checked) {
+          setSelectedContacts(filteredContacts.map(c => c.id));
+          } else {
+          setSelectedContacts([]);
+          }
+          }}
+          />
+          </th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">고객명</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">연락처</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">통화가능시간</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">퀴즈결과</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">캠페인</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">메모</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">등록일</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">액션</th>
+          </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+          {filteredContacts.map((contact) => (
+          <tr key={contact.id} className="hover:bg-gray-50">
+          <td className="px-4 py-3">
+          <input
+          type="checkbox"
+          checked={selectedContacts.includes(contact.id)}
+          onChange={(e) => {
+          if (e.target.checked) {
+          setSelectedContacts([...selectedContacts, contact.id]);
+          } else {
+          setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+          }
+          }}
+          />
+          </td>
+          <td className="px-4 py-3 font-medium text-gray-900">{contact.name}</td>
+          <td className="px-4 py-3">
+          <a
+          href={`tel:${contact.phone}`}
+          className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+          >
+          <Phone className="w-4 h-4" />
+          {formatPhoneNumber(contact.phone)}
+          </a>
+          </td>
+          <td className="px-4 py-3">
+          <div className="flex items-center gap-1">
+          <Clock className="w-4 h-4 text-gray-400" />
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          contact.call_times === '오전' ? 'bg-blue-100 text-blue-800' :
+          contact.call_times === '오후' ? 'bg-green-100 text-green-800' :
+          contact.call_times === '저녁' ? 'bg-purple-100 text-purple-800' :
+          'bg-gray-100 text-gray-800'
+          }`}>
+          {contact.call_times || '시간무관'}
+          </span>
+          </div>
+          </td>
+          <td className="px-4 py-3 relative">
+          {(contact.swing_style || contact.priority || contact.current_distance) ? (
+          <div className="space-y-1">
+          {contact.swing_style && (
+            <div className="flex items-center gap-1">
+                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                {contact.swing_style}
+              </span>
+              </div>
+              )}
+            {contact.priority && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  {contact.priority}
+              </span>
+          </div>
+          )}
+          {contact.current_distance && (
+          <div className="flex items-center gap-1">
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                {contact.current_distance}m
+            </span>
+            </div>
+            )}
+              {contact.recommended_flex && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                    {contact.recommended_flex}
+                </span>
+              </div>
+          )}
+          <button
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            
+            setDetailsPosition({
+              ...detailsPosition,
+              [contact.id]: spaceBelow < 400 ? 'top' : 'bottom'
+            });
+            setShowDetails(showDetails === contact.id ? null : contact.id);
+          }}
+              className="text-xs text-purple-600 hover:text-purple-700 mt-1"
+              >
+              <Info className="w-3 h-3 inline mr-1" />
+                상세보기
+                </button>
+              </div>
+          ) : (
+          <span className="text-sm text-gray-400">-</span>
+          )}
+            {showDetails === contact.id && (
+              <div 
+                className="absolute z-50 p-4 bg-white border border-gray-200 rounded-lg shadow-lg w-80 left-0 cursor-pointer" 
+                style={{
+                  ...(detailsPosition[contact.id] === 'top' ? {
+                    bottom: '100%',
+                    marginBottom: '8px',
+                  } : {
+                    top: '100%',
+                    marginTop: '8px',
+                  }),
+                  maxHeight: '400px',
+                  overflowY: 'auto'
+                }}
+                onClick={() => setShowDetails(null)}
+              >
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm text-gray-900 border-b pb-2">퀘즈 분석 결과</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600">스윙 스타일:</span>
+                      <span className="text-xs text-gray-900">{contact.swing_style || '-'}</span>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 relative">
-                    {(contact.swing_style || contact.priority || contact.current_distance) ? (
-                      <button
-                        onClick={() => setShowDetails(showDetails === contact.id ? null : contact.id)}
-                        className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700"
-                      >
-                        <Info className="w-4 h-4" />
-                        {contact.swing_style || '상세보기'}
-                      </button>
-                    ) : (
-                      <span className="text-sm text-gray-400">-</span>
-                    )}
-                    {showDetails === contact.id && (
-                      <div className="absolute z-50 mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg w-48 left-0 top-full">
-                        <p className="text-xs text-gray-600 mb-1">
-                          <span className="font-medium">스타일:</span> {contact.swing_style || '-'}
-                        </p>
-                        <p className="text-xs text-gray-600 mb-1">
-                          <span className="font-medium">우선순위:</span> {contact.priority || '-'}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          <span className="font-medium">현재거리:</span> {contact.current_distance || '-'}
-                        </p>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => updateContactStatus(contact.id, !contact.contacted)}
-                      className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        contact.contacted 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {contact.contacted ? '연락완료' : '대기중'}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-gray-600">
-                      {contact.campaign_source || '-'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600">클럽 선택 우선순위:</span>
+                      <span className="text-xs text-gray-900">{contact.priority || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600">현재 비거리:</span>
+                      <span className="text-xs text-gray-900">{contact.current_distance ? contact.current_distance + 'm' : '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600">추천 플렉스:</span>
+                      <span className="text-xs text-gray-900">{contact.recommended_flex || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600">예상 비거리:</span>
+                      <span className="text-xs text-gray-900">{contact.expected_distance ? contact.expected_distance + 'm' : '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600">추천 클럽:</span>
+                      <span className="text-xs text-gray-900 font-semibold">{contact.recommended_club || '-'}</span>
+                    </div>
+                  </div>
+                  <div className="pt-2 mt-2 border-t">
+                    <p className="text-xs text-gray-500">클릭하여 닫기</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </td>
+          <td className="px-4 py-3">
+          <button
+              onClick={() => updateContactStatus(contact.id, !contact.contacted)}
+              className={`px-3 py-1 text-xs font-semibold rounded-full ${
+              contact.contacted 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-yellow-100 text-yellow-800'
+            }`}
+          >
+          {contact.contacted ? '연락완료' : '대기중'}
+          </button>
+          </td>
+          <td className="px-4 py-3">
+          <span className="text-sm text-gray-600">
+              {contact.campaign_source || '-'}
+              </span>
+              </td>
+                <td className="px-4 py-3">
                     {editingId === contact.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={editMemo}
-                          onChange={(e) => setEditMemo(e.target.value)}
-                          className="px-2 py-1 text-sm border border-gray-300 rounded"
-                          autoFocus
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editMemo}
+                            onChange={(e) => setEditMemo(e.target.value)}
+                            className="px-2 py-1 text-sm border border-gray-300 rounded"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => saveMemo(contact.id)}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            ✓
+                          </button>
+                        </div>
+                      ) : (
                         <button
-                          onClick={() => saveMemo(contact.id)}
-                          className="text-green-600 hover:text-green-700"
+                          onClick={() => {
+                            setEditingId(contact.id);
+                            setEditMemo(contact.notes || '');  // memo -> notes
+                          }}
+                          className="text-sm text-gray-600 hover:text-gray-900"
                         >
-                          ✓
+                          {contact.notes || '메모 추가'}  {/* memo -> notes */}
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditingId(contact.id);
-                          setEditMemo(contact.memo || '');
-                        }}
-                        className="text-sm text-gray-600 hover:text-gray-900"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {new Date(contact.created_at).toLocaleDateString('ko-KR')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <a
+                        href={`tel:${contact.phone}`}
+                        className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                       >
-                        {contact.memo || '메모 추가'}
-                      </button>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {new Date(contact.created_at).toLocaleDateString('ko-KR')}
-                  </td>
-                  <td className="px-4 py-3">
-                    <a
-                      href={`tel:${contact.phone}`}
-                      className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      <Phone className="w-3 h-3" />
-                      전화
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                        <Phone className="w-3 h-3" />
+                        전화
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
           {/* 필터링된 결과가 없을 때 */}
           {filteredContacts.length === 0 && (
