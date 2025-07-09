@@ -1,5 +1,6 @@
 import React from 'react';
 import { Campaign } from '../../../lib/campaign-types';
+import { InsightGenerator } from './InsightGenerator';
 
 interface CampaignDashboardProps {
   campaigns: Campaign[];
@@ -205,30 +206,11 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
         {/* AI 인사이트 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold mb-4">AI 캠페인 인사이트 💡</h3>
-          <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-              <p className="font-medium text-blue-900">최고 성과 캠페인</p>
-              <p className="text-sm text-blue-700 mt-1">
-                "{activeCampaigns[0]?.name || '여름 특별 캠페인'}"이 전환율 {activeCampaigns[0]?.metrics.conversionRate || 5.7}%로 
-                업계 평균 대비 2배 이상의 성과를 보이고 있습니다.
-              </p>
-            </div>
-            
-            <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
-              <p className="font-medium text-green-900">개선 기회</p>
-              <p className="text-sm text-green-700 mt-1">
-                오후 2-4시 사이 문의가 40% 증가합니다. 
-                이 시간대 실시간 채팅 상담을 강화하면 전환율을 추가로 높일 수 있습니다.
-              </p>
-            </div>
-            
-            <div className="p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
-              <p className="font-medium text-purple-900">예측 분석</p>
-              <p className="text-sm text-purple-700 mt-1">
-                현재 추세가 지속될 경우, 이번 달 예약 목표를 15% 초과 달성할 것으로 예상됩니다.
-              </p>
-            </div>
-          </div>
+          <InsightGenerator 
+            campaigns={campaigns}
+            bookings={bookings}
+            contacts={contacts}
+          />
         </div>
       </div>
     </div>
