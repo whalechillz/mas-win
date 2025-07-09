@@ -207,6 +207,25 @@ export default function AdminDashboard() {
     checkAuth();
   }, []);
 
+  // Admin 페이지에서 스크롤 활성화
+  useEffect(() => {
+    if (isAuthenticated) {
+      // overflow 스타일 오버라이드
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.height = 'auto';
+      document.body.style.height = 'auto';
+      
+      // 컴포넌트 언마운트 시 원래대로 복구
+      return () => {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+        document.documentElement.style.height = '';
+        document.body.style.height = '';
+      };
+    }
+  }, [isAuthenticated]);
+
   const handleLogin = () => {
     setIsAuthenticated(true);
   };

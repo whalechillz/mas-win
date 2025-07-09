@@ -1,8 +1,12 @@
 import '../styles/globals.css'
 import Script from 'next/script'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 
 export default function MyApp({ Component, pageProps }) {
+  const router = useRouter();
+  const isAdminPage = router.pathname === '/admin';
+  
   return (
     <>
       <Head>
@@ -11,7 +15,7 @@ export default function MyApp({ Component, pageProps }) {
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
+            ${!isAdminPage ? 'overflow: hidden;' : ''}
           }
           #__next {
             height: 100%;
