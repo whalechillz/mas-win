@@ -599,11 +599,11 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
                   ...(detailsPosition[contact.id] === 'top' ? {
                     bottom: '100%',
                     marginBottom: '8px',
-                    maxHeight: `${Math.min(400, window.innerHeight - 100)}px`, // 화면 크기에 따라 동적 높이
+                    maxHeight: '300px', // 높이를 줄여서 스크롤 필요하게 만듦
                   } : {
                     top: '100%',
                     marginTop: '8px',
-                    maxHeight: `${Math.min(400, window.innerHeight - window.pageYOffset - 100)}px`, // 화면 하단 여백 고려
+                    maxHeight: '300px', // 높이를 줄여서 스크롤 필요하게 만듦
                   }),
                   width: '400px',
                 }}
@@ -620,7 +620,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
                   }}
                 >
                   <div className="space-y-4 pb-2">
-                    <h4 className="font-bold text-lg text-gray-900 border-b-2 border-purple-200 pb-3 sticky top-0 bg-white">퀘즈 분석 결과</h4>
+                    <h4 className="font-bold text-lg text-gray-900 border-b-2 border-purple-200 pb-3">퀘즈 분석 결과</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-purple-50 p-3 rounded-lg hover:bg-purple-100 transition-colors">
                         <span className="text-sm font-semibold text-purple-700 block mb-1">스윙 스타일</span>
@@ -647,7 +647,35 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
                         <span className="text-base text-gray-900 font-medium">{contact.recommended_club || '-'}</span>
                       </div>
                     </div>
-                    <div className="pt-3 mt-3 border-t border-gray-200 text-center sticky bottom-0 bg-white">
+                    
+                    {/* 추가 정보 섹션 */}
+                    <div className="mt-4 space-y-3">
+                      <h5 className="font-semibold text-md text-gray-700 border-b border-gray-200 pb-2">추가 정보</h5>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <span className="text-sm font-semibold text-gray-700 block mb-1">캠페인 출처</span>
+                        <span className="text-base text-gray-900">{contact.campaign_source || '-'}</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <span className="text-sm font-semibold text-gray-700 block mb-1">등록일시</span>
+                        <span className="text-base text-gray-900">{new Date(contact.created_at).toLocaleString('ko-KR')}</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <span className="text-sm font-semibold text-gray-700 block mb-1">연락처</span>
+                        <span className="text-base text-gray-900">{formatPhoneNumber(contact.phone)}</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <span className="text-sm font-semibold text-gray-700 block mb-1">통화 가능 시간</span>
+                        <span className="text-base text-gray-900">{contact.call_times || '시간무관'}</span>
+                      </div>
+                      {contact.notes && (
+                        <div className="bg-amber-50 p-3 rounded-lg">
+                          <span className="text-sm font-semibold text-amber-700 block mb-1">메모</span>
+                          <span className="text-base text-gray-900">{contact.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="pt-3 mt-3 border-t border-gray-200 text-center">
                       <p className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer">클릭하여 닫기</p>
                     </div>
                   </div>
