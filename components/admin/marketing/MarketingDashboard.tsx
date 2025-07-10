@@ -3,13 +3,14 @@ import { BlogCalendar } from './BlogCalendar';
 import { ContentEditor } from './ContentEditor';
 import { MarketingFunnelPlan } from './MarketingFunnelPlan';
 import { PlatformManager } from './PlatformManager';
+import { NaverBlogManager } from './NaverBlogManager';
 
 interface MarketingDashboardProps {
   supabase: any;
 }
 
 export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase }) => {
-  const [activeView, setActiveView] = useState<'calendar' | 'funnel' | 'settings'>('calendar');
+  const [activeView, setActiveView] = useState<'calendar' | 'funnel' | 'naver' | 'settings'>('calendar');
   const [showEditor, setShowEditor] = useState(false);
   const [selectedContent, setSelectedContent] = useState<any>(null);
   
@@ -232,6 +233,16 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
             마케팅 퍼널 계획
           </button>
           <button
+            onClick={() => setActiveView('naver')}
+            className={`pb-3 px-1 font-medium text-sm transition-all ${
+              activeView === 'naver'
+                ? 'border-b-2 border-purple-500 text-purple-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            네이버 블로그
+          </button>
+          <button
             onClick={() => setActiveView('settings')}
             className={`pb-3 px-1 font-medium text-sm transition-all ${
               activeView === 'settings'
@@ -267,6 +278,10 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
           currentYear={new Date().getFullYear()}
           onUpdatePlan={handleUpdatePlan}
         />
+      ) : activeView === 'naver' ? (
+        <NaverBlogManager
+          supabase={supabase}
+        />
       ) : (
         <PlatformManager
           platforms={platforms}
@@ -276,7 +291,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
       )}
 
       {/* 플랫폼별 통계 */}
-      {activeView !== 'settings' && (
+      {activeView !== 'settings' && activeView !== 'naver' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">플랫폼별 콘텐츠 현황</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
