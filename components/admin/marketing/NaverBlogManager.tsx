@@ -729,20 +729,14 @@ mas9golf	J	2025-05-30(금)	[사용자 리뷰]...	박영구 후기	https://blog.n
                       return;
                     }
 
-                    // 네이버 플랫폼 ID 먼저 가져오기
-                    const { data: platformData, error: platformError } = await supabase
-                      .from('blog_platforms')
-                      .select('id')
-                      .eq('type', 'naver')
-                      .single();
+                    // 네이버 플랫폼 ID 가져오기 (계정명에 따라 매핑)
+                    const platformMapping = {
+                      'mas9golf': '네이버 블로그 - 조',
+                      'massgoogolf': '네이버 블로그 - 미',
+                      'massgoogolfkorea': '네이버 블로그 - 싸'
+                    };
                     
-                    if (platformError || !platformData) {
-                      console.error('네이버 플랫폼 조회 실패:', platformError);
-                      alert('네이버 플랫폼을 찾을 수 없습니다. blog_platforms 테이블을 확인해주세요.');
-                      return;
-                    }
-                    
-                    console.log('네이버 플랫폼 ID:', platformData.id);
+                    console.log('플랫폼 매핑:', platformMapping);
 
                     const dataRows = lines.slice(1).filter(line => line.trim());
                     console.log('데이터 행 수:', dataRows.length);
@@ -764,6 +758,31 @@ mas9golf	J	2025-05-30(금)	[사용자 리뷰]...	박영구 후기	https://blog.n
                       }
 
                       const [계정명, 작성자, 게시일, 제목, 글감, 링크, 조회수] = cols;
+                      
+                      // 계정명에 따른 플랫폼 찾기
+                      const platformName = platformMapping[계정명.trim()];
+                      if (!platformName) {
+                        console.error(`행 ${i + 1}: 알 수 없는 계정명: ${계정명}`);
+                        errors.push(`행 ${i + 1}: 알 수 없는 계정명 (${계정명})`);
+                        errorCount++;
+                        continue;
+                      }
+                      
+                      // 해당 플랫폼 ID 가져오기
+                      const { data: platformData, error: platformError } = await supabase
+                        .from('blog_platforms')
+                        .select('id')
+                        .eq('name', platformName)
+                        .single();
+                      
+                      if (platformError || !platformData) {
+                        console.error(`행 ${i + 1}: 플랫폼 조회 실패 (${platformName}):`, platformError);
+                        errors.push(`행 ${i + 1}: 플랫폼을 찾을 수 없음 (${platformName})`);
+                        errorCount++;
+                        continue;
+                      }
+                      
+                      console.log(`행 ${i + 1}: 계정명 ${계정명} -> 플랫폼 ${platformName}`);
                       
                       try {
                         // 날짜 파싱 (2025-05-30(금) -> 2025-05-30)
