@@ -1,5 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Eye, RefreshCw, Upload, Calendar, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+
+// SVG 아이콘 컴포넌트들
+const Link = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+  </svg>
+);
+
+const Eye = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+  </svg>
+);
+
+const RefreshCw = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
+
+const Upload = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+  </svg>
+);
+
+const FileText = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
+const Calendar = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+);
+
+const TrendingUp = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+);
+
+const AlertCircle = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const CheckCircle = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
 
 interface NaverBlogPost {
   id: string;
@@ -38,6 +93,8 @@ export const NaverBlogManager: React.FC<NaverBlogManagerProps> = ({ supabase }) 
   const [viewCountInput, setViewCountInput] = useState('');
   const [bulkUpdateMode, setBulkUpdateMode] = useState(false);
   const [bulkData, setBulkData] = useState<any[]>([]);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importData, setImportData] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -209,6 +266,35 @@ export const NaverBlogManager: React.FC<NaverBlogManagerProps> = ({ supabase }) 
     }
   };
 
+  // AI 글감 생성 예시 함수 (실제로는 OpenAI API 등을 사용)
+  const generateAIContent = async (topic: string) => {
+    // TODO: OpenAI API 연동
+    const suggestions = {
+      title: `${topic}에 대한 시니어 골퍼를 위한 완벽 가이드`,
+      content: `${topic}은 시니어 골퍼에게 매우 중요한 주제입니다. 오늘은 이에 대해 자세히 알아보겠습니다...`,
+      keywords: [topic, '시니어골프', 'MASGOLF', '드라이버추천']
+    };
+    return suggestions;
+  };
+
+  // 조회수 스크래핑 함수 (예시)
+  const scrapeViewCount = async (url: string) => {
+    // 주의: 실제 구현 시 네이버 이용약관 확인 필요
+    // 1. 서버사이드 프록시 사용 권장
+    // 2. 적절한 딜레이와 User-Agent 설정
+    // 3. robots.txt 준수
+    
+    // 예시 코드:
+    // const response = await fetch('/api/scrape-naver', {
+    //   method: 'POST',
+    //   body: JSON.stringify({ url })
+    // });
+    // const data = await response.json();
+    // return data.viewCount;
+    
+    console.log('조회수 스크래핑은 서버사이드에서 구현 필요');
+  };
+
   const exportToExcel = () => {
     // CSV 형식으로 내보내기
     const headers = ['제목', 'URL', '조회수', '마지막 확인', '발행일'];
@@ -245,6 +331,14 @@ export const NaverBlogManager: React.FC<NaverBlogManagerProps> = ({ supabase }) 
     return <span className="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-full">최신</span>;
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -258,6 +352,13 @@ export const NaverBlogManager: React.FC<NaverBlogManagerProps> = ({ supabase }) 
             <p className="text-gray-600 mt-1">네이버 블로그 발행 및 조회수를 관리합니다</p>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              데이터 가져오기
+            </button>
             <button
               onClick={exportToExcel}
               className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -580,6 +681,131 @@ export const NaverBlogManager: React.FC<NaverBlogManagerProps> = ({ supabase }) 
                   setViewCountInput('');
                 }}
                 className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 데이터 임포트 모달 */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4">네이버 블로그 데이터 가져오기</h3>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                엑셀에서 복사한 데이터를 아래에 붙여넣기 하세요. 
+                (탭으로 구분된 형식: 계정명, 작성자, 게시일, 제목, 글감, 링크, 조회수)
+              </p>
+              <textarea
+                value={importData}
+                onChange={(e) => setImportData(e.target.value)}
+                placeholder="계정명	작성자	게시일	포스팅 제목	글감	링크	조회수
+mas9golf	J	2025-05-30(금)	[사용자 리뷰]...	박영구 후기	https://blog.naver.com/...	9"
+                className="w-full h-64 px-3 py-2 border rounded-lg font-mono text-sm"
+              />
+            </div>
+
+            <div className="mt-6 flex gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    const lines = importData.trim().split('\n');
+                    const headers = lines[0].split('\t');
+                    
+                    // 헤더 확인
+                    if (headers.length < 7) {
+                      alert('데이터 형식이 올바르지 않습니다. 탭으로 구분된 7개 컬럼이 필요합니다.');
+                      return;
+                    }
+
+                    const dataRows = lines.slice(1).filter(line => line.trim());
+                    let successCount = 0;
+                    let errorCount = 0;
+
+                    for (const line of dataRows) {
+                      const cols = line.split('\t');
+                      if (cols.length < 7) continue;
+
+                      const [계정명, 작성자, 게시일, 제목, 글감, 링크, 조회수] = cols;
+                      
+                      try {
+                        // 날짜 파싱 (2025-05-30(금) -> 2025-05-30)
+                        const dateMatch = 게시일.match(/(\d{4}-\d{2}-\d{2})/);
+                        const publishDate = dateMatch ? dateMatch[1] : null;
+                        
+                        if (!publishDate) {
+                          console.error('날짜 파싱 실패:', 게시일);
+                          errorCount++;
+                          continue;
+                        }
+
+                        // 1. blog_contents에 데이터 추가
+                        const { data: contentData, error: contentError } = await supabase
+                          .from('blog_contents')
+                          .insert({
+                            title: 제목,
+                            content_type: 'blog',
+                            platform_id: (await supabase.from('blog_platforms').select('id').eq('type', 'naver').single()).data?.id,
+                            scheduled_date: publishDate,
+                            status: 'published',
+                            content: 글감
+                          })
+                          .select()
+                          .single();
+
+                        if (contentError) {
+                          console.error('콘텐츠 추가 오류:', contentError);
+                          errorCount++;
+                          continue;
+                        }
+
+                        // 2. naver_blog_posts에 데이터 추가
+                        const { error: postError } = await supabase
+                          .from('naver_blog_posts')
+                          .insert({
+                            blog_content_id: contentData.id,
+                            naver_blog_url: 링크,
+                            view_count: parseInt(조회수) || 0,
+                            published_at: publishDate,
+                            last_view_check: new Date()
+                          });
+
+                        if (postError) {
+                          console.error('네이버 포스트 추가 오류:', postError);
+                          errorCount++;
+                          continue;
+                        }
+
+                        successCount++;
+                      } catch (err) {
+                        console.error('데이터 처리 오류:', err);
+                        errorCount++;
+                      }
+                    }
+
+                    await loadAllData();
+                    setShowImportModal(false);
+                    setImportData('');
+                    alert(`임포트 완료! 성공: ${successCount}개, 실패: ${errorCount}개`);
+                  } catch (error) {
+                    console.error('임포트 오류:', error);
+                    alert('데이터 임포트 중 오류가 발생했습니다.');
+                  }
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                가져오기
+              </button>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportData('');
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 취소
               </button>
