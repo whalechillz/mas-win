@@ -8,6 +8,7 @@ import { BookingManagement } from '../components/admin/bookings/BookingManagemen
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
 import { CampaignPerformanceDashboard } from '../components/admin/dashboard/CampaignPerformanceDashboard';
 import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
+import { MarketingDashboard } from '../components/admin/marketing/MarketingDashboard';
 
 // 기존 로그인 컴포넌트와 아이콘 컴포넌트들은 그대로 유지...
 const LoginForm = ({ onLogin }) => {
@@ -171,6 +172,12 @@ const Megaphone = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
+const FileText = ({ className = "w-6 h-6" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
 // Supabase configuration
 const supabaseUrl = 'https://yyytjudftvpmcnppaymw.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
@@ -196,13 +203,17 @@ export default function AdminDashboard() {
 
   // 인증 체크
   useEffect(() => {
-    const checkAuth = () => {
-      const cookies = document.cookie.split(';');
-      const authCookie = cookies.find(cookie => cookie.trim().startsWith('admin_auth='));
-      if (authCookie && authCookie.split('=')[1] === '1') {
-        setIsAuthenticated(true);
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/admin-check-auth');
+        if (res.ok) {
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+      } finally {
+        setCheckingAuth(false);
       }
-      setCheckingAuth(false);
     };
     checkAuth();
   }, []);
@@ -228,6 +239,7 @@ export default function AdminDashboard() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    window.location.reload(); // 페이지 새로고침으로 쿠키 적용
   };
 
   // Initialize Supabase
@@ -410,15 +422,25 @@ export default function AdminDashboard() {
     setTimeout(() => setRefreshing(false), 500);
   };
 
-  const handleLogout = () => {
-    document.cookie = 'admin_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/admin-logout', {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setIsAuthenticated(false);
+        window.location.reload(); // 페이지 새로고침으로 middleware가 로그인 페이지로 리다이렉트
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
 
   // 탭 구성
   const tabs = [
     { id: 'overview', label: '대시보드', icon: Activity },
     { id: 'campaigns', label: '캠페인 관리', icon: Megaphone },
+    { id: 'marketing', label: '마케팅 콘텐츠', icon: FileText },
     { id: 'bookings', label: '예약 관리', icon: Calendar },
     { id: 'contacts', label: '문의 관리', icon: MessageSquare },
   ];
@@ -730,6 +752,10 @@ export default function AdminDashboard() {
               }}
             />
           </div>
+        )}
+
+        {activeTab === 'marketing' && (
+          <MarketingDashboard supabase={supabase} />
         )}
 
         {activeTab === 'bookings' && (

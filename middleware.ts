@@ -4,8 +4,9 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   // /admin 경로 체크
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    // admin-login 페이지는 제외
-    if (request.nextUrl.pathname === '/admin-login') {
+    // admin-login 페이지와 API 경로는 제외
+    if (request.nextUrl.pathname === '/admin-login' || 
+        request.nextUrl.pathname.startsWith('/api/')) {
       return NextResponse.next();
     }
     
