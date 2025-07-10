@@ -713,22 +713,55 @@ mas9golf	J	2025-05-30(금)	[사용자 리뷰]...	박영구 후기	https://blog.n
               <button
                 onClick={async () => {
                   try {
+                    console.log('임포트 시작...');
+                    console.log('입력된 데이터:', importData);
+                    
                     const lines = importData.trim().split('\n');
+                    console.log('총 라인 수:', lines.length);
+                    
                     const headers = lines[0].split('\t');
+                    console.log('헤더:', headers);
+                    console.log('헤더 개수:', headers.length);
                     
                     // 헤더 확인
                     if (headers.length < 7) {
-                      alert('데이터 형식이 올바르지 않습니다. 탭으로 구분된 7개 컬럼이 필요합니다.');
+                      alert(`데이터 형식이 올바르지 않습니다. 탭으로 구분된 7개 컬럼이 필요합니다. (현재: ${headers.length}개)`);
                       return;
                     }
 
+                    // 네이버 플랫폼 ID 먼저 가져오기
+                    const { data: platformData, error: platformError } = await supabase
+                      .from('blog_platforms')
+                      .select('id')
+                      .eq('type', 'naver')
+                      .single();
+                    
+                    if (platformError || !platformData) {
+                      console.error('네이버 플랫폼 조회 실패:', platformError);
+                      alert('네이버 플랫폼을 찾을 수 없습니다. blog_platforms 테이블을 확인해주세요.');
+                      return;
+                    }
+                    
+                    console.log('네이버 플랫폼 ID:', platformData.id);
+
                     const dataRows = lines.slice(1).filter(line => line.trim());
+                    console.log('데이터 행 수:', dataRows.length);
+                    
                     let successCount = 0;
                     let errorCount = 0;
+                    const errors = [];
 
-                    for (const line of dataRows) {
+                    for (let i = 0; i < dataRows.length; i++) {
+                      const line = dataRows[i];
                       const cols = line.split('\t');
-                      if (cols.length < 7) continue;
+                      
+                      console.log(`행 ${i + 1}: 컬럼 수 = ${cols.length}`);
+                      
+                      if (cols.length < 7) {
+                        console.error(`행 ${i + 1}: 컬럼 수 부족 (${cols.length}개)`);
+                        errorCount++;
+                        continue;
+                      }
 
                       const [계정명, 작성자, 게시일, 제목, 글감, 링크, 조회수] = cols;
                       
@@ -738,62 +771,89 @@ mas9golf	J	2025-05-30(금)	[사용자 리뷰]...	박영구 후기	https://blog.n
                         const publishDate = dateMatch ? dateMatch[1] : null;
                         
                         if (!publishDate) {
-                          console.error('날짜 파싱 실패:', 게시일);
+                          console.error(`행 ${i + 1}: 날짜 파싱 실패:`, 게시일);
+                          errors.push(`행 ${i + 1}: 날짜 형식 오류`);
                           errorCount++;
                           continue;
                         }
+
+                        console.log(`행 ${i + 1}: 처리 중... 제목: ${제목}`);
 
                         // 1. blog_contents에 데이터 추가
                         const { data: contentData, error: contentError } = await supabase
                           .from('blog_contents')
                           .insert({
-                            title: 제목,
+                            title: 제목.trim(),
                             content_type: 'blog',
-                            platform_id: (await supabase.from('blog_platforms').select('id').eq('type', 'naver').single()).data?.id,
+                            platform_id: platformData.id,
                             scheduled_date: publishDate,
                             status: 'published',
-                            content: 글감
+                            content: 글감.trim()
                           })
                           .select()
                           .single();
 
                         if (contentError) {
-                          console.error('콘텐츠 추가 오류:', contentError);
+                          console.error(`행 ${i + 1}: 콘텐츠 추가 오류:`, contentError);
+                          errors.push(`행 ${i + 1}: ${contentError.message}`);
                           errorCount++;
                           continue;
                         }
+
+                        console.log(`행 ${i + 1}: blog_contents 추가 성공, ID:`, contentData.id);
 
                         // 2. naver_blog_posts에 데이터 추가
                         const { error: postError } = await supabase
                           .from('naver_blog_posts')
                           .insert({
                             blog_content_id: contentData.id,
-                            naver_blog_url: 링크,
+                            naver_blog_url: 링크.trim(),
                             view_count: parseInt(조회수) || 0,
                             published_at: publishDate,
                             last_view_check: new Date()
                           });
 
                         if (postError) {
-                          console.error('네이버 포스트 추가 오류:', postError);
+                          console.error(`행 ${i + 1}: 네이버 포스트 추가 오류:`, postError);
+                          errors.push(`행 ${i + 1}: ${postError.message}`);
+                          
+                          // blog_contents 롤백
+                          await supabase
+                            .from('blog_contents')
+                            .delete()
+                            .eq('id', contentData.id);
+                          
                           errorCount++;
                           continue;
                         }
 
+                        console.log(`행 ${i + 1}: 성공적으로 임포트됨`);
                         successCount++;
                       } catch (err) {
-                        console.error('데이터 처리 오류:', err);
+                        console.error(`행 ${i + 1}: 처리 중 예외 발생:`, err);
+                        errors.push(`행 ${i + 1}: ${err.message}`);
                         errorCount++;
                       }
+                    }
+
+                    console.log('임포트 완료:', { successCount, errorCount });
+                    
+                    if (errors.length > 0) {
+                      console.error('오류 목록:', errors);
                     }
 
                     await loadAllData();
                     setShowImportModal(false);
                     setImportData('');
-                    alert(`임포트 완료! 성공: ${successCount}개, 실패: ${errorCount}개`);
+                    
+                    if (errorCount > 0) {
+                      alert(`임포트 완료!\n성공: ${successCount}개\n실패: ${errorCount}개\n\n자세한 오류는 콘솔을 확인하세요.`);
+                    } else {
+                      alert(`임포트 완료! 모든 ${successCount}개 항목이 성공적으로 추가되었습니다.`);
+                    }
                   } catch (error) {
-                    console.error('임포트 오류:', error);
-                    alert('데이터 임포트 중 오류가 발생했습니다.');
+                    console.error('임포트 전체 오류:', error);
+                    alert('데이터 임포트 중 오류가 발생했습니다. 콘솔을 확인해주세요.');
                   }
                 }}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
