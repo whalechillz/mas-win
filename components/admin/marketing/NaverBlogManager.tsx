@@ -807,7 +807,9 @@ mas9golf	J	2025-05-30(금)	[사용자 리뷰]...	박영구 후기	https://blog.n
                             platform_id: platformData.id,
                             scheduled_date: publishDate,
                             status: 'published',
-                            content: 글감.trim()
+                            content: 글감.trim(),
+                            // 작성자 정보 추가 (주석 처리 - 필드가 있다면 주석 해제)
+                            // author: 작성자.trim()
                           })
                           .select()
                           .single();
