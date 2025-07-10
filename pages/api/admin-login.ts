@@ -17,7 +17,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   });
   
   if (username === ADMIN_USER && password === ADMIN_PASS) {
-    res.setHeader('Set-Cookie', `admin_auth=1; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+    // 프로덕션 환경에서는 Secure 추가
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = [
+      'admin_auth=1',
+      'Path=/',
+      'HttpOnly',
+      'SameSite=Lax',
+      'Max-Age=604800', // 7일로 연장
+      isProduction ? 'Secure' : ''
+    ].filter(Boolean).join('; ');
+    
+    res.setHeader('Set-Cookie', cookieOptions);
     return res.status(200).json({ success: true });
   }
   
