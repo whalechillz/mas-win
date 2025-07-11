@@ -33,44 +33,46 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">MASGOLF Admin</h1>
-            <p className="text-gray-600 mt-2">관리자 로그인</p>
+            <h1 className="text-4xl font-bold text-white mb-2">MASGOLF Admin</h1>
+            <p className="text-purple-200">세계 최고의 마케팅 대시보드</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white/80 mb-2">
                 아이디
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur"
+                placeholder="관리자 아이디"
                 required
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white/80 mb-2">
                 비밀번호
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur"
+                placeholder="비밀번호"
                 required
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+              <div className="bg-red-500/20 backdrop-blur text-red-200 p-3 rounded-lg text-sm border border-red-500/30">
                 {error}
               </div>
             )}
@@ -78,7 +80,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center justify-center">
@@ -94,9 +96,24 @@ export default function AdminLogin() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
-            <p>로그인 정보는 관리자에게 문의하세요.</p>
+          <div className="mt-8 pt-6 border-t border-white/20">
+            <div className="text-center text-sm text-purple-200">
+              <p className="mb-2">🌟 세계 최고의 마케팅 팀을 위한 대시보드 🌟</p>
+              <p className="text-xs text-white/60">
+                관리자 전용 시스템 | 무단 접근 금지
+              </p>
+            </div>
           </div>
+        </div>
+
+        {/* 팀 멤버 로그인 링크 */}
+        <div className="mt-6 text-center">
+          <p className="text-white/60 text-sm">
+            팀 멤버이신가요?{' '}
+            <a href="/team-login" className="text-purple-300 hover:text-purple-200 underline">
+              팀 멤버 로그인
+            </a>
+          </p>
         </div>
       </div>
     </div>
