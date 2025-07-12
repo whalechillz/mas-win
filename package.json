@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@notionhq/client": "^4.0.1",
     "@supabase/supabase-js": "^2.39.3",
     "axios": "^1.6.5",
     "cookie": "^0.6.0",
