@@ -2,23 +2,23 @@ import React from 'react';
 
 const features = [
   {
-    title: "R&A 인증 고반발",
-    description: "영국 왕립 골프협회가 인정한 최고 성능의 고반발 드라이버",
+    title: "R&A 공식 비공인",
+    description: "영국 왕립 골프협회가 경계할 정도로 강력한 반발력",
     icon: "🏆"
   },
   {
-    title: "33.33% 얇은 페이스",
-    description: "일본 JFE사 티타늄 사용, 일반 드라이버보다 33.33% 얇고 강력한 탄성",
+    title: "시니어 최적화 설계",
+    description: "느려진 스윙에도 최대 반발력을 내는 2.2mm 초박형 페이스",
     icon: "💪"
   },
   {
-    title: "+30m 비거리 증가",
-    description: "한 번의 시타로 비거리 30m 증가를 직접 체험할 수 있습니다",
+    title: "즉각적인 비거리 회복",
+    description: "첨 시타부터 체감하는 30m 이상의 비거리 증가",
     icon: "🚀"
   },
   {
-    title: "한정 생산",
-    description: "엄격한 품질관리로 한정 생산되는 프리미엄 제품",
+    title: "일본 장인정신",
+    description: "40년 전통 골프스튜디오에서 한정 제작",
     icon: "💎"
   }
 ];

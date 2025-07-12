@@ -22,6 +22,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <a href="#features" className="text-gray-700 hover:text-black">
                 기술력
               </a>
+              <a href="#reviews" className="text-gray-700 hover:text-black">
+                고객후기
+              </a>
               <a href="#contact" className="text-gray-700 hover:text-black">
                 문의하기
               </a>

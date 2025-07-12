@@ -6,28 +6,29 @@ export default function Hero() {
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* 배경 */}
       <div className="absolute inset-0 z-0">
-        {/* 그라데이션 배경 */}
-        <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
-        
-        {/* 골프 패턴 오버레이 */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="h-full w-full" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}></div>
-        </div>
+        {/* 실제 이미지 사용 */}
+        <img 
+          src="/assets/campaigns/2025-07/hero-summer-golf-mas-wide.jpg" 
+          alt="MASGOLF Summer Campaign"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
       </div>
       
       {/* 콘텐츠 */}
       <div className="relative z-10 text-center text-white px-4">
+        <p className="text-xl md:text-2xl mb-4 text-yellow-400 animate-fade-in">
+          시니어 골퍼를 위한 특별한 선택
+        </p>
         <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-          드라이버 하나 바꿨을 뿐인데
+          나이가 들수록 비거리는
         </h1>
-        <p className="text-3xl md:text-4xl font-bold text-yellow-400 mb-4 animate-fade-in-delay">
-          캐리 200m 넘김
+        <p className="text-3xl md:text-4xl font-bold text-yellow-400 mb-8 animate-fade-in-delay">
+          더 멀리 나가야 합니다
         </p>
         <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto animate-fade-in-delay">
-          영국 왕립 골프협회(R&A)가 두려워한 비밀병기<br/>
-          일반 드라이버보다 33.33% 얇고 강력한 티타늄
+          스윙 스피드가 느려져도 괜찮습니다<br/>
+          초박형 2.2mm 페이스가 젊은 날의 비거리를 돌려드립니다
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay-2">
           <Link 
@@ -44,7 +45,7 @@ export default function Hero() {
           </a>
         </div>
         <p className="mt-6 text-lg opacity-90 animate-fade-in-delay-2">
-          +30m 비거리, 진짜 고수들은 드라이버부터 바꿨다
+          50대, 60대, 70대... 나이는 숫자에 불과합니다
         </p>
       </div>
       

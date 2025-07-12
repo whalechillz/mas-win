@@ -7,7 +7,7 @@ const products = [
     name: "시크릿포스 GOLD 2",
     category: "프리미엄 드라이버",
     price: "1,890,000원",
-    bgColor: "bg-gradient-to-br from-yellow-600 to-yellow-800",
+    image: "/assets/product/titanium_club_face_1200x800.jpg",
     slug: "secret-force-gold-2",
     badge: "BEST"
   },
@@ -16,7 +16,7 @@ const products = [
     name: "시크릿포스 PRO 3",
     category: "고반발 드라이버",
     price: "1,590,000원",
-    bgColor: "bg-gradient-to-br from-gray-700 to-gray-900",
+    image: "/assets/campaigns/2025-07/secret-force-pro3.jpg",
     slug: "secret-force-pro-3"
   },
   {
@@ -24,7 +24,7 @@ const products = [
     name: "시크릿웨폰 블랙",
     category: "투어 드라이버",
     price: "1,390,000원",
-    bgColor: "bg-gradient-to-br from-black to-gray-800",
+    image: "/assets/campaigns/2025-07/secret-weapon-black.jpg",
     slug: "secret-weapon-black"
   }
 ];
@@ -46,19 +46,17 @@ export default function Products() {
               className="group"
             >
               <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all">
-                <div className={`h-64 ${product.bgColor} flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative`}>
+                <div className="relative h-64 overflow-hidden group">
                   {product.badge && (
-                    <span className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <span className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
                       {product.badge}
                     </span>
                   )}
-                  <div className="text-white text-center">
-                    <svg className="w-24 h-24 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6l4 2"/>
-                    </svg>
-                    <p className="text-4xl font-bold opacity-20">MASGOLF</p>
-                  </div>
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
                 <div className="p-6">
                   <p className="text-sm text-gray-500 mb-2">{product.category}</p>
