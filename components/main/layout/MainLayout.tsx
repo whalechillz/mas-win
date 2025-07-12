@@ -1,0 +1,81 @@
+import React from 'react';
+import Link from 'next/link';
+
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function MainLayout({ children }: MainLayoutProps) {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* 네비게이션 */}
+      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="text-2xl font-bold text-gray-900">
+              MASGOLF
+            </Link>
+            <div className="hidden md:flex space-x-8">
+              <Link href="/main/products" className="text-gray-700 hover:text-black">
+                제품
+              </Link>
+              <Link href="/main/about" className="text-gray-700 hover:text-black">
+                브랜드
+              </Link>
+              <Link href="/main/contact" className="text-gray-700 hover:text-black">
+                문의
+              </Link>
+              <Link href="/funnel-2025-07" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                7월 특가
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
+      {/* 메인 콘텐츠 */}
+      <main className="pt-16">
+        {children}
+      </main>
+      
+      {/* 푸터 */}
+      <footer className="bg-gray-900 text-white mt-20">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-bold mb-4">MASGOLF</h3>
+              <p className="text-gray-400">프리미엄 골프 클럽의 새로운 기준</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">제품</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/main/products/driver">드라이버</Link></li>
+                <li><Link href="/main/products/iron">아이언</Link></li>
+                <li><Link href="/main/products/putter">퍼터</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">고객지원</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/main/contact">문의하기</Link></li>
+                <li><Link href="/main/warranty">품질보증</Link></li>
+                <li><Link href="/main/stores">매장안내</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">연락처</h4>
+              <p className="text-gray-400">
+                전화: 1588-1234<br/>
+                이메일: info@masgolf.co.kr<br/>
+                평일 09:00 - 18:00
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 MASGOLF. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

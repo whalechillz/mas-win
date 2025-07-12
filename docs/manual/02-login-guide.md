@@ -32,7 +32,7 @@ MASGOLF 시스템은 **2가지 계정 체계**를 운영합니다:
     <td align="center">
       <img src="https://img.shields.io/badge/팀_멤버-3B82F6?style=flat-square&logo=users&logoColor=white" alt="Team">
     </td>
-    <td>제이, 스테피, 나부장, 허상원</td>
+    <td>슈퍼바이저, 제이, 스테피, 나부장, 허상원</td>
     <td><code>/team-login</code></td>
     <td>콘텐츠 작성/관리</td>
   </tr>
@@ -98,23 +98,33 @@ MASGOLF 시스템은 **2가지 계정 체계**를 운영합니다:
     <th>팀 멤버</th>
     <th>이메일 주소</th>
     <th>초기 비밀번호</th>
+    <th>역할</th>
+  </tr>
+  <tr>
+    <td>슈퍼바이저</td>
+    <td>taksoo.kim@gmail.com</td>
+    <td rowspan="5" align="center"><code>1234</code></td>
+    <td>총괄 관리</td>
   </tr>
   <tr>
     <td>제이</td>
-    <td>mas9golf7@gmail.com</td>
-    <td rowspan="4" align="center"><code>1234</code></td>
+    <td>mas9golf2@gmail.com</td>
+    <td>매니저</td>
   </tr>
   <tr>
     <td>스테피</td>
     <td>mas9golf3@gmail.com</td>
+    <td>스태프</td>
   </tr>
   <tr>
     <td>나부장</td>
-    <td>singingstour@gmail.com</td>
+    <td>singsingstour@gmail.com</td>
+    <td>매니저</td>
   </tr>
   <tr>
     <td>허상원</td>
-    <td>koolsangwon@gmail.com</td>
+    <td>mas9golf@gmail.com</td>
+    <td>스태프</td>
   </tr>
 </table>
 
@@ -159,7 +169,7 @@ MASGOLF 시스템은 **2가지 계정 체계**를 운영합니다:
 
 ### 비밀번호를 잊어버렸을 때
 
-- 관리자에게 문의하여 비밀번호 초기화 요청
+- 슈퍼바이저(taksoo.kim@gmail.com)에게 문의하여 비밀번호 초기화 요청
 - 팀 멤버는 초기 비밀번호(1234)로 재설정 가능
 
 ---

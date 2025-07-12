@@ -107,7 +107,7 @@ export default function Manual() {
                     <tbody>
                       <tr className="border-b">
                         <td className="p-2">제이</td>
-                        <td className="p-2">mas9golf7@gmail.com</td>
+                        <td className="p-2">mas9golf2@gmail.com</td>
                       </tr>
                       <tr className="border-b">
                         <td className="p-2">스테피</td>
@@ -115,11 +115,15 @@ export default function Manual() {
                       </tr>
                       <tr className="border-b">
                         <td className="p-2">나부장</td>
-                        <td className="p-2">singingstour@gmail.com</td>
+                        <td className="p-2">singsingstour@gmail.com</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-2">허상원</td>
+                        <td className="p-2">mas9golf@gmail.com</td>
                       </tr>
                       <tr>
-                        <td className="p-2">허상원</td>
-                        <td className="p-2">koolsangwon@gmail.com</td>
+                        <td className="p-2">슈퍼바이저</td>
+                        <td className="p-2">taksoo.kim@gmail.com</td>
                       </tr>
                     </tbody>
                   </table>

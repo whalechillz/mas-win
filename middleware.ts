@@ -1,28 +1,46 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // /admin 경로 체크
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    // admin-login 페이지와 API 경로는 제외
-    if (request.nextUrl.pathname === '/admin-login' || 
-        request.nextUrl.pathname.startsWith('/api/')) {
-      return NextResponse.next();
-    }
-    
-    // 쿠키에서 인증 정보 확인
-    const auth = request.cookies.get('admin_auth');
-    
-    // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-    if (!auth || auth.value !== '1') {
-      const loginUrl = new URL('/admin-login', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
+  const hostname = request.headers.get('host') || ''
+  const pathname = request.nextUrl.pathname
+  
+  // 정적 파일과 API 라우트는 제외
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/static') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next()
   }
   
-  return NextResponse.next();
+  // 도메인별 라우팅
+  if (hostname.includes('www.masgolf.co.kr') || hostname.includes('masgolf.co.kr')) {
+    // www가 없으면 www로 리다이렉트
+    if (!hostname.includes('www.')) {
+      return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`)
+    }
+    return NextResponse.rewrite(new URL(`/main${pathname}`, request.url))
+  }
+  
+  if (hostname.includes('admin.masgolf.co.kr')) {
+    return NextResponse.rewrite(new URL(`/admin${pathname}`, request.url))
+  }
+  
+  // win.masgolf.co.kr는 기본 라우트 사용
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: '/admin/:path*'
-};
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+}
