@@ -31,7 +31,7 @@ const products = [
 
 export default function Products() {
   return (
-    <section className="py-20">
+    <section id="products" className="py-20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">고반발 드라이버 커렉션</h2>
@@ -42,7 +42,7 @@ export default function Products() {
           {products.map((product) => (
             <Link 
               key={product.id}
-              href={`/main/products/${product.slug}`}
+              href="/funnel-2025-07"
               className="group"
             >
               <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all">
@@ -72,10 +72,10 @@ export default function Products() {
         
         <div className="text-center mt-12">
           <Link 
-            href="/main/products" 
+            href="/funnel-2025-07" 
             className="inline-block bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition"
           >
-            모든 제품 보기
+            무료 시타 신청하기
           </Link>
         </div>
       </div>

@@ -16,18 +16,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
               MASGOLF
             </Link>
             <div className="hidden md:flex space-x-8">
-              <Link href="/main/products" className="text-gray-700 hover:text-black">
+              <a href="#products" className="text-gray-700 hover:text-black">
                 드라이버
-              </Link>
-              <Link href="/main/technology" className="text-gray-700 hover:text-black">
+              </a>
+              <a href="#features" className="text-gray-700 hover:text-black">
                 기술력
-              </Link>
-              <Link href="/main/reviews" className="text-gray-700 hover:text-black">
-                고객후기
-              </Link>
-              <Link href="/main/contact" className="text-gray-700 hover:text-black">
-                매장안내
-              </Link>
+              </a>
+              <a href="#contact" className="text-gray-700 hover:text-black">
+                문의하기
+              </a>
               <Link href="/funnel-2025-07" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                 무료 시타
               </Link>
@@ -55,17 +52,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <div>
               <h4 className="font-semibold mb-3">제품</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/main/products/gold">골드 드라이버</Link></li>
-                <li><Link href="/main/products/black">블랙 드라이버</Link></li>
-                <li><Link href="/main/products/women">여성용 드라이버</Link></li>
+                <li><a href="#products">골드 드라이버</a></li>
+                <li><a href="#products">블랙 드라이버</a></li>
+                <li><a href="#products">여성용 드라이버</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-3">고객지원</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/main/contact">매장안내</Link></li>
-                <li><Link href="/main/warranty">A/S 안내</Link></li>
-                <li><Link href="/main/reviews">고객후기</Link></li>
+                <li><a href="#contact">문의하기</a></li>
+                <li><Link href="/funnel-2025-07">A/S 안내</Link></li>
+                <li><Link href="/funnel-2025-07">고객후기</Link></li>
               </ul>
             </div>
             <div>

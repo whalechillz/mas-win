@@ -36,12 +36,12 @@ export default function Hero() {
           >
             무료 시타 신청하기
           </Link>
-          <Link 
-            href="/main/products" 
+          <a 
+            href="#products" 
             className="bg-white text-black px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition"
           >
             제품 둘러보기
-          </Link>
+          </a>
         </div>
         <p className="mt-6 text-lg opacity-90 animate-fade-in-delay-2">
           +30m 비거리, 진짜 고수들은 드라이버부터 바꿨다
