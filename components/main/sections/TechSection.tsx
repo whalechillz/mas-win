@@ -18,27 +18,27 @@ export default function TechSection() {
             />
           </div>
           <div>
-            <h3 className="text-2xl font-bold mb-6">왜 얇은 페이스가 중요한가?</h3>
+            <h3 className="text-2xl font-bold mb-6">티타늄 소재의 차이</h3>
             <ul className="space-y-4">
               <li className="flex items-start">
                 <span className="text-red-600 font-bold text-xl mr-3">✓</span>
                 <div>
-                  <h4 className="font-semibold mb-1">탄성 에너지 극대화</h4>
-                  <p className="text-gray-600">얇은 페이스는 임팩트 시 더 많이 휘어져 강력한 반발력 생성</p>
+                  <h4 className="font-semibold mb-1">DAT55G+ Grade 5 (시크릿포스 GOLD 2)</h4>
+                  <p className="text-gray-600">최고급 항공우주용 티타늄. 최상의 탄성과 내구성으로 2.2mm 초박형 페이스 구현 가능</p>
                 </div>
               </li>
               <li className="flex items-start">
                 <span className="text-red-600 font-bold text-xl mr-3">✓</span>
                 <div>
-                  <h4 className="font-semibold mb-1">스윗스팟 확대</h4>
-                  <p className="text-gray-600">페이스 전체가 고르게 휘어져 미스샷에도 안정적인 비거리</p>
+                  <h4 className="font-semibold mb-1">SP700 Grade 5 (시크릿웨폰 블랙)</h4>
+                  <p className="text-gray-600">특수 가공 티타늄. 블랙 PVD 코팅과 결합하여 프리미엄 비주얼과 성능 제공</p>
                 </div>
               </li>
               <li className="flex items-start">
                 <span className="text-red-600 font-bold text-xl mr-3">✓</span>
                 <div>
-                  <h4 className="font-semibold mb-1">일본 JFE사 프리미엄 티타늄</h4>
-                  <p className="text-gray-600">항공우주급 소재로 내구성과 탄성을 동시에 확보</p>
+                  <h4 className="font-semibold mb-1">DAT55G (시크릿포스 PRO 3, V3)</h4>
+                  <p className="text-gray-600">고강도 티타늄. 안정적인 성능과 내구성으로 일반 골퍼에게 최적</p>
                 </div>
               </li>
             </ul>

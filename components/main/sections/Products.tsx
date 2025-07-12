@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import products from '../../lib/products';
+import products from '../../../lib/products';
 
 export default function Products() {
   return (
