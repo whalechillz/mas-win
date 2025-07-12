@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import FloatingCTA from '../FloatingCTA';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -82,6 +83,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </div>
         </div>
       </footer>
+      
+      {/* Floating CTA */}
+      <FloatingCTA />
     </div>
   );
 }

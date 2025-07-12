@@ -4,7 +4,9 @@ import MainLayout from '../../components/main/layout/MainLayout';
 import Hero from '../../components/main/sections/Hero';
 import Features from '../../components/main/sections/Features';
 import TechSection from '../../components/main/sections/TechSection';
+import CorExplain from '../../components/main/sections/CorExplain';
 import Products from '../../components/main/sections/Products';
+import FamilyStory from '../../components/main/sections/FamilyStory';
 import Reviews from '../../components/main/sections/Reviews';
 import Contact from '../../components/main/sections/Contact';
 
@@ -25,7 +27,9 @@ export default function MainHome() {
         <Hero />
         <Features />
         <TechSection />
+        <CorExplain />
         <Products />
+        <FamilyStory />
         <Reviews />
         <Contact />
       </MainLayout>
