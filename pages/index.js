@@ -1,14 +1,9 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
-
 export default function Home() {
-  const router = useRouter();
+  // 7월 캠페인 HTML로 직접 리다이렉트
+  if (typeof window !== 'undefined') {
+    window.location.href = '/versions/funnel-2025-07-complete.html';
+  }
   
-  useEffect(() => {
-    // 7월 퍼널 페이지로 직접 리다이렉트
-    router.push('/funnel-2025-07');
-  }, [router]);
-
   return (
     <div style={{ 
       display: 'flex', 
