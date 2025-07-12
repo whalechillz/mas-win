@@ -1,50 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-
-const products = [
-  {
-    id: 1,
-    name: "시크릿포스 GOLD 2",
-    category: "프리미엄 드라이버",
-    price: "1,700,000원",
-    originalPrice: "1,890,000원",
-    image: "/assets/product/titanium_club_face_1200x800.jpg",
-    slug: "secret-force-gold-2",
-    badge: "BEST",
-    features: ["티타늄 6-4Ti", "2.2mm 초박형 페이스", "COR 0.87"]
-  },
-  {
-    id: 2,
-    name: "시크릿포스 PRO 3",
-    category: "고반발 드라이버",
-    price: "1,150,000원",
-    originalPrice: "1,290,000원",
-    image: "/assets/campaigns/2025-07/secret-force-pro3.jpg",
-    slug: "secret-force-pro-3",
-    features: ["티타늄 6AL-4V", "2.3mm 페이스", "COR 0.85"]
-  },
-  {
-    id: 3,
-    name: "시크릿포스 V3",
-    category: "투어 드라이버",
-    price: "950,000원",
-    originalPrice: "1,090,000원",
-    image: "/assets/campaigns/2025-07/secret-force-v3.jpg",
-    slug: "secret-force-v3",
-    features: ["티타늄 Ti-5", "2.4mm 페이스", "COR 0.83"]
-  },
-  {
-    id: 4,
-    name: "시크릿웨폰 블랙",
-    category: "프리미엄 리미티드",
-    price: "1,700,000원",
-    originalPrice: "1,890,000원",
-    image: "/assets/campaigns/2025-07/secret-weapon-black.jpg",
-    slug: "secret-weapon-black",
-    badge: "LIMITED",
-    features: ["블랙 PVD 코팅", "2.2mm 초박형 페이스", "COR 0.87"]
-  }
-];
+import products from '../../lib/products';
 
 export default function Products() {
   return (
