@@ -36,16 +36,6 @@ const products = [
     slug: "secret-weapon-black",
     badge: "LIMITED",
     features: ["SP700 Grade 5 티타늄", "2.2mm 초박형 페이스", "COR 0.87"]
-  },
-  {
-    id: 5,
-    name: "시크릿웨폰 4.1",
-    category: "프리미엄 드라이버",
-    price: "1,700,000원",
-    image: "/products/secret-weapon-4-1.jpg",
-    slug: "secret-weapon-4-1",
-    badge: "NEW",
-    features: ["티타늄", "2.2mm 초박형 페이스", "COR 0.87"]
   }
 ];
 
