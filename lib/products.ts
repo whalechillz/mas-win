@@ -5,7 +5,7 @@ const products = [
     category: "프리미엄 드라이버",
     price: "1,700,000원",
     originalPrice: "1,890,000원",
-    image: "/products/secret-force-gold-2.svg", // 새 이미지 경로
+    image: "/products/secret-force-gold-2.jpg", // 새 이미지 경로
     slug: "secret-force-gold-2",
     badge: "BEST",
     features: ["DAT55G+ Grade 5 티타늄", "2.2mm 초박형 페이스", "COR 0.87"]
