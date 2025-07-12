@@ -17,16 +17,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
             </Link>
             <div className="hidden md:flex space-x-8">
               <Link href="/main/products" className="text-gray-700 hover:text-black">
-                제품
+                드라이버
               </Link>
-              <Link href="/main/about" className="text-gray-700 hover:text-black">
-                브랜드
+              <Link href="/main/technology" className="text-gray-700 hover:text-black">
+                기술력
+              </Link>
+              <Link href="/main/reviews" className="text-gray-700 hover:text-black">
+                고객후기
               </Link>
               <Link href="/main/contact" className="text-gray-700 hover:text-black">
-                문의
+                매장안내
               </Link>
               <Link href="/funnel-2025-07" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-                7월 특가
+                무료 시타
               </Link>
             </div>
           </div>
@@ -44,30 +47,33 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-4">MASGOLF</h3>
-              <p className="text-gray-400">프리미엄 골프 클럽의 새로운 기준</p>
+              <p className="text-gray-400">
+                영국 왕립 골프협회(R&A) 인증<br/>
+                고반발 드라이버 전문 브랜드
+              </p>
             </div>
             <div>
               <h4 className="font-semibold mb-3">제품</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/main/products/driver">드라이버</Link></li>
-                <li><Link href="/main/products/iron">아이언</Link></li>
-                <li><Link href="/main/products/putter">퍼터</Link></li>
+                <li><Link href="/main/products/gold">골드 드라이버</Link></li>
+                <li><Link href="/main/products/black">블랙 드라이버</Link></li>
+                <li><Link href="/main/products/women">여성용 드라이버</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-3">고객지원</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/main/contact">문의하기</Link></li>
-                <li><Link href="/main/warranty">품질보증</Link></li>
-                <li><Link href="/main/stores">매장안내</Link></li>
+                <li><Link href="/main/contact">매장안내</Link></li>
+                <li><Link href="/main/warranty">A/S 안내</Link></li>
+                <li><Link href="/main/reviews">고객후기</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-3">연락처</h4>
               <p className="text-gray-400">
-                전화: 1588-1234<br/>
-                이메일: info@masgolf.co.kr<br/>
-                평일 09:00 - 18:00
+                전화: 080-028-8888<br/>
+                수원 매장: 경기도 수원시<br/>
+                평일 10:00 - 19:00
               </p>
             </div>
           </div>

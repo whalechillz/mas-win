@@ -2,24 +2,24 @@ import React from 'react';
 
 const features = [
   {
-    title: "최첨단 기술",
-    description: "AI 기반 설계와 공기역학 최적화로 완벽한 비거리와 정확성 실현",
+    title: "R&A 인증 고반발",
+    description: "영국 왕립 골프협회가 인정한 최고 성능의 고반발 드라이버",
+    icon: "🏆"
+  },
+  {
+    title: "33.33% 얇은 페이스",
+    description: "일본 JFE사 티타늄 사용, 일반 드라이버보다 33.33% 얇고 강력한 탄성",
+    icon: "💪"
+  },
+  {
+    title: "+30m 비거리 증가",
+    description: "한 번의 시타로 비거리 30m 증가를 직접 체험할 수 있습니다",
     icon: "🚀"
   },
   {
-    title: "프리미엄 소재",
-    description: "항공우주 등급 티타늄과 카본 파이버로 제작된 초경량 고강도 클럽",
+    title: "한정 생산",
+    description: "엄격한 품질관리로 한정 생산되는 프리미엄 제품",
     icon: "💎"
-  },
-  {
-    title: "맞춤 피팅",
-    description: "개인별 스윙 분석을 통한 완벽한 커스터마이징 서비스",
-    icon: "⚡"
-  },
-  {
-    title: "평생 보증",
-    description: "품질에 대한 자신감, MASGOLF 평생 품질 보증 프로그램",
-    icon: "🛡️"
   }
 ];
 
