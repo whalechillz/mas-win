@@ -41,44 +41,48 @@ export default function Manual() {
 
           {/* PDF 다운로드 */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-white hover:transform hover:scale-105 transition-all cursor-pointer"
-               onClick={() => window.location.href = '/docs/manual/MASGOLF_Manual_v1.pdf'}>
+               onClick={() => window.location.href = '/docs/manual/MASGOLF_Manual_v1.html'}>
             <div className="text-6xl mb-4 text-center">📄</div>
-            <h2 className="text-2xl font-bold mb-4 text-center">PDF 다운로드</h2>
-            <p className="text-center opacity-80">오프라인에서도 확인 가능</p>
+            <h2 className="text-2xl font-bold mb-4 text-center">HTML 다운로드</h2>
+            <p className="text-center opacity-80">브라우저에서 PDF로 인쇄 가능</p>
             <div className="mt-6 text-center">
               <span className="bg-white/20 px-4 py-2 rounded-full text-sm">인쇄 가능</span>
             </div>
           </div>
         </div>
 
-        {/* 노션 임베드 섹션 - 대체 방식으로 변경 */}
+        {/* 노션 임베드 섹션 - Notion2Site 사용 */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
           <h3 className="text-2xl font-bold text-white mb-6">📖 빠른 매뉴얼 보기</h3>
-          <div className="bg-white rounded-xl p-8" style={{ minHeight: '400px' }}>
-            <div className="text-center">
+          <div className="bg-white rounded-xl overflow-hidden" style={{ minHeight: '600px' }}>
+            {/* Notion2Site로 만든 URL로 교체하세요 */}
+            <iframe 
+              src="https://www.notion.so/22aaa1258b818081bdf4f2fe4d119dab"
+              style={{ width: '100%', height: '600px', border: 'none' }}
+              loading="lazy"
+            />
+            {/* 임베드가 안 될 경우 표시될 내용 */}
+            <div className="p-8 text-center" style={{ display: 'none' }}>
               <div className="text-6xl mb-4">📚</div>
               <h4 className="text-2xl font-bold text-gray-800 mb-4">MASGOLF 통합 매뉴얼</h4>
               <p className="text-gray-600 mb-6">노션에서 실시간으로 업데이트되는 매뉴얼을 확인하세요</p>
               
               <button 
                 onClick={() => window.open(NOTION_PAGE_URL, '_blank')}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 mb-6"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105"
               >
                 노션 매뉴얼 열기 →
               </button>
-              
-              <div className="text-left bg-gray-50 rounded-lg p-6 mt-6">
-                <h5 className="font-bold text-gray-800 mb-3">📋 매뉴얼 주요 내용:</h5>
-                <ul className="space-y-2 text-gray-700">
-                  <li className="flex items-center"><span className="mr-2">✅</span> 시스템 로그인 방법 (관리자/팀멤버)</li>
-                  <li className="flex items-center"><span className="mr-2">✅</span> 대시보드 사용법</li>
-                  <li className="flex items-center"><span className="mr-2">✅</span> 캠페인 생성 및 관리</li>
-                  <li className="flex items-center"><span className="mr-2">✅</span> 예약 및 상담 관리</li>
-                  <li className="flex items-center"><span className="mr-2">✅</span> 마케팅 분석 도구</li>
-                  <li className="flex items-center"><span className="mr-2">✅</span> 자주 묻는 질문(FAQ)</li>
-                </ul>
-              </div>
             </div>
+          </div>
+          
+          <div className="mt-4 text-center text-white/60 text-sm">
+            <p>💡 Tip: 노션 페이지가 보이지 않으면 
+              <a href="https://notion2.site" target="_blank" className="text-purple-300 hover:text-purple-200 underline">
+                Notion2Site
+              </a>
+              를 사용해 임베드 URL을 만들어보세요.
+            </p>
           </div>
         </div>
 
