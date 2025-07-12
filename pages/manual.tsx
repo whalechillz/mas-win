@@ -51,22 +51,34 @@ export default function Manual() {
           </div>
         </div>
 
-        {/* 노션 임베드 섹션 */}
+        {/* 노션 임베드 섹션 - 대체 방식으로 변경 */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
           <h3 className="text-2xl font-bold text-white mb-6">📖 빠른 매뉴얼 보기</h3>
-          <div className="bg-white rounded-xl overflow-hidden" style={{ height: '600px' }}>
-            {/* 노션 임베드 - 보안 문제로 안 될 수 있음 */}
-            <iframe 
-              src={NOTION_EMBED_URL}
-              style={{ width: '100%', height: '100%', border: 'none' }}
-              loading="lazy"
-              sandbox="allow-scripts allow-same-origin"
-            />
-          </div>
-          
-          {/* 임베드가 안 될 경우 대체 메시지 */}
-          <div className="mt-4 text-center text-white/60 text-sm">
-            <p>노션 페이지가 보이지 않으면 위의 "노션 매뉴얼" 버튼을 클릭해주세요.</p>
+          <div className="bg-white rounded-xl p-8" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-6xl mb-4">📚</div>
+              <h4 className="text-2xl font-bold text-gray-800 mb-4">MASGOLF 통합 매뉴얼</h4>
+              <p className="text-gray-600 mb-6">노션에서 실시간으로 업데이트되는 매뉴얼을 확인하세요</p>
+              
+              <button 
+                onClick={() => window.open(NOTION_PAGE_URL, '_blank')}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 mb-6"
+              >
+                노션 매뉴얼 열기 →
+              </button>
+              
+              <div className="text-left bg-gray-50 rounded-lg p-6 mt-6">
+                <h5 className="font-bold text-gray-800 mb-3">📋 매뉴얼 주요 내용:</h5>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-center"><span className="mr-2">✅</span> 시스템 로그인 방법 (관리자/팀멤버)</li>
+                  <li className="flex items-center"><span className="mr-2">✅</span> 대시보드 사용법</li>
+                  <li className="flex items-center"><span className="mr-2">✅</span> 캠페인 생성 및 관리</li>
+                  <li className="flex items-center"><span className="mr-2">✅</span> 예약 및 상담 관리</li>
+                  <li className="flex items-center"><span className="mr-2">✅</span> 마케팅 분석 도구</li>
+                  <li className="flex items-center"><span className="mr-2">✅</span> 자주 묻는 질문(FAQ)</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
