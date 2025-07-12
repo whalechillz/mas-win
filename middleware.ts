@@ -16,9 +16,15 @@ export function middleware(request: NextRequest) {
   }
   
   // 도메인별 라우팅
-  if (hostname.includes('www.masgolf.co.kr') || hostname.includes('masgolf.co.kr')) {
+  // win.masgolf.co.kr 체크를 먼저 해야 함
+  if (hostname.includes('win.masgolf.co.kr')) {
+    // win.masgolf.co.kr는 기본 라우트 사용
+    return NextResponse.next()
+  }
+  
+  if (hostname === 'www.masgolf.co.kr' || hostname === 'masgolf.co.kr') {
     // www가 없으면 www로 리다이렉트
-    if (!hostname.includes('www.')) {
+    if (hostname === 'masgolf.co.kr') {
       return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`)
     }
     return NextResponse.rewrite(new URL(`/main${pathname}`, request.url))
