@@ -1,20 +1,4 @@
-import { useEffect } from 'react';
-
 export default function Home() {
-  useEffect(() => {
-    // API fix 스크립트 동적 로드
-    const script = document.createElement('script');
-    script.src = '/api-fix.js';
-    script.async = true;
-    document.head.appendChild(script);
-    
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
-  }, []);
-
   return (
     <iframe
       src="/versions/funnel-2025-07-complete.html"
