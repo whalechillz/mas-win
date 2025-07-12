@@ -1470,10 +1470,34 @@
         
         
         const products = {
+            'premium-all': { 
+                name: '시크릿포스 GOLD 2', 
+                desc: '최고급 프리미엄 드라이버',
+                spec: 'DAT55G+ Grade 5 티타늄, 2.2mm 초박형 페이스',
+                feature: '최고급 항공우주용 티타늄으로 최상의 탄성과 내구성',
+                hookingDesc: '프리미엄의 차이를 경험하세요! 최고급 티타늄으로 30m 더 멀리.',
+                link: 'https://www.mas9golf.com/secret-force-gold-2',
+                image: '/products/secret-force-gold-2.svg',
+                faceThickness: '2.2mm',
+                cor: '0.87',
+                headVolume: '460cc',
+                shaft: 'NGS 프리미엄',
+                loftAngle: '9°/10°',
+                lieAngle: '59°',
+                weight: '280-295g',
+                kickPoint: 'Mid Low',
+                balance: 'D1/D0',
+                shaftFreq: '210-230 cpm',
+                ballSpeed: '50-55 m/s',
+                grip: '45/35',
+                length: '45.75"',
+                shaftFlex: 'R/SR/S',
+                material: 'DAT55G+ Grade 5 티타늄'
+            },
             'stability-distance': { 
                 name: '시크리트포스 PRO 3', 
                 desc: '안정적인 비거리 향상',
-                spec: '2.3mm 고반발 헤드',
+                spec: 'DAT55G 티타늄, 2.3mm 고반발 헤드',
                 feature: '완벽한 티샷을 위한 업그레이드된 반발력',
                 hookingDesc: '검도 27년차 고객님이 227m 달성! 당신의 안정적인 스윙에 25m를 더합니다.',
                 link: 'https://www.mas9golf.com/secret-force-pro-3',
@@ -1499,7 +1523,7 @@
             'stability-direction': { 
                 name: '시크리트웨폰 블랙', 
                 desc: '정확한 방향성',
-                spec: '2.2mm 고반발 페이스',
+                spec: 'SP700 Grade 5 티타늄, 2.2mm 고반발 페이스',
                 feature: '안정적인 저중심 설계와 맑고 청아한 타구음',
                 hookingDesc: '프로도 인정한 방향성! 페어웨이 안착률 89%의 비밀병기입니다.',
                 link: 'https://www.mas9golf.com/secret-weapon-black',
@@ -1524,7 +1548,7 @@
             'stability-comfort': { 
                 name: '시크리트포스 V3', 
                 desc: '편안한 스윙감',
-                spec: '2.4mm 초강력 페이스',
+                spec: 'DAT55G 티타늄, 2.4mm 초강력 페이스',
                 feature: '한계를 넘는 비거리 혁신',
                 hookingDesc: 'V2 사용자 98%가 V3로 업그레이드! 더 편하고 더 멀리 날아갑니다.',
                 link: 'https://www.mas9golf.com/secret-force-v3',
@@ -1745,7 +1769,13 @@
             const flexRecommendation = recommendFlexByDistance(quizData.distance);
             
             // 추천 제품 결정
-            const productKey = `${quizData.style}-${quizData.priority}`;
+            let productKey = `${quizData.style}-${quizData.priority}`;
+            
+            // 파워형 + 비거리 선택 시 GOLD 2 추천
+            if (quizData.style === 'power' && quizData.priority === 'distance' && quizData.distance >= 220) {
+                productKey = 'premium-all';
+            }
+            
             const product = products[productKey];
             
             // 제품에 추천 플렉스 정보 추가
