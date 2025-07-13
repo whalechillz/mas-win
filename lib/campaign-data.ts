@@ -42,7 +42,7 @@ export const campaignsData: Campaign[] = [
     files: {
       landingPage: "/versions/funnel-2025-07-complete.html",
       landingPageUrl: "/funnel-2025-07",
-      opManual: "/docs/july-campaign-op-manual.md",
+      opManual: "/op-manual-2025-07.html",
       googleAds: "https://ads.google.com/aw/campaigns?campaignId=22712889806"
     },
     settings: {
