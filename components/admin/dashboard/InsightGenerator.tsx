@@ -10,8 +10,29 @@ interface InsightGeneratorProps {
 export function InsightGenerator({ campaigns, bookings, contacts }: InsightGeneratorProps) {
   const insights = useMemo(() => {
     const activeCampaigns = campaigns.filter(c => c.status === 'active');
+    const activeCampaignData = campaigns.filter(c => c.id === '2025-07' && c.metrics.bookings > 0);
     const totalBookings = bookings.length;
     const totalContacts = contacts.length;
+    
+    // 데이터가 충분히 없으면 기본 인사이트만 표시
+    if (totalBookings < 10 && totalContacts < 10) {
+      return [
+        {
+          type: 'info',
+          title: '데이터 수집 중',
+          content: '충분한 데이터가 수집되면 더 정확한 AI 인사이트를 제공해드리겠습니다.',
+          color: 'blue'
+        },
+        {
+          type: 'campaign',
+          title: '현재 진행 중인 캠페인',
+          content: activeCampaignData.length > 0 
+            ? `"${activeCampaignData[0].name}"이 ${activeCampaignData[0].metrics.bookings}건의 예약을 달성했습니다.`
+            : '현재 활성 캠페인의 성과를 모니터링하고 있습니다.',
+          color: 'green'
+        }
+      ];
+    }
     
     // 시간대별 분석
     const hourlyContacts = contacts.reduce((acc, contact) => {

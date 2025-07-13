@@ -2,19 +2,24 @@
 
 ## 2025년 7월 (실제 날짜: 2025년 1월)
 
-### 2025-07-14 (월) - 캠페인 데이터 업데이트
+### 2025-07-14 (월) - 캠페인 데이터 업데이트 및 버그 수정
 - **작업**: 5월/6월 캠페인 데이터 초기화 및 7월 캠페인 현황 업데이트
 - **이유**: 5월/6월 캠페인은 예약, 문의, 조회수, 전환율을 체크하지 않음
 - **변경 사항**:
   - 5월, 6월 캠페인 모든 데이터 '-' 표시
   - 7월 캠페인 남은 인원: 11명 (7월 14일 기준)
-  - 전체 성과 요약에서 5월/6월 데이터 제외
+  - 예상 매출 계산 오류 수정 (87억 → 0.87억)
+  - ROI 계산 현실화 (+1900% → +256%)
+  - AI 인사이트 현실화
+  - CPA 표시 수정 (65만원 → 5만원)
 - **수정 파일**:
   - `/lib/campaign-data.ts`
   - `/components/admin/dashboard/CampaignPerformanceDashboard.tsx`
   - `/components/admin/campaigns/UnifiedCampaignManager.tsx`
+  - `/components/admin/dashboard/InsightGenerator.tsx`
 - **작성 문서**:
   - `/CAMPAIGN_STATUS_UPDATE_20250714.md`
+  - `/CAMPAIGN_DATA_FIX_REPORT_20250714.md`
 
 ### 2025-01-13 (월) - OP 매뉴얼 보안 개선 및 프로젝트 정리
 - **문제**: OP 매뉴얼이 public 폴더에 있어 보안 취약

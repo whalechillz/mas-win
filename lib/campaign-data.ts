@@ -40,6 +40,8 @@ export interface Campaign {
     bookings: number;
     inquiries: number;
     conversionRate: number;
+    costPerAcquisition?: number;
+    roi?: number;
   };
 }
 
@@ -69,7 +71,8 @@ export const campaignsData: Campaign[] = [
       views: 1523,
       bookings: 87,
       inquiries: 245,
-      conversionRate: 5.7
+      conversionRate: 5.7,
+      costPerAcquisition: 50000
     }
   },
   {

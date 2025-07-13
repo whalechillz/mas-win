@@ -35,7 +35,7 @@ const DollarSign = ({ className = "w-5 h-5" }) => (
 export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: CampaignDashboardProps) {
   // 활성 캠페인 필터링
   const activeCampaigns = campaigns.filter(c => c.status === 'active');
-  const recentCampaigns = campaigns.slice(0, 5);
+  const recentCampaigns = campaigns.filter(c => c.id === '2025-07');
 
   // 전체 성과 계산 (7월 캠페인만)
   const activeCampaignsData = campaigns.filter(c => c.id !== '2025-05' && c.id !== '2025-06');
@@ -48,9 +48,13 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
 
   // ROI 계산
   const calculateROI = (campaign: Campaign) => {
+    if (campaign.id === '2025-05' || campaign.id === '2025-06') return '0';
+    
     const revenue = campaign.metrics.bookings * 1000000; // 예약당 100만원
-    const cost = campaign.metrics.costPerAcquisition * campaign.metrics.bookings;
-    return cost > 0 ? ((revenue - cost) / cost * 100).toFixed(1) : '0';
+    const estimatedCost = 50000; // CPA 5만원 기준
+    const totalCost = estimatedCost * (campaign.metrics.bookings + campaign.metrics.inquiries);
+    const roi = totalCost > 0 ? ((revenue - totalCost) / totalCost * 100) : 0;
+    return roi.toFixed(0);
   };
 
   return (
@@ -66,7 +70,7 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
               <TrendingUp className="w-5 h-5 text-green-300" />
             </div>
             <p className="text-3xl font-bold">{totalViews.toLocaleString()}</p>
-            <p className="text-sm text-purple-100 mt-1">+23.5% 전월 대비</p>
+            <p className="text-sm text-purple-100 mt-1">7월 캠페인</p>
           </div>
           
           <div className="bg-white/20 backdrop-blur rounded-lg p-4">
@@ -75,7 +79,7 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
               <Target className="w-5 h-5 text-yellow-300" />
             </div>
             <p className="text-3xl font-bold">{totalBookings.toLocaleString()}</p>
-            <p className="text-sm text-purple-100 mt-1">목표 달성률 87%</p>
+            <p className="text-sm text-purple-100 mt-1">목표 달성률 {(totalBookings * 100 / 100).toFixed(0)}%</p>
           </div>
           
           <div className="bg-white/20 backdrop-blur rounded-lg p-4">
@@ -92,7 +96,7 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
               <span className="text-purple-100">예상 매출</span>
               <DollarSign className="w-5 h-5 text-green-300" />
             </div>
-            <p className="text-3xl font-bold">{(totalBookings * 1).toFixed(0)}억</p>
+            <p className="text-3xl font-bold">{(totalBookings * 0.01).toFixed(2)}억</p>
             <p className="text-sm text-purple-100 mt-1">예약당 100만원</p>
           </div>
         </div>
@@ -176,7 +180,7 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
                     )}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : `₩${campaign.metrics.costPerAcquisition.toLocaleString()}`}
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : `₩${((campaign.metrics.costPerAcquisition || 50000) / 10000).toFixed(0)}만원`}
                   </td>
                 </tr>
               ))}
