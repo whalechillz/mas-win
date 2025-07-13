@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
+
 export default function Home() {
-  // 7월 캠페인 HTML로 직접 리다이렉트
-  if (typeof window !== 'undefined') {
-    window.location.href = '/versions/funnel-2025-07-complete.html';
-  }
-  
+  useEffect(() => {
+    // 7월 퍼널 페이지로 리다이렉트
+    window.location.href = '/funnel-2025-07';
+  }, []);
+
   return (
     <div style={{ 
       display: 'flex', 
