@@ -789,6 +789,38 @@ export default function AdminDashboard() {
           />
         )}
       </main>
+
+      {/* OP 매뉴얼 버튼 - 화면 하단 고정 */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => {
+            // 인증된 상태에서만 접근 가능
+            const opManualWindow = window.open('', '_blank');
+            fetch('/api/admin/op-manual/2025-07', {
+              credentials: 'include'
+            })
+              .then(res => {
+                if (res.ok) {
+                  return res.text();
+                } else {
+                  throw new Error('Unauthorized');
+                }
+              })
+              .then(html => {
+                opManualWindow.document.write(html);
+                opManualWindow.document.close();
+              })
+              .catch(err => {
+                opManualWindow.close();
+                alert('권한이 없습니다.');
+              });
+          }}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+        >
+          <FileText className="w-5 h-5" />
+          <span className="font-medium">OP 매뉴얼</span>
+        </button>
+      </div>
     </div>
   );
 }

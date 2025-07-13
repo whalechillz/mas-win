@@ -79,10 +79,10 @@ export const campaignsData: Campaign[] = [
       discountRate: 40
     },
     metrics: {
-      views: 2341,
-      bookings: 134,
-      inquiries: 389,
-      conversionRate: 5.7
+      views: 0,
+      bookings: 0,
+      inquiries: 0,
+      conversionRate: 0
     }
   },
   {
@@ -106,10 +106,10 @@ export const campaignsData: Campaign[] = [
       discountRate: 30
     },
     metrics: {
-      views: 2897,
-      bookings: 156,
-      inquiries: 412,
-      conversionRate: 5.4
+      views: 0,
+      bookings: 0,
+      inquiries: 0,
+      conversionRate: 0
     }
   }
 ];
