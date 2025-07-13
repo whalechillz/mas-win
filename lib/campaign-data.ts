@@ -1,3 +1,5 @@
+import { calculateRemainingSlots } from './campaign-utils';
+
 // 캠페인 데이터 타입 정의
 export interface Campaign {
   id: string;
@@ -40,13 +42,13 @@ export const campaignsData: Campaign[] = [
     files: {
       landingPage: "/versions/funnel-2025-07-complete.html",
       landingPageUrl: "/funnel-2025-07",
-      opManual: "/docs/op-manuals/2025-07-여름특별/",
-      googleAds: "/google_ads/2025.07.여름특별/"
+      opManual: "/docs/july-campaign-op-manual.md",
+      googleAds: "https://ads.google.com/aw/campaigns?campaignId=22712889806"
     },
     settings: {
       phoneNumber: "080-028-8888",
       eventDate: "7월 31일",
-      remainingSlots: 10,
+      remainingSlots: calculateRemainingSlots('2025-07-01', '2025-07-31', 20),
       discountRate: 50
     },
     metrics: {

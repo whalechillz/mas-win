@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { formatPhoneNumber } from '../lib/formatters';
 import { Campaign, CampaignMetrics, calculateCampaignMetrics, generateMockPerformanceData } from '../lib/campaign-types';
+import { campaignsData } from '../lib/campaign-data';
 import { UnifiedCampaignManager } from '../components/admin/campaigns/UnifiedCampaignManager';
 import { MetricCards, useRealtimeMetrics } from '../components/admin/dashboard/MetricCards';
 import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboard/ConversionFunnel';
@@ -355,51 +356,62 @@ export default function AdminDashboard() {
     }
   };
 
-  // 캠페인 데이터를 Supabase에서 가져오기
+  // 캠페인 데이터를 가져오기 (Supabase 연동 전까지 campaign-data.ts 사용)
   const loadCampaigns = async () => {
-    if (!supabase) return;
-    
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .order('start_date', { ascending: false });
-    
-    if (!error && data) {
-      // Campaign 타입에 맞게 변환
-      const formattedCampaigns = data.map(camp => ({
-        id: camp.id,
-        name: camp.name,
-        status: camp.status,
-        period: {
-          start: camp.start_date,
-          end: camp.end_date
-        },
-        assets: {
-          landingPage: camp.landing_page_file || '',
-          landingPageUrl: camp.landing_page_url || '',
-          opManual: camp.op_manual_url,
-          googleAds: camp.google_ads_url
-        },
-        settings: {
-          phoneNumber: camp.phone_number,
-          eventDate: camp.event_date,
-          remainingSlots: camp.remaining_slots,
-          discountRate: camp.discount_rate,
-          targetAudience: camp.target_audience || ''
-        },
-        metrics: {
-          views: camp.views || 0,
-          bookings: camp.bookings || 0,
-          inquiries: camp.inquiries || 0,
-          conversionRate: parseFloat(camp.conversion_rate) || 0,
-          roi: parseFloat(camp.roi) || 0,
-          costPerAcquisition: parseFloat(camp.cost_per_acquisition) || 0
-        },
-        performance: { daily: [] }
-      }));
+    // Supabase에서 데이터 가져오기 시도
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .order('start_date', { ascending: false });
       
-      setCampaigns(formattedCampaigns);
+      if (!error && data && data.length > 0) {
+        // Campaign 타입에 맞게 변환
+        const formattedCampaigns = data.map(camp => ({
+          id: camp.id,
+          name: camp.name,
+          status: camp.status,
+          period: {
+            start: camp.start_date,
+            end: camp.end_date
+          },
+          files: {
+            landingPage: camp.landing_page_file || '',
+            landingPageUrl: camp.landing_page_url || '',
+            opManual: camp.op_manual_url,
+            googleAds: camp.google_ads_url
+          },
+          assets: {
+            landingPage: camp.landing_page_file || '',
+            landingPageUrl: camp.landing_page_url || '',
+            opManual: camp.op_manual_url,
+            googleAds: camp.google_ads_url
+          },
+          settings: {
+            phoneNumber: camp.phone_number,
+            eventDate: camp.event_date,
+            remainingSlots: camp.remaining_slots,
+            discountRate: camp.discount_rate,
+            targetAudience: camp.target_audience || ''
+          },
+          metrics: {
+            views: camp.views || 0,
+            bookings: camp.bookings || 0,
+            inquiries: camp.inquiries || 0,
+            conversionRate: parseFloat(camp.conversion_rate) || 0,
+            roi: parseFloat(camp.roi) || 0,
+            costPerAcquisition: parseFloat(camp.cost_per_acquisition) || 0
+          },
+          performance: { daily: [] }
+        }));
+        
+        setCampaigns(formattedCampaigns);
+        return;
+      }
     }
+    
+    // Supabase에 데이터가 없으면 campaign-data.ts 사용
+    setCampaigns(campaignsData);
   };
 
   // campaign_summary 뷰에서 데이터 가져오기
