@@ -246,19 +246,27 @@ export const UnifiedCampaignManager: React.FC<UnifiedCampaignManagerProps> = ({
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-gray-500">예약</p>
-                    <p className="text-xl font-semibold text-gray-900">{campaign.metrics.bookings}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : campaign.metrics.bookings}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">문의</p>
-                    <p className="text-xl font-semibold text-gray-900">{campaign.metrics.inquiries}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : campaign.metrics.inquiries}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">조회수</p>
-                    <p className="text-xl font-semibold text-gray-900">{campaign.metrics.views.toLocaleString()}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : campaign.metrics.views.toLocaleString()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">전환율</p>
-                    <p className="text-xl font-semibold text-purple-600">{campaign.metrics.conversionRate.toFixed(1)}%</p>
+                    <p className="text-xl font-semibold text-purple-600">
+                      {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : `${campaign.metrics.conversionRate.toFixed(1)}%`}
+                    </p>
                   </div>
                 </div>
 
@@ -378,14 +386,18 @@ export const UnifiedCampaignManager: React.FC<UnifiedCampaignManagerProps> = ({
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    <div className="flex items-center gap-4">
-                      <span>예약: {campaign.metrics.bookings}</span>
-                      <span>문의: {campaign.metrics.inquiries}</span>
-                      <span>조회: {campaign.metrics.views.toLocaleString()}</span>
-                    </div>
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? (
+                      <span>데이터 없음</span>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <span>예약: {campaign.metrics.bookings}</span>
+                        <span>문의: {campaign.metrics.inquiries}</span>
+                        <span>조회: {campaign.metrics.views.toLocaleString()}</span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-purple-600">
-                    {campaign.metrics.conversionRate.toFixed(1)}%
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : `${campaign.metrics.conversionRate.toFixed(1)}%`}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">

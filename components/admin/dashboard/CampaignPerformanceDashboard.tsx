@@ -37,12 +37,13 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
   const activeCampaigns = campaigns.filter(c => c.status === 'active');
   const recentCampaigns = campaigns.slice(0, 5);
 
-  // 전체 성과 계산
-  const totalViews = campaigns.reduce((sum, c) => sum + c.metrics.views, 0);
-  const totalBookings = campaigns.reduce((sum, c) => sum + c.metrics.bookings, 0);
-  const totalInquiries = campaigns.reduce((sum, c) => sum + c.metrics.inquiries, 0);
-  const avgConversionRate = campaigns.length > 0 
-    ? campaigns.reduce((sum, c) => sum + c.metrics.conversionRate, 0) / campaigns.length 
+  // 전체 성과 계산 (7월 캠페인만)
+  const activeCampaignsData = campaigns.filter(c => c.id !== '2025-05' && c.id !== '2025-06');
+  const totalViews = activeCampaignsData.reduce((sum, c) => sum + c.metrics.views, 0);
+  const totalBookings = activeCampaignsData.reduce((sum, c) => sum + c.metrics.bookings, 0);
+  const totalInquiries = activeCampaignsData.reduce((sum, c) => sum + c.metrics.inquiries, 0);
+  const avgConversionRate = activeCampaignsData.length > 0 
+    ? activeCampaignsData.reduce((sum, c) => sum + c.metrics.conversionRate, 0) / activeCampaignsData.length 
     : 0;
 
   // ROI 계산
@@ -143,31 +144,39 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {campaign.metrics.views.toLocaleString()}
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : campaign.metrics.views.toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {campaign.metrics.bookings}
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : campaign.metrics.bookings}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {campaign.metrics.inquiries}
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : campaign.metrics.inquiries}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <span className="font-medium">{campaign.metrics.conversionRate}%</span>
-                      {campaign.metrics.conversionRate > avgConversionRate ? (
-                        <TrendingUp className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4 text-red-500" />
-                      )}
-                    </div>
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? (
+                      <span className="font-medium">-</span>
+                    ) : (
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="font-medium">{campaign.metrics.conversionRate}%</span>
+                        {campaign.metrics.conversionRate > avgConversionRate ? (
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 text-red-500" />
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="font-medium text-green-600">
-                      +{calculateROI(campaign)}%
-                    </span>
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? (
+                      <span className="font-medium">-</span>
+                    ) : (
+                      <span className="font-medium text-green-600">
+                        +{calculateROI(campaign)}%
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    ₩{campaign.metrics.costPerAcquisition.toLocaleString()}
+                    {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : `₩${campaign.metrics.costPerAcquisition.toLocaleString()}`}
                   </td>
                 </tr>
               ))}
@@ -191,12 +200,15 @@ export function CampaignPerformanceDashboard({ campaigns, bookings, contacts }: 
                   <div>
                     <p className="font-medium text-gray-900">{campaign.name}</p>
                     <p className="text-sm text-gray-500">
-                      {campaign.metrics.bookings}건 예약 | {campaign.metrics.views} 조회
+                      {campaign.id === '2025-05' || campaign.id === '2025-06' 
+                        ? '데이터 없음' 
+                        : `${campaign.metrics.bookings}건 예약 | ${campaign.metrics.views} 조회`
+                      }
                     </p>
                   </div>
                 </div>
                 <span className="text-sm font-medium text-purple-600">
-                  {campaign.metrics.conversionRate}%
+                  {campaign.id === '2025-05' || campaign.id === '2025-06' ? '-' : `${campaign.metrics.conversionRate}%`}
                 </span>
               </div>
             ))}

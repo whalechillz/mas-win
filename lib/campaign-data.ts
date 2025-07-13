@@ -1,4 +1,18 @@
-import { calculateRemainingSlots } from './campaign-utils';
+// 남은 인원 계산 함수
+function calculateRemainingSlots(startDate: string, endDate: string, initialSlots: number): number {
+  const today = new Date('2025-07-14'); // 오늘 날짜 고정
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  if (today < start) return initialSlots;
+  if (today > end) return 0;
+  
+  const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const daysPassed = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const remaining = Math.max(0, Math.floor(initialSlots * (1 - daysPassed / totalDays)));
+  
+  return remaining;
+}
 
 // 캠페인 데이터 타입 정의
 export interface Campaign {
@@ -48,7 +62,7 @@ export const campaignsData: Campaign[] = [
     settings: {
       phoneNumber: "080-028-8888",
       eventDate: "7월 31일",
-      remainingSlots: calculateRemainingSlots('2025-07-01', '2025-07-31', 20),
+      remainingSlots: 11, // 7월 14일 기준 남은 인원
       discountRate: 50
     },
     metrics: {
