@@ -32,6 +32,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   // 새 테마 폼
   const [newTheme, setNewTheme] = useState({
     theme: '',
+    description: '',
     objective: '',
     promotion_details: '',
     target_audience: '',
@@ -53,7 +54,8 @@ export const IntegratedCampaignManager = ({ supabase }) => {
           themesMap[theme.month] = {
             id: theme.id,
             theme: theme.theme,
-            objective: theme.objective || theme.description || '',
+            description: theme.description || '',
+            objective: theme.objective || '',
             promotion: theme.promotion_detail || theme.promotion_details,
             focus_keywords: theme.focus_keywords || []
           };
@@ -65,7 +67,8 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         if (current) {
           setCurrentTheme({
             ...current,
-            objective: current.objective || current.description || '',
+            description: current.description || '',
+            objective: current.objective || '',
             target_audience: current.target_audience || ''
           });
         }
@@ -84,6 +87,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         year: selectedYear,
         month: selectedMonth,
         theme: newTheme.theme,
+        description: newTheme.description,
         objective: newTheme.objective,
         promotion_details: newTheme.promotion_details,
         target_audience: newTheme.target_audience,
@@ -298,6 +302,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   const resetThemeForm = () => {
     setNewTheme({
       theme: '',
+      description: '',
       objective: '',
       promotion_details: '',
       target_audience: '',
@@ -393,12 +398,16 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                       <Palette className="w-5 h-5 text-purple-600" />
                       {currentTheme.theme}
                     </h3>
+                    {currentTheme.description && (
+                      <p className="text-sm text-gray-600 italic mb-1">"{currentTheme.description}"</p>
+                    )}
                     <button
                       onClick={() => {
                         setEditingTheme(currentTheme);
                         setNewTheme({
                           theme: currentTheme.theme,
-                          objective: currentTheme.objective || currentTheme.description || '',
+                          description: currentTheme.description || '',
+                          objective: currentTheme.objective || '',
                           promotion_details: currentTheme.promotion_detail || currentTheme.promotion_details || '',
                           target_audience: currentTheme.target_audience || '',
                           focus_keywords: currentTheme.focus_keywords || []
@@ -770,7 +779,23 @@ export const IntegratedCampaignManager = ({ supabase }) => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium mb-1">슬로건</label>
+                <input
+                  type="text"
+                  value={newTheme.description}
+                  onChange={(e) => setNewTheme({...newTheme, description: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="예: 뜨거운 여름, 완벽한 스윙을 위한 준비"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-1">목표</label>
+                {editingTheme && newTheme.objective && (newTheme.objective.includes('준비') || newTheme.objective.includes('스윙')) && (
+                  <p className="text-xs text-amber-600 mb-1">
+                    💡 현재 입력된 내용은 슬로건으로 보입니다. 비즈니스 목표를 입력해주세요.
+                  </p>
+                )}
                 <textarea
                   value={newTheme.objective}
                   onChange={(e) => setNewTheme({...newTheme, objective: e.target.value})}
