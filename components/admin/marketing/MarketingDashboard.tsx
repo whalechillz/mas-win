@@ -8,13 +8,14 @@ import { BlogContentManager } from './BlogContentManager'; // 새로 추가
 import { SimpleNaverBlogManager } from './SimpleNaverBlogManager'; // 단순화 버전
 import { SimpleBlogManager } from './SimpleBlogManager'; // 초간단 버전
 import { MultiChannelManager } from './MultiChannelManager'; // 멀티채널 관리
+import { IntegratedCampaignManager } from './IntegratedCampaignManager'; // 통합 캠페인
 
 interface MarketingDashboardProps {
   supabase: any;
 }
 
 export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase }) => {
-  const [activeView, setActiveView] = useState<'simple' | 'blog' | 'calendar' | 'funnel' | 'naver' | 'settings'>('simple'); // 기본값을 'simple'로 변경
+  const [activeView, setActiveView] = useState<'campaign' | 'simple' | 'blog' | 'calendar' | 'funnel' | 'naver' | 'settings'>('campaign'); // 기본값을 'campaign'으로 변경
   const [showEditor, setShowEditor] = useState(false);
   const [selectedContent, setSelectedContent] = useState<any>(null);
   
@@ -137,6 +138,16 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
         {/* 탭 메뉴 */}
         <div className="flex flex-wrap gap-2 border-b border-gray-200 -mb-6 pb-4">
           <button
+            onClick={() => setActiveView('campaign')}
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-all ${
+              activeView === 'campaign'
+                ? 'bg-purple-100 text-purple-700 border border-gray-200 border-b-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            📊 통합 캠페인
+          </button>
+          <button
             onClick={() => setActiveView('simple')}
             className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-all ${
               activeView === 'simple'
@@ -208,6 +219,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
           </div>
         ) : (
           <div className="p-6">
+            {activeView === 'campaign' && <IntegratedCampaignManager supabase={supabase} />}
             {activeView === 'simple' && <SimpleBlogManager supabase={supabase} />}
             {activeView === 'blog' && <MultiChannelManager supabase={supabase} />}
             {activeView === 'calendar' && (

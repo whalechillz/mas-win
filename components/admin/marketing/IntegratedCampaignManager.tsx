@@ -19,14 +19,36 @@ export const IntegratedCampaignManager = ({ supabase }) => {
     assignee: '제이'
   });
 
-  // 월별 마케팅 테마
-  const monthlyThemes = {
-    7: "뜨거운 여름, 완벽한 스윙을 위한 준비",
-    8: "늦여름 라운딩, 가을 시즌 준비",
-    9: "선선한 가을, 최고의 골프 시즌",
-    10: "단풍 라운딩, 연말 준비",
-    11: "겨울 대비, 실내 연습",
-    12: "연말 특별 이벤트"
+  // 월별 마케팅 테마 (DB에서 로드)
+  const [monthlyThemes, setMonthlyThemes] = useState({});
+  const [currentTheme, setCurrentTheme] = useState(null);
+
+  // 월별 테마 로드
+  const loadMonthlyThemes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('monthly_themes')
+        .select('*')
+        .order('month');
+      
+      if (!error && data) {
+        const themesMap = {};
+        data.forEach(theme => {
+          themesMap[theme.month] = {
+            theme: theme.theme,
+            objective: theme.objective,
+            promotion: theme.promotion_detail
+          };
+        });
+        setMonthlyThemes(themesMap);
+        
+        // 현재 월 테마 설정
+        const current = data.find(t => t.month === selectedMonth && t.year === 2025);
+        setCurrentTheme(current);
+      }
+    } catch (error) {
+      console.error('Error loading themes:', error);
+    }
   };
 
   // 채널 정의
@@ -37,6 +59,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   ];
 
   useEffect(() => {
+    loadMonthlyThemes();
     loadCampaigns();
   }, [selectedMonth]);
 
@@ -151,7 +174,15 @@ export const IntegratedCampaignManager = ({ supabase }) => {
             </select>
             <div>
               <h3 className="font-semibold text-lg">{selectedMonth}월 마케팅 컨셉</h3>
-              <p className="text-gray-700">{monthlyThemes[selectedMonth]}</p>
+              {currentTheme ? (
+                <div>
+                  <p className="text-gray-700">{currentTheme.theme}</p>
+                  <p className="text-sm text-gray-600 mt-1">목표: {currentTheme.objective}</p>
+                  <p className="text-sm text-gray-500 mt-1">프로모션: {currentTheme.promotion_detail}</p>
+                </div>
+              ) : (
+                <p className="text-gray-700">테마 로딩 중...</p>
+              )}
             </div>
           </div>
           <button
