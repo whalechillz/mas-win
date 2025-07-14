@@ -53,7 +53,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
           themesMap[theme.month] = {
             id: theme.id,
             theme: theme.theme,
-            objective: theme.objective || theme.description,
+            objective: theme.objective || theme.description || '',
             promotion: theme.promotion_detail || theme.promotion_details,
             focus_keywords: theme.focus_keywords || []
           };
@@ -65,6 +65,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         if (current) {
           setCurrentTheme({
             ...current,
+            objective: current.objective || current.description || '',
             target_audience: current.target_audience || ''
           });
         }
@@ -409,7 +410,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                     </button>
                   </div>
                   <p className="text-sm text-gray-700 mb-1">
-                    <span className="font-medium">목표:</span> {currentTheme.objective || currentTheme.description || '미설정'}
+                    <span className="font-medium">목표:</span> {currentTheme.objective || '미설정'}
                   </p>
                   <p className="text-sm text-gray-600 mb-1">
                     <span className="font-medium">프로모션:</span> {currentTheme.promotion_detail || currentTheme.promotion_details || '미설정'}
@@ -774,7 +775,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                   onChange={(e) => setNewTheme({...newTheme, objective: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   rows={2}
-                  placeholder="예: 고소득층 및 4060세대 매출 극대화"
+                  placeholder="예: 매출 극대화, 신규 고객 확보, 브랜드 인지도 향상 등"
                 />
               </div>
 
@@ -796,7 +797,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                   value={newTheme.target_audience}
                   onChange={(e) => setNewTheme({...newTheme, target_audience: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="예: 4060세대, 고소득층 및 4060세대"
+                  placeholder="예: 4060세대, 고소득층, 골프 입문자, 주부 골퍼 등"
                 />
               </div>
 
