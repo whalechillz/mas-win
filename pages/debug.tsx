@@ -150,7 +150,55 @@ export default function DebugPage() {
     }
   };
 
-  // 4. API 테스트
+  // 4. 권한 테스트 (직접 INSERT)
+  const testPermissions = async () => {
+    try {
+      addLog('Supabase 권한 테스트 시작...');
+      
+      const testData = {
+        title: `권한 테스트 ${new Date().getTime()}`,
+        content: 'INSERT 권한 테스트용 콘텐츠',
+        platform: 'blog',
+        status: 'idea',
+        assignee: '테스트',
+        scheduled_date: `${testYear}-${String(testMonth).padStart(2, '0')}-15`,
+        tags: '테스트,권한'
+      };
+      
+      const { data, error } = await supabase
+        .from('content_ideas')
+        .insert([testData])
+        .select();
+      
+      if (error) {
+        addLog(`❌ INSERT 실패: ${error.message}`, 'error');
+        addLog(`에러 코드: ${error.code}`, 'error');
+        addLog(`에러 힌트: ${error.hint || '없음'}`, 'error');
+        setDebugInfo(prev => ({ 
+          ...prev, 
+          errors: [...prev.errors, { test: 'permissions', error: error.message }]
+        }));
+      } else {
+        addLog(`✅ INSERT 성공! ID: ${data[0].id}`, 'success');
+        
+        // 삽입된 데이터 삭제
+        const { error: deleteError } = await supabase
+          .from('content_ideas')
+          .delete()
+          .eq('id', data[0].id);
+          
+        if (deleteError) {
+          addLog(`삭제 실패: ${deleteError.message}`, 'error');
+        } else {
+          addLog('테스트 데이터 삭제 완료', 'info');
+        }
+      }
+    } catch (error) {
+      addLog(`권한 테스트 에러: ${error.message}`, 'error');
+    }
+  };
+
+  // 5. API 테스트
   const testAPI = async () => {
     try {
       addLog('API 테스트 시작...');
@@ -392,10 +440,21 @@ export default function DebugPage() {
           </div>
         )}
 
-        {/* API 테스트 */}
+        {/* 권한 및 API 테스트 */}
         <div style={styles.card}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>4. API 테스트</h2>
-          <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>4. 권한 및 API 테스트</h2>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              onClick={testPermissions}
+              style={{ 
+                ...styles.button,
+                backgroundColor: '#f59e0b', 
+                color: 'white'
+              }}
+            >
+              🔓 권한 테스트 (INSERT)
+            </button>
+            
             <button
               onClick={testAPI}
               style={{ 
@@ -406,8 +465,9 @@ export default function DebugPage() {
               }}
               disabled={loading}
             >
-              📮 API 테스트 실행 (콘텐츠 생성)
+              📮 API 테스트 (콘텐츠 생성)
             </button>
+          </div>
             
             {debugInfo.apiTest && (
               <pre style={{ 
