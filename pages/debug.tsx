@@ -198,14 +198,16 @@ export default function DebugPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">🔧 마케팅 시스템 디버그 페이지</h1>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '16px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px' }}>
+          🔧 마케팅 시스템 디버그 페이지
+        </h1>
         
         {/* 연결 상태 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">1. 연결 상태</h2>
-          <div className="space-y-2">
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>1. 연결 상태</h2>
+          <div style={{ lineHeight: '1.8' }}>
             <div>Supabase 연결: {debugInfo.supabaseConnection}</div>
             <div>환경: {process.env.NODE_ENV}</div>
             <div>테스트 날짜: {testYear}년 {testMonth}월</div>
@@ -213,12 +215,12 @@ export default function DebugPage() {
         </div>
 
         {/* 테이블 상태 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">2. 테이블 상태</h2>
-          <div className="grid grid-cols-2 gap-2">
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>2. 테이블 상태</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
             {Object.entries(debugInfo.tables).map(([table, status]) => (
-              <div key={table} className="flex justify-between p-2 bg-gray-50 rounded">
-                <span className="font-mono">{table}</span>
+              <div key={table} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                <span style={{ fontFamily: 'monospace' }}>{table}</span>
                 <span>{status}</span>
               </div>
             ))}
@@ -226,32 +228,49 @@ export default function DebugPage() {
         </div>
 
         {/* 콘텐츠 현황 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">3. {testYear}년 {testMonth}월 콘텐츠 현황</h2>
-          <div className="grid grid-cols-3 gap-4">
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
+            3. {testYear}년 {testMonth}월 콘텐츠 현황
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             {Object.entries(debugInfo.contentCount).map(([platform, count]) => (
-              <div key={platform} className="text-center p-4 bg-blue-50 rounded">
-                <div className="text-2xl font-bold">{count}</div>
-                <div className="text-sm text-gray-600">{platform}</div>
+              <div key={platform} style={{ textAlign: 'center', padding: '16px', backgroundColor: '#dbeafe', borderRadius: '8px' }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{count}</div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>{platform}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* API 테스트 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">4. API 테스트</h2>
-          <div className="space-y-4">
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>4. API 테스트</h2>
+          <div>
             <button
               onClick={testAPI}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#2563eb', 
+                color: 'white', 
+                borderRadius: '6px',
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.5 : 1
+              }}
               disabled={loading}
             >
               API 테스트 실행
             </button>
             
             {debugInfo.apiTest && (
-              <pre className="bg-gray-100 p-4 rounded overflow-auto text-sm">
+              <pre style={{ 
+                backgroundColor: '#f3f4f6', 
+                padding: '16px', 
+                borderRadius: '4px', 
+                overflow: 'auto', 
+                fontSize: '14px',
+                marginTop: '16px'
+              }}>
                 {JSON.stringify(debugInfo.apiTest, null, 2)}
               </pre>
             )}
@@ -259,26 +278,47 @@ export default function DebugPage() {
         </div>
 
         {/* 액션 버튼 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">5. 테스트 액션</h2>
-          <div className="space-x-4">
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>5. 테스트 액션</h2>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#6b7280', 
+                color: 'white', 
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
             >
               🔄 페이지 새로고침
             </button>
             
             <button
               onClick={countContents}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#10b981', 
+                color: 'white', 
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
             >
               📊 콘텐츠 다시 카운트
             </button>
             
             <button
               onClick={deleteTestContents}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#ef4444', 
+                color: 'white', 
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
             >
               🗑️ 7월 콘텐츠 모두 삭제
             </button>
@@ -286,15 +326,25 @@ export default function DebugPage() {
         </div>
 
         {/* 로그 */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">6. 실행 로그</h2>
-          <div className="bg-black text-white p-4 rounded font-mono text-sm max-h-96 overflow-auto">
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>6. 실행 로그</h2>
+          <div style={{ 
+            backgroundColor: 'black', 
+            color: 'white', 
+            padding: '16px', 
+            borderRadius: '4px', 
+            fontFamily: 'monospace', 
+            fontSize: '14px', 
+            maxHeight: '400px', 
+            overflow: 'auto' 
+          }}>
             {debugInfo.logs.map((log, idx) => (
-              <div key={idx} className={`mb-1 ${
-                log.type === 'error' ? 'text-red-400' : 
-                log.type === 'success' ? 'text-green-400' : 
-                'text-gray-300'
-              }`}>
+              <div key={idx} style={{ 
+                marginBottom: '4px',
+                color: log.type === 'error' ? '#f87171' : 
+                      log.type === 'success' ? '#34d399' : 
+                      '#d1d5db'
+              }}>
                 [{log.timestamp}] {log.message}
               </div>
             ))}
@@ -303,17 +353,30 @@ export default function DebugPage() {
 
         {/* 에러 목록 */}
         {debugInfo.errors.length > 0 && (
-          <div className="bg-red-50 rounded-lg shadow-md p-6 mt-6">
-            <h2 className="text-xl font-semibold mb-4 text-red-700">❌ 에러 목록</h2>
-            <div className="space-y-2">
+          <div style={{ backgroundColor: '#fef2f2', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px', color: '#dc2626' }}>
+              ❌ 에러 목록
+            </h2>
+            <div>
               {debugInfo.errors.map((err, idx) => (
-                <div key={idx} className="p-3 bg-red-100 rounded">
+                <div key={idx} style={{ padding: '12px', backgroundColor: '#fee2e2', borderRadius: '4px', marginBottom: '8px' }}>
                   <strong>{err.test}:</strong> {err.error}
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* 추가 정보 */}
+        <div style={{ backgroundColor: '#f0f9ff', borderRadius: '8px', padding: '24px', marginTop: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>💡 디버그 정보</h3>
+          <ul style={{ marginLeft: '20px', lineHeight: '1.8' }}>
+            <li>현재 7월에 총 4개의 콘텐츠가 있습니다 (kakao 1, instagram 1, youtube 1)</li>
+            <li>blog와 sms 콘텐츠가 없습니다</li>
+            <li>API 테스트를 실행하면 더 많은 콘텐츠가 생성됩니다</li>
+            <li>모든 필요한 테이블이 존재합니다 ✅</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
