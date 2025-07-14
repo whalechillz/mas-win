@@ -9,13 +9,14 @@ import { SimpleNaverBlogManager } from './SimpleNaverBlogManager'; // 단순화 
 import { SimpleBlogManager } from './SimpleBlogManager'; // 초간단 버전
 import { MultiChannelManager } from './MultiChannelManager'; // 멀티채널 관리
 import { IntegratedCampaignManager } from './IntegratedCampaignManager'; // 통합 캠페인
+import { TrashManager } from './TrashManager'; // 휴지통 관리
 
 interface MarketingDashboardProps {
   supabase: any;
 }
 
 export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase }) => {
-  const [activeView, setActiveView] = useState<'campaign' | 'simple' | 'blog' | 'calendar' | 'funnel' | 'naver' | 'settings'>('campaign'); // 기본값을 'campaign'으로 변경
+  const [activeView, setActiveView] = useState<'campaign' | 'simple' | 'blog' | 'calendar' | 'funnel' | 'naver' | 'settings' | 'trash'>('campaign');
   const [showEditor, setShowEditor] = useState(false);
   const [selectedContent, setSelectedContent] = useState<any>(null);
   
@@ -199,6 +200,16 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
             🟢 네이버 블로그 (구버전)
           </button>
           <button
+            onClick={() => setActiveView('trash')}
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-all ${
+              activeView === 'trash'
+                ? 'bg-purple-100 text-purple-700 border border-gray-200 border-b-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🗑️ 휴지통
+          </button>
+          <button
             onClick={() => setActiveView('settings')}
             className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-all ${
               activeView === 'settings'
@@ -244,6 +255,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
             {activeView === 'naver' && (
               <SimpleNaverBlogManager supabase={supabase} />
             )}
+            {activeView === 'trash' && <TrashManager supabase={supabase} />}
             {activeView === 'settings' && (
               <PlatformManager
                 platforms={platforms}

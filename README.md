@@ -46,6 +46,19 @@ win.masgolf.co.kr/
     └── tests/               # 테스트 파일
 ```
 
+## 🆕 신규 기능
+
+### 간편 블로그 관리 시스템
+- **네이버 SEO 최적화**: 중복 콘텐츠 방지 전략
+- **1개 주제 → 3개 다른 앵글**: 후기/팁/비교 자동 생성
+- **직관적 UI**: 주제별 그룹, 계정별 색상
+- [📖 직원용 가이드](./docs/EMPLOYEE_BLOG_GUIDE.md) | [🔧 설정 가이드](./docs/SIMPLE_BLOG_SETUP.md)
+
+### 멀티채널 관리 시스템
+- **통합 채널 관리**: 네이버, 인스타그램, 유튜브, 카카오채널, 틱톡
+- **소프트 삭제 구현**: 외래 키 제약 문제 해결
+- [📖 멀티채널 가이드](./docs/MULTICHANNEL_UPDATE_GUIDE.md) | [🔧 삭제 문제 해결](./docs/MULTICHANNEL_DELETE_ISSUE_GUIDE.md) | [⚡ 빠른 해결](./docs/QUICK_FIX_DELETE_ISSUE.md)
+
 ## 🚀 시작하기
 
 1. **환경 설정**

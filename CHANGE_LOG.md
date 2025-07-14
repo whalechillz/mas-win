@@ -1,16 +1,20 @@
-### 2025-07-14 (월) - 멀티채널 관리 시스템 추가
+### 2025-07-14 (월) - 멀티채널 관리 시스템 추가 및 삭제 문제 해결
 - **작업**: 블로그 관리 시스템 재구성 및 멀티채널 지원
 - **수정 사항**:
   - 메뉴 이름 변경: 간편→네이버, 상세→멀티채널
   - MultiChannelManager 컴포넌트 생성
   - 자사블로그, 카카오채널, 인스타그램, 유튜브, 틱톡 지원
-  - content_ideas 테이블에 platform 필드 추가
+  - content_ideas 테이블에 platform, content, scheduled_date, tags, assignee 필드 추가
+  - **삭제 문제 해결**: 외래 키 제약(naver_publishing 테이블)으로 인한 409 에러를 소프트 삭제로 해결
 - **수정 파일**:
-  - `/components/admin/marketing/MultiChannelManager.tsx` (새로 생성)
+  - `/components/admin/marketing/MultiChannelManager.tsx` (새로 생성 및 소프트 삭제 구현)
   - `/components/admin/marketing/MarketingDashboard.tsx` (수정)
   - `/database/multichannel-schema.sql` (새로 생성)
+  - `/database/content-ideas-table.sql` (필드 추가)
+  - `/database/soft-delete-solution.sql` (삭제 문제 해결)
 - **작성 문서**:
-  - `/docs/MULTICHANNEL_UPDATE_GUIDE.md` (멀티채널 가이드)# 수정 로그
+  - `/docs/MULTICHANNEL_UPDATE_GUIDE.md` (멀티채널 가이드)
+  - `/docs/MULTICHANNEL_DELETE_ISSUE_GUIDE.md` (삭제 문제 해결 가이드)# 수정 로그
 
 ## 2025년 7월 (실제 날짜: 2025년 1월)
 
