@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MessageSquare, FileText, BarChart3, Target, Send, Eye, Edit2, Trash2, Link2, AlertCircle, Plus, Settings, Palette } from 'lucide-react';
+import { Calendar, MessageSquare, FileText, BarChart3, Target, Send, Eye, Edit2, Trash2, Link2, AlertCircle, Plus, Settings, Palette, Zap } from 'lucide-react';
+import { AIGenerationSettings } from './AIGenerationSettings';
 
 // 통합 마케팅 캠페인 매니저 - 월별 테마 관리 기능 포함
 export const IntegratedCampaignManager = ({ supabase }) => {
@@ -14,6 +15,13 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   const [loading, setLoading] = useState(false);
   const [multiChannelContents, setMultiChannelContents] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [aiSettings, setAiSettings] = useState({
+    useAI: false,
+    plan: 'basic',
+    budget: 100,
+    settings: {}
+  });
   
   // 새 캠페인 폼
   const [newCampaign, setNewCampaign] = useState({
@@ -317,20 +325,44 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       return;
     }
     
-    if (!confirm(`${selectedYear}년 ${selectedMonth}월의 모든 멀티채널 콘텐츠를 자동 생성하시겠습니까?`)) return;
+    const confirmMessage = aiSettings.useAI 
+      ? `${selectedYear}년 ${selectedMonth}월의 모든 멀티채널 콘텐츠를 AI로 자동 생성하시겠습니까?\n\n선택된 플랜: ${aiSettings.plan}\n예상 비용: ${Math.round(aiSettings.budget / 30 * 15)}`
+      : `${selectedYear}년 ${selectedMonth}월의 모든 멀티채널 콘텐츠를 템플릿으로 자동 생성하시겠습니까?`;
+    
+    if (!confirm(confirmMessage)) return;
     
     try {
       setLoading(true);
       
-      await supabase.rpc('generate_monthly_content', { 
-        p_year: selectedYear, 
-        p_month: selectedMonth 
-      });
+      if (aiSettings.useAI) {
+        // AI 사용 시 API 호출
+        const response = await fetch('/api/generate-ai-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            year: selectedYear,
+            month: selectedMonth,
+            theme: currentTheme,
+            aiSettings: aiSettings
+          })
+        });
+        
+        if (!response.ok) throw new Error('AI 생성 실패');
+        
+        const result = await response.json();
+        alert(`AI가 ${result.contentCount}개의 콘텐츠를 생성했습니다!`);
+      } else {
+        // 기존 템플릿 방식
+        await supabase.rpc('generate_monthly_content', { 
+          p_year: selectedYear, 
+          p_month: selectedMonth 
+        });
+        
+        alert('멀티채널 콘텐츠가 자동 생성되었습니다!');
+      }
       
       await loadMultiChannelContents();
       await loadDashboardStats();
-      
-      alert('멀티채널 콘텐츠가 자동 생성되었습니다!');
     } catch (error) {
       console.error('Error generating content:', error);
       alert('콘텐츠 생성 실패: ' + error.message);
@@ -363,6 +395,13 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         <h2 className="text-2xl font-bold mb-2">통합 마케팅 캠페인 관리</h2>
         <p className="text-gray-600">월별 테마를 설정하고 캠페인을 관리하세요</p>
       </div>
+
+      {/* AI 설정 패널 */}
+      {showAISettings && (
+        <AIGenerationSettings 
+          onSettingsChange={(settings) => setAiSettings(settings)}
+        />
+      )}
 
       {/* 월 선택 및 테마 */}
       <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
@@ -461,6 +500,17 @@ export const IntegratedCampaignManager = ({ supabase }) => {
             >
               <Settings className="w-4 h-4" />
               테마 관리
+            </button>
+            <button
+              onClick={() => setShowAISettings(!showAISettings)}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                aiSettings.useAI 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <Zap className="w-4 h-4" />
+              AI {aiSettings.useAI ? 'ON' : 'OFF'}
             </button>
             <button
               onClick={generateMultiChannelContent}

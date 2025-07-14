@@ -1,0 +1,119 @@
+// AI 기반 멀티채널 콘텐츠 생성 API (pages/api/generate-ai-content.ts)
+
+import { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { year, month } = req.body;
+
+  try {
+    // 1. 해당 월의 테마 가져오기
+    const { data: theme, error: themeError } = await supabase
+      .from('monthly_themes')
+      .select('*')
+      .eq('year', year)
+      .eq('month', month)
+      .single();
+
+    if (themeError || !theme) {
+      return res.status(404).json({ error: '테마를 찾을 수 없습니다.' });
+    }
+
+    // 2. OpenAI를 사용해 콘텐츠 생성
+    const prompt = `
+    마케팅 테마: ${theme.theme}
+    설명: ${theme.description}
+    목표: ${theme.objective}
+    타겟: ${theme.target_audience}
+    키워드: ${theme.focus_keywords.join(', ')}
+    
+    위 테마에 맞는 다음 채널별 콘텐츠를 생성해주세요:
+    1. 네이버 블로그 포스트 제목 3개
+    2. 카카오톡 메시지 4개 (50자 이내)
+    3. SMS 메시지 2개 (40자 이내)
+    4. 인스타그램 포스트 아이디어 3개
+    5. 유튜브 영상 기획 1개
+    
+    JSON 형식으로 응답해주세요.
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "당신은 골프 용품 전문 마케터입니다. 한국 시장에 맞는 마케팅 콘텐츠를 생성합니다."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    const aiContent = JSON.parse(completion.choices[0].message.content!);
+
+    // 3. 생성된 콘텐츠를 DB에 저장
+    const contentItems = [];
+    
+    // 블로그 콘텐츠
+    aiContent.blog.forEach((title: string, index: number) => {
+      contentItems.push({
+        title,
+        platform: 'blog',
+        status: 'idea',
+        assignee: '제이',
+        scheduled_date: new Date(year, month - 1, 5 + index * 10),
+        tags: theme.theme,
+        ai_generated: true
+      });
+    });
+
+    // 카카오톡 콘텐츠
+    aiContent.kakao.forEach((content: string, index: number) => {
+      contentItems.push({
+        title: content,
+        platform: 'kakao',
+        status: 'idea',
+        assignee: '스테피',
+        scheduled_date: new Date(year, month - 1, 1 + index * 7),
+        tags: theme.theme,
+        ai_generated: true
+      });
+    });
+
+    // 나머지 채널들도 동일하게...
+
+    // DB에 일괄 저장
+    const { data: insertedContent, error: insertError } = await supabase
+      .from('content_ideas')
+      .insert(contentItems);
+
+    if (insertError) throw insertError;
+
+    return res.status(200).json({
+      success: true,
+      message: `${contentItems.length}개의 AI 콘텐츠가 생성되었습니다.`,
+      content: aiContent
+    });
+
+  } catch (error) {
+    console.error('AI 콘텐츠 생성 오류:', error);
+    return res.status(500).json({ error: '콘텐츠 생성 중 오류가 발생했습니다.' });
+  }
+}
