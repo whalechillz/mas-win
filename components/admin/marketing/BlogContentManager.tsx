@@ -38,25 +38,66 @@ export const BlogContentManager = ({ supabase }) => {
     }
   };
 
+  // 편집 모드 상태
+  const [editingContent, setEditingContent] = useState(null);
+
+  // 편집 함수
+  const handleEdit = (content) => {
+    setEditingContent(content);
+    setNewContent({
+      title: content.title,
+      topic: content.topic || '',
+      keywords: content.target_keywords?.join(', ') || '',
+      forNaver: content.for_naver || false,
+      forWebsite: content.for_website || false,
+      assignedTo: content.assigned_to || ''
+    });
+    setShowNewContentModal(true);
+  };
+
   // 새 글감 저장
   const saveNewContent = async () => {
     try {
-      const { data, error } = await supabase
-        .from('content_ideas')
-        .insert({
-          title: newContent.title,
-          topic: newContent.topic,
-          target_keywords: newContent.keywords.split(',').map(k => k.trim()),
-          for_naver: newContent.forNaver,
-          for_website: newContent.forWebsite,
-          status: 'idea',
-          assigned_to: newContent.assignedTo || null
-        })
-        .select()
-        .single();
+      let data, error;
+      
+      if (editingContent) {
+        // 수정 모드
+        const result = await supabase
+          .from('content_ideas')
+          .update({
+            title: newContent.title,
+            topic: newContent.topic,
+            target_keywords: newContent.keywords.split(',').map(k => k.trim()),
+            for_naver: newContent.forNaver,
+            for_website: newContent.forWebsite,
+            assigned_to: newContent.assignedTo || null
+          })
+          .eq('id', editingContent.id)
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      } else {
+        // 새 글감 추가
+        const result = await supabase
+          .from('content_ideas')
+          .insert({
+            title: newContent.title,
+            topic: newContent.topic,
+            target_keywords: newContent.keywords.split(',').map(k => k.trim()),
+            for_naver: newContent.forNaver,
+            for_website: newContent.forWebsite,
+            status: 'idea',
+            assigned_to: newContent.assignedTo || null
+          })
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      }
 
       if (!error) {
-        alert('새 글감이 추가되었습니다!');
+        alert(editingContent ? '글감이 수정되었습니다!' : '새 글감이 추가되었습니다!');
         setShowNewContentModal(false);
         loadContentPool();
         // 초기화
@@ -68,6 +109,7 @@ export const BlogContentManager = ({ supabase }) => {
           forWebsite: false,
           assignedTo: ''
         });
+        setEditingContent(null);
       }
     } catch (err) {
       console.error('저장 오류:', err);
@@ -192,7 +234,10 @@ export const BlogContentManager = ({ supabase }) => {
                       </div>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
+                      <button 
+                        onClick={() => handleEdit(content)}
+                        className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
+                      >
                         편집
                       </button>
                       {content.for_naver && content.status === 'ready' && (
@@ -218,7 +263,9 @@ export const BlogContentManager = ({ supabase }) => {
       {showNewContentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full p-6">
-            <h3 className="text-xl font-semibold mb-4">새 글감 추가</h3>
+            <h3 className="text-xl font-semibold mb-4">
+              {editingContent ? '글감 수정' : '새 글감 추가'}
+            </h3>
             
             <div className="space-y-4">
               <div>

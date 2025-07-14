@@ -69,6 +69,14 @@ win.masgolf.co.kr/
    ./deploy-commands.sh
    ```
 
+## 🆕 신규 기능
+
+### 간편 블로그 관리 시스템
+- **네이버 SEO 최적화**: 중복 콘텐츠 방지 전략
+- **1개 주제 → 3개 다른 앵글**: 후기/팁/비교 자동 생성
+- **직관적 UI**: 주제별 그룹, 계정별 색상
+- [📖 직원용 가이드](./docs/EMPLOYEE_BLOG_GUIDE.md) | [🔧 설정 가이드](./docs/SIMPLE_BLOG_SETUP.md)
+
 ## 🔗 주요 URL
 
 - **메인**: https://win.masgolf.co.kr

@@ -9,6 +9,7 @@
 2. **[사이트 구조](./docs/SITE_STRUCTURE.md)** - URL 및 페이지 구조
 3. **[변경 이력](./CHANGE_LOG.md)** - 수정 사항 기록
 4. **[배포 체크리스트](./DEPLOY_CHECKLIST.md)** - 배포 전 확인사항
+5. **[직원용 블로그 가이드](./docs/EMPLOYEE_BLOG_GUIDE.md)** - 🆕 블로그 관리 실무 가이드
 
 ### 설정 가이드
 - **[설정 가이드 목록](./docs/setup/)** - 각종 서비스 설정

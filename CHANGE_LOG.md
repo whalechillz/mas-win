@@ -2,6 +2,21 @@
 
 ## 2025년 7월 (실제 날짜: 2025년 1월)
 
+### 2025-07-14 (월) - 간편 블로그 관리 시스템 추가
+- **작업**: 네이버 블로그 중복 콘텐츠 문제 해결을 위한 간편 관리 시스템 개발
+- **수정 사항**:
+  - SimpleBlogManager 컴포넌트 생성 (1개 주제 → 3개 다른 앵글)
+  - simple_blog_posts 테이블 스키마 설계
+  - 네이버 SEO 정책 준수 가이드 작성
+  - 주제별 그룹 표시 및 계정별 색상 구분
+- **수정 파일**:
+  - `/components/admin/marketing/SimpleBlogManager.tsx` (새로 생성)
+  - `/components/admin/marketing/MarketingDashboard.tsx` (수정)
+  - `/database/simple-blog-schema.sql` (새로 생성)
+- **작성 문서**:
+  - `/docs/EMPLOYEE_BLOG_GUIDE.md` (직원용 사용 가이드)
+  - `/docs/SIMPLE_BLOG_SETUP.md` (설치 가이드)
+
 ### 2025-07-14 (월) - 캠페인 데이터 업데이트 및 버그 수정 (추가)
 - **작업**: OP 매뉴얼 접근 권한 문제 해결 및 캠페인 관리 시스템 개선
 - **수정 사항**:
