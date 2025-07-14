@@ -69,6 +69,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
             target_audience: current.target_audience || ''
           });
         }
+      }
     } catch (error) {
       console.error('Error loading themes:', error);
     }
