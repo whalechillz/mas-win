@@ -8,6 +8,7 @@ export const MultiChannelManager = ({ supabase }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingContent, setEditingContent] = useState(null);
   const [selectedPlatform, setSelectedPlatform] = useState('all');
+  const [deletedCount, setDeletedCount] = useState(0);
 
   // 플랫폼 정의
   const platforms = [
@@ -33,7 +34,23 @@ export const MultiChannelManager = ({ supabase }) => {
   // 데이터 로드
   useEffect(() => {
     loadContents();
+    loadDeletedCount();
   }, [selectedPlatform]);
+
+  const loadDeletedCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('content_ideas')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'deleted');
+      
+      if (!error && count !== null) {
+        setDeletedCount(count);
+      }
+    } catch (error) {
+      console.error('Error loading deleted count:', error);
+    }
+  };
 
   const loadContents = async () => {
     try {
@@ -107,6 +124,7 @@ export const MultiChannelManager = ({ supabase }) => {
 
       alert('삭제되었습니다.');
       await loadContents();
+      await loadDeletedCount(); // 삭제 개수 업데이트
     } catch (error) {
       console.error('Error deleting:', error);
       alert(`삭제 중 오류 발생: ${error.message}`);
@@ -191,6 +209,14 @@ export const MultiChannelManager = ({ supabase }) => {
             {contents.filter(c => c.status === 'published').length}
           </div>
         </div>
+        {deletedCount > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border p-4 border-red-200">
+            <div className="text-sm text-gray-600">휴지통</div>
+            <div className="text-2xl font-bold text-red-600">
+              {deletedCount}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 콘텐츠 목록 */}
