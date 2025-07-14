@@ -29,11 +29,18 @@ export interface Campaign {
     opManual?: string;
     googleAds?: string;
   };
+  assets?: {
+    landingPage?: string;
+    landingPageUrl?: string;
+    opManual?: string;
+    googleAds?: string;
+  };
   settings: {
     phoneNumber: string;
     eventDate: string;
     remainingSlots: number;
     discountRate: number;
+    targetAudience?: string;
   };
   metrics: {
     views: number;
@@ -58,7 +65,7 @@ export const campaignsData: Campaign[] = [
     files: {
       landingPage: "/versions/funnel-2025-07-complete.html",
       landingPageUrl: "/funnel-2025-07",
-      opManual: "/op-manual-2025-07.html",
+      opManual: "/api/admin/op-manual/2025-07",
       googleAds: "https://ads.google.com/aw/campaigns?campaignId=22712889806"
     },
     settings: {
@@ -86,8 +93,8 @@ export const campaignsData: Campaign[] = [
     files: {
       landingPage: "/versions/funnel-2025-06.html",
       landingPageUrl: "/funnel-2025-06",
-      opManual: "/docs/op-manuals/2025-06-프라임타임/",
-      googleAds: "/google_ads/2025.06.11.프라임타임/"
+      opManual: undefined,
+      googleAds: undefined
     },
     settings: {
       phoneNumber: "080-028-8888",
@@ -113,8 +120,8 @@ export const campaignsData: Campaign[] = [
     files: {
       landingPage: "/versions/funnel-2025-05.html",
       landingPageUrl: "/funnel-2025-05",
-      opManual: "/docs/op-manuals/2025-05-가정의달/",
-      googleAds: "/google_ads/2025.05.01.가정의달/"
+      opManual: undefined,
+      googleAds: undefined
     },
     settings: {
       phoneNumber: "080-028-8888",

@@ -375,7 +375,7 @@ export const UnifiedCampaignManager: React.FC<UnifiedCampaignManagerProps> = ({
                 <tr key={campaign.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
-                    <div className="text-sm text-gray-500">{campaign.settings.targetAudience}</div>
+                    <div className="text-sm text-gray-500">{campaign.settings.targetAudience || campaign.settings.eventDate}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {campaign.period.start} ~ {campaign.period.end}
@@ -402,7 +402,7 @@ export const UnifiedCampaignManager: React.FC<UnifiedCampaignManagerProps> = ({
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <a
-                        href={campaign.assets.landingPageUrl}
+                        href={campaign.files?.landingPageUrl || campaign.assets?.landingPageUrl || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-purple-600 hover:text-purple-900"

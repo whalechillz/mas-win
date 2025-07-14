@@ -1,8 +1,8 @@
 export default function handler(req, res) {
   // 관리자 인증 확인
-  const { adminAuth } = req.cookies;
+  const { admin_auth } = req.cookies;
   
-  if (!adminAuth || adminAuth !== 'true') {
+  if (!admin_auth || admin_auth !== '1') {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

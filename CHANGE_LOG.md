@@ -2,6 +2,21 @@
 
 ## 2025년 7월 (실제 날짜: 2025년 1월)
 
+### 2025-07-14 (월) - 캠페인 데이터 업데이트 및 버그 수정 (추가)
+- **작업**: OP 매뉴얼 접근 권한 문제 해결 및 캠페인 관리 시스템 개선
+- **수정 사항**:
+  - OP 매뉴얼 API 인증 쿠키 이름 수정 (adminAuth → admin_auth)
+  - 5월/6월 캠페인 OP 매뉴얼/구글 애즈 제거
+  - Campaign 타입에 optional 필드 추가
+  - ROI 계산 확인: +424% (정확한 계산)
+- **수정 파일**:
+  - `/pages/api/admin/op-manual/[campaign].js`
+  - `/pages/admin.tsx`
+  - `/lib/campaign-data.ts`
+  - `/components/admin/campaigns/UnifiedCampaignManager.tsx`
+- **작성 문서**:
+  - `/CAMPAIGN_SYSTEM_UPDATE_20250714.md`
+
 ### 2025-07-14 (월) - 캠페인 데이터 업데이트 및 버그 수정
 - **작업**: 5월/6월 캠페인 데이터 초기화 및 7월 캠페인 현황 업데이트
 - **이유**: 5월/6월 캠페인은 예약, 문의, 조회수, 전환율을 체크하지 않음
