@@ -135,6 +135,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   // 대시보드 통계 로드
   const loadDashboardStats = async () => {
     try {
+      // 먼저 뷰에서 시도
       const { data, error } = await supabase
         .from('integrated_campaign_dashboard')
         .select('*')
@@ -144,9 +145,58 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       
       if (!error && data) {
         setDashboardStats(data);
+        return;
+      }
+      
+      // 뷰가 없으면 직접 계산
+      if (error && (error.code === '42P01' || error.message.includes('not found'))) {
+        console.log('Dashboard view not found, calculating manually...');
+        
+        const startDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+        const endDate = new Date(selectedYear, selectedMonth, 0).toISOString().split('T')[0];
+        
+        const { data: contents, error: contentsError } = await supabase
+          .from('content_ideas')
+          .select('*')
+          .gte('scheduled_date', startDate)
+          .lte('scheduled_date', endDate)
+          .neq('status', 'deleted');
+        
+        if (!contentsError && contents) {
+          // 수동으로 통계 계산
+          const stats = {
+            year: selectedYear,
+            month: selectedMonth,
+            blog_count: contents.filter(c => c.platform === 'blog').length,
+            kakao_count: contents.filter(c => c.platform === 'kakao').length,
+            sms_count: contents.filter(c => c.platform === 'sms').length,
+            instagram_count: contents.filter(c => c.platform === 'instagram').length,
+            youtube_count: contents.filter(c => c.platform === 'youtube').length,
+            total_contents: contents.length,
+            published_count: contents.filter(c => c.status === 'published').length,
+            idea_count: contents.filter(c => c.status === 'idea').length,
+            writing_count: contents.filter(c => c.status === 'writing').length,
+            ready_count: contents.filter(c => c.status === 'ready').length
+          };
+          
+          setDashboardStats(stats);
+        }
       }
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
+      // 에러가 있어도 빈 통계로 초기화
+      setDashboardStats({
+        blog_count: 0,
+        kakao_count: 0,
+        sms_count: 0,
+        instagram_count: 0,
+        youtube_count: 0,
+        total_contents: 0,
+        published_count: 0,
+        idea_count: 0,
+        writing_count: 0,
+        ready_count: 0
+      });
     }
   };
 
@@ -334,31 +384,35 @@ export const IntegratedCampaignManager = ({ supabase }) => {
     try {
       setLoading(true);
       
-      if (aiSettings.useAI) {
-        // AI 사용 시 API 호출
-        const response = await fetch('/api/generate-ai-content', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            year: selectedYear,
-            month: selectedMonth,
-            theme: currentTheme,
-            aiSettings: aiSettings
-          })
-        });
-        
-        if (!response.ok) throw new Error('AI 생성 실패');
-        
-        const result = await response.json();
-        alert(`AI가 ${result.contentCount}개의 콘텐츠를 생성했습니다!`);
+      // API를 통한 콘텐츠 생성 (더 안전한 방법)
+      const response = await fetch('/api/generate-multichannel-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          year: selectedYear,
+          month: selectedMonth,
+          aiSettings: aiSettings,
+          selectedChannels: {
+            blog: true,
+            kakao: true,
+            sms: true,
+            instagram: true,
+            youtube: true
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.details || '콘텐츠 생성 실패');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`${result.contentCount}개의 콘텐츠가 생성되었습니다!`);
       } else {
-        // 기존 템플릿 방식
-        await supabase.rpc('generate_monthly_content', { 
-          p_year: selectedYear, 
-          p_month: selectedMonth 
-        });
-        
-        alert('멀티채널 콘텐츠가 자동 생성되었습니다!');
+        throw new Error(result.message || '콘텐츠 생성 중 문제가 발생했습니다.');
       }
       
       await loadMultiChannelContents();
