@@ -52,6 +52,7 @@ export const MultiChannelManager = ({ supabase }) => {
       setContents(data || []);
     } catch (error) {
       console.error('Error loading contents:', error);
+      alert('데이터 로드 실패: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -77,9 +78,36 @@ export const MultiChannelManager = ({ supabase }) => {
         scheduled_date: '',
         tags: ''
       });
+      alert('콘텐츠가 추가되었습니다.');
     } catch (error) {
       console.error('Error adding content:', error);
       alert('추가 실패: ' + error.message);
+    }
+  };
+
+  // 콘텐츠 삭제 - 개선된 버전
+  const deleteContent = async (content) => {
+    if (!confirm(`"${content.title}"을(를) 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('content_ideas')
+        .delete()
+        .eq('id', content.id);
+
+      if (error) {
+        console.error('Delete error:', error);
+        alert(`삭제 실패: ${error.message}\n\n${error.details || ''}`);
+        return;
+      }
+
+      alert('삭제되었습니다.');
+      await loadContents();
+    } catch (error) {
+      console.error('Error deleting:', error);
+      alert(`삭제 중 오류 발생: ${error.message}`);
     }
   };
 
@@ -209,6 +237,7 @@ export const MultiChannelManager = ({ supabase }) => {
                           await loadContents();
                         } catch (error) {
                           console.error('Error updating status:', error);
+                          alert('상태 업데이트 실패: ' + error.message);
                         }
                       }}
                       className={`px-3 py-1 text-sm border rounded ${getStatusColor(content.status)}`}
@@ -232,20 +261,7 @@ export const MultiChannelManager = ({ supabase }) => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={async () => {
-                          if (confirm('삭제하시겠습니까?')) {
-                            try {
-                              const { error } = await supabase
-                                .from('content_ideas')
-                                .delete()
-                                .eq('id', content.id);
-                              if (error) throw error;
-                              await loadContents();
-                            } catch (error) {
-                              console.error('Error deleting:', error);
-                            }
-                          }
-                        }}
+                        onClick={() => deleteContent(content)}
                         className="text-red-600 hover:text-red-800"
                       >
                         <Trash2 className="w-4 h-4" />
