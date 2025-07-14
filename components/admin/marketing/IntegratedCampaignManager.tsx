@@ -6,6 +6,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [monthlyTheme, setMonthlyTheme] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
@@ -30,6 +31,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       const { data, error } = await supabase
         .from('monthly_themes')
         .select('*')
+        .eq('year', selectedYear)
         .order('month');
       
       if (!error && data) {
@@ -44,7 +46,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         setMonthlyThemes(themesMap);
         
         // 현재 월 테마 설정
-        const current = data.find(t => t.month === selectedMonth && t.year === 2025);
+        const current = data.find(t => t.month === selectedMonth);
         setCurrentTheme(current);
       }
     } catch (error) {
@@ -65,12 +67,12 @@ export const IntegratedCampaignManager = ({ supabase }) => {
   useEffect(() => {
     loadMonthlyThemes();
     loadCampaigns();
-  }, [selectedMonth]);
+  }, [selectedMonth, selectedYear]);
 
   const loadCampaigns = async () => {
     try {
-      const startDate = `2025-${String(selectedMonth).padStart(2, '0')}-01`;
-      const endDate = `2025-${String(selectedMonth).padStart(2, '0')}-31`;
+      const startDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+      const endDate = new Date(selectedYear, selectedMonth, 0).toISOString().split('T')[0];
       
       const { data, error } = await supabase
         .from('marketing_campaigns')
@@ -92,7 +94,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       const campaignData = {
         ...newCampaign,
         month: selectedMonth,
-        year: 2025,
+        year: selectedYear,
         status: 'planned'
       };
 
@@ -208,15 +210,26 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="px-4 py-2 border rounded-lg bg-white"
-            >
-              {[7, 8, 9, 10, 11, 12].map(month => (
-                <option key={month} value={month}>{month}월</option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="px-3 py-2 border rounded-lg bg-white"
+              >
+                {[2025, 2026, 2027].map(year => (
+                  <option key={year} value={year}>{year}년</option>
+                ))}
+              </select>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="px-3 py-2 border rounded-lg bg-white"
+              >
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(month => (
+                  <option key={month} value={month}>{month}월</option>
+                ))}
+              </select>
+            </div>
             <div>
               <h3 className="font-semibold text-lg">{selectedMonth}월 마케팅 컨셉</h3>
               {currentTheme ? (
