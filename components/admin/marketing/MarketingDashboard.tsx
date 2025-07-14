@@ -217,7 +217,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            ⚙️ 설정
+            🔧 시스템 설정
           </button>
         </div>
       </div>
