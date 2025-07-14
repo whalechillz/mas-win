@@ -403,11 +403,25 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || errorData.details || '콘텐츠 생성 실패');
+        let errorMessage = '콘텐츠 생성 실패';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
+        throw new Error(errorMessage);
       }
       
-      const result = await response.json();
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('API Response:', responseText);
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing response:', e);
+        throw new Error('서버 응답을 처리할 수 없습니다.');
+      }
       
       if (result.success) {
         alert(`${result.contentCount}개의 콘텐츠가 생성되었습니다!`);
