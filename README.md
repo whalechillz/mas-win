@@ -57,7 +57,8 @@ win.masgolf.co.kr/
 ### 멀티채널 관리 시스템
 - **통합 채널 관리**: 네이버, 인스타그램, 유튜브, 카카오채널, 틱톡
 - **소프트 삭제 구현**: 외래 키 제약 문제 해결
-- [📖 멀티채널 가이드](./docs/MULTICHANNEL_UPDATE_GUIDE.md) | [🔧 삭제 문제 해결](./docs/MULTICHANNEL_DELETE_ISSUE_GUIDE.md) | [⚡ 빠른 해결](./docs/QUICK_FIX_DELETE_ISSUE.md)
+- **휴지통 기능**: 삭제된 항목 복구, 완전 삭제, 일괄 관리
+- [📖 멀티채널 가이드](./docs/MULTICHANNEL_UPDATE_GUIDE.md) | [🔧 삭제 문제 해결](./docs/MULTICHANNEL_DELETE_ISSUE_GUIDE.md) | [🗑️ 휴지통 가이드](./docs/TRASH_FEATURE_GUIDE.md)
 
 ## 🚀 시작하기
 
