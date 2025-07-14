@@ -11,14 +11,19 @@ CREATE TABLE IF NOT EXISTS simple_blog_posts (
   
   -- 발행 정보
   account TEXT NOT NULL,            -- mas9golf, massgoogolf, massgoogolfkorea
-  assignee TEXT NOT NULL,           -- J, S, 미, 조
+  assignee TEXT NOT NULL,           -- 제이, 스테피, 나과장, 허상원
   publish_time TEXT,                -- 예정 시간 (09:00, 14:00, 19:00)
   
   -- 상태 관리
-  status TEXT DEFAULT 'idea',       -- idea, writing, ready, published
+  status TEXT DEFAULT 'idea',       -- idea, writing, ready, reserved, published
   naver_url TEXT,                   -- 네이버 URL
   published_at TIMESTAMPTZ,         -- 실제 발행 시간
   view_count INTEGER DEFAULT 0,     -- 조회수
+  
+  -- 예약 발행 관련
+  is_reserved BOOLEAN DEFAULT FALSE, -- 예약 발행 여부
+  reserved_date DATE,               -- 예약 발행일
+  reserved_time TEXT,               -- 예약 발행 시간
   
   -- 메타 정보
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -43,3 +48,8 @@ CREATE TRIGGER update_simple_blog_posts_updated_at
 BEFORE UPDATE ON simple_blog_posts 
 FOR EACH ROW 
 EXECUTE FUNCTION update_updated_at_column();
+
+-- 기존 데이터가 있다면 예약 발행 필드 추가
+ALTER TABLE simple_blog_posts ADD COLUMN IF NOT EXISTS is_reserved BOOLEAN DEFAULT FALSE;
+ALTER TABLE simple_blog_posts ADD COLUMN IF NOT EXISTS reserved_date DATE;
+ALTER TABLE simple_blog_posts ADD COLUMN IF NOT EXISTS reserved_time TEXT;

@@ -11,7 +11,7 @@ export const SimpleBlogManager = ({ supabase }) => {
   const [newPost, setNewPost] = useState({
     topic: '',
     angle: 'review', // review, tip, comparison
-    assignee: 'J',
+    assignee: '제이',
     status: 'idea'
   });
 
@@ -54,7 +54,8 @@ export const SimpleBlogManager = ({ supabase }) => {
           account: 'mas9golf',
           assignee: newPost.assignee,
           status: 'idea',
-          publish_time: '09:00'
+          publish_time: '09:00',
+          is_reserved: false
         },
         {
           topic: newPost.topic,
@@ -63,7 +64,8 @@ export const SimpleBlogManager = ({ supabase }) => {
           account: 'massgoogolf',
           assignee: newPost.assignee,
           status: 'idea',
-          publish_time: '14:00'
+          publish_time: '14:00',
+          is_reserved: false
         },
         {
           topic: newPost.topic,
@@ -72,7 +74,8 @@ export const SimpleBlogManager = ({ supabase }) => {
           account: 'massgoogolfkorea',
           assignee: newPost.assignee,
           status: 'idea',
-          publish_time: '19:00'
+          publish_time: '19:00',
+          is_reserved: false
         }
       ];
 
@@ -84,7 +87,7 @@ export const SimpleBlogManager = ({ supabase }) => {
 
       await loadPosts();
       setShowAddForm(false);
-      setNewPost({ topic: '', angle: 'review', assignee: 'J', status: 'idea' });
+      setNewPost({ topic: '', angle: 'review', assignee: '제이', status: 'idea' });
     } catch (error) {
       console.error('Error adding posts:', error);
       alert('추가 실패: ' + error.message);
@@ -172,6 +175,7 @@ export const SimpleBlogManager = ({ supabase }) => {
           <p>• 같은 주제를 <strong>다른 관점</strong>으로 작성 (후기/팁/비교)</p>
           <p>• 각 계정별 고유한 톤앤매너 유지</p>
           <p>• 시간차 발행 (오전/오후/저녁)</p>
+          <p>• 💡 네이버 예약 발행 기능 활용 권장</p>
         </div>
       </div>
 
@@ -200,10 +204,10 @@ export const SimpleBlogManager = ({ supabase }) => {
                   onChange={(e) => setNewPost({...newPost, assignee: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
                 >
-                  <option value="J">J</option>
-                  <option value="S">S</option>
-                  <option value="미">미</option>
-                  <option value="조">조</option>
+                  <option value="제이">제이</option>
+                  <option value="스테피">스테피</option>
+                  <option value="나과장">나과장</option>
+                  <option value="허상원">허상원</option>
                 </select>
               </div>
               
@@ -272,27 +276,56 @@ export const SimpleBlogManager = ({ supabase }) => {
                             post.status === 'idea' ? 'bg-gray-50' :
                             post.status === 'writing' ? 'bg-yellow-50' :
                             post.status === 'ready' ? 'bg-blue-50' :
+                            post.status === 'reserved' ? 'bg-purple-50' :
                             'bg-green-50'
                           }`}
                         >
                           <option value="idea">아이디어</option>
                           <option value="writing">작성중</option>
                           <option value="ready">발행준비</option>
+                          <option value="reserved">예약완료</option>
                           <option value="published">발행완료</option>
                         </select>
                         
                         {post.status === 'ready' && (
-                          <input
-                            type="text"
-                            placeholder="네이버 URL 입력"
-                            className="px-3 py-1 text-sm border rounded flex-1"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && e.target.value) {
-                                updateUrl(post.id, e.target.value);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
+                          <>
+                            <button
+                              onClick={() => updateStatus(post.id, 'reserved')}
+                              className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                            >
+                              🕐 예약 발행
+                            </button>
+                            <input
+                              type="text"
+                              placeholder="네이버 URL 입력 (바로 발행 시)"
+                              className="px-3 py-1 text-sm border rounded flex-1"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' && e.target.value) {
+                                  updateUrl(post.id, e.target.value);
+                                  updateStatus(post.id, 'published');
+                                  e.target.value = '';
+                                }
+                              }}
+                            />
+                          </>
+                        )}
+                        
+                        {post.status === 'reserved' && (
+                          <>
+                            <span className="text-sm text-purple-600 font-medium">📅 예약됨</span>
+                            <button
+                              onClick={() => {
+                                const url = prompt('발행된 네이버 URL을 입력하세요:');
+                                if (url) {
+                                  updateUrl(post.id, url);
+                                  updateStatus(post.id, 'published');
+                                }
+                              }}
+                              className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                            >
+                              ✅ 발행 완료 처리
+                            </button>
+                          </>
                         )}
                         
                         {post.naver_url && (
