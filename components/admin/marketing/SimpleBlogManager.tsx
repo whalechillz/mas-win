@@ -10,10 +10,16 @@ export const SimpleBlogManager = ({ supabase }) => {
   // 간단한 입력 폼
   const [newPost, setNewPost] = useState({
     topic: '',
+    type: 'theme', // theme: 주제별 자동 배정, custom: 각각 다른 제목
+    customTitles: {
+      account1: '',
+      account2: '',
+      account3: ''
+    },
     assignees: {
-      review: '제이',
-      tip: '스테피',
-      comparison: '허상원'
+      mas9golf: '제이',
+      massgoogolf: '스테피',
+      massgoogolfkorea: '허상원'
     },
     status: 'idea'
   });

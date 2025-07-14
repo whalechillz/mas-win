@@ -1,4 +1,16 @@
-# 수정 로그
+### 2025-07-14 (월) - 멀티채널 관리 시스템 추가
+- **작업**: 블로그 관리 시스템 재구성 및 멀티채널 지원
+- **수정 사항**:
+  - 메뉴 이름 변경: 간편→네이버, 상세→멀티채널
+  - MultiChannelManager 컴포넌트 생성
+  - 자사블로그, 카카오채널, 인스타그램, 유튜브, 틱톡 지원
+  - content_ideas 테이블에 platform 필드 추가
+- **수정 파일**:
+  - `/components/admin/marketing/MultiChannelManager.tsx` (새로 생성)
+  - `/components/admin/marketing/MarketingDashboard.tsx` (수정)
+  - `/database/multichannel-schema.sql` (새로 생성)
+- **작성 문서**:
+  - `/docs/MULTICHANNEL_UPDATE_GUIDE.md` (멀티채널 가이드)# 수정 로그
 
 ## 2025년 7월 (실제 날짜: 2025년 1월)
 

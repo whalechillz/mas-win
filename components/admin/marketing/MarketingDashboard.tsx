@@ -7,6 +7,7 @@ import { NaverBlogManager } from './NaverBlogManager';
 import { BlogContentManager } from './BlogContentManager'; // 새로 추가
 import { SimpleNaverBlogManager } from './SimpleNaverBlogManager'; // 단순화 버전
 import { SimpleBlogManager } from './SimpleBlogManager'; // 초간단 버전
+import { MultiChannelManager } from './MultiChannelManager'; // 멀티채널 관리
 
 interface MarketingDashboardProps {
   supabase: any;
@@ -143,7 +144,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            ✨ 블로그 관리 (간편)
+            🟢 블로그 관리 (네이버)
           </button>
           <button
             onClick={() => setActiveView('blog')}
@@ -153,7 +154,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            📝 블로그 관리 (상세)
+            📱 멀티채널 관리
           </button>
           <button
             onClick={() => setActiveView('calendar')}
@@ -182,8 +183,9 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
                 ? 'bg-purple-100 text-purple-700 border border-gray-200 border-b-white'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
+            style={{display: 'none'}}
           >
-            🟢 네이버 블로그
+            🟢 네이버 블로그 (구버전)
           </button>
           <button
             onClick={() => setActiveView('settings')}
@@ -207,7 +209,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
         ) : (
           <div className="p-6">
             {activeView === 'simple' && <SimpleBlogManager supabase={supabase} />}
-            {activeView === 'blog' && <BlogContentManager supabase={supabase} />}
+            {activeView === 'blog' && <MultiChannelManager supabase={supabase} />}
             {activeView === 'calendar' && (
               <BlogCalendar
                 blogPosts={blogPosts}
