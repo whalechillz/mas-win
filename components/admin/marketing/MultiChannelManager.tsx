@@ -40,6 +40,7 @@ export const MultiChannelManager = ({ supabase }) => {
       let query = supabase
         .from('content_ideas')
         .select('*')
+        .neq('status', 'deleted')  // 'deleted' 상태 제외
         .order('created_at', { ascending: false });
 
       if (selectedPlatform !== 'all') {
@@ -85,21 +86,22 @@ export const MultiChannelManager = ({ supabase }) => {
     }
   };
 
-  // 콘텐츠 삭제 - 개선된 버전
+  // 콘텐츠 삭제 - 소프트 삭제 방식
   const deleteContent = async (content) => {
     if (!confirm(`"${content.title}"을(를) 삭제하시겠습니까?`)) {
       return;
     }
 
     try {
+      // 실제 삭제 대신 상태를 'deleted'로 변경
       const { error } = await supabase
         .from('content_ideas')
-        .delete()
+        .update({ status: 'deleted' })
         .eq('id', content.id);
 
       if (error) {
         console.error('Delete error:', error);
-        alert(`삭제 실패: ${error.message}\n\n${error.details || ''}`);
+        alert(`삭제 실패: ${error.message}`);
         return;
       }
 
@@ -118,6 +120,7 @@ export const MultiChannelManager = ({ supabase }) => {
       case 'writing': return 'bg-yellow-100 text-yellow-700';
       case 'ready': return 'bg-blue-100 text-blue-700';
       case 'published': return 'bg-green-100 text-green-700';
+      case 'deleted': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
