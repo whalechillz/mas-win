@@ -34,6 +34,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
     theme: '',
     objective: '',
     promotion_details: '',
+    target_audience: '',
     focus_keywords: []
   });
 
@@ -61,8 +62,12 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         
         // 현재 월 테마 설정
         const current = data.find(t => t.month === selectedMonth);
-        setCurrentTheme(current);
-      }
+        if (current) {
+          setCurrentTheme({
+            ...current,
+            target_audience: current.target_audience || ''
+          });
+        }
     } catch (error) {
       console.error('Error loading themes:', error);
     }
@@ -79,6 +84,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
         theme: newTheme.theme,
         objective: newTheme.objective,
         promotion_details: newTheme.promotion_details,
+        target_audience: newTheme.target_audience,
         focus_keywords: newTheme.focus_keywords
       };
 
@@ -292,6 +298,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
       theme: '',
       objective: '',
       promotion_details: '',
+      target_audience: '',
       focus_keywords: []
     });
   };
@@ -391,6 +398,7 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                           theme: currentTheme.theme,
                           objective: currentTheme.objective || currentTheme.description || '',
                           promotion_details: currentTheme.promotion_detail || currentTheme.promotion_details || '',
+                          target_audience: currentTheme.target_audience || '',
                           focus_keywords: currentTheme.focus_keywords || []
                         });
                         setShowThemeForm(true);
@@ -403,8 +411,11 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                   <p className="text-sm text-gray-700 mb-1">
                     <span className="font-medium">목표:</span> {currentTheme.objective || currentTheme.description || '미설정'}
                   </p>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-gray-600 mb-1">
                     <span className="font-medium">프로모션:</span> {currentTheme.promotion_detail || currentTheme.promotion_details || '미설정'}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <span className="font-medium">타겟 고객:</span> {currentTheme.target_audience || '미설정'}
                   </p>
                   {currentTheme.focus_keywords && currentTheme.focus_keywords.length > 0 && (
                     <div className="flex gap-1 flex-wrap">
@@ -775,6 +786,17 @@ export const IntegratedCampaignManager = ({ supabase }) => {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   rows={2}
                   placeholder="예: 상담/방문 고객 전체 클링 패키지 증정 + 구매 고객 고급 위스키 증정"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">타겟 고객</label>
+                <input
+                  type="text"
+                  value={newTheme.target_audience}
+                  onChange={(e) => setNewTheme({...newTheme, target_audience: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="예: 4060세대, 고소득층 및 4060세대"
                 />
               </div>
 
