@@ -10,11 +10,8 @@ export const SimpleBlogManager = ({ supabase }) => {
   // 간단한 입력 폼
   const [newPost, setNewPost] = useState({
     topic: '',
-    assignees: {
-      review: '제이',
-      tip: '스테피',
-      comparison: '허상원'
-    },
+    angle: 'review', // review, tip, comparison
+    assignee: '제이',
     status: 'idea'
   });
 
@@ -55,7 +52,7 @@ export const SimpleBlogManager = ({ supabase }) => {
           angle: 'review',
           title: angles.review,
           account: 'mas9golf',
-          assignee: newPost.assignees.review,
+          assignee: newPost.assignee,
           status: 'idea',
           publish_time: '09:00',
           is_reserved: false
@@ -65,7 +62,7 @@ export const SimpleBlogManager = ({ supabase }) => {
           angle: 'tip',
           title: angles.tip,
           account: 'massgoogolf',
-          assignee: newPost.assignees.tip,
+          assignee: newPost.assignee,
           status: 'idea',
           publish_time: '14:00',
           is_reserved: false
@@ -75,7 +72,7 @@ export const SimpleBlogManager = ({ supabase }) => {
           angle: 'comparison',
           title: angles.comparison,
           account: 'massgoogolfkorea',
-          assignee: newPost.assignees.comparison,
+          assignee: newPost.assignee,
           status: 'idea',
           publish_time: '19:00',
           is_reserved: false
@@ -90,7 +87,7 @@ export const SimpleBlogManager = ({ supabase }) => {
 
       await loadPosts();
       setShowAddForm(false);
-      setNewPost({ topic: '', assignees: { review: '제이', tip: '스테피', comparison: '허상원' }, status: 'idea' });
+      setNewPost({ topic: '', angle: 'review', assignee: '제이', status: 'idea' });
     } catch (error) {
       console.error('Error adding posts:', error);
       alert('추가 실패: ' + error.message);
@@ -189,62 +186,30 @@ export const SimpleBlogManager = ({ supabase }) => {
             <h3 className="text-lg font-semibold mb-4">새 주제 추가</h3>
             
             <div className="space-y-4">
-            <div>
-            <label className="block text-sm font-medium mb-1">주제</label>
-            <input
-            type="text"
-            value={newPost.topic}
-            onChange={(e) => setNewPost({...newPost, topic: e.target.value})}
-            placeholder="예: 시니어 골퍼를 위한 MASGOLF 드라이버"
-            className="w-full px-3 py-2 border rounded-lg"
-            />
-            </div>
-            
-            <div className="space-y-3">
-            <label className="block text-sm font-medium mb-2">각 글 담당자 배정</label>
-            
-            <div className="flex items-center gap-3">
-            <span className="text-sm w-24">[실제 후기]</span>
-            <select
-                value={newPost.assignees.review}
-              onChange={(e) => setNewPost({...newPost, assignees: {...newPost.assignees, review: e.target.value}})}
-              className="flex-1 px-3 py-2 border rounded-lg"
-            >
-              <option value="제이">제이</option>
-                <option value="스테피">스테피</option>
+              <div>
+                <label className="block text-sm font-medium mb-1">주제</label>
+                <input
+                  type="text"
+                  value={newPost.topic}
+                  onChange={(e) => setNewPost({...newPost, topic: e.target.value})}
+                  placeholder="예: 시니어 골퍼를 위한 MASGOLF 드라이버"
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">담당자</label>
+                <select
+                  value={newPost.assignee}
+                  onChange={(e) => setNewPost({...newPost, assignee: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value="제이">제이</option>
+                  <option value="스테피">스테피</option>
                   <option value="나과장">나과장</option>
-                      <option value="허상원">허상원</option>
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm w-24">[전문가 팁]</span>
-                    <select
-                      value={newPost.assignees.tip}
-                      onChange={(e) => setNewPost({...newPost, assignees: {...newPost.assignees, tip: e.target.value}})}
-                      className="flex-1 px-3 py-2 border rounded-lg"
-                    >
-                      <option value="제이">제이</option>
-                      <option value="스테피">스테피</option>
-                      <option value="나과장">나과장</option>
-                      <option value="허상원">허상원</option>
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm w-24">[비교 분석]</span>
-                    <select
-                      value={newPost.assignees.comparison}
-                      onChange={(e) => setNewPost({...newPost, assignees: {...newPost.assignees, comparison: e.target.value}})}
-                      className="flex-1 px-3 py-2 border rounded-lg"
-                    >
-                      <option value="제이">제이</option>
-                      <option value="스테피">스테피</option>
-                      <option value="나과장">나과장</option>
-                      <option value="허상원">허상원</option>
-                    </select>
-                  </div>
-                </div>
+                  <option value="허상원">허상원</option>
+                </select>
+              </div>
               
               <div className="bg-gray-50 p-3 rounded-lg text-sm">
                 <p className="font-medium mb-1">자동 생성될 3개 글:</p>
