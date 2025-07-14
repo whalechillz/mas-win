@@ -246,7 +246,7 @@ export default function DebugPage() {
     }
   };
 
-  // 5. 콘텐츠 삭제 (테스트용)
+  // 6. 콘텐츠 삭제 (테스트용)
   const deleteTestContents = async () => {
     if (!confirm('정말로 7월 테스트 콘텐츠를 모두 삭제하시겠습니까?')) return;
     
@@ -482,7 +482,6 @@ export default function DebugPage() {
                 {JSON.stringify(debugInfo.apiTest, null, 2)}
               </pre>
             )}
-          </div>
         </div>
 
         {/* 액션 버튼 */}
