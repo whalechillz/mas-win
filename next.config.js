@@ -11,5 +11,9 @@ module.exports = {
   images: {
     unoptimized: true,
   },
+  // Node.js 18 fetch 문제 해결
+  experimental: {
+    serverMinification: false,
+  },
   // 리다이렉트 제거 - 메인 페이지가 index.js를 직접 사용하도록 함
 };
