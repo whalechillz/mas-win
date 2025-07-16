@@ -1,5 +1,7 @@
 // pages/api/generate-multichannel-content.js
-// Node.js 18 fetch 문제 완전 해결 버전
+// Node.js 18 호환 버전 - axios 사용
+
+import axios from 'axios';
 
 export default async function handler(req, res) {
   // CORS 헤더
@@ -30,10 +32,6 @@ export default async function handler(req, res) {
       });
     }
     
-    // Node.js 내장 https 모듈 사용 (fetch 대신)
-    const https = require('https');
-    const url = new URL(`${supabaseUrl}/rest/v1/content_ideas`);
-    
     // 콘텐츠 데이터 준비
     const contentsToCreate = [];
     const channels = {
@@ -44,132 +42,144 @@ export default async function handler(req, res) {
       youtube: selectedChannels.youtube !== false
     };
     
+    // 월별 테마 가져오기 (선택사항)
+    let monthlyTheme = null;
+    try {
+      const themeResponse = await axios.get(
+        `${supabaseUrl}/rest/v1/monthly_themes`,
+        {
+          params: {
+            year: `eq.${year}`,
+            month: `eq.${month}`
+          },
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
+          }
+        }
+      );
+      monthlyTheme = themeResponse.data[0];
+    } catch (error) {
+      console.log('월별 테마 로드 실패:', error.message);
+    }
+    
+    const theme = monthlyTheme?.theme || `${month}월 프로모션`;
+    
+    // 채널별 콘텐츠 생성
     if (channels.blog) {
       contentsToCreate.push(
         {
-          title: `[블로그] ${month}월 프로모션`,
-          content: '이달의 특별 혜택',
+          title: `[블로그] ${theme} - 이달의 특별 혜택`,
+          content: `${month}월 특별 프로모션 안내`,
           platform: 'blog',
           status: 'idea',
           assignee: '마케팅팀',
           scheduled_date: `${year}-${String(month).padStart(2, '0')}-05`,
-          tags: '프로모션,블로그'
+          tags: '프로모션,블로그,월간테마'
+        },
+        {
+          title: `[블로그] 골프 꿀팁 - ${month}월 편`,
+          content: `${month}월 골프 팁과 노하우`,
+          platform: 'blog',
+          status: 'idea',
+          assignee: '콘텐츠팀',
+          scheduled_date: `${year}-${String(month).padStart(2, '0')}-15`,
+          tags: '팁,블로그,교육'
         }
       );
     }
     
     if (channels.kakao) {
       contentsToCreate.push({
-        title: `[카카오톡] ${month}월 이벤트`,
-        content: '카카오톡 이벤트',
+        title: `[카카오톡] ${theme} 안내`,
+        content: '카카오톡 채널 메시지',
         platform: 'kakao',
         status: 'idea',
         assignee: 'CRM팀',
         scheduled_date: `${year}-${String(month).padStart(2, '0')}-01`,
-        tags: '카카오톡,이벤트'
+        tags: '카카오톡,공지,프로모션'
       });
     }
     
     if (channels.sms) {
       contentsToCreate.push({
-        title: `[SMS] ${month}월 할인`,
-        content: 'SMS 할인 정보',
+        title: `[SMS] ${month}월 이벤트 문자`,
+        content: 'SMS 발송 내용',
         platform: 'sms',
         status: 'idea',
         assignee: 'CRM팀',
         scheduled_date: `${year}-${String(month).padStart(2, '0')}-03`,
-        tags: 'SMS,할인'
+        tags: 'SMS,이벤트,문자'
       });
     }
     
     if (channels.instagram) {
       contentsToCreate.push({
-        title: `[인스타그램] ${month}월 콘텐츠`,
-        content: '인스타그램 피드',
+        title: `[인스타그램] ${theme} 피드`,
+        content: '인스타그램 피드 콘텐츠',
         platform: 'instagram',
         status: 'idea',
         assignee: 'SNS팀',
-        scheduled_date: `${year}-${String(month).padStart(2, '0')}-07`,
-        tags: '인스타그램,SNS'
+        scheduled_date: `${year}-${String(month).padStart(2, '0')}-10`,
+        tags: '인스타그램,SNS,비주얼'
       });
     }
     
     if (channels.youtube) {
       contentsToCreate.push({
-        title: `[유튜브] ${month}월 영상`,
-        content: '유튜브 콘텐츠',
+        title: `[유튜브] ${month}월 레슨 영상`,
+        content: '유튜브 영상 기획',
         platform: 'youtube',
         status: 'idea',
         assignee: '영상팀',
-        scheduled_date: `${year}-${String(month).padStart(2, '0')}-15`,
-        tags: '유튜브,영상'
+        scheduled_date: `${year}-${String(month).padStart(2, '0')}-20`,
+        tags: '유튜브,영상,레슨'
       });
     }
     
-    // https 요청으로 데이터 전송
-    return new Promise((resolve) => {
-      const postData = JSON.stringify(contentsToCreate);
-      
-      const options = {
-        hostname: url.hostname,
-        path: url.pathname,
-        method: 'POST',
+    // 콘텐츠가 없으면 에러
+    if (contentsToCreate.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: '선택된 채널이 없습니다',
+        count: 0,
+        data: []
+      });
+    }
+    
+    // Axios로 데이터 전송
+    const response = await axios.post(
+      `${supabaseUrl}/rest/v1/content_ideas`,
+      contentsToCreate,
+      {
         headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData),
           'apikey': supabaseKey,
           'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
           'Prefer': 'return=representation'
         }
-      };
-      
-      const request = https.request(options, (response) => {
-        let data = '';
-        
-        response.on('data', (chunk) => {
-          data += chunk;
-        });
-        
-        response.on('end', () => {
-          try {
-            const result = JSON.parse(data);
-            
-            if (response.statusCode === 201 || response.statusCode === 200) {
-              res.status(200).json({
-                success: true,
-                message: `${contentsToCreate.length}개의 콘텐츠가 생성되었습니다!`,
-                count: contentsToCreate.length,
-                data: result
-              });
-            } else {
-              res.status(500).json({
-                success: false,
-                error: result.message || 'API 오류',
-                details: result
-              });
-            }
-          } catch (error) {
-            res.status(500).json({
-              success: false,
-              error: 'JSON 파싱 에러',
-              response: data
-            });
-          }
-        });
-      });
-      
-      request.on('error', (error) => {
-        res.status(500).json({
-          success: false,
-          error: error.message
-        });
-      });
-      
-      request.write(postData);
-      request.end();
+      }
+    );
+    
+    return res.status(200).json({
+      success: true,
+      message: `${contentsToCreate.length}개의 콘텐츠가 생성되었습니다!`,
+      count: contentsToCreate.length,
+      data: response.data
     });
     
   } catch (error) {
+    console.error('API Error:', error);
+    
+    // Axios 에러 처리
+    if (error.response) {
+      return res.status(500).json({
+        success: false,
+        error: error.response.data?.message || error.message,
+        details: error.response.data
+      });
+    }
+    
     return res.status(500).json({
       success: false,
       error: error.message
