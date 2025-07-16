@@ -15,6 +15,11 @@
       "destination": "/main/:path*"
     }
   ],
+  "functions": {
+    "pages/api/*.js": {
+      "runtime": "nodejs16.x"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
