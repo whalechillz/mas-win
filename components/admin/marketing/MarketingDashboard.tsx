@@ -9,6 +9,7 @@ import { SimpleNaverBlogManager } from './SimpleNaverBlogManager'; // 단순화 
 import { SimpleBlogManager } from './SimpleBlogManager'; // 초간단 버전
 import { MultiChannelManager } from './MultiChannelManager'; // 멀티채널 관리
 import { IntegratedCampaignManager } from './IntegratedCampaignManager'; // 통합 캠페인
+import { UnifiedMultiChannelManager } from './UnifiedMultiChannelManager'; // 통합 버전
 import { TrashManager } from './TrashManager'; // 휴지통 관리
 
 interface MarketingDashboardProps {
@@ -16,7 +17,7 @@ interface MarketingDashboardProps {
 }
 
 export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase }) => {
-  const [activeView, setActiveView] = useState<'campaign' | 'simple' | 'blog' | 'calendar' | 'funnel' | 'naver' | 'settings' | 'trash'>('campaign');
+  const [activeView, setActiveView] = useState<'unified' | 'campaign' | 'simple' | 'blog' | 'calendar' | 'funnel' | 'naver' | 'settings' | 'trash'>('unified');
   const [showEditor, setShowEditor] = useState(false);
   const [selectedContent, setSelectedContent] = useState<any>(null);
   
@@ -139,6 +140,16 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
         {/* 탭 메뉴 */}
         <div className="flex flex-wrap gap-2 border-b border-gray-200 -mb-6 pb-4">
           <button
+            onClick={() => setActiveView('unified')}
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-all ${
+              activeView === 'unified'
+                ? 'bg-purple-100 text-purple-700 border border-gray-200 border-b-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            ✨ 통합 멀티채널 (신규)
+          </button>
+          <button
             onClick={() => setActiveView('campaign')}
             className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-all ${
               activeView === 'campaign'
@@ -230,6 +241,7 @@ export const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ supabase
           </div>
         ) : (
           <div className="p-6">
+            {activeView === 'unified' && <UnifiedMultiChannelManager supabase={supabase} />}
             {activeView === 'campaign' && <IntegratedCampaignManager supabase={supabase} />}
             {activeView === 'simple' && <SimpleBlogManager supabase={supabase} />}
             {activeView === 'blog' && <MultiChannelManager supabase={supabase} />}
