@@ -12,8 +12,8 @@ import {
 } from './AnimationComponents';
 import { DraggableList, DropZone, KanbanBoard } from './DragDropComponents';
 import { useTheme } from './ThemeProvider';
-import BlogCalendar from './BlogCalendar';  // Fixed 제거
-import MarketingFunnelPlan from './MarketingFunnelPlan';  // Fixed 제거
+import BlogCalendarFixed from './BlogCalendarFixed';
+import MarketingFunnelPlanFixed from './MarketingFunnelPlanFixed';
 import AIGenerationSettingsNew from './AIGenerationSettingsNew';
 import AIContentAssistant from './AIContentAssistant';
 import NaverSEOValidator from './NaverSEOValidator';
@@ -35,14 +35,14 @@ export default function MarketingDashboardEnhanced() {
       id: 'calendar',
       title: '콘텐츠 캘린더',
       icon: <Calendar className="w-5 h-5" />,
-      component: <BlogCalendar />,
+      component: <BlogCalendarFixed />,
       visible: true
     },
     {
       id: 'funnel',
       title: '마케팅 퍼널',
       icon: <Target className="w-5 h-5" />,
-      component: <MarketingFunnelPlan />,
+      component: <MarketingFunnelPlanFixed />,
       visible: true
     },
     {

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -7,48 +5,31 @@ import { ko } from 'date-fns/locale';
 interface BlogPost {
   id: string;
   title: string;
-  platform_id?: string;
-  platform_name?: string;
-  platform_type?: string;
+  platform_id: string;
+  platform_name: string;
+  platform_type: string;
   scheduled_date: string;
-  status: 'draft' | 'scheduled' | 'published' | 'archived' | 'idea' | 'writing' | 'ready';
-  author_id?: string;
-  category_id?: string;
-  category_name?: string;
-  category_color?: string;
-  assignee?: string;
-  platform?: string;
+  status: 'draft' | 'scheduled' | 'published' | 'archived';
+  author_id: string;
+  category_id: string;
+  category_name: string;
+  category_color: string;
 }
 
 interface BlogCalendarProps {
-  blogPosts: BlogPost[];
-  platforms?: any[];
-  categories?: any[];
-  onEdit?: (post: BlogPost) => void;
-  onRefresh?: () => void;
+  posts: BlogPost[];
+  onDateClick: (date: Date) => void;
+  onPostClick: (post: BlogPost) => void;
 }
 
 const statusColors = {
   draft: 'bg-gray-100 text-gray-600',
   scheduled: 'bg-blue-100 text-blue-600',
   published: 'bg-green-100 text-green-600',
-  archived: 'bg-gray-50 text-gray-400',
-  idea: 'bg-purple-100 text-purple-600',
-  writing: 'bg-yellow-100 text-yellow-600',
-  ready: 'bg-blue-100 text-blue-600'
+  archived: 'bg-gray-50 text-gray-400'
 };
 
-const statusLabels = {
-  draft: '초안',
-  scheduled: '예약',
-  published: '발행',
-  archived: '보관',
-  idea: '아이디어',
-  writing: '작성중',
-  ready: '발행준비'
-};
-
-const platformIcons: Record<string, string> = {
+const platformIcons = {
   website: '🌐',
   naver: 'N',
   google_ads: 'G',
@@ -56,25 +37,10 @@ const platformIcons: Record<string, string> = {
   instagram: '📷',
   facebook: 'f',
   youtube: '▶️',
-  shorts: '📱',
-  '네이버블로그': '📝',
-  '카카오톡': '💬',
-  '문자': '📱',
-  '자사블로그': '🌐',
-  '인스타그램': '📷',
-  '유튜브': '▶️',
-  blog: '📝',
-  kakao: '💬',
-  sms: '📱'
+  shorts: '📱'
 };
 
-export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({ 
-  blogPosts = [], 
-  platforms = [], 
-  categories = [],
-  onEdit,
-  onRefresh 
-}) => {
+export const BlogCalendar: React.FC<BlogCalendarProps> = ({ posts, onDateClick, onPostClick }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -83,8 +49,7 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   // 날짜별 포스트 그룹핑
-  const postsByDate = blogPosts.reduce((acc, post) => {
-    if (!post.scheduled_date) return acc;
+  const postsByDate = posts.reduce((acc, post) => {
     const dateKey = format(new Date(post.scheduled_date), 'yyyy-MM-dd');
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(post);
@@ -93,27 +58,12 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
-  };
-
-  const handlePostClick = (post: BlogPost) => {
-    if (onEdit) {
-      onEdit(post);
-    }
+    onDateClick(date);
   };
 
   const getDayPosts = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
     return postsByDate[dateKey] || [];
-  };
-
-  const getPlatformIcon = (post: BlogPost) => {
-    return platformIcons[post.platform_type || ''] || 
-           platformIcons[post.platform || ''] || 
-           '📄';
-  };
-
-  const getPlatformName = (post: BlogPost) => {
-    return post.platform_name || post.platform || '기타';
   };
 
   return (
@@ -151,18 +101,6 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
             >
               오늘
             </button>
-
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                title="새로고침"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-            )}
           </div>
         </div>
 
@@ -173,8 +111,10 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
             {Object.entries(statusColors).map(([status, className]) => (
               <div key={status} className="flex items-center gap-1">
                 <div className={`w-3 h-3 rounded-full ${className.split(' ')[0]}`} />
-                <span className="text-gray-600">
-                  {statusLabels[status as keyof typeof statusLabels]}
+                <span className="text-gray-600 capitalize">
+                  {status === 'draft' ? '초안' : 
+                   status === 'scheduled' ? '예약' : 
+                   status === 'published' ? '발행' : '보관'}
                 </span>
               </div>
             ))}
@@ -239,15 +179,15 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
                         key={post.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handlePostClick(post);
+                          onPostClick(post);
                         }}
                         className={`
                           text-xs px-1.5 py-0.5 rounded truncate cursor-pointer
-                          ${statusColors[post.status] || statusColors.draft} hover:opacity-80
+                          ${statusColors[post.status]} hover:opacity-80
                         `}
                         title={post.title}
                       >
-                        <span className="mr-1">{getPlatformIcon(post)}</span>
+                        <span className="mr-1">{platformIcons[post.platform_type] || '📝'}</span>
                         {post.title}
                       </div>
                     ))}
@@ -275,36 +215,26 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
               getDayPosts(selectedDate).map((post) => (
                 <div
                   key={post.id}
-                  onClick={() => handlePostClick(post)}
+                  onClick={() => onPostClick(post)}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-lg font-medium border border-gray-200">
-                      {getPlatformIcon(post)}
+                      {platformIcons[post.platform_type] || '📝'}
                     </div>
                     <div>
                       <h5 className="font-medium text-gray-900">{post.title}</h5>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>{getPlatformName(post)}</span>
-                        {post.category_name && (
-                          <>
-                            <span>•</span>
-                            <span style={{ color: post.category_color || '#6B7280' }}>
-                              {post.category_name}
-                            </span>
-                          </>
-                        )}
-                        {post.assignee && (
-                          <>
-                            <span>•</span>
-                            <span>{post.assignee}</span>
-                          </>
-                        )}
+                        <span>{post.platform_name}</span>
+                        <span>•</span>
+                        <span style={{ color: post.category_color }}>{post.category_name}</span>
                       </div>
                     </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-sm ${statusColors[post.status] || statusColors.draft}`}>
-                    {statusLabels[post.status as keyof typeof statusLabels] || post.status}
+                  <div className={`px-3 py-1 rounded-full text-sm ${statusColors[post.status]}`}>
+                    {post.status === 'draft' ? '초안' : 
+                     post.status === 'scheduled' ? '예약' : 
+                     post.status === 'published' ? '발행' : '보관'}
                   </div>
                 </div>
               ))
@@ -319,5 +249,3 @@ export const BlogCalendarFixed: React.FC<BlogCalendarProps> = ({
     </div>
   );
 };
-
-export default BlogCalendar;

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState } from 'react';
 
 interface FunnelStage {
@@ -374,5 +372,3 @@ export const MarketingFunnelPlanFixed: React.FC<MarketingFunnelPlanProps> = ({
     </div>
   );
 };
-
-export default MarketingFunnelPlan;
