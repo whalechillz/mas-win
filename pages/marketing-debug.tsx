@@ -33,7 +33,7 @@ const ComponentLoader = ({ name, children }) => {
 
 // 동적 컴포넌트 로더들
 const DynamicBlogCalendar = dynamic(
-  () => import('../components/admin/marketing/BlogCalendar').catch(err => {
+  () => import('../components/admin/marketing/BlogCalendarSimple').catch(err => {
     console.error('BlogCalendar 로드 실패:', err);
     return () => <div className="text-red-600">BlogCalendar 로드 실패</div>;
   }),
@@ -44,7 +44,7 @@ const DynamicBlogCalendar = dynamic(
 );
 
 const DynamicMarketingFunnelPlan = dynamic(
-  () => import('../components/admin/marketing/MarketingFunnelPlan').catch(err => {
+  () => import('../components/admin/marketing/MarketingFunnelPlanSimple').catch(err => {
     console.error('MarketingFunnelPlan 로드 실패:', err);
     return () => <div className="text-red-600">MarketingFunnelPlan 로드 실패</div>;
   }),
@@ -55,7 +55,7 @@ const DynamicMarketingFunnelPlan = dynamic(
 );
 
 const DynamicAIGenerationSettingsNew = dynamic(
-  () => import('../components/admin/marketing/AIGenerationSettingsNew').catch(err => {
+  () => import('../components/admin/marketing/AIGenerationSettingsSimple').catch(err => {
     console.error('AIGenerationSettingsNew 로드 실패:', err);
     return () => <div className="text-red-600">AIGenerationSettingsNew 로드 실패</div>;
   }),
@@ -66,7 +66,7 @@ const DynamicAIGenerationSettingsNew = dynamic(
 );
 
 const DynamicNaverSEOValidator = dynamic(
-  () => import('../components/admin/marketing/NaverSEOValidator').catch(err => {
+  () => import('../components/admin/marketing/NaverSEOValidatorSimple').catch(err => {
     console.error('NaverSEOValidator 로드 실패:', err);
     return () => <div className="text-red-600">NaverSEOValidator 로드 실패</div>;
   }),
