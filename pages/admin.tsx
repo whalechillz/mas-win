@@ -299,23 +299,11 @@ export default function AdminDashboard() {
     if (!supabase) return;
     
     try {
-      // 먼저 bookings_with_quiz 뷰에서 시도
-      let { data, error } = await supabase
-        .from('bookings_with_quiz')
+      // bookings_with_quiz 뷰 대신 bookings 테이블 직접 사용
+      const { data, error } = await supabase
+        .from('bookings')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      // 뷰가 없거나 에러가 발생하면 기본 bookings 테이블에서 조회
-      if (error || !data) {
-        console.log('bookings_with_quiz 뷰 조회 실패:', error);
-        const result = await supabase
-          .from('bookings')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        data = result.data;
-        error = result.error;
-      }
       
       if (!error && data) {
         console.log('Bookings 데이터 로드 성공:', data.length, '개');
@@ -334,23 +322,11 @@ export default function AdminDashboard() {
     if (!supabase) return;
     
     try {
-      // 먼저 contacts_with_quiz 뷰에서 시도
-      let { data, error } = await supabase
-        .from('contacts_with_quiz')
+      // contacts_with_quiz 뷰 대신 contacts 테이블 직접 사용
+      const { data, error } = await supabase
+        .from('contacts')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      // 뷰가 없거나 에러가 발생하면 기본 contacts 테이블에서 조회
-      if (error || !data) {
-        console.log('contacts_with_quiz 뷰 조회 실패:', error);
-        const result = await supabase
-          .from('contacts')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        data = result.data;
-        error = result.error;
-      }
       
       if (!error && data) {
         console.log('Contacts 데이터 로드 성공:', data.length, '개');

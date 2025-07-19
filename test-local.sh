@@ -1,21 +1,20 @@
 #!/bin/bash
 
-echo "🧪 로컬 API 테스트 (포트 3001)..."
+echo "🏃 빠른 로컬 테스트"
+echo "=================="
 
-# 1. Slack 테스트
-echo -e "\n1️⃣ Slack 테스트..."
-curl -s http://localhost:3001/api/slack-test | jq .
+# 로컬 개발 서버만 재시작
+echo "🔄 서버 재시작 중..."
+# 기존 프로세스 종료
+pkill -f "next dev" 2>/dev/null || true
 
-# 2. 예약 테스트
-echo -e "\n2️⃣ 예약 테스트..."
-curl -s -X POST http://localhost:3001/api/booking \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "로컬 테스트",
-    "phone": "010-1234-5678",
-    "date": "2025-07-05",
-    "time": "14:00",
-    "club": "드라이버"
-  }' | jq .
+# 새로 시작
+npm run dev &
 
-echo -e "\n✅ 테스트 완료!"
+echo ""
+echo "✅ 로컬 서버가 시작되었습니다!"
+echo ""
+echo "🌐 브라우저에서 확인:"
+echo "http://localhost:3000/marketing-enhanced"
+echo ""
+echo "💡 Ctrl+C로 종료할 수 있습니다."
