@@ -1,10 +1,9 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { ThemeProvider } from '../components/admin/marketing/ThemeProvider';
 
-// Dynamic import으로 성능 최적화
+// MarketingDashboardComplete를 동적으로 로드
 const MarketingDashboard = dynamic(
-  () => import('../components/admin/marketing/MarketingDashboard'),
+  () => import('../components/admin/marketing/MarketingDashboardComplete'),
   {
     loading: () => (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -14,14 +13,10 @@ const MarketingDashboard = dynamic(
         </div>
       </div>
     ),
-    ssr: false // 클라이언트 사이드에서만 렌더링
+    ssr: false
   }
 );
 
-export default function MarketingPage() {
-  return (
-    <ThemeProvider>
-      <MarketingDashboard />
-    </ThemeProvider>
-  );
+export default function MarketingEnhancedPage() {
+  return <MarketingDashboard />;
 }
