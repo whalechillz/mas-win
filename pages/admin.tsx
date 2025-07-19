@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { formatPhoneNumber } from '../lib/formatters';
 import { Campaign, CampaignMetrics, calculateCampaignMetrics, generateMockPerformanceData } from '../lib/campaign-types';
 import { campaignsData } from '../lib/campaign-data';
@@ -9,7 +10,15 @@ import { BookingManagement } from '../components/admin/bookings/BookingManagemen
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
 import { CampaignPerformanceDashboard } from '../components/admin/dashboard/CampaignPerformanceDashboard';
 import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
-import { MarketingDashboard } from '../components/admin/marketing/MarketingDashboard';
+
+// MarketingDashboard를 dynamic import로 변경
+const MarketingDashboard = dynamic(
+  () => import('../components/admin/marketing/MarketingDashboard'),
+  { 
+    ssr: false,
+    loading: () => <div className="p-8 text-center">마케팅 대시보드 로딩 중...</div>
+  }
+);
 
 // 기존 로그인 컴포넌트와 아이콘 컴포넌트들은 그대로 유지...
 const LoginForm = ({ onLogin }) => {
