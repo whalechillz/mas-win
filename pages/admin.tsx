@@ -13,7 +13,7 @@ import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerSty
 
 // MarketingDashboard를 dynamic import로 변경
 const MarketingDashboard = dynamic(
-  () => import('../components/admin/marketing/MarketingDashboard'),
+  () => import('../components/admin/marketing/MarketingDashboardComplete'),
   { 
     ssr: false,
     loading: () => <div className="p-8 text-center">마케팅 대시보드 로딩 중...</div>

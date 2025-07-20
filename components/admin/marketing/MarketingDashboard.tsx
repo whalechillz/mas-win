@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Target, Brain, Search, FileText, Upload, BarChart3, 
-  Moon, Sun, Menu, X, ChevronRight, Settings, Sparkles
+  Moon, Sun, Menu, X, ChevronRight, Settings, Sparkles, Workflow
 } from 'lucide-react';
 import BlogCalendar from './BlogCalendar';
 import MarketingFunnelPlan from './MarketingFunnelPlan';
 import AIGenerationSettingsNew from './AIGenerationSettingsNew';
 import AIContentAssistant from './AIContentAssistant';
 import NaverSEOValidator from './NaverSEOValidator';
+import IntegratedMarketingHub from './integrated/IntegratedMarketingHub';
 
 interface DashboardSection {
   id: string;
@@ -22,8 +23,15 @@ interface DashboardSection {
 export default function MarketingDashboard() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeSection, setActiveSection] = useState('calendar');
+  const [activeSection, setActiveSection] = useState('integrated');
   const [sections, setSections] = useState<DashboardSection[]>([
+    {
+      id: 'integrated',
+      title: '통합 마케팅 관리',
+      icon: <Workflow className="w-5 h-5" />,
+      component: <IntegratedMarketingHub />,
+      visible: true
+    },
     {
       id: 'calendar',
       title: '콘텐츠 캘린더',

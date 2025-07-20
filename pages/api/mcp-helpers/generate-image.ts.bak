@@ -1,0 +1,59 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { prompt, year, month, purpose } = req.body;
+
+    // Claude MCP를 통한 이미지 생성 프롬프트 최적화
+    const enhancedPrompt = `
+      골프장 마케팅 이미지:
+      ${prompt}
+      
+      추가 요구사항:
+      - 고품질, 전문적인 마케팅 이미지
+      - ${year}년 ${month}월 캠페인용
+      - 용도: ${purpose}
+      - 스타일: 모던하고 세련된, 프리미엄 골프장 느낌
+      - 색상: 그린, 블루, 화이트 톤 위주
+      - 16:9 비율 권장
+    `;
+
+    // 실제 구현 시에는 Claude API를 통해 이미지 생성 서비스(DALL-E, Midjourney 등)와 연동
+    // 여기서는 더미 응답을 반환
+    const imagePath = `/images/generated/${year}-${month}-${purpose}-${Date.now()}.jpg`;
+
+    // 이미지 생성 메타데이터 저장
+    const supabase = createServerComponentClient({ cookies });
+    
+    await supabase.from('generated_images').insert({
+      prompt: enhancedPrompt,
+      original_prompt: prompt,
+      image_path: imagePath,
+      purpose,
+      year,
+      month,
+      created_at: new Date().toISOString()
+    });
+
+    return res.status(200).json({
+      success: true,
+      imagePath,
+      prompt: enhancedPrompt,
+      metadata: {
+        year,
+        month,
+        purpose,
+        generatedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error generating image:', error);
+    return res.status(500).json({ error: 'Failed to generate image' });
+  }
+}

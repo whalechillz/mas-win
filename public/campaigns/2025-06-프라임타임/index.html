@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF 6월 캠페인 문서 모음</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 40px;
+        }
+        
+        .document-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .document-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #002147 0%, #003366 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: #FFD700;
+            border-radius: 50%;
+            opacity: 0.2;
+        }
+        
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .card-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        .card-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .card-link {
+            display: inline-block;
+            background: #FFD700;
+            color: #002147;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .card-link:hover {
+            background: #FFC700;
+        }
+        
+        .main-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .main-title h1 {
+            font-size: 36px;
+            color: #002147;
+            margin-bottom: 10px;
+        }
+        
+        .main-title p {
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-title">
+        <h1>MASGOLF 6월 "인생 황금기" 캠페인</h1>
+        <p>프린트용 문서 모음</p>
+    </div>
+    
+    <div class="document-grid">
+        <div class="document-card" onclick="location.href='README_Printable.html'">
+            <div class="card-header">
+                <div class="card-icon">📋</div>
+                <div class="card-title">캠페인 실행 가이드</div>
+                <div class="card-subtitle">Campaign Execution Guide</div>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    Google Ads Editor 업로드부터 일일 모니터링까지 
+                    단계별 실행 가이드
+                </p>
+                <a href="README_Printable.html" class="card-link">문서 보기 →</a>
+            </div>
+        </div>
+        
+        <div class="document-card">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <div class="card-title">캠페인 전략 브리프</div>
+                <div class="card-subtitle">Campaign Strategy Brief</div>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    5월 성과 분석 기반 6월 캠페인 목표 및 
+                    핵심 전략 요약
+                </p>
+                <a href="#" class="card-link">준비 중</a>
+            </div>
+        </div>
+        
+        <div class="document-card">
+            <div class="card-header">
+                <div class="card-icon">✍️</div>
+                <div class="card-title">광고 문구 라이브러리</div>
+                <div class="card-subtitle">Ad Copy Library</div>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    A/B 테스트용 광고 제목, 설명, CTA 
+                    전체 문구 모음
+                </p>
+                <a href="Ad_Copy_Library_Printable.html" class="card-link">문서 보기 →</a>
+            </div>
+        </div>
+        
+        <div class="document-card">
+            <div class="card-header">
+                <div class="card-icon">🎯</div>
+                <div class="card-title">타겟 오디언스 프로파일</div>
+                <div class="card-subtitle">Target Audience Profile</div>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    55-70세 시니어 골퍼 페르소나 및 
+                    행동 패턴 분석
+                </p>
+                <a href="#" class="card-link">준비 중</a>
+            </div>
+        </div>
+        
+        <div class="document-card">
+            <div class="card-header">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">런칭 체크리스트</div>
+                <div class="card-subtitle">Launch Checklist</div>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    D-3부터 런칭일까지 필수 체크 사항 및 
+                    긴급 대응 프로세스
+                </p>
+                <a href="#" class="card-link">준비 중</a>
+            </div>
+        </div>
+        
+        <div class="document-card">
+            <div class="card-header">
+                <div class="card-icon">📈</div>
+                <div class="card-title">성과 추적 템플릿</div>
+                <div class="card-subtitle">Performance Tracking</div>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    일일 성과 기록 및 주간 리포트용 
+                    Excel 템플릿
+                </p>
+                <a href="#" class="card-link">준비 중</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
