@@ -1,3 +1,18 @@
+### 2025-07-20 (일) - 캠페인 관리 컴포넌트 통합 및 조회수 추적 기능
+- **작업**: 중복 컴포넌트 통합 및 조회수 자동화
+- **수정 사항**:
+  - CampaignPerformanceDashboard와 UnifiedCampaignManager를 UnifiedCampaignManagerEnhanced로 통합
+  - "예상 매출" 메트릭 추가
+  - 하드코딩된 조회수를 실제 데이터로 바꾸기 위한 API 및 데이터베이스 구조 추가
+- **새로 생성한 파일**:
+  - `/components/admin/campaigns/UnifiedCampaignManagerEnhanced.tsx` (통합 컴포넌트)
+  - `/pages/api/track-view.ts` (조회수 추적 API)
+  - `/database/page-views-tracking.sql` (조회수 테이블 스키마)
+  - `/docs/PAGE_VIEW_TRACKING_GUIDE.md` (조회수 추적 가이드)
+- **수정한 파일**:
+  - `/pages/admin.tsx` (UnifiedCampaignManagerEnhanced 사용으로 변경)
+- **이유**: 두 컴포넌트가 비슷한 정보를 보여주어 중복, 하드코딩된 조회수를 실제 데이터로 대체 필요
+
 ### 2025-07-20 (일) - marketing-enhanced 페이지 제거
 - **작업**: 중복 기능 정리
 - **수정 사항**:

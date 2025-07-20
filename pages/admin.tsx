@@ -3,12 +3,11 @@ import dynamic from 'next/dynamic';
 import { formatPhoneNumber } from '../lib/formatters';
 import { Campaign, CampaignMetrics, calculateCampaignMetrics, generateMockPerformanceData } from '../lib/campaign-types';
 import { campaignsData } from '../lib/campaign-data';
-import { UnifiedCampaignManager } from '../components/admin/campaigns/UnifiedCampaignManager';
+import { UnifiedCampaignManagerEnhanced } from '../components/admin/campaigns/UnifiedCampaignManagerEnhanced';
 import { MetricCards, useRealtimeMetrics } from '../components/admin/dashboard/MetricCards';
 import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboard/ConversionFunnel';
 import { BookingManagement } from '../components/admin/bookings/BookingManagementFull';
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
-import { CampaignPerformanceDashboard } from '../components/admin/dashboard/CampaignPerformanceDashboard';
 import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
 
 // MarketingDashboard를 dynamic import로 변경
@@ -731,24 +730,19 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'campaigns' && (
-          <div className="space-y-6">
-            <CampaignPerformanceDashboard
-              campaigns={campaigns}
-              bookings={bookings}
-              contacts={contacts}
-            />
-            <UnifiedCampaignManager
-              campaigns={campaigns}
-              onCampaignUpdate={(campaign) => {
-                // 캠페인 업데이트 시 DB에 저장
-                setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
-              }}
-              onCreateCampaign={() => {
-                // 새 캠페인 생성 모달 열기
-                console.log('새 캠페인 만들기');
-              }}
-            />
-          </div>
+          <UnifiedCampaignManagerEnhanced
+            campaigns={campaigns}
+            bookings={bookings}
+            contacts={contacts}
+            onCampaignUpdate={(campaign) => {
+              // 캠페인 업데이트 시 DB에 저장
+              setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
+            }}
+            onCreateCampaign={() => {
+              // 새 캠페인 생성 모달 열기
+              console.log('새 캠페인 만들기');
+            }}
+          />
         )}
 
         {activeTab === 'marketing' && (
