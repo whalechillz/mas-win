@@ -1,28 +1,8 @@
-import '../styles/globals.css'
-import Script from 'next/script'
-import Head from 'next/head'
-import { useRouter } from 'next/router'
+import Script from 'next/script';
 
-export default function MyApp({ Component, pageProps }) {
-  const router = useRouter();
-  const isAdminPage = router.pathname === '/admin';
-  
+function MyApp({ Component, pageProps }) {
   return (
     <>
-      <Head>
-        <style>{`
-          html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            ${!isAdminPage ? 'overflow: hidden;' : ''}
-          }
-          #__next {
-            height: 100%;
-          }
-        `}</style>
-      </Head>
-      
       {/* Google Tag Manager */}
       <Script
         id="gtm-script"
@@ -38,7 +18,7 @@ export default function MyApp({ Component, pageProps }) {
         }}
       />
       
-      {/* GTM noscript */}
+      {/* GTM noscript fallback */}
       <noscript>
         <iframe 
           src="https://www.googletagmanager.com/ns.html?id=GTM-WPBX97JG"
@@ -47,7 +27,31 @@ export default function MyApp({ Component, pageProps }) {
           style={{ display: 'none', visibility: 'hidden' }}
         />
       </noscript>
+
+      {/* GA4 Direct (백업용) */}
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=G-SMJWL2TRM7`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          
+          gtag('config', 'G-SMJWL2TRM7', {
+            page_path: window.location.pathname,
+            // 교차 도메인 추적
+            linker: {
+              domains: ['win.masgolf.co.kr', 'www.masgolf.co.kr']
+            }
+          });
+        `}
+      </Script>
+      
       <Component {...pageProps} />
     </>
-  )
+  );
 }
+
+export default MyApp;
