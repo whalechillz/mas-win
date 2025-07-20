@@ -395,7 +395,37 @@ export default function AdminDashboard() {
     }
     
     // Supabase에 데이터가 없으면 campaign-data.ts 사용
-    setCampaigns(campaignsData);
+    // 실제 bookings와 contacts 데이터로 메트릭 업데이트
+    const updatedCampaigns = campaignsData.map(campaign => {
+      if (campaign.id === '2025-07') {
+        // 7월 캠페인의 경우 실제 데이터 사용
+        const actualBookings = bookings.filter(b => {
+          const bookingDate = new Date(b.created_at);
+          return bookingDate >= new Date('2025-07-01') && bookingDate <= new Date('2025-07-31');
+        }).length;
+        
+        const actualInquiries = contacts.filter(c => {
+          const contactDate = new Date(c.created_at);
+          return contactDate >= new Date('2025-07-01') && contactDate <= new Date('2025-07-31');
+        }).length;
+        
+        const totalLeads = actualBookings + actualInquiries;
+        const actualConversionRate = totalLeads > 0 ? (actualBookings / totalLeads * 100) : 0;
+        
+        return {
+          ...campaign,
+          metrics: {
+            ...campaign.metrics,
+            bookings: actualBookings,
+            inquiries: actualInquiries,
+            conversionRate: parseFloat(actualConversionRate.toFixed(1))
+          }
+        };
+      }
+      return campaign;
+    });
+    
+    setCampaigns(updatedCampaigns);
   };
 
   // campaign_summary 뷰에서 데이터 가져오기
@@ -773,8 +803,11 @@ export default function AdminDashboard() {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => {
-            // 새 창에서 OP 매뉴얼 열기
-            window.open('/api/admin/op-manual/2025-07', '_blank');
+            // 현재 활성 캠페인의 OP 매뉴얼 열기
+            const activeCampaign = campaigns.find(c => c.status === 'active');
+            const opManualUrl = activeCampaign?.files?.opManual || 
+              `/api/admin/op-manual/${new Date().toISOString().slice(0, 7)}`; // 기본값: 현재 월
+            window.open(opManualUrl, '_blank');
           }}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
         >

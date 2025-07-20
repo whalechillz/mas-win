@@ -91,10 +91,21 @@ export const UnifiedCampaignManagerEnhanced: React.FC<UnifiedCampaignManagerProp
   // 전체 성과 계산 (7월 캠페인만)
   const activeCampaignsData = campaigns.filter(c => c.id !== '2025-05' && c.id !== '2025-06');
   const totalViews = activeCampaignsData.reduce((sum, c) => sum + c.metrics.views, 0);
-  const totalBookings = activeCampaignsData.reduce((sum, c) => sum + c.metrics.bookings, 0);
-  const totalInquiries = activeCampaignsData.reduce((sum, c) => sum + c.metrics.inquiries, 0);
-  const avgConversionRate = activeCampaignsData.length > 0 
-    ? activeCampaignsData.reduce((sum, c) => sum + c.metrics.conversionRate, 0) / activeCampaignsData.length 
+  
+  // 실제 데이터 사용 (프롭스로 전달받은 bookings, contacts)
+  const totalBookings = bookings.filter(b => {
+    const bookingDate = new Date(b.created_at);
+    return bookingDate >= new Date('2025-07-01') && bookingDate <= new Date('2025-07-31');
+  }).length;
+  
+  const totalInquiries = contacts.filter(c => {
+    const contactDate = new Date(c.created_at);
+    return contactDate >= new Date('2025-07-01') && contactDate <= new Date('2025-07-31');
+  }).length;
+  
+  const totalLeads = totalBookings + totalInquiries;
+  const avgConversionRate = totalLeads > 0 
+    ? (totalBookings / totalLeads * 100) 
     : 0;
 
   // 예상 매출 계산 (예약당 100만원 가정)
