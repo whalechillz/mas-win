@@ -3,12 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Target, Brain, Search, FileText, Upload, BarChart3, 
-  Moon, Sun, Menu, X, ChevronRight, Settings, Sparkles
+  Moon, Sun, Menu, X, ChevronRight, Settings, Sparkles, Layers
 } from 'lucide-react';
 import BlogCalendarSimple from './BlogCalendarSimple';
 import MarketingFunnelPlanSimple from './MarketingFunnelPlanSimple';
 import AIGenerationSettingsSimple from './AIGenerationSettingsSimple';
 import NaverSEOValidatorSimple from './NaverSEOValidatorSimple';
+// 동적 import로 IntegratedMarketingHub 로드
+import dynamic from 'next/dynamic';
+
+const IntegratedMarketingHub = dynamic(
+  () => import('./integrated/IntegratedMarketingHub'),
+  { 
+    ssr: false,
+    loading: () => <div className="p-8 text-center">통합 마케팅 관리 로딩 중...</div>
+  }
+);
 
 interface DashboardSection {
   id: string;
@@ -45,6 +55,12 @@ export default function MarketingDashboardComplete() {
       title: 'SEO 검증',
       icon: <Search className="w-5 h-5" />,
       component: <NaverSEOValidatorSimple />
+    },
+    {
+      id: 'integrated',
+      title: '통합 마케팅 관리',
+      icon: <Layers className="w-5 h-5" />,
+      component: <IntegratedMarketingHub />
     }
   ]);
 
