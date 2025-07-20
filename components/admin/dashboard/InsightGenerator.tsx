@@ -24,12 +24,12 @@ export function InsightGenerator({ campaigns, bookings, contacts }: InsightGener
           color: 'blue'
         },
         {
-          type: 'campaign',
-          title: '현재 진행 중인 캠페인',
-          content: activeCampaignData.length > 0 
-            ? `"${activeCampaignData[0].name}"이 ${activeCampaignData[0].metrics.bookings}건의 예약을 달성했습니다.`
-            : '현재 활성 캠페인의 성과를 모니터링하고 있습니다.',
-          color: 'green'
+        type: 'campaign',
+        title: '현재 진행 중인 캠페인',
+        content: activeCampaignData.length > 0 
+        ? `"${activeCampaignData[0].name}"이 ${bookings.length}건의 예약을 달성했습니다.`
+        : '현재 활성 캠페인의 성과를 모니터링하고 있습니다.',
+        color: 'green'
         }
       ];
     }
@@ -120,8 +120,8 @@ export function InsightGenerator({ campaigns, bookings, contacts }: InsightGener
       {
         type: 'performance',
         title: '최고 성과 캠페인',
-        content: bestCampaign 
-          ? `"${bestCampaign.name}"이 전환율 ${bestCampaign.metrics.conversionRate}%로 가장 높은 성과를 보이고 있습니다. ${bestCampaign.metrics.bookings}건의 예약을 달성했습니다.`
+        content: bestCampaign && totalBookings > 0
+          ? `"${bestCampaign.name}"이 전환율 ${conversionRate}%로 가장 높은 성과를 보이고 있습니다. 현재까지 ${totalBookings}건의 예약을 달성했습니다.`
           : '현재 활성 캠페인의 성과 데이터를 수집 중입니다.',
         color: 'blue'
       },

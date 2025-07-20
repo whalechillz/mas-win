@@ -75,10 +75,10 @@ export const campaignsData: Campaign[] = [
       discountRate: 50
     },
     metrics: {
-      views: 1523,
-      bookings: 87,
-      inquiries: 245,
-      conversionRate: 5.7,
+      views: 0,  // 실제 데이터는 Supabase에서 가져온다
+      bookings: 0,  // 실제 예약 수는 bookings 테이블에서
+      inquiries: 0,  // 실제 문의 수는 contacts 테이블에서
+      conversionRate: 0,  // 자동 계산됨
       costPerAcquisition: 50000
     }
   },

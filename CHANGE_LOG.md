@@ -1,3 +1,17 @@
+### 2025-07-20 (일) - 실제 데이터 반영 및 AI 인사이트 수정
+- **작업**: 하드코딩된 목업 데이터를 실제 데이터로 교체
+- **수정 사항**:
+  - AI 인사이트가 실제 bookings/contacts 데이터 사용하도록 수정 (87건 → 실제 0건)
+  - campaign-data.ts의 하드코딩된 메트릭을 0으로 변경
+  - 하단 OP 매뉴얼 버튼이 현재 활성 캠페인의 OP를 자동으로 표시
+  - 캠페인 매틈지가 실제 데이터로 업데이트되도록 수정
+- **수정한 파일**:
+  - `/components/admin/dashboard/InsightGenerator.tsx` (실제 데이터 사용)
+  - `/lib/campaign-data.ts` (하드코딩 제거)
+  - `/pages/admin.tsx` (loadCampaigns 함수 및 OP 매뉴얼 버튼)
+  - `/components/admin/campaigns/UnifiedCampaignManagerEnhanced.tsx` (실제 데이터 사용)
+- **이유**: 하드코딩된 데이터(87건)와 실제 데이터(0건)가 일치하지 않아 혼동 발생
+
 ### 2025-07-20 (일) - 캠페인 관리 컴포넌트 통합 및 조회수 추적 기능
 - **작업**: 중복 컴포넌트 통합 및 조회수 자동화
 - **수정 사항**:
