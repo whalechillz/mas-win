@@ -1,0 +1,86 @@
+<!-- 조회수 추적 코드 예제 -->
+<!-- 이 코드를 </script> 태그와 </body> 태그 사이에 추가하세요 -->
+
+<script>
+// 페이지 조회수 추적
+(function() {
+    // 페이지 로드 시 조회수 추적
+    window.addEventListener('load', function() {
+        // 캠페인 ID 설정
+        const campaignId = '2025-07'; // 7월 캠페인
+        const currentPage = window.location.pathname;
+        
+        // 중복 추적 방지를 위한 세션 스토리지 확인
+        const trackingKey = `viewed_${campaignId}_${currentPage}`;
+        if (sessionStorage.getItem(trackingKey)) {
+            console.log('이미 조회수가 기록되었습니다.');
+            return;
+        }
+        
+        // 조회수 추적 API 호출
+        fetch('/api/track-view', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                campaign_id: campaignId,
+                page: currentPage || '/funnel-2025-07'
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // 성공적으로 기록되면 세션 스토리지에 표시
+                sessionStorage.setItem(trackingKey, 'true');
+                console.log('조회수가 기록되었습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('조회수 추적 실패:', error);
+        });
+    });
+    
+    // 페이지 체류 시간 추적 (선택사항)
+    let startTime = Date.now();
+    window.addEventListener('beforeunload', function() {
+        const stayDuration = Math.floor((Date.now() - startTime) / 1000); // 초 단위
+        
+        // 체류 시간이 3초 이상인 경우만 기록
+        if (stayDuration >= 3) {
+            // navigator.sendBeacon을 사용하여 페이지 떠날 때도 안정적으로 전송
+            const data = JSON.stringify({
+                campaign_id: '2025-07',
+                page: window.location.pathname || '/funnel-2025-07',
+                duration: stayDuration
+            });
+            
+            navigator.sendBeacon('/api/track-engagement', data);
+        }
+    });
+})();
+</script>
+
+<!-- Google Analytics 4 추가 (선택사항) -->
+<!-- GA 측정 ID를 실제 ID로 변경하세요 -->
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX', {
+    'page_path': '/funnel-2025-07'
+  });
+  
+  // 커스텀 이벤트 추적
+  // 예약 버튼 클릭 시
+  document.querySelectorAll('.book-now').forEach(button => {
+    button.addEventListener('click', function() {
+      gtag('event', 'click_booking', {
+        'event_category': 'engagement',
+        'event_label': '2025-07-campaign'
+      });
+    });
+  });
+</script>
+-->
