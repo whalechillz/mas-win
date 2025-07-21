@@ -4,6 +4,10 @@
 chmod +x deploy-integrated-marketing.sh
 chmod +x get-service-role-key.sh
 chmod +x fix-debug-tracking.sh
+chmod +x fix-build-errors.sh
+chmod +x fix-supabase-now.sh
+chmod +x fix-ga-domain.sh
+chmod +x setup-ga4-realtime.sh
 
 echo "✅ 배포 스크립트 실행 권한 부여 완료"
 echo ""

@@ -19,11 +19,13 @@
     "cookie": "^0.6.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^10.18.0",
+    "googleapis": "^105.0.0",
     "lucide-react": "^0.525.0",
     "next": "14.0.4",
     "openai": "^5.9.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "recharts": "^2.15.4"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.56.0",

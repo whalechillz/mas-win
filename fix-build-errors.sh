@@ -1,37 +1,25 @@
 #!/bin/bash
 
-# 문제가 되는 파일들을 임시로 이동시키는 스크립트
+echo "🔧 빌드 오류 수정 중..."
+echo "========================"
+echo ""
 
-echo "🔧 문제 파일 임시 제거 중..."
+# 1. recharts 설치
+echo "📦 recharts 라이브러리 설치 중..."
+npm install recharts --legacy-peer-deps
 
-# mcp-helpers 디렉토리 전체를 백업
-if [ -d "pages/api/mcp-helpers" ]; then
-    mv pages/api/mcp-helpers pages/api/mcp-helpers.bak
-    echo "✓ mcp-helpers 디렉토리 백업"
+# 2. 빌드 테스트
+echo ""
+echo "🏗️ 빌드 테스트 중..."
+npm run build
+
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "✅ 빌드 성공!"
+    echo ""
+    echo "다음 명령어로 Vercel에 배포하세요:"
+    echo "vercel --prod"
+else
+    echo ""
+    echo "❌ 빌드 실패. 오류를 확인하세요."
 fi
-
-# 기타 문제가 될 수 있는 파일들
-files_to_backup=(
-    "pages/admin-debug.tsx"
-    "pages/admin-fixed.tsx"
-    "pages/admin-new.tsx"
-    "pages/admin-realtime.tsx"
-    "pages/admin-v2.tsx"
-    "pages/debug.tsx"
-    "pages/funnel-2025-07-with-tracking.tsx"
-    "pages/funnel-enhanced.tsx"
-)
-
-for file in "${files_to_backup[@]}"; do
-    if [ -f "$file" ]; then
-        mv "$file" "$file.bak"
-        echo "✓ $file 백업"
-    fi
-done
-
-echo ""
-echo "✅ 문제 파일 정리 완료!"
-echo ""
-echo "이제 다음 명령어를 실행하세요:"
-echo "npm run build"
-echo "vercel --prod"
