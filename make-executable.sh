@@ -2,6 +2,8 @@
 
 # 스크립트 실행 권한 부여
 chmod +x deploy-integrated-marketing.sh
+chmod +x get-service-role-key.sh
+chmod +x fix-debug-tracking.sh
 
 echo "✅ 배포 스크립트 실행 권한 부여 완료"
 echo ""
