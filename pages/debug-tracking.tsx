@@ -5,60 +5,126 @@ export default function DebugPage() {
   const [pageViews, setPageViews] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [testResult, setTestResult] = useState('');
+  const [error, setError] = useState('');
+  const [supabaseStatus, setSupabaseStatus] = useState({});
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Supabase 클라이언트 생성
+  const createSupabaseClient = () => {
+    try {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!url || !key) {
+        throw new Error('Supabase 환경변수가 설정되지 않았습니다');
+      }
+      
+      return createClient(url, key);
+    } catch (error) {
+      setError(`Supabase 초기화 실패: ${error.message}`);
+      return null;
+    }
+  };
+
+  const supabase = createSupabaseClient();
+
+  // Supabase 연결 테스트
+  const testConnection = async () => {
+    if (!supabase) return;
+    
+    try {
+      // 간단한 쿼리로 연결 테스트
+      const { data, error } = await supabase
+        .from('page_views')
+        .select('count', { count: 'exact', head: true });
+      
+      if (error) {
+        setSupabaseStatus({
+          connected: false,
+          error: `연결 실패: ${error.message} (${error.code})`
+        });
+      } else {
+        setSupabaseStatus({
+          connected: true,
+          message: '✅ Supabase 연결 성공'
+        });
+      }
+    } catch (error) {
+      setSupabaseStatus({
+        connected: false,
+        error: `연결 테스트 실패: ${error.message}`
+      });
+    }
+  };
 
   // 데이터 조회
   const fetchData = async () => {
+    if (!supabase) return;
+    
+    setError('');
+    
     try {
+      // page_views 조회
       const { data: views, error: viewsError } = await supabase
         .from('page_views')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (viewsError) throw viewsError;
-      setPageViews(views || []);
+      if (viewsError) {
+        console.error('page_views 조회 에러:', viewsError);
+        setError(`page_views 조회 실패: ${viewsError.message}`);
+      } else {
+        setPageViews(views || []);
+      }
 
+      // campaign_metrics 조회
       const { data: metricsData, error: metricsError } = await supabase
         .from('campaign_metrics')
         .select('*');
 
-      if (metricsError) throw metricsError;
-      setMetrics(metricsData);
+      if (metricsError) {
+        console.error('campaign_metrics 조회 에러:', metricsError);
+        setError(prev => prev + `\ncampaign_metrics 조회 실패: ${metricsError.message}`);
+      } else {
+        setMetrics(metricsData);
+      }
 
     } catch (error) {
-      console.error('Error:', error);
-      setTestResult(`에러: ${error.message}`);
+      console.error('데이터 조회 에러:', error);
+      setError(`데이터 조회 중 에러: ${error.message}`);
     }
   };
 
   // 테스트 데이터 추가
   const testTrackView = async () => {
+    setTestResult('API 호출 중...');
+    
     try {
       const res = await fetch('/api/track-view', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           campaign_id: '2025-07',
-          page: '/test'
+          page: '/test-' + Date.now()
         })
       });
 
       const data = await res.json();
-      setTestResult(`API 응답: ${JSON.stringify(data)}`);
       
-      // 데이터 다시 조회
-      setTimeout(fetchData, 1000);
+      if (!res.ok) {
+        setTestResult(`API 에러 (${res.status}): ${JSON.stringify(data)}`);
+      } else {
+        setTestResult(`✅ API 성공: ${JSON.stringify(data)}`);
+        // 데이터 다시 조회
+        setTimeout(fetchData, 1000);
+      }
     } catch (error) {
-      setTestResult(`에러: ${error.message}`);
+      setTestResult(`❌ API 호출 실패: ${error.message}`);
     }
   };
 
   useEffect(() => {
+    testConnection();
     fetchData();
   }, []);
 
@@ -66,17 +132,47 @@ export default function DebugPage() {
     <div className="p-8 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">🔍 추적 시스템 디버그</h1>
 
+      {/* 에러 표시 */}
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+          <h3 className="font-bold mb-2">⚠️ 에러:</h3>
+          <pre className="whitespace-pre-wrap">{error}</pre>
+        </div>
+      )}
+
+      {/* Supabase 상태 */}
+      <div className="mb-6 bg-gray-100 p-4 rounded-lg">
+        <h3 className="font-bold mb-2">🔌 Supabase 연결 상태:</h3>
+        {supabaseStatus.connected ? (
+          <p className="text-green-600">{supabaseStatus.message}</p>
+        ) : (
+          <p className="text-red-600">{supabaseStatus.error || '연결 테스트 중...'}</p>
+        )}
+      </div>
+
+      {/* 테스트 섹션 */}
       <div className="mb-8 bg-blue-50 p-6 rounded-lg">
         <h2 className="text-xl font-bold mb-4">테스트</h2>
-        <button
-          onClick={testTrackView}
-          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-        >
-          테스트 조회수 추가
-        </button>
+        <div className="space-x-4">
+          <button
+            onClick={testTrackView}
+            className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+          >
+            테스트 조회수 추가
+          </button>
+          <button
+            onClick={() => {
+              testConnection();
+              fetchData();
+            }}
+            className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
+          >
+            데이터 새로고침
+          </button>
+        </div>
         {testResult && (
           <div className="mt-4 p-4 bg-white rounded">
-            <pre>{testResult}</pre>
+            <pre className="text-sm">{testResult}</pre>
           </div>
         )}
       </div>
@@ -120,18 +216,22 @@ export default function DebugPage() {
 
       <div className="mt-8 bg-gray-100 p-6 rounded-lg">
         <h2 className="text-xl font-bold mb-4">🔧 환경 설정</h2>
-        <div className="space-y-2 text-sm">
-          <div>Supabase URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ 설정됨' : '❌ 없음'}</div>
-          <div>Supabase Anon Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ 설정됨' : '❌ 없음'}</div>
+        <div className="space-y-2 text-sm font-mono">
+          <div>NEXT_PUBLIC_SUPABASE_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ 설정됨' : '❌ 없음'}</div>
+          <div>NEXT_PUBLIC_SUPABASE_ANON_KEY: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ 설정됨' : '❌ 없음'}</div>
+          <div>SUPABASE_SERVICE_ROLE_KEY: {process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ 설정됨' : '❌ 없음'}</div>
         </div>
       </div>
 
-      <button
-        onClick={fetchData}
-        className="mt-4 bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
-      >
-        데이터 새로고침
-      </button>
+      <div className="mt-8 bg-yellow-50 p-6 rounded-lg">
+        <h2 className="text-xl font-bold mb-4">📝 문제 해결 방법</h2>
+        <ol className="list-decimal list-inside space-y-2 text-sm">
+          <li>Supabase 대시보드에서 SQL Editor 열기</li>
+          <li><code className="bg-gray-200 px-2 py-1 rounded">database/fix-rls-permissions.sql</code> 내용 실행</li>
+          <li>테이블이 없다면 <code className="bg-gray-200 px-2 py-1 rounded">database/campaign-tracking-schema.sql</code> 먼저 실행</li>
+          <li>이 페이지 새로고침</li>
+        </ol>
+      </div>
     </div>
   );
 }
