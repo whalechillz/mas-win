@@ -1,37 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, TrendingUp, Users, Phone, FileText, Target, ChevronDown, Activity, RefreshCw } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Calendar, TrendingUp, Users, Phone, FileText, Target, ChevronDown, Activity } from 'lucide-react';
 
+// 캠페인 데이터 타입
 interface CampaignKPI {
   campaign_id: string;
-  campaign_name?: string;
+  campaign_name: string;
   views: number;
   unique_visitors: number;
   phone_clicks: number;
   form_submissions: number;
   quiz_completions: number;
   conversion_rate: number;
-  status?: string;
-  start_date?: string;
-  end_date?: string;
-}
-
-interface CampaignInfo {
-  campaign_id: string;
-  campaign_name: string;
-  status: string;
+  status: 'active' | 'scheduled' | 'ended';
   start_date: string;
   end_date: string;
-  target_views: number;
-  target_conversions: number;
 }
 
-const MetricCard: React.FC<{
-  title: string;
-  value: string | number;
-  change?: number;
-  icon: React.ReactNode;
-  color: string;
-}> = ({ title, value, change, icon, color }) => (
+// 메트릭 카드 컴포넌트
+const MetricCard = ({ title, value, change, icon, color }) => (
   <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
     <div className="flex items-center justify-between">
       <div>
@@ -50,276 +37,434 @@ const MetricCard: React.FC<{
   </div>
 );
 
-export const CampaignKPIDashboard: React.FC = () => {
-  const [campaigns, setCampaigns] = useState<CampaignInfo[]>([]);
-  const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
-  const [kpiData, setKpiData] = useState<CampaignKPI | null>(null);
-  const [allKpiData, setAllKpiData] = useState<CampaignKPI[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // 캠페인 목록 가져오기
-  const fetchCampaigns = async () => {
-    try {
-      const res = await fetch('/api/campaigns');
-      if (res.ok) {
-        const data = await res.json();
-        setCampaigns(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch campaigns:', error);
-    }
-  };
-
-  // KPI 데이터 가져오기
-  const fetchKPIData = async (campaignId: string) => {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/campaigns/kpi?campaign_id=${campaignId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (campaignId === 'all') {
-          setAllKpiData(data);
-          // 전체 합계 계산
-          const totals = data.reduce((acc: CampaignKPI, curr: CampaignKPI) => ({
-            campaign_id: 'all',
-            campaign_name: '전체 캠페인',
-            views: acc.views + curr.views,
-            unique_visitors: acc.unique_visitors + curr.unique_visitors,
-            phone_clicks: acc.phone_clicks + curr.phone_clicks,
-            form_submissions: acc.form_submissions + curr.form_submissions,
-            quiz_completions: acc.quiz_completions + curr.quiz_completions,
-            conversion_rate: 0
-          }), {
-            campaign_id: 'all',
-            views: 0,
-            unique_visitors: 0,
-            phone_clicks: 0,
-            form_submissions: 0,
-            quiz_completions: 0,
-            conversion_rate: 0
-          });
-          
-          // 평균 전환율 계산
-          totals.conversion_rate = totals.views > 0 
-            ? Number(((totals.form_submissions / totals.views) * 100).toFixed(2))
-            : 0;
-          
-          setKpiData(totals);
-        } else {
-          setKpiData(data);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch KPI data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCampaigns();
-    fetchKPIData('all');
-  }, []);
-
-  useEffect(() => {
-    fetchKPIData(selectedCampaign);
-  }, [selectedCampaign]);
-
-  const getCurrentCampaign = () => {
-    if (selectedCampaign === 'all') {
-      return { campaign_name: '전체 캠페인', status: 'active' };
-    }
-    return campaigns.find(c => c.campaign_id === selectedCampaign) || { campaign_name: '선택된 캠페인', status: 'active' };
-  };
-
-  const currentCampaign = getCurrentCampaign();
-
-  if (isLoading && !kpiData) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
+// 캠페인 선택 드롭다운
+const CampaignSelector = ({ campaigns, selected, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
   return (
-    <div className="space-y-6">
-      {/* 캠페인 선택 헤더 */}
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-900">캠페인별 성과</h2>
-            
-            {/* 캠페인 선택 드롭다운 */}
-            <div className="relative">
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium">{currentCampaign.campaign_name}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {isDropdownOpen && (
-                <div className="absolute top-full mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                  <button
-                    onClick={() => {
-                      setSelectedCampaign('all');
-                      setIsDropdownOpen(false);
-                    }}
-                    className={`w-full px-4 py-3 text-left hover:bg-blue-50 ${
-                      selectedCampaign === 'all' ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <div className="font-medium">전체 캠페인</div>
-                    <div className="text-sm text-gray-500">모든 캠페인 통합 데이터</div>
-                  </button>
-                  
-                  {campaigns.map(campaign => (
-                    <button
-                      key={campaign.campaign_id}
-                      onClick={() => {
-                        setSelectedCampaign(campaign.campaign_id);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-3 text-left hover:bg-blue-50 border-t ${
-                        selectedCampaign === campaign.campaign_id ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{campaign.campaign_name}</p>
-                          <p className="text-sm text-gray-500">{campaign.campaign_id}</p>
-                        </div>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          campaign.status === 'active' ? 'bg-green-100 text-green-700' :
-                          campaign.status === 'scheduled' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
-                          {campaign.status === 'active' ? '진행중' :
-                           campaign.status === 'scheduled' ? '예정' : '종료'}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+      >
+        <Calendar className="w-4 h-4" />
+        <span>{selected?.campaign_name || '캠페인 선택'}</span>
+        <ChevronDown className="w-4 h-4" />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          {campaigns.map(campaign => (
+            <button
+              key={campaign.campaign_id}
+              onClick={() => {
+                onSelect(campaign);
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b last:border-b-0"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{campaign.campaign_name}</p>
+                  <p className="text-sm text-gray-500">{campaign.campaign_id}</p>
                 </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            onClick={() => fetchKPIData(selectedCampaign)}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* KPI 메트릭 카드 */}
-      {kpiData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard
-            title="총 조회수"
-            value={kpiData.views}
-            icon={<Users className="w-6 h-6 text-blue-600" />}
-            color="bg-blue-100"
-          />
-          <MetricCard
-            title="고유 방문자"
-            value={kpiData.unique_visitors}
-            icon={<Activity className="w-6 h-6 text-green-600" />}
-            color="bg-green-100"
-          />
-          <MetricCard
-            title="전화 클릭"
-            value={kpiData.phone_clicks}
-            icon={<Phone className="w-6 h-6 text-purple-600" />}
-            color="bg-purple-100"
-          />
-          <MetricCard
-            title="전환율"
-            value={`${kpiData.conversion_rate}%`}
-            icon={<Target className="w-6 h-6 text-orange-600" />}
-            color="bg-orange-100"
-          />
-        </div>
-      )}
-
-      {/* 캠페인 비교 테이블 (전체 선택 시) */}
-      {selectedCampaign === 'all' && allKpiData.length > 0 && (
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">캠페인별 상세 비교</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    캠페인
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    조회수
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    방문자
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    전화
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    예약
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    전환율
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {allKpiData.map((data) => {
-                  const campaign = campaigns.find(c => c.campaign_id === data.campaign_id);
-                  return (
-                    <tr key={data.campaign_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {campaign?.campaign_name || data.campaign_id}
-                          </div>
-                          <div className="text-sm text-gray-500">{data.campaign_id}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {data.views.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {data.unique_visitors.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {data.phone_clicks}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {data.form_submissions}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          data.conversion_rate > 3 ? 'bg-green-100 text-green-800' :
-                          data.conversion_rate > 1 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {data.conversion_rate}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  campaign.status === 'active' ? 'bg-green-100 text-green-700' :
+                  campaign.status === 'scheduled' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-gray-100 text-gray-700'
+                }`}>
+                  {campaign.status === 'active' ? '진행중' :
+                   campaign.status === 'scheduled' ? '예정' : '종료'}
+                </span>
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>
   );
 };
 
-export default CampaignKPIDashboard;
+// 메인 대시보드 컴포넌트
+export const CampaignKPIDashboard = ({ supabase = null }) => {
+  const [campaigns, setCampaigns] = useState<CampaignKPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // 기본 더미 데이터
+  const defaultCampaigns: CampaignKPI[] = [
+    {
+      campaign_id: '2025-07',
+      campaign_name: '7월 썸머 스페셜',
+      views: 1234,
+      unique_visitors: 892,
+      phone_clicks: 45,
+      form_submissions: 23,
+      quiz_completions: 67,
+      conversion_rate: 3.7,
+      status: 'active',
+      start_date: '2025-07-01',
+      end_date: '2025-07-31'
+    },
+    {
+      campaign_id: '2025-06',
+      campaign_name: '6월 프라임타임',
+      views: 2456,
+      unique_visitors: 1823,
+      phone_clicks: 89,
+      form_submissions: 45,
+      quiz_completions: 123,
+      conversion_rate: 4.2,
+      status: 'ended',
+      start_date: '2025-06-01',
+      end_date: '2025-06-30'
+    },
+    {
+      campaign_id: '2025-08',
+      campaign_name: '8월 가을맞이',
+      views: 0,
+      unique_visitors: 0,
+      phone_clicks: 0,
+      form_submissions: 0,
+      quiz_completions: 0,
+      conversion_rate: 0,
+      status: 'scheduled',
+      start_date: '2025-08-01',
+      end_date: '2025-08-31'
+    }
+  ];
+
+  const [selectedCampaign, setSelectedCampaign] = useState<CampaignKPI | null>(null);
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [compareCampaign, setCompareCampaign] = useState(null);
+
+  // 데이터 로드
+  useEffect(() => {
+    loadCampaignData();
+  }, [supabase]);
+
+  const loadCampaignData = async () => {
+    if (!supabase) {
+      // Supabase가 없으면 더미 데이터 사용
+      setCampaigns(defaultCampaigns);
+      setSelectedCampaign(defaultCampaigns[0]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // campaign_metrics 테이블에서 데이터 가져오기
+      const { data: metricsData, error: metricsError } = await supabase
+        .from('campaign_metrics')
+        .select('*')
+        .order('campaign_id', { ascending: false });
+
+      if (metricsError) {
+        console.error('Campaign metrics error:', metricsError);
+        setError('칼페인 데이터 로드 실패');
+        setCampaigns(defaultCampaigns);
+        setSelectedCampaign(defaultCampaigns[0]);
+      } else if (metricsData && metricsData.length > 0) {
+        // 데이터 형식 변환
+        const formattedCampaigns = metricsData.map((metric, index) => ({
+          campaign_id: metric.campaign_id,
+          campaign_name: `${metric.campaign_id.replace('-', '년 ').replace('-', '월')} 칼페인`,
+          views: metric.views || 0,
+          unique_visitors: metric.unique_visitors || 0,
+          phone_clicks: metric.phone_clicks || 0,
+          form_submissions: metric.form_submissions || 0,
+          quiz_completions: metric.quiz_completions || 0,
+          conversion_rate: parseFloat(metric.conversion_rate) || 0,
+          status: index === 0 ? 'active' : 'ended' as const,
+          start_date: `${metric.campaign_id}-01`,
+          end_date: `${metric.campaign_id}-${new Date(2025, parseInt(metric.campaign_id.split('-')[1]), 0).getDate()}`
+        }));
+
+        setCampaigns(formattedCampaigns);
+        setSelectedCampaign(formattedCampaigns[0]);
+      } else {
+        // 데이터가 없으면 더미 데이터 사용
+        setCampaigns(defaultCampaigns);
+        setSelectedCampaign(defaultCampaigns[0]);
+      }
+    } catch (err) {
+      console.error('Load error:', err);
+      setError('데이터 로드 중 오류 발생');
+      setCampaigns(defaultCampaigns);
+      setSelectedCampaign(defaultCampaigns[0]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 로딩 상태 체크
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">칼페인 데이터 로듩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 선택된 칼페인이 없는 경우
+  if (!selectedCampaign) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="text-center py-8">
+          <p className="text-gray-600">칼페인 데이터가 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 전환 퍼널 데이터
+  const funnelData = [
+    { stage: '페이지 방문', value: selectedCampaign.views, percentage: 100 },
+    { stage: '퀴즈 참여', value: selectedCampaign.quiz_completions, percentage: selectedCampaign.views > 0 ? (selectedCampaign.quiz_completions / selectedCampaign.views * 100).toFixed(1) : '0' },
+    { stage: '전화 문의', value: selectedCampaign.phone_clicks, percentage: selectedCampaign.views > 0 ? (selectedCampaign.phone_clicks / selectedCampaign.views * 100).toFixed(1) : '0' },
+    { stage: '예약 완료', value: selectedCampaign.form_submissions, percentage: selectedCampaign.views > 0 ? (selectedCampaign.form_submissions / selectedCampaign.views * 100).toFixed(1) : '0' }
+  ];
+
+  // 시간대별 데이터 (더미)
+  const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+    hour: `${i}시`,
+    views: Math.floor(Math.random() * 100) + 10,
+    clicks: Math.floor(Math.random() * 20) + 2
+  }));
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      {/* 헤더 */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">캠페인별 KPI 대시보드</h1>
+          {error && (
+            <div className="text-red-600 text-sm bg-red-50 px-3 py-1 rounded">
+              {error}
+            </div>
+          )}
+          <div className="flex items-center gap-4">
+            <CampaignSelector
+              campaigns={campaigns}
+              selected={selectedCampaign}
+              onSelect={setSelectedCampaign}
+            />
+            <button
+              onClick={() => setComparisonMode(!comparisonMode)}
+              className={`px-4 py-2 rounded-lg ${
+                comparisonMode ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'
+              }`}
+            >
+              비교 모드
+            </button>
+          </div>
+        </div>
+
+        {/* 캠페인 정보 */}
+        <div className="bg-blue-50 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-blue-900">{selectedCampaign.campaign_name}</h2>
+              <p className="text-blue-700">
+                {selectedCampaign.start_date} ~ {selectedCampaign.end_date}
+              </p>
+            </div>
+            <span className={`px-4 py-2 rounded-full text-white font-medium ${
+              selectedCampaign.status === 'active' ? 'bg-green-500' :
+              selectedCampaign.status === 'scheduled' ? 'bg-yellow-500' :
+              'bg-gray-500'
+            }`}>
+              {selectedCampaign.status === 'active' ? '진행중' :
+               selectedCampaign.status === 'scheduled' ? '예정' : '종료'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI 메트릭 카드 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard
+          title="총 조회수"
+          value={selectedCampaign.views}
+          change={12}
+          icon={<Users className="w-6 h-6 text-blue-600" />}
+          color="bg-blue-100"
+        />
+        <MetricCard
+          title="고유 방문자"
+          value={selectedCampaign.unique_visitors}
+          change={8}
+          icon={<Activity className="w-6 h-6 text-green-600" />}
+          color="bg-green-100"
+        />
+        <MetricCard
+          title="전화 클릭"
+          value={selectedCampaign.phone_clicks}
+          change={-5}
+          icon={<Phone className="w-6 h-6 text-purple-600" />}
+          color="bg-purple-100"
+        />
+        <MetricCard
+          title="전환율"
+          value={`${selectedCampaign.conversion_rate}%`}
+          change={15}
+          icon={<Target className="w-6 h-6 text-orange-600" />}
+          color="bg-orange-100"
+        />
+      </div>
+
+      {/* 차트 섹션 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* 전환 퍼널 */}
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">전환 퍼널</h3>
+          <div className="space-y-4">
+            {funnelData.map((stage, index) => (
+              <div key={index}>
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-medium">{stage.stage}</span>
+                  <span className="text-sm text-gray-600">{stage.value} ({stage.percentage}%)</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-8">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-8 rounded-full flex items-center justify-end pr-3"
+                    style={{ width: `${stage.percentage}%` }}
+                  >
+                    <span className="text-white text-xs font-medium">{stage.percentage}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 시간대별 활동 */}
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">시간대별 활동</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={hourlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="hour" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="views" stroke="#3B82F6" name="조회수" />
+              <Line type="monotone" dataKey="clicks" stroke="#10B981" name="클릭수" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 비교 모드 */}
+      {comparisonMode && (
+        <div className="bg-gray-50 rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-4">캠페인 비교</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {campaigns.map(campaign => (
+              <div
+                key={campaign.campaign_id}
+                className={`p-4 rounded-lg border-2 ${
+                  campaign.campaign_id === selectedCampaign.campaign_id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200'
+                }`}
+              >
+                <h4 className="font-medium mb-3">{campaign.campaign_name}</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>조회수:</span>
+                    <span className="font-medium">{campaign.views.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>전환율:</span>
+                    <span className="font-medium">{campaign.conversion_rate}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>예약:</span>
+                    <span className="font-medium">{campaign.form_submissions}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 상세 테이블 */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">상세 데이터</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr className="bg-white">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  항목
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  현재값
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  목표값
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  달성률
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  페이지 조회수
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {selectedCampaign.views.toLocaleString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  10,000
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <span className="mr-2">{(selectedCampaign.views / 100).toFixed(1)}%</span>
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(selectedCampaign.views / 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  예약 완료
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {selectedCampaign.form_submissions}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  100
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <span className="mr-2">{(selectedCampaign.form_submissions / 100 * 100).toFixed(1)}%</span>
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(selectedCampaign.form_submissions / 100 * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};

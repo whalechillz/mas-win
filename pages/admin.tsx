@@ -9,6 +9,7 @@ import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboa
 import { BookingManagement } from '../components/admin/bookings/BookingManagementFull';
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
 import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
+import { CampaignKPIDashboard } from '../components/admin/dashboard/CampaignKPIDashboard';
 
 // MarketingDashboard를 dynamic import로 변경
 const MarketingDashboard = dynamic(
@@ -688,6 +689,9 @@ export default function AdminDashboard() {
       <main className="p-6">
         {activeTab === 'overview' && (
           <div className="space-y-6">
+            {/* 캠페인별 KPI 대시보드 */}
+            <CampaignKPIDashboard supabase={supabase} />
+            
             {/* 실시간 메트릭 카드 */}
             <MetricCards metrics={realtimeMetrics} />
 
