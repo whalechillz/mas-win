@@ -144,6 +144,17 @@ export const CampaignKPIDashboard = ({ supabase = null }) => {
   }, [supabase]);
 
   const loadCampaignData = async () => {
+    // 먼저 GA4 API에서 실시간 데이터 가져오기 시도
+    try {
+      const ga4Response = await fetch('/api/ga4-campaign-metrics');
+      if (ga4Response.ok) {
+        const ga4Data = await ga4Response.json();
+        console.log('GA4 실시간 데이터:', ga4Data);
+      }
+    } catch (error) {
+      console.error('GA4 API 호출 실패:', error);
+    }
+
     if (!supabase) {
       // Supabase가 없으면 더미 데이터 사용
       setCampaigns(defaultCampaigns);
