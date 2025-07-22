@@ -61,7 +61,8 @@ export default function GA4DebugPage() {
   }, []);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-8 max-w-6xl mx-auto pb-20">
       <h1 className="text-3xl font-bold mb-8">📊 Google Analytics 4 디버그</h1>
 
       {/* GA4 설정 상태 */}
@@ -234,6 +235,7 @@ fetch('/api/test-ga4')
             </pre>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

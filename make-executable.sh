@@ -9,6 +9,7 @@ chmod +x fix-supabase-now.sh
 chmod +x fix-ga-domain.sh
 chmod +x setup-ga4-realtime.sh
 chmod +x ga4-debug-info.sh
+chmod +x setup-ga4-service-account.sh
 
 echo "✅ 배포 스크립트 실행 권한 부여 완료"
 echo ""
