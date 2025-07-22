@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       status: 'GA4 설정 확인',
       serviceAccountEmail: hasEmail ? '✅ 설정됨' : '❌ 없음',
       serviceAccountKey: hasKey ? '✅ 설정됨' : '❌ 없음',
-      propertyId: hasPropertyId ? process.env.GA4_PROPERTY_ID : '❌ 없음',
+      propertyId: hasPropertyId ? process.env.GA4_PROPERTY_ID : '❌ 없음 (497433231 사용)',
       timestamp: new Date().toISOString()
     });
   } catch (error) {
