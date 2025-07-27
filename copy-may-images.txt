@@ -1,0 +1,22 @@
+# hero 이미지
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/hero/hero_father_son_golf_1080x1920.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+
+# story 이미지
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/story/senior_golfer_smiling_1080x1350.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/story/senior_golfer_swinging_1080x1350.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+
+# product 이미지
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/product/titanium_club_face_1200x800.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/product/driver_impact_1200x800.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/product/premium_golf_shaft_detail_1200x800.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+
+# package 이미지
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/package/father_son_teeoff_package_1080x1350.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/package/family_golf_playing_1080x1350.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/package/couple_golf_round_1080x1350.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/package/fitting_experience_coupon.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+
+# review 이미지
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/review/golfer_avatar_512x512_01.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/review/golfer_avatar_512x512_02.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
+cp /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/review/golfer_avatar_512x512_03.jpg /Users/m2/MASLABS/win.masgolf.co.kr/public/assets/campaigns/2025-05/
