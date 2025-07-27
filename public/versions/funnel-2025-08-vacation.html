@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAS9 Golf - 휴가철 골프 휴양지, 당신의 완벽한 필수품</title>
-    <meta name="description" content="MAS9 Golf로 품격 있는 휴가철 스윙을 완성하세요. 고성능 클럽으로 휴양지에서 빛나는 샷!">
+    <title>MASGOLF | 휴가철 골프 휴양지, 당신의 완벽한 필수품</title>
+    <meta name="description" content="MASGOLF로 품격 있는 휴가철 스윙을 완성하세요. 고성능 클럽으로 휴양지에서 빛나는 샷!">
     
     <!-- CSS -->
     <style>
@@ -39,11 +39,23 @@
             overflow: hidden;
         }
         
+        .hero-bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            z-index: 1;
+        }
+        
         .hero-content {
             text-align: center;
             color: white;
             z-index: 2;
             animation: fadeInUp 1s ease-out;
+            position: relative;
         }
         
         .hero-title {
@@ -73,10 +85,102 @@
             height: auto;
         }
         
+        /* 제품 소개 섹션 */
+        .product-section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+        
+        .product-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 50px;
+            font-weight: 700;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        
+        .product-item {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .product-item:hover {
+            transform: translateY(-10px);
+        }
+        
+        .product-image {
+            width: 200px;
+            height: 300px;
+            margin: 0 auto 30px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #999;
+        }
+        
+        .product-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .product-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .product-features {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .product-features li {
+            list-style: none;
+            padding: 8px 0;
+            color: #555;
+            font-size: 0.95rem;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .product-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4ECDC4;
+            font-weight: bold;
+        }
+        
+        .product-gift {
+            background: #FFE5D9;
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #FF6B35;
+        }
+        
         /* 영역2: 퀴즈 섹션 */
         .quiz-section {
             padding: 80px 0;
-            background: #f8f9fa;
+            background: white;
         }
         
         .quiz-title {
@@ -101,11 +205,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
         }
         
         .quiz-option:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: #4ECDC4;
         }
         
         .quiz-option-icon {
@@ -127,7 +233,7 @@
         /* 영역3: 비거리 증가 */
         .distance-section {
             padding: 80px 0;
-            background: white;
+            background: #f8f9fa;
         }
         
         .distance-title {
@@ -170,7 +276,7 @@
         /* 영역4: 클럽 성능 */
         .features-section {
             padding: 80px 0;
-            background: #f8f9fa;
+            background: white;
         }
         
         .features-grid {
@@ -213,7 +319,7 @@
         /* 영역5: 고객후기 */
         .testimonials-section {
             padding: 80px 0;
-            background: white;
+            background: #f8f9fa;
         }
         
         .testimonials-grid {
@@ -223,7 +329,7 @@
         }
         
         .testimonial-item {
-            background: #f8f9fa;
+            background: white;
             padding: 30px;
             border-radius: 15px;
             position: relative;
@@ -284,11 +390,18 @@
         }
         
         .gift-item-image {
-            width: 150px;
-            height: 150px;
+            width: 200px;
+            height: 200px;
             margin: 0 auto 20px;
             background: #ddd;
             border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .gift-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .gift-item-name {
@@ -300,6 +413,7 @@
         .gift-item-desc {
             color: #666;
             font-size: 0.9rem;
+            line-height: 1.5;
         }
         
         /* CTA 버튼 */
@@ -473,6 +587,10 @@
                 font-size: 2rem;
             }
             
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .distance-comparison {
                 gap: 30px;
             }
@@ -500,14 +618,71 @@
 <body>
     <!-- 영역1: 메인 비주얼 -->
     <section class="hero-section">
+        <img src="/assets/campaigns/2025-08/vacation-golf-beach.jpg" alt="휴가철 골프" class="hero-bg-image">
         <div class="hero-content">
             <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
-            <p class="hero-subtitle">MAS9 Golf로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
+            <p class="hero-subtitle">MASGOLF로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
             
             <div class="hero-video">
                 <!-- 비디오 플레이스홀더 -->
                 <div style="background: rgba(0,0,0,0.1); height: 300px; display: flex; align-items: center; justify-content: center;">
                     <p style="color: white; font-size: 1.2rem;">🏌️ 뜨거운 여름, 우린 더 강해져야 합니다</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 제품 소개 섹션 -->
+    <section class="product-section">
+        <div class="container">
+            <h2 class="product-title">MASGOLF 블랙 시리즈 프로모션</h2>
+            <div class="product-grid">
+                <!-- 시크릿웨폰 블랙 -->
+                <div class="product-item">
+                    <div class="product-image">🏆</div>
+                    <h3 class="product-name">시크릿웨폰 블랙</h3>
+                    <p class="product-subtitle">최강의 비거리를 위한 프리미엄 드라이버</p>
+                    <ul class="product-features">
+                        <li>초박형 티타늄 페이스</li>
+                        <li>반발계수 0.87의 폭발적 반발력</li>
+                        <li>한국인 체형 맞춤 설계</li>
+                        <li>평균 비거리 25m 증가</li>
+                    </ul>
+                    <div class="product-gift">
+                        🎁 블루 드 샤넬 100ml 증정
+                    </div>
+                </div>
+                
+                <!-- 시크릿포스 PRO3 -->
+                <div class="product-item">
+                    <div class="product-image">⚡</div>
+                    <h3 class="product-name">시크릿포스 PRO3</h3>
+                    <p class="product-subtitle">정확도와 비거리의 완벽한 조화</p>
+                    <ul class="product-features">
+                        <li>3세대 AI 설계 기술</li>
+                        <li>최적화된 무게 배분</li>
+                        <li>안정적인 탄도 구현</li>
+                        <li>미들 핸디캡 골퍼 최적화</li>
+                    </ul>
+                    <div class="product-gift">
+                        🎁 블루 드 샤넬 50ml 증정
+                    </div>
+                </div>
+                
+                <!-- 시크릿포스 V3 -->
+                <div class="product-item">
+                    <div class="product-image">🎯</div>
+                    <h3 class="product-name">시크릿포스 V3</h3>
+                    <p class="product-subtitle">시니어 골퍼를 위한 맞춤 설계</p>
+                    <ul class="product-features">
+                        <li>초경량 카본 샤프트</li>
+                        <li>부드러운 임팩트감</li>
+                        <li>피로감 최소화 설계</li>
+                        <li>높은 탄도로 비거리 극대화</li>
+                    </ul>
+                    <div class="product-gift">
+                        🎁 블루 드 샤넬 50ml 증정
+                    </div>
                 </div>
             </div>
         </div>
@@ -554,7 +729,7 @@
                 <div class="distance-arrow">→</div>
                 <div class="distance-item">
                     <div class="distance-number">245M</div>
-                    <div class="distance-label">MAS9 클럽</div>
+                    <div class="distance-label">MASGOLF 클럽</div>
                 </div>
             </div>
         </div>
@@ -589,7 +764,7 @@
             <div class="testimonials-grid">
                 <div class="testimonial-item">
                     <div class="testimonial-quote">"</div>
-                    <p class="testimonial-text">제주도 휴가 때 MAS9로 라운딩했는데, 동반자들이 모두 놀랐어요. 비거리가 확실히 늘었습니다!</p>
+                    <p class="testimonial-text">제주도 휴가 때 MASGOLF로 라운딩했는데, 동반자들이 모두 놀랐어요. 비거리가 확실히 늘었습니다!</p>
                     <p class="testimonial-author">- 김○○님 (58세, 서울)</p>
                 </div>
                 <div class="testimonial-item">
@@ -599,7 +774,7 @@
                 </div>
                 <div class="testimonial-item">
                     <div class="testimonial-quote">"</div>
-                    <p class="testimonial-text">강원도 리조트에서 MAS9로 베스트 스코어 달성! 정확도와 비거리 모두 만족스럽습니다.</p>
+                    <p class="testimonial-text">강원도 리조트에서 MASGOLF로 베스트 스코어 달성! 정확도와 비거리 모두 만족스럽습니다.</p>
                     <p class="testimonial-author">- 박○○님 (55세, 대전)</p>
                 </div>
             </div>
@@ -614,14 +789,14 @@
                 <div class="gift-items">
                     <div class="gift-item">
                         <div class="gift-item-image">
-                            <img src="/assets/campaigns/2025-08/waterproof-pouch-real.png" alt="여행용 방수팩" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+                            <img src="/assets/campaigns/2025-08/waterproof-pouch-real.png" alt="여행용 방수팩">
                         </div>
                         <h3 class="gift-item-name">여행용 방수팩</h3>
                         <p class="gift-item-desc">전화상담만 받아도 즉시 증정!<br>휴가철 필수 아이템</p>
                     </div>
                     <div class="gift-item">
                         <div class="gift-item-image">
-                            <img src="/assets/campaigns/2025-08/chanel-perfume.jpg" alt="블루 드 샤넬" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+                            <img src="/assets/campaigns/2025-08/chanel-box.png" alt="블루 드 샤넬">
                         </div>
                         <h3 class="gift-item-name">블루 드 샤넬</h3>
                         <p class="gift-item-desc">오 드 뚜왈렛<br>
@@ -705,13 +880,13 @@
             let message = '';
             switch(type) {
                 case 'power':
-                    message = '파워 히터형이시네요! MAS9의 초박형 페이스가 폭발적인 비거리를 선사합니다.';
+                    message = '파워 히터형이시네요! MASGOLF의 초박형 페이스가 폭발적인 비거리를 선사합니다.\n\n시크릿웨폰 블랙을 추천드립니다!';
                     break;
                 case 'accuracy':
-                    message = '정확도 중시형이시네요! MAS9의 안정적인 무게 배분이 일관된 스윙을 도와드립니다.';
+                    message = '정확도 중시형이시네요! MASGOLF의 안정적인 무게 배분이 일관된 스윙을 도와드립니다.\n\n시크릿포스 PRO3를 추천드립니다!';
                     break;
                 case 'all':
-                    message = '올라운더형이시네요! MAS9은 비거리와 정확도를 모두 만족시키는 최고의 선택입니다.';
+                    message = '올라운더형이시네요! MASGOLF는 비거리와 정확도를 모두 만족시키는 최고의 선택입니다.\n\n모든 제품이 고객님께 적합합니다!';
                     break;
             }
             alert(message + '\n\n지금 바로 상담 받아보세요!');
