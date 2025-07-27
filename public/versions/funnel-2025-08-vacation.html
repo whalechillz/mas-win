@@ -243,6 +243,29 @@
             color: #FF6B35;
         }
         
+        /* 퀴즈 스텍 스타일 */
+        .quiz-container {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-step {
+            display: none;
+        }
+        
+        .quiz-step.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .quiz-option.selected {
+            border-color: #FF6B35;
+            background: #FFF5F2;
+            transform: scale(1.02);
+        }
+        
         /* 영역2: 퀴즈 섹션 */
         .quiz-section {
             padding: 80px 0;
@@ -910,30 +933,88 @@
     </section>
 
     <!-- 영역2: 퀴즈 섹션 -->
-    <section class="quiz-section">
+    <section class="quiz-section" id="quiz-section">
         <div class="container">
-            <h2 class="quiz-title">🏌️ 당신의 휴가철 스윙 스타일은?</h2>
-            <div class="quiz-options">
-                <div class="quiz-option" onclick="showResult('power')">
-                    <div class="quiz-option-icon">💪</div>
-                    <h3 class="quiz-option-title">파워 히터형</h3>
-                    <p class="quiz-option-desc">비거리를 늘려 리조트에서 주목받고 싶어요</p>
+            <h2 class="quiz-title">🏌️ 당신의 휴가철<br>
+                <span style="color: #FF6B35;">스윙 스타일</span>은?
+            </h2>
+            <p style="text-align: center; color: #666; margin-bottom: 40px;">
+                3가지 질문으로 찾는 나만의 맞춤 클럽
+            </p>
+            
+            <div id="quizContainer" class="quiz-container">
+                <!-- Step 1: 스윙 스타일 -->
+                <div class="quiz-step active" id="step1">
+                    <h3 style="text-align: center; margin-bottom: 30px; font-size: 1.5rem;">Q1. 당신의 스윙 스타일은?</h3>
+                    <div class="quiz-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div class="quiz-option" onclick="selectAnswer(1, 'stability')">
+                            <div class="quiz-option-icon">🎯</div>
+                            <h3 class="quiz-option-title">안정형</h3>
+                            <p class="quiz-option-desc">일관된 스윙, 정확한 타구</p>
+                        </div>
+                        <div class="quiz-option" onclick="selectAnswer(1, 'power')">
+                            <div class="quiz-option-icon">💪</div>
+                            <h3 class="quiz-option-title">파워형</h3>
+                            <p class="quiz-option-desc">강력한 임팩트, 긴 비거리</p>
+                        </div>
+                        <div class="quiz-option" onclick="selectAnswer(1, 'allround')">
+                            <div class="quiz-option-icon">⭐</div>
+                            <h3 class="quiz-option-title">올라운더형</h3>
+                            <p class="quiz-option-desc">균형잡힌 플레이</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="quiz-option" onclick="showResult('accuracy')">
-                    <div class="quiz-option-icon">🎯</div>
-                    <h3 class="quiz-option-title">정확도 중시형</h3>
-                    <p class="quiz-option-desc">안정적인 스윙으로 스코어를 줄이고 싶어요</p>
+
+                <!-- Step 2: 중요 요소 -->
+                <div class="quiz-step" id="step2">
+                    <h3 style="text-align: center; margin-bottom: 30px; font-size: 1.5rem;">Q2. 클럽 선택 시 가장 중요한 것은?</h3>
+                    <div class="quiz-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div class="quiz-option" onclick="selectAnswer(2, 'distance')">
+                            <div class="quiz-option-icon">🚀</div>
+                            <h3 class="quiz-option-title">비거리</h3>
+                            <p class="quiz-option-desc">더 멀리, 더 강하게</p>
+                        </div>
+                        <div class="quiz-option" onclick="selectAnswer(2, 'accuracy')">
+                            <div class="quiz-option-icon">🎯</div>
+                            <h3 class="quiz-option-title">정확도</h3>
+                            <p class="quiz-option-desc">정확한 목표 지점</p>
+                        </div>
+                        <div class="quiz-option" onclick="selectAnswer(2, 'comfort')">
+                            <div class="quiz-option-icon">🌿</div>
+                            <h3 class="quiz-option-title">편안함</h3>
+                            <p class="quiz-option-desc">부드러운 스윙감</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="quiz-option" onclick="showResult('all')">
-                    <div class="quiz-option-icon">⭐</div>
-                    <h3 class="quiz-option-title">올라운더형</h3>
-                    <p class="quiz-option-desc">비거리와 정확도 모두 잡고 싶어요</p>
+
+                <!-- Step 3: 비거리 -->
+                <div class="quiz-step" id="step3">
+                    <h3 style="text-align: center; margin-bottom: 30px; font-size: 1.5rem;">Q3. 현재 평균 비거리는?</h3>
+                    <div style="text-align: center;">
+                        <input type="number" id="distanceInput" placeholder="예: 200" 
+                               style="background: #f8f9fa; border: 2px solid #ddd; color: #333; text-align: center; padding: 15px; border-radius: 10px; width: 150px; font-size: 1.5rem; font-weight: bold;">
+                        <span style="font-size: 1.5rem; margin-left: 10px;">미터</span>
+                    </div>
+                    <button onclick="completeQuiz()" 
+                            style="display: block; margin: 30px auto; background: #FF6B35; color: white; padding: 15px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s;">
+                        결과 확인하기
+                    </button>
                 </div>
-            </div>
-            <div class="cta-buttons">
-                <a href="tel:1644-2110" class="cta-button cta-primary">전화상담하기</a>
-                <a href="#" class="cta-button cta-secondary" onclick="bookVisit()">시타예약하기</a>
-                <a href="#" class="cta-button cta-tertiary" onclick="showInquiry()">문의남기기</a>
+
+                <!-- 결과 -->
+                <div class="quiz-step" id="result">
+                    <div style="text-align: center;">
+                        <h3 style="font-size: 1.8rem; margin-bottom: 30px;">당신에게 추천하는 클럽</h3>
+                        <div id="recommendedProduct" style="background: #f8f9fa; border-radius: 20px; padding: 30px; margin-top: 20px;">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
+                        <div class="cta-buttons" style="margin-top: 30px;">
+                            <a href="tel:080-028-8888" class="cta-button cta-primary">전화상담하기</a>
+                            <a href="#" class="cta-button cta-secondary" onclick="bookVisit()">시타예약하기</a>
+                            <a href="#" class="cta-button cta-tertiary" onclick="showInquiry()">문의남기기</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -941,16 +1022,50 @@
     <!-- 영역3: 비거리 증가 -->
     <section class="distance-section">
         <div class="container">
-            <h2 class="distance-title">평균 비거리 +25M 증가!</h2>
-            <div class="distance-comparison">
-                <div class="distance-item">
-                    <div class="distance-number">220M</div>
-                    <div class="distance-label">일반 클럽</div>
+            <h2 class="distance-title">확실한 비거리<br>
+                <span style="color: #FF6B35;">증가의 증명</span>
+            </h2>
+            
+            <!-- 비거리 입력 -->
+            <div style="text-align: center; margin-bottom: 40px;">
+                <p style="color: #666; margin-bottom: 20px; font-size: 1.1rem;">당신의 현재 비거리를 입력하세요</p>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    <input type="number" id="userDistance" placeholder="180" 
+                           style="background: white; border: 2px solid #ddd; color: #333; text-align: center; padding: 12px; border-radius: 10px; width: 120px; font-size: 1.3rem; font-weight: bold;">
+                    <span style="font-size: 1.2rem;">미터</span>
+                    <button onclick="showDistanceComparison()" 
+                            style="background: #FF6B35; color: white; padding: 12px 30px; border-radius: 50px; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s;">
+                        비교하기
+                    </button>
                 </div>
-                <div class="distance-arrow">→</div>
-                <div class="distance-item">
-                    <div class="distance-number">245M</div>
-                    <div class="distance-label">MASGOLF 클럽</div>
+            </div>
+            
+            <!-- 골프공 애니메이션 영역 -->
+            <div id="distanceComparison" style="display: none;">
+                <!-- 일반 클럽 -->
+                <div style="margin-bottom: 30px;">
+                    <h4 style="font-size: 1.1rem; color: #999; margin-bottom: 10px;">일반 클럽</h4>
+                    <div style="position: relative; background: #f8f9fa; height: 100px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);">
+                        <div id="normalBall" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; bottom: 40px; left: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>
+                        <span id="normalDistance" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; font-weight: bold; color: #666;"></span>
+                    </div>
+                </div>
+                
+                <!-- MAS 클럽 -->
+                <div>
+                    <h4 style="font-size: 1.1rem; color: #FF6B35; margin-bottom: 10px; font-weight: 600;">MASGOLF 클럽</h4>
+                    <div style="position: relative; background: linear-gradient(to right, #FFF5F2, #FFE5E1); height: 100px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 20px rgba(255,107,53,0.2);">
+                        <div id="masBall" style="position: absolute; width: 20px; height: 20px; background: #FF6B35; border-radius: 50%; bottom: 40px; left: 20px; box-shadow: 0 2px 10px rgba(255,107,53,0.5);"></div>
+                        <span id="masDistance" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 1.8rem; font-weight: bold; color: #FF6B35;"></span>
+                    </div>
+                </div>
+                
+                <!-- 증가량 표시 -->
+                <div style="text-align: center; margin-top: 40px;">
+                    <div style="display: inline-block; background: linear-gradient(135deg, #FF6B35, #FF8E53); padding: 30px 50px; border-radius: 20px; box-shadow: 0 10px 30px rgba(255,107,53,0.3);">
+                        <div style="font-size: 3rem; font-weight: 900; color: white; margin-bottom: 5px;" id="distanceIncreaseNumber">+0</div>
+                        <div style="font-size: 1.2rem; color: #FFE5E1;">미터 비거리 증가</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1028,7 +1143,7 @@
                 <p style="color: #666; margin-top: 30px;">※ 선물은 한정 수량으로 조기 소진될 수 있습니다</p>
                 <div class="cta-buttons">
                     <a href="#" class="cta-button cta-primary" onclick="bookVisit()">시타 예약하기</a>
-                    <a href="tel:1644-2110" class="cta-button cta-secondary">즉시 전화 상담하기</a>
+                    <a href="tel:080-028-8888" class="cta-button cta-secondary">즉시 전화 상담하기</a>
                     <a href="#" class="cta-button cta-tertiary" onclick="showInquiry()">문의남기기</a>
                 </div>
             </div>
@@ -1090,7 +1205,7 @@
     </section>
 
     <!-- 플로팅 배너 -->
-    <div class="floating-banner" onclick="location.href='tel:1644-2110'">
+    <div class="floating-banner" onclick="location.href='tel:080-028-8888'">
         🌴 상담만 받아도 여행용 방수팩 증정! ☀️
     </div>
 
@@ -1101,33 +1216,139 @@
             alert('영상 준비 중입니다.\n\n공식 YouTube 채널에서 확인하세요!');
             // window.open('https://youtube.com/watch?v=YOUR_VIDEO_ID', '_blank');
         }
-        // 퀴즈 결과 표시
-        function showResult(type) {
-            let message = '';
-            let recommendation = '';
+        // 퀴즈 데이터
+        const quizData = {
+            style: '',
+            priority: '',
+            distance: 0
+        };
+        
+        // 퀴즈 답변 선택
+        function selectAnswer(step, value) {
+            // 이전 선택 제거
+            document.querySelectorAll(`#step${step} .quiz-option`).forEach(opt => {
+                opt.classList.remove('selected');
+            });
             
-            switch(type) {
-                case 'power':
-                    message = '💪 파워 히터형이시군요!';
-                    recommendation = '시크릿웨폰 블랙이 당신의 최고의 선택입니다. 폭발적인 반발력으로 비거리를 극대화하세요!';
-                    break;
-                case 'accuracy':
-                    message = '🎯 정확도 중시형이시군요!';
-                    recommendation = '시크릿포스 PRO3가 완벽한 선택입니다. AI 설계 기술로 안정적인 탄도를 구현하세요!';
-                    break;
-                case 'all':
-                    message = '⭐ 올라운더형이시군요!';
-                    recommendation = '시크릿포스 V3로 비거리와 정확도를 모두 잡으세요. 균형 잡힌 성능을 경험하실 수 있습니다!';
-                    break;
+            // 새 선택 추가
+            event.target.closest('.quiz-option').classList.add('selected');
+            
+            // 데이터 저장
+            if (step === 1) {
+                quizData.style = value;
+            } else if (step === 2) {
+                quizData.priority = value;
             }
             
-            alert(message + '\n\n' + recommendation + '\n\n지금 바로 상담 받으시고 휴가철 라운딩을 준비하세요!');
-            
-            // 자동으로 전화 연결 제안
-            if (confirm('전문 상담사와 바로 연결하시겠습니까?')) {
-                location.href = 'tel:1644-2110';
-            }
+            // 다음 단계로
+            setTimeout(() => {
+                document.getElementById(`step${step}`).classList.remove('active');
+                document.getElementById(`step${step + 1}`).classList.add('active');
+            }, 500);
         }
+        
+        // 퀴즈 완료
+        function completeQuiz() {
+            const distance = document.getElementById('distanceInput').value;
+            if (!distance) {
+                alert('비거리를 입력해주세요.');
+                return;
+            }
+            
+            quizData.distance = parseInt(distance);
+            
+            // 추천 제품 결정
+            let productName, productDesc, productGift;
+            
+            if (quizData.style === 'power' && quizData.priority === 'distance') {
+                productName = '시크릿웨폰 블랙';
+                productDesc = '최강의 비거리를 위한 프리미엄 드라이버';
+                productGift = '블루 드 샤넬 100ml';
+            } else if (quizData.style === 'stability' || quizData.priority === 'accuracy') {
+                productName = '시크릿포스 PRO3';
+                productDesc = '정확도와 비거리의 완벽한 조화';
+                productGift = '블루 드 샤넬 50ml';
+            } else {
+                productName = '시크릿포스 V3';
+                productDesc = '시니어 골퍼를 위한 맞춤 설계';
+                productGift = '블루 드 샤넬 50ml';
+            }
+            
+            // 결과 표시
+            const resultHTML = `
+                <h4 style="font-size: 1.8rem; color: #FF6B35; margin-bottom: 15px;">${productName}</h4>
+                <p style="color: #666; margin-bottom: 20px;">${productDesc}</p>
+                <div style="background: #FFE5D9; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: 600; color: #FF6B35;">
+                    🎁 ${productGift} 증정
+                </div>
+                <div style="margin-top: 30px; padding: 20px; background: #FFF5F2; border-radius: 15px;">
+                    <p style="color: #666; margin-bottom: 10px;">현재 비거리: <strong>${quizData.distance}m</strong></p>
+                    <p style="color: #FF6B35; font-size: 1.3rem; font-weight: bold;">예상 비거리: <strong>${quizData.distance + 25}m</strong></p>
+                </div>
+            `;
+            
+            document.getElementById('recommendedProduct').innerHTML = resultHTML;
+            
+            // 단계 전환
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('result').classList.add('active');
+            
+            // 스크롤
+            document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 비거리 비교 애니메이션
+        function showDistanceComparison() {
+            const userDistance = parseInt(document.getElementById('userDistance').value) || 200;
+            const masDistance = userDistance + 25;
+            
+            // 비교 영역 표시
+            document.getElementById('distanceComparison').style.display = 'block';
+            
+            // 초기화
+            document.getElementById('normalBall').style.left = '20px';
+            document.getElementById('masBall').style.left = '20px';
+            document.getElementById('normalDistance').textContent = '';
+            document.getElementById('masDistance').textContent = '';
+            document.getElementById('distanceIncreaseNumber').textContent = '+0';
+            
+            // 애니메이션
+            setTimeout(() => {
+                // 일반 클럽
+                const normalBall = document.getElementById('normalBall');
+                const normalMaxLeft = 60; // %
+                normalBall.style.transition = 'all 2s ease-out';
+                normalBall.style.left = normalMaxLeft + '%';
+                
+                setTimeout(() => {
+                    document.getElementById('normalDistance').textContent = userDistance + 'M';
+                }, 1500);
+                
+                // MAS 클럽
+                setTimeout(() => {
+                    const masBall = document.getElementById('masBall');
+                    const masMaxLeft = 80; // %
+                    masBall.style.transition = 'all 2s ease-out';
+                    masBall.style.left = masMaxLeft + '%';
+                    
+                    setTimeout(() => {
+                        document.getElementById('masDistance').textContent = masDistance + 'M';
+                        
+                        // 증가량 애니메이션
+                        let count = 0;
+                        const increment = setInterval(() => {
+                            count++;
+                            document.getElementById('distanceIncreaseNumber').textContent = '+' + count;
+                            if (count >= 25) {
+                                clearInterval(increment);
+                            }
+                        }, 40);
+                    }, 1500);
+                }, 500);
+            }, 100);
+        }
+        
+        // 기존 showResult 함수 수정 (삭제하고 퀴즈 방식으로 교체)
         
         // 시타 예약
         function bookVisit() {
@@ -1303,7 +1524,7 @@
                         gtag('event', 'click', {
                             event_category: 'engagement',
                             event_label: 'phone_call',
-                            value: '1644-2110'
+                            value: '080-028-8888'
                         });
                     }
                 });
