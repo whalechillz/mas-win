@@ -839,9 +839,128 @@
     </style>
 </head>
 <body>
+    <!-- 날짜 기반 카운트다운 로직 -->
+    <script>
+        // 8월 1일부터 31일까지 30명에서 0명으로 감소
+        function getRemainingCount() {
+            const startDate = new Date('2025-08-01');
+            const endDate = new Date('2025-08-31');
+            const today = new Date();
+            
+            // 날짜가 범위를 벗어난 경우
+            if (today < startDate) return 30;
+            if (today > endDate) return 0;
+            
+            // 전체 일수와 경과 일수 계산
+            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const elapsedDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+            
+            // 비율에 따라 남은 인원 계산
+            const remainingCount = Math.max(0, Math.floor(30 - (30 * elapsedDays / totalDays)));
+            
+            return remainingCount;
+        }
+        
+        // 페이지 로드 시 모든 카운트 업데이트
+        window.addEventListener('DOMContentLoaded', function() {
+            const count = getRemainingCount();
+            const elements = document.querySelectorAll('.remaining-count');
+            elements.forEach(el => {
+                el.textContent = count + '명';
+            });
+            
+            // 프로모션 타이머 시작
+            initPromoTimer();
+        });
+        
+        // 8월 31일까지 카운트다운 타이머
+        function initPromoTimer() {
+            const endDate = new Date('2025-08-31T23:59:59');
+            
+            function updateTimer() {
+                const now = new Date();
+                const diff = endDate - now;
+                
+                if (diff > 0) {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    // 타이머 표시 업데이트
+                    const timerElement = document.getElementById('promo-timer');
+                    if (timerElement) {
+                        timerElement.innerHTML = `
+                            <span style="font-size: 1.5rem; font-weight: bold;">${days}</span>일 
+                            <span style="font-size: 1.5rem; font-weight: bold;">${hours}</span>시간 
+                            <span style="font-size: 1.5rem; font-weight: bold;">${minutes}</span>분
+                        `;
+                    }
+                    
+                    // 플로팅 배너 텍스트 업데이트
+                    const floatingBanner = document.querySelector('.floating-banner');
+                    if (floatingBanner && days < 7) {
+                        floatingBanner.innerHTML = `🔥 8월 프로모션 ${days}일 ${hours}시간 남음!`;
+                        floatingBanner.style.background = '#ff4757';
+                    }
+                }
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 60000); // 1분마다 업데이트
+        }
+    </script>
     <!-- 로딩 화면 -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- 프로모션 타이머 바 -->
+    <div style="background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 100%); color: white; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <div style="font-size: 1.1rem; font-weight: 600;">
+            🌴 8월 휴가철 특별 프로모션 종료까지: <span id="promo-timer" style="color: #FEF3C7;"></span>
+        </div>
+        <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
+            🎁 블루 드 샤넬 향수 증정! 잔여 <span class="remaining-count" style="color: #FFEB3B; font-weight: bold;">30명</span>만!
+        </div>
+    </div>
+    
+    <!-- 이탈 방지 팝업 -->
+    <div id="exitPopup" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; margin: 20px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <button onclick="closeExitPopup()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 2rem; cursor: pointer; color: #999;">&times;</button>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🎁</div>
+                <h2 style="font-size: 2rem; color: #333; margin-bottom: 20px;">
+                    잠깐! <span style="color: #FF6B35;">특별 혜택</span>이 있어요!
+                </h2>
+                <p style="font-size: 1.2rem; color: #666; margin-bottom: 30px; line-height: 1.6;">
+                    지금 전화 상담만 받으셔도<br>
+                    <strong style="color: #FF6B35;">여행용 방수팩</strong>을 바로 보내드립니다!
+                </p>
+                
+                <div style="background: #FFF5F2; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
+                    <p style="font-size: 1.1rem; color: #FF6B35; margin-bottom: 10px; font-weight: bold;">
+                        🌟 오늘만의 특별 혜택
+                    </p>
+                    <p style="font-size: 0.95rem; color: #666;">
+                        시타 예약 시 프리미엄 골프볼 1더슨 추가 증정<br>
+                        (선착순 <span class="remaining-count" style="color: #FF6B35; font-weight: bold;">30명</span> 한정)
+                    </p>
+                </div>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="tel:080-028-8888" style="background: #FF6B35; color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1rem; display: inline-block; transition: all 0.3s;" 
+                       onmouseover="this.style.transform='scale(1.05)'" 
+                       onmouseout="this.style.transform='scale(1)'">
+                        📞 지금 바로 상담받기
+                    </a>
+                    <button onclick="closeExitPopup()" style="background: #f0f0f0; color: #666; padding: 15px 30px; border-radius: 50px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer;">
+                        다음에 할게요
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- 영역1: 메인 비주얼 -->
     <section class="hero-section">
@@ -849,7 +968,7 @@
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
         <div class="summer-wave"></div>
-        <img src="/assets/campaigns/2025-08/vacation-golf-main.jpg" alt="휴가철 골프" class="hero-bg-image" onerror="this.style.opacity='0'">
+        <img src="/assets/campaigns/2025-08/hero-image-1.jpg" alt="휴가철 골프" class="hero-bg-image" onerror="this.style.opacity='0'">
         <div class="hero-content">
             <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
             <p class="hero-subtitle">MASGOLF로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
@@ -875,20 +994,20 @@
         <div class="container">
             <!-- 실제 제품 설명 섹션에 이미지 추가 -->
                 <div style="margin-bottom: 60px; text-align: center;">
-                    <h3 style="font-size: 1.8rem; margin-bottom: 30px; color: #333;">휴가철, 당신의 빛나는 순간</h3>
+                    <h3 style="font-size: 1.8rem; margin-bottom: 30px; color: #333;">MASGOLF가 만드는 차이</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                         <div style="position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
                             <img src="/assets/campaigns/2025-08/hero-image-1.jpg" alt="파워풀한 스윙" style="width: 100%; height: 300px; object-fit: cover;">
                             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; color: white;">
-                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">파워풀한 스윙</h4>
-                                <p style="font-size: 0.9rem; opacity: 0.9;">MASGOLF로 완성하는 강력한 티샷</p>
+                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">정확한 타겟팅</h4>
+                                <p style="font-size: 0.9rem; opacity: 0.9;">반발계수 0.87의 압도적 성능</p>
                             </div>
                         </div>
                         <div style="position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
                             <img src="/assets/campaigns/2025-08/hero-image-2.jpg" alt="안정적인 자세" style="width: 100%; height: 300px; object-fit: cover;">
                             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; color: white;">
-                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">완벽한 폼</h4>
-                                <p style="font-size: 0.9rem; opacity: 0.9;">균형 잡힌 자세로 일관된 샷</p>
+                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">한국인 맞춤 설계</h4>
+                                <p style="font-size: 0.9rem; opacity: 0.9;">체형에 최적화된 무게 배분</p>
                             </div>
                         </div>
                         <div style="position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
@@ -918,6 +1037,9 @@
                     </ul>
                     <div class="product-gift">
                         🎁 블루 드 샤넬 100ml 증정
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.9rem; color: #ff4757;">
+                        잔여 <span class="remaining-count" style="font-weight: bold;">30명</span>
                     </div>
                 </div>
                 
@@ -1176,15 +1298,22 @@
                     </div>
                 </div>
                 
-                <!-- 3번 이미지: 여유로운 워킹 -->
+                <!-- 3번 이미지: 휴가철 특별 혜택 -->
                 <div style="position: relative; overflow: hidden; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s;"
                      onmouseover="this.style.transform='translateY(-5px)'" 
                      onmouseout="this.style.transform='translateY(0)'">
-                    <img src="/assets/campaigns/2025-08/vacation-golf-main.jpg" alt="여유로운 라운딩" 
-                         style="width: 100%; height: 350px; object-fit: cover;">
+                    <div style="width: 100%; height: 350px; background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div style="text-align: center; z-index: 2;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🌴</div>
+                            <h3 style="font-size: 2rem; color: white; font-weight: bold; margin-bottom: 10px;">8월 특별 혜택</h3>
+                            <p style="font-size: 1.2rem; color: white; opacity: 0.9;">BLEU DE CHANEL<br>최대 100ml 증정</p>
+                        </div>
+                        <div style="position: absolute; top: 10%; right: 10%; font-size: 6rem; opacity: 0.1;">🎁</div>
+                        <div style="position: absolute; bottom: 10%; left: 10%; font-size: 6rem; opacity: 0.1;">☀️</div>
+                    </div>
                     <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 30px; color: white;">
-                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">🌴 여유로운 라운딩</h3>
-                        <p style="font-size: 1rem; opacity: 0.9;">휴가지에서 즐기는<br>품격 있는 골프 타임</p>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">🎁 품격 있는 선물</h3>
+                        <p style="font-size: 1rem; opacity: 0.9;">프리미엄 향수로<br>특별한 여름을 선물하세요</p>
                     </div>
                 </div>
                 
@@ -1214,6 +1343,9 @@
         <div class="container">
             <div class="gift-container">
                 <h2 class="gift-title">🎁 8월 휴가철 특별 선물 패키지 🌴</h2>
+                <p style="font-size: 1.3rem; color: #FF6B35; margin-bottom: 30px; font-weight: bold;">
+                    선착순 <span class="remaining-count" style="background: #FFEB3B; color: #333; padding: 5px 15px; border-radius: 20px;">30명</span>만 남았어요!
+                </p>
                 <div class="gift-items">
                     <div class="gift-item">
                         <div class="gift-item-image">
@@ -1308,6 +1440,64 @@
             alert('영상 준비 중입니다.\n\n공식 YouTube 채널에서 확인하세요!');
             // window.open('https://youtube.com/watch?v=YOUR_VIDEO_ID', '_blank');
         }
+        
+        // 이탈 방지 팝업 관련 함수
+        let exitIntentShown = false;
+        
+        function showExitPopup() {
+            const popup = document.getElementById('exitPopup');
+            if (popup && !exitIntentShown) {
+                popup.style.display = 'flex';
+                exitIntentShown = true;
+                
+                // GA4 이벤트 추적
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'view_popup', {
+                        event_category: 'engagement',
+                        event_label: 'exit_intent_popup'
+                    });
+                }
+            }
+        }
+        
+        function closeExitPopup() {
+            const popup = document.getElementById('exitPopup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+        
+        // 이탈 의도 감지
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY <= 0 && !exitIntentShown) {
+                showExitPopup();
+            }
+        });
+        
+        // 모바일에서는 스크롤 기반 이탈 감지
+        let lastScrollTop = 0;
+        let scrollingUp = false;
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop < lastScrollTop) {
+                scrollingUp = true;
+            } else {
+                scrollingUp = false;
+            }
+            
+            // 상단으로 빠르게 스크롤할 때 팝업 표시
+            if (scrollingUp && scrollTop < 100 && !exitIntentShown && window.innerWidth <= 768) {
+                setTimeout(() => {
+                    if (scrollingUp) {
+                        showExitPopup();
+                    }
+                }, 1000);
+            }
+            
+            lastScrollTop = scrollTop;
+        });
         // 퀴즈 데이터
         const quizData = {
             style: '',
