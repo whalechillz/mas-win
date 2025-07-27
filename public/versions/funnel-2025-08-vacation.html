@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAS9 Golf - 휴가철 골프 휴양지, 당신의 완벽한 필수품</title>
+    <meta name="description" content="MAS9 Golf로 품격 있는 휴가철 스윙을 완성하세요. 고성능 클럽으로 휴양지에서 빛나는 샷!">
+    
+    <!-- CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 768px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 영역1: 메인 비주얼 */
+        .hero-section {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 50%, #45B7D1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .hero-content {
+            text-align: center;
+            color: white;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .hero-video {
+            width: 100%;
+            max-width: 600px;
+            margin: 30px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .hero-video video {
+            width: 100%;
+            height: auto;
+        }
+        
+        /* 영역2: 퀴즈 섹션 */
+        .quiz-section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+        
+        .quiz-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 50px;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .quiz-option {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .quiz-option-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .quiz-option-title {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-option-desc {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* 영역3: 비거리 증가 */
+        .distance-section {
+            padding: 80px 0;
+            background: white;
+        }
+        
+        .distance-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 50px;
+        }
+        
+        .distance-comparison {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .distance-item {
+            text-align: center;
+            animation: scaleIn 1s ease-out;
+        }
+        
+        .distance-number {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #FF6B35;
+        }
+        
+        .distance-label {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .distance-arrow {
+            font-size: 3rem;
+            color: #4ECDC4;
+            animation: bounce 2s infinite;
+        }
+        
+        /* 영역4: 클럽 성능 */
+        .features-section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-item {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #FF6B35, #4ECDC4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .feature-desc {
+            color: #666;
+        }
+        
+        /* 영역5: 고객후기 */
+        .testimonials-section {
+            padding: 80px 0;
+            background: white;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .testimonial-item {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .testimonial-quote {
+            font-size: 3rem;
+            color: #4ECDC4;
+            position: absolute;
+            top: 10px;
+            left: 20px;
+        }
+        
+        .testimonial-text {
+            margin-top: 30px;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .testimonial-author {
+            margin-top: 20px;
+            text-align: right;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* 영역6: 선물 패키지 */
+        .gift-section {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #FFE5D9 0%, #FFCAD4 100%);
+        }
+        
+        .gift-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .gift-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .gift-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .gift-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .gift-item-image {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            background: #ddd;
+            border-radius: 10px;
+        }
+        
+        .gift-item-name {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .gift-item-desc {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* CTA 버튼 */
+        .cta-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .cta-primary {
+            background: #FF6B35;
+            color: white;
+        }
+        
+        .cta-primary:hover {
+            background: #FF5722;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255,107,53,0.3);
+        }
+        
+        .cta-secondary {
+            background: #4ECDC4;
+            color: white;
+        }
+        
+        .cta-secondary:hover {
+            background: #3DBDB4;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(78,205,196,0.3);
+        }
+        
+        .cta-tertiary {
+            background: white;
+            color: #333;
+            border: 2px solid #333;
+        }
+        
+        .cta-tertiary:hover {
+            background: #333;
+            color: white;
+        }
+        
+        /* 영역7: FAQ */
+        .faq-section {
+            padding: 80px 0;
+            background: white;
+        }
+        
+        .faq-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 50px;
+        }
+        
+        .faq-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .faq-item {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .faq-question {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-answer {
+            color: #666;
+            line-height: 1.8;
+            display: none;
+        }
+        
+        .faq-item.active .faq-answer {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* 플로팅 배너 */
+        .floating-banner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #FF6B35;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-weight: 600;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+            z-index: 1000;
+        }
+        
+        /* 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .distance-comparison {
+                gap: 30px;
+            }
+            
+            .distance-number {
+                font-size: 3rem;
+            }
+            
+            .gift-container {
+                padding: 30px;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .cta-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 영역1: 메인 비주얼 -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
+            <p class="hero-subtitle">MAS9 Golf로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
+            
+            <div class="hero-video">
+                <!-- 비디오 플레이스홀더 -->
+                <div style="background: rgba(0,0,0,0.1); height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <p style="color: white; font-size: 1.2rem;">🏌️ 뜨거운 여름, 우린 더 강해져야 합니다</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역2: 퀴즈 섹션 -->
+    <section class="quiz-section">
+        <div class="container">
+            <h2 class="quiz-title">🏌️ 당신의 휴가철 스윙 스타일은?</h2>
+            <div class="quiz-options">
+                <div class="quiz-option" onclick="showResult('power')">
+                    <div class="quiz-option-icon">💪</div>
+                    <h3 class="quiz-option-title">파워 히터형</h3>
+                    <p class="quiz-option-desc">비거리를 늘려 리조트에서 주목받고 싶어요</p>
+                </div>
+                <div class="quiz-option" onclick="showResult('accuracy')">
+                    <div class="quiz-option-icon">🎯</div>
+                    <h3 class="quiz-option-title">정확도 중시형</h3>
+                    <p class="quiz-option-desc">안정적인 스윙으로 스코어를 줄이고 싶어요</p>
+                </div>
+                <div class="quiz-option" onclick="showResult('all')">
+                    <div class="quiz-option-icon">⭐</div>
+                    <h3 class="quiz-option-title">올라운더형</h3>
+                    <p class="quiz-option-desc">비거리와 정확도 모두 잡고 싶어요</p>
+                </div>
+            </div>
+            <div class="cta-buttons">
+                <a href="tel:1644-2110" class="cta-button cta-primary">전화상담하기</a>
+                <a href="#" class="cta-button cta-secondary" onclick="bookVisit()">시타예약하기</a>
+                <a href="#" class="cta-button cta-tertiary" onclick="showInquiry()">문의남기기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역3: 비거리 증가 -->
+    <section class="distance-section">
+        <div class="container">
+            <h2 class="distance-title">평균 비거리 +25M 증가!</h2>
+            <div class="distance-comparison">
+                <div class="distance-item">
+                    <div class="distance-number">220M</div>
+                    <div class="distance-label">일반 클럽</div>
+                </div>
+                <div class="distance-arrow">→</div>
+                <div class="distance-item">
+                    <div class="distance-number">245M</div>
+                    <div class="distance-label">MAS9 클럽</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역4: 클럽 성능 -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">초박형 페이스</h3>
+                    <p class="feature-desc">최첨단 기술로 제작된 초박형 페이스로 폭발적인 반발력</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">반발계수 0.87</h3>
+                    <p class="feature-desc">규정 한계치에 근접한 반발계수로 최대 비거리 실현</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🏆</div>
+                    <h3 class="feature-title">독점 개발 샤프트</h3>
+                    <p class="feature-desc">한국인 체형에 최적화된 독점 개발 샤프트</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역5: 고객후기 -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="testimonials-grid">
+                <div class="testimonial-item">
+                    <div class="testimonial-quote">"</div>
+                    <p class="testimonial-text">제주도 휴가 때 MAS9로 라운딩했는데, 동반자들이 모두 놀랐어요. 비거리가 확실히 늘었습니다!</p>
+                    <p class="testimonial-author">- 김○○님 (58세, 서울)</p>
+                </div>
+                <div class="testimonial-item">
+                    <div class="testimonial-quote">"</div>
+                    <p class="testimonial-text">여름 휴가철 골프장에서 자신감이 생겼어요. 클럽이 가벼워서 피로감도 적고 스윙이 편해졌습니다.</p>
+                    <p class="testimonial-author">- 이○○님 (62세, 부산)</p>
+                </div>
+                <div class="testimonial-item">
+                    <div class="testimonial-quote">"</div>
+                    <p class="testimonial-text">강원도 리조트에서 MAS9로 베스트 스코어 달성! 정확도와 비거리 모두 만족스럽습니다.</p>
+                    <p class="testimonial-author">- 박○○님 (55세, 대전)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역6: 선물 패키지 -->
+    <section class="gift-section">
+        <div class="container">
+            <div class="gift-container">
+                <h2 class="gift-title">🎁 8월 특별 선물 패키지</h2>
+                <div class="gift-items">
+                    <div class="gift-item">
+                        <div class="gift-item-image">
+                            <img src="/assets/campaigns/2025-08/waterproof-pouch.jpg" alt="여행용 방수팩" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+                        </div>
+                        <h3 class="gift-item-name">여행용 방수팩</h3>
+                        <p class="gift-item-desc">전화상담만 받아도 즉시 증정!<br>휴가철 필수 아이템</p>
+                    </div>
+                    <div class="gift-item">
+                        <div class="gift-item-image">
+                            <img src="/assets/campaigns/2025-08/chanel-perfume.jpg" alt="블루 드 샤넬" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+                        </div>
+                        <h3 class="gift-item-name">블루 드 샤넬</h3>
+                        <p class="gift-item-desc">오 드 뚜왈렛 100ml<br>방문 시타 고객 한정 증정</p>
+                    </div>
+                </div>
+                <p style="color: #666; margin-top: 30px;">※ 선물은 한정 수량으로 조기 소진될 수 있습니다</p>
+                <div class="cta-buttons">
+                    <a href="#" class="cta-button cta-primary" onclick="bookVisit()">시타 예약하기</a>
+                    <a href="tel:1644-2110" class="cta-button cta-secondary">즉시 전화 상담하기</a>
+                    <a href="#" class="cta-button cta-tertiary" onclick="showInquiry()">문의남기기</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 영역7: FAQ -->
+    <section class="faq-section">
+        <div class="container">
+            <h2 class="faq-title">자주 묻는 질문</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Q. 휴가 전에 시타가 가능한가요?
+                        <span>▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        A. 네, 가능합니다. 휴가 일정에 맞춰 미리 방문 예약을 하시면 충분한 시간을 갖고 시타하실 수 있습니다. 전화로 예약하시면 원하시는 시간대로 조정해드립니다.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Q. 여행용 방수팩은 언제 받을 수 있나요?
+                        <span>▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        A. 전화 상담만 받으셔도 바로 택배로 보내드립니다. 휴가 가시기 전에 충분히 받아보실 수 있도록 신속하게 발송해드립니다.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Q. 클럽 AS는 어떻게 받나요?
+                        <span>▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        A. 전국 어디서나 AS가 가능합니다. 구매 후 2년간 무상 AS를 제공하며, 휴가지에서 문제가 생겨도 즉시 대응해드립니다.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Q. 샤프트 교체가 가능한가요?
+                        <span>▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        A. 네, 가능합니다. 개인의 스윙 스피드와 체형에 맞춰 최적의 샤프트로 교체해드립니다. 시타 때 전문가가 정확히 진단해드립니다.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Q. 구매 후 반품이 가능한가요?
+                        <span>▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        A. 제품 수령 후 7일 이내 미사용 제품에 한해 반품이 가능합니다. 단, 시타 후 맞춤 제작된 제품은 반품이 제한될 수 있습니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 플로팅 배너 -->
+    <div class="floating-banner" onclick="location.href='tel:1644-2110'">
+        📞 상담만 받아도 여행용 방수팩 증정!
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 퀴즈 결과 표시
+        function showResult(type) {
+            let message = '';
+            switch(type) {
+                case 'power':
+                    message = '파워 히터형이시네요! MAS9의 초박형 페이스가 폭발적인 비거리를 선사합니다.';
+                    break;
+                case 'accuracy':
+                    message = '정확도 중시형이시네요! MAS9의 안정적인 무게 배분이 일관된 스윙을 도와드립니다.';
+                    break;
+                case 'all':
+                    message = '올라운더형이시네요! MAS9은 비거리와 정확도를 모두 만족시키는 최고의 선택입니다.';
+                    break;
+            }
+            alert(message + '\n\n지금 바로 상담 받아보세요!');
+        }
+
+        // 시타 예약
+        function bookVisit() {
+            if (confirm('시타 예약을 진행하시겠습니까?\n전문 상담사가 친절히 안내해드립니다.')) {
+                location.href = 'tel:1644-2110';
+            }
+        }
+
+        // 문의하기
+        function showInquiry() {
+            if (confirm('문의사항을 남기시겠습니까?\n빠른 시간 내에 답변드리겠습니다.')) {
+                location.href = 'tel:1644-2110';
+            }
+        }
+
+        // FAQ 토글
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            faqItem.classList.toggle('active');
+            const arrow = element.querySelector('span');
+            arrow.textContent = faqItem.classList.contains('active') ? '▲' : '▼';
+        }
+
+        // 스크롤 애니메이션
+        function handleScroll() {
+            const elements = document.querySelectorAll('.distance-item, .feature-item, .testimonial-item');
+            elements.forEach(element => {
+                const rect = element.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        }
+
+        // 초기 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            // 스크롤 이벤트 리스너
+            window.addEventListener('scroll', handleScroll);
+            handleScroll();
+
+            // 전화번호 클릭 추적
+            const telLinks = document.querySelectorAll('a[href^="tel:"]');
+            telLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    console.log('전화 클릭:', this.href);
+                    // GA4 이벤트 전송
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'click', {
+                            'event_category': 'engagement',
+                            'event_label': 'phone_call'
+                        });
+                    }
+                });
+            });
+        });
+
+        // 페이지 가시성 변경 감지
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('페이지 활성화');
+            }
+        });
+    </script>
+</body>
+</html>
