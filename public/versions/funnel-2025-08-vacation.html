@@ -58,6 +58,19 @@
             position: relative;
         }
         
+        /* 추가 스크롤 인디케이터 */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            color: white;
+            font-size: 2rem;
+            opacity: 0.7;
+            cursor: pointer;
+        }
+        
         .hero-title {
             font-size: 2.5rem;
             font-weight: 700;
@@ -112,24 +125,77 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
         }
         
         .product-item:hover {
             transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .product-item:hover::before {
+            animation: shine 0.5s ease-in-out;
+        }
+        
+        @keyframes shine {
+            0% {
+                opacity: 0;
+                transform: rotate(45deg) translateX(-100%);
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: rotate(45deg) translateX(100%);
+            }
         }
         
         .product-image {
             width: 200px;
             height: 300px;
             margin: 0 auto 30px;
-            background: #f0f0f0;
+            background: linear-gradient(145deg, #f0f0f0, #e6e6e6);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
             color: #999;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+        
+        .product-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        .product-placeholder {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 10px;
         }
         
         .product-name {
@@ -206,6 +272,26 @@
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quiz-option::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(78,205,196,0.1);
+            transform: translate(-50%, -50%);
+            transition: all 0.5s;
+        }
+        
+        .quiz-option:hover::after {
+            width: 300px;
+            height: 300px;
         }
         
         .quiz-option:hover {
@@ -360,6 +446,18 @@
         .gift-section {
             padding: 80px 0;
             background: linear-gradient(135deg, #FFE5D9 0%, #FFCAD4 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gift-section::before {
+            content: '🎁';
+            position: absolute;
+            font-size: 300px;
+            opacity: 0.05;
+            top: -100px;
+            right: -100px;
+            transform: rotate(-15deg);
         }
         
         .gift-container {
@@ -528,6 +626,45 @@
             cursor: pointer;
             animation: pulse 2s infinite;
             z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .floating-banner:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        /* 휴가 테마 특별 효과 */
+        .summer-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.3" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat;
+            background-size: cover;
+            animation: wave 10s linear infinite;
+        }
+        
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-1440px); }
+        }
+        
+        .palm-tree {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.1;
+            animation: sway 3s ease-in-out infinite;
+        }
+        
+        .palm-tree:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .palm-tree:nth-child(2) { top: 20%; right: 10%; animation-delay: 1s; }
+        .palm-tree:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 2s; }
+        
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
         }
         
         /* 애니메이션 */
@@ -581,14 +718,66 @@
             }
         }
         
+        /* 로딩 화면 */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* 반응형 */
         @media (max-width: 768px) {
             .hero-title {
-                font-size: 2rem;
+                font-size: 1.8rem;
+                line-height: 1.3;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
             }
             
             .product-grid {
                 grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .product-item {
+                padding: 30px 20px;
+            }
+            
+            .product-image {
+                width: 180px;
+                height: 270px;
+            }
+            
+            .product-name {
+                font-size: 1.5rem;
             }
             
             .distance-comparison {
@@ -611,23 +800,49 @@
             .cta-button {
                 width: 100%;
                 text-align: center;
+                padding: 18px 30px;
+                font-size: 1rem;
+            }
+            
+            .floating-banner {
+                bottom: 15px;
+                right: 15px;
+                left: 15px;
+                text-align: center;
+                font-size: 0.9rem;
+                padding: 12px 20px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- 로딩 화면 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+    </div>
     <!-- 영역1: 메인 비주얼 -->
     <section class="hero-section">
-        <img src="/assets/campaigns/2025-08/vacation-golf-beach.jpg" alt="휴가철 골프" class="hero-bg-image">
+        <div class="palm-tree">🌴</div>
+        <div class="palm-tree">🌴</div>
+        <div class="palm-tree">🌴</div>
+        <div class="summer-wave"></div>
+        <img src="/assets/campaigns/2025-08/vacation-golf-beach.jpg" alt="휴가철 골프" class="hero-bg-image" onerror="this.style.opacity='0'">
         <div class="hero-content">
             <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
             <p class="hero-subtitle">MASGOLF로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
             
             <div class="hero-video">
                 <!-- 비디오 플레이스홀더 -->
-                <div style="background: rgba(0,0,0,0.1); height: 300px; display: flex; align-items: center; justify-content: center;">
-                    <p style="color: white; font-size: 1.2rem;">🏌️ 뜨거운 여름, 우린 더 강해져야 합니다</p>
+                <div style="background: linear-gradient(135deg, rgba(255,107,53,0.8), rgba(78,205,196,0.8)); height: 300px; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div style="text-align: center; z-index: 2;">
+                        <p style="color: white; font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">🏌️ 뜨거운 여름, 우린 더 강해져야 합니다</p>
+                        <p style="color: white; font-size: 1rem; opacity: 0.9;">비거리와 정확도 향상을 위한 MASGOLF의 혁신</p>
+                        <button onclick="playVideo()" style="margin-top: 20px; padding: 10px 30px; background: white; color: #FF6B35; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">▶ 영상 보기</button>
+                    </div>
                 </div>
+            </div>
+            <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})">
+                ↓
             </div>
         </div>
     </section>
@@ -639,7 +854,9 @@
             <div class="product-grid">
                 <!-- 시크릿웨폰 블랙 -->
                 <div class="product-item">
-                    <div class="product-image">🏆</div>
+                    <div class="product-image">
+                        <img src="/assets/campaigns/2025-08/secret-weapon-black.jpg" alt="시크릿웨폰 블랙" onerror="this.style.display='none'; this.parentElement.innerHTML='🏆<div class=\'product-placeholder\'>MAS-SECRET-BLACK-001</div>';">
+                    </div>
                     <h3 class="product-name">시크릿웨폰 블랙</h3>
                     <p class="product-subtitle">최강의 비거리를 위한 프리미엄 드라이버</p>
                     <ul class="product-features">
@@ -655,7 +872,9 @@
                 
                 <!-- 시크릿포스 PRO3 -->
                 <div class="product-item">
-                    <div class="product-image">⚡</div>
+                    <div class="product-image">
+                        <img src="/assets/campaigns/2025-08/secret-force-pro3.jpg" alt="시크릿포스 PRO3" onerror="this.style.display='none'; this.parentElement.innerHTML='⚡<div class=\'product-placeholder\'>MAS-FORCE-PRO3-002</div>';">
+                    </div>
                     <h3 class="product-name">시크릿포스 PRO3</h3>
                     <p class="product-subtitle">정확도와 비거리의 완벽한 조화</p>
                     <ul class="product-features">
@@ -671,7 +890,9 @@
                 
                 <!-- 시크릿포스 V3 -->
                 <div class="product-item">
-                    <div class="product-image">🎯</div>
+                    <div class="product-image">
+                        <img src="/assets/campaigns/2025-08/secret-force-v3.jpg" alt="시크릿포스 V3" onerror="this.style.display='none'; this.parentElement.innerHTML='🎯<div class=\'product-placeholder\'>MAS-FORCE-V3-003</div>';">
+                    </div>
                     <h3 class="product-name">시크릿포스 V3</h3>
                     <p class="product-subtitle">시니어 골퍼를 위한 맞춤 설계</p>
                     <ul class="product-features">
@@ -785,7 +1006,7 @@
     <section class="gift-section">
         <div class="container">
             <div class="gift-container">
-                <h2 class="gift-title">🎁 8월 특별 선물 패키지</h2>
+                <h2 class="gift-title">🎁 8월 휴가철 특별 선물 패키지 🌴</h2>
                 <div class="gift-items">
                     <div class="gift-item">
                         <div class="gift-item-image">
@@ -870,90 +1091,237 @@
 
     <!-- 플로팅 배너 -->
     <div class="floating-banner" onclick="location.href='tel:1644-2110'">
-        📞 상담만 받아도 여행용 방수팩 증정!
+        🌴 상담만 받아도 여행용 방수팩 증정! ☀️
     </div>
 
     <!-- JavaScript -->
     <script>
+        // 비디오 재생 (실제 영상 URL로 교체 필요)
+        function playVideo() {
+            alert('영상 준비 중입니다.\n\n공식 YouTube 채널에서 확인하세요!');
+            // window.open('https://youtube.com/watch?v=YOUR_VIDEO_ID', '_blank');
+        }
         // 퀴즈 결과 표시
         function showResult(type) {
             let message = '';
+            let recommendation = '';
+            
             switch(type) {
                 case 'power':
-                    message = '파워 히터형이시네요! MASGOLF의 초박형 페이스가 폭발적인 비거리를 선사합니다.\n\n시크릿웨폰 블랙을 추천드립니다!';
+                    message = '💪 파워 히터형이시군요!';
+                    recommendation = '시크릿웨폰 블랙이 당신의 최고의 선택입니다. 폭발적인 반발력으로 비거리를 극대화하세요!';
                     break;
                 case 'accuracy':
-                    message = '정확도 중시형이시네요! MASGOLF의 안정적인 무게 배분이 일관된 스윙을 도와드립니다.\n\n시크릿포스 PRO3를 추천드립니다!';
+                    message = '🎯 정확도 중시형이시군요!';
+                    recommendation = '시크릿포스 PRO3가 완벽한 선택입니다. AI 설계 기술로 안정적인 탄도를 구현하세요!';
                     break;
                 case 'all':
-                    message = '올라운더형이시네요! MASGOLF는 비거리와 정확도를 모두 만족시키는 최고의 선택입니다.\n\n모든 제품이 고객님께 적합합니다!';
+                    message = '⭐ 올라운더형이시군요!';
+                    recommendation = '시크릿포스 V3로 비거리와 정확도를 모두 잡으세요. 균형 잡힌 성능을 경험하실 수 있습니다!';
                     break;
             }
-            alert(message + '\n\n지금 바로 상담 받아보세요!');
+            
+            alert(message + '\n\n' + recommendation + '\n\n지금 바로 상담 받으시고 휴가철 라운딩을 준비하세요!');
+            
+            // 자동으로 전화 연결 제안
+            if (confirm('전문 상담사와 바로 연결하시겠습니까?')) {
+                location.href = 'tel:1644-2110';
+            }
         }
-
+        
         // 시타 예약
         function bookVisit() {
-            if (confirm('시타 예약을 진행하시겠습니까?\n전문 상담사가 친절히 안내해드립니다.')) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const formattedDate = tomorrow.toLocaleDateString('ko-KR');
+            
+            if (confirm(`${formattedDate} 이후로 시타 예약을 원하시나요?\n\n전문 상담사가 자세히 안내해드리겠습니다.`)) {
                 location.href = 'tel:1644-2110';
             }
         }
-
+        
         // 문의하기
         function showInquiry() {
-            if (confirm('문의사항을 남기시겠습니까?\n빠른 시간 내에 답변드리겠습니다.')) {
+            const inquiryTypes = [
+                '제품 상담',
+                '시타 예약',
+                '가격 문의',
+                '샤프트 교체',
+                'AS 문의',
+                '기타 문의'
+            ];
+            
+            let typeList = inquiryTypes.map((type, index) => `${index + 1}. ${type}`).join('\n');
+            const selectedType = prompt(`문의 유형을 선택해주세요:\n\n${typeList}\n\n번호를 입력하세요:`);
+            
+            if (selectedType && selectedType >= 1 && selectedType <= inquiryTypes.length) {
+                const type = inquiryTypes[selectedType - 1];
+                alert(`${type}을(를) 선택하셨습니다.\n\n전문 상담사가 친절히 안내해드리겠습니다.`);
                 location.href = 'tel:1644-2110';
             }
         }
-
+        
         // FAQ 토글
         function toggleFAQ(element) {
             const faqItem = element.parentElement;
-            faqItem.classList.toggle('active');
+            const answer = faqItem.querySelector('.faq-answer');
             const arrow = element.querySelector('span');
-            arrow.textContent = faqItem.classList.contains('active') ? '▲' : '▼';
-        }
-
-        // 스크롤 애니메이션
-        function handleScroll() {
-            const elements = document.querySelectorAll('.distance-item, .feature-item, .testimonial-item');
-            elements.forEach(element => {
-                const rect = element.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) {
-                    element.style.opacity = '1';
-                    element.style.transform = 'translateY(0)';
+            
+            // 다른 FAQ 닫기
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== faqItem) {
+                    item.classList.remove('active');
+                    item.querySelector('span').textContent = '▼';
                 }
             });
+            
+            // 현재 FAQ 토글
+            faqItem.classList.toggle('active');
+            arrow.textContent = faqItem.classList.contains('active') ? '▲' : '▼';
         }
-
-        // 초기 설정
+        
+        // 스크롤 애니메이션
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.product-item, .feature-item, .testimonial-item, .gift-item');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '0';
+                        entry.target.style.transform = 'translateY(30px)';
+                        
+                        setTimeout(() => {
+                            entry.target.style.transition = 'all 0.6s ease-out';
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, 100);
+                        
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            elements.forEach(element => {
+                observer.observe(element);
+            });
+        }
+        
+        // 플로팅 배너 애니메이션
+        function animateFloatingBanner() {
+            const banner = document.querySelector('.floating-banner');
+            let isVisible = true;
+            
+            // 스크롤 시 숨기기/보이기
+            let lastScrollTop = 0;
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // 아래로 스크롤
+                    banner.style.transform = 'translateX(400px)';
+                } else {
+                    // 위로 스크롤
+                    banner.style.transform = 'translateX(0)';
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+        }
+        
+        // 카운트다운 타이머 (8월 프로모션)
+        function initCountdown() {
+            const endDate = new Date('2025-08-31T23:59:59');
+            
+            function updateCountdown() {
+                const now = new Date();
+                const diff = endDate - now;
+                
+                if (diff > 0) {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    // 플로팅 배너 업데이트
+                    const banner = document.querySelector('.floating-banner');
+                    if (days < 7) {
+                        banner.innerHTML = `🔥 8월 프로모션 ${days}일 ${hours}시간 남음!`;
+                        banner.style.background = '#ff4757';
+                    }
+                }
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 60000); // 1분마다 업데이트
+        }
+        
+        // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', function() {
-            // 스크롤 이벤트 리스너
-            window.addEventListener('scroll', handleScroll);
-            handleScroll();
-
+            // 로딩 화면 제거
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 800);
+            
+            animateOnScroll();
+            animateFloatingBanner();
+            initCountdown();
+            
+            // 이미지 로딩 실패 시 대체 콘텐츠
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    if (img.alt.includes('시크릿웨폰')) {
+                        img.parentElement.innerHTML = '🏆<div style="color:#999; font-size:0.9rem; margin-top:10px;">제품 이미지 준비중</div>';
+                    } else if (img.alt.includes('시크릿포스 PRO3')) {
+                        img.parentElement.innerHTML = '⚡<div style="color:#999; font-size:0.9rem; margin-top:10px;">제품 이미지 준비중</div>';
+                    } else if (img.alt.includes('시크릿포스 V3')) {
+                        img.parentElement.innerHTML = '🎯<div style="color:#999; font-size:0.9rem; margin-top:10px;">제품 이미지 준비중</div>';
+                    }
+                });
+            });
+            
             // 전화번호 클릭 추적
-            const telLinks = document.querySelectorAll('a[href^="tel:"]');
-            telLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    console.log('전화 클릭:', this.href);
-                    // GA4 이벤트 전송
+            document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // 부모 window에 메시지 전송 (iframe 내에서 실행될 경우)
+                    if (window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'tel-link',
+                            phoneNumber: this.href.replace('tel:', '')
+                        }, '*');
+                        e.preventDefault();
+                    }
+                    
+                    // GA4 이벤트 추적
                     if (typeof gtag !== 'undefined') {
                         gtag('event', 'click', {
-                            'event_category': 'engagement',
-                            'event_label': 'phone_call'
+                            event_category: 'engagement',
+                            event_label: 'phone_call',
+                            value: '1644-2110'
                         });
                     }
                 });
             });
         });
-
-        // 페이지 가시성 변경 감지
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('페이지 활성화');
-            }
-        });
+        
+        // GA4 스크립트 추가
+        (function() {
+            const script = document.createElement('script');
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=G-YOUR-ID';
+            document.head.appendChild(script);
+            
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-YOUR-ID');
+        })();
     </script>
 </body>
 </html>
