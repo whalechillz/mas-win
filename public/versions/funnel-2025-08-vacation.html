@@ -968,7 +968,7 @@
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
         <div class="summer-wave"></div>
-        <img src="/assets/campaigns/2025-08/hero-image-1.jpg" alt="휴가철 골프" class="hero-bg-image" onerror="this.style.opacity='0'">
+        <img src="/assets/campaigns/2025-08/hero-image-2.jpg" alt="휴가철 골프" class="hero-bg-image" onerror="this.style.opacity='0'">
         <div class="hero-content">
             <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
             <p class="hero-subtitle">MASGOLF로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
@@ -981,6 +981,11 @@
                         <p style="color: white; font-size: 1rem; opacity: 0.9;">비거리와 정확도 향상을 위한 MASGOLF의 혁신</p>
                         <button onclick="playVideo()" style="margin-top: 20px; padding: 10px 30px; background: white; color: #FF6B35; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">▶ 영상 보기</button>
                     </div>
+                    </div>
+                    <video id="heroVideo" style="display: none; width: 100%; height: auto;" controls>
+                        <source src="/assets/campaigns/2025-08/ca398196986ca33f8b6b95e3e3156631_1753627674.mp4" type="video/mp4">
+                        브라우저가 비디오를 지원하지 않습니다.
+                    </video>
                 </div>
             </div>
             <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})">
@@ -992,35 +997,57 @@
     <!-- 제품 소개 섹션 -->
     <section class="product-section">
         <div class="container">
-            <!-- 실제 제품 설명 섹션에 이미지 추가 -->
-                <div style="margin-bottom: 60px; text-align: center;">
-                    <h3 style="font-size: 1.8rem; margin-bottom: 30px; color: #333;">MASGOLF가 만드는 차이</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        <div style="position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
-                            <img src="/assets/campaigns/2025-08/hero-image-1.jpg" alt="파워풀한 스윙" style="width: 100%; height: 300px; object-fit: cover;">
-                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; color: white;">
-                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">정확한 타겟팅</h4>
-                                <p style="font-size: 0.9rem; opacity: 0.9;">반발계수 0.87의 압도적 성능</p>
-                            </div>
-                        </div>
-                        <div style="position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
-                            <img src="/assets/campaigns/2025-08/hero-image-2.jpg" alt="안정적인 자세" style="width: 100%; height: 300px; object-fit: cover;">
-                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; color: white;">
-                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">한국인 맞춤 설계</h4>
-                                <p style="font-size: 0.9rem; opacity: 0.9;">체형에 최적화된 무게 배분</p>
-                            </div>
-                        </div>
-                        <div style="position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
-                            <img src="/assets/campaigns/2025-08/vacation-golf-beach.jpg" alt="난관 탈출" style="width: 100%; height: 300px; object-fit: cover;">
-                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; color: white;">
-                                <h4 style="font-size: 1.2rem; margin-bottom: 5px;">어려운 상황도 OK</h4>
-                                <p style="font-size: 0.9rem; opacity: 0.9;">벅커에서도 자신감 있게</p>
-                            </div>
-                        </div>
+            <!-- 섹션2: 제품 차별점 -->
+            <div style="margin-bottom: 60px; text-align: center;">
+                <h3 style="font-size: 2.5rem; margin-bottom: 20px; color: #333; font-weight: 700;">MASGOLF만의 <span style="color: #FF6B35;">특별한 차이</span></h3>
+                <p style="font-size: 1.2rem; color: #666; margin-bottom: 40px;">휴가철 라운딩을 더욱 특별하게 만들어드립니다</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto;">
+                    <!-- 차별점 1: 압도적 비거리 -->
+                    <div style="background: linear-gradient(135deg, #FFF5F2 0%, #FFE5E1 100%); border-radius: 20px; padding: 40px 30px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(255,107,53,0.1); transition: transform 0.3s;"
+                         onmouseover="this.style.transform='translateY(-5px)'" 
+                         onmouseout="this.style.transform='translateY(0)'">
+                        <div style="position: absolute; top: -30px; right: -30px; font-size: 8rem; opacity: 0.05; color: #FF6B35;">①</div>
+                        <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                        <h4 style="font-size: 1.5rem; color: #333; margin-bottom: 15px; font-weight: 700;">압도적 비거리 증가</h4>
+                        <p style="font-size: 1.1rem; color: #666; line-height: 1.6;">
+                            <strong style="color: #FF6B35;">반발계수 0.87</strong>의 초고반발<br>
+                            평균 <strong style="color: #FF6B35;">25m 이상</strong> 비거리 증가<br>
+                            규정 한계치에 근접한 성능
+                        </p>
+                    </div>
+                    
+                    <!-- 차별점 2: 한국인 맞춤 설계 -->
+                    <div style="background: linear-gradient(135deg, #E8F8F5 0%, #D4EFDF 100%); border-radius: 20px; padding: 40px 30px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(78,205,196,0.1); transition: transform 0.3s;"
+                         onmouseover="this.style.transform='translateY(-5px)'" 
+                         onmouseout="this.style.transform='translateY(0)'">
+                        <div style="position: absolute; top: -30px; right: -30px; font-size: 8rem; opacity: 0.05; color: #4ECDC4;">②</div>
+                        <div style="font-size: 3rem; margin-bottom: 20px;">🎯</div>
+                        <h4 style="font-size: 1.5rem; color: #333; margin-bottom: 15px; font-weight: 700;">한국인 체형 최적화</h4>
+                        <p style="font-size: 1.1rem; color: #666; line-height: 1.6;">
+                            <strong style="color: #4ECDC4;">30만 명</strong>의 데이터 분석<br>
+                            최적의 무게중심 설계<br>
+                            편안한 스윙 궤도 실현
+                        </p>
+                    </div>
+                    
+                    <!-- 차별점 3: 특별 혜택 -->
+                    <div style="background: linear-gradient(135deg, #FFF9E6 0%, #FFE5B4 100%); border-radius: 20px; padding: 40px 30px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(255,193,7,0.1); transition: transform 0.3s;"
+                         onmouseover="this.style.transform='translateY(-5px)'" 
+                         onmouseout="this.style.transform='translateY(0)'">
+                        <div style="position: absolute; top: -30px; right: -30px; font-size: 8rem; opacity: 0.05; color: #FFC107;">③</div>
+                        <div style="font-size: 3rem; margin-bottom: 20px;">🎁</div>
+                        <h4 style="font-size: 1.5rem; color: #333; margin-bottom: 15px; font-weight: 700;">휴가철 특별 혜택</h4>
+                        <p style="font-size: 1.1rem; color: #666; line-height: 1.6;">
+                            <strong style="color: #FF6B35;">블루 드 샤넬</strong> 향수 증정<br>
+                            전국 무료 배송 & 설치<br>
+                            2년 무상 A/S 보장
+                        </p>
                     </div>
                 </div>
+            </div>
                 
-                <h2 class="product-title">MASGOLF 블랙 시리즈 프로모션</h2>
+            <h2 class="product-title">MASGOLF 블랙 시리즈 프로모션</h2>
             <div class="product-grid">
                 <!-- 시크릿웨폰 블랙 -->
                 <div class="product-item">
@@ -1356,7 +1383,7 @@
                     </div>
                     <div class="gift-item">
                         <div class="gift-item-image">
-                            <img src="/assets/campaigns/2025-08/chanel-box.png" alt="블루 드 샤넬">
+                            <img src="/assets/campaigns/2025-08/chanel.png" alt="블루 드 샤넬" onerror="this.style.display='none'; this.parentElement.innerHTML='🎆<div style=\"font-size: 1rem; color: #666; margin-top: 10px;\">BLEU DE<br>CHANEL</div>'">
                         </div>
                         <h3 class="gift-item-name">블루 드 샤넬</h3>
                         <p class="gift-item-desc">오 드 뚜왈렛<br>
@@ -1437,8 +1464,17 @@
     <script>
         // 비디오 재생 (실제 영상 URL로 교체 필요)
         function playVideo() {
-            alert('영상 준비 중입니다.\n\n공식 YouTube 채널에서 확인하세요!');
-            // window.open('https://youtube.com/watch?v=YOUR_VIDEO_ID', '_blank');
+            const placeholder = document.querySelector('.hero-video > div');
+            const video = document.getElementById('heroVideo');
+            
+            if (video) {
+                placeholder.style.display = 'none';
+                video.style.display = 'block';
+                video.play();
+            } else {
+                // 비디오 요소가 없을 경우 새 탭에서 열기
+                window.open('/assets/campaigns/2025-08/ca398196986ca33f8b6b95e3e3156631_1753627674.mp4', '_blank');
+            }
         }
         
         // 이탈 방지 팝업 관련 함수
