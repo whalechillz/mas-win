@@ -33,6 +33,9 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
 
   // 모바일 감지
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  
+  // 모바일에서 안전한 높이 계산 (URL 바와 하단 네비게이션 고려)
+  const safeHeight = isMobile ? 'calc(100vw * 9 / 16)' : '80vh'; // 모바일에서 16:9 비율 유지
 
   return (
     <div 
@@ -50,20 +53,23 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
         justifyContent: 'center',
         zIndex: 9999,
         cursor: showCloseButton ? 'pointer' : 'default',
-      }}
+          padding: isMobile ? '20px 0' : '0', // 모바일에서 상하 패딩 추가
+        }}
     >
       <div 
         className="youtube-popup-content"
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
-          width: isMobile ? '95%' : '90%',
+          width: isMobile ? '90%' : '90%',
           maxWidth: isMobile ? '100%' : '900px',
-          aspectRatio: '16/9',
+          height: isMobile ? safeHeight : 'auto',
+          aspectRatio: isMobile ? '' : '16/9', // 모바일에서는 비율 고정 안함
           backgroundColor: '#000',
-          borderRadius: '8px',
+          borderRadius: isMobile ? '4px' : '8px',
           overflow: 'hidden',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+          margin: isMobile ? '20px 0' : '0', // 모바일에서 상하 여백
         }}
       >
         {/* 로딩 표시 */}
@@ -87,8 +93,8 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
             aria-label="팝업 닫기"
             style={{
               position: 'absolute',
-              top: isMobile ? '10px' : '-45px',
-              right: isMobile ? '10px' : '0',
+              top: isMobile ? '15px' : '-45px',
+              right: isMobile ? '15px' : '0',
               background: isMobile ? 'rgba(0, 0, 0, 0.6)' : 'none',
               border: 'none',
               color: '#fff',
@@ -102,7 +108,7 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'opacity 0.3s ease',
-              zIndex: 1,
+              zIndex: 10, // 더 높은 z-index로 변경
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = '0.7';
@@ -138,6 +144,9 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
           allowFullScreen
           onLoad={() => setIsLoading(false)}
           style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: '100%',
             height: '100%',
             border: 'none',
