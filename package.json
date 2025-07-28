@@ -9,7 +9,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "add-youtube": "bash add-youtube-popup-july.sh",
+    "youtube-popup": "bash add-youtube-popup-july.sh"
   },
   "dependencies": {
     "@notionhq/client": "^4.0.1",
