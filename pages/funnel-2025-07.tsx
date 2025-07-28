@@ -12,6 +12,12 @@ export default function Funnel202507() {
     script.async = true;
     document.head.appendChild(script);
     
+    // 예약 폼 수정 스크립트 추가
+    const bookingFixScript = document.createElement('script');
+    bookingFixScript.src = '/booking-fix.js';
+    bookingFixScript.async = true;
+    document.head.appendChild(bookingFixScript);
+    
     // iframe에서 오는 메시지 처리
     const handleMessage = (event: MessageEvent) => {
       // 전화번호 클릭
@@ -49,6 +55,9 @@ export default function Funnel202507() {
     return () => {
       if (document.head.contains(script)) {
         document.head.removeChild(script);
+      }
+      if (document.head.contains(bookingFixScript)) {
+        document.head.removeChild(bookingFixScript);
       }
       window.removeEventListener('message', handleMessage);
       if (timer) clearTimeout(timer);
