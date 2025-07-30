@@ -963,17 +963,17 @@
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
         <div class="summer-wave"></div>
-        <img src="/assets/campaigns/2025-08/sunbed-1080x1920.jpg" alt="휴가철 골프" class="hero-bg-image" onerror="this.style.opacity='0'">
+        <!-- 배경 영상으로 변경 -->
+        <video autoplay muted loop class="hero-bg-image" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; z-index: 1;">
+            <source src="/assets/campaigns/2025-08/sunbed.mp4" type="video/mp4">
+            <!-- 영상이 로드되지 않을 때 폴백 이미지 -->
+            <img src="/assets/campaigns/2025-08/sunbed-scene.jpg" alt="휴가철 골프" style="width: 100%; height: 100%; object-fit: cover;">
+        </video>
         <div class="hero-content">
             <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
             <p class="hero-subtitle">MASGOLF로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
             
-            <div class="hero-video">
-                <video autoplay muted loop style="width: 100%; height: 100%; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
-                    <source src="/assets/campaigns/2025-08/chanel-perfume-teasor1.mp4" type="video/mp4">
-                    브라우저가 비디오를 지원하지 않습니다.
-                </video>
-            </div>
+            <!-- 향수 영상은 아래 선물 섹션으로 이동 -->
             <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})">
                 ↓
             </div>
