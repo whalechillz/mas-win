@@ -32,7 +32,7 @@
             position: relative;
             width: 100%;
             min-height: 100vh;
-            background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 50%, #45B7D1 100%);
+            background: #000; /* 검은 배경으로 고급스러움 강조 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -46,16 +46,32 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.3;
+            opacity: 0.7; /* 밝기 상승 */
             z-index: 1;
+            filter: brightness(1.1) contrast(1.1); /* 선명도 증가 */
+        }
+        
+        /* 고급스러운 비네팅 효과 */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+            z-index: 2;
+            pointer-events: none;
         }
         
         .hero-content {
             text-align: center;
             color: white;
-            z-index: 2;
+            z-index: 3; /* 비네팅 위로 */
             animation: fadeInUp 1s ease-out;
             position: relative;
+            /* 텍스트 가독성을 위한 미묘한 그림자 */
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
         }
         
         /* 추가 스크롤 인디케이터 */
@@ -72,16 +88,25 @@
         }
         
         .hero-title {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            letter-spacing: -0.5px;
+            /* 고급스러운 금색 강조 */
+            background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .hero-subtitle {
             font-size: 1.2rem;
             margin-bottom: 30px;
-            opacity: 0.9;
+            opacity: 0.95;
+            font-weight: 400;
+            color: #f5f5f5;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
         }
         
         .hero-video {
@@ -964,7 +989,7 @@
         <div class="palm-tree">🌴</div>
         <div class="summer-wave"></div>
         <!-- 배경 영상으로 변경 -->
-        <video autoplay muted loop class="hero-bg-image" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; z-index: 1;">
+        <video autoplay muted loop class="hero-bg-image">
             <source src="/assets/campaigns/2025-08/sunbed.mp4" type="video/mp4">
             <!-- 영상이 로드되지 않을 때 폴백 이미지 -->
             <img src="/assets/campaigns/2025-08/sunbed-scene.jpg" alt="휴가철 골프" style="width: 100%; height: 100%; object-fit: cover;">
