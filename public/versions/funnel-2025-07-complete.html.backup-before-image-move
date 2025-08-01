@@ -15,26 +15,9 @@
     <meta property="og:url" content="https://win.masgolf.co.kr/campaign/2025-07">
     <meta property="og:title" content="MASGOLF | 뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비">
     <meta property="og:description" content="7월 한정 썸머 스페셜! 최대 고급 위스키 증정. MAS 드라이버로 평균 25m 비거리 증가.">
-    <meta property="og:image" content="https://win.masgolf.co.kr/assets/campaigns/2025-07/hero-summer-golf-mas.jpg">
+    <meta property="og:image" content="https://win.masgolf.co.kr/campaigns/2025-07/hero-summer-golf-mas.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-WPBX97JG');</script>
-    <!-- End Google Tag Manager -->
-    
-    <!-- GA4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SMJWL2TRM7"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-SMJWL2TRM7');
-    </script>
     <meta property="og:locale" content="ko_KR">
     <meta property="og:site_name" content="MASGOLF">
     
@@ -43,7 +26,7 @@
     <meta property="twitter:url" content="https://win.masgolf.co.kr/campaign/2025-07">
     <meta property="twitter:title" content="MASGOLF | 뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비">
     <meta property="twitter:description" content="7월 한정 썸머 스페셜! 최대 로얄샬루트 21년 증정. MAS 드라이버로 평균 25m 비거리 증가.">
-    <meta property="twitter:image" content="https://win.masgolf.co.kr/assets/campaigns/2025-07/hero-summer-golf-mas.jpg">
+    <meta property="twitter:image" content="https://win.masgolf.co.kr/campaigns/2025-07/hero-summer-golf-mas.jpg">
     
     <!-- 추가 SEO -->
     <link rel="canonical" href="https://win.masgolf.co.kr/campaign/2025-07">
@@ -640,7 +623,7 @@
                 <span class="ml-6"><span class="text-yellow-300">최대</span> 21년 로얄살루트 700ml</span>
             </div>
             <div class="flex flex-col items-end space-y-2">
-                <a href="tel:080-028-8888" class="flex items-center hover:text-yellow-100 transition">
+                <a href="tel:080-028-8888" class="flex items-center hover:text-yellow-100 transition" onclick="handlePhoneClick(event)">
                     <i class="fas fa-phone-alt mr-2"></i>080-028-8888
                 </a>
                 <a href="#quiz-section" class="bg-white text-red-600 px-4 py-1 rounded-full text-sm font-bold hover:bg-yellow-100 transition">
@@ -655,7 +638,7 @@
         <!-- 배경 이미지 -->
         <div class="absolute inset-0 z-0">
             <div class="absolute inset-0 bg-black opacity-40"></div>
-            <img src="/assets/campaigns/2025-07/hero-summer-golf-mas.jpg" 
+            <img src="/campaigns/2025-07/hero-summer-golf-mas.jpg" 
                  alt="MAS 골프 프로 스윙" 
                  class="w-full h-full object-cover">
         </div>
@@ -903,7 +886,7 @@
                 <!-- 후기 1 -->
                 <div class="bg-gradient-to-br from-red-900/20 to-black border border-red-900 rounded-2xl p-8 scroll-reveal">
                     <div class="flex items-center mb-6">
-                        <img src="/assets/review/golfer_avatar_512x512_01.jpg" 
+                        <img src="/campaigns/common/avatars/golfer_avatar_512x512_01.jpg" 
                              alt="김○○님" 
                              class="w-16 h-16 rounded-full border-2 border-red-500">
                         <div class="ml-4">
@@ -926,7 +909,7 @@
                 <!-- 후기 2 -->
                 <div class="bg-gradient-to-br from-red-900/20 to-black border border-red-900 rounded-2xl p-8 scroll-reveal" style="animation-delay: 0.2s">
                     <div class="flex items-center mb-6">
-                        <img src="/assets/review/golfer_avatar_512x512_02.jpg" 
+                        <img src="/campaigns/common/avatars/golfer_avatar_512x512_02.jpg" 
                              alt="박○○님" 
                              class="w-16 h-16 rounded-full border-2 border-red-500">
                         <div class="ml-4">
@@ -949,7 +932,7 @@
                 <!-- 후기 3 -->
                 <div class="bg-gradient-to-br from-red-900/20 to-black border border-red-900 rounded-2xl p-8 scroll-reveal" style="animation-delay: 0.4s">
                     <div class="flex items-center mb-6">
-                        <img src="/assets/review/golfer_avatar_512x512_03.jpg" 
+                        <img src="/campaigns/common/avatars/golfer_avatar_512x512_03.jpg" 
                              alt="이○○님" 
                              class="w-16 h-16 rounded-full border-2 border-red-500">
                         <div class="ml-4">
@@ -988,7 +971,7 @@
                     <div class="gift-carousel-track" id="giftCarouselTrack">
                         <!-- 슬라이드 1: 쿨링 타올 -->
                         <div class="gift-slide">
-                            <img src="/temp/쿨링타올.jpeg" alt="프리미엄 쿨링타올">
+                            <img src="/campaigns/common/gifts/cooling-towel.jpeg" alt="프리미엄 쿨링타올">
                             <div class="gift-overlay">
                                 <h3 class="text-3xl font-bold mb-2">프리미엄 쿨링 타올</h3>
                                 <p class="text-lg mb-2">여름철 땀을 빠르게 흡수</p>
@@ -998,7 +981,7 @@
                         
                         <!-- 슬라이드 2: 쿨토시 -->
                         <div class="gift-slide">
-                            <img src="/temp/쿨토시.jpg" alt="스포츠 쿨토시">
+                            <img src="/campaigns/common/gifts/cooling-sleeve.jpg" alt="스포츠 쿨토시">
                             <div class="gift-overlay">
                                 <h3 class="text-3xl font-bold mb-2">스포츠 쿨토시</h3>
                                 <p class="text-lg mb-2">팔 전체를 시원하게 보호</p>
@@ -1008,7 +991,7 @@
                         
                         <!-- 슬라이드 3: 고급 위스키 -->
                         <div class="gift-slide">
-                            <img src="/temp/SALUTE21-01.jpg" alt="고급 위스키">
+                            <img src="/campaigns/common/gifts/royal-salute-21-01.jpg" alt="고급 위스키">
                             <div class="gift-overlay">
                                 <h3 class="text-3xl font-bold mb-2">고급 위스키</h3>
                                 <p class="text-lg mb-2">프리미엄 위스키</p>
@@ -1075,7 +1058,7 @@
                     <button onclick="handleBookingClick(event)" class="w-full md:w-auto bg-white text-red-600 px-6 py-4 rounded-full font-bold hover:bg-yellow-100 transition" style="-webkit-tap-highlight-color: transparent; touch-action: manipulation;">
                         <i class="fas fa-calendar-check mr-2"></i>시타 예약하기
                     </button>
-                    <a href="tel:080-028-8888" class="w-full md:w-auto bg-black/30 backdrop-blur text-white px-6 py-4 rounded-full font-bold hover:bg-black/50 transition text-center">
+                    <a href="tel:080-028-8888" class="w-full md:w-auto bg-black/30 backdrop-blur text-white px-6 py-4 rounded-full font-bold hover:bg-black/50 transition text-center" onclick="handlePhoneClick(event)">
                         <i class="fas fa-phone mr-2"></i>즉시 전화 상담
                     </a>
                     <button onclick="showContactModal()" class="w-full md:w-auto bg-black/30 backdrop-blur text-white px-6 py-4 rounded-full font-bold hover:bg-black/50 transition" style="-webkit-tap-highlight-color: transparent; touch-action: manipulation;">
@@ -1156,8 +1139,8 @@
                             성인(만 19세 이상)에게만 증정됩니다. 결제 시 현장에서 직접 지급되며, 원하시는 주소로 택배 발송도 가능합니다.
                         </p>
                         <div class="grid grid-cols-2 gap-4 mt-4">
-                            <img src="/temp/SALUTE21-01.jpg" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
-                            <img src="/temp/SALUTE21-02.png" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
+                            <img src="/campaigns/common/gifts/royal-salute-21-01.jpg" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
+                            <img src="/campaigns/common/gifts/royal-salute-21-02.png" alt="고급 위스키" class="rounded-lg w-full h-32 object-cover">
                         </div>
                     </div>
                 </div>
@@ -1192,7 +1175,7 @@
                 <p class="mb-6">전화상담 또는 방문상담만 받으셔도<br>
                 <span class="text-yellow-300 font-bold">고급 스포츠 쿨링 타올 + 팔토시</span><br>
                 무료로 증정해드립니다!</p>
-                <a href="tel:080-028-8888" class="summer-gradient text-white px-8 py-3 rounded-full font-bold inline-block">
+                <a href="tel:080-028-8888" class="summer-gradient text-white px-8 py-3 rounded-full font-bold inline-block" onclick="handlePhoneClick(event)">
                     <i class="fas fa-phone mr-2"></i>지금 전화하기
                 </a>
             </div>
@@ -1333,7 +1316,7 @@
     </div>
 
     <!-- 플로팅 버튼 -->
-    <a href="tel:080-028-8888" class="floating-button">
+    <a href="tel:080-028-8888" class="floating-button" onclick="handleFloatingButtonClick(event)">
         <div class="floating-button-icon">
             <svg viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z"/>
@@ -1357,7 +1340,7 @@
             </div>
             
             <div class="flex justify-center space-x-8 mb-8">
-                <a href="tel:080-028-8888" class="hover:text-red-500 transition">
+                <a href="tel:080-028-8888" class="hover:text-red-500 transition" onclick="handlePhoneClick(event)">
                     <i class="fas fa-phone-alt mr-2"></i>
                     080-028-8888
                 </a>
@@ -1487,38 +1470,14 @@
         
         
         const products = {
-            'premium-all': { 
-                name: '시크릿포스 GOLD 2', 
-                desc: '최고급 프리미엄 드라이버',
-                spec: 'DAT55G+ Grade 5 티타늄, 2.2mm 초박형 페이스',
-                feature: '최고급 항공우주용 티타늄으로 최상의 탄성과 내구성',
-                hookingDesc: '프리미엄의 차이를 경험하세요! 최고급 티타늄으로 30m 더 멀리.',
-                link: 'https://www.mas9golf.com/secret-force-gold-2',
-                image: '/products/secret-force-gold-2.jpg',
-                faceThickness: '2.2mm',
-                cor: '0.87',
-                headVolume: '460cc',
-                shaft: 'NGS 프리미엄',
-                loftAngle: '9°/10°',
-                lieAngle: '59°',
-                weight: '280-295g',
-                kickPoint: 'Mid Low',
-                balance: 'D1/D0',
-                shaftFreq: '210-230 cpm',
-                ballSpeed: '50-55 m/s',
-                grip: '45/35',
-                length: '45.75"',
-                shaftFlex: 'R/SR/S',
-                material: 'DAT55G+ Grade 5 티타늄'
-            },
             'stability-distance': { 
                 name: '시크리트포스 PRO 3', 
                 desc: '안정적인 비거리 향상',
-                spec: 'DAT55G 티타늄, 2.3mm 고반발 헤드',
+                spec: '2.3mm 고반발 헤드',
                 feature: '완벽한 티샷을 위한 업그레이드된 반발력',
                 hookingDesc: '검도 27년차 고객님이 227m 달성! 당신의 안정적인 스윙에 25m를 더합니다.',
                 link: 'https://www.mas9golf.com/secret-force-pro-3',
-                image: '/assets/campaigns/2025-07/secret-force-pro3.jpg',
+                image: '/campaigns/common/products/secret-force-pro3.jpg',
                 // 기본 스펙
                 faceThickness: '2.3mm',
                 cor: '0.87',
@@ -1540,11 +1499,11 @@
             'stability-direction': { 
                 name: '시크리트웨폰 블랙', 
                 desc: '정확한 방향성',
-                spec: 'SP700 Grade 5 티타늄, 2.2mm 고반발 페이스',
+                spec: '2.2mm 고반발 페이스',
                 feature: '안정적인 저중심 설계와 맑고 청아한 타구음',
                 hookingDesc: '프로도 인정한 방향성! 페어웨이 안착률 89%의 비밀병기입니다.',
                 link: 'https://www.mas9golf.com/secret-weapon-black',
-                image: '/assets/campaigns/2025-07/secret-weapon-black.jpg',
+                image: '/campaigns/common/products/secret-weapon-black.jpg',
                 faceThickness: '2.2mm',
                 cor: '0.86',
                 headVolume: '460cc',
@@ -1565,11 +1524,11 @@
             'stability-comfort': { 
                 name: '시크리트포스 V3', 
                 desc: '편안한 스윙감',
-                spec: 'DAT55G 티타늄, 2.4mm 초강력 페이스',
+                spec: '2.4mm 초강력 페이스',
                 feature: '한계를 넘는 비거리 혁신',
                 hookingDesc: 'V2 사용자 98%가 V3로 업그레이드! 더 편하고 더 멀리 날아갑니다.',
                 link: 'https://www.mas9golf.com/secret-force-v3',
-                image: '/assets/campaigns/2025-07/secret-force-v3.jpg',
+                image: '/campaigns/common/products/secret-force-v3.jpg',
                 faceThickness: '2.4mm',
                 cor: '0.87',
                 headVolume: '460cc',
@@ -1594,7 +1553,7 @@
                 feature: '검도 27년차 고객 227m 비거리 달성',
                 hookingDesc: '당신의 파워 스윙을 폭발시킬 유일한 선택! 평균 28m 비거리 증가.',
                 link: 'https://www.mas9golf.com/secret-force-pro-3',
-                image: '/assets/campaigns/2025-07/secret-force-pro3.jpg',
+                image: '/campaigns/common/products/secret-force-pro3.jpg',
                 faceThickness: '2.3mm',
                 cor: '0.87',
                 headVolume: '460cc',
@@ -1618,7 +1577,7 @@
                 feature: '더 멀리, 더 정확하게',
                 hookingDesc: '파워와 정확성의 완벽한 조화! 동반자들이 부러워하는 드라이버샷.',
                 link: 'https://www.mas9golf.com/secret-weapon-black',
-                image: '/assets/campaigns/2025-07/secret-weapon-black.jpg',
+                image: '/campaigns/common/products/secret-weapon-black.jpg',
                 faceThickness: '2.2mm',
                 cor: '0.86',
                 headVolume: '460cc',
@@ -1642,7 +1601,7 @@
                 feature: '프로 대회 수준을 초월하는 드라이버',
                 hookingDesc: '부드러운 스윙에서 나오는 폭발적인 파워! 관절 부담 없이 30m 더.',
                 link: 'https://www.mas9golf.com/secret-force-v3',
-                image: '/assets/campaigns/2025-07/secret-force-v3.jpg',
+                image: '/campaigns/common/products/secret-force-v3.jpg',
                 faceThickness: '2.4mm',
                 cor: '0.87',
                 headVolume: '460cc',
@@ -1666,7 +1625,7 @@
                 feature: '실제 고객 60대 비거리 20m 증가',
                 hookingDesc: '균형잡힌 스윙에 최적화! 일관된 비거리로 스코어가 안정됩니다.',
                 link: 'https://www.mas9golf.com/secret-force-pro-3',
-                image: '/assets/campaigns/2025-07/secret-force-pro3.jpg',
+                image: '/campaigns/common/products/secret-force-pro3.jpg',
                 faceThickness: '2.3mm',
                 cor: '0.87',
                 headVolume: '460cc',
@@ -1690,7 +1649,7 @@
                 feature: '60대 골퍼 비거리 15m 향상 비결',
                 hookingDesc: '어떤 상황에서도 믿을 수 있는 파트너! 비거리와 정확성 모두 잡았습니다.',
                 link: 'https://www.mas9golf.com/secret-weapon-black',
-                image: '/assets/campaigns/2025-07/secret-weapon-black.jpg',
+                image: '/campaigns/common/products/secret-weapon-black.jpg',
                 faceThickness: '2.2mm',
                 cor: '0.86',
                 headVolume: '460cc',
@@ -1714,7 +1673,7 @@
                 feature: 'V2에서 V3로 업그레이드, 2년간의 신뢰',
                 hookingDesc: '모든 것을 갖춘 완벽한 드라이버! 편안함과 성능의 황금비율.',
                 link: 'https://www.mas9golf.com/secret-force-v3',
-                image: '/assets/campaigns/2025-07/secret-force-v3.jpg',
+                image: '/campaigns/common/products/secret-force-v3.jpg',
                 faceThickness: '2.4mm',
                 cor: '0.87',
                 headVolume: '460cc',
@@ -1786,13 +1745,7 @@
             const flexRecommendation = recommendFlexByDistance(quizData.distance);
             
             // 추천 제품 결정
-            let productKey = `${quizData.style}-${quizData.priority}`;
-            
-            // 파워형 + 비거리 선택 시 GOLD 2 추천
-            if (quizData.style === 'power' && quizData.priority === 'distance' && quizData.distance >= 220) {
-                productKey = 'premium-all';
-            }
-            
+            const productKey = `${quizData.style}-${quizData.priority}`;
             const product = products[productKey];
             
             // 제품에 추천 플렉스 정보 추가
@@ -1944,7 +1897,7 @@
             const buttonsHTML = `
                 <div class="max-w-md mx-auto space-y-4 mt-8">
                     <!-- 상단: 전화 상담 버튼 -->
-                    <a href="tel:080-028-8888" class="block w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition-all transform hover:scale-105 shadow-lg">
+                    <a href="tel:080-028-8888" class="block w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition-all transform hover:scale-105 shadow-lg" onclick="handlePhoneClick(event)">
                         <div class="text-center">
                             <i class="fas fa-phone-alt text-2xl mb-1"></i>
                             <div class="text-lg">전화상담</div>
@@ -2400,71 +2353,6 @@
             <div class="sub-text">선착순 <span class="remaining-count">13명</span> 남음</div>
         </div>
     </div>
-
-    <!-- iframe 전화번호 처리 -->
-    <script>
-    // 전화번호 클릭 처리 함수
-    function makePhoneCall(phoneNumber) {
-        // iOS 감지
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        
-        if (window.parent !== window) {
-            // iframe 내부인 경우
-            console.log('iframe에서 전화 걸기:', phoneNumber);
-            
-            // 방법 1: parent로 메시지 전송 (권장)
-            window.parent.postMessage({
-                type: 'tel-link',
-                phoneNumber: phoneNumber
-            }, '*');
-            
-            // 방법 2: 직접 location 변경 (window.open 사용하지 않음)
-            if (isIOS) {
-                // 새 창을 열지 않고 현재 창에서 처리
-                try {
-                    // parent window에서 처리하도록 시도
-                    window.parent.location.href = `tel:${phoneNumber}`;
-                } catch (e) {
-                    // 실패 시 현재 창에서 시도
-                    window.location.href = `tel:${phoneNumber}`;
-                }
-            }
-        } else {
-            // iframe이 아닌 경우
-            window.location.href = `tel:${phoneNumber}`;
-        }
-    }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        // 모든 전화번호 링크 찾기
-        const telLinks = document.querySelectorAll('a[href^="tel:"]');
-        console.log('전화번호 링크 개수:', telLinks.length);
-        
-        telLinks.forEach(link => {
-            // href를 data 속성으로 백업
-            const phoneNumber = link.getAttribute('href').replace('tel:', '');
-            link.setAttribute('data-phone', phoneNumber);
-            
-            // iOS에서는 href 제거 (iframe 내에서만)
-            if (window.parent !== window) {
-                link.removeAttribute('href');
-                link.style.cursor = 'pointer';
-                link.style.textDecoration = 'underline';
-            }
-            
-            // 클릭 이벤트 추가
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const phone = this.getAttribute('data-phone');
-                makePhoneCall(phone);
-            });
-        });
-    });
-    </script>
-    
-    <!-- 캠페인 추적 스크립트 -->
-    <script src="/campaign-tracking.js"></script>
 
 </body>
 </html>
