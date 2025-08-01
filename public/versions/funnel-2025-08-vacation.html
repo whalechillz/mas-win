@@ -1000,10 +1000,10 @@
         <div class="palm-tree">🌴</div>
         <div class="summer-wave"></div>
         <!-- 배경 영상으로 변경 -->
-        <video autoplay muted loop class="hero-bg-image">
+        <video autoplay muted class="hero-bg-image" id="heroVideo">
             <source src="/campaigns/2025-08/sunbed.mp4" type="video/mp4">
             <!-- 영상이 로드되지 않을 때 폴백 이미지 -->
-            <img src="/campaigns/2025-08/sunbed-scene.jpg" alt="휴가철 골프" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="/campaigns/2025-08/sunbed-1080x1920.jpg" alt="휴가철 골프" style="width: 100%; height: 100%; object-fit: cover;">
         </video>
         <div class="hero-content">
             <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
@@ -1448,7 +1448,7 @@
                     <div class="gift-slide" style="min-width: 100%; padding: 0;">
                         <div style="background: rgba(255,255,255,0.95); border-radius: 20px; text-align: center; overflow: hidden;">
                             <div style="height: 300px; background: #E8F5FF; position: relative;">
-                                <img src="/assets/campaigns/2025-08/waterproof-pouch-640x480.png" alt="여행용 방수팩" style="width: 100%; height: 100%; object-fit: cover; margin: 0; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display: flex; align-items: center; justify-content: center; height: 100%; font-size: 8rem; background: #E8F5FF;\'>💦</div>'">
+                                <img src="/campaigns/2025-08/waterproof-pouch-640x480.png" alt="여행용 방수팩" style="width: 100%; height: 100%; object-fit: cover; margin: 0; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display: flex; align-items: center; justify-content: center; height: 100%; font-size: 8rem; background: #E8F5FF;\'>💦</div>'">
                             </div>
                             <div style="padding: 30px;">
                                 <h3 style="font-size: 1.8rem; color: #333; margin-bottom: 15px; font-weight: 700;">여행용 방수팩</h3>
@@ -1486,7 +1486,7 @@
                     <div class="gift-slide" style="min-width: 100%; padding: 0;">
                         <div style="background: rgba(255,255,255,0.95); border-radius: 20px; text-align: center; overflow: hidden;">
                             <div style="position: relative; height: 300px; background: #f8f9fa;">
-                                <img src="/assets/campaigns/2025-08/perfume-640x480.jpg" alt="디올 소바쥬" style="width: 100%; height: 100%; object-fit: cover; margin: 0; display: block;">
+                                <img src="/campaigns/2025-08/perfume-640x480.jpg" alt="디올 소바쥬" style="width: 100%; height: 100%; object-fit: cover; margin: 0; display: block;">
                                 <div style="position: absolute; top: 20px; left: 20px; background: #FFE5D9; padding: 10px 20px; border-radius: 25px; font-weight: 600; color: #FF6B35;">
                                     시크릿포스 PRO 3
                                 </div>
@@ -1605,7 +1605,32 @@
 
     <!-- JavaScript -->
     <script>
-        // 비디오는 자동 재생되므로 playVideo 함수 제거
+        // Hero 비디오 순차 재생
+        let videoIndex = 0;
+        const videos = [
+            '/campaigns/2025-08/sunbed.mp4',
+            '/campaigns/2025-08/hero1.mp4',
+            '/campaigns/2025-08/hero2.mp4'
+        ];
+        
+        function playNextVideo() {
+            const video = document.getElementById('heroVideo');
+            if (video) {
+                video.src = videos[videoIndex];
+                video.load();
+                video.play();
+                
+                video.onended = function() {
+                    videoIndex = (videoIndex + 1) % videos.length;
+                    playNextVideo();
+                };
+            }
+        }
+        
+        // 페이지 로드 시 첫 번째 비디오 재생
+        window.addEventListener('DOMContentLoaded', function() {
+            playNextVideo();
+        });
         
         // 이탈 방지 팝업 관련 함수
         let exitIntentShown = false;
