@@ -1328,7 +1328,7 @@
                 <!-- 시크릿웨폰 블랙 -->
                 <div class="product-item">
                     <div class="product-image">
-                        <img src="/campaigns/2025-08/secret-weapon-black.jpg" alt="시크릿웨폰 블랙" onerror="this.style.display='none'; this.parentElement.innerHTML='🏆<div class=\'product-placeholder\'>MAS-SECRET-BLACK-001</div>';">
+                        <img src="/campaigns/common/products/secret-weapon-black.jpg" alt="시크릿웨폰 블랙" onerror="this.style.display='none'; this.parentElement.innerHTML='🏆<div class=\'product-placeholder\'>MAS-SECRET-BLACK-001</div>';">
                     </div>
                     <h3 class="product-name">시크릿웨폰 블랙</h3>
                     <p class="product-subtitle">최강의 비거리를 위한 프리미엄 드라이버</p>
@@ -1353,7 +1353,7 @@
                 <!-- 시크릿포스 PRO3 -->
                 <div class="product-item">
                     <div class="product-image">
-                        <img src="/campaigns/2025-08/secret-force-pro3.jpg" alt="시크릿포스 PRO3" onerror="this.style.display='none'; this.parentElement.innerHTML='⚡<div class=\'product-placeholder\'>MAS-FORCE-PRO3-002</div>';">
+                        <img src="/campaigns/common/products/secret-force-pro3.jpg" alt="시크릿포스 PRO3" onerror="this.style.display='none'; this.parentElement.innerHTML='⚡<div class=\'product-placeholder\'>MAS-FORCE-PRO3-002</div>';">
                     </div>
                     <h3 class="product-name">시크릿포스 PRO3</h3>
                     <p class="product-subtitle">정확도와 비거리의 완벽한 조화</p>
@@ -1375,7 +1375,7 @@
                 <!-- 시크릿포스 V3 -->
                 <div class="product-item">
                     <div class="product-image">
-                        <img src="/campaigns/2025-08/secret-force-v3.jpg" alt="시크릿포스 V3" onerror="this.style.display='none'; this.parentElement.innerHTML='🎯<div class=\'product-placeholder\'>MAS-FORCE-V3-003</div>';">
+                        <img src="/campaigns/common/products/secret-force-v3.jpg" alt="시크릿포스 V3" onerror="this.style.display='none'; this.parentElement.innerHTML='🎯<div class=\'product-placeholder\'>MAS-FORCE-V3-003</div>';">
                     </div>
                     <h3 class="product-name">시크릿포스 V3</h3>
                     <p class="product-subtitle">40-50대를 위한 올라운드 드라이버</p>
@@ -1744,26 +1744,42 @@
             quizData.distance = parseInt(distance);
             
             // 추천 제품 결정
-            let productName, productDesc, productGift;
+            let productName, productDesc, productGift, productImage, productPrice, productOriginalPrice;
             
             if (quizData.style === 'power' && quizData.priority === 'distance') {
                 productName = '시크릿웨폰 블랙';
                 productDesc = '최강의 비거리를 위한 프리미엄 드라이버';
                 productGift = '블루 드 샤넬 오 드 뚜왈렛 100ml';
+                productImage = '/campaigns/common/products/secret-weapon-black.jpg';
+                productPrice = '170만원';
+                productOriginalPrice = '220만원';
             } else if (quizData.style === 'stability' || quizData.priority === 'accuracy') {
                 productName = '시크릿포스 PRO3';
                 productDesc = '정확도와 비거리의 완벽한 조화';
                 productGift = '디올 소바쥬 오 드 뚜왈렛 60ml';
+                productImage = '/campaigns/common/products/secret-force-pro3.jpg';
+                productPrice = '115만원';
+                productOriginalPrice = '140만원';
             } else {
                 productName = '시크릿포스 V3';
                 productDesc = '40-50대를 위한 올라운드 드라이버';
                 productGift = '디올 소바쥬 오 드 뚜왈렛 60ml';
+                productImage = '/campaigns/common/products/secret-force-v3.jpg';
+                productPrice = '95만원';
+                productOriginalPrice = '120만원';
             }
             
             // 결과 표시
             const resultHTML = `
+                <div style="width: 200px; height: 200px; margin: 0 auto 30px; background: #000; border-radius: 50%; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
+                    <img src="${productImage}" alt="${productName}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.parentElement.innerHTML='<div style=\'display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem; color: #999;\'>${productName.includes('블랙') ? '🏆' : productName.includes('PRO3') ? '⚡' : '🎯'}</div>'">
+                </div>
                 <h4 style="font-size: 1.8rem; color: #FF6B35; margin-bottom: 15px;">${productName}</h4>
                 <p style="color: #666; margin-bottom: 20px;">${productDesc}</p>
+                <div style="margin: 15px 0;">
+                    <span style="font-size: 1.5rem; font-weight: 700; color: #FF6B35;">${productPrice}</span>
+                    <span style="font-size: 0.9rem; color: #999; text-decoration: line-through; margin-left: 10px;">(정가 ${productOriginalPrice})</span>
+                </div>
                 <div style="background: #FFE5D9; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: 600; color: #FF6B35;">
                     🎁 ${productGift} 증정
                 </div>
