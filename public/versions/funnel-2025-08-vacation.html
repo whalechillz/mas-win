@@ -799,6 +799,15 @@
             to { transform: rotate(360deg); }
         }
         
+        /* 모바일에서 고객 스토리 그리드 수정 */
+        @media (max-width: 768px) {
+            /* 고객 성공 스토리 - 모바일에서 1열로 변경 */
+            .success-stories-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+        }
+        
         /* 반응형 */
         @media (max-width: 768px) {
             .hero-title {
@@ -1017,7 +1026,7 @@
                 MASGOLF와 함께한 기적 같은 변화의 순간들
             </p>
             
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto;">
+            <div class="success-stories-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto;">
                 
                 <!-- 스토리 1: 문제 → 해결 -->
                 <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s;"
