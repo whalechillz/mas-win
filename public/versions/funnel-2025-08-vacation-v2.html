@@ -821,9 +821,16 @@
             transform: translateZ(0);
         }
         
-        .flip-card:hover .flip-card-inner,
         .flip-card.flipped .flip-card-inner {
             transform: rotateY(180deg);
+        }
+        
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(10deg) scale(1.02);
+        }
+        
+        .flip-card.flipped:hover .flip-card-inner {
+            transform: rotateY(170deg) scale(1.02);
         }
         
         /* 키보드 포커스 스타일 */
@@ -1073,6 +1080,25 @@
             content: '↻';
             font-size: 24px;
             color: #666;
+        }
+        
+        .flip-indicator::before {
+            content: '클릭하여 뒤집기';
+            position: absolute;
+            bottom: 45px;
+            right: -10px;
+            font-size: 12px;
+            color: #666;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .flip-card:hover .flip-indicator::before {
+            opacity: 1;
         }
         
         /* 마우스 위치에 따른 기울임 효과 */
@@ -1351,96 +1377,169 @@
             
             <div class="success-stories-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto;">
                 
-                <!-- 스토리 1: 문제 → 해결 -->
-                <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s;"
-                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)'" 
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)'">
-                    <div style="padding: 30px; background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);">
-                        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
-                            <img src="/campaigns/2025-08/hero-image-1-face.jpg" alt="김○○님 프로필" 
-                                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'width: 80px; height: 80px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);\'>👨‍💼</div>')">
-                            <div style="color: white;">
-                                <h4 style="font-size: 1.3rem; margin-bottom: 5px; font-weight: 700;">김○○님</h4>
-                                <p style="opacity: 0.9; font-size: 0.95rem;">58세, 서울 · 회사원</p>
+                <!-- 스토리 1: 플립 카드 -->
+                <div class="flip-card" tabindex="0" role="button" aria-label="김○○님의 변화 스토리 - 클릭하여 뒤집기">
+                    <div class="flip-card-inner">
+                        <!-- 앞면: Before -->
+                        <div class="flip-card-front">
+                            <div class="profile-header">
+                                <div class="particles">
+                                    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                                    <div class="particle" style="left: 30%; animation-delay: 0.5s;"></div>
+                                    <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+                                    <div class="particle" style="left: 70%; animation-delay: 1.5s;"></div>
+                                    <div class="particle" style="left: 90%; animation-delay: 2s;"></div>
+                                </div>
+                                <div class="profile-info">
+                                    <div class="profile-avatar">
+                                        <img src="/campaigns/2025-08/hero-image-1-face.jpg" alt="김○○님" 
+                                             onerror="this.style.display='none'; this.parentElement.innerHTML='👨‍💼';">
+                                    </div>
+                                    <div class="profile-details">
+                                        <h3>김○○님</h3>
+                                        <p>58세, 서울 · 회사원</p>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="before-content">
+                                <div class="status-badge">BEFORE</div>
+                                <p class="problem-text">😞 "동료들과 라운딩 때마다<br>늘 30m씩 뒤쳐져 창피했어요"</p>
+                                <div class="quote">
+                                    "회사 골프 모임에서 항상 비거리 때문에 위축되었죠. 나이 탓이라고 포기하고 있었는데..."
+                                </div>
+                            </div>
+                            <div class="flip-indicator"></div>
                         </div>
-                    </div>
-                    <div style="padding: 30px;">
-                        <div style="background: #FFE5E1; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-bottom: 15px;">BEFORE</div>
-                        <h3 style="font-size: 1.4rem; margin-bottom: 15px; color: #333; line-height: 1.4;">😞 "동료들과 라운딩 때마다<br>늘 30m씩 뒤쳐져 창피했어요"</h3>
-                        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">"회사 골프 모임에서 항상 비거리 때문에 위축되었죠. 나이 탓이라고 포기하고 있었는데..."</p>
                         
-                        <div style="border-top: 2px solid #f0f0f0; padding-top: 20px; margin-top: 20px;">
-                            <div style="background: #D4EFDF; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; color: #4ECDC4; font-weight: 600; margin-bottom: 15px;">AFTER 4주</div>
-                            <h3 style="font-size: 1.5rem; color: #FF6B35; margin-bottom: 10px; font-weight: 700;">"이제는 제가 팀에서 가장 멀리!"</h3>
-                            <p style="color: #333; font-weight: 600; line-height: 1.6;">
-                                드라이버 평균 <span style="color: #FF6B35; font-size: 1.2rem;">180m → 208m</span><br>
-                                "동료들이 다 놀라서 비결을 물어봐요!" 🚀
-                            </p>
+                        <!-- 뒷면: After -->
+                        <div class="flip-card-back">
+                            <div class="after-content">
+                                <div class="success-badge">AFTER 4주</div>
+                                <h3 class="result-title">"이제는 제가<br>팀에서 가장 멀리!"</h3>
+                                <div class="metrics">
+                                    <div class="metric">
+                                        <span class="metric-value">180m</span>
+                                        <span class="metric-label">이전 비거리</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-value">208m</span>
+                                        <span class="metric-label">현재 비거리</span>
+                                    </div>
+                                </div>
+                                <div class="achievement">
+                                    <p>"동료들이 다 놀라서 비결을 물어봐요!" 🚀</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- 스토리 2: 좌절 → 자신감 -->
-                <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s;"
-                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)'" 
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)'">
-                    <div style="padding: 30px; background: linear-gradient(135deg, #4ECDC4 0%, #45B7D1 100%);">
-                        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
-                            <img src="/campaigns/2025-08/hero-image-2-face.jpg" alt="이○○님 프로필" 
-                                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'width: 80px; height: 80px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);\'>👨‍💼</div>')">
-                            <div style="color: white;">
-                                <h4 style="font-size: 1.3rem; margin-bottom: 5px; font-weight: 700;">이○○님</h4>
-                                <p style="opacity: 0.9; font-size: 0.95rem;">62세, 부산 · 자영업</p>
+                <!-- 스토리 2: 플립 카드 -->
+                <div class="flip-card" tabindex="0" role="button" aria-label="이○○님의 변화 스토리 - 클릭하여 뒤집기">
+                    <div class="flip-card-inner">
+                        <!-- 앞면: Before -->
+                        <div class="flip-card-front">
+                            <div class="profile-header" style="background: linear-gradient(135deg, #4ECDC4 0%, #45B7D1 100%);">
+                                <div class="particles">
+                                    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                                    <div class="particle" style="left: 30%; animation-delay: 0.5s;"></div>
+                                    <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+                                    <div class="particle" style="left: 70%; animation-delay: 1.5s;"></div>
+                                    <div class="particle" style="left: 90%; animation-delay: 2s;"></div>
+                                </div>
+                                <div class="profile-info">
+                                    <div class="profile-avatar">
+                                        <img src="/campaigns/2025-08/hero-image-2-face.jpg" alt="이○○님" 
+                                             onerror="this.style.display='none'; this.parentElement.innerHTML='👨‍💼';">
+                                    </div>
+                                    <div class="profile-details">
+                                        <h3>이○○님</h3>
+                                        <p>62세, 부산 · 자영업</p>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="before-content">
+                                <div class="status-badge">BEFORE</div>
+                                <p class="problem-text">😰 "나이 들수록 비거리가<br>점점 줄어들어 우울했습니다"</p>
+                                <div class="quote">
+                                    "젊은 친구들과 라운딩하면 항상 2-3클럽 더 쓰게 되고, 파4에서도 투온이 힘들었어요..."
+                                </div>
+                            </div>
+                            <div class="flip-indicator"></div>
                         </div>
-                    </div>
-                    <div style="padding: 30px;">
-                        <div style="background: #E8F8F5; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; color: #4ECDC4; font-weight: 600; margin-bottom: 15px;">BEFORE</div>
-                        <h3 style="font-size: 1.4rem; margin-bottom: 15px; color: #333; line-height: 1.4;">😰 "나이 들수록 비거리가<br>점점 줄어들어 우울했습니다"</h3>
-                        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">"젊은 친구들과 라운딩하면 항상 2-3클럽 더 쓰게 되고, 파4에서도 투온이 힘들었어요..."</p>
                         
-                        <div style="border-top: 2px solid #f0f0f0; padding-top: 20px; margin-top: 20px;">
-                            <div style="background: #D4EFDF; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; color: #4ECDC4; font-weight: 600; margin-bottom: 15px;">AFTER 3주</div>
-                            <h3 style="font-size: 1.5rem; color: #FF6B35; margin-bottom: 10px; font-weight: 700;">"20대 때보다 더 멀리 날아가요!"</h3>
-                            <p style="color: #333; font-weight: 600; line-height: 1.6;">
-                                전체 평균 <span style="color: #FF6B35; font-size: 1.2rem;">+35m</span> 비거리 증가<br>
-                                "이제 파5 투온도 자신 있습니다!" 💪
-                            </p>
+                        <!-- 뒷면: After -->
+                        <div class="flip-card-back" style="background: linear-gradient(135deg, rgba(78,205,196,0.95) 0%, rgba(69,183,209,0.95) 100%);">
+                            <div class="after-content">
+                                <div class="success-badge">AFTER 3주</div>
+                                <h3 class="result-title">"20대 때보다<br>더 멀리 날아가요!"</h3>
+                                <div class="metrics">
+                                    <div class="metric">
+                                        <span class="metric-value">+35m</span>
+                                        <span class="metric-label">비거리 증가</span>
+                                    </div>
+                                </div>
+                                <div class="achievement">
+                                    <p>"이제 파5 투온도 자신 있습니다!" 💪</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- 스토리 3: 도전 → 성취 -->
-                <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s;"
-                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)'" 
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)'">
-                    <div style="padding: 30px; background: linear-gradient(135deg, #FFB347 0%, #FF6B35 100%);">
-                        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
-                            <img src="/campaigns/2025-08/hero-image-3-face.jpg" alt="박○○님 프로필" 
-                                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'width: 80px; height: 80px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);\'>👨‍💼</div>')">
-                            <div style="color: white;">
-                                <h4 style="font-size: 1.3rem; margin-bottom: 5px; font-weight: 700;">박○○님</h4>
-                                <p style="opacity: 0.9; font-size: 0.95rem;">55세, 대전 · 공무원</p>
+                <!-- 스토리 3: 플립 카드 -->
+                <div class="flip-card" tabindex="0" role="button" aria-label="박○○님의 변화 스토리 - 클릭하여 뒤집기">
+                    <div class="flip-card-inner">
+                        <!-- 앞면: Before -->
+                        <div class="flip-card-front">
+                            <div class="profile-header" style="background: linear-gradient(135deg, #FFB347 0%, #FF6B35 100%);">
+                                <div class="particles">
+                                    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                                    <div class="particle" style="left: 30%; animation-delay: 0.5s;"></div>
+                                    <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+                                    <div class="particle" style="left: 70%; animation-delay: 1.5s;"></div>
+                                    <div class="particle" style="left: 90%; animation-delay: 2s;"></div>
+                                </div>
+                                <div class="profile-info">
+                                    <div class="profile-avatar">
+                                        <img src="/campaigns/2025-08/hero-image-3-face.jpg" alt="박○○님" 
+                                             onerror="this.style.display='none'; this.parentElement.innerHTML='👨‍💼';">
+                                    </div>
+                                    <div class="profile-details">
+                                        <h3>박○○님</h3>
+                                        <p>55세, 대전 · 공무원</p>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="before-content">
+                                <div class="status-badge" style="background: #FFF5E6; color: #FF6B35;">CHALLENGE</div>
+                                <p class="problem-text">🏆 "강원도 휴가철 골프 여행에서<br>인생 베스트 스코어 달성!"</p>
+                                <div class="quote">
+                                    "항상 70대 중반에서 머물렀는데, 비거리가 늘어나니 스코어도 자연스럽게..."
+                                </div>
+                            </div>
+                            <div class="flip-indicator"></div>
                         </div>
-                    </div>
-                    <div style="padding: 30px;">
-                        <div style="background: #FFF5E6; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-bottom: 15px;">CHALLENGE</div>
-                        <h3 style="font-size: 1.4rem; margin-bottom: 15px; color: #333; line-height: 1.4;">🏆 "강원도 휴가철 골프 여행에서<br>인생 베스트 스코어 달성!"</h3>
-                        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">"항상 70대 중반에서 머물렀는데, 비거리가 늘어나니 스코어도 자연스럽게..."</p>
                         
-                        <div style="border-top: 2px solid #f0f0f0; padding-top: 20px; margin-top: 20px; text-align: center;">
-                            <div style="font-size: 3rem; font-weight: 900; color: #FF6B35; margin-bottom: 10px;">
-                                72타 → 65타
+                        <!-- 뒷면: After -->
+                        <div class="flip-card-back" style="background: linear-gradient(135deg, rgba(255,179,71,0.95) 0%, rgba(255,107,53,0.95) 100%);">
+                            <div class="after-content">
+                                <div class="success-badge">ACHIEVEMENT</div>
+                                <h3 class="result-title">파인밸리CC에서<br>언더파 기록!</h3>
+                                <div class="metrics">
+                                    <div class="metric">
+                                        <span class="metric-value">72타</span>
+                                        <span class="metric-label">이전 스코어</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-value">65타</span>
+                                        <span class="metric-label">베스트 스코어</span>
+                                    </div>
+                                </div>
+                                <div class="achievement">
+                                    <p>"휴가지에서 동반자들이 제 변화에 깜짝 놀랐어요!" ⛳</p>
+                                </div>
                             </div>
-                            <p style="color: #333; font-weight: 600; line-height: 1.6;">
-                                "휴가지에서 동반자들이 제 변화에 깜짝 놀랐어요!<br>
-                                파인밸리CC에서 언더파 기록!" ⛳
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -2303,6 +2402,75 @@
             setInterval(updateCountdown, 60000); // 1분마다 업데이트
         }
         
+        // 플립 카드 기능
+        function initFlipCards() {
+            const flipCards = document.querySelectorAll('.flip-card');
+            
+            flipCards.forEach(card => {
+                // 클릭 이벤트
+                card.addEventListener('click', function() {
+                    this.classList.toggle('flipped');
+                    
+                    // GA4 이벤트 추적
+                    if (typeof gtag !== 'undefined') {
+                        const isFlipped = this.classList.contains('flipped');
+                        const cardIndex = Array.from(flipCards).indexOf(this) + 1;
+                        gtag('event', 'flip_card', {
+                            event_category: 'engagement',
+                            event_label: `story_card_${cardIndex}`,
+                            flip_state: isFlipped ? 'back' : 'front'
+                        });
+                    }
+                });
+                
+                // 키보드 접근성 (Enter 키)
+                card.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.classList.toggle('flipped');
+                    }
+                });
+                
+                // 마우스 움직임에 따른 3D 기울임 효과
+                card.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 10;
+                    const rotateY = (centerX - x) / 10;
+                    
+                    this.style.setProperty('--rotateX', `${rotateX}deg`);
+                    this.style.setProperty('--rotateY', `${rotateY}deg`);
+                });
+                
+                // 마우스가 카드를 벗어났을 때 원위치
+                card.addEventListener('mouseleave', function() {
+                    this.style.setProperty('--rotateX', '0deg');
+                    this.style.setProperty('--rotateY', '0deg');
+                });
+                
+                // 터치 디바이스를 위한 지원
+                let touchStartX = 0;
+                card.addEventListener('touchstart', function(e) {
+                    touchStartX = e.touches[0].clientX;
+                });
+                
+                card.addEventListener('touchend', function(e) {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diffX = touchStartX - touchEndX;
+                    
+                    // 스와이프 감지 (50px 이상 움직임)
+                    if (Math.abs(diffX) > 50) {
+                        this.classList.toggle('flipped');
+                    }
+                });
+            });
+        }
+        
         // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', function() {
             // 로딩 화면 제거
@@ -2319,6 +2487,7 @@
             animateOnScroll();
             animateFloatingBanner();
             initCountdown();
+            initFlipCards(); // 플립 카드 초기화
             
             // 이미지 로딩 실패 시 대체 콘텐츠
             const images = document.querySelectorAll('img');
