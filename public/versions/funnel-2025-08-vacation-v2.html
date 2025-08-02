@@ -883,22 +883,22 @@
 <body>
     <!-- 날짜 기반 카운트다운 로직 -->
     <script>
-        // 8월 1일부터 31일까지 30명에서 0명으로 감소
+        // 8월 1일부터 31일까지 29명에서 2명으로 감소
         function getRemainingCount() {
             const startDate = new Date('2025-08-01');
             const endDate = new Date('2025-08-31');
             const today = new Date();
             
             // 날짜가 범위를 벗어난 경우
-            if (today < startDate) return 30;
-            if (today > endDate) return 0;
+            if (today < startDate) return 29;
+            if (today > endDate) return 2;
             
             // 전체 일수와 경과 일수 계산
             const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
             const elapsedDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
             
-            // 비율에 따라 남은 인원 계산
-            const remainingCount = Math.max(0, Math.floor(30 - (30 * elapsedDays / totalDays)));
+            // 비율에 따라 남은 인원 계산 (29명에서 2명으로)
+            const remainingCount = Math.max(2, Math.floor(29 - (27 * elapsedDays / totalDays)));
             
             return remainingCount;
         }
@@ -1365,13 +1365,13 @@
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.1rem; margin-bottom: 5px; color: #333;">블루 드 샤넬</h4>
                                 <p style="font-size: 0.9rem; color: #666; margin: 0;">오 드 뚜왈렛 100ml</p>
-                                <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (15만원 상당)</p>
+                                <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (18.3만원 상당)</p>
                             </div>
                         </div>
                     </div>
                     
                     <div style="text-align: center; background: #FF6B35; color: white; padding: 15px; border-radius: 50px; font-weight: 600;">
-                        총 가치 235만원 → <span style="font-size: 1.2rem;">170만원만!</span>
+                        총 가치 238.3만원 → <span style="font-size: 1.2rem;">170만원만!</span>
                     </div>
                     
                     <div style="margin-top: 10px; font-size: 0.9rem; color: #ff4757; text-align: center;">
@@ -1408,13 +1408,13 @@
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.1rem; margin-bottom: 5px; color: #333;">디올 소바쥬</h4>
                                 <p style="font-size: 0.9rem; color: #666; margin: 0;">오 드 뚜왈렛 60ml</p>
-                                <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (10만원 상당)</p>
+                                <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (13.6만원 상당)</p>
                             </div>
                         </div>
                     </div>
                     
                     <div style="text-align: center; background: #FF6B35; color: white; padding: 15px; border-radius: 50px; font-weight: 600;">
-                        총 가치 150만원 → <span style="font-size: 1.2rem;">115만원만!</span>
+                        총 가치 153.6만원 → <span style="font-size: 1.2rem;">115만원만!</span>
                     </div>
                 </div>
                 
@@ -1447,13 +1447,13 @@
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.1rem; margin-bottom: 5px; color: #333;">디올 소바쥬</h4>
                                 <p style="font-size: 0.9rem; color: #666; margin: 0;">오 드 뚜왈렛 60ml</p>
-                                <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (10만원 상당)</p>
+                                <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (13.6만원 상당)</p>
                             </div>
                         </div>
                     </div>
                     
                     <div style="text-align: center; background: #FF6B35; color: white; padding: 15px; border-radius: 50px; font-weight: 600;">
-                        총 가치 130만원 → <span style="font-size: 1.2rem;">95만원만!</span>
+                        총 가치 133.6만원 → <span style="font-size: 1.2rem;">95만원만!</span>
                     </div>
                 </div>
             </div>
@@ -1520,7 +1520,7 @@
                 <div style="background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">📞</div>
                     <h3 style="font-size: 1.3rem; margin-bottom: 10px; color: #333;">전화상담만 해도</h3>
-                    <img src="/campaigns/2025-08/waterproof-pouch-640x480.png" alt="여행용 방수팩" style="width: 120px; height: 120px; object-fit: cover; margin: 15px 0; border-radius: 10px;" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'font-size: 4rem; margin: 15px 0;\'>💦</div>')">
+                    <img src="/campaigns/2025-08/waterproof-pouch-640x480.png" alt="여행용 방수팩" style="width: 180px; height: 180px; object-fit: cover; margin: 15px 0; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'font-size: 5rem; margin: 15px 0;\'>💦</div>')">
                     <p style="font-size: 1.1rem; font-weight: 600; color: #4ECDC4;">여행용 방수팩 증정</p>
                     <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">휴가철 필수 아이템</p>
                 </div>
@@ -1529,9 +1529,9 @@
                 <div style="background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">🛍️</div>
                     <h3 style="font-size: 1.3rem; margin-bottom: 10px; color: #333;">V3 / PRO3 구매 시</h3>
-                    <img src="/campaigns/2025-08/dior-sauvagee-640x480.jpg" alt="디올 소바쥬" style="width: 120px; height: 120px; object-fit: cover; margin: 15px 0; border-radius: 10px;">
+                    <img src="/campaigns/2025-08/dior-sauvagee-640x480.jpg" alt="디올 소바쥬" style="width: 180px; height: 180px; object-fit: cover; margin: 15px 0; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                     <p style="font-size: 1.1rem; font-weight: 600; color: #FF6B35;">디올 소바쥬 60ml</p>
-                    <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">10만원 상당</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">13.6만원 상당</p>
                 </div>
                 
                 <!-- 블랙 구매 선물 -->
@@ -1539,9 +1539,9 @@
                     <div style="position: absolute; top: 10px; right: 10px; background: #FFD700; color: #333; padding: 5px 15px; border-radius: 15px; font-size: 0.85rem; font-weight: 600;">VIP</div>
                     <div style="font-size: 3rem; margin-bottom: 15px;">🏆</div>
                     <h3 style="font-size: 1.3rem; margin-bottom: 10px; color: white;">블랙 시리즈 구매 시</h3>
-                    <img src="/campaigns/2025-08/bleu-de-chanel-640x480.jpg" alt="블루 드 샤넬" style="width: 120px; height: 120px; object-fit: cover; margin: 15px 0; border-radius: 10px;">
+                    <img src="/campaigns/2025-08/bleu-de-chanel-640x480.jpg" alt="블루 드 샤넬" style="width: 180px; height: 180px; object-fit: cover; margin: 15px 0; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                     <p style="font-size: 1.1rem; font-weight: 600; color: #4ECDC4;">블루 드 샤넬 100ml</p>
-                    <p style="font-size: 0.9rem; color: #ccc; margin-top: 5px;">15만원 상당</p>
+                    <p style="font-size: 0.9rem; color: #ccc; margin-top: 5px;">18.3만원 상당</p>
                 </div>
             </div>
             
@@ -1789,7 +1789,7 @@
                         <div style="flex: 1;">
                             <h4 style="font-size: 1.1rem; margin-bottom: 5px; color: #333;">${productGift.split(' ')[0]} ${productGift.split(' ')[1]} ${productGift.split(' ')[2]}</h4>
                             <p style="font-size: 0.9rem; color: #666; margin: 0;">${productGift.split(' ').slice(3).join(' ')}</p>
-                            <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (${productName.includes('블랙') ? '15만원' : '10만원'} 상당)</p>
+                            <p style="font-size: 0.85rem; color: #FF6B35; font-weight: 600; margin-top: 5px;">무료 증정 (${productName.includes('블랙') ? '18.3만원' : '13.6만원'} 상당)</p>
                         </div>
                     </div>
                 </div>
