@@ -795,12 +795,327 @@
             to { transform: rotate(360deg); }
         }
         
+        /* 플립 카드 스타일 추가 */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 400px;
+            perspective: 1200px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+        
+        .flip-card:hover {
+            transform: translateZ(20px) scale(1.02);
+        }
+        
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        .flip-card:hover .flip-card-inner,
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        /* 키보드 포커스 스타일 */
+        .flip-card:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.5);
+            border-radius: 24px;
+        }
+        
+        /* 카드 앞면/뒷면 공통 스타일 */
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .flip-card:hover .flip-card-front,
+        .flip-card:hover .flip-card-back {
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+        }
+        
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, rgba(102,126,234,0.95) 0%, rgba(118,75,162,0.95) 100%);
+            color: white;
+        }
+        
+        /* 프로필 헤더 */
+        .profile-header {
+            background: linear-gradient(135deg, #ff7b54 0%, #ff9068 100%);
+            padding: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 파티클 애니메이션 */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            top: 0;
+            left: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            animation: floatParticle 4s infinite;
+        }
+        
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100%) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100%) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+        
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.3);
+            background: white;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-details h3 {
+            font-size: 24px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        
+        .profile-details p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        /* Before 콘텐츠 */
+        .before-content {
+            padding: 30px;
+            height: calc(100% - 140px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: #fee4e4;
+            color: #dc2626;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .problem-text {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        
+        .quote {
+            font-style: italic;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.5);
+            border-radius: 12px;
+            border-left: 4px solid #ff7b54;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* After 콘텐츠 */
+        .after-content {
+            padding: 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .success-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+        
+        .metrics {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .achievement {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .achievement p {
+            font-size: 18px;
+            line-height: 1.5;
+        }
+        
+        /* 플립 표시 아이콘 */
+        .flip-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+            backdrop-filter: blur(5px);
+        }
+        
+        .flip-indicator::after {
+            content: '↻';
+            font-size: 24px;
+            color: #666;
+        }
+        
+        /* 마우스 위치에 따른 기울임 효과 */
+        .tilt-effect {
+            transform-style: preserve-3d;
+            transform: perspective(1000px) rotateX(var(--rotateX)) rotateY(var(--rotateY));
+        }
+        
+        /* 성능 최적화 - 애니메이션 감소 설정 */
+        @media (prefers-reduced-motion: reduce) {
+            .flip-card-inner {
+                transition: none;
+            }
+            
+            .particle,
+            .profile-header::before {
+                animation: none;
+            }
+        }
+        
+        /* 접근성 - 스크린 리더 전용 텍스트 */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
         /* 모바일에서 고객 스토리 그리드 수정 */
         @media (max-width: 768px) {
             /* 고객 성공 스토리 - 모바일에서 1열로 변경 */
             .success-stories-grid {
                 grid-template-columns: 1fr !important;
                 gap: 20px !important;
+            }
+            
+            .flip-card {
+                height: 450px;
             }
         }
         
