@@ -1183,17 +1183,30 @@
         @media (max-width: 768px) {
             /* 모바일에서 특정 단위 텍스트 크기 조정 */
             .metric-value {
-                font-size: 2.8rem !important;
+                font-size: 2.2rem !important;
             }
             
             .metric-unit {
                 font-size: 1.4rem !important;
-                font-weight: 600 !important;
+                vertical-align: baseline !important;
+                margin-left: -3px !important;
             }
             
             .week-text {
-                font-size: 1.2rem !important;
-                font-weight: 600 !important;
+                font-size: 1.4rem !important;
+                vertical-align: baseline !important;
+                margin-left: -3px !important;
+            }
+            
+            /* 플립 카드 내부 메트릭 조정 */
+            .flip-card .metric-value {
+                display: inline-block;
+            }
+            
+            .flip-card .metric-unit,
+            .flip-card .week-text {
+                display: inline-block;
+                vertical-align: baseline;
             }
             /* 고객 성공 스토리 - 모바일에서 1열로 변경 */
             .success-stories-grid {
@@ -1774,32 +1787,32 @@
                                 </h3>
                                 
                                 <!-- 핵심 성과 지표 -->
-                                <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 25px; margin-bottom: 25px; backdrop-filter: blur(10px);">
+                                <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 20px 15px; margin-bottom: 25px; backdrop-filter: blur(10px);">
                                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
                                         <div>
-                                            <div style="margin-bottom: 5px;">
-                                                <span class="metric-value" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">92</span><span class="metric-unit" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">%</span>
+                                            <div style="margin-bottom: 5px; font-size: 2.5rem; font-weight: 900; color: #FFEB3B; display: flex; align-items: baseline; justify-content: center;">
+                                                <span class="metric-value">92</span><span class="metric-unit" style="font-size: 1.8rem;">%</span>
                                             </div>
-                                            <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">고객 만족도</p>
+                                            <p style="font-size: 0.85rem; opacity: 0.9; margin: 0; line-height: 1.2;">고객<br>만족도</p>
                                         </div>
                                         <div>
-                                            <div style="margin-bottom: 5px;">
-                                                <span class="metric-value" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">+25</span><span class="metric-unit" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">m</span>
+                                            <div style="margin-bottom: 5px; font-size: 2.5rem; font-weight: 900; color: #FFEB3B; display: flex; align-items: baseline; justify-content: center;">
+                                                <span class="metric-value">+25</span><span class="metric-unit" style="font-size: 1.8rem;">m</span>
                                             </div>
-                                            <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">평균 비거리 증가</p>
+                                            <p style="font-size: 0.85rem; opacity: 0.9; margin: 0; line-height: 1.2;">평균 비거리<br>증가</p>
                                         </div>
                                         <div>
-                                            <div style="margin-bottom: 5px;">
-                                                <span class="metric-value" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">4</span><span class="week-text" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">주</span>
+                                            <div style="margin-bottom: 5px; font-size: 2.5rem; font-weight: 900; color: #FFEB3B; display: flex; align-items: baseline; justify-content: center;">
+                                                <span class="metric-value">4</span><span class="week-text" style="font-size: 1.8rem;">주</span>
                                             </div>
-                                            <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">변화 체감 기간</p>
+                                            <p style="font-size: 0.85rem; opacity: 0.9; margin: 0; line-height: 1.2;">변화 체감<br>기간</p>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="achievement" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; backdrop-filter: blur(5px);">
                                     <p style="font-size: 1.15rem; line-height: 1.8; margin: 0;">
-                                        "지금 이 순간에도 진철에서<br>
+                                        "지금 이 순간에도 전국에서<br>
                                         <strong style="color: #FFEB3B; font-size: 1.3rem;">3,000명</strong>의 골퍼가 MASGOLF와 함께<br>
                                         새로운 도전을 시작했습니다"
                                     </p>
