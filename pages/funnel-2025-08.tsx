@@ -2,12 +2,6 @@ import { useEffect } from 'react';
 
 export default function Funnel202508() {
   useEffect(() => {
-    // API fix 스크립트 동적 로드
-    const script = document.createElement('script');
-    script.src = '/api-fix.js';
-    script.async = true;
-    document.head.appendChild(script);
-    
     // iframe에서 전화번호 클릭 메시지 처리
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'tel-link') {
@@ -19,9 +13,6 @@ export default function Funnel202508() {
     window.addEventListener('message', handleMessage);
     
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
       window.removeEventListener('message', handleMessage);
     };
   }, []);
@@ -31,7 +22,7 @@ export default function Funnel202508() {
 
   return (
     <iframe
-      src={`/versions/funnel-2025-08-vacation.html?v=${timestamp}&ui=updated`}
+      src={`/versions/funnel-2025-08-vacation-v2.html?v=${timestamp}`}
       style={{
         width: '100%',
         height: '100vh',
