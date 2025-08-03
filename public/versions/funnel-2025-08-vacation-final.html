@@ -972,14 +972,20 @@
             display: inline-block;
             background: #fee4e4;
             color: #dc2626;
-            padding: 6px 16px;
+            padding: 8px 20px;
             border-radius: 20px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 20px;
             animation: fadeInUp 0.6s ease-out;
             width: auto;
             align-self: flex-start;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-badge.after {
+            background: #e7f3ff;
+            color: #0066cc;
         }
         
         .problem-text {
@@ -1067,36 +1073,41 @@
             position: absolute;
             bottom: 20px;
             right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0,0,0,0.1);
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #FF6B35, #FF8E53);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             animation: pulse 2s infinite;
-            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(255,107,53,0.3);
+            cursor: pointer;
         }
         
         .flip-indicator::after {
             content: '↻';
             font-size: 24px;
-            color: #666;
+            color: white;
+            font-weight: bold;
         }
         
         .flip-indicator::before {
-            content: '클릭하여 뒤집기';
+            content: '👆 터치';
             position: absolute;
             bottom: 45px;
-            right: -10px;
-            font-size: 12px;
-            color: #666;
-            background: rgba(255,255,255,0.9);
-            padding: 4px 8px;
-            border-radius: 12px;
+            right: 0;
+            font-size: 13px;
+            color: #FF6B35;
+            background: rgba(255,255,255,0.95);
+            padding: 6px 12px;
+            border-radius: 20px;
             white-space: nowrap;
             opacity: 0;
             transition: opacity 0.3s;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transform: translateX(50%);
         }
         
         .flip-card:hover .flip-indicator::before {
@@ -1144,6 +1155,20 @@
             
             .flip-card {
                 height: 450px;
+            }
+            
+            /* 모바일에서 플립 인디케이터 위치 조정 */
+            .flip-indicator {
+                bottom: 15px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .flip-indicator::before {
+                font-size: 12px;
+                padding: 4px 10px;
+                bottom: 40px;
             }
         }
         
@@ -1404,7 +1429,7 @@
                                 </div>
                             </div>
                             <div class="before-content">
-                                <div class="status-badge">BEFORE</div>
+                                <div class="status-badge">😞 그때의 나</div>
                                 <p class="problem-text">😞 "동료들과 라운딩 때마다<br>늘 30m씩 뒤쳐져 창피했어요"</p>
                                 <div class="quote">
                                     "회사 골프 모임에서 항상 비거리 때문에 위축되었죠. 나이 탓이라고 포기하고 있었는데..."
@@ -1416,7 +1441,7 @@
                         <!-- 뒷면: After -->
                         <div class="flip-card-back">
                             <div class="after-content">
-                                <div class="success-badge">AFTER 4주</div>
+                                <div class="success-badge">🎉 4주 후</div>
                                 <h3 class="result-title">"이제는 제가<br>팀에서 가장 멀리!"</h3>
                                 <div class="metrics">
                                     <div class="metric">
@@ -1461,7 +1486,7 @@
                                 </div>
                             </div>
                             <div class="before-content">
-                                <div class="status-badge">BEFORE</div>
+                                <div class="status-badge">😰 그때의 나</div>
                                 <p class="problem-text">😰 "나이 들수록 비거리가<br>점점 줄어들어 우울했습니다"</p>
                                 <div class="quote">
                                     "젊은 친구들과 라운딩하면 항상 2-3클럽 더 쓰게 되고, 파4에서도 투온이 힘들었어요..."
@@ -1473,7 +1498,7 @@
                         <!-- 뒷면: After -->
                         <div class="flip-card-back" style="background: linear-gradient(135deg, rgba(78,205,196,0.95) 0%, rgba(69,183,209,0.95) 100%);">
                             <div class="after-content">
-                                <div class="success-badge">AFTER 3주</div>
+                                <div class="success-badge">💪 3주 후</div>
                                 <h3 class="result-title">"20대 때보다<br>더 멀리 날아가요!"</h3>
                                 <div class="metrics">
                                     <div class="metric">
@@ -1514,7 +1539,7 @@
                                 </div>
                             </div>
                             <div class="before-content">
-                                <div class="status-badge" style="background: #FFF5E6; color: #FF6B35;">CHALLENGE</div>
+                                <div class="status-badge" style="background: #FFF5E6; color: #FF6B35;">🏆 도전</div>
                                 <p class="problem-text">🏆 "강원도 휴가철 골프 여행에서<br>인생 베스트 스코어 달성!"</p>
                                 <div class="quote">
                                     "항상 70대 중반에서 머물렀는데, 비거리가 늘어나니 스코어도 자연스럽게..."
@@ -1526,7 +1551,7 @@
                         <!-- 뒷면: After -->
                         <div class="flip-card-back" style="background: linear-gradient(135deg, rgba(255,179,71,0.95) 0%, rgba(255,107,53,0.95) 100%);">
                             <div class="after-content">
-                                <div class="success-badge">ACHIEVEMENT</div>
+                                <div class="success-badge">⛳ 달성</div>
                                 <h3 class="result-title">파인밸리CC에서<br>언더파 기록!</h3>
                                 <div class="metrics">
                                     <div class="metric">
