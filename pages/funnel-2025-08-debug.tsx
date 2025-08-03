@@ -20,7 +20,7 @@ export default function Funnel202508Debug() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'monospace' }}>
+    <div style={{ padding: '20px', fontFamily: 'monospace', height: '100vh', overflow: 'auto' }}>
       <h1 style={{ color: '#FF6B35' }}>🔍 Funnel 2025-08 디버그 페이지</h1>
       
       <div style={{ 
@@ -125,10 +125,11 @@ export default function Funnel202508Debug() {
         <h2>🖼️ 미리보기 (iframe 상태: {iframeLoaded ? '✅ 로드됨' : '⏳ 로딩중...'})</h2>
         <div style={{ 
           width: '100%', 
-          height: '600px', 
+          height: '800px', 
           border: '1px solid #ccc',
           borderRadius: '5px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          marginBottom: '20px'
         }}>
           <iframe
             key={selectedVersion}

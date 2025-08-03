@@ -22,7 +22,7 @@ export default function Funnel202508() {
 
   return (
     <iframe
-      src={`/versions/funnel-2025-08-vacation-v2.html?v=${timestamp}`}
+      src={`/versions/funnel-2025-08-vacation-v2-backup-flipcard.html?v=${timestamp}&nocache=${Math.random()}`}
       style={{
         width: '100%',
         height: '100vh',
