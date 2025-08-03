@@ -74,15 +74,9 @@
             text-shadow: 0 2px 20px rgba(0,0,0,0.5);
         }
         
-        /* 추가 스크롤 인디케이터 */
+        /* 스크롤 인디케이터 */
         .scroll-indicator {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
             animation: bounce 2s infinite;
-            color: white;
-            font-size: 2rem;
             opacity: 0.7;
             cursor: pointer;
         }
@@ -1357,35 +1351,46 @@
     </div>
     
     <!-- 프로모션 타이머 바 -->
-    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden;">
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #FF6B35 0%, #4ECDC4 50%, #667EEA 100%); animation: shimmer 3s linear infinite;"></div>
-        <div style="padding: 15px; position: relative;">
-            <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div style="flex: 1; min-width: 300px;">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                        <span style="background: #FF6B35; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; animation: pulse 2s infinite;">마감임박</span>
-                        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: white;">🔥 <span style="color: #FFEB3B;">27명</span>만 남았습니다!</h3>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 20px;">
-                        <div id="promo-timer" style="font-size: 1.1rem; font-weight: 600; color: #FEF3C7;"></div>
-                        <div style="height: 20px; width: 1px; background: rgba(255,255,255,0.2);"></div>
-                        <div style="font-size: 1.05rem; color: #fff; font-weight: 600;">
-                            🎁 <span style="color: #4ECDC4; font-weight: 800;">18.3만원</span> 향수 <span style="background: linear-gradient(90deg, #FFEB3B, #FFD700); padding: 3px 10px; border-radius: 15px; color: #333; font-weight: 800; margin-left: 5px;">무료증정</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="tel:080-028-8888" style="background: linear-gradient(135deg, #FF6B35, #FF8E53); color: white; padding: 12px 28px; border-radius: 30px; text-decoration: none; font-weight: 800; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,107,53,0.3); transition: all 0.3s; border: 2px solid transparent; position: relative; overflow: hidden;" 
-                   onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(255,107,53,0.5)'" 
-                   onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(255,107,53,0.3)'">
-                    <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 8px;">
-                        <span style="animation: pulse 2s infinite;">📞</span> 지금 바로
-                    </span>
-                    <div style="position: absolute; top: 50%; right: -30px; width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translateY(-50%); animation: slideRight 3s linear infinite;"></div>
-                </a>
-            </div>
+    <div id="promoBar" style="background: rgba(26, 26, 26, 0.95); backdrop-filter: blur(10px); color: white; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out;">
+        <div style="display: flex; align-items: center; gap: 20px; font-size: 0.9rem;">
+            <span style="opacity: 0.7;">🌴 8월 프로모션</span>
+            <div style="height: 16px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+            <div id="promo-timer" style="font-weight: 600; color: #FFEB3B;"></div>
+            <div style="height: 16px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+            <span style="font-weight: 600;">선착순 <span class="remaining-count" style="color: #4ECDC4;">30명</span>만</span>
         </div>
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shimmer 3s linear infinite;"></div>
     </div>
+    
+    <!-- 스크롤 시 헤더 숨기기 스크립트 -->
+    <script>
+        let lastScrollTop = 0;
+        let scrollTimer = null;
+        const promoBar = document.getElementById('promoBar');
+        
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // 아래로 스크롤 시 숨기기
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                promoBar.style.transform = 'translateY(-100%)';
+                promoBar.style.opacity = '0';
+            } else {
+                promoBar.style.transform = 'translateY(0)';
+                promoBar.style.opacity = '1';
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            
+            // 스크롤 멈추면 2초 후 다시 표시
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(function() {
+                if (scrollTop > 100) {
+                    promoBar.style.transform = 'translateY(0)';
+                    promoBar.style.opacity = '1';
+                }
+            }, 2000);
+        }, false);
+    </script>
     
     <!-- 이탈 방지 팝업 -->
     <div id="exitPopup" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
@@ -1423,7 +1428,7 @@
         </div>
     </div>
     <!-- 영역1: 메인 비주얼 -->
-    <section class="hero-section">
+    <section class="hero-section" style="padding-top: 44px;">
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
@@ -1436,7 +1441,7 @@
         </video>
         <div class="hero-content">
             <div style="display: inline-block; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 30px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
-                <span style="font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">2025 Summer Limited Edition</span>
+                <span style="font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: white;">2025 Summer Limited Edition</span>
             </div>
             <h1 class="hero-title" style="font-size: 3.2rem; line-height: 1.2; margin-bottom: 25px;">
                 <span style="display: block; font-size: 2.2rem; font-weight: 500; opacity: 0.9; margin-bottom: 10px;">휴가철 골프 휴양지,</span>
@@ -1462,13 +1467,14 @@
                 </a>
             </div>
             
-            <!-- 스크롤 인디케이터 개선 -->
-            <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})" style="cursor: pointer; transition: all 0.3s;" 
-                 onmouseover="this.style.transform='translateY(5px)'; this.style.opacity='1'" 
-                 onmouseout="this.style.transform='translateY(0)'; this.style.opacity='0.7'">
-                <div style="font-size: 1rem; margin-bottom: 5px; font-weight: 600; letter-spacing: 1px;">아래로 스크롤</div>
-                <div style="font-size: 1.5rem; animation: bounce 2s infinite;">▼</div>
-            </div>
+        </div>
+        
+        <!-- 스크롤 인디케이터 -->
+        <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})" style="position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); cursor: pointer; transition: all 0.3s; text-align: center; z-index: 10;" 
+             onmouseover="this.style.transform='translateX(-50%) translateY(-5px)'; this.style.opacity='1'" 
+             onmouseout="this.style.transform='translateX(-50%) translateY(0)'; this.style.opacity='0.7'">
+            <div style="font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">아래로 스크롤</div>
+            <div style="font-size: 1.3rem; animation: bounce 2s infinite; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">▼</div>
         </div>
     </section>
 
