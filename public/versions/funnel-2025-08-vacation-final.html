@@ -32,7 +32,7 @@
             position: relative;
             width: 100%;
             min-height: 100vh;
-            background: #000; /* 검은 배경으로 고급스러움 강조 */
+            background: transparent; /* 투명 배경으로 영상이 잘 보이도록 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -46,15 +46,15 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.6;
+            opacity: 0.85; /* 더 밝게 조정 */
             z-index: 1;
-            filter: brightness(0.8) contrast(1.1);
+            filter: brightness(1.0) contrast(1.1); /* 밝기 증가 */
         }
         
         @media (max-width: 768px) {
             .hero-bg-image {
-                opacity: 0.5;
-                filter: brightness(0.7) contrast(1.1);
+                opacity: 0.95 !important; /* 모바일에서 최대한 밝게 표시 */
+                filter: brightness(1.1) contrast(1.0) !important; /* 밝기 최대화 */
             }
         }
         
@@ -66,14 +66,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+            background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.2) 100%); /* 비네팅 효과 약하게 */
             z-index: 2;
             pointer-events: none;
         }
         
         @media (max-width: 768px) {
             .hero-section::before {
-                background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%);
+                display: none; /* 모바일에서 비네팅 효과 완전 제거 */
             }
         }
         
@@ -84,17 +84,19 @@
             animation: fadeInUp 1s ease-out;
             position: relative;
             /* 텍스트 가독성을 위한 미묘한 그림자 */
-            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.7); /* 텍스트 가독성 향상 */
         }
         
         @media (max-width: 768px) {
             .hero-content {
-                background: rgba(0,0,0,0.3);
-                backdrop-filter: blur(5px);
-                -webkit-backdrop-filter: blur(5px);
+                /* 모바일에서 검정 배경 제거 - 영상이 잘 보이도록 */
+                background: transparent !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
                 padding: 30px 15px;
-                border-radius: 20px;
+                border-radius: 0;
                 margin: 0 10px;
+                box-shadow: none !important;
             }
         }
         
@@ -1214,16 +1216,24 @@
             .hero-title span:first-child {
                 font-size: 1.6rem !important;
                 margin-bottom: 5px !important;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.8); /* 모바일 텍스트 가독성 향상 */
             }
             
             .hero-title span:last-child {
                 font-size: 1.8rem !important;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.8); /* 모바일 텍스트 가독성 향상 */
             }
             
             .hero-subtitle {
                 font-size: 1rem !important;
                 padding: 0 15px !important;
                 max-width: 95% !important;
+                text-shadow: 0 2px 8px rgba(0,0,0,0.8) !important; /* 모바일 가독성 향상 */
+            }
+            
+            /* 노란색 텍스트 가독성 향상 */
+            .hero-subtitle span {
+                text-shadow: 0 2px 10px rgba(0,0,0,0.9) !important;
             }
             
             .product-grid {
@@ -1471,14 +1481,14 @@
         <div class="palm-tree">🌴</div>
         <div class="summer-wave"></div>
         <!-- 배경 영상으로 변경 -->
-        <video autoplay muted class="hero-bg-image" id="heroVideo">
+        <video autoplay muted playsinline loop class="hero-bg-image" id="heroVideo">
             <source src="/campaigns/2025-08/sunbed.mp4" type="video/mp4">
             <!-- 영상이 로드되지 않을 때 폴백 이미지 -->
             <img src="/campaigns/2025-08/sunbed-1080x1920.jpg" alt="휴가철 골프" style="width: 100%; height: 100%; object-fit: cover;">
         </video>
         <div class="hero-content">
-            <div style="display: inline-block; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 30px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
-                <span style="font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: white;">2025 Summer Limited Edition</span>
+            <div style="display: inline-block; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 30px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.3);">
+                <span style="font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: white; text-shadow: none;">2025 Summer Limited Edition</span>
             </div>
             <h1 class="hero-title" style="font-size: 3.2rem; line-height: 1.2; margin-bottom: 25px;">
                 <span style="display: block; font-size: 2.2rem; font-weight: 600; margin-bottom: 10px; color: white; text-shadow: 0 3px 15px rgba(0,0,0,0.8);">휴가철 골프 휴양지,</span>
