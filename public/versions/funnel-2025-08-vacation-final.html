@@ -828,7 +828,7 @@
         .flip-card {
             background-color: transparent;
             width: 100%;
-            height: 400px;
+            height: 480px;
             perspective: 1200px;
             cursor: pointer;
             transform-style: preserve-3d;
@@ -1181,6 +1181,20 @@
         
         /* 모바일에서 고객 스토리 그리드 수정 */
         @media (max-width: 768px) {
+            /* 모바일에서 특정 단위 텍스트 크기 조정 */
+            .metric-value {
+                font-size: 2.8rem !important;
+            }
+            
+            .metric-unit {
+                font-size: 1.4rem !important;
+                font-weight: 600 !important;
+            }
+            
+            .week-text {
+                font-size: 1.2rem !important;
+                font-weight: 600 !important;
+            }
             /* 고객 성공 스토리 - 모바일에서 1열로 변경 */
             .success-stories-grid {
                 grid-template-columns: 1fr !important;
@@ -1763,15 +1777,21 @@
                                 <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 25px; margin-bottom: 25px; backdrop-filter: blur(10px);">
                                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
                                         <div>
-                                            <div style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B; margin-bottom: 5px;">98%</div>
+                                            <div style="margin-bottom: 5px;">
+                                                <span class="metric-value" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">92</span><span class="metric-unit" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">%</span>
+                                            </div>
                                             <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">고객 만족도</p>
                                         </div>
                                         <div>
-                                            <div style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B; margin-bottom: 5px;">+25m</div>
+                                            <div style="margin-bottom: 5px;">
+                                                <span class="metric-value" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">+25</span><span class="metric-unit" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">m</span>
+                                            </div>
                                             <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">평균 비거리 증가</p>
                                         </div>
                                         <div>
-                                            <div style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B; margin-bottom: 5px;">4주</div>
+                                            <div style="margin-bottom: 5px;">
+                                                <span class="metric-value" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">4</span><span class="week-text" style="font-size: 2.5rem; font-weight: 900; color: #FFEB3B;">주</span>
+                                            </div>
                                             <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">변화 체감 기간</p>
                                         </div>
                                     </div>
@@ -1780,7 +1800,7 @@
                                 <div class="achievement" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; backdrop-filter: blur(5px);">
                                     <p style="font-size: 1.15rem; line-height: 1.8; margin: 0;">
                                         "지금 이 순간에도 진철에서<br>
-                                        <strong style="color: #FFEB3B; font-size: 1.3rem;">2,847명</strong>의 골퍼가 MASGOLF와 함께<br>
+                                        <strong style="color: #FFEB3B; font-size: 1.3rem;">3,000명</strong>의 골퍼가 MASGOLF와 함께<br>
                                         새로운 도전을 시작했습니다"
                                     </p>
                                 </div>
