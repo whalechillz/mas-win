@@ -1325,13 +1325,31 @@
     </div>
     
     <!-- 프로모션 타이머 바 -->
-    <div style="background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 100%); color: white; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-        <div style="font-size: 1.1rem; font-weight: 600;">
-            🌴 8월 휴가철 특별 프로모션 종료까지: <span id="promo-timer" style="color: #FEF3C7;"></span>
+    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #FF6B35 0%, #4ECDC4 50%, #667EEA 100%); animation: shimmer 3s linear infinite;"></div>
+        <div style="padding: 15px; position: relative;">
+            <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div style="flex: 1; min-width: 300px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                        <span style="background: #FF6B35; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Limited Time</span>
+                        <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0; background: linear-gradient(90deg, #fff 0%, #f0f0f0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🌴 8월 휴가철 프리미엄 프로모션</h3>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div id="promo-timer" style="font-size: 1.1rem; font-weight: 600; color: #FEF3C7;"></div>
+                        <div style="height: 20px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+                        <div style="font-size: 0.95rem; color: #fff; opacity: 0.9;">
+                            🎁 명품 향수 증정 · 선착순 <span class="remaining-count" style="background: #FFEB3B; color: #333; padding: 2px 8px; border-radius: 12px; font-weight: 800;">30명</span>만
+                        </div>
+                    </div>
+                </div>
+                <a href="tel:080-028-8888" style="background: linear-gradient(135deg, #FF6B35, #FF8E53); color: white; padding: 10px 24px; border-radius: 25px; text-decoration: none; font-weight: 700; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,107,53,0.3); transition: all 0.3s; border: 2px solid transparent;" 
+                   onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255,107,53,0.4)'; this.style.border='2px solid rgba(255,255,255,0.3)'" 
+                   onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(255,107,53,0.3)'; this.style.border='2px solid transparent'">
+                    <span style="animation: pulse 2s infinite;">📞</span> 지금 상담받기
+                </a>
+            </div>
         </div>
-        <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
-            🎁 명품 향수 증정! 잔여 <span class="remaining-count" style="color: #FFEB3B; font-weight: bold;">30명</span>만!
-        </div>
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shimmer 3s linear infinite;"></div>
     </div>
     
     <!-- 이탈 방지 팝업 -->
@@ -1382,12 +1400,39 @@
             <img src="/campaigns/2025-08/sunbed-1080x1920.jpg" alt="휴가철 골프" style="width: 100%; height: 100%; object-fit: cover;">
         </video>
         <div class="hero-content">
-            <h1 class="hero-title">휴가철 골프 휴양지,<br>당신의 완벽한 필수품</h1>
-            <p class="hero-subtitle">MASGOLF로 품격 있는 휴가철 스윙을 완성하세요.<br>고성능 클럽으로 휴양지에서 빛나는 샷!</p>
+            <div style="display: inline-block; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 30px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                <span style="font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">2025 Summer Limited Edition</span>
+            </div>
+            <h1 class="hero-title" style="font-size: 3.2rem; line-height: 1.2; margin-bottom: 25px;">
+                <span style="display: block; font-size: 2.2rem; font-weight: 500; opacity: 0.9; margin-bottom: 10px;">휴가철 골프 휴양지,</span>
+                <span style="display: block; background: linear-gradient(135deg, #fff 0%, #FFE5D9 50%, #4ECDC4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">당신의 완벽한 필수품</span>
+            </h1>
+            <p class="hero-subtitle" style="font-size: 1.3rem; line-height: 1.8; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <span style="color: #4ECDC4; font-weight: 600;">MASGOLF</span>로 품격 있는 휴가철 스윙을 완성하세요.<br>
+                고성능 클럽으로 <span style="background: linear-gradient(90deg, #FFEB3B, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600;">휴양지에서 빛나는 샷!</span>
+            </p>
             
-            <!-- 향수 영상은 아래 선물 섹션으로 이동 -->
-            <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})">
-                ↓
+            <!-- CTA 버튼 추가 -->
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 50px;">
+                <a href="tel:080-028-8888" style="background: linear-gradient(135deg, #FF6B35, #FF8E53); color: white; padding: 18px 40px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(255,107,53,0.3); transition: all 0.3s; border: 2px solid transparent; position: relative; overflow: hidden;" 
+                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 40px rgba(255,107,53,0.4)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(255,107,53,0.3)'">
+                    <span style="position: relative; z-index: 2;">📞 무료 상담 신청</span>
+                    <div style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); transition: all 0.5s;"></div>
+                </a>
+                <a href="#quiz-section" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: white; padding: 18px 40px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 10px; border: 2px solid rgba(255,255,255,0.3); transition: all 0.3s;" 
+                   onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(-3px)'" 
+                   onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'">
+                    🎯 나에게 맞는 클럽 찾기
+                </a>
+            </div>
+            
+            <!-- 스크롤 인디케이터 개선 -->
+            <div class="scroll-indicator" onclick="window.scrollTo({top: window.innerHeight, behavior: 'smooth'})" style="cursor: pointer; transition: all 0.3s;" 
+                 onmouseover="this.style.transform='translateY(5px)'; this.style.opacity='1'" 
+                 onmouseout="this.style.transform='translateY(0)'; this.style.opacity='0.7'">
+                <div style="font-size: 1rem; margin-bottom: 5px; font-weight: 600; letter-spacing: 1px;">아래로 스크롤</div>
+                <div style="font-size: 1.5rem; animation: bounce 2s infinite;">▼</div>
             </div>
         </div>
     </section>
@@ -1788,9 +1833,19 @@
                     </div>
                     <h3 class="product-name">시크릿웨폰 블랙</h3>
                     <p class="product-subtitle">최강의 비거리를 위한 프리미엄 드라이버</p>
-                    <div style="margin: 15px 0;">
-                        <span style="font-size: 1.5rem; font-weight: 700; color: #FF6B35;">170만원</span>
-                        <span style="font-size: 0.9rem; color: #999; text-decoration: line-through; margin-left: 10px;">(정가 220만원)</span>
+                    <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #FFF5F2 0%, #FFE5E1 100%); border-radius: 15px; border: 1px solid rgba(255,107,53,0.1);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 0.85rem; color: #666; font-weight: 600;">정가</span>
+                            <span style="font-size: 1.1rem; color: #999; text-decoration: line-through;">2,200,000원</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 0.85rem; color: #FF6B35; font-weight: 700;">특가</span>
+                            <span style="font-size: 1.8rem; font-weight: 800; color: #FF6B35;">1,700,000원</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,107,53,0.1);">
+                            <span style="font-size: 0.85rem; color: #4ECDC4; font-weight: 600;">할인율</span>
+                            <span style="background: #4ECDC4; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">23% OFF</span>
+                        </div>
                     </div>
                     <ul class="product-features">
                         <li>초박형 티타늄 페이스 (2.2mm)</li>
@@ -1815,8 +1870,17 @@
                         </div>
                     </div>
                     
-                    <div style="text-align: center; background: #FF6B35; color: white; padding: 15px; border-radius: 50px; font-weight: 600;">
-                        총 가치 238.3만원 → <span style="font-size: 1.2rem;">170만원만!</span>
+                    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 20px; border-radius: 20px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, #FF6B35 0%, #4ECDC4 50%, #667EEA 100%); animation: shimmer 3s linear infinite;"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 0.9rem; opacity: 0.8;">총 가치</span>
+                            <span style="font-size: 1.1rem; font-weight: 600;">2,383,000원</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem; color: #4ECDC4; font-weight: 600;">특별가</span>
+                            <span style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, #FFEB3B, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">1,700,000원</span>
+                        </div>
+                        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 4rem; opacity: 0.05; transform: rotate(-15deg);">🏆</div>
                     </div>
                     
                     <div style="margin-top: 10px; font-size: 0.9rem; color: #ff4757; text-align: center;">
@@ -1831,9 +1895,19 @@
                     </div>
                     <h3 class="product-name">시크릿포스 PRO3</h3>
                     <p class="product-subtitle">정확도와 비거리의 완벽한 조화</p>
-                    <div style="margin: 15px 0;">
-                        <span style="font-size: 1.5rem; font-weight: 700; color: #FF6B35;">115만원</span>
-                        <span style="font-size: 0.9rem; color: #999; text-decoration: line-through; margin-left: 10px;">(정가 140만원)</span>
+                    <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #FFF5F2 0%, #FFE5E1 100%); border-radius: 15px; border: 1px solid rgba(255,107,53,0.1);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 0.85rem; color: #666; font-weight: 600;">정가</span>
+                            <span style="font-size: 1.1rem; color: #999; text-decoration: line-through;">1,400,000원</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 0.85rem; color: #FF6B35; font-weight: 700;">특가</span>
+                            <span style="font-size: 1.8rem; font-weight: 800; color: #FF6B35;">1,150,000원</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,107,53,0.1);">
+                            <span style="font-size: 0.85rem; color: #4ECDC4; font-weight: 600;">할인율</span>
+                            <span style="background: #4ECDC4; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">18% OFF</span>
+                        </div>
                     </div>
                     <ul class="product-features">
                         <li>3세대 AI 설계 기술 (2.3mm)</li>
@@ -1858,8 +1932,17 @@
                         </div>
                     </div>
                     
-                    <div style="text-align: center; background: #FF6B35; color: white; padding: 15px; border-radius: 50px; font-weight: 600;">
-                        총 가치 153.6만원 → <span style="font-size: 1.2rem;">115만원만!</span>
+                    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 20px; border-radius: 20px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, #FF6B35 0%, #4ECDC4 50%, #667EEA 100%); animation: shimmer 3s linear infinite;"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 0.9rem; opacity: 0.8;">총 가치</span>
+                            <span style="font-size: 1.1rem; font-weight: 600;">1,536,000원</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem; color: #4ECDC4; font-weight: 600;">특별가</span>
+                            <span style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, #FFEB3B, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">1,150,000원</span>
+                        </div>
+                        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 4rem; opacity: 0.05; transform: rotate(-15deg);">⚡</div>
                     </div>
                 </div>
                 
@@ -1870,9 +1953,19 @@
                     </div>
                     <h3 class="product-name">시크릿포스 V3</h3>
                     <p class="product-subtitle">40-50대를 위한 올라운드 드라이버</p>
-                    <div style="margin: 15px 0;">
-                        <span style="font-size: 1.5rem; font-weight: 700; color: #FF6B35;">95만원</span>
-                        <span style="font-size: 0.9rem; color: #999; text-decoration: line-through; margin-left: 10px;">(정가 120만원)</span>
+                    <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #FFF5F2 0%, #FFE5E1 100%); border-radius: 15px; border: 1px solid rgba(255,107,53,0.1);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 0.85rem; color: #666; font-weight: 600;">정가</span>
+                            <span style="font-size: 1.1rem; color: #999; text-decoration: line-through;">1,200,000원</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 0.85rem; color: #FF6B35; font-weight: 700;">특가</span>
+                            <span style="font-size: 1.8rem; font-weight: 800; color: #FF6B35;">950,000원</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,107,53,0.1);">
+                            <span style="font-size: 0.85rem; color: #4ECDC4; font-weight: 600;">할인율</span>
+                            <span style="background: #4ECDC4; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">21% OFF</span>
+                        </div>
                     </div>
                     <ul class="product-features">
                         <li>크랙 걱정없는 강화 티타늄 페이스</li>
@@ -1897,8 +1990,17 @@
                         </div>
                     </div>
                     
-                    <div style="text-align: center; background: #FF6B35; color: white; padding: 15px; border-radius: 50px; font-weight: 600;">
-                        총 가치 133.6만원 → <span style="font-size: 1.2rem;">95만원만!</span>
+                    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 20px; border-radius: 20px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, #FF6B35 0%, #4ECDC4 50%, #667EEA 100%); animation: shimmer 3s linear infinite;"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 0.9rem; opacity: 0.8;">총 가치</span>
+                            <span style="font-size: 1.1rem; font-weight: 600;">1,336,000원</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem; color: #4ECDC4; font-weight: 600;">특별가</span>
+                            <span style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, #FFEB3B, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">950,000원</span>
+                        </div>
+                        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 4rem; opacity: 0.05; transform: rotate(-15deg);">🎯</div>
                     </div>
                 </div>
             </div>
@@ -2183,17 +2285,26 @@
     </section>
 
     <!-- 영역7: FAQ -->
-    <section class="faq-section">
+    <section class="faq-section" style="background: #f8f9fa;">
         <div class="container">
-            <h2 class="faq-title">자주 묻는 질문</h2>
-            <div class="faq-list">
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        Q. 휴가 전에 시타가 가능한가요?
-                        <span>▼</span>
+            <div style="text-align: center; margin-bottom: 50px;">
+                <div style="display: inline-block; background: linear-gradient(135deg, #FF6B35, #FF8E53); padding: 6px 20px; border-radius: 30px; margin-bottom: 20px;">
+                    <span style="color: white; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px;">FAQ</span>
+                </div>
+                <h2 class="faq-title" style="font-size: 2.5rem; margin-bottom: 20px;">자주 묻는 <span style="color: #FF6B35;">질문</span></h2>
+                <p style="font-size: 1.2rem; color: #666;">궁금하신 점을 빠르게 해결해 드립니다</p>
+            </div>
+            <div class="faq-list" style="max-width: 900px; margin: 0 auto;">
+                <div class="faq-item" style="background: white; border-radius: 16px; margin-bottom: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+                    <div class="faq-question" onclick="toggleFAQ(this)" style="padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='transparent'">
+                        <div style="flex: 1;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, #FF6B35, #FF8E53); color: white; border-radius: 50%; font-weight: 700; font-size: 0.9rem; margin-right: 15px;">Q</span>
+                            <span style="font-size: 1.1rem; color: #333; font-weight: 600;">휴가 전에 시타가 가능한가요?</span>
+                        </div>
+                        <span style="font-size: 1.2rem; color: #999; transition: transform 0.3s;">▼</span>
                     </div>
-                    <div class="faq-answer">
-                        A. 네, 가능합니다. 휴가 일정에 맞춰 미리 방문 예약을 하시면 충분한 시간을 갖고 시타하실 수 있습니다. 전화로 예약하시면 원하시는 시간대로 조정해드립니다.
+                    <div class="faq-answer" style="padding: 0 30px 25px 77px; color: #666; line-height: 1.8; display: none;">
+                        네, 가능합니다. 휴가 일정에 맞춰 미리 방문 예약을 하시면 충분한 시간을 갖고 시타하실 수 있습니다. 전화로 예약하시면 원하시는 시간대로 조정해드립니다.
                     </div>
                 </div>
                 <div class="faq-item">
@@ -2237,12 +2348,63 @@
     </section>
 
     <!-- 플로팅 배너 -->
-    <div class="floating-banner" onclick="location.href='tel:080-028-8888'">
-        🌴 상담만 받아도 여행용 방수팩 증정! ☀️
+    <div class="floating-banner" onclick="location.href='tel:080-028-8888'" style="position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%); color: white; padding: 20px 30px; border-radius: 60px; box-shadow: 0 10px 40px rgba(255,107,53,0.4); font-weight: 700; cursor: pointer; z-index: 1000; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; max-width: 350px; border: 2px solid rgba(255,255,255,0.2);" 
+         onmouseover="this.style.transform='scale(1.05) translateY(-5px)'; this.style.boxShadow='0 15px 50px rgba(255,107,53,0.5)'" 
+         onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 10px 40px rgba(255,107,53,0.4)'">
+        <div style="position: relative;">
+            <div style="position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #4ECDC4; border-radius: 50%; animation: pulse 2s infinite;"></div>
+            <span style="font-size: 1.5rem; animation: bounce 2s infinite;">🎁</span>
+        </div>
+        <div>
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 2px;">상담만 받아도</div>
+            <div style="font-size: 1.1rem;">여행용 방수팩 증정!</div>
+        </div>
     </div>
 
     <!-- JavaScript -->
     <script>
+        // FAQ 토글 함수
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            const answer = faqItem.querySelector('.faq-answer');
+            const arrow = element.querySelector('span:last-child');
+            const allItems = document.querySelectorAll('.faq-item');
+            const allAnswers = document.querySelectorAll('.faq-answer');
+            const allArrows = document.querySelectorAll('.faq-question span:last-child');
+            
+            // 다른 FAQ 닫기
+            allItems.forEach((item, index) => {
+                if (item !== faqItem) {
+                    allAnswers[index].style.display = 'none';
+                    allArrows[index].style.transform = 'rotate(0deg)';
+                    item.classList.remove('active');
+                }
+            });
+            
+            // 현재 FAQ 토글
+            if (answer.style.display === 'none' || answer.style.display === '') {
+                answer.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+                faqItem.classList.add('active');
+                
+                // 부드러운 애니메이션
+                answer.style.opacity = '0';
+                answer.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    answer.style.transition = 'all 0.3s ease-out';
+                    answer.style.opacity = '1';
+                    answer.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                answer.style.opacity = '0';
+                answer.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    answer.style.display = 'none';
+                }, 300);
+                arrow.style.transform = 'rotate(0deg)';
+                faqItem.classList.remove('active');
+            }
+        }
         // Hero 비디오 순차 재생
         let videoIndex = 0;
         const videos = [
