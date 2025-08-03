@@ -2954,7 +2954,8 @@
         
         // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', function() {
-            // 로딩 화면 제거
+            // 로딩 화면 제거 코드 주석 처리 (loadingScreen 요소가 없음)
+            /*
             setTimeout(() => {
                 const loadingScreen = document.getElementById('loadingScreen');
                 if (loadingScreen) {
@@ -2964,6 +2965,7 @@
                     }, 500);
                 }
             }, 800);
+            */
             
             animateOnScroll();
             animateFloatingBanner();
