@@ -1410,7 +1410,7 @@
     
     <!-- 스크롤 시 헤더 숨기기 스크립트 -->
     <script>
-        let lastScrollTop = 0;
+        let promoLastScrollTop = 0;
         let scrollTimer = null;
         const promoBar = document.getElementById('promoBar');
         
@@ -1418,7 +1418,7 @@
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
             // 아래로 스크롤 시 숨기기
-            if (scrollTop > lastScrollTop && scrollTop > 100) {
+            if (scrollTop > promoLastScrollTop && scrollTop > 100) {
                 promoBar.style.transform = 'translateY(-100%)';
                 promoBar.style.opacity = '0';
             } else {
@@ -1426,7 +1426,7 @@
                 promoBar.style.opacity = '1';
             }
             
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            promoLastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
             
             // 스크롤 멈추면 2초 후 다시 표시
             clearTimeout(scrollTimer);
@@ -2643,13 +2643,13 @@
         });
         
         // 모바일에서는 스크롤 기반 이탈 감지
-        let lastScrollTop = 0;
+        let exitLastScrollTop = 0;
         let scrollingUp = false;
         
         window.addEventListener('scroll', () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
-            if (scrollTop < lastScrollTop) {
+            if (scrollTop < exitLastScrollTop) {
                 scrollingUp = true;
             } else {
                 scrollingUp = false;
@@ -2664,7 +2664,7 @@
                 }, 1000);
             }
             
-            lastScrollTop = scrollTop;
+            exitLastScrollTop = scrollTop;
         });
         // 퀴즈 데이터
         const quizData = {
@@ -2911,11 +2911,11 @@
             let isVisible = true;
             
             // 스크롤 시 숨기기/보이기
-            let lastScrollTop = 0;
+            let bannerLastScrollTop = 0;
             window.addEventListener('scroll', () => {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                if (scrollTop > bannerLastScrollTop && scrollTop > 100) {
                     // 아래로 스크롤
                     banner.style.transform = 'translateX(400px)';
                 } else {
@@ -2923,7 +2923,7 @@
                     banner.style.transform = 'translateX(0)';
                 }
                 
-                lastScrollTop = scrollTop;
+                bannerLastScrollTop = scrollTop;
             });
         }
         
