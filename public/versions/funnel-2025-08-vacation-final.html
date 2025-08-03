@@ -831,6 +831,9 @@
             cursor: pointer;
             transform-style: preserve-3d;
             transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+            pointer-events: auto;
         }
         
         .flip-card:hover {
@@ -1110,6 +1113,8 @@
             animation: pulse 2s infinite;
             box-shadow: 0 4px 15px rgba(255,107,53,0.3);
             cursor: pointer;
+            pointer-events: none;
+            z-index: 10;
         }
         
         .flip-indicator::after {
@@ -1689,63 +1694,86 @@
                     </div>
                 </div>
                 
-                <!-- 스토리 4: 브랜드 스토리 -->
-                <div style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s; position: relative;"
-                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)'" 
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)'">
-                    <div style="padding: 40px; text-align: center; color: white; position: relative; z-index: 2;">
-                        <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; margin-bottom: 25px;">
-                            <p style="font-size: 1.1rem; margin-bottom: 15px; font-style: italic; line-height: 1.6;">
-                                "한국의 데이비드 레드베터로 평가받는<br>
-                                <span style="color: #FFEB3B; font-weight: 700;">임진한 선수</span>가 직접 사용하고<br>
-                                성능을 인정한 제품"
-                            </p>
-                            <p style="font-size: 0.9rem; opacity: 0.8;">- 2004년 전속 모델 계약</p>
-                        </div>
-                        
-                        <h3 style="font-size: 1.8rem; margin-bottom: 25px; font-weight: 700; line-height: 1.3;">
-                            20년 전통의 기술력<br>
-                            <span style="font-size: 1.8rem; color: #FFEB3B;">MASGOLF의 힘</span>
-                        </h3>
-                        
-                        <!-- 실적 데이터 -->
-                        <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 15px 10px; margin-bottom: 30px; backdrop-filter: blur(10px);">
-                            <div style="display: flex; justify-content: space-around; align-items: center; text-align: center;">
-                                <div style="flex: 1;">
-                                    <div style="font-size: 1.8rem; font-weight: 900; color: #FFEB3B; margin-bottom: 2px;">10,000+</div>
-                                    <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">누적 판매</p>
+                <!-- 스토리 4: 브랜드 스토리 (플립 카드) -->
+                <div class="flip-card" tabindex="0" role="button" aria-label="MASGOLF 브랜드 스토리 - 클릭하여 뒤집기">
+                    <div class="flip-card-inner">
+                        <!-- 앞면: 브랜드 소개 -->
+                        <div class="flip-card-front">
+                            <div class="profile-header" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
+                                <div class="particles">
+                                    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                                    <div class="particle" style="left: 30%; animation-delay: 0.5s;"></div>
+                                    <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+                                    <div class="particle" style="left: 70%; animation-delay: 1.5s;"></div>
+                                    <div class="particle" style="left: 90%; animation-delay: 2s;"></div>
                                 </div>
-                                <div style="flex: 1;">
-                                    <div style="font-size: 1.8rem; font-weight: 900; color: #FFEB3B; margin-bottom: 2px;">3,000+</div>
-                                    <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">피팅 상담</p>
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="font-size: 1.8rem; font-weight: 900; color: #FFEB3B; margin-bottom: 2px;">20년</div>
-                                    <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">기술 혁신</p>
+                                <div class="profile-info">
+                                    <div class="profile-avatar" style="font-size: 3rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);">🏆</div>
+                                    <div class="profile-details">
+                                        <h3>MASGOLF</h3>
+                                        <p>Since 2003 · 프리미엄 골프 클럽</p>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="before-content">
+                                <div class="status-badge" style="background: rgba(102,126,234,0.1); color: #667EEA;">🏌️ 브랜드 스토리</div>
+                                <p class="problem-text" style="color: #333;">
+                                    "한국의 데이비드 레드베터로 평가받는<br>
+                                    <span style="color: #667EEA; font-weight: 700;">임진한 선수</span>가 직접 사용하고<br>
+                                    성능을 인정한 제품"
+                                </p>
+                                <div class="quote" style="border-left-color: #667EEA;">
+                                    "2004년 전속 모델 계약을 통해 기술력을 인정받은 MASGOLF"
+                                </div>
+                            </div>
+                            <div class="flip-indicator"></div>
                         </div>
                         
-                        <p style="font-size: 1.05rem; line-height: 1.6; margin-bottom: 30px; opacity: 0.95;">
-                            <strong style="color: #FFEB3B;">2003년 마쓰구(MASSGOO)</strong>로 시작해<br>
-                            <strong style="color: #FFEB3B;">2009년 MASGOLF</strong>로 진화한<br>
-                            대한민국 대표 골프 클럽 브랜드<br>
-                            <span style="font-size: 0.9rem; opacity: 0.8;">
-                                🏆 2011년 중소기업 브랜드 대상<br>
-                                🥇 2012년 골프산업 대상
-                            </span>
-                        </p>
-                        
-                        <button onclick="location.href='tel:080-028-8888'" 
-                                style="background: white; color: #667EEA; padding: 20px 50px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s; position: relative; overflow: hidden;"
-                                onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.4)'" 
-                                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.3)'">
-                            <span style="position: relative; z-index: 2;">전문가 상담 받기 →</span>
-                        </button>
+                        <!-- 뒷면: 브랜드 성과 -->
+                        <div class="flip-card-back" style="background: linear-gradient(135deg, rgba(102,126,234,0.95) 0%, rgba(118,75,162,0.95) 100%);">
+                            <div class="after-content">
+                                <div class="success-badge">🏆 20년 전통</div>
+                                <h3 class="result-title">20년 전통의 기술력<br>MASGOLF의 힘</h3>
+                                
+                                <!-- 실적 데이터 -->
+                                <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 15px; margin-bottom: 25px; backdrop-filter: blur(10px);">
+                                    <div style="display: flex; justify-content: space-around; align-items: center; text-align: center;">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 1.8rem; font-weight: 900; color: #FFEB3B; margin-bottom: 2px;">10,000+</div>
+                                            <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">누적 판매</p>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 1.8rem; font-weight: 900; color: #FFEB3B; margin-bottom: 2px;">3,000+</div>
+                                            <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">피팅 상담</p>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 1.8rem; font-weight: 900; color: #FFEB3B; margin-bottom: 2px;">20년</div>
+                                            <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">기술 혁신</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="achievement">
+                                    <p style="font-size: 1rem; line-height: 1.6;">
+                                        <strong style="color: #FFEB3B;">2003년 마쓰구(MASSGOO)</strong>로 시작해<br>
+                                        <strong style="color: #FFEB3B;">2009년 MASGOLF</strong>로 진화한<br>
+                                        대한민국 대표 골프 클럽 브랜드<br>
+                                        <span style="font-size: 0.9rem; opacity: 0.8;">
+                                            🏆 2011년 중소기업 브랜드 대상<br>
+                                            🥇 2012년 골프산업 대상
+                                        </span>
+                                    </p>
+                                </div>
+                                
+                                <button onclick="location.href='tel:080-028-8888'" 
+                                        style="background: white; color: #667EEA; padding: 18px 40px; border-radius: 50px; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s; margin-top: 25px;"
+                                        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.4)'" 
+                                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.3)'">
+                                    전문가 상담 받기 →
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <!-- 배경 장식 -->
-                    <div style="position: absolute; top: -50px; right: -50px; font-size: 10rem; opacity: 0.05; transform: rotate(15deg);">🏆</div>
-                    <div style="position: absolute; bottom: -30px; left: -30px; font-size: 8rem; opacity: 0.05; transform: rotate(-15deg);">⭐</div>
                 </div>
             </div>
 
@@ -2918,11 +2946,17 @@
         // 플립 카드 기능
         function initFlipCards() {
             const flipCards = document.querySelectorAll('.flip-card');
+            console.log('플립 카드 개수:', flipCards.length);
             
-            flipCards.forEach(card => {
+            flipCards.forEach((card, index) => {
+                console.log(`플립 카드 ${index + 1} 초기화 중...`);
+                
                 // 클릭 이벤트
-                card.addEventListener('click', function() {
+                card.addEventListener('click', function(e) {
+                    console.log('플립 카드 클릭됨!');
+                    e.stopPropagation();
                     this.classList.toggle('flipped');
+                    console.log('flipped 클래스 적용:', this.classList.contains('flipped'));
                     
                     // GA4 이벤트 추적
                     if (typeof gtag !== 'undefined') {
@@ -3002,7 +3036,9 @@
             animateOnScroll();
             animateFloatingBanner();
             initCountdown();
+            console.log('페이지 로드 완료 - 플립 카드 초기화 시작');
             initFlipCards(); // 플립 카드 초기화
+            console.log('플립 카드 초기화 완료');
             
             // 이미지 로딩 실패 시 대체 콘텐츠
             const images = document.querySelectorAll('img');
