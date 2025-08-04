@@ -3029,24 +3029,7 @@
             }
         }
         
-        // FAQ 토글
-        function toggleFAQ(element) {
-            const faqItem = element.parentElement;
-            const answer = faqItem.querySelector('.faq-answer');
-            const arrow = element.querySelector('span');
-            
-            // 다른 FAQ 닫기
-            document.querySelectorAll('.faq-item').forEach(item => {
-                if (item !== faqItem) {
-                    item.classList.remove('active');
-                    item.querySelector('span').textContent = '▼';
-                }
-            });
-            
-            // 현재 FAQ 토글
-            faqItem.classList.toggle('active');
-            arrow.textContent = faqItem.classList.contains('active') ? '▲' : '▼';
-        }
+
         
         // 스크롤 애니메이션
         function animateOnScroll() {
