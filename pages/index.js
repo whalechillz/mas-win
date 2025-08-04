@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export default function Home() {
   useEffect(() => {
     // 7월 퍼널 페이지로 리다이렉트
-    window.location.href = '/funnel-2025-07';
+    window.location.href = '/funnel-2025-08';
   }, []);
 
   return (
