@@ -2644,6 +2644,57 @@
         </div>
     </section>
 
+    <script>
+        function toggleFAQ(element) {
+            // 현재 FAQ 아이템 찾기
+            const faqItem = element.parentElement;
+            const answer = faqItem.querySelector('.faq-answer');
+            const arrow = element.querySelector('span:last-child');
+            
+            // 다른 모든 FAQ 닫기
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== faqItem) {
+                    const otherAnswer = item.querySelector('.faq-answer');
+                    const otherArrow = item.querySelector('.faq-question span:last-child');
+                    if (otherAnswer) {
+                        otherAnswer.style.display = 'none';
+                        if (otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+                    }
+                }
+            });
+            
+            // 현재 FAQ 토글
+            if (answer.style.display === 'none' || !answer.style.display) {
+                answer.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+                
+                // 부드러운 애니메이션 효과
+                answer.style.opacity = '0';
+                answer.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    answer.style.transition = 'all 0.3s ease';
+                    answer.style.opacity = '1';
+                    answer.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                answer.style.opacity = '0';
+                answer.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    answer.style.display = 'none';
+                    arrow.style.transform = 'rotate(0deg)';
+                }, 300);
+            }
+        }
+        
+        // 페이지 로드 시 모든 답변 숨기기
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.faq-answer').forEach(answer => {
+                answer.style.display = 'none';
+            });
+        });
+        </script>
+
+
     <!-- 플로팅 배너 -->
     <div class="floating-banner" onclick="location.href='tel:080-028-8888'" style="position: fixed; bottom: 24px; right: 24px; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 16px 24px; border-radius: 50px; box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,107,53,0.5); font-weight: 700; cursor: pointer; z-index: 9999; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; max-width: 320px;" 
          onmouseover="this.style.transform='scale(1.08) translateY(-3px)'; this.style.boxShadow='0 16px 50px rgba(0,0,0,0.5), 0 0 0 3px rgba(255,107,53,0.7)'" 
