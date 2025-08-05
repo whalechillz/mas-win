@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
+import { SLACK_API_URL } from '../../lib/api-config';
 
 const supabaseUrl = 'https://yyytjudftvpmcnppaymw.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
@@ -103,7 +104,7 @@ export default async function handler(req, res) {
 
     // 슬랙 알림
     try {
-      await fetch('/api/slack/notify', {
+      await fetch(SLACK_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

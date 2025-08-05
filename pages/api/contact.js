@@ -1,3 +1,5 @@
+import { SLACK_API_URL } from '../../lib/api-config';
+
 export default async function handler(req, res) {
   // CORS 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -34,7 +36,7 @@ export default async function handler(req, res) {
 
     // 슬랙 알림 전송
     try {
-      const slackResponse = await fetch(`${req.headers.origin || 'https://win.masgolf.co.kr'}/api/slack/notify`, {
+      const slackResponse = await fetch(SLACK_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
