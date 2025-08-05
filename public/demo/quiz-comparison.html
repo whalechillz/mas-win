@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마쓰구(MASGOLF) - 퀴즈 시스템 비교</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF0000 0%, #8B0000 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 헤더 -->
+    <header class="gradient-bg text-white py-6">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold text-center">마쓰구(MASGOLF) 퀴즈 시스템</h1>
+            <p class="text-center mt-2">고객용 vs 오피스용 퀴즈 비교</p>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 네비게이션 -->
+        <nav class="mb-8">
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a href="#comparison" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">퀴즈 비교</a>
+                <a href="#customer-quiz" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">고객용 퀴즈</a>
+                <a href="#office-quiz" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">오피스용 퀴즈</a>
+            </div>
+        </nav>
+
+        <!-- 퀴즈 비교 섹션 -->
+        <section id="comparison" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">📊 퀴즈 시스템 비교</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- 고객용 퀴즈 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <div class="text-center mb-4">
+                        <h3 class="text-2xl font-bold text-green-600 mb-2">고객용 퀴즈</h3>
+                        <p class="text-sm text-gray-600">온라인 퍼널용</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">목적</span>
+                            <span class="text-sm text-gray-600">빠른 전환, 높은 완료율</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">질문 수</span>
+                            <span class="text-sm text-gray-600">4개 (필수)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">소요 시간</span>
+                            <span class="text-sm text-gray-600">3-5분</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">완료율</span>
+                            <span class="text-sm text-gray-600">12-16%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">정확도</span>
+                            <span class="text-sm text-gray-600">70%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">판매 전환율</span>
+                            <span class="text-sm text-gray-600">8%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">사용 환경</span>
+                            <span class="text-sm text-gray-600">모바일/데스크톱</span>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h4 class="font-bold mb-2">질문 구성</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• 연령대</li>
+                            <li>• 스윙 스타일</li>
+                            <li>• 중요 요소</li>
+                            <li>• 현재 비거리</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4">
+                        <a href="customer-quiz.html" class="block w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition text-center">
+                            고객용 퀴즈 체험
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 오피스용 퀴즈 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <div class="text-center mb-4">
+                        <h3 class="text-2xl font-bold text-blue-600 mb-2">오피스용 퀴즈</h3>
+                        <p class="text-sm text-gray-600">매장 상담용</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">목적</span>
+                            <span class="text-sm text-gray-600">정확한 맞춤 추천</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">질문 수</span>
+                            <span class="text-sm text-gray-600">18개 (상세)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">소요 시간</span>
+                            <span class="text-sm text-gray-600">15분</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">완료율</span>
+                            <span class="text-sm text-gray-600">20%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">정확도</span>
+                            <span class="text-sm text-gray-600">90%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">판매 전환율</span>
+                            <span class="text-sm text-gray-600">15%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">사용 환경</span>
+                            <span class="text-sm text-gray-600">매장/전화 상담</span>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h4 class="font-bold mb-2">질문 구성</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• 기본 정보 (5개)</li>
+                            <li>• 현재 상황 분석 (6개)</li>
+                            <li>• 선호도 및 목표 (7개)</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4">
+                        <a href="office-quiz.html" class="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition text-center">
+                            오피스용 퀴즈 체험
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 사용 시나리오 섹션 -->
+        <section id="scenarios" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">🎯 사용 시나리오</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- 고객용 시나리오 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-green-600">고객용 퀴즈 시나리오</h3>
+                    <div class="space-y-4">
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2">1. 온라인 마케팅</h4>
+                            <p class="text-sm text-green-700">광고 → 랜딩페이지 → 퀴즈 → 전환</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2">2. 소셜미디어</h4>
+                            <p class="text-sm text-green-700">인스타그램/페이스북 → 퀴즈 → 리드 생성</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2">3. 블로그/콘텐츠</h4>
+                            <p class="text-sm text-green-700">골프 관련 콘텐츠 → 퀴즈 → 참여 유도</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2">4. 이메일 마케팅</h4>
+                            <p class="text-sm text-green-700">뉴스레터 → 퀴즈 → 재참여 유도</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오피스용 시나리오 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-blue-600">오피스용 퀴즈 시나리오</h3>
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2">1. 전화 상담</h4>
+                            <p class="text-sm text-blue-700">고객 전화 → 상담 → 퀴즈 → 제안</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2">2. 매장 방문</h4>
+                            <p class="text-sm text-blue-700">매장 방문 → 클럽 체크 → 퀴즈 → 시타</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2">3. 시타 상담</h4>
+                            <p class="text-sm text-blue-700">시타 전 → 상세 퀴즈 → 맞춤 제품 추천</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2">4. 구매 결정</h4>
+                            <p class="text-sm text-blue-700">시타 후 → 최종 퀴즈 → 구매 결정</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 매장 방문 시나리오 상세 -->
+        <section id="store-scenario" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">🏪 매장 방문 시나리오 상세</h2>
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <div class="grid md:grid-cols-4 gap-6">
+                    <!-- 1단계 -->
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                            1
+                        </div>
+                        <h3 class="font-bold mb-2">방문 전</h3>
+                        <p class="text-sm text-gray-600">온라인으로 기본 정보 입력</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <p>• 연령대</p>
+                            <p>• 현재 비거리</p>
+                            <p>• 스윙 스타일</p>
+                            <p>• 중요 요소</p>
+                        </div>
+                    </div>
+
+                    <!-- 2단계 -->
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-orange-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                            2
+                        </div>
+                        <h3 class="font-bold mb-2">클럽 체크</h3>
+                        <p class="text-sm text-gray-600">매장에서 상세 정보 입력</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <p>• 볼스피드</p>
+                            <p>• 클럽스피드</p>
+                            <p>• 스매시팩터</p>
+                            <p>• 런치앵글</p>
+                        </div>
+                    </div>
+
+                    <!-- 3단계 -->
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                            3
+                        </div>
+                        <h3 class="font-bold mb-2">시타</h3>
+                        <p class="text-sm text-gray-600">추천 제품으로 시타 진행</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <p>• 추천 제품 시타</p>
+                            <p>• 실시간 피드백</p>
+                            <p>• 추가 데이터 수집</p>
+                            <p>• 고객 반응 확인</p>
+                        </div>
+                    </div>
+
+                    <!-- 4단계 -->
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                            4
+                        </div>
+                        <h3 class="font-bold mb-2">구매 결정</h3>
+                        <p class="text-sm text-gray-600">시타 결과 기반 최종 추천</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <p>• 시타 피드백</p>
+                            <p>• 최종 제품 선택</p>
+                            <p>• 구매 결정</p>
+                            <p>• 후속 관리</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 퀴즈 선택 가이드 -->
+        <section id="selection-guide" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">📋 퀴즈 선택 가이드</h2>
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-green-600">고객용 퀴즈 선택 기준</h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>마케팅 퍼널에서 빠른 리드 생성이 목표</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>일반 고객 대상 (구매 의향 미정)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>모바일/데스크톱 환경</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>높은 완료율이 중요한 경우</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-blue-600">오피스용 퀴즈 선택 기준</h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">✓</span>
+                                <span>정확한 제품 추천이 목표</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">✓</span>
+                                <span>구매 의향 고객 대상</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">✓</span>
+                                <span>전화/매장 상담 환경</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">✓</span>
+                                <span>높은 정확도가 중요한 경우</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold mb-4">마쓰구(MASGOLF)</h3>
+            <p class="mb-4">비거리 향상을 위한 고반발 드라이버 전문 브랜드</p>
+            <div class="flex justify-center space-x-4">
+                <a href="tel:080-028-8888" class="bg-white text-red-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                    📞 080-028-8888
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

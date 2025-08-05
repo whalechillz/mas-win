@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SLACK_API_URL } from '../../lib/api-config';
 
 const supabaseUrl = 'https://yyytjudftvpmcnppaymw.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
@@ -130,12 +131,22 @@ ${customerInfo.swing_style ? `스타일: ${customerInfo.swing_style}` : ''}
 ${customerInfo.priority ? `우선순위: ${customerInfo.priority}` : ''}
 ${customerInfo.current_distance ? `현재거리: ${customerInfo.current_distance}` : ''}`;
 
-      await fetch('/api/slack/notify', {
+      await fetch(SLACK_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'booking',
-          message: slackMessage
+          data: {
+            name: customerInfo.name,
+            phone: customerInfo.phone,
+            date: booking.date,
+            time: booking.time,
+            club: booking.club,
+            swing_style: customerInfo.swing_style,
+            priority: customerInfo.priority,
+            current_distance: customerInfo.current_distance,
+            recommended_flex: customerInfo.recommended_flex
+          }
         })
       });
     } catch (slackError) {

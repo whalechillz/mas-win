@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마쓰구(MASGOLF) - 맞춤 클럽 찾기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF0000 0%, #8B0000 100%);
+        }
+        .quiz-step {
+            display: none;
+        }
+        .quiz-step.active {
+            display: block;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 헤더 -->
+    <header class="gradient-bg text-white py-6">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold text-center">마쓰구(MASGOLF)</h1>
+            <p class="text-center mt-2">3분 만에 맞춤 클럽 찾기</p>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 진행률 바 -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-700">진행률</span>
+                <span id="progressText" class="text-sm font-medium text-red-600">1/4</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="progressBar" class="progress-bar bg-red-600 h-2 rounded-full" style="width: 25%"></div>
+            </div>
+        </div>
+
+        <!-- 퀴즈 폼 -->
+        <div class="max-w-2xl mx-auto">
+            <form id="customerQuiz" class="space-y-6">
+                <!-- 1단계: 연령대 -->
+                <div id="step1" class="quiz-step active">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800">연령대를 선택해주세요</h2>
+                        <div class="space-y-4">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="ageGroup" value="40대" class="mr-3">
+                                <span class="text-lg">40대</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="ageGroup" value="50대" class="mr-3">
+                                <span class="text-lg">50대</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="ageGroup" value="60대" class="mr-3">
+                                <span class="text-lg">60대</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="ageGroup" value="70대" class="mr-3">
+                                <span class="text-lg">70대</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="ageGroup" value="80대+" class="mr-3">
+                                <span class="text-lg">80대+</span>
+                            </label>
+                        </div>
+                        <button type="button" onclick="nextStep(2)" class="w-full mt-6 bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition">
+                            다음
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2단계: 스윙 스타일 -->
+                <div id="step2" class="quiz-step">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800">스윙 스타일을 선택해주세요</h2>
+                        <div class="space-y-4">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="swingStyle" value="안정형" class="mr-3">
+                                <div>
+                                    <span class="text-lg font-medium">안정형</span>
+                                    <p class="text-sm text-gray-600">일관된 스윙, 방향성 중시</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="swingStyle" value="파워형" class="mr-3">
+                                <div>
+                                    <span class="text-lg font-medium">파워형</span>
+                                    <p class="text-sm text-gray-600">강한 임팩트, 비거리 중시</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="swingStyle" value="복합형" class="mr-3">
+                                <div>
+                                    <span class="text-lg font-medium">복합형</span>
+                                    <p class="text-sm text-gray-600">균형잡힌 스윙, 비거리+방향성</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="prevStep(1)" class="flex-1 bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition">
+                                이전
+                            </button>
+                            <button type="button" onclick="nextStep(3)" class="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition">
+                                다음
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3단계: 중요 요소 -->
+                <div id="step3" class="quiz-step">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800">클럽 선택 시 가장 중요한 것은?</h2>
+                        <div class="space-y-4">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="priority" value="비거리" class="mr-3">
+                                <div>
+                                    <span class="text-lg font-medium">비거리</span>
+                                    <p class="text-sm text-gray-600">더 멀리 날아가는 클럽</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="priority" value="방향성" class="mr-3">
+                                <div>
+                                    <span class="text-lg font-medium">방향성</span>
+                                    <p class="text-sm text-gray-600">정확한 방향으로 날아가는 클럽</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-red-500 cursor-pointer">
+                                <input type="radio" name="priority" value="편안함" class="mr-3">
+                                <div>
+                                    <span class="text-lg font-medium">편안함</span>
+                                    <p class="text-sm text-gray-600">편하게 스윙할 수 있는 클럽</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="prevStep(2)" class="flex-1 bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition">
+                                이전
+                            </button>
+                            <button type="button" onclick="nextStep(4)" class="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition">
+                                다음
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4단계: 현재 비거리 -->
+                <div id="step4" class="quiz-step">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800">현재 드라이버 비거리는?</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <input type="number" id="currentDistance" placeholder="예: 180" class="w-full p-4 border border-gray-300 rounded-lg text-lg" min="100" max="300">
+                                <p class="text-sm text-gray-600 mt-2">미터 단위로 입력해주세요 (예: 180)</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="prevStep(3)" class="flex-1 bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition">
+                                이전
+                            </button>
+                            <button type="submit" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition">
+                                추천받기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- 결과 섹션 -->
+            <div id="resultSection" class="mt-8 hidden">
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">맞춤 추천 결과</h2>
+                    <div id="resultContent"></div>
+                    <div class="mt-6 space-y-4">
+                        <button onclick="bookConsultation()" class="w-full bg-red-600 text-white py-4 px-6 rounded-lg hover:bg-red-700 transition text-lg font-bold">
+                            📞 무료 상담 예약하기
+                        </button>
+                        <button onclick="bookTestDrive()" class="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 transition text-lg font-bold">
+                            🏌️ 시타 예약하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="gradient-bg text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold mb-4">마쓰구(MASGOLF)</h3>
+            <p class="mb-4">비거리 향상을 위한 고반발 드라이버 전문 브랜드</p>
+            <div class="flex justify-center space-x-4">
+                <a href="tel:080-028-8888" class="bg-white text-red-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                    📞 080-028-8888
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${currentStep}/${totalSteps}`;
+        }
+
+        function nextStep(step) {
+            // 현재 단계의 필수 입력 확인
+            if (!validateCurrentStep()) {
+                alert('모든 항목을 선택해주세요.');
+                return;
+            }
+
+            // 현재 단계 숨기기
+            document.querySelectorAll('.quiz-step').forEach(el => el.classList.remove('active'));
+            // 다음 단계 보이기
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            currentStep = step;
+            updateProgress();
+        }
+
+        function prevStep(step) {
+            // 현재 단계 숨기기
+            document.querySelectorAll('.quiz-step').forEach(el => el.classList.remove('active'));
+            // 이전 단계 보이기
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            currentStep = step;
+            updateProgress();
+        }
+
+        function validateCurrentStep() {
+            const currentStepEl = document.getElementById(`step${currentStep}`);
+            
+            if (currentStep === 1) {
+                return currentStepEl.querySelector('input[name="ageGroup"]:checked');
+            } else if (currentStep === 2) {
+                return currentStepEl.querySelector('input[name="swingStyle"]:checked');
+            } else if (currentStep === 3) {
+                return currentStepEl.querySelector('input[name="priority"]:checked');
+            } else if (currentStep === 4) {
+                return document.getElementById('currentDistance').value.trim() !== '';
+            }
+            
+            return false;
+        }
+
+        // 추천 로직
+        function getRecommendedClub(quizData) {
+            const { ageGroup, swingStyle, priority, currentDistance } = quizData;
+            
+            // 비거리 기반 추천
+            if (currentDistance < 170) {
+                return '시크리트포스 V3';
+            } else if (currentDistance >= 170 && currentDistance <= 190) {
+                return '시크리트포스 PRO3';
+            } else {
+                return '시크리트웨폰 블랙';
+            }
+        }
+
+        function getRecommendedFlex(currentDistance) {
+            if (currentDistance < 150) {
+                return 'R3';
+            } else if (currentDistance >= 150 && currentDistance < 160) {
+                return 'R3';
+            } else if (currentDistance >= 160 && currentDistance < 170) {
+                return 'R2';
+            } else if (currentDistance >= 170 && currentDistance < 180) {
+                return 'R1';
+            } else if (currentDistance >= 180 && currentDistance < 190) {
+                return 'R';
+            } else if (currentDistance >= 190 && currentDistance < 200) {
+                return 'SR';
+            } else if (currentDistance >= 200 && currentDistance < 210) {
+                return 'S';
+            } else {
+                return 'S';
+            }
+        }
+
+        // 폼 제출
+        document.getElementById('customerQuiz').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const ageGroup = document.querySelector('input[name="ageGroup"]:checked')?.value;
+            const swingStyle = document.querySelector('input[name="swingStyle"]:checked')?.value;
+            const priority = document.querySelector('input[name="priority"]:checked')?.value;
+            const currentDistance = parseInt(document.getElementById('currentDistance').value);
+            
+            if (!ageGroup || !swingStyle || !priority || !currentDistance) {
+                alert('모든 항목을 입력해주세요.');
+                return;
+            }
+            
+            const quizData = {
+                ageGroup,
+                swingStyle,
+                priority,
+                currentDistance
+            };
+            
+            // 추천 로직 실행
+            const recommendedClub = getRecommendedClub(quizData);
+            const recommendedFlex = getRecommendedFlex(currentDistance);
+            
+            // 결과 표시
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContent.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                        <h3 class="text-xl font-bold text-red-600 mb-2">추천 제품</h3>
+                        <p class="text-2xl font-bold">${recommendedClub}</p>
+                        <p class="text-lg text-gray-600 mt-2">추천 플렉스: ${recommendedFlex}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-3">입력 정보</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>연령대: ${ageGroup}</li>
+                            <li>스윙 스타일: ${swingStyle}</li>
+                            <li>중요 요소: ${priority}</li>
+                            <li>현재 비거리: ${currentDistance}m</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h3 class="text-lg font-bold text-green-600 mb-2">예상 개선</h3>
+                        <p class="text-2xl font-bold text-green-600">${currentDistance + 15}m</p>
+                        <p class="text-sm text-gray-600">비거리 15m 향상 예상</p>
+                    </div>
+                </div>
+            `;
+            
+            resultSection.classList.remove('hidden');
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        function bookConsultation() {
+            alert('상담 예약 페이지로 이동합니다.');
+            // 실제 상담 예약 페이지로 이동
+        }
+
+        function bookTestDrive() {
+            alert('시타 예약 페이지로 이동합니다.');
+            // 실제 시타 예약 페이지로 이동
+        }
+    </script>
+</body>
+</html> 

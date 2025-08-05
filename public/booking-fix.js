@@ -38,7 +38,8 @@
             
             try {
                 // API 엔드포인트로 전송
-                const response = await fetch('/api/booking', {
+                const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+                const response = await fetch(apiBase + '/api/booking', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -107,7 +108,8 @@
             };
             
             try {
-                const response = await fetch('/api/contact', {
+                const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+                const response = await fetch(apiBase + '/api/contact', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

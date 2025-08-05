@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마쓰구(MASGOLF) 데모 페이지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF0000 0%, #8B0000 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .quiz-step {
+            display: none;
+        }
+        .quiz-step.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 헤더 -->
+    <header class="gradient-bg text-white py-6">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold text-center">마쓰구(MASGOLF) 데모 페이지</h1>
+            <p class="text-center mt-2">비거리 향상을 위한 고반발 드라이버 전문 브랜드</p>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 네비게이션 -->
+        <nav class="mb-8">
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a href="#database" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">데이터베이스</a>
+                <a href="#products" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">제품 정보</a>
+                <a href="#quiz" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">퀴즈 시스템</a>
+                <a href="#recommendation" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">추천 로직</a>
+                <a href="#demo-quiz" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">데모 퀴즈</a>
+            </div>
+        </nav>
+
+        <!-- 데이터베이스 섹션 -->
+        <section id="database" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">📊 데이터베이스 구조</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-4 text-red-600">고객 프로필</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>• 기본 정보 (연령대, 이름)</li>
+                        <li>• 현재 상황 (비거리, 클럽 스펙)</li>
+                        <li>• 골프 스타일 (스윙, 볼 플라이트)</li>
+                        <li>• 페이스 타입 선호도</li>
+                        <li>• 추천 정보</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-4 text-red-600">문의하기</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>• 고객 프로필 연결</li>
+                        <li>• 연락 가능 시간</li>
+                        <li>• 문의 유형</li>
+                        <li>• 상태 관리</li>
+                        <li>• 메모 기능</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-4 text-red-600">시타예약</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>• 고객 프로필 연결</li>
+                        <li>• 날짜/시간 예약</li>
+                        <li>• 희망 클럽</li>
+                        <li>• 상태 관리</li>
+                        <li>• 예약 메모</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 제품 정보 섹션 -->
+        <section id="products" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">🏌️ 제품 정보</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-2 text-red-600">시크리트포스 V3</h3>
+                    <p class="text-2xl font-bold text-green-600 mb-2">950,000원</p>
+                    <p class="text-sm text-gray-600 mb-3">플렉스: R1, R2, R, SR, S</p>
+                    <p class="text-gray-700 mb-3">타겟: 40대~70대</p>
+                    <p class="text-sm text-gray-600">특징: 부드러운 타구감, 가격대비 우수</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-2 text-red-600">시크리트포스 PRO3</h3>
+                    <p class="text-2xl font-bold text-green-600 mb-2">1,150,000원</p>
+                    <p class="text-sm text-gray-600 mb-3">플렉스: R2, R1, R, SR, S</p>
+                    <p class="text-gray-700 mb-3">타겟: 50대후반~60대후반</p>
+                    <p class="text-sm text-gray-600">특징: 균형잡힌 성능, 묵직한 클럽</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-2 text-red-600">시크리트포스 골드 2</h3>
+                    <p class="text-2xl font-bold text-green-600 mb-2">1,700,000원</p>
+                    <p class="text-sm text-gray-600 mb-3">플렉스: R2, R1, R, SR</p>
+                    <p class="text-gray-700 mb-3">타겟: 60대후반~70대</p>
+                    <p class="text-sm text-gray-600">특징: 럭셔리, 사회적 인정</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-2 text-red-600">시크리트웨폰 블랙</h3>
+                    <p class="text-2xl font-bold text-green-600 mb-2">1,700,000원</p>
+                    <p class="text-sm text-gray-600 mb-3">플렉스: R2, R1, R, SR, S</p>
+                    <p class="text-gray-700 mb-3">타겟: 50대후반~60대후반</p>
+                    <p class="text-sm text-gray-600">특징: 정확한 방향성, 젊어보임</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg card-hover transition">
+                    <h3 class="text-xl font-bold mb-2 text-red-600">시크리트웨폰 4.1</h3>
+                    <p class="text-2xl font-bold text-green-600 mb-2">1,700,000원</p>
+                    <p class="text-sm text-gray-600 mb-3">플렉스: R2, R1, R, SR</p>
+                    <p class="text-gray-700 mb-3">타겟: 60대후반~70대</p>
+                    <p class="text-sm text-gray-600">특징: 고급, 가벼운 클럽</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 퀴즈 시스템 섹션 -->
+        <section id="quiz" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">📝 퀴즈 시스템</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-red-600">1단계 퀴즈 (필수)</h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li>• 연령대 선택</li>
+                        <li>• 스윙 스타일 (퍼널별)</li>
+                        <li>• 중요 요소 (퍼널별)</li>
+                        <li>• 현재 비거리</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-red-600">2단계 퀴즈 (선택)</h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li>• 현재 클럽 스펙</li>
+                        <li>• 볼스피드 (골프존)</li>
+                        <li>• 티 높이 선호도</li>
+                        <li>• 볼 플라이트 선호도</li>
+                        <li>• 예산 범위</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 추천 로직 섹션 -->
+        <section id="recommendation" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">🎯 추천 로직</h2>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-red-600">추천 우선순위</h3>
+                        <ol class="space-y-3 text-gray-700">
+                            <li>1. 예산 기반 필터링</li>
+                            <li>2. 연령대 + 선호도</li>
+                            <li>3. 페이스 타입</li>
+                            <li>4. 비거리</li>
+                            <li>5. 볼스피드</li>
+                            <li>6. 기본 추천</li>
+                        </ol>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-red-600">비거리별 플렉스 추천</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>• 150-160m: R3</li>
+                            <li>• 160-170m: R2</li>
+                            <li>• 170-180m: R1</li>
+                            <li>• 180-190m: R</li>
+                            <li>• 190-200m: SR</li>
+                            <li>• 200-210m: S</li>
+                            <li>• 210m 이상: S</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 단계별 데모 퀴즈 -->
+        <section id="demo-quiz" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">🎮 단계별 데모 퀴즈</h2>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <form id="stepQuiz" class="space-y-6">
+                    <!-- 1단계: 기본 정보 -->
+                    <div id="step1" class="quiz-step active">
+                        <h3 class="text-xl font-bold mb-4 text-red-600">1단계: 기본 정보</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">연령대</label>
+                                <select id="ageGroup" class="w-full p-3 border border-gray-300 rounded-lg" required>
+                                    <option value="">선택해주세요</option>
+                                    <option value="40대">40대</option>
+                                    <option value="50대">50대</option>
+                                    <option value="60대">60대</option>
+                                    <option value="70대">70대</option>
+                                    <option value="80대+">80대+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">스윙 스타일</label>
+                                <select id="swingStyle" class="w-full p-3 border border-gray-300 rounded-lg" required>
+                                    <option value="">선택해주세요</option>
+                                    <option value="안정형">안정형</option>
+                                    <option value="파워형">파워형</option>
+                                    <option value="복합형">복합형</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">중요 요소</label>
+                                <select id="priority" class="w-full p-3 border border-gray-300 rounded-lg" required>
+                                    <option value="">선택해주세요</option>
+                                    <option value="비거리">비거리</option>
+                                    <option value="방향성">방향성</option>
+                                    <option value="편안함">편안함</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">현재 비거리 (m)</label>
+                                <input type="number" id="currentDistance" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="예: 180" required>
+                            </div>
+                            <button type="button" onclick="nextStep(2)" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition">
+                                다음 단계
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2단계: 상세 정보 -->
+                    <div id="step2" class="quiz-step">
+                        <h3 class="text-xl font-bold mb-4 text-red-600">2단계: 상세 정보 (선택사항)</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">현재 클럽 스펙</label>
+                                <input type="text" id="currentClubSpec" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="예: 10.5R">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">볼스피드 (m/s)</label>
+                                <input type="number" id="ballSpeed" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="예: 52">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">티 높이 선호도</label>
+                                <select id="teeHeightPreference" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="">선택해주세요</option>
+                                    <option value="40mm">40mm (낮게)</option>
+                                    <option value="45mm">45mm (보통)</option>
+                                    <option value="50mm">50mm (높게)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">예산 범위</label>
+                                <select id="budget" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="">선택해주세요</option>
+                                    <option value="950000">100만원 이하 (시크리트포스 V3)</option>
+                                    <option value="1150000">100-120만원 (시크리트포스 PRO3)</option>
+                                    <option value="1700000">170만원 이상 (모든 제품)</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-4">
+                                <button type="button" onclick="prevStep(1)" class="flex-1 bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition">
+                                    이전 단계
+                                </button>
+                                <button type="submit" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition">
+                                    추천받기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div id="recommendationResult" class="mt-6 p-4 bg-gray-100 rounded-lg hidden">
+                    <h3 class="text-lg font-bold mb-2">추천 결과</h3>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold mb-4">마쓰구(MASGOLF)</h3>
+            <p class="mb-4">비거리 향상을 위한 고반발 드라이버 전문 브랜드</p>
+            <div class="flex justify-center space-x-4">
+                <a href="tel:080-028-8888" class="bg-white text-red-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                    📞 080-028-8888
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 단계별 퀴즈 로직
+        function nextStep(step) {
+            // 현재 단계 숨기기
+            document.querySelectorAll('.quiz-step').forEach(el => el.classList.remove('active'));
+            // 다음 단계 보이기
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+
+        function prevStep(step) {
+            // 현재 단계 숨기기
+            document.querySelectorAll('.quiz-step').forEach(el => el.classList.remove('active'));
+            // 이전 단계 보이기
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+
+        // 비거리별 플렉스 추천 로직
+        function getFlexByDistance(currentDistance) {
+            if (currentDistance < 150) {
+                return 'R3';
+            } else if (currentDistance >= 150 && currentDistance < 160) {
+                return 'R3';
+            } else if (currentDistance >= 160 && currentDistance < 170) {
+                return 'R2';
+            } else if (currentDistance >= 170 && currentDistance < 180) {
+                return 'R1';
+            } else if (currentDistance >= 180 && currentDistance < 190) {
+                return 'R';
+            } else if (currentDistance >= 190 && currentDistance < 200) {
+                return 'SR';
+            } else if (currentDistance >= 200 && currentDistance < 210) {
+                return 'S';
+            } else if (currentDistance >= 210) {
+                return 'S';
+            }
+            return 'R2';
+        }
+
+        // 제품 추천 로직
+        function getRecommendedClub(quizData) {
+            const { ageGroup, priority, swingStyle, currentDistance, budget } = quizData;
+            
+            // 예산 기반 필터링
+            let availableClubs = [];
+            if (budget >= 1700000) {
+                availableClubs = ['시크리트포스 골드 2', '시크리트웨폰 4.1', '시크리트웨폰 블랙'];
+            } else if (budget >= 1150000) {
+                availableClubs = ['시크리트포스 PRO3'];
+            } else {
+                availableClubs = ['시크리트포스 V3'];
+            }
+
+            // 비거리 기반 추천
+            if (currentDistance < 170) {
+                return availableClubs.includes('시크리트포스 V3') ? '시크리트포스 V3' : '시크리트포스 PRO3';
+            } else if (currentDistance >= 170 && currentDistance <= 190) {
+                return availableClubs.includes('시크리트포스 PRO3') ? '시크리트포스 PRO3' : '시크리트포스 V3';
+            } else {
+                return availableClubs.includes('시크리트웨폰 블랙') ? '시크리트웨폰 블랙' : '시크리트포스 PRO3';
+            }
+        }
+
+        // 플렉스 추천 로직
+        function getRecommendedFlex(quizData, recommendedClub) {
+            const { ageGroup, currentDistance } = quizData;
+            
+            const clubFlexRanges = {
+                '시크리트포스 V3': ['R1', 'R2', 'R', 'SR', 'S'],
+                '시크리트포스 PRO3': ['R2', 'R1', 'R', 'SR', 'S'],
+                '시크리트포스 골드 2': ['R2', 'R1', 'R', 'SR'],
+                '시크리트웨폰 블랙': ['R2', 'R1', 'R', 'SR', 'S'],
+                '시크리트웨폰 4.1': ['R2', 'R1', 'R', 'SR']
+            };
+            
+            const availableFlexes = clubFlexRanges[recommendedClub] || ['R2', 'R1', 'R', 'SR', 'S'];
+            const distanceFlex = getFlexByDistance(currentDistance);
+            
+            // 사용 가능한 플렉스 중에서 선택
+            return availableFlexes.includes(distanceFlex) ? distanceFlex : availableFlexes[0];
+        }
+
+        // 데모 퀴즈 제출
+        document.getElementById('stepQuiz').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const ageGroup = document.getElementById('ageGroup').value;
+            const swingStyle = document.getElementById('swingStyle').value;
+            const priority = document.getElementById('priority').value;
+            const currentDistance = parseInt(document.getElementById('currentDistance').value);
+            const currentClubSpec = document.getElementById('currentClubSpec').value;
+            const ballSpeed = parseInt(document.getElementById('ballSpeed').value);
+            const teeHeightPreference = document.getElementById('teeHeightPreference').value;
+            const budget = parseInt(document.getElementById('budget').value) || 950000;
+            
+            if (!ageGroup || !swingStyle || !priority || !currentDistance) {
+                alert('1단계 필수 항목을 모두 입력해주세요.');
+                return;
+            }
+            
+            const quizData = {
+                ageGroup,
+                swingStyle,
+                priority,
+                currentDistance,
+                currentClubSpec,
+                ballSpeed,
+                teeHeightPreference,
+                budget
+            };
+            
+            // 추천 로직 실행
+            const recommendedClub = getRecommendedClub(quizData);
+            const recommendedFlex = getRecommendedFlex(quizData, recommendedClub);
+            const distanceFlex = getFlexByDistance(currentDistance);
+            
+            // 결과 표시
+            const resultDiv = document.getElementById('recommendationResult');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContent.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-lg">
+                        <h4 class="text-lg font-bold text-red-600 mb-2">추천 제품</h4>
+                        <p class="text-xl font-bold">${recommendedClub}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg">
+                        <h4 class="text-lg font-bold text-red-600 mb-2">추천 플렉스</h4>
+                        <p class="text-xl font-bold">${recommendedFlex}</p>
+                        <p class="text-sm text-gray-600">비거리 기준: ${distanceFlex}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg">
+                        <h4 class="text-lg font-bold text-red-600 mb-2">입력 정보</h4>
+                        <ul class="space-y-1 text-sm">
+                            <li>연령대: ${ageGroup}</li>
+                            <li>스윙 스타일: ${swingStyle}</li>
+                            <li>중요 요소: ${priority}</li>
+                            <li>현재 비거리: ${currentDistance}m</li>
+                            ${currentClubSpec ? `<li>현재 클럽 스펙: ${currentClubSpec}</li>` : ''}
+                            ${ballSpeed ? `<li>볼스피드: ${ballSpeed}m/s</li>` : ''}
+                            ${teeHeightPreference ? `<li>티 높이: ${teeHeightPreference}</li>` : ''}
+                        </ul>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg">
+                        <h4 class="text-lg font-bold text-red-600 mb-2">예상 개선</h4>
+                        <p class="text-lg font-bold text-green-600">${currentDistance + 15}m</p>
+                        <p class="text-sm text-gray-600">비거리 15m 향상 예상</p>
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.classList.remove('hidden');
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html> 
