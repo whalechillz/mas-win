@@ -2670,10 +2670,16 @@
 
     <script>
         function toggleFAQ(element) {
+            console.log('toggleFAQ 호출됨:', element);
+            
             // 현재 FAQ 아이템 찾기
             const faqItem = element.parentElement;
             const answer = faqItem.querySelector('.faq-answer');
             const arrow = element.querySelector('span:last-child');
+            
+            console.log('FAQ 아이템:', faqItem);
+            console.log('답변 요소:', answer);
+            console.log('화살표 요소:', arrow);
             
             // 다른 모든 FAQ 닫기
             document.querySelectorAll('.faq-item').forEach(item => {
@@ -2689,8 +2695,9 @@
             
             // 현재 FAQ 토글
             if (answer.style.display === 'none' || !answer.style.display) {
+                console.log('FAQ 열기');
                 answer.style.display = 'block';
-                arrow.style.transform = 'rotate(180deg)';
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
                 
                 // 부드러운 애니메이션 효과
                 answer.style.opacity = '0';
@@ -2701,11 +2708,12 @@
                     answer.style.transform = 'translateY(0)';
                 }, 10);
             } else {
+                console.log('FAQ 닫기');
                 answer.style.opacity = '0';
                 answer.style.transform = 'translateY(-10px)';
                 setTimeout(() => {
                     answer.style.display = 'none';
-                    arrow.style.transform = 'rotate(0deg)';
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
                 }, 300);
             }
         }
@@ -2735,8 +2743,10 @@
 
     <!-- JavaScript -->
     <script>
-        // FAQ 토글 함수
+        // FAQ 토글 함수 (개선된 버전)
         function toggleFAQ(element) {
+            console.log('toggleFAQ 호출됨 (개선된 버전):', element);
+            
             const faqItem = element.parentElement;
             const answer = faqItem.querySelector('.faq-answer');
             const arrow = element.querySelector('span:last-child');
@@ -2744,19 +2754,28 @@
             const allAnswers = document.querySelectorAll('.faq-answer');
             const allArrows = document.querySelectorAll('.faq-question span:last-child');
             
+            console.log('FAQ 아이템:', faqItem);
+            console.log('답변 요소:', answer);
+            console.log('화살표 요소:', arrow);
+            
             // 다른 FAQ 닫기
             allItems.forEach((item, index) => {
                 if (item !== faqItem) {
-                    allAnswers[index].style.display = 'none';
-                    allArrows[index].style.transform = 'rotate(0deg)';
+                    if (allAnswers[index]) {
+                        allAnswers[index].style.display = 'none';
+                    }
+                    if (allArrows[index]) {
+                        allArrows[index].style.transform = 'rotate(0deg)';
+                    }
                     item.classList.remove('active');
                 }
             });
             
             // 현재 FAQ 토글
-            if (answer.style.display === 'none' || answer.style.display === '') {
+            if (answer && (answer.style.display === 'none' || answer.style.display === '')) {
+                console.log('FAQ 열기 (개선된 버전)');
                 answer.style.display = 'block';
-                arrow.style.transform = 'rotate(180deg)';
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
                 faqItem.classList.add('active');
                 
                 // 부드러운 애니메이션
@@ -2868,30 +2887,47 @@
         
         // 퀴즈 답변 선택
         function selectAnswer(step, value) {
+            console.log('selectAnswer 호출됨:', step, value);
+            
             // 이전 선택 제거
             document.querySelectorAll(`#step${step} .quiz-option`).forEach(opt => {
                 opt.classList.remove('selected');
             });
             
-            // 새 선택 추가
-            event.target.closest('.quiz-option').classList.add('selected');
+            // 새 선택 추가 - 이벤트 객체를 명시적으로 받음
+            const clickedElement = event.target.closest('.quiz-option');
+            if (clickedElement) {
+                clickedElement.classList.add('selected');
+                console.log('선택된 옵션:', clickedElement);
+            }
             
             // 데이터 저장
             if (step === 1) {
                 quizData.style = value;
+                console.log('스타일 저장:', value);
             } else if (step === 2) {
                 quizData.priority = value;
+                console.log('우선순위 저장:', value);
             }
             
             // 다음 단계로
             setTimeout(() => {
-                document.getElementById(`step${step}`).classList.remove('active');
-                document.getElementById(`step${step + 1}`).classList.add('active');
+                const currentStep = document.getElementById(`step${step}`);
+                const nextStep = document.getElementById(`step${step + 1}`);
+                
+                if (currentStep && nextStep) {
+                    currentStep.classList.remove('active');
+                    nextStep.classList.add('active');
+                    console.log(`단계 ${step}에서 ${step + 1}로 이동`);
+                } else {
+                    console.error('단계 요소를 찾을 수 없음:', step);
+                }
             }, 500);
         }
         
         // 퀴즈 완료
         function completeQuiz() {
+            console.log('completeQuiz 호출됨');
             const distance = document.getElementById('distanceInput').value;
             if (!distance) {
                 alert('비거리를 입력해주세요.');
@@ -2899,6 +2935,7 @@
             }
             
             quizData.distance = parseInt(distance);
+            console.log('최종 퀴즈 데이터:', quizData);
             
             // 추천 제품 결정
             let productName, productDesc, productGift, productImage, productPrice, productOriginalPrice;
