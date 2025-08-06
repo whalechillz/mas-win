@@ -824,7 +824,7 @@
             to { transform: rotate(360deg); }
         }
         
-        /* 플립 카드 스타일 추가 */
+        /* 플립 카드 스타일 개선 */
         .flip-card {
             background-color: transparent;
             width: 100%;
@@ -836,6 +836,9 @@
             position: relative;
             z-index: 1;
             pointer-events: auto;
+            -webkit-transform-style: preserve-3d;
+            -moz-transform-style: preserve-3d;
+            -ms-transform-style: preserve-3d;
         }
         
         .flip-card:hover {
@@ -849,12 +852,18 @@
             text-align: center;
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            -moz-transform-style: preserve-3d;
+            -ms-transform-style: preserve-3d;
             will-change: transform;
             transform: translateZ(0);
         }
         
         .flip-card.flipped .flip-card-inner {
             transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg);
+            -moz-transform: rotateY(180deg);
+            -ms-transform: rotateY(180deg);
         }
         
         .flip-card:hover .flip-card-inner {
@@ -878,6 +887,8 @@
             width: 100%;
             height: 100%;
             -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            -ms-backface-visibility: hidden;
             backface-visibility: hidden;
             border-radius: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -896,6 +907,9 @@
         
         .flip-card-back {
             transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg);
+            -moz-transform: rotateY(180deg);
+            -ms-transform: rotateY(180deg);
             background: linear-gradient(135deg, rgba(102,126,234,0.95) 0%, rgba(118,75,162,0.95) 100%);
             color: white;
         }
@@ -3123,34 +3137,80 @@
             flipCards.forEach((card, index) => {
                 console.log(`플립 카드 ${index + 1} 초기화 중...`);
                 
-                // 클릭 이벤트
+                // 클릭 이벤트 - 더 강력한 이벤트 처리
                 card.addEventListener('click', function(e) {
                     console.log('플립 카드 클릭됨!');
+                    e.preventDefault();
                     e.stopPropagation();
-                    this.classList.toggle('flipped');
+                    e.stopImmediatePropagation();
+                    
+                    // flipped 클래스 토글
+                    const isFlipped = this.classList.contains('flipped');
+                    if (isFlipped) {
+                        this.classList.remove('flipped');
+                    } else {
+                        this.classList.add('flipped');
+                    }
+                    
                     console.log('flipped 클래스 적용:', this.classList.contains('flipped'));
                     
                     // GA4 이벤트 추적
                     if (typeof gtag !== 'undefined') {
-                        const isFlipped = this.classList.contains('flipped');
                         const cardIndex = Array.from(flipCards).indexOf(this) + 1;
                         gtag('event', 'flip_card', {
                             event_category: 'engagement',
                             event_label: `story_card_${cardIndex}`,
-                            flip_state: isFlipped ? 'back' : 'front'
+                            flip_state: this.classList.contains('flipped') ? 'back' : 'front'
                         });
                     }
                 });
                 
-                // 키보드 접근성 (Enter 키)
+                // 키보드 접근성 (Enter 키, Space 키)
                 card.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
+                        e.stopPropagation();
                         this.classList.toggle('flipped');
                     }
                 });
                 
-                // 마우스 움직임에 따른 3D 기울임 효과
+                // 터치 이벤트 개선
+                let touchStartTime = 0;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                
+                card.addEventListener('touchstart', function(e) {
+                    touchStartTime = Date.now();
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    console.log('터치 시작:', touchStartX, touchStartY);
+                }, { passive: false });
+                
+                card.addEventListener('touchend', function(e) {
+                    const touchEndTime = Date.now();
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const diffX = touchStartX - touchEndX;
+                    const diffY = touchStartY - touchEndY;
+                    const touchDuration = touchEndTime - touchStartTime;
+                    
+                    console.log('터치 종료:', touchEndX, touchEndY, '지속시간:', touchDuration);
+                    
+                    // 짧은 터치 (클릭으로 인식) 또는 스와이프 감지
+                    if (touchDuration < 300 && Math.abs(diffX) < 50 && Math.abs(diffY) < 50) {
+                        console.log('클릭으로 인식된 터치');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.classList.toggle('flipped');
+                    } else if (Math.abs(diffX) > 50) {
+                        console.log('스와이프로 인식된 터치');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.classList.toggle('flipped');
+                    }
+                }, { passive: false });
+                
+                // 마우스 움직임에 따른 3D 기울임 효과 (선택적)
                 card.addEventListener('mousemove', function(e) {
                     const rect = this.getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -3170,22 +3230,6 @@
                 card.addEventListener('mouseleave', function() {
                     this.style.setProperty('--rotateX', '0deg');
                     this.style.setProperty('--rotateY', '0deg');
-                });
-                
-                // 터치 디바이스를 위한 지원
-                let touchStartX = 0;
-                card.addEventListener('touchstart', function(e) {
-                    touchStartX = e.touches[0].clientX;
-                });
-                
-                card.addEventListener('touchend', function(e) {
-                    const touchEndX = e.changedTouches[0].clientX;
-                    const diffX = touchStartX - touchEndX;
-                    
-                    // 스와이프 감지 (50px 이상 움직임)
-                    if (Math.abs(diffX) > 50) {
-                        this.classList.toggle('flipped');
-                    }
                 });
             });
         }
