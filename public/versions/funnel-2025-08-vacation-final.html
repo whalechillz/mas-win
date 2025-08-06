@@ -2668,63 +2668,7 @@
         </div>
     </section>
 
-    <script>
-        function toggleFAQ(element) {
-            console.log('toggleFAQ 호출됨:', element);
-            
-            // 현재 FAQ 아이템 찾기
-            const faqItem = element.parentElement;
-            const answer = faqItem.querySelector('.faq-answer');
-            const arrow = element.querySelector('span:last-child');
-            
-            console.log('FAQ 아이템:', faqItem);
-            console.log('답변 요소:', answer);
-            console.log('화살표 요소:', arrow);
-            
-            // 다른 모든 FAQ 닫기
-            document.querySelectorAll('.faq-item').forEach(item => {
-                if (item !== faqItem) {
-                    const otherAnswer = item.querySelector('.faq-answer');
-                    const otherArrow = item.querySelector('.faq-question span:last-child');
-                    if (otherAnswer) {
-                        otherAnswer.style.display = 'none';
-                        if (otherArrow) otherArrow.style.transform = 'rotate(0deg)';
-                    }
-                }
-            });
-            
-            // 현재 FAQ 토글
-            if (answer.style.display === 'none' || !answer.style.display) {
-                console.log('FAQ 열기');
-                answer.style.display = 'block';
-                if (arrow) arrow.style.transform = 'rotate(180deg)';
-                
-                // 부드러운 애니메이션 효과
-                answer.style.opacity = '0';
-                answer.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    answer.style.transition = 'all 0.3s ease';
-                    answer.style.opacity = '1';
-                    answer.style.transform = 'translateY(0)';
-                }, 10);
-            } else {
-                console.log('FAQ 닫기');
-                answer.style.opacity = '0';
-                answer.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    answer.style.display = 'none';
-                    if (arrow) arrow.style.transform = 'rotate(0deg)';
-                }, 300);
-            }
-        }
-        
-        // 페이지 로드 시 모든 답변 숨기기
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.faq-answer').forEach(answer => {
-                answer.style.display = 'none';
-            });
-        });
-        </script>
+
 
 
     <!-- 플로팅 배너 -->
@@ -3293,6 +3237,30 @@
             initFlipCards(); // 플립 카드 초기화
             console.log('플립 카드 초기화 완료');
             
+            // 퀴즈 옵션 이벤트 리스너 추가
+            console.log('퀴즈 옵션 이벤트 리스너 추가 시작');
+            document.querySelectorAll('.quiz-option').forEach((option, index) => {
+                option.addEventListener('click', function(e) {
+                    console.log('퀴즈 옵션 클릭됨:', this);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // onclick 속성에서 함수와 매개변수 추출
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes('selectAnswer')) {
+                        const match = onclickAttr.match(/selectAnswer\((\d+),\s*'([^']+)'\)/);
+                        if (match) {
+                            const step = parseInt(match[1]);
+                            const value = match[2];
+                            console.log('추출된 매개변수:', step, value);
+                            selectAnswer(step, value);
+                        }
+                    }
+                });
+                console.log(`퀴즈 옵션 ${index + 1} 이벤트 리스너 등록 완료`);
+            });
+            console.log('퀴즈 옵션 이벤트 리스너 추가 완료');
+            
             // 이미지 로딩 실패 시 대체 콘텐츠
             const images = document.querySelectorAll('img');
             images.forEach(img => {
@@ -3331,8 +3299,8 @@
             });
         });
         
-        <!-- 캠페인 추적 스크립트 -->
-        <script src="/campaign-tracking.js"></script>
+        // 캠페인 추적 스크립트
+        // <script src="/campaign-tracking.js"></script>
     </script>
 </body>
 </html>
