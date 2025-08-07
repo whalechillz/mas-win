@@ -35,9 +35,17 @@ export default async function handler(req, res) {
   // 슬랙 웹훅 URL (환경변수로 관리)
   const webhookUrl = process.env.SLACK_WEBHOOK_URL;
   
+  console.log('슬랙 웹훅 URL 확인:', webhookUrl ? '설정됨' : '설정되지 않음');
+  console.log('환경변수 전체:', Object.keys(process.env).filter(key => key.includes('SLACK')));
+  
   if (!webhookUrl) {
     console.error('SLACK_WEBHOOK_URL이 설정되지 않았습니다');
-    return res.status(500).json({ error: 'Slack webhook URL not configured' });
+    console.log('슬랙 알림을 건너뛰고 성공 응답을 반환합니다');
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Slack webhook not configured, but request processed',
+      skipped: true 
+    });
   }
 
   // 전화번호 포맷팅 함수

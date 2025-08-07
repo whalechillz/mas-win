@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>삭제 권한 테스트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">삭제 권한 테스트</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">1. RLS 정책 테스트</h2>
+            <button id="testRLS" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                RLS 정책 확인
+            </button>
+            <div id="rlsResult" class="mt-4 p-4 bg-gray-50 rounded hidden">
+                <pre class="text-sm overflow-auto"></pre>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">2. 삭제 기능 테스트</h2>
+            <button id="testDelete" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                삭제 권한 테스트
+            </button>
+            <div id="deleteResult" class="mt-4 p-4 bg-gray-50 rounded hidden">
+                <pre class="text-sm overflow-auto"></pre>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">3. 관리자 페이지 링크</h2>
+            <a href="/admin" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 inline-block">
+                관리자 페이지로 이동
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testRLS').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('rlsResult');
+            const pre = resultDiv.querySelector('pre');
+            
+            resultDiv.classList.remove('hidden');
+            pre.textContent = 'RLS 정책 확인 중...';
+            
+            try {
+                const response = await fetch('/api/test-delete-permissions');
+                const data = await response.json();
+                
+                pre.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                pre.textContent = `오류 발생: ${error.message}`;
+            }
+        });
+
+        document.getElementById('testDelete').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('deleteResult');
+            const pre = resultDiv.querySelector('pre');
+            
+            resultDiv.classList.remove('hidden');
+            pre.textContent = '삭제 권한 테스트 중...';
+            
+            try {
+                const response = await fetch('/api/test-delete-permissions');
+                const data = await response.json();
+                
+                pre.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                pre.textContent = `오류 발생: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html> 

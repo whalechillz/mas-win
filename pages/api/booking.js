@@ -21,151 +21,184 @@ export default async function handler(req, res) {
 
   try {
     const { 
-      quiz_result_id,
+      name,
+      phone,
       date, 
       time, 
       club,
-      // 폴백을 위한 필드들
-      name,
-      phone,
-      swing_style,
-      priority,
-      current_distance,
-      recommended_flex,
-      expected_distance,
-      campaign_source
+      notes
     } = req.body;
 
-    console.log('Booking request:', req.body);
+    console.log('=== BOOKING API 호출됨 ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Supabase Key exists:', !!supabaseKey);
+    console.log('Request method:', req.method);
+    console.log('Content-Type:', req.headers['content-type']);
 
-    let finalQuizResultId = quiz_result_id;
-
-    // quiz_result_id가 없으면 phone으로 찾거나 새로 생성
-    if (!finalQuizResultId && phone) {
-      // 기존 퀴즈 결과 찾기
-      const { data: existingQuiz } = await supabase
-        .from('quiz_results')
-        .select('id')
-        .eq('phone', phone)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (existingQuiz) {
-        finalQuizResultId = existingQuiz.id;
-        
-        // 추가 정보가 있으면 업데이트
-        if (swing_style || priority || current_distance) {
-          await supabase
-            .from('quiz_results')
-            .update({
-              swing_style: swing_style || undefined,
-              priority: priority || undefined,
-              current_distance: current_distance || undefined,
-              recommended_flex: recommended_flex || undefined,
-              expected_distance: expected_distance || undefined,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existingQuiz.id);
-        }
-      } else if (name && phone) {
-        // 새 퀴즈 결과 생성
-        const { data: newQuiz, error: quizError } = await supabase
-          .from('quiz_results')
-          .insert({
-            name,
-            phone,
-            swing_style,
-            priority,
-            current_distance,
-            recommended_flex,
-            expected_distance,
-            campaign_source: campaign_source || 'direct-booking'
-          })
-          .select()
-          .single();
-        
-        if (quizError) throw quizError;
-        finalQuizResultId = newQuiz.id;
-      }
+    // 필수 필드 확인
+    if (!name || !phone || !date || !time || !club) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '모든 필수 정보를 입력해주세요.' 
+      });
     }
 
-    // 예약 생성
-    const { data: booking, error } = await supabase
+    // 1. 고객 프로필 확인/생성
+    let customerProfileId = null;
+    
+    console.log('고객 프로필 찾기 시작...');
+    
+    // 기존 고객 프로필 찾기
+    const { data: existingProfile, error: profileFindError } = await supabase
+      .from('customer_profiles')
+      .select('id')
+      .eq('phone', phone)
+      .single();
+      
+    console.log('고객 프로필 찾기 결과:', { existingProfile, profileFindError });
+
+    if (existingProfile) {
+      customerProfileId = existingProfile.id;
+      
+      // 고객 정보 업데이트
+      await supabase
+        .from('customer_profiles')
+        .update({
+          name: name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', customerProfileId);
+    } else {
+      // 새 고객 프로필 생성
+      const { data: newProfile, error: profileError } = await supabase
+        .from('customer_profiles')
+        .insert({
+          name: name,
+          phone: phone
+        })
+        .select()
+        .single();
+      
+      if (profileError) {
+        console.error('고객 프로필 생성 오류:', profileError);
+        throw profileError;
+      }
+      
+      customerProfileId = newProfile.id;
+    }
+
+    // 2. 시타 예약 데이터 저장
+    console.log('예약 데이터 저장 시작...');
+    console.log('저장할 데이터:', {
+      customer_profile_id: customerProfileId,
+      name: name,
+      phone: phone,
+      date: date,
+      time: time,
+      club: club,
+      notes: notes || '',
+      status: 'pending'
+    });
+    
+    const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .insert({
-        quiz_result_id: finalQuizResultId,
-        date: date || new Date().toISOString().split('T')[0],
-        time: time || '미정',
-        club: club || '추천 대기',
-        status: '대기중'
+        customer_profile_id: customerProfileId,
+        name: name,
+        phone: phone,
+        date: date,
+        time: time,
+        club: club,
+        notes: notes || '',
+        status: 'pending'
       })
       .select()
       .single();
 
-    if (error) throw error;
-
-    // 고객 정보 가져오기
-    let customerInfo = { name, phone };
-    if (finalQuizResultId) {
-      const { data: quizData } = await supabase
-        .from('quiz_results')
-        .select('*')
-        .eq('id', finalQuizResultId)
-        .single();
-      
-      if (quizData) {
-        customerInfo = quizData;
-      }
+    console.log('예약 저장 결과:', { booking, bookingError });
+    
+    if (bookingError) {
+      console.error('예약 저장 오류:', bookingError);
+      throw bookingError;
     }
 
-    // 슬랙 알림
+    // 3. 슬랙 알림 전송
     try {
-      const slackMessage = `🏌️ 새로운 시타 예약!
-이름: ${customerInfo.name}
-전화: ${customerInfo.phone}
-날짜: ${booking.date}
-시간: ${booking.time}
-클럽: ${booking.club}
-${customerInfo.swing_style ? `스타일: ${customerInfo.swing_style}` : ''}
-${customerInfo.priority ? `우선순위: ${customerInfo.priority}` : ''}
-${customerInfo.current_distance ? `현재거리: ${customerInfo.current_distance}` : ''}`;
-
-      await fetch(SLACK_API_URL, {
+      console.log('슬랙 알림 전송 시작...');
+      
+      // 절대 URL로 변경
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000';
+      
+      const slackResponse = await fetch(`${baseUrl}/api/slack/notify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           type: 'booking',
           data: {
-            name: customerInfo.name,
-            phone: customerInfo.phone,
-            date: booking.date,
-            time: booking.time,
-            club: booking.club,
-            swing_style: customerInfo.swing_style,
-            priority: customerInfo.priority,
-            current_distance: customerInfo.current_distance,
-            recommended_flex: customerInfo.recommended_flex
+            name,
+            phone,
+            date,
+            time,
+            club,
+            notes: notes || '',
+            booking_id: booking.id
           }
         })
       });
+
+      console.log('슬랙 응답 상태:', slackResponse.status);
+      console.log('슬랙 응답 헤더:', Object.fromEntries(slackResponse.headers.entries()));
+
+      if (!slackResponse.ok) {
+        const errorText = await slackResponse.text();
+        console.error('슬랙 알림 전송 실패:', errorText);
+        console.error('슬랙 응답 상태:', slackResponse.status);
+      } else {
+        const responseText = await slackResponse.text();
+        console.log('슬랙 알림 전송 성공:', responseText);
+      }
     } catch (slackError) {
-      console.error('Slack notification failed:', slackError);
+      console.error('슬랙 알림 에러:', slackError);
+      console.error('슬랙 에러 스택:', slackError.stack);
+      // 슬랙 알림 실패해도 예약은 계속 처리
     }
 
+    // 성공 응답 반환
     return res.status(200).json({ 
-      success: true,
-      booking_id: booking.id,
-      quiz_result_id: finalQuizResultId,
-      message: '예약이 완료되었습니다. 곧 연락드리겠습니다.',
-      data: booking
+      success: true, 
+      message: '시타 예약이 완료되었습니다! 곧 연락드리겠습니다.',
+      data: {
+        booking_id: booking.id,
+        customer_profile_id: customerProfileId,
+        name,
+        phone,
+        date,
+        time,
+        club
+      }
     });
     
   } catch (error) {
     console.error('Booking error:', error);
+    console.error('Error stack:', error.stack);
     return res.status(500).json({ 
       success: false,
-      error: error.message 
+      message: '예약 처리 중 오류가 발생했습니다. 전화로 문의해주세요.',
+      error: error.message,
+      stack: error.stack,
+      details: {
+        name: req.body?.name,
+        phone: req.body?.phone,
+        date: req.body?.date,
+        time: req.body?.time,
+        club: req.body?.club,
+        notes: req.body?.notes
+      }
     });
   }
 }

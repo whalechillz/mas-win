@@ -17,13 +17,9 @@ export default function Funnel202508() {
     };
   }, []);
 
-  // 강력한 캐시 방지를 위한 매개변수들
-  const timestamp = new Date().getTime();
-  const randomId = Math.random().toString(36).substring(7);
-
   return (
     <iframe
-      src={`/versions/funnel-2025-08-vacation-final.html?v=${timestamp}&nocache=${randomId}&t=${Date.now()}`}
+      src="/versions/funnel-2025-08-vacation-final.html"
       style={{
         width: '100%',
         height: '100vh',
@@ -32,7 +28,6 @@ export default function Funnel202508() {
         padding: 0
       }}
       title="MAS Golf 8월 휴가철 퍼널"
-      key={`funnel-iframe-${timestamp}`}
     />
   );
 }
