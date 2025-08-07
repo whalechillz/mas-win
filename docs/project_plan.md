@@ -1,64 +1,79 @@
-# 프로젝트 계획
+# 마쓰구(MASGOLF) 프로젝트 계획
 
-## 1. 목표
-- MASGOLF 퍼널페이지 구축 및 운영
+## 📋 최근 작업 내역
 
-## 2. 주요 일정
-- 기획: 2024-06-01 ~ 2024-06-05
-- 디자인: 2024-06-06 ~ 2024-06-10
-- 개발: 2024-06-11 ~ 2024-06-20
-- 테스트/배포: 2024-06-21 ~ 2024-06-25
+### 2025-01-XX: 데이터베이스 고도화 및 8월 퍼널 기능 추가
 
-## 3. 담당자
-- 기획: 홍길동
-- 디자인: 김디자이너
-- 개발: 이개발
+#### 🔧 **데이터베이스 고도화**
+- **작업 내용**: 기존 2개 테이블 삭제 후 새로운 3개 테이블로 고도화
+- **변경 사항**:
+  - 기존: `contacts`, `bookings` 테이블
+  - 새로운: `customer_profiles`, `contacts`, `bookings` 테이블
+- **파일 변경**:
+  - `database/upgrade-to-new-schema.sql` (새로 생성)
+  - `scripts/upgrade-database.sh` (새로 생성)
+  - `pages/api/contact.js` (업데이트)
+  - `pages/api/booking.js` (업데이트)
+- **완료 상태**: ✅ 완료
 
-## 4. 비고
-- 일정은 상황에 따라 조정될 수 있음 
+#### 🎯 **8월 퍼널 기능 추가**
+- **작업 내용**: 8월 퍼널에 시타 예약하기, 문의하기 기능 추가
+- **변경 사항**:
+  - 기존 버튼을 모달 기반 기능으로 변경
+  - 시타 예약 모달 및 문의하기 모달 추가
+  - JavaScript 함수 및 이벤트 핸들러 추가
+- **파일 변경**:
+  - `public/versions/funnel-2025-08-vacation-final.html` (업데이트)
+- **완료 상태**: ✅ 완료
 
-## 2024-06-25
+#### 🎨 **8월 퍼널 UI 개선**
+- **작업 내용**: 메인 타이틀 텍스트 크기 및 줄 간격 조정
+- **변경 사항**:
+  - 텍스트 크기: `2.3rem` → `2.2rem`
+  - 줄 간격: `1.8` → `1.3`
+  - CSS 우선순위 문제 해결 (`!important` 추가)
+- **파일 변경**:
+  - `public/versions/funnel-2025-08-vacation-final.html` (업데이트)
+- **완료 상태**: ✅ 완료
 
-### 작업 내역
-- 5월 퍼널 백업 파일(`public/versions/funnel-2025-05.html`) git에서 복원
-- 관리자 인증(비밀번호 기반) 로그인 페이지(`/pages/admin/login.tsx`) 생성
-- 인증 성공 시 쿠키(`admin_auth=1`) 발급 및 관리자 전용 라우트 접근 허용
-- `/pages/admin/versions/[filename].tsx`에서 인증된 관리자만 정적 퍼널 파일을 볼 수 있도록 구현
-- 쿠키 파싱을 위해 `cookie` 패키지 설치
-- 인증 안 된 경우 `/admin/login`으로 리다이렉트 처리
+## 🚀 **다음 단계**
 
-### 변경 파일
-- public/versions/funnel-2025-05.html (복원)
-- pages/admin/login.tsx (신규)
-- pages/api/admin-login.ts (신규)
-- pages/admin/versions/[filename].tsx (신규)
-- package.json, package-lock.json (cookie 패키지 추가)
+### 1. 데이터베이스 업그레이드 실행
+```bash
+# Supabase 대시보드에서 수동으로 실행
+# 또는 Supabase CLI 사용
+./scripts/upgrade-database.sh
+```
 
-### 남은 작업
-- 환경변수(.env.local)에 ADMIN_PASS 값 추가 필요 (예: ADMIN_PASS=원하는비밀번호)
-- 관리자 인증 UI/UX 개선(필요시)
-- 추가 퍼널 파일 접근/관리 기능 확장(필요시) 
+### 2. API 테스트
+- 8월 퍼널에서 시타 예약 기능 테스트
+- 8월 퍼널에서 문의하기 기능 테스트
+- 데이터베이스 저장 확인
 
-## 2024-06-13
+### 3. 기존 데이터 마이그레이션 (필요시)
+- 기존 `contacts`, `bookings` 데이터를 새 스키마로 이전
+- `customer_profiles` 테이블에 고객 정보 통합
 
-### 작업 내역
-- `public/versions` 폴더의 HTML 파일들을 Git에 추가
-- `pages/api/html/` 디렉토리 전체를 Git에 추가
-- 기타 변경된 파일(예: next.config.js, pages/campaign/2025-07.js 등) 포함 전체 변경사항 커밋
-- 커밋 메시지: `Fix: Add static HTML files and API handler`
-- 원격 저장소(main 브랜치)로 푸시 완료
+## 📊 **새로운 데이터베이스 구조**
 
-### 변경된 파일
-- public/versions/*.html
-- pages/api/html/*
-- next.config.js
-- pages/campaign/2025-07.js
-- scripts/check-git-files.sh
+### `customer_profiles` 테이블
+- 고객 기본 정보 (이름, 전화번호)
+- 골프 관련 상세 정보 (스윙 스타일, 비거리, 선호도 등)
+- 퀴즈 결과 및 추천 정보
 
-### 작업 목적
-- 정적 HTML 파일 및 API 핸들러를 Git에 반영하여 배포 시 누락 방지
-- 라우팅 및 정적 파일 제공 문제 해결
+### `contacts` 테이블
+- 문의하기 데이터
+- 고객 프로필과 연결
+- 문의 상태 관리
 
-### 남은 작업
-- 배포 후 정상 동작 확인
-- 필요시 추가 라우팅/핸들러 개선 
+### `bookings` 테이블
+- 시타 예약 데이터
+- 고객 프로필과 연결
+- 예약 상태 관리
+
+## 🔗 **관련 문서**
+- [데이터베이스 스키마](./database-schema.md)
+- [제품별 특징](./product-features.md)
+- [추천 로직](./recommendation-logic.md)
+- [퀴즈 질문](./quiz-questions.md)
+- [플렉스 매핑](./flex-mapping.md) 

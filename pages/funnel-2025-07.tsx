@@ -4,6 +4,7 @@ import { YouTubePopup } from '../components/common/YouTubePopup';
 export default function Funnel202507() {
   const [showYouTube, setShowYouTube] = useState(false);
   const [hasSeenPopup, setHasSeenPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // API fix 스크립트 동적 로드
@@ -29,6 +30,11 @@ export default function Funnel202507() {
       // YouTube 팝업 열기 (HTML에서 트리거)
       if (event.data?.type === 'open-youtube') {
         setShowYouTube(true);
+      }
+      
+      // iframe 로드 완료 메시지
+      if (event.data?.type === 'iframe-loaded') {
+        setIsLoading(false);
       }
     };
     
@@ -64,21 +70,35 @@ export default function Funnel202507() {
     };
   }, [hasSeenPopup]);
 
-  // 캐시 방지를 위한 타임스탬프 추가
-  const timestamp = new Date().getTime();
-
   return (
     <>
+      {/* 로딩 스피너 */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="text-gray-600 text-lg font-medium">MAS Golf 로딩 중...</div>
+            <div className="text-gray-400 text-sm mt-2">잠시만 기다려주세요</div>
+          </div>
+        </div>
+      )}
+      
       <iframe
-        src={`/versions/funnel-2025-07-complete.html?v=${timestamp}&ui=updated`}
+        src="/versions/funnel-2025-07-complete.html"
         style={{
           width: '100%',
           height: '100vh',
           border: 'none',
           margin: 0,
-          padding: 0
+          padding: 0,
+          opacity: isLoading ? 0 : 1,
+          transition: 'opacity 0.3s ease-in-out'
         }}
         title="MAS Golf 7월 퍼널"
+        onLoad={() => {
+          // iframe 로드 완료 후 1초 뒤에 로딩 스피너 숨김
+          setTimeout(() => setIsLoading(false), 1000);
+        }}
       />
       
       {showYouTube && (

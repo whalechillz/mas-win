@@ -34,11 +34,43 @@ FOR SELECT
 TO anon
 USING (true);
 
+-- 모든 사용자가 DELETE 가능 (관리자용)
+CREATE POLICY "allow_anonymous_delete_bookings" ON public.bookings
+FOR DELETE 
+TO anon
+USING (true);
+
+-- 모든 사용자가 UPDATE 가능 (관리자용)
+CREATE POLICY "allow_anonymous_update_bookings" ON public.bookings
+FOR UPDATE 
+TO anon
+USING (true)
+WITH CHECK (true);
+
 -- 4. contacts 테이블 RLS 정책 추가
 -- 모든 사용자가 INSERT 가능
 CREATE POLICY "allow_anonymous_insert_contacts" ON public.contacts
 FOR INSERT 
 TO anon
+WITH CHECK (true);
+
+-- 모든 사용자가 SELECT 가능
+CREATE POLICY "allow_anonymous_select_contacts" ON public.contacts
+FOR SELECT 
+TO anon
+USING (true);
+
+-- 모든 사용자가 DELETE 가능 (관리자용)
+CREATE POLICY "allow_anonymous_delete_contacts" ON public.contacts
+FOR DELETE 
+TO anon
+USING (true);
+
+-- 모든 사용자가 UPDATE 가능 (관리자용)
+CREATE POLICY "allow_anonymous_update_contacts" ON public.contacts
+FOR UPDATE 
+TO anon
+USING (true)
 WITH CHECK (true);
 
 -- 5. 테이블에 필요한 컬럼이 있는지 확인

@@ -129,6 +129,51 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
     }
   };
 
+  // 개별 예약 삭제
+  const deleteBooking = async (id: string) => {
+    if (!confirm('이 예약을 삭제하시겠습니까?')) return;
+    
+    console.log('=== 삭제 시도 시작 ===');
+    console.log('삭제할 ID:', id);
+    console.log('Supabase 클라이언트:', supabase);
+    console.log('Supabase URL:', supabase?.supabaseUrl);
+    console.log('Supabase Key 존재:', !!supabase?.supabaseKey);
+    
+    if (!supabase) {
+      console.error('Supabase 클라이언트가 초기화되지 않았습니다');
+      alert('데이터베이스 연결 오류입니다. 페이지를 새로고침해주세요.');
+      return;
+    }
+    
+    try {
+      console.log('Supabase DELETE 요청 시작...');
+      const { data, error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', id)
+        .select();
+      
+      console.log('삭제 결과:', { data, error });
+      
+      if (!error) {
+        console.log('삭제 성공');
+        alert('예약이 삭제되었습니다.');
+        onUpdate();
+      } else {
+        console.error('삭제 실패:', error);
+        console.error('오류 코드:', error.code);
+        console.error('오류 메시지:', error.message);
+        console.error('오류 세부사항:', error.details);
+        alert(`삭제 실패: ${error.message}\n코드: ${error.code}`);
+      }
+    } catch (err) {
+      console.error('삭제 중 예외 발생:', err);
+      console.error('예외 타입:', err.constructor.name);
+      console.error('예외 스택:', err.stack);
+      alert('삭제 중 오류 발생: ' + err.message);
+    }
+  };
+
   // 선택된 예약 일괄 처리
   const handleBulkAction = async (action: string) => {
     if (selectedBookings.length === 0) return;
@@ -146,14 +191,42 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
         break;
       case 'delete':
         if (confirm('선택한 예약을 삭제하시겠습니까?')) {
-          const { error } = await supabase
-            .from('bookings')
-            .delete()
-            .in('id', selectedBookings);
+          console.log('=== 일괄 삭제 시도 시작 ===');
+          console.log('삭제할 ID들:', selectedBookings);
+          console.log('Supabase 클라이언트:', supabase);
           
-          if (!error) {
-            setSelectedBookings([]);
-            onUpdate();
+          if (!supabase) {
+            console.error('Supabase 클라이언트가 초기화되지 않았습니다');
+            alert('데이터베이스 연결 오류입니다. 페이지를 새로고침해주세요.');
+            return;
+          }
+          
+          try {
+            console.log('Supabase 일괄 DELETE 요청 시작...');
+            const { data, error } = await supabase
+              .from('bookings')
+              .delete()
+              .in('id', selectedBookings)
+              .select();
+            
+            console.log('일괄 삭제 결과:', { data, error });
+            
+            if (!error) {
+              console.log('일괄 삭제 성공');
+              alert(`${selectedBookings.length}개의 예약이 삭제되었습니다.`);
+              setSelectedBookings([]);
+              onUpdate();
+            } else {
+              console.error('일괄 삭제 실패:', error);
+              console.error('오류 코드:', error.code);
+              console.error('오류 메시지:', error.message);
+              alert(`일괄 삭제 실패: ${error.message}\n코드: ${error.code}`);
+            }
+          } catch (err) {
+            console.error('일괄 삭제 중 예외 발생:', err);
+            console.error('예외 타입:', err.constructor.name);
+            console.error('예외 스택:', err.stack);
+            alert('일괄 삭제 중 오류 발생: ' + err.message);
           }
         }
         break;
@@ -404,6 +477,15 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                       >
                         <Phone className="w-4 h-4" />
                       </a>
+                      <button
+                        onClick={() => deleteBooking(booking.id)}
+                        className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                        title="삭제"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>

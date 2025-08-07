@@ -161,6 +161,35 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
     }
   };
 
+  // 개별 예약 삭제
+  const deleteBooking = async (id: string) => {
+    if (!confirm('이 예약을 삭제하시겠습니까?')) return;
+    
+    console.log('삭제 시도:', id);
+    console.log('Supabase 클라이언트:', supabase);
+    
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', id)
+        .select();
+      
+      console.log('삭제 결과:', { data, error });
+      
+      if (!error) {
+        console.log('삭제 성공');
+        onUpdate();
+      } else {
+        console.error('삭제 실패:', error);
+        alert('삭제 실패: ' + error.message);
+      }
+    } catch (err) {
+      console.error('삭제 중 예외 발생:', err);
+      alert('삭제 중 오류 발생: ' + err.message);
+    }
+  };
+
   // 선택된 예약 일괄 처리
   const handleBulkAction = async (action: string) => {
     if (selectedBookings.length === 0) return;
@@ -178,14 +207,28 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
         break;
       case 'delete':
         if (confirm('선택한 예약을 삭제하시겠습니까?')) {
-          const { error } = await supabase
-            .from('bookings')
-            .delete()
-            .in('id', selectedBookings);
+          console.log('일괄 삭제 시도:', selectedBookings);
           
-          if (!error) {
-            setSelectedBookings([]);
-            onUpdate();
+          try {
+            const { data, error } = await supabase
+              .from('bookings')
+              .delete()
+              .in('id', selectedBookings)
+              .select();
+            
+            console.log('일괄 삭제 결과:', { data, error });
+            
+            if (!error) {
+              console.log('일괄 삭제 성공');
+              setSelectedBookings([]);
+              onUpdate();
+            } else {
+              console.error('일괄 삭제 실패:', error);
+              alert('일괄 삭제 실패: ' + error.message);
+            }
+          } catch (err) {
+            console.error('일괄 삭제 중 예외 발생:', err);
+            alert('일괄 삭제 중 오류 발생: ' + err.message);
           }
         }
         break;
@@ -545,6 +588,15 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                       >
                         <Phone className="w-4 h-4" />
                       </a>
+                      <button
+                        onClick={() => deleteBooking(booking.id)}
+                        className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                        title="삭제"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
