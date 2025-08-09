@@ -14,7 +14,7 @@ export default function Funnel202506() {
 
   return (
     <iframe
-      src="/versions/funnel-2025-06.html"
+      src="/versions/funnel-2025-06-live.html"
       style={{
         width: '100%',
         height: '100vh',
