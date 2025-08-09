@@ -378,18 +378,102 @@
         // 폼 제출
         function submitBooking(event) {
             event.preventDefault();
+            console.log('submitBooking 함수 호출됨');
             const form = document.getElementById('bookingForm');
-            alert('시타 예약이 접수되었습니다. 곧 연락드리겠습니다.');
-            closeModal('bookingModal');
-            form.reset();
+            if (!form) {
+                console.warn('bookingForm을 찾을 수 없습니다 - 모달이 열려있지 않을 수 있습니다');
+                return;
+            }
+            const formData = new FormData(form);
+            
+            // 로딩 상태 표시
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '처리중...';
+                submitBtn.disabled = true;
+            }
+            
+            fetch('/api/booking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: formData.get('name'),
+                    phone: formData.get('phone'),
+                    date: formData.get('date'),
+                    time: formData.get('time'),
+                    club: formData.get('club'),
+                    notes: formData.get('notes') || ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('시타 예약이 완료되었습니다! 곧 연락드리겠습니다.');
+                    closeModal('bookingModal');
+                    form.reset();
+                } else {
+                    console.error('API 오류 응답:', data);
+                    alert(`예약 중 오류가 발생했습니다: ${data.error || '알 수 없는 오류'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Network Error:', error);
+                alert('예약 중 오류가 발생했습니다. 전화로 문의해주세요.');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i data-feather="calendar"></i>시타 예약하기';
+                    submitBtn.disabled = false;
+                }
+            });
         }
         
         function submitInquiry(event) {
             event.preventDefault();
             const form = document.getElementById('inquiryForm');
-            alert('문의가 접수되었습니다. 곧 연락드리겠습니다.');
-            closeModal('inquiryModal');
-            form.reset();
+            const formData = new FormData(form);
+            
+            // 로딩 상태 표시
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '처리중...';
+                submitBtn.disabled = true;
+            }
+            
+            fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: formData.get('name'),
+                    phone: formData.get('phone'),
+                    call_times: formData.get('call_times'),
+                    notes: formData.get('notes')
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('문의가 완료되었습니다! 곧 연락드리겠습니다.');
+                    closeModal('inquiryModal');
+                    form.reset();
+                } else {
+                    alert('문의 중 오류가 발생했습니다. 전화로 문의해주세요.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('문의 중 오류가 발생했습니다. 전화로 문의해주세요.');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i data-feather="send"></i>문의하기';
+                    submitBtn.disabled = false;
+                }
+            });
         }
         
         // 카운트다운
@@ -461,8 +545,13 @@
     </div>
     
     <!-- 히어로 섹션 -->
-    <section class="section" style="background: linear-gradient(135deg, var(--gray-light-bg) 0%, var(--white-bg) 100%); min-height: 100vh; display: flex; align-items: center;">
-        <div class="container">
+    <section class="section" style="background: linear-gradient(135deg, var(--gray-light-bg) 0%, var(--white-bg) 100%); min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden;">
+        <!-- 메인 비주얼 비디오 배경 -->
+        <video id="heroVideo" autoplay muted loop playsinline
+               style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.35; z-index: 1;">
+            <source src="/campaigns/2025-08/mainvisual.mp4" type="video/mp4" />
+        </video>
+        <div class="container" style="position: relative; z-index: 2;">
             <div style="text-align: center; max-width: 900px; margin: 0 auto;">
                 <div style="display: inline-block; background: var(--gold-main); color: var(--black-main); padding: 8px 24px; border-radius: var(--radius-sm); margin-bottom: 24px; font-weight: 700;">
                     PREMIUM GOLF CLUB
@@ -549,8 +638,8 @@
             <div class="grid grid-3">
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: var(--gray-light-bg); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                            👨‍💼
+                        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                            <img src="/campaigns/2025-08/hero-image-1-face.jpg" alt="김○○님" style="width: 100%; height: 100%; object-fit: cover;" />
                         </div>
                         <div>
                             <div style="font-weight: 700;">김○○님 (62세)</div>
@@ -576,8 +665,8 @@
                 
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: var(--gray-light-bg); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                            👨‍⚕️
+                        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                            <img src="/campaigns/2025-08/hero-image-2-face.jpg" alt="이○○님" style="width: 100%; height: 100%; object-fit: cover;" />
                         </div>
                         <div>
                             <div style="font-weight: 700;">이○○님 (58세)</div>
@@ -603,8 +692,8 @@
                 
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: var(--gray-light-bg); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                            👨‍💼
+                        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                            <img src="/campaigns/2025-08/hero-image-3-face.jpg" alt="박○○님" style="width: 100%; height: 100%; object-fit: cover;" />
                         </div>
                         <div>
                             <div style="font-weight: 700;">박○○님 (65세)</div>
@@ -639,31 +728,69 @@
             
             <div class="grid grid-3">
                 <div class="card" style="text-align: center;">
-                    <div style="background: var(--gold-main); color: var(--black-main); padding: 4px 16px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 16px; font-weight: 700;">
-                        BEST SELLER
+                    <div style="background: var(--gray-dark); color: var(--white-bg); padding: 4px 16px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 16px; font-weight: 700;">
+                        ENTRY
                     </div>
-                    <h3 style="font-size: 1.875rem; margin-bottom: 16px;">시크릿포스 PRO 3</h3>
-                    <div style="height: 200px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px; display: flex; align-items: center; justify-content: center;">
-                        <i data-feather="package" style="width: 64px; height: 64px; color: var(--text-secondary);"></i>
+                    <h3 style="font-size: 1.875rem; margin-bottom: 16px;">시크릿포스 V3</h3>
+                    <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 16px;">40-50대를 위한 올라운드 드라이버</p>
+                    <div style="height: 220px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <img src="/campaigns/common/products/secret-force-v3.jpg" alt="시크릿포스 V3" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <ul style="text-align: left; list-style: none; margin-bottom: 24px;">
                         <li style="padding: 8px 0;">
                             <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            일본 5등급 티타늄 헤드
+                            크랙 걱정없는 강화 티타늄 페이스
                         </li>
                         <li style="padding: 8px 0;">
                             <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            초고반발 계수 0.87
+                            부드러운 임팩트감
                         </li>
                         <li style="padding: 8px 0;">
                             <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            평균 25m 비거리 증가
+                            안정적인 스윙 밸런스
+                        </li>
+                        <li style="padding: 8px 0;">
+                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
+                            최적화된 탄도로 비거리 극대화
                         </li>
                     </ul>
                     <div style="padding: 16px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px;">
-                        <div style="color: var(--text-secondary); text-decoration: line-through;">2,200,000원</div>
-                        <div style="font-size: 1.875rem; font-weight: 900; color: var(--gold-dark);">1,700,000원</div>
-                        <div style="color: var(--seasonal-sunset); font-weight: 700;">8월 한정 23% 할인</div>
+                        <div style="font-size: 1.875rem; font-weight: 900; color: var(--gold-dark);">950,000원</div>
+                    </div>
+                    <button onclick="openInquiryModal()" class="btn btn-secondary" style="width: 100%;">
+                        상담 신청하기
+                    </button>
+                </div>
+                
+                <div class="card" style="text-align: center;">
+                    <div style="background: var(--gold-main); color: var(--black-main); padding: 4px 16px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 16px; font-weight: 700;">
+                        BEST SELLER
+                    </div>
+                    <h3 style="font-size: 1.875rem; margin-bottom: 16px;">시크릿포스 PRO 3</h3>
+                    <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 16px;">정확도와 비거리의 완벽한 조화</p>
+                    <div style="height: 220px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <img src="/campaigns/common/products/secret-force-pro3.jpg" alt="시크릿포스 PRO3" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <ul style="text-align: left; list-style: none; margin-bottom: 24px;">
+                        <li style="padding: 8px 0;">
+                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
+                            3세대 AI 설계 기술 (2.3mm)
+                        </li>
+                        <li style="padding: 8px 0;">
+                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
+                            최적화된 무게 배분
+                        </li>
+                        <li style="padding: 8px 0;">
+                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
+                            안정적인 탄도 구현
+                        </li>
+                        <li style="padding: 8px 0;">
+                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
+                            중상급 골퍼 최적화
+                        </li>
+                    </ul>
+                    <div style="padding: 16px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px;">
+                        <div style="font-size: 1.875rem; font-weight: 900; color: var(--gold-dark);">1,150,000원</div>
                     </div>
                     <button onclick="openInquiryModal()" class="btn btn-primary" style="width: 100%;">
                         상담 신청하기
@@ -674,60 +801,31 @@
                     <div style="background: var(--seasonal-ocean); color: var(--white-bg); padding: 4px 16px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 16px; font-weight: 700;">
                         PREMIUM
                     </div>
-                    <h3 style="font-size: 1.875rem; margin-bottom: 16px;">시크릿포스 V3</h3>
-                    <div style="height: 200px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px; display: flex; align-items: center; justify-content: center;">
-                        <i data-feather="award" style="width: 64px; height: 64px; color: var(--text-secondary);"></i>
+                    <h3 style="font-size: 1.875rem; margin-bottom: 16px;">시크릿웨폰 블랙</h3>
+                    <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 16px;">최강의 비거리를 위한 프리미엄 드라이버</p>
+                    <div style="height: 220px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <img src="/campaigns/common/products/secret-weapon-black.jpg" alt="시크릿웨폰 블랙" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <ul style="text-align: left; list-style: none; margin-bottom: 24px;">
                         <li style="padding: 8px 0;">
                             <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            카본 컴포지트 헤드
+                            일본 JFE & DAIDO 5등급 티타늄 (2.2mm)
                         </li>
                         <li style="padding: 8px 0;">
                             <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            AI 최적화 페이스
+                            초고반발 계수 0.87 달성
                         </li>
                         <li style="padding: 8px 0;">
                             <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            맞춤형 샤프트 선택
+                            MASGOLF 독점 NGS 샤프트 (도레이 원사)
+                        </li>
+                        <li style="padding: 8px 0;">
+                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
+                            평균 비거리 25m 증가 보장
                         </li>
                     </ul>
                     <div style="padding: 16px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px;">
-                        <div style="color: var(--text-secondary); text-decoration: line-through;">2,800,000원</div>
-                        <div style="font-size: 1.875rem; font-weight: 900; color: var(--gold-dark);">2,100,000원</div>
-                        <div style="color: var(--seasonal-sunset); font-weight: 700;">8월 한정 25% 할인</div>
-                    </div>
-                    <button onclick="openInquiryModal()" class="btn btn-secondary" style="width: 100%;">
-                        상담 신청하기
-                    </button>
-                </div>
-                
-                <div class="card" style="text-align: center;">
-                    <div style="background: var(--gray-dark); color: var(--white-bg); padding: 4px 16px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 16px; font-weight: 700;">
-                        ENTRY
-                    </div>
-                    <h3 style="font-size: 1.875rem; margin-bottom: 16px;">시크릿웨폰</h3>
-                    <div style="height: 200px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px; display: flex; align-items: center; justify-content: center;">
-                        <i data-feather="target" style="width: 64px; height: 64px; color: var(--text-secondary);"></i>
-                    </div>
-                    <ul style="text-align: left; list-style: none; margin-bottom: 24px;">
-                        <li style="padding: 8px 0;">
-                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            고강도 스틸 헤드
-                        </li>
-                        <li style="padding: 8px 0;">
-                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            넓은 스윗스팟
-                        </li>
-                        <li style="padding: 8px 0;">
-                            <i data-feather="check" style="width: 16px; height: 16px; color: var(--gold-dark); vertical-align: middle; margin-right: 8px;"></i>
-                            입문자 추천 모델
-                        </li>
-                    </ul>
-                    <div style="padding: 16px; background: var(--gray-light-bg); border-radius: var(--radius-sm); margin-bottom: 24px;">
-                        <div style="color: var(--text-secondary); text-decoration: line-through;">1,500,000원</div>
-                        <div style="font-size: 1.875rem; font-weight: 900; color: var(--gold-dark);">1,200,000원</div>
-                        <div style="color: var(--seasonal-sunset); font-weight: 700;">8월 한정 20% 할인</div>
+                        <div style="font-size: 1.875rem; font-weight: 900; color: var(--gold-dark);">1,700,000원</div>
                     </div>
                     <button onclick="openInquiryModal()" class="btn btn-secondary" style="width: 100%; background: transparent; color: var(--black-main); border: 2px solid var(--black-main);">
                         상담 신청하기
@@ -906,5 +1004,104 @@
             <div style="font-size: 1rem; font-weight: 700;">무료선물 즉시발송</div>
         </div>
     </div>
+    
+    <!-- 마지막 CTA 섹션 -->
+    <section style="padding: 80px 0; background: white;">
+        <div class="container" style="text-align: center;">
+            <h2 style="font-size: 2.5rem; color: #333; margin-bottom: 20px; font-weight: 700;">
+                지금 바로 <span style="color: #FF6B35;">상담 신청</span>하세요
+            </h2>
+            <p style="font-size: 1.2rem; color: #666; margin-bottom: 40px;">
+                8월 한정 프로모션이 종료되기 전에 서두르세요!
+            </p>
+            
+            <div style="background: linear-gradient(135deg, #FFF5F2 0%, #FFE5E1 100%); padding: 40px; border-radius: 20px; margin-bottom: 40px; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -50px; right: -50px; font-size: 150px; opacity: 0.05; transform: rotate(15deg);">🌟</div>
+                <h3 style="font-size: 1.8rem; color: #333; margin-bottom: 20px;">🎆 8월 특별 혜택</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; text-align: left; max-width: 600px; margin: 0 auto;">
+                    <li style="padding: 10px 0; font-size: 1.1rem; color: #555;">✓ 최대 23% 할인</li>
+                    <li style="padding: 10px 0; font-size: 1.1rem; color: #555;">✓ 명품 향수 무료 증정 (최대 18.3만원 상당)</li>
+                    <li style="padding: 10px 0; font-size: 1.1rem; color: #555;">✓ 여행용 방수팩 무료 증정</li>
+                    <li style="padding: 10px 0; font-size: 1.1rem; color: #555;">✓ 무료 시타 및 피팅 상담</li>
+                    <li style="padding: 10px 0; font-size: 1.1rem; color: #555;">✓ 전국 당일 배송</li>
+                </ul>
+            </div>
+            
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="tel:080-028-8888" class="btn btn-primary" style="font-size: 1.3rem; padding: 20px 50px;">📞 지금 바로 전화하기</a>
+                <a href="#" class="btn btn-secondary" onclick="bookVisit()" style="font-size: 1.2rem; padding: 18px 40px;">🏪 매장 방문 예약</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- JavaScript 함수들 -->
+    <script>
+        function bookVisit() {
+            alert('매장 방문 예약은 080-028-8888로 전화 주시거나 카카오톡 채널을 통해 가능합니다.');
+            location.href = 'tel:080-028-8888';
+        }
+        
+        function showInquiry() {
+            alert('카카오톡 채널: MASGOLF\n\n평일 09:00 ~ 18:00 상담 가능합니다.');
+        }
+    </script>
+    
+    <!-- 하단 품질 보증 배너 -->
+    <section style="padding: 60px 0; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; text-align: center;">
+                <div>
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+                    <h3 style="font-size: 1.3rem; margin-bottom: 10px;">2년 무상 AS</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">전국 서비스 네트워크</p>
+                </div>
+                <div>
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🔄</div>
+                    <h3 style="font-size: 1.3rem; margin-bottom: 10px;">10년 샤프트 교환</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">스윙 변화에 따른 무료 교체</p>
+                </div>
+                <div>
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🚚</div>
+                    <h3 style="font-size: 1.3rem; margin-bottom: 10px;">당일 배송</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">다마스 퀵서비스 2시간 내</p>
+                </div>
+                <div>
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🎯</div>
+                    <h3 style="font-size: 1.3rem; margin-bottom: 10px;">맞춤 피팅 보장</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">전문 피팅으로 최적 성능 보장</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 푸터 -->
+    <footer style="background: #0a0a0a; color: #999; padding: 40px 0 30px; font-size: 0.9rem; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 100%); z-index: 1;"></div>
+        <div class="container" style="position: relative; z-index: 2;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h3 style="font-size: 1.5rem; color: white; margin-bottom: 15px;">MASGOLF</h3>
+                <p style="margin-bottom: 20px; line-height: 1.8; color: white;">20년 전통의 기술력으로 만든 프리미엄 골프 클럽</p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
+                    <a href="tel:080-028-8888" style="color: #4ECDC4; text-decoration: none; font-weight: 600;">📞 080-028-8888</a>
+                    <span style="opacity: 0.3; color: #999;">|</span>
+                    <a href="https://pf.kakao.com/_vSVuV" target="_blank" style="color: #4ECDC4; text-decoration: none; font-weight: 600;">💬 카카오톡 채널</a>
+                    <span style="opacity: 0.3; color: #999;">|</span>
+                    <a href="https://www.mas9golf.com/contact" target="_blank" style="color: #4ECDC4; text-decoration: none; font-weight: 600;">🏪 매장 위치</a>
+                </div>
+                <p style="font-size: 0.85rem; opacity: 0.6; line-height: 1.8; color: #999;">
+                    사업자명: MASGOLF® | 대표자명: 김탁수<br>
+                    사업자등록번호: 877-07-00641<br>
+                    통신판매업신고번호: 제 2017-수원영통-0623호<br>
+                    주소: 수원시 영통구 법조로 149번길 200<br>
+                    상표권 등록일: 2003-07-31<br>
+                    개인정보보호 책임자: 이은정(hello@masgolf.co.kr)<br>
+                    고객센터: 080-028-8888 (무료)
+                </p>
+            </div>
+            <div style="text-align: center; padding-top: 20px; border-top: 1px solid #222;">
+                <p style="font-size: 0.8rem; opacity: 0.5; color: #999;">© 2025 MASGOLF. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
