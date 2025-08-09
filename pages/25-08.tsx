@@ -19,7 +19,7 @@ export default function Funnel202508() {
 
   return (
     <iframe
-      src="/versions/funnel-2025-08-vacation-final.html"
+      src="/versions/funnel-2025-08-live.html"
       style={{
         width: '100%',
         height: '100vh',
