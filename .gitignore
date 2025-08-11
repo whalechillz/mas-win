@@ -34,4 +34,4 @@ yarn-error.log*
 next-env.d.ts
 
 # backup folder
-/backup-static 
+/backup-static google-ads-credentials.json

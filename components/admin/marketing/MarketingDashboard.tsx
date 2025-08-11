@@ -40,13 +40,6 @@ export default function MarketingDashboard() {
       visible: true
     },
     {
-      id: 'funnel',
-      title: '마케팅 퍼널',
-      icon: <Target className="w-5 h-5" />,
-      component: <MarketingFunnelPlan />,
-      visible: true
-    },
-    {
       id: 'ai',
       title: 'AI 콘텐츠 생성',
       icon: <Brain className="w-5 h-5" />,

@@ -1,7 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '@supabase/supabase-js';
 
-// AI 콘텐츠 생성 API
-export default async function handler(
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export default async function generate-multichannel-content(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -13,70 +18,63 @@ export default async function handler(
     const { 
       year, 
       month, 
-      aiSettings,
-      selectedChannels 
+      aiSettings = { useAI: false },
+      selectedChannels = {}
     } = req.body;
 
-    // AI 설정 확인
-    const useAI = aiSettings?.useAI || false;
-    const model = aiSettings?.model || 'gpt-3.5-turbo';
-    
-    // 여기서 실제 AI API 호출 또는 템플릿 기반 콘텐츠 생성
-    // 예시 응답
+    console.log('AI 콘텐츠 생성 시작:', { year, month, aiSettings, selectedChannels });
+
     const generatedContents = [];
-    let contentCount = 0;
+    
+    if (selectedChannels.blog) {
+      generatedContents.push({
+        platform: 'blog',
+        title: `${year}년 ${month}월 골프 특별 혜택`,
+        content: `## ${year}년 ${month}월 골프 특별 혜택\n\n안녕하세요, 골프 애호가 여러분!\n\n이번 달 특별한 혜택을 준비했습니다.\n\n### 주요 혜택\n- 혜택 1: 특별 할인\n- 혜택 2: 무료 체험\n- 혜택 3: 전문 상담\n\n지금 바로 신청하세요!`,
+        status: 'generated',
+        ai_generated: aiSettings.useAI
+      });
+    }
 
-    // 각 채널별로 콘텐츠 생성
-    const channels = [
-      { id: 'blog', name: '네이버블로그', enabled: selectedChannels?.blog },
-      { id: 'kakao', name: '카카오톡', enabled: selectedChannels?.kakao },
-      { id: 'sms', name: '문자', enabled: selectedChannels?.sms },
-      { id: 'instagram', name: '인스타그램', enabled: selectedChannels?.instagram },
-      { id: 'youtube', name: '유튜브', enabled: selectedChannels?.youtube }
-    ];
+    if (selectedChannels.kakao) {
+      generatedContents.push({
+        platform: 'kakao',
+        title: ` ${year}년 ${month}월 특별 혜택`,
+        content: `안녕하세요! 😊\n\n${year}년 ${month}월 특별한 혜택 소식을 전해드립니다.\n\n✨ 혜택 1\n✨ 혜택 2\n✨ 혜택 3\n\n자세한 내용은 링크를 확인해주세요!\n\n[바로가기]`,
+        status: 'generated',
+        ai_generated: aiSettings.useAI
+      });
+    }
 
-    for (const channel of channels) {
-      if (!channel.enabled) continue;
+    if (selectedChannels.sms) {
+      generatedContents.push({
+        platform: 'sms',
+        title: `[마스골프] ${month}월 특별 혜택`,
+        content: `안녕하세요! ${month}월 특별 혜택 안내드립니다.\n\n- 혜택 1\n- 혜택 2\n\n신청: 1588-XXXX`,
+        status: 'generated',
+        ai_generated: aiSettings.useAI
+      });
+    }
 
-      // 월별 콘텐츠 개수 설정 (채널별로 다르게)
-      const contentPerMonth = channel.id === 'blog' ? 8 : 
-                            channel.id === 'kakao' ? 4 : 
-                            channel.id === 'sms' ? 4 : 2;
+    if (generatedContents.length > 0) {
+      const { data, error } = await supabase
+        .from('content_ideas')
+        .insert(generatedContents);
 
-      for (let i = 0; i < contentPerMonth; i++) {
-        const content = {
-          platform: channel.name,
-          title: `${year}년 ${month}월 ${channel.name} 콘텐츠 ${i + 1}`,
-          content: useAI ? 
-            `[${model}로 생성된 콘텐츠]\n\n${channel.name}에 최적화된 내용...` :
-            `[템플릿 기반 콘텐츠]\n\n${channel.name} 기본 템플릿...`,
-          scheduled_date: `${year}-${String(month).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-          status: 'idea',
-          tags: ['자동생성', channel.id, `${month}월`]
-        };
-        
-        generatedContents.push(content);
-        contentCount++;
+      if (error) {
+        console.error('DB 저장 오류:', error);
+        return res.status(500).json({ error: '콘텐츠 저장 실패' });
       }
     }
 
-    // 실제로는 여기서 Supabase에 저장
-    // const { data, error } = await supabase.from('content_ideas').insert(generatedContents);
-
     return res.status(200).json({
       success: true,
-      contentCount,
-      message: `${contentCount}개의 콘텐츠가 생성되었습니다.`,
-      contents: generatedContents,
-      aiModel: useAI ? model : 'template'
+      message: `${generatedContents.length}개의 콘텐츠가 생성되었습니다.`,
+      contents: generatedContents
     });
 
   } catch (error) {
-    console.error('Content generation error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      details: error.message
-    });
+    console.error('AI 콘텐츠 생성 오류:', error);
+    return res.status(500).json({ error: '콘텐츠 생성 중 오류가 발생했습니다.' });
   }
 }

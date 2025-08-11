@@ -1,24 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { formatPhoneNumber } from '../lib/formatters';
 import { Campaign, CampaignMetrics, calculateCampaignMetrics, generateMockPerformanceData } from '../lib/campaign-types';
-import { campaignsData } from '../lib/campaign-data';
-import { UnifiedCampaignManagerEnhanced } from '../components/admin/campaigns/UnifiedCampaignManagerEnhanced';
+import { UnifiedCampaignManager } from '../components/admin/campaigns/UnifiedCampaignManager';
 import { MetricCards, useRealtimeMetrics } from '../components/admin/dashboard/MetricCards';
 import { ConversionFunnel, useRealtimeFunnel } from '../components/admin/dashboard/ConversionFunnel';
-import { BookingManagement } from '../components/admin/bookings/BookingManagementFull';
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';
-import { CustomerStyleAnalysis } from '../components/admin/dashboard/CustomerStyleAnalysis';
-import { CampaignKPIDashboard } from '../components/admin/dashboard/CampaignKPIDashboard';
-
-// MarketingDashboard를 dynamic import로 변경
-const MarketingDashboard = dynamic(
-  () => import('../components/admin/marketing/MarketingDashboardComplete'),
-  { 
-    ssr: false,
-    loading: () => <div className="p-8 text-center">마케팅 대시보드 로딩 중...</div>
-  }
-);
+import { BookingManagement } from '../components/admin/bookings/BookingManagement';
+import MarketingDashboardComplete from '../components/admin/marketing/MarketingDashboardComplete';
+import { TeamMemberManagement } from '../components/admin/team/TeamMemberManagement';
+import GA4RealtimeDashboard from '../components/admin/dashboard/GA4RealtimeDashboard';
 
 // 기존 로그인 컴포넌트와 아이콘 컴포넌트들은 그대로 유지...
 const LoginForm = ({ onLogin }) => {
@@ -182,12 +172,6 @@ const Megaphone = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-const FileText = ({ className = "w-6 h-6" }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
 // Supabase configuration
 const supabaseUrl = 'https://yyytjudftvpmcnppaymw.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5eXRqdWRmdHZwbWNucHBheW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDcxMTksImV4cCI6MjA2NzAyMzExOX0.TxT-vnDjFip_CCL7Ag8mR7G59dMdQAKfPLY1S3TJqRE';
@@ -205,6 +189,7 @@ export default function AdminDashboard() {
   const [contacts, setContacts] = useState([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignSummary, setCampaignSummary] = useState(null);
+  const [quizStats, setQuizStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [refreshing, setRefreshing] = useState(false);
@@ -213,43 +198,19 @@ export default function AdminDashboard() {
 
   // 인증 체크
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/admin-check-auth');
-        if (res.ok) {
-          setIsAuthenticated(true);
-        }
-      } catch (err) {
-        console.error('Auth check error:', err);
-      } finally {
-        setCheckingAuth(false);
+    const checkAuth = () => {
+      const cookies = document.cookie.split(';');
+      const authCookie = cookies.find(cookie => cookie.trim().startsWith('admin_auth='));
+      if (authCookie && authCookie.split('=')[1] === '1') {
+        setIsAuthenticated(true);
       }
+      setCheckingAuth(false);
     };
     checkAuth();
   }, []);
 
-  // Admin 페이지에서 스크롤 활성화
-  useEffect(() => {
-    if (isAuthenticated) {
-      // overflow 스타일 오버라이드
-      document.documentElement.style.overflow = 'auto';
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.height = 'auto';
-      document.body.style.height = 'auto';
-      
-      // 컴포넌트 언마운트 시 원래대로 복구
-      return () => {
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-        document.documentElement.style.height = '';
-        document.body.style.height = '';
-      };
-    }
-  }, [isAuthenticated]);
-
   const handleLogin = () => {
     setIsAuthenticated(true);
-    window.location.reload(); // 페이지 새로고침으로 쿠키 적용
   };
 
   // Initialize Supabase
@@ -288,7 +249,8 @@ export default function AdminDashboard() {
         loadBookings(), 
         loadContacts(), 
         loadCampaigns(),
-        loadCampaignSummary()
+        loadCampaignSummary(),
+        loadQuizStats()
       ]);
     } finally {
       setLoading(false);
@@ -298,135 +260,134 @@ export default function AdminDashboard() {
   const loadBookings = async () => {
     if (!supabase) return;
     
-    try {
-      // bookings_with_quiz 뷰 대신 bookings 테이블 직접 사용
-      const { data, error } = await supabase
+    // 새로운 구조 사용 - bookings_with_quiz 뷰에서 데이터 가져오기
+    const { data, error } = await supabase
+      .from('bookings_with_quiz')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      console.log('Loaded bookings with quiz data:', data);
+      setBookings(data);
+    } else {
+      console.error('Error loading bookings with quiz:', error);
+      // 폴백: 기존 방식으로 시도
+      const { data: fallbackData, error: fallbackError } = await supabase
         .from('bookings')
-        .select('*')
+        .select(`
+          *,
+          quiz_results (
+            name,
+            phone,
+            email,
+            swing_style,
+            priority,
+            current_distance,
+            recommended_flex,
+            expected_distance,
+            campaign_source
+          )
+        `)
         .order('created_at', { ascending: false });
       
-      if (!error && data) {
-        console.log('Bookings 데이터 로드 성공:', data.length, '개');
-        setBookings(data || []);
-      } else {
-        console.error('Bookings 데이터 로드 실패:', error);
-        setBookings([]);
+      if (!fallbackError && fallbackData) {
+        console.log('Loaded bookings with join:', fallbackData);
+        setBookings(fallbackData);
       }
-    } catch (err) {
-      console.error('Bookings 로드 중 예외 발생:', err);
-      setBookings([]);
     }
   };
 
   const loadContacts = async () => {
     if (!supabase) return;
     
-    try {
-      // contacts_with_quiz 뷰 대신 contacts 테이블 직접 사용
-      const { data, error } = await supabase
+    // contacts_with_quiz 뷰 사용
+    const { data, error } = await supabase
+      .from('contacts_with_quiz')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setContacts(data);
+    } else {
+      // 폴백
+      const { data: fallbackData } = await supabase
         .from('contacts')
-        .select('*')
+        .select(`
+          *,
+          quiz_results (
+            name,
+            phone,
+            email,
+            swing_style,
+            priority,
+            current_distance
+          )
+        `)
         .order('created_at', { ascending: false });
       
-      if (!error && data) {
-        console.log('Contacts 데이터 로드 성공:', data.length, '개');
-        setContacts(data || []);
-      } else {
-        console.error('Contacts 데이터 로드 실패:', error);
-        setContacts([]);
-      }
-    } catch (err) {
-      console.error('Contacts 로드 중 예외 발생:', err);
-      setContacts([]);
+      setContacts(fallbackData || []);
     }
   };
 
-  // 캠페인 데이터를 가져오기 (Supabase 연동 전까지 campaign-data.ts 사용)
-  const loadCampaigns = async () => {
-    // Supabase에서 데이터 가져오기 시도
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .order('start_date', { ascending: false });
-      
-      if (!error && data && data.length > 0) {
-        // Campaign 타입에 맞게 변환
-        const formattedCampaigns = data.map(camp => ({
-          id: camp.id,
-          name: camp.name,
-          status: camp.status,
-          period: {
-            start: camp.start_date,
-            end: camp.end_date
-          },
-          files: {
-            landingPage: camp.landing_page_file || '',
-            landingPageUrl: camp.landing_page_url || '',
-            opManual: camp.op_manual_url,
-            googleAds: camp.google_ads_url
-          },
-          assets: {
-            landingPage: camp.landing_page_file || '',
-            landingPageUrl: camp.landing_page_url || '',
-            opManual: camp.op_manual_url,
-            googleAds: camp.google_ads_url
-          },
-          settings: {
-            phoneNumber: camp.phone_number,
-            eventDate: camp.event_date,
-            remainingSlots: camp.remaining_slots,
-            discountRate: camp.discount_rate,
-            targetAudience: camp.target_audience || ''
-          },
-          metrics: {
-            views: camp.views || 0,
-            bookings: camp.bookings || 0,
-            inquiries: camp.inquiries || 0,
-            conversionRate: parseFloat(camp.conversion_rate) || 0,
-            roi: parseFloat(camp.roi) || 0,
-            costPerAcquisition: parseFloat(camp.cost_per_acquisition) || 0
-          },
-          performance: { daily: [] }
-        }));
-        
-        setCampaigns(formattedCampaigns);
-        return;
-      }
+  // 퀴즈 통계 로드
+  const loadQuizStats = async () => {
+    if (!supabase) return;
+    
+    const { data, error } = await supabase
+      .from('quiz_conversion_stats')
+      .select('*')
+      .single();
+    
+    if (!error && data) {
+      setQuizStats(data);
     }
+  };
+
+  // 캠페인 데이터를 Supabase에서 가져오기
+  const loadCampaigns = async () => {
+    if (!supabase) return;
     
-    // Supabase에 데이터가 없으면 campaign-data.ts 사용
-    // 실제 bookings와 contacts 데이터로 메트릭 업데이트
-    const updatedCampaigns = campaignsData.map(campaign => {
-      if (campaign.id === '2025-07') {
-        // 7월 캠페인의 경우 실제 데이터 사용
-        const actualBookings = bookings.filter(b => {
-          const bookingDate = new Date(b.created_at);
-          return bookingDate >= new Date('2025-07-01') && bookingDate <= new Date('2025-07-31');
-        }).length;
-        
-        const actualInquiries = contacts.filter(c => {
-          const contactDate = new Date(c.created_at);
-          return contactDate >= new Date('2025-07-01') && contactDate <= new Date('2025-07-31');
-        }).length;
-        
-        const totalLeads = actualBookings + actualInquiries;
-        const actualConversionRate = totalLeads > 0 ? (actualBookings / totalLeads * 100) : 0;
-        
-        return {
-          ...campaign,
-          metrics: {
-            ...campaign.metrics,
-            bookings: actualBookings,
-            inquiries: actualInquiries,
-            conversionRate: parseFloat(actualConversionRate.toFixed(1))
-          }
-        };
-      }
-      return campaign;
-    });
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .order('start_date', { ascending: false });
     
-    setCampaigns(updatedCampaigns);
+    if (!error && data) {
+      // Campaign 타입에 맞게 변환
+      const formattedCampaigns = data.map(camp => ({
+        id: camp.id,
+        name: camp.name,
+        status: camp.status,
+        period: {
+          start: camp.start_date,
+          end: camp.end_date
+        },
+        assets: {
+          landingPage: camp.landing_page_file || '',
+          landingPageUrl: camp.landing_page_url || '',
+          opManual: camp.op_manual_url,
+          googleAds: camp.google_ads_url
+        },
+        settings: {
+          phoneNumber: camp.phone_number,
+          eventDate: camp.event_date,
+          remainingSlots: camp.remaining_slots,
+          discountRate: camp.discount_rate,
+          targetAudience: camp.target_audience || ''
+        },
+        metrics: {
+          views: camp.views || 0,
+          bookings: camp.bookings || 0,
+          inquiries: camp.inquiries || 0,
+          conversionRate: parseFloat(camp.conversion_rate) || 0,
+          roi: parseFloat(camp.roi) || 0,
+          costPerAcquisition: parseFloat(camp.cost_per_acquisition) || 0
+        },
+        performance: { daily: [] }
+      }));
+      
+      setCampaigns(formattedCampaigns);
+    }
   };
 
   // campaign_summary 뷰에서 데이터 가져오기
@@ -449,25 +410,15 @@ export default function AdminDashboard() {
     setTimeout(() => setRefreshing(false), 500);
   };
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch('/api/admin-logout', {
-        method: 'POST'
-      });
-      if (res.ok) {
-        setIsAuthenticated(false);
-        window.location.reload(); // 페이지 새로고침으로 middleware가 로그인 페이지로 리다이렉트
-      }
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+  const handleLogout = () => {
+    document.cookie = 'admin_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    setIsAuthenticated(false);
   };
 
   // 탭 구성
   const tabs = [
     { id: 'overview', label: '대시보드', icon: Activity },
     { id: 'campaigns', label: '캠페인 관리', icon: Megaphone },
-    { id: 'marketing', label: '마케팅 콘텐츠', icon: FileText },
     { id: 'bookings', label: '예약 관리', icon: Calendar },
     { id: 'contacts', label: '문의 관리', icon: MessageSquare },
   ];
@@ -485,19 +436,19 @@ export default function AdminDashboard() {
       sparklineData: [65, 70, 68, 72, 78, 82, 85, 90]
     },
     {
-      id: 'active-campaigns',
-      title: '활성 캠페인',
-      value: campaignSummary?.active_campaigns || 0,
-      change: 0,
+      id: 'quiz-completion',
+      title: '퀴즈 완료',
+      value: quizStats?.total_quiz_completed || 0,
+      change: quizStats?.booking_conversion_rate || 0,
       icon: <Lightning className="w-6 h-6" />,
       color: 'purple' as const,
-      trend: 'neutral' as const
+      trend: 'up' as const
     },
     {
       id: 'conversion-rate',
-      title: '평균 전환율',
-      value: campaignSummary?.avg_conversion_rate 
-        ? `${parseFloat(campaignSummary.avg_conversion_rate).toFixed(1)}%`
+      title: '예약 전환율',
+      value: quizStats?.booking_conversion_rate 
+        ? `${quizStats.booking_conversion_rate}%`
         : `${bookings.length > 0 ? ((bookings.length / (bookings.length + contacts.length)) * 100).toFixed(1) : 0}%`,
       change: 8.3,
       icon: <Activity className="w-6 h-6" />,
@@ -521,6 +472,7 @@ export default function AdminDashboard() {
 
   // 전환 깔때기 데이터 (실제 데이터 기반)
   const totalViews = campaignSummary?.total_views || 0;
+  const totalQuizCompleted = quizStats?.total_quiz_completed || 0;
   const totalInquiries = (campaignSummary?.total_inquiries || 0) + contacts.length;
   const totalBookings = (campaignSummary?.total_bookings || 0) + bookings.length;
 
@@ -533,11 +485,11 @@ export default function AdminDashboard() {
       icon: <Users className="w-5 h-5" />
     },
     {
-      name: '관심 표현',
-      value: Math.floor((totalViews || 5000) * 0.5),
-      percentage: 50,
+      name: '퀴즈 완료',
+      value: totalQuizCompleted,
+      percentage: totalViews > 0 ? (totalQuizCompleted / totalViews * 100) : 30,
       color: '#7C3AED',
-      icon: <Activity className="w-5 h-5" />
+      icon: <Lightning className="w-5 h-5" />
     },
     {
       name: '문의/상담',
@@ -589,6 +541,7 @@ export default function AdminDashboard() {
         (payload) => {
           console.log('예약 변경 감지:', payload);
           loadBookings();
+          loadQuizStats();
         }
       )
       .subscribe();
@@ -601,6 +554,20 @@ export default function AdminDashboard() {
         (payload) => {
           console.log('문의 변경 감지:', payload);
           loadContacts();
+          loadQuizStats();
+        }
+      )
+      .subscribe();
+    
+    // 퀴즈 결과 실시간 구독
+    const quizChannel = supabase
+      .channel('quiz-results-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'quiz_results' },
+        (payload) => {
+          console.log('퀴즈 결과 변경 감지:', payload);
+          loadQuizStats();
+          loadBookings();
         }
       )
       .subscribe();
@@ -610,6 +577,7 @@ export default function AdminDashboard() {
       campaignChannel.unsubscribe();
       bookingChannel.unsubscribe();
       contactChannel.unsubscribe();
+      quizChannel.unsubscribe();
     };
   }, [supabase]);
 
@@ -639,7 +607,7 @@ export default function AdminDashboard() {
                 MASGOLF Admin
               </h1>
               <span className="px-3 py-1 text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 rounded-full">
-                Premium Dashboard
+                Premium Dashboard v2
               </span>
             </div>
             <div className="flex items-center space-x-4">
@@ -689,9 +657,6 @@ export default function AdminDashboard() {
       <main className="p-6">
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            {/* 캠페인별 KPI 대시보드 */}
-            <CampaignKPIDashboard supabase={supabase} />
-            
             {/* 실시간 메트릭 카드 */}
             <MetricCards metrics={realtimeMetrics} />
 
@@ -718,7 +683,9 @@ export default function AdminDashboard() {
                             'date' in item ? 'bg-green-500' : 'bg-blue-500'
                           } animate-pulse`} />
                           <div>
-                            <p className="font-medium text-gray-900">{item.name}</p>
+                            <p className="font-medium text-gray-900">
+                              {item.name || (item.quiz_results && item.quiz_results.name) || '알 수 없음'}
+                            </p>
                             <p className="text-sm text-gray-500">
                               {'date' in item ? '시타 예약' : '문의 접수'}
                             </p>
@@ -736,7 +703,7 @@ export default function AdminDashboard() {
             {/* 캠페인 성과 요약 */}
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
               <h3 className="text-xl font-semibold mb-4">실시간 성과 요약</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4">
                   <p className="text-purple-100 text-sm">최고 성과 캠페인</p>
                   <p className="text-2xl font-bold mt-1">
@@ -747,16 +714,27 @@ export default function AdminDashboard() {
                   </p>
                 </div>
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4">
-                  <p className="text-purple-100 text-sm">총 캠페인 수</p>
-                  <p className="text-2xl font-bold mt-1">{campaignSummary?.total_campaigns || campaigns.length}</p>
+                  <p className="text-purple-100 text-sm">퀴즈 → 예약 전환율</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {quizStats?.booking_conversion_rate || 0}%
+                  </p>
                   <p className="text-purple-100 text-sm mt-2">
-                    활성 {campaignSummary?.active_campaigns || 0}개
+                    {quizStats?.quiz_to_booking || 0}명 전환
+                  </p>
+                </div>
+                <div className="bg-white/20 backdrop-blur rounded-lg p-4">
+                  <p className="text-purple-100 text-sm">퀴즈 → 문의 전환율</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {quizStats?.contact_conversion_rate || 0}%
+                  </p>
+                  <p className="text-purple-100 text-sm mt-2">
+                    {quizStats?.quiz_to_contact || 0}명 전환
                   </p>
                 </div>
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4">
                   <p className="text-purple-100 text-sm">DB 연동 상태</p>
-                  <p className="text-2xl font-bold mt-1">실시간</p>
-                  <p className="text-purple-100 text-sm mt-2">모든 데이터 연결됨</p>
+                  <p className="text-2xl font-bold mt-1">실시간 v2</p>
+                  <p className="text-purple-100 text-sm mt-2">새 구조 적용됨</p>
                 </div>
               </div>
             </div>
@@ -764,28 +742,52 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'campaigns' && (
-          <UnifiedCampaignManagerEnhanced
-            campaigns={campaigns}
-            bookings={bookings}
-            contacts={contacts}
-            onCampaignUpdate={(campaign) => {
-              // 캠페인 업데이트 시 DB에 저장
-              setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
-            }}
-            onCreateCampaign={() => {
-              // 새 캠페인 생성 모달 열기
-              console.log('새 캠페인 만들기');
-            }}
-          />
-        )}
-
-        {activeTab === 'marketing' && (
-          <MarketingDashboard supabase={supabase} />
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">캠페인 성과 대시보드</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {campaigns.map(campaign => (
+                  <div key={campaign.id} className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white">
+                    <h3 className="font-semibold mb-2">{campaign.name}</h3>
+                    <p className="text-sm opacity-90 mb-3">{campaign.period}</p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>조회수:</span>
+                        <span className="font-bold">{campaign.metrics.views.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>전화클릭:</span>
+                        <span className="font-bold">{campaign.metrics.phoneClicks || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>전환율:</span>
+                        <span className="font-bold">{campaign.metrics.conversionRate}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <UnifiedCampaignManager
+              campaigns={campaigns}
+              onCampaignUpdate={(campaign) => {
+                // 캠페인 업데이트 시 DB에 저장
+                setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
+              }}
+              onCreateCampaign={() => {
+                // 새 캠페인 생성 모달 열기
+                console.log('새 캠페인 만들기');
+              }}
+            />
+          </div>
         )}
 
         {activeTab === 'bookings' && (
           <div className="space-y-6">
-            <CustomerStyleAnalysis bookings={bookings} />
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">고객 스타일 분석</h2>
+              <p className="text-gray-600">예약 데이터 기반 고객 스타일 분석이 여기에 표시됩니다.</p>
+            </div>
             <BookingManagement 
               bookings={bookings} 
               supabase={supabase} 
@@ -802,23 +804,6 @@ export default function AdminDashboard() {
           />
         )}
       </main>
-
-      {/* OP 매뉴얼 버튼 - 화면 하단 고정 */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => {
-            // 현재 활성 캠페인의 OP 매뉴얼 열기
-            const activeCampaign = campaigns.find(c => c.status === 'active');
-            const opManualUrl = activeCampaign?.files?.opManual || 
-              `/api/admin/op-manual/${new Date().toISOString().slice(0, 7)}`; // 기본값: 현재 월
-            window.open(opManualUrl, '_blank');
-          }}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-        >
-          <FileText className="w-5 h-5" />
-          <span className="font-medium">OP 매뉴얼</span>
-        </button>
-      </div>
     </div>
   );
 }

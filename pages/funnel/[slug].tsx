@@ -1,50 +1,57 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-export default function FunnelPage() {
+export default function FunnelDynamic() {
   const router = useRouter();
   const { slug } = router.query;
-  const [htmlContent, setHtmlContent] = useState<string>('');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (slug) {
-      loadFunnelPage(slug as string);
-    }
-  }, [slug]);
-
-  const loadFunnelPage = async (pageSlug: string) => {
-    try {
-      // 퍼널 페이지 HTML 파일 로드
-      const response = await fetch(`/funnel-pages/${pageSlug}.html`);
-      if (response.ok) {
-        const html = await response.text();
-        setHtmlContent(html);
-      } else {
-        // 페이지가 없으면 404로 리다이렉트
-        router.push('/404');
+    // iframe에서 전화번호 클릭 메시지 처리
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'tel-link') {
+        console.log('전화번호 메시지 수신:', event.data.phoneNumber);
+        window.location.href = `tel:${event.data.phoneNumber}`;
       }
-    } catch (error) {
-      console.error('Failed to load funnel page:', error);
-      router.push('/404');
-    } finally {
-      setLoading(false);
-    }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  // slug에 따른 HTML 파일 매핑
+  const getFunnelHtml = (slug: string) => {
+    const funnelMap: { [key: string]: string } = {
+      '2025-08': '/versions/funnel-2025-08-live.html',
+      'funnel-2025-08': '/versions/funnel-2025-08-live.html',
+      '2025-07': '/versions/funnel-2025-07-complete.html',
+      'funnel-2025-07': '/versions/funnel-2025-07-complete.html',
+      '2025-06': '/versions/funnel-2025-06-live.html',
+      'funnel-2025-06': '/versions/funnel-2025-06-live.html',
+      '2025-05': '/versions/funnel-2025-05-live.html',
+      'funnel-2025-05': '/versions/funnel-2025-05-live.html'
+    };
+    
+    return funnelMap[slug] || '/versions/funnel-2025-08-live.html';
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
+  if (!slug) {
+    return <div>로딩 중...</div>;
   }
 
-  // HTML 콘텐츠를 직접 렌더링
   return (
-    <div 
-      dangerouslySetInnerHTML={{ __html: htmlContent }}
-      className="funnel-page-container"
+    <iframe
+      src={getFunnelHtml(slug as string)}
+      style={{
+        width: '100%',
+        height: '100vh',
+        border: 'none',
+        margin: 0,
+        padding: 0
+      }}
+      title={`MAS Golf ${slug} 퍼널`}
     />
   );
 }

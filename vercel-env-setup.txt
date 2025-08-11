@@ -1,0 +1,23 @@
+🔧 Vercel 환경변수 설정 방법:
+
+1. Vercel Dashboard 접속:
+   https://vercel.com/dashboard
+
+2. 프로젝트 선택:
+   win-masgolf-co-kr (또는 해당 프로젝트명)
+
+3. Settings → Environment Variables
+
+4. 추가할 변수들:
+   GOOGLE_ADS_MANAGER_CUSTOMER_ID = 7571427013
+   GOOGLE_ADS_MASGOLF1_ID = 7398653521
+   GOOGLE_ADS_MASGOLF2_ID = 6417483168  
+   GOOGLE_ADS_SINGSING_ID = 4495437776
+
+   (나중에 추가할 것들)
+   GOOGLE_ADS_CLIENT_ID = [Google Cloud에서 발급]
+   GOOGLE_ADS_CLIENT_SECRET = [Google Cloud에서 발급]
+   GOOGLE_ADS_DEVELOPER_TOKEN = [Google Ads에서 발급]
+   GOOGLE_ADS_REFRESH_TOKEN = [OAuth 인증 후 발급]
+
+5. Environment 선택: Production, Preview, Development 모두 체크
