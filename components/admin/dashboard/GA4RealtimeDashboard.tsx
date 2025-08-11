@@ -1,7 +1,7 @@
-import { Activity, Users, Eye, TrendingUp } from 'lucide-react';
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Activity, Users, Eye, TrendingUp } from 'lucide-react';
 
 interface GA4RealtimeDashboardProps {
   campaignId?: string;
@@ -19,30 +19,23 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
   const [ga4Data, setGa4Data] = useState<GA4Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [lastUpdate, setLastUpdate] = useState(new Date());
 
   const fetchGA4Data = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const url = campaignId 
-        ? `/api/ga4-realtime?campaign_id=${campaignId}`
-        : '/api/ga4-realtime';
-        
-      const response = await fetch(url);
-      
+      const response = await fetch('/api/ga4-realtime');
       if (!response.ok) {
-        throw new Error('GA4 데이터를 가져올 수 없습니다');
+        throw new Error('GA4 데이터를 가져올 수 없습니다.');
       }
       
       const data = await response.json();
       setGa4Data(data);
       setLastUpdate(new Date());
-      
     } catch (err) {
-      console.error('GA4 데이터 가져오기 오류:', err);
-      setError(err instanceof Error ? err.message : '알 수 없는 오류');
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +54,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-center space-x-2">
-          <i data-feather="refresh-cw" className="w-5 h-5 animate-spin text-purple-600" />
+          <i data-feather="refresh-cw" className="w-5 h-5 animate-spin text-purple-600"></i>
           <span className="text-gray-600">GA4 실시간 데이터 로딩 중...</span>
         </div>
       </div>
@@ -100,7 +93,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
           onClick={fetchGA4Data}
           className="flex items-center space-x-1 px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors"
         >
-          <i data-feather="refresh-cw" className="w-4 h-4" />
+          <i data-feather="refresh-cw" className="w-4 h-4"></i>
           <span>새로고침</span>
         </button>
       </div>
