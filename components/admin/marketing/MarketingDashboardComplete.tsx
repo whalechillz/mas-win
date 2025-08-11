@@ -26,7 +26,7 @@ export default function MarketingDashboardComplete({ supabase }: MarketingDashbo
     {
       id: 'workflow',
       title: '통합 마케팅 관리',
-      icon: <i data-feather="workflow" className="w-5 h-5"> />,
+      icon: <i data-feather="workflow" className="w-5 h-5" />,
       component: <div className="p-6">
         <h3 className="text-lg font-semibold mb-4">마케팅 워크플로우</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -52,7 +52,7 @@ export default function MarketingDashboardComplete({ supabase }: MarketingDashbo
     {
       id: 'calendar',
       title: '콘텐츠 캘린더',
-      icon: <Calendar className="w-5 h-5"> />,
+      icon: <Calendar className="w-5 h-5" />,
       component: <div className="p-6">
         <h3 className="text-lg font-semibold mb-4">콘텐츠 캘린더</h3>
         <div className="bg-white p-4 rounded-lg shadow">
@@ -63,13 +63,13 @@ export default function MarketingDashboardComplete({ supabase }: MarketingDashbo
     {
       id: 'ai',
       title: 'AI 콘텐츠 생성',
-      icon: <i data-feather="brain" className="w-5 h-5"> />,
+      icon: <i data-feather="brain" className="w-5 h-5" />,
       component: <AIGenerationSettingsNew />
     },
     {
       id: 'seo',
       title: 'SEO 검증',
-      icon: <i data-feather="search" className="w-5 h-5"> />,
+      icon: <i data-feather="search" className="w-5 h-5" />,
       component: <div className="p-6">
         <h3 className="text-lg font-semibold mb-4">SEO 검증 시스템</h3>
         <div className="bg-white p-4 rounded-lg shadow">

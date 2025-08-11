@@ -57,8 +57,8 @@ export default function CampaignKPIDashboard({ supabase }: CampaignKPIDashboardP
   };
 
   const getTrendIcon = (value: number) => {
-    if (value > 0) return <TrendingUp className="w-4 h-4 text-green-500"> />;
-    if (value < 0) return <TrendingDown className="w-4 h-4 text-red-500"> />;
+    if (value > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
+    if (value < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
     return null;
   };
 
@@ -98,7 +98,7 @@ export default function CampaignKPIDashboard({ supabase }: CampaignKPIDashboardP
               <p className="text-blue-100 text-sm">총 조회수</p>
               <p className="text-2xl font-bold">{campaignData.views.toLocaleString()}</p>
             </div>
-            <Eye className="w-8 h-8 text-blue-200"> />
+            <Eye className="w-8 h-8 text-blue-200" />
           </div>
           <div className="flex items-center mt-2">
             {getTrendIcon(getTrendValue())}
@@ -112,7 +112,7 @@ export default function CampaignKPIDashboard({ supabase }: CampaignKPIDashboardP
               <p className="text-green-100 text-sm">고유 방문자</p>
               <p className="text-2xl font-bold">{campaignData.unique_visitors.toLocaleString()}</p>
             </div>
-            <Users className="w-8 h-8 text-green-200"> />
+            <Users className="w-8 h-8 text-green-200" />
           </div>
           <div className="flex items-center mt-2">
             {getTrendIcon(getTrendValue())}
@@ -126,7 +126,7 @@ export default function CampaignKPIDashboard({ supabase }: CampaignKPIDashboardP
               <p className="text-purple-100 text-sm">전화 클릭</p>
               <p className="text-2xl font-bold">{campaignData.phone_clicks.toLocaleString()}</p>
             </div>
-            <Phone className="w-8 h-8 text-purple-200"> />
+            <Phone className="w-8 h-8 text-purple-200" />
           </div>
           <div className="flex items-center mt-2">
             {getTrendIcon(getTrendValue())}
@@ -140,7 +140,7 @@ export default function CampaignKPIDashboard({ supabase }: CampaignKPIDashboardP
               <p className="text-orange-100 text-sm">전환율</p>
               <p className="text-2xl font-bold">{campaignData.conversion_rate.toFixed(1)}%</p>
             </div>
-            <Target className="w-8 h-8 text-orange-200"> />
+            <Target className="w-8 h-8 text-orange-200" />
           </div>
           <div className="flex items-center mt-2">
             {getTrendIcon(getTrendValue())}

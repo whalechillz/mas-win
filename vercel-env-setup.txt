@@ -20,4 +20,4 @@
    GOOGLE_ADS_DEVELOPER_TOKEN = [Google Ads에서 발급]
    GOOGLE_ADS_REFRESH_TOKEN = [OAuth 인증 후 발급]
 
-5. Environment 선택: Production, Preview, Development 모두 체크
+sleep 10 && curl -s https://win.masgolf.co.kr/funnel-2025-08 | head -55. Environment 선택: Production, Preview, Development 모두 체크

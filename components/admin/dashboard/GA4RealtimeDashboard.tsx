@@ -61,7 +61,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-center space-x-2">
-          <i data-feather="refresh-cw" className="w-5 h-5 animate-spin text-purple-600"> />
+          <i data-feather="refresh-cw" className="w-5 h-5 animate-spin text-purple-600" />
           <span className="text-gray-600">GA4 실시간 데이터 로딩 중...</span>
         </div>
       </div>
@@ -100,7 +100,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
           onClick={fetchGA4Data}
           className="flex items-center space-x-1 px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors"
         >
-          <i data-feather="refresh-cw" className="w-4 h-4"> />
+          <i data-feather="refresh-cw" className="w-4 h-4" />
           <span>새로고침</span>
         </button>
       </div>
@@ -112,7 +112,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
               <p className="text-blue-100 text-sm">실시간 사용자</p>
               <p className="text-2xl font-bold">{ga4Data?.activeUsers || '0'}</p>
             </div>
-            <Users className="w-8 h-8 text-blue-200"> />
+            <Users className="w-8 h-8 text-blue-200" />
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
               <p className="text-green-100 text-sm">페이지뷰</p>
               <p className="text-2xl font-bold">{ga4Data?.pageViews || '0'}</p>
             </div>
-            <Eye className="w-8 h-8 text-green-200"> />
+            <Eye className="w-8 h-8 text-green-200" />
           </div>
         </div>
 
@@ -132,7 +132,7 @@ export default function GA4RealtimeDashboard({ campaignId }: GA4RealtimeDashboar
               <p className="text-purple-100 text-sm">이벤트</p>
               <p className="text-2xl font-bold">{ga4Data?.events || '0'}</p>
             </div>
-            <Activity className="w-8 h-8 text-purple-200"> />
+            <Activity className="w-8 h-8 text-purple-200" />
           </div>
         </div>
       </div>
