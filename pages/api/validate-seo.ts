@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function validate-seo(
+export default async function validateSeo(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
