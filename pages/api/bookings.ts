@@ -12,55 +12,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     switch (method) {
       case 'GET':
-        const { year, month } = query;
-        
-        let queryBuilder = supabase
-          .from('monthly_funnel_plans')
+        const { data, error } = await supabase
+          .from('bookings')
           .select('*')
-          .order('year', { ascending: false })
-          .order('month', { ascending: false });
-
-        if (year) queryBuilder = queryBuilder.eq('year', year);
-        if (month) queryBuilder = queryBuilder.eq('month', month);
-
-        const { data, error } = await queryBuilder;
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         return res.status(200).json(data);
 
       case 'POST':
-        const { year: newYear, month: newMonth, theme, funnel_data, status } = body;
+        const { name, phone, date, time, club, notes } = body;
 
-        if (!newYear || !newMonth) {
-          return res.status(400).json({ error: 'year와 month는 필수입니다.' });
+        if (!name || !phone || !date) {
+          return res.status(400).json({ error: '필수 필드가 누락되었습니다.' });
         }
 
-        const { data: newPlan, error: insertError } = await supabase
-          .from('monthly_funnel_plans')
+        const { data: newBooking, error: insertError } = await supabase
+          .from('bookings')
           .insert({
-            year: newYear,
-            month: newMonth,
-            theme,
-            funnel_data: funnel_data || {},
-            status: status || 'planning'
+            name,
+            phone,
+            date,
+            time,
+            club,
+            notes,
+            status: 'pending'
           })
           .select()
           .single();
 
         if (insertError) throw insertError;
 
-        return res.status(201).json(newPlan);
+        return res.status(201).json(newBooking);
 
       case 'PUT':
         const { id, ...updateData } = body;
 
         if (!id) {
-          return res.status(400).json({ error: 'id는 필수입니다.' });
+          return res.status(400).json({ error: 'ID가 필요합니다.' });
         }
 
-        const { data: updatedPlan, error: updateError } = await supabase
-          .from('monthly_funnel_plans')
+        const { data: updatedBooking, error: updateError } = await supabase
+          .from('bookings')
           .update(updateData)
           .eq('id', id)
           .select()
@@ -68,17 +62,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (updateError) throw updateError;
 
-        return res.status(200).json(updatedPlan);
+        return res.status(200).json(updatedBooking);
 
       case 'DELETE':
         const { id: deleteId } = query;
 
         if (!deleteId) {
-          return res.status(400).json({ error: 'id는 필수입니다.' });
+          return res.status(400).json({ error: 'ID가 필요합니다.' });
         }
 
         const { error: deleteError } = await supabase
-          .from('monthly_funnel_plans')
+          .from('bookings')
           .delete()
           .eq('id', deleteId);
 
@@ -91,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: `Method ${method} Not Allowed` });
     }
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('Bookings API Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-}
+} 

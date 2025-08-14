@@ -1,224 +1,274 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// import { TrendingUp, TrendingDown, Users, Eye, Phone, Target } from 'lucide-react'; // 주석 처리
+import { TrendingUp, TrendingDown, DollarSign, Target, MousePointer, Eye, AlertTriangle } from 'lucide-react';
 
-interface CampaignKPIDashboardProps {
-  supabase: any;
+interface CampaignData {
+  id: string;
+  name: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  impressions: number;
+  clicks: number;
+  cost: number;
+  conversions: number;
+  conversionValue: number;
+  ctr: string;
+  cpc: string;
 }
 
-export default function CampaignKPIDashboard({ supabase }: CampaignKPIDashboardProps) {
-  const [selectedCampaign, setSelectedCampaign] = useState('2025-07');
-  const [campaignData, setCampaignData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+interface ApiResponse {
+  campaigns: CampaignData[];
+  dataSource: string;
+  period: string;
+  error?: string;
+  timestamp: string;
+}
 
-  const campaigns = [
-    { id: '2025-05', name: '2025년 05월 캠페인', period: '2025-05-01 ~ 2025-05-31' },
-    { id: '2025-06', name: '2025년 06월 캠페인', period: '2025-06-01 ~ 2025-06-30' },
-    { id: '2025-07', name: '2025년 07월 캠페인', period: '2025-07-01 ~ 2025-07-31' },
-    { id: '2025-08', name: '2025년 08월 캠페인', period: '2025-08-01 ~ 2025-08-31' }
-  ];
+export default function CampaignKPIDashboard() {
+  const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCampaignData();
-  }, [selectedCampaign]);
+    fetchCampaignData();
+  }, []);
 
-  const loadCampaignData = async () => {
-    if (!supabase) return;
-    
+  const fetchCampaignData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('campaign_metrics')
-        .select('*')
-        .eq('campaign_id', selectedCampaign)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      setCampaignData(data || {
-        views: 0,
-        unique_visitors: 0,
-        phone_clicks: 0,
-        form_submissions: 0,
-        conversion_rate: 0
-      });
-    } catch (error) {
-      console.error('Error loading campaign data:', error);
-      setCampaignData({
-        views: 0,
-        unique_visitors: 0,
-        phone_clicks: 0,
-        form_submissions: 0,
-        conversion_rate: 0
-      });
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/google-ads/campaigns');
+      if (!response.ok) {
+        throw new Error('Google Ads 데이터를 가져올 수 없습니다.');
+      }
+      
+      const data = await response.json();
+      setApiResponse(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
-  const getTrendIcon = (value: number) => {
-    if (value > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
-    if (value < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
-    return null;
-  };
+  const campaigns = apiResponse?.campaigns || [];
+  const isRealData = apiResponse?.dataSource === 'google_ads_api';
 
-  const getTrendValue = () => Math.floor(Math.random() * 20) - 10; // 임시 트렌드 값
+  // 전체 KPI 계산
+  const totalImpressions = campaigns.reduce((sum, campaign) => sum + campaign.impressions, 0);
+  const totalClicks = campaigns.reduce((sum, campaign) => sum + campaign.clicks, 0);
+  const totalCost = campaigns.reduce((sum, campaign) => sum + campaign.cost, 0);
+  const totalConversions = campaigns.reduce((sum, campaign) => sum + campaign.conversions, 0);
+  const totalConversionValue = campaigns.reduce((sum, campaign) => sum + campaign.conversionValue, 0);
+  
+  const overallCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(2) : '0.00';
+  const overallCPC = totalClicks > 0 ? (totalCost / totalClicks).toFixed(2) : '0.00';
+  const overallROAS = totalCost > 0 ? (totalConversionValue / totalCost).toFixed(2) : '0.00';
 
   if (loading) {
-    return <div className="p-6 text-center">로딩 중...</div>;
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-center space-x-2">
+          <i data-feather="refresh-cw" className="w-5 h-5 animate-spin text-purple-600"></i>
+          <span className="text-gray-600">Google Ads 데이터 로딩 중...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center">
+          <div className="text-red-500 mb-2">⚠️ Google Ads 연결 오류</div>
+          <div className="text-sm text-gray-600 mb-4">{error}</div>
+          <button
+            onClick={fetchCampaignData}
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">캠페인별 KPI 대시보드</h2>
-        <div className="flex items-center space-x-4">
-          <select
-            value={selectedCampaign}
-            onChange={(e) => setSelectedCampaign(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-          >
-            {campaigns.map(campaign => (
-              <option key={campaign.id} value={campaign.id}>
-                {campaign.name}
-              </option>
-            ))}
-          </select>
-          <span className="text-sm text-gray-500">{campaigns.find(c => c.id === selectedCampaign)?.period}</span>
-          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-            진행중
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Google Ads 캠페인 KPI (현재 월)
+        </h3>
+        <div className="flex items-center space-x-2">
+          <span className={`px-2 py-1 text-xs rounded-full ${
+            isRealData 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-yellow-100 text-yellow-800'
+          }`}>
+            {isRealData ? '실제 데이터' : '모의 데이터'}
           </span>
+          <button
+            onClick={fetchCampaignData}
+            className="flex items-center space-x-1 px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors"
+          >
+            <i data-feather="refresh-cw" className="w-4 h-4"></i>
+            <span>새로고침</span>
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* 데이터 출처 안내 */}
+      {!isRealData && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+            <div className="text-sm text-yellow-800">
+              <strong>모의 데이터 표시 중</strong>
+              <br />
+              실제 Google Ads 데이터를 보려면 API 연결을 완료하세요.
+              <br />
+              기간: {apiResponse?.period}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 전체 KPI 카드 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm">총 조회수</p>
-              <p className="text-2xl font-bold">{campaignData.views.toLocaleString()}</p>
+              <p className="text-blue-100 text-sm">총 노출수</p>
+              <p className="text-2xl font-bold">{totalImpressions.toLocaleString()}</p>
             </div>
             <Eye className="w-8 h-8 text-blue-200" />
-          </div>
-          <div className="flex items-center mt-2">
-            {getTrendIcon(getTrendValue())}
-            <span className="text-sm ml-1">↑ 12%</span>
           </div>
         </div>
 
         <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">고유 방문자</p>
-              <p className="text-2xl font-bold">{campaignData.unique_visitors.toLocaleString()}</p>
+              <p className="text-green-100 text-sm">총 클릭수</p>
+              <p className="text-2xl font-bold">{totalClicks.toLocaleString()}</p>
             </div>
-            <Users className="w-8 h-8 text-green-200" />
-          </div>
-          <div className="flex items-center mt-2">
-            {getTrendIcon(getTrendValue())}
-            <span className="text-sm ml-1">↑ 8%</span>
+            <MousePointer className="w-8 h-8 text-green-200" />
           </div>
         </div>
 
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">전화 클릭</p>
-              <p className="text-2xl font-bold">{campaignData.phone_clicks.toLocaleString()}</p>
+              <p className="text-purple-100 text-sm">총 비용</p>
+              <p className="text-2xl font-bold">${totalCost.toLocaleString()}</p>
             </div>
-            <Phone className="w-8 h-8 text-purple-200" />
-          </div>
-          <div className="flex items-center mt-2">
-            {getTrendIcon(getTrendValue())}
-            <span className="text-sm ml-1">↓ 5%</span>
+            <DollarSign className="w-8 h-8 text-purple-200" />
           </div>
         </div>
 
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm">전환율</p>
-              <p className="text-2xl font-bold">{campaignData.conversion_rate.toFixed(1)}%</p>
+              <p className="text-orange-100 text-sm">총 전환</p>
+              <p className="text-2xl font-bold">{totalConversions.toLocaleString()}</p>
             </div>
             <Target className="w-8 h-8 text-orange-200" />
-          </div>
-          <div className="flex items-center mt-2">
-            {getTrendIcon(getTrendValue())}
-            <span className="text-sm ml-1">↑ 15%</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">전환 퍼널</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">페이지 방문</span>
-              <div className="flex items-center space-x-2">
-                <div className="w-32 bg-blue-200 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '100%' }}></div>
-                </div>
-                <span className="text-sm font-medium">{campaignData.views} (100%)</span>
-              </div>
+      {/* 성과 지표 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">전체 CTR</p>
+              <p className="text-xl font-bold text-gray-900">{overallCTR}%</p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">퀴즈 참여</span>
-              <div className="flex items-center space-x-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div className="bg-gray-400 h-2 rounded-full" style={{ width: '0%' }}></div>
-                </div>
-                <span className="text-sm font-medium">0 (0.0%)</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">전화 문의</span>
-              <div className="flex items-center space-x-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div className="bg-gray-400 h-2 rounded-full" style={{ width: '0%' }}></div>
-                </div>
-                <span className="text-sm font-medium">0 (0.0%)</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">예약 완료</span>
-              <div className="flex items-center space-x-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div className="bg-gray-400 h-2 rounded-full" style={{ width: '0%' }}></div>
-                </div>
-                <span className="text-sm font-medium">0 (0.0%)</span>
-              </div>
-            </div>
+            <TrendingUp className="w-6 h-6 text-green-500" />
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">시간대별 활동</h3>
-          <div className="h-48 flex items-end justify-between space-x-1">
-            {Array.from({ length: 24 }, (_, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div 
-                  className="w-3 bg-blue-500 rounded-t"
-                  style={{ 
-                    height: `${Math.random() * 100}%`,
-                    minHeight: '4px'
-                  }}
-                ></div>
-                <span className="text-xs text-gray-500 mt-1">{i}시</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-center space-x-4 mt-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className="text-sm text-gray-600">조회수</span>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">전체 CPC</p>
+              <p className="text-xl font-bold text-gray-900">${overallCPC}</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded"></div>
-              <span className="text-sm text-gray-600">클릭수</span>
-            </div>
+            <DollarSign className="w-6 h-6 text-blue-500" />
           </div>
         </div>
+
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">전체 ROAS</p>
+              <p className="text-xl font-bold text-gray-900">{overallROAS}x</p>
+            </div>
+            <TrendingUp className="w-6 h-6 text-purple-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* 활성 캠페인 목록 */}
+      <div className="space-y-4">
+        <h4 className="text-md font-medium text-gray-900">현재 월 활성 캠페인</h4>
+        {campaigns.length > 0 ? (
+          campaigns.map((campaign) => (
+            <div key={campaign.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="font-medium text-gray-900">{campaign.name}</h5>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  campaign.status === 'ENABLED' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {campaign.status === 'ENABLED' ? '활성' : '일시정지'}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">노출수</p>
+                  <p className="font-semibold">{campaign.impressions.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">클릭수</p>
+                  <p className="font-semibold">{campaign.clicks.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">비용</p>
+                  <p className="font-semibold">${campaign.cost.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">CTR</p>
+                  <p className="font-semibold">{campaign.ctr}%</p>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-xs text-gray-500">
+                {campaign.startDate} ~ {campaign.endDate}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            현재 월에 활성 캠페인이 없습니다.
+          </div>
+        )}
+      </div>
+
+      {/* 데이터 정보 */}
+      <div className="mt-4 text-xs text-gray-500 text-center">
+        마지막 업데이트: {apiResponse?.timestamp ? new Date(apiResponse.timestamp).toLocaleTimeString() : 'N/A'}
+        {apiResponse?.period && (
+          <>
+            <br />
+            데이터 기간: {apiResponse.period}
+          </>
+        )}
       </div>
     </div>
   );
