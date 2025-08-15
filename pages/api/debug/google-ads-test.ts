@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 4단계: 간단한 쿼리 테스트
+    // 4단계: 간단한 쿼리 테스트 부분 수정
     try {
       const testQuery = `
         SELECT 
@@ -81,6 +81,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         FROM customer 
         LIMIT 1
       `;
+      
+      console.log('Google Ads API 쿼리 실행 중...', {
+        customer_id: envVars.customer_id,
+        query: testQuery
+      });
       
       const response = await customer.query(testQuery);
       
@@ -97,11 +102,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
     } catch (error) {
+      console.error('Google Ads API 오류 상세:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       return res.status(200).json({
         step: 'API 쿼리 테스트',
         status: '실패',
         message: 'API 쿼리 실행에 실패했습니다.',
         error: error instanceof Error ? error.message : 'Unknown error',
+        errorDetails: {
+          name: error instanceof Error ? error.name : 'Unknown',
+          stack: error instanceof Error ? error.stack : undefined
+        },
         details: envStatus,
         nextStep: '계정 권한이나 쿼리 구문을 확인하세요.'
       });
