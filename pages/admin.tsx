@@ -209,11 +209,8 @@ export default function Admin() {
               <div className="space-y-6">
                 <CampaignKPIDashboard />
                 
-                {/* 원래 GA4 대시보드 사용 */}
+                {/* GA4 실시간 대시보드 */}
                 <GA4RealtimeDashboard />
-                
-                {/* 새로운 고급 분석 추가 */}
-                <AdvancedUserAnalytics campaignId="2025-08-vacation" />
               </div>
             )}
 

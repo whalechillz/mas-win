@@ -50,7 +50,7 @@ interface AdvancedAnalytics {
   };
 }
 
-export function IntegratedABTestDashboard() {
+export default function IntegratedABTestDashboard() {
   const [comparisonData, setComparisonData] = useState<ABTestComparison | null>(null);
   const [advancedAnalytics, setAdvancedAnalytics] = useState<AdvancedAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -380,3 +380,5 @@ export function IntegratedABTestDashboard() {
     </div>
   );
 }
+
+export { IntegratedABTestDashboard };

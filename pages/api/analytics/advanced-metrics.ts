@@ -39,6 +39,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { startDate, endDate } = getDateRange();
 
+    // 1. 세션 데이터 조회 - 버전별 필터링 개선
+    const sessionFilter = version && version !== 'all' ? {
+      filter: {
+        fieldName: 'eventParameter:ab_test_version', // 이벤트 파라미터로 필터링
+        stringFilter: {
+          value: version
+        }
+      }
+    } : undefined;
+
     const [sessionResponse] = await analyticsDataClient.runReport({
       property: `properties/${process.env.GA4_PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
@@ -50,15 +60,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { name: 'activeUsers' }
       ],
       dimensions: [{ name: 'date' }],
-      dimensionFilter: version && version !== 'all' ? {
-        filter: {
-          fieldName: 'pagePath',
-          stringFilter: {
-            value: `/versions/funnel-2025-08-${version}`
-          }
-        }
-      } : undefined
+      dimensionFilter: sessionFilter
     });
+
+    // 2. 스크롤 데이터 조회 - 버전별 필터링 추가
+    const scrollFilter = version && version !== 'all' ? {
+      andGroup: {
+        expressions: [
+          {
+            filter: {
+              fieldName: 'eventName',
+              stringFilter: { value: 'scroll_depth' }
+            }
+          },
+          {
+            filter: {
+              fieldName: 'eventParameter:ab_test_version',
+              stringFilter: { value: version }
+            }
+          }
+        ]
+      }
+    } : {
+      filter: {
+        fieldName: 'eventName',
+        stringFilter: { value: 'scroll_depth' }
+      }
+    };
 
     const [scrollResponse] = await analyticsDataClient.runReport({
       property: `properties/${process.env.GA4_PROPERTY_ID}`,
@@ -68,13 +96,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { name: 'eventName' },
         { name: 'eventParameter:scroll_percentage' }
       ],
-      dimensionFilter: {
-        filter: {
-          fieldName: 'eventName',
-          stringFilter: { value: 'scroll_depth' }
-        }
-      }
+      dimensionFilter: scrollFilter
     });
+
+    // 3. 성능 데이터 조회 - 버전별 필터링 추가
+    const performanceFilter = version && version !== 'all' ? {
+      andGroup: {
+        expressions: [
+          {
+            filter: {
+              fieldName: 'eventName',
+              stringFilter: { value: 'page_performance' }
+            }
+          },
+          {
+            filter: {
+              fieldName: 'eventParameter:ab_test_version',
+              stringFilter: { value: version }
+            }
+          }
+        ]
+      }
+    } : {
+      filter: {
+        fieldName: 'eventName',
+        stringFilter: { value: 'page_performance' }
+      }
+    };
 
     const [performanceResponse] = await analyticsDataClient.runReport({
       property: `properties/${process.env.GA4_PROPERTY_ID}`,
@@ -85,13 +133,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { name: 'eventParameter:page_load_time' },
         { name: 'eventParameter:first_contentful_paint' }
       ],
-      dimensionFilter: {
-        filter: {
-          fieldName: 'eventName',
-          stringFilter: { value: 'page_performance' }
-        }
-      }
+      dimensionFilter: performanceFilter
     });
+
+    // 디버깅을 위한 로그 추가
+    console.log('API 호출 파라미터:', { dateRange, version, startDate, endDate });
+    console.log('세션 데이터:', sessionResponse.rows);
+    console.log('스크롤 데이터:', scrollResponse.rows);
+    console.log('성능 데이터:', performanceResponse.rows);
 
     const sessionData = sessionResponse.rows?.[0]?.metricValues || [];
     const scrollData = scrollResponse.rows || [];
