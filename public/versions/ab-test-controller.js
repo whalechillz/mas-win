@@ -87,17 +87,66 @@
         iframe.src = newSrc;
         console.log(`A/B 테스트: 버전 ${version} 로드됨 (총 ${DETECTED_VERSIONS.length}개 버전)`);
         
-        // GA4 이벤트 전송
+        // GA4 이벤트 전송 (강화된 노출 추적)
         if (typeof gtag !== 'undefined') {
+          // 1. A/B 테스트 할당 이벤트
           gtag('event', 'ab_test_assignment', {
             test_name: AB_TEST_CONFIG.testName,
             version: version,
             total_versions: DETECTED_VERSIONS.length,
-            page_id: 'funnel-2025-08'
+            page_id: 'funnel-2025-08',
+            user_id: getUserId(),
+            timestamp: new Date().toISOString(),
+            event_category: 'A/B Test',
+            event_label: `${AB_TEST_CONFIG.testName}_${version}`
+          });
+          
+          // 2. 버전별 노출 이벤트 (실시간 추적용)
+          gtag('event', 'ab_test_exposure', {
+            test_name: AB_TEST_CONFIG.testName,
+            version: version,
+            exposure_count: 1,
+            page_id: 'funnel-2025-08',
+            user_id: getUserId(),
+            timestamp: new Date().toISOString(),
+            event_category: 'A/B Test Exposure',
+            event_label: `${AB_TEST_CONFIG.testName}_${version}_exposure`
+          });
+          
+          // 3. 세션별 버전 추적
+          gtag('event', 'ab_test_session', {
+            test_name: AB_TEST_CONFIG.testName,
+            version: version,
+            session_id: getSessionId(),
+            page_id: 'funnel-2025-08',
+            user_id: getUserId(),
+            timestamp: new Date().toISOString(),
+            event_category: 'A/B Test Session',
+            event_label: `${AB_TEST_CONFIG.testName}_${version}_session`
           });
         }
       }
     }
+  }
+  
+  // 사용자 ID 생성 (쿠키 기반)
+  function getUserId() {
+    let userId = getCookie('masgolf_user_id');
+    if (!userId) {
+      userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      setCookie('masgolf_user_id', userId, 365); // 1년간 유지
+    }
+    return userId;
+  }
+  
+  // 세션 ID 생성
+  function getSessionId() {
+    let sessionId = getCookie('masgolf_session_id');
+    if (!sessionId) {
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      setCookie('masgolf_session_id', sessionId, 1); // 1일간 유지
+    }
+    return sessionId;
   }
   
   // 초기화 함수

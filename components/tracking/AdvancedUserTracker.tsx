@@ -108,6 +108,7 @@ export function AdvancedUserTracker({ campaignId, pageId, version }: AdvancedUse
   useEffect(() => {
     let lastScrollY = 0;
     let scrollPauseStart = 0;
+    let scrollDepthTracked = {25: false, 50: false, 75: false, 100: false};
     
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -118,6 +119,28 @@ export function AdvancedUserTracker({ campaignId, pageId, version }: AdvancedUse
         ...prev,
         scrollDepth: Math.max(prev.scrollDepth, scrollDepth)
       }));
+      
+      // GA4 스크롤 깊이 이벤트 전송 (25%, 50%, 75%, 100%)
+      [25, 50, 75, 100].forEach(depth => {
+        if (scrollDepth >= depth && !scrollDepthTracked[depth]) {
+          scrollDepthTracked[depth] = true;
+          
+          // GA4 이벤트 전송
+          if (typeof (window as any).gtag !== 'undefined') {
+            (window as any).gtag('event', 'scroll_depth', {
+              event_category: 'engagement',
+              event_label: 'advanced_tracking',
+              scroll_percentage: depth,
+              page_title: document.title,
+              page_location: window.location.href,
+              timestamp: new Date().toISOString(),
+              session_id: sessionRef.current?.sessionId || 'unknown'
+            });
+          }
+          
+          console.log('AdvancedUserTracker 스크롤 깊이:', depth + '%');
+        }
+      });
       
       // 스크롤 정지 감지
       clearTimeout(scrollTimerRef.current!);

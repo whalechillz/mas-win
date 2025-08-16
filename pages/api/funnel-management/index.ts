@@ -13,6 +13,27 @@ interface FunnelFile {
   url: string;
 }
 
+// 파일 내용에서 메타데이터 추출
+function extractMetadataFromFile(filePath: string) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    // 메타 태그에서 날짜 추출
+    const createdMatch = content.match(/<meta name="file-created" content="([^"]+)"/);
+    const versionMatch = content.match(/<meta name="file-version" content="([^"]+)"/);
+    const statusMatch = content.match(/<meta name="file-status" content="([^"]+)"/);
+    
+    return {
+      createdDate: createdMatch ? createdMatch[1] : null,
+      version: versionMatch ? versionMatch[1] : null,
+      status: statusMatch ? statusMatch[1] : null
+    };
+  } catch (error) {
+    console.error(`파일 메타데이터 추출 실패: ${filePath}`, error);
+    return { createdDate: null, version: null, status: null };
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -36,21 +57,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           const stats = fs.statSync(filePath);
           
-          // 실제 파일 수정일 사용 (시스템 메타데이터)
-          const actualModifiedDate = stats.mtime;
+          // 파일 내용에서 메타데이터 추출
+          const metadata = extractMetadataFromFile(filePath);
           
-          // 버전 상태 판단
+          // 파일명에서 버전 추출 (백업)
+          const fileNameVersion = version;
+          
+          // 상태 결정 (파일 내용 우선, 파일명 백업)
           let status: 'live' | 'staging' | 'dev' = 'dev';
-          if (version.includes('live')) status = 'live';
-          else if (version.includes('staging')) status = 'staging';
+          if (metadata.status) {
+            status = metadata.status as 'live' | 'staging' | 'dev';
+          } else if (fileNameVersion.includes('live')) {
+            status = 'live';
+          } else if (fileNameVersion.includes('staging')) {
+            status = 'staging';
+          }
+          
+          // 날짜 결정 (파일 내용 우선, 시스템 메타데이터 백업)
+          let modifiedDate: string;
+          if (metadata.createdDate) {
+            modifiedDate = metadata.createdDate;
+          } else {
+            modifiedDate = stats.mtime.toISOString();
+          }
           
           funnelFiles.push({
             name: file,
             path: filePath,
             size: stats.size,
             createdDate: stats.birthtime.toISOString(),
-            modifiedDate: actualModifiedDate.toISOString(), // 실제 파일 수정일
-            version: version,
+            modifiedDate: modifiedDate,
+            version: metadata.version || fileNameVersion,
             status: status,
             url: `/versions/${file}`
           });
@@ -59,9 +96,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.log(`파일 ${file}:`, {
             name: file,
             size: stats.size,
-            modifiedDate: actualModifiedDate.toISOString(),
-            version: version,
-            status: status
+            modifiedDate: modifiedDate,
+            version: metadata.version || fileNameVersion,
+            status: status,
+            metadataSource: 'file-content'
           });
           
         } catch (statError) {
@@ -100,7 +138,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           fileDetails: funnelFiles.map(f => ({
             name: f.name,
             modifiedDate: f.modifiedDate,
-            size: f.size
+            size: f.size,
+            metadataSource: 'file-content'
           }))
         }
       }

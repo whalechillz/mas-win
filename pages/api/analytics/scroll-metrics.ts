@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { startDate, endDate } = getDateRange();
 
-    // 스크롤 깊이 이벤트 조회
+    // 스크롤 깊이 이벤트 조회 (수정된 버전)
     const [scrollResponse] = await analyticsDataClient.runReport({
       property: `properties/${process.env.GA4_PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ],
       dimensions: [
         { name: 'eventName' },
-        { name: 'customEvent:scroll_depth' }
+        { name: 'eventParameter:scroll_percentage' }  // GA4 이벤트 파라미터로 수정
       ],
       dimensionFilter: {
         filter: {
@@ -64,6 +64,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 데이터 가공
     const scrollData = scrollResponse.rows || [];
     
+    console.log('GA4 스크롤 데이터 원본:', scrollData);
+    
     // 스크롤 깊이별 사용자 수 계산
     const scrollDepthData = {
       '25%': 0,
@@ -73,8 +75,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     scrollData.forEach(row => {
-      const depth = row.dimensionValues?.[1]?.value;
+      const depth = row.dimensionValues?.[1]?.value; // eventParameter:scroll_percentage
       const count = parseInt(row.metricValues?.[0]?.value || '0');
+      
+      console.log('스크롤 깊이 데이터:', { depth, count });
       
       if (depth === '25') scrollDepthData['25%'] = count;
       else if (depth === '50') scrollDepthData['50%'] = count;

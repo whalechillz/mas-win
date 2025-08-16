@@ -103,13 +103,28 @@ function trackScrollDepth() {
     [25, 50, 75, 100].forEach(depth => {
         if (scrollPercentage >= depth && !scrollDepthTracked[depth]) {
             scrollDepthTracked[depth] = true;
+            
+            // GA4 호환 이벤트 전송
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'scroll_depth', {
+                    event_category: 'engagement',
+                    event_label: 'july_funnel',
+                    scroll_percentage: depth,
+                    page_title: document.title,
+                    page_location: window.location.href,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // GTM dataLayer에도 전송 (기존 호환성)
             window.dataLayer.push({
                 'event': 'scroll_depth',
                 'event_category': 'engagement',
                 'event_label': 'july_funnel',
                 'scroll_percentage': depth
             });
-            console.log('GTM 스크롤 깊이 추적:', depth + '%');
+            
+            console.log('스크롤 깊이 추적:', depth + '%');
         }
     });
 }

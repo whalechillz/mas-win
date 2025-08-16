@@ -10,6 +10,8 @@ interface ABTestResult {
   avgSessionDuration: number;
   bounceRate: number;
   pageViews: number;
+  exposures?: number; // Added exposures
+  uniqueUsers?: number; // Added uniqueUsers
 }
 
 interface ABTestComparison {
@@ -210,6 +212,14 @@ export function IntegratedABTestDashboard() {
             </div>
             
             <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>노출 수:</span>
+                <span className="font-medium text-blue-600">{result.exposures?.toLocaleString() || '0'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>고유 사용자:</span>
+                <span className="font-medium text-purple-600">{result.uniqueUsers?.toLocaleString() || '0'}</span>
+              </div>
               <div className="flex justify-between">
                 <span>세션:</span>
                 <span className="font-medium">{result.sessions.toLocaleString()}</span>

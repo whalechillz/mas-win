@@ -476,18 +476,34 @@ export function AdvancedUserAnalytics({ campaignId }: AdvancedUserAnalyticsProps
           {/* 스크롤 깊이 분석 (실제 데이터) */}
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-medium text-gray-900 mb-4">스크롤 깊이 분석 (실제 데이터)</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={Object.entries(analyticsData.scrollMetrics.scrollDepth).map(([key, value]) => ({
-                depth: key,
-                users: value
-              }))}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="depth" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="users" fill="#3B82F6" />
-              </BarChart>
-            </ResponsiveContainer>
+            {analyticsData.scrollMetrics.totalUsers > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={Object.entries(analyticsData.scrollMetrics.scrollDepth).map(([key, value]) => ({
+                  depth: key,
+                  users: value,
+                  percentage: ((value / analyticsData.scrollMetrics.totalUsers) * 100).toFixed(1)
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="depth" />
+                  <YAxis />
+                  <Tooltip formatter={(value, name) => [`${value}명 (${((value / analyticsData.scrollMetrics.totalUsers) * 100).toFixed(1)}%)`, '사용자 수']} />
+                  <Bar dataKey="users" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-6xl mb-4">📊</div>
+                <p className="text-gray-600 mb-2">스크롤 깊이 데이터가 없습니다</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  사용자가 페이지를 스크롤하면 25%, 50%, 75%, 100% 지점에서 데이터가 수집됩니다
+                </p>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <p>• 스크롤 이벤트가 GA4에 전송되고 있는지 확인</p>
+                  <p>• 페이지에 충분한 콘텐츠가 있는지 확인</p>
+                  <p>• 사용자가 실제로 스크롤하는지 확인</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 성능 메트릭 (실제 데이터) */}
