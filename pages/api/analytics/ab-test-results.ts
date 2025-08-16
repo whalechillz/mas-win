@@ -139,8 +139,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ],
       dimensions: [
         { name: 'eventName' },
-        { name: 'customEvent:test_name' },
-        { name: 'customEvent:version' }
+        { name: 'eventParameter:test_name' },
+        { name: 'eventParameter:version' }
       ],
       dimensionFilter: {
         andGroup: {
@@ -153,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             {
               filter: {
-                fieldName: 'customEvent:test_name',
+                fieldName: 'eventParameter:test_name',
                 stringFilter: { value: testName as string }
               }
             }
@@ -172,8 +172,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ],
       dimensions: [
         { name: 'eventName' },
-        { name: 'customEvent:test_name' },
-        { name: 'customEvent:version' }
+        { name: 'eventParameter:test_name' },
+        { name: 'eventParameter:version' }
       ],
       dimensionFilter: {
         andGroup: {
@@ -186,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             {
               filter: {
-                fieldName: 'customEvent:test_name',
+                fieldName: 'eventParameter:test_name',
                 stringFilter: { value: testName as string }
               }
             }
@@ -234,7 +234,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 노출 이벤트 데이터 처리
     abTestExposureData.forEach(row => {
-      const version = row.dimensionValues?.[2]?.value; // customEvent:version
+      const version = row.dimensionValues?.[2]?.value; // eventParameter:version
       const exposureCount = parseInt(row.metricValues?.[0]?.value || '0');
       
       if (version) {
@@ -244,7 +244,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 세션 이벤트 데이터 처리
     abTestSessionData.forEach(row => {
-      const version = row.dimensionValues?.[2]?.value; // customEvent:version
+      const version = row.dimensionValues?.[2]?.value; // eventParameter:version
       const sessionCount = parseInt(row.metricValues?.[0]?.value || '0');
       const userCount = parseInt(row.metricValues?.[1]?.value || '0');
       
