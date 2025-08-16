@@ -552,103 +552,6 @@
         }
     </script>
     <script>
-// A/B 테스트 이벤트 전송
-if (typeof gtag !== 'undefined') {
-  gtag('event', 'ab_test_assignment', {
-    test_name: 'funnel-2025-08',
-    version: 'live-b',
-    page_id: 'funnel-2025-08-live-b',
-    timestamp: new Date().toISOString(),
-    event_category: 'A/B Test',
-    event_label: 'funnel-2025-08_live-b'
-  });
-  
-  // 스크롤 깊이 추적
-  let scrollDepthTracked = {25: false, 50: false, 75: false, 100: false};
-  
-  function trackScrollDepth() {
-    const scrollPercentage = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
-    
-    [25, 50, 75, 100].forEach(depth => {
-      if (scrollPercentage >= depth && !scrollDepthTracked[depth]) {
-        scrollDepthTracked[depth] = true;
-        
-        gtag('event', 'scroll_depth', {
-          event_category: 'engagement',
-          event_label: 'funnel-2025-08-live-b',
-          scroll_percentage: depth,
-          page_title: document.title,
-          page_location: window.location.href,
-          timestamp: new Date().toISOString()
-        });
-        
-        console.log('스크롤 깊이 추적:', depth + '%');
-      }
-    });
-  }
-  
-  // 스크롤 이벤트 리스너 추가
-  window.addEventListener('scroll', trackScrollDepth);
-  
-  console.log('A/B 테스트 이벤트 전송: 버전 live-b');
-}
-
-// 페이지 성능 추적
-function trackPagePerformance() {
-  if ('performance' in window) {
-    const navigation = performance.getEntriesByType('navigation')[0];
-    const paint = performance.getEntriesByType('paint');
-    
-    // 기본 성능 지표
-    const pageLoadTime = navigation.loadEventEnd - navigation.loadEventStart;
-    const firstContentfulPaint = paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0;
-    
-    // GA4 성능 이벤트 전송
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'page_performance', {
-        event_category: 'performance',
-        event_label: 'funnel-2025-08-live-b',
-        page_load_time: Math.round(pageLoadTime),
-        first_contentful_paint: Math.round(firstContentfulPaint),
-        page_title: document.title,
-        page_location: window.location.href,
-        timestamp: new Date().toISOString()
-      });
-      
-      console.log('페이지 성능 추적:', {
-        pageLoadTime: Math.round(pageLoadTime) + 'ms',
-        firstContentfulPaint: Math.round(firstContentfulPaint) + 'ms'
-      });
-    }
-    
-    // LCP (Largest Contentful Paint) 추적
-    const observer = new PerformanceObserver((list) => {
-      const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1];
-      
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'largest_contentful_paint', {
-          event_category: 'performance',
-          event_label: 'funnel-2025-08-live-b',
-          value: Math.round(lastEntry.startTime),
-          page_title: document.title,
-          page_location: window.location.href,
-          timestamp: new Date().toISOString()
-        });
-        
-        console.log('LCP 추적:', Math.round(lastEntry.startTime) + 'ms');
-      }
-    });
-    
-    observer.observe({ entryTypes: ['largest-contentful-paint'] });
-  }
-}
-
-// 페이지 로드 완료 후 성능 측정
-if (document.readyState === 'complete') {
-  trackPagePerformance();
-} else {
-  window.addEventListener('load', trackPagePerformance);
 }
 </script>
 </head>
@@ -1233,4 +1136,189 @@ if (document.readyState === 'complete') {
         </div>
     </footer>
 </body>
-</html>
+</html>    <script>
+// 통합 A/B 테스트 추적 시스템
+class ABTestTracker {
+  constructor() {
+    this.version = this.detectVersion();
+    this.sessionId = this.generateSessionId();
+    this.initTracking();
+    console.log(`A/B 테스트 초기화: 버전 ${this.version}`);
+  }
+  
+  detectVersion() {
+    const pathname = window.location.pathname;
+    if (pathname.includes("live-a")) return "live-a";
+    if (pathname.includes("live-b")) return "live-b";
+    return "unknown";
+  }
+  
+  generateSessionId() {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  initTracking() {
+    this.trackPageView();
+    this.trackButtonClicks();
+    this.trackScrollDepth();
+    this.trackFormInteractions();
+    this.trackPerformance();
+  }
+  
+  trackPageView() {
+    if (typeof gtag !== "undefined") {
+      gtag("event", "page_view", {
+        page_title: document.title,
+        page_location: window.location.href,
+        ab_test_version: this.version,
+        session_id: this.sessionId,
+        timestamp: new Date().toISOString()
+      });
+      console.log("페이지뷰 추적:", this.version);
+    }
+  }
+  
+  trackButtonClicks() {
+    document.addEventListener("click", (e) => {
+      const target = e.target.closest("button, a[href^=\"tel:\"], .btn");
+      if (target) {
+        const buttonType = this.getButtonType(target);
+        const buttonText = target.textContent?.trim() || "unknown";
+        
+        if (typeof gtag !== "undefined") {
+          gtag("event", "button_click", {
+            event_category: "engagement",
+            event_label: `funnel-2025-08-${this.version}`,
+            button_type: buttonType,
+            button_text: buttonText,
+            ab_test_version: this.version,
+            session_id: this.sessionId,
+            timestamp: new Date().toISOString()
+          });
+          console.log("버튼 클릭 추적:", buttonType, buttonText, this.version);
+        }
+      }
+    });
+  }
+  
+  getButtonType(element) {
+    if (element.href?.includes("tel:")) return "phone";
+    if (element.onclick || element.getAttribute("onclick")) return "cta";
+    if (element.classList.contains("btn-primary")) return "primary";
+    if (element.classList.contains("btn-secondary")) return "secondary";
+    return "general";
+  }
+  
+  trackScrollDepth() {
+    let scrollDepthTracked = {25: false, 50: false, 75: false, 100: false};
+    
+    window.addEventListener("scroll", () => {
+      const scrollPercentage = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
+      
+      [25, 50, 75, 100].forEach(depth => {
+        if (scrollPercentage >= depth && !scrollDepthTracked[depth]) {
+          scrollDepthTracked[depth] = true;
+          
+          if (typeof gtag !== "undefined") {
+            gtag("event", "scroll_depth", {
+              event_category: "engagement",
+              event_label: `funnel-2025-08-${this.version}`,
+              scroll_percentage: depth,
+              ab_test_version: this.version,
+              session_id: this.sessionId,
+              timestamp: new Date().toISOString()
+            });
+            console.log("스크롤 깊이 추적:", depth + "%", this.version);
+          }
+        }
+      });
+    });
+  }
+  
+  trackFormInteractions() {
+    const forms = document.querySelectorAll("form");
+    forms.forEach((form, index) => {
+      const inputs = form.querySelectorAll("input, select, textarea");
+      inputs.forEach(input => {
+        input.addEventListener("focus", () => {
+          this.trackFormEvent("focus", index + 1);
+        });
+        input.addEventListener("blur", () => {
+          this.trackFormEvent("blur", index + 1);
+        });
+      });
+      
+      form.addEventListener("submit", () => {
+        this.trackFormEvent("submit", index + 1);
+      });
+    });
+  }
+  
+  trackFormEvent(eventType, stepNumber) {
+    if (typeof gtag !== "undefined") {
+      gtag("event", "form_interaction", {
+        event_category: "engagement",
+        event_label: `funnel-2025-08-${this.version}`,
+        interaction_type: eventType,
+        form_step: stepNumber,
+        ab_test_version: this.version,
+        session_id: this.sessionId,
+        timestamp: new Date().toISOString()
+      });
+      console.log("폼 상호작용 추적:", eventType, stepNumber, this.version);
+    }
+  }
+  
+  trackPerformance() {
+    if ("performance" in window) {
+      const navigation = performance.getEntriesByType("navigation")[0];
+      const paint = performance.getEntriesByType("paint");
+      
+      const pageLoadTime = navigation.loadEventEnd > 0 ? 
+        navigation.loadEventEnd - navigation.loadEventStart : 0;
+      const firstContentfulPaint = paint.find(p => p.name === "first-contentful-paint")?.startTime || 0;
+      
+      if (pageLoadTime > 0 && firstContentfulPaint > 0) {
+        if (typeof gtag !== "undefined") {
+          gtag("event", "page_performance", {
+            event_category: "performance",
+            event_label: `funnel-2025-08-${this.version}`,
+            page_load_time: Math.round(pageLoadTime),
+            first_contentful_paint: Math.round(firstContentfulPaint),
+            ab_test_version: this.version,
+            session_id: this.sessionId,
+            timestamp: new Date().toISOString()
+          });
+          console.log("성능 추적:", {
+            pageLoadTime: Math.round(pageLoadTime) + "ms",
+            firstContentfulPaint: Math.round(firstContentfulPaint) + "ms",
+            version: this.version
+          });
+        }
+      }
+    }
+  }
+}
+
+// 페이지 로드 시 초기화
+document.addEventListener("DOMContentLoaded", () => {
+  new ABTestTracker();
+});
+
+// 기존 함수들 유지 (호환성)
+function bookVisit() {
+  alert("매장 방문 예약은 080-028-8888로 전화 주시거나 카카오톡 채널을 통해 가능합니다.");
+  location.href = "tel:080-028-8888";
+}
+
+function showInquiry() {
+  alert("카카오톡 채널: MASGOLF
+
+평일 09:00 ~ 18:00 상담 가능합니다.");
+}
+
+function openBookingModal() {
+  alert("시타 예약은 080-028-8888로 전화 주시거나 카카오톡 채널을 통해 가능합니다.");
+  location.href = "tel:080-028-8888";
+}
+</script>
