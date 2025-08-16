@@ -36,20 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           const stats = fs.statSync(filePath);
           
-          // 파일명에서 날짜 추출 (파일명이 더 정확함)
-          const fileNameDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-          
-          // 시스템 날짜와 파일명 날짜 비교
-          let finalModifiedDate: Date;
-          
-          if (stats.mtime.getFullYear() < 2020) {
-            // 시스템 날짜가 잘못된 경우 파일명 기반 날짜 사용
-            finalModifiedDate = fileNameDate;
-            console.log(`파일 ${file}: 시스템 날짜 오류, 파일명 기반 날짜 사용`);
-          } else {
-            // 시스템 날짜가 정상인 경우 사용
-            finalModifiedDate = stats.mtime;
-          }
+          // 실제 파일 수정일 사용 (시스템 메타데이터)
+          const actualModifiedDate = stats.mtime;
           
           // 버전 상태 판단
           let status: 'live' | 'staging' | 'dev' = 'dev';
@@ -61,10 +49,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             path: filePath,
             size: stats.size,
             createdDate: stats.birthtime.toISOString(),
-            modifiedDate: finalModifiedDate.toISOString(),
+            modifiedDate: actualModifiedDate.toISOString(), // 실제 파일 수정일
             version: version,
             status: status,
             url: `/versions/${file}`
+          });
+          
+          // 디버그 로그
+          console.log(`파일 ${file}:`, {
+            name: file,
+            size: stats.size,
+            modifiedDate: actualModifiedDate.toISOString(),
+            version: version,
+            status: status
           });
           
         } catch (statError) {
@@ -99,7 +96,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         lastUpdated: new Date().toISOString(),
         debug: {
           serverTime: new Date().toISOString(),
-          filesProcessed: funnelFiles.length
+          filesProcessed: funnelFiles.length,
+          fileDetails: funnelFiles.map(f => ({
+            name: f.name,
+            modifiedDate: f.modifiedDate,
+            size: f.size
+          }))
         }
       }
     });
