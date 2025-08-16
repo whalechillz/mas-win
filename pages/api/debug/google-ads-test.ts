@@ -72,12 +72,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 4단계: 간단한 쿼리 테스트 부분 수정
+    // 4단계: 더 간단한 쿼리 테스트
     try {
       const testQuery = `
         SELECT 
-          customer.id,
-          customer.descriptive_name
+          customer.id
         FROM customer 
         LIMIT 1
       `;
@@ -94,8 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         status: '성공',
         message: 'Google Ads API 연결이 성공했습니다!',
         customerInfo: response[0] ? {
-          id: response[0].customer.id,
-          name: response[0].customer.descriptiveName
+          id: response[0].customer.id
         } : null,
         details: envStatus,
         nextStep: '이제 실제 캠페인 데이터를 가져올 수 있습니다.'
@@ -115,10 +113,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: error instanceof Error ? error.message : 'Unknown error',
         errorDetails: {
           name: error instanceof Error ? error.name : 'Unknown',
-          stack: error instanceof Error ? error.stack : undefined
+          stack: error instanceof Error ? error.stack : undefined,
+          fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
         },
         details: envStatus,
-        nextStep: '계정 권한이나 쿼리 구문을 확인하세요.'
+        nextStep: 'Developer Token과 API 권한을 확인하세요.'
       });
     }
 

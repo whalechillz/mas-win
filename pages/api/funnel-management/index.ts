@@ -1,0 +1,89 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import fs from 'fs';
+import path from 'path';
+
+interface FunnelFile {
+  name: string;
+  path: string;
+  size: number;
+  createdDate: string;
+  modifiedDate: string;
+  version: string;
+  status: 'live' | 'staging' | 'dev';
+  url: string;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const versionsDir = path.join(process.cwd(), 'public', 'versions');
+    const files = fs.readdirSync(versionsDir);
+    
+    const funnelFiles: FunnelFile[] = [];
+    
+    // funnel-YYYY-MM-*.html 패턴 파일들 찾기
+    const funnelPattern = /^funnel-(\d{4})-(\d{2})-(.+)\.html$/;
+    
+    files.forEach(file => {
+      const match = file.match(funnelPattern);
+      if (match) {
+        const [, year, month, version] = match;
+        const filePath = path.join(versionsDir, file);
+        const stats = fs.statSync(filePath);
+        
+        // 버전 상태 판단
+        let status: 'live' | 'staging' | 'dev' = 'dev';
+        if (version.includes('live')) status = 'live';
+        else if (version.includes('staging')) status = 'staging';
+        
+        funnelFiles.push({
+          name: file,
+          path: filePath,
+          size: stats.size,
+          createdDate: stats.birthtime.toISOString(),
+          modifiedDate: stats.mtime.toISOString(),
+          version: version,
+          status: status,
+          url: `/versions/${file}`
+        });
+      }
+    });
+    
+    // 날짜별로 그룹화
+    const groupedFunnels = funnelFiles.reduce((acc, file) => {
+      const key = `${file.name.split('-')[1]}-${file.name.split('-')[2]}`; // YYYY-MM
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(file);
+      return acc;
+    }, {} as Record<string, FunnelFile[]>);
+    
+    // 각 그룹 내에서 버전별로 정렬
+    Object.keys(groupedFunnels).forEach(key => {
+      groupedFunnels[key].sort((a, b) => {
+        const statusOrder = { live: 1, staging: 2, dev: 3 };
+        return statusOrder[a.status] - statusOrder[b.status];
+      });
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        totalFiles: funnelFiles.length,
+        groupedFunnels,
+        lastUpdated: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('퍼널 파일 스캔 오류:', error);
+    res.status(500).json({ 
+      error: '퍼널 파일 스캔 실패',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}

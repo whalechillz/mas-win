@@ -1,0 +1,16 @@
+{
+  "testName": "funnel-2025-08",
+  "currentWinner": null,
+  "previousWinner": null,
+  "confidence": 0,
+  "significance": {
+    "conversionRate": false,
+    "sessionDuration": false,
+    "bounceRate": false
+  },
+  "lastUpdated": "2025-08-15T16:44:59.839Z",
+  "totalSessions": 3,
+  "minimumSessionsRequired": 50,
+  "isStatisticallySignificant": false,
+  "autoSwitchEnabled": true
+}

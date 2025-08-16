@@ -1792,7 +1792,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
     <!-- 시타 예약 모달 -->
-    <div id="bookingModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div id="bookingModal" data-section="booking-form" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
         <div style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
             <button onclick="closeModal('bookingModal')" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">×</button>
             <h2 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 1.8rem;">시타 예약하기</h2>
@@ -1838,7 +1838,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 
     <!-- 문의하기 모달 -->
-    <div id="inquiryModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div id="inquiryModal" data-section="inquiry-form" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
         <div style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
             <button onclick="closeModal('inquiryModal')" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">×</button>
             <h2 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 1.8rem;">문의하기</h2>
@@ -2031,7 +2031,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
     </div>
     <!-- 영역1: 메인 비주얼 -->
-    <section class="hero-section" style="padding-top: 44px;">
+    <section data-section="hero" class="hero-section">
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
         <div class="palm-tree">🌴</div>
@@ -2382,7 +2382,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </section>
 
     <!-- 영역2: 퀴즈 섹션 -->
-    <section class="quiz-section" id="quiz-section">
+    <section data-section="quiz-start" class="quiz-section">
         <div class="container">
             <h2 style="font-weight: bold !important; text-align: center !important; color: white !important; margin-bottom: 1rem !important; line-height: 1.2 !important; display: block !important; opacity: 1 !important; transform: none !important; font-size: 1.8rem !important;">
                 당신의 휴가철<br>
@@ -2470,7 +2470,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </section>
 
     <!-- 영역3: 비거리 증가 -->
-    <section class="distance-section">
+    <section data-section="quiz-complete" class="distance-section">
         <div class="container">
             <h2 style="font-weight: bold !important; text-align: center !important; color: white !important; margin-bottom: 4rem !important; line-height: 1.2 !important; display: block !important; opacity: 1 !important; transform: none !important; font-size: 1.8rem !important;">
                 확실한 비거리<br>
@@ -3952,6 +3952,20 @@ setTimeout(() => {
         showExitPopup();
     }
 }, 5000);
+</script>
+
+<script>
+// A/B 테스트 이벤트 전송
+if (typeof gtag !== 'undefined') {
+  gtag('event', 'ab_test_assignment', {
+    test_name: 'funnel-2025-08',
+    version: 'A',
+    page_id: 'funnel-2025-08-live-a',
+    timestamp: Date.now()
+  });
+  
+  console.log('A/B 테스트 이벤트 전송: 버전 A');
+}
 </script>
 
 </body>
