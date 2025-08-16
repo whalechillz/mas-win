@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ]
     });
 
-    // 커스텀 성능 이벤트 조회
+    // 커스텀 성능 이벤트 조회 (실제 수집되는 이벤트)
     const [customPerformanceResponse] = await analyticsDataClient.runReport({
       property: `properties/${process.env.GA4_PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
@@ -61,16 +61,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { name: 'eventCount' }
       ],
       dimensions: [
-        { name: 'eventName' },
-        { name: 'customEvent:metric_value' }
+        { name: 'eventName' }
       ],
       dimensionFilter: {
         filter: {
           fieldName: 'eventName',
           inListFilter: {
             values: [
-              'page_load_time',
-              'first_contentful_paint',
+              'page_performance',
               'largest_contentful_paint'
             ]
           }
@@ -81,6 +79,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 데이터 가공
     const performanceData = performanceResponse.rows || [];
     const customPerformanceData = customPerformanceResponse.rows || [];
+
+    console.log('성능 데이터:', {
+      performanceData: performanceData.length,
+      customPerformanceData: customPerformanceData.length
+    });
+
+    // 실제 성능 데이터 계산
+    const pagePerformanceEvents = customPerformanceData.find(row => 
+      row.dimensionValues?.[0]?.value === 'page_performance'
+    );
+    const lcpEvents = customPerformanceData.find(row => 
+      row.dimensionValues?.[0]?.value === 'largest_contentful_paint'
+    );
+
+    const pageLoadTime = pagePerformanceEvents ? 
+      parseInt(pagePerformanceEvents.metricValues?.[0]?.value || '0') : 0;
+    const firstContentfulPaint = pagePerformanceEvents ? 
+      parseInt(pagePerformanceEvents.metricValues?.[0]?.value || '0') : 0;
+    const largestContentfulPaint = lcpEvents ? 
+      parseInt(lcpEvents.metricValues?.[0]?.value || '0') : 0;
 
     // 디바이스별 성능 계산
     const devicePerformance = {
@@ -122,20 +140,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    const performanceMetrics = {
-      dateRange: { startDate, endDate },
-      overall: {
-        pageLoadTime: devicePerformance.mobile.avgLoadTime || 2.3,
-        firstContentfulPaint: devicePerformance.mobile.avgFCP || 1.2,
-        largestContentfulPaint: devicePerformance.mobile.avgLCP || 2.8
-      },
-      byDevice: devicePerformance,
-      totalSessions: performanceData.reduce((sum, row) => {
-        return sum + parseInt(row.metricValues?.[0]?.value || '0');
-      }, 0)
-    };
-
-    res.status(200).json(performanceMetrics);
+    res.status(200).json({
+      success: true,
+      data: {
+        pageLoadTime: pageLoadTime / 1000, // ms를 초로 변환
+        firstContentfulPaint: firstContentfulPaint / 1000,
+        largestContentfulPaint: largestContentfulPaint / 1000,
+        devicePerformance,
+        totalEvents: customPerformanceData.length,
+        note: '실제 GA4 성능 데이터'
+      }
+    });
 
   } catch (error) {
     console.error('성능 메트릭 조회 실패:', error);

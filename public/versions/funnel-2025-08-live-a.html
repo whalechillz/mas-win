@@ -4000,6 +4000,64 @@ if (typeof gtag !== 'undefined') {
   
   console.log('A/B 테스트 이벤트 전송: 버전 live-a');
 }
+
+// 페이지 성능 추적
+function trackPagePerformance() {
+  if ('performance' in window) {
+    const navigation = performance.getEntriesByType('navigation')[0];
+    const paint = performance.getEntriesByType('paint');
+    
+    // 기본 성능 지표
+    const pageLoadTime = navigation.loadEventEnd - navigation.loadEventStart;
+    const firstContentfulPaint = paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0;
+    
+    // GA4 성능 이벤트 전송
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'page_performance', {
+        event_category: 'performance',
+        event_label: 'funnel-2025-08-live-a',
+        page_load_time: Math.round(pageLoadTime),
+        first_contentful_paint: Math.round(firstContentfulPaint),
+        page_title: document.title,
+        page_location: window.location.href,
+        timestamp: new Date().toISOString()
+      });
+      
+      console.log('페이지 성능 추적:', {
+        pageLoadTime: Math.round(pageLoadTime) + 'ms',
+        firstContentfulPaint: Math.round(firstContentfulPaint) + 'ms'
+      });
+    }
+    
+    // LCP (Largest Contentful Paint) 추적
+    const observer = new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      const lastEntry = entries[entries.length - 1];
+      
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'largest_contentful_paint', {
+          event_category: 'performance',
+          event_label: 'funnel-2025-08-live-a',
+          value: Math.round(lastEntry.startTime),
+          page_title: document.title,
+          page_location: window.location.href,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log('LCP 추적:', Math.round(lastEntry.startTime) + 'ms');
+      }
+    });
+    
+    observer.observe({ entryTypes: ['largest-contentful-paint'] });
+  }
+}
+
+// 페이지 로드 완료 후 성능 측정
+if (document.readyState === 'complete') {
+  trackPagePerformance();
+} else {
+  window.addEventListener('load', trackPagePerformance);
+}
 </script>
 
 </body>
