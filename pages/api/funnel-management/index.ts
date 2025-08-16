@@ -32,23 +32,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (match) {
         const [, year, month, version] = match;
         const filePath = path.join(versionsDir, file);
-        const stats = fs.statSync(filePath);
         
-        // 버전 상태 판단
-        let status: 'live' | 'staging' | 'dev' = 'dev';
-        if (version.includes('live')) status = 'live';
-        else if (version.includes('staging')) status = 'staging';
-        
-        funnelFiles.push({
-          name: file,
-          path: filePath,
-          size: stats.size,
-          createdDate: stats.birthtime.toISOString(),
-          modifiedDate: stats.mtime.toISOString(),
-          version: version,
-          status: status,
-          url: `/versions/${file}`
-        });
+        try {
+          const stats = fs.statSync(filePath);
+          
+          // 파일명에서 날짜 추출 (파일명이 더 정확함)
+          const fileNameDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+          
+          // 시스템 날짜와 파일명 날짜 비교
+          let finalModifiedDate: Date;
+          
+          if (stats.mtime.getFullYear() < 2020) {
+            // 시스템 날짜가 잘못된 경우 파일명 기반 날짜 사용
+            finalModifiedDate = fileNameDate;
+            console.log(`파일 ${file}: 시스템 날짜 오류, 파일명 기반 날짜 사용`);
+          } else {
+            // 시스템 날짜가 정상인 경우 사용
+            finalModifiedDate = stats.mtime;
+          }
+          
+          // 버전 상태 판단
+          let status: 'live' | 'staging' | 'dev' = 'dev';
+          if (version.includes('live')) status = 'live';
+          else if (version.includes('staging')) status = 'staging';
+          
+          funnelFiles.push({
+            name: file,
+            path: filePath,
+            size: stats.size,
+            createdDate: stats.birthtime.toISOString(),
+            modifiedDate: finalModifiedDate.toISOString(),
+            version: version,
+            status: status,
+            url: `/versions/${file}`
+          });
+          
+        } catch (statError) {
+          console.error(`파일 정보 읽기 실패: ${filePath}`, statError);
+        }
       }
     });
     
@@ -75,7 +96,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         totalFiles: funnelFiles.length,
         groupedFunnels,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        debug: {
+          serverTime: new Date().toISOString(),
+          filesProcessed: funnelFiles.length
+        }
       }
     });
     
