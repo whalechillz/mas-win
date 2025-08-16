@@ -142,14 +142,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({
       success: true,
-      data: {
+      overall: {
         pageLoadTime: pageLoadTime / 1000, // ms를 초로 변환
         firstContentfulPaint: firstContentfulPaint / 1000,
-        largestContentfulPaint: largestContentfulPaint / 1000,
-        devicePerformance,
-        totalEvents: customPerformanceData.length,
-        note: '실제 GA4 성능 데이터'
-      }
+        largestContentfulPaint: largestContentfulPaint / 1000
+      },
+      byDevice: devicePerformance,
+      totalSessions: performanceData.reduce((sum, row) => {
+        return sum + parseInt(row.metricValues?.[0]?.value || '0');
+      }, 0),
+      note: '실제 GA4 성능 데이터'
     });
 
   } catch (error) {

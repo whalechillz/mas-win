@@ -513,36 +513,42 @@ export function AdvancedUserAnalytics({ campaignId }: AdvancedUserAnalyticsProps
               <div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">페이지 로드 시간</span>
-                  <span className="text-sm font-medium">{analyticsData.performanceMetrics.overall.pageLoadTime.toFixed(1)}s</span>
+                  <span className="text-sm font-medium">
+                    {analyticsData.performanceMetrics?.overall?.pageLoadTime?.toFixed(1) || '0.0'}s
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div 
                     className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${Math.min(analyticsData.performanceMetrics.overall.pageLoadTime * 20, 100)}%` }}
+                    style={{ width: `${Math.min((analyticsData.performanceMetrics?.overall?.pageLoadTime || 0) * 20, 100)}%` }}
                   ></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">첫 번째 콘텐츠풀 페인트</span>
-                  <span className="text-sm font-medium">{analyticsData.performanceMetrics.overall.firstContentfulPaint.toFixed(1)}s</span>
+                  <span className="text-sm font-medium">
+                    {analyticsData.performanceMetrics?.overall?.firstContentfulPaint?.toFixed(1) || '0.0'}s
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div 
                     className="bg-green-600 h-2 rounded-full" 
-                    style={{ width: `${Math.min(analyticsData.performanceMetrics.overall.firstContentfulPaint * 30, 100)}%` }}
+                    style={{ width: `${Math.min((analyticsData.performanceMetrics?.overall?.firstContentfulPaint || 0) * 30, 100)}%` }}
                   ></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">최대 콘텐츠풀 페인트</span>
-                  <span className="text-sm font-medium">{analyticsData.performanceMetrics.overall.largestContentfulPaint.toFixed(1)}s</span>
+                  <span className="text-sm font-medium">
+                    {analyticsData.performanceMetrics?.overall?.largestContentfulPaint?.toFixed(1) || '0.0'}s
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div 
                     className="bg-orange-600 h-2 rounded-full" 
-                    style={{ width: `${Math.min(analyticsData.performanceMetrics.overall.largestContentfulPaint * 25, 100)}%` }}
+                    style={{ width: `${Math.min((analyticsData.performanceMetrics?.overall?.largestContentfulPaint || 0) * 25, 100)}%` }}
                   ></div>
                 </div>
               </div>
