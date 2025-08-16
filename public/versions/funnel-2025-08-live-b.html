@@ -1234,3 +1234,51 @@ if (document.readyState === 'complete') {
     </footer>
 </body>
 </html>
+<script>
+// PostMessage를 통한 부모 페이지와 통신
+document.addEventListener('DOMContentLoaded', function() {
+    // 전화 버튼 클릭 이벤트
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('a[href^="tel:"], button[onclick*="tel:"]');
+        if (target) {
+            e.preventDefault();
+            const phoneNumber = target.href ? target.href.replace('tel:', '') : '080-028-8888';
+            
+            // 부모 페이지로 메시지 전송
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'phone-click',
+                    phoneNumber: phoneNumber,
+                    buttonText: target.textContent?.trim() || '전화',
+                    timestamp: Date.now()
+                }, '*');
+            }
+            
+            // 실제 전화 연결
+            window.location.href = `tel:${phoneNumber}`;
+        }
+    });
+    
+    // 예약 버튼 클릭 이벤트
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('button[onclick*="openBookingModal"], button[onclick*="bookVisit"]');
+        if (target) {
+            e.preventDefault();
+            
+            // 부모 페이지로 메시지 전송
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'booking-click',
+                    buttonText: target.textContent?.trim() || '예약',
+                    timestamp: Date.now()
+                }, '*');
+            }
+            
+            // 예약 모달 또는 전화 연결
+            alert('시타 예약은 080-028-8888로 전화 주시거나 카카오톡 채널을 통해 가능합니다.');
+            window.location.href = 'tel:080-028-8888';
+        }
+    });
+});
+</script>
+
