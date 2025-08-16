@@ -556,12 +556,41 @@
 if (typeof gtag !== 'undefined') {
   gtag('event', 'ab_test_assignment', {
     test_name: 'funnel-2025-08',
-    version: 'B',
+    version: 'live-b',
     page_id: 'funnel-2025-08-live-b',
-    timestamp: Date.now()
+    timestamp: new Date().toISOString(),
+    event_category: 'A/B Test',
+    event_label: 'funnel-2025-08_live-b'
   });
   
-  console.log('A/B 테스트 이벤트 전송: 버전 B');
+  // 스크롤 깊이 추적
+  let scrollDepthTracked = {25: false, 50: false, 75: false, 100: false};
+  
+  function trackScrollDepth() {
+    const scrollPercentage = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
+    
+    [25, 50, 75, 100].forEach(depth => {
+      if (scrollPercentage >= depth && !scrollDepthTracked[depth]) {
+        scrollDepthTracked[depth] = true;
+        
+        gtag('event', 'scroll_depth', {
+          event_category: 'engagement',
+          event_label: 'funnel-2025-08-live-b',
+          scroll_percentage: depth,
+          page_title: document.title,
+          page_location: window.location.href,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log('스크롤 깊이 추적:', depth + '%');
+      }
+    });
+  }
+  
+  // 스크롤 이벤트 리스너 추가
+  window.addEventListener('scroll', trackScrollDepth);
+  
+  console.log('A/B 테스트 이벤트 전송: 버전 live-b');
 }
 </script>
 </head>
