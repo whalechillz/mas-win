@@ -2,10 +2,13 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 
 const analyticsDataClient = new BetaAnalyticsDataClient({
-  keyFilename: './google-ads-credentials.json',
+  credentials: {
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_SERVICE_ACCOUNT_KEY?.replace(/\\n/g, '\n'),
+  },
 });
 
-const GA4_PROPERTY_ID = '497433231';
+const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID || '497433231';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

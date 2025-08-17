@@ -22,13 +22,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('GA4_PROPERTY_ID가 설정되지 않았습니다.');
     }
 
-    if (!month || typeof month !== 'string') {
-      throw new Error('월 파라미터가 필요합니다.');
+    // 월 파라미터가 없으면 현재 월 사용
+    let targetMonth = month;
+    if (!targetMonth || typeof targetMonth !== 'string') {
+      const now = new Date();
+      targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
 
-    const [year, monthNum] = month.split('-');
-    const startDate = `${month}-01`;
-    const endDate = `${month}-${new Date(parseInt(year), parseInt(monthNum), 0).getDate()}`;
+    const [year, monthNum] = targetMonth.split('-');
+    const startDate = `${targetMonth}-01`;
+    const endDate = `${targetMonth}-${new Date(parseInt(year), parseInt(monthNum), 0).getDate()}`;
 
     // 월별 데이터 요청
     const [response] = await analyticsDataClient.runReport({
@@ -80,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }, { users: 0, pageViews: 0, events: 0 });
 
     const monthlyData = {
-      month,
+      month: targetMonth,
       year: parseInt(year),
       users: monthlyTotals.users,
       pageViews: monthlyTotals.pageViews,
