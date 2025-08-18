@@ -1,27 +1,26 @@
-<testsuites id="" name="" tests="27" failures="21" skipped="0" errors="0" time="70.89953899999999">
-<testsuite name="deployment-verification-final.spec.ts" timestamp="2025-08-18T10:55:57.080Z" hostname="chromium" tests="9" failures="7" skipped="0" time="101.323" errors="0">
-<testcase name="배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="6.626">
+<testsuites id="" name="" tests="9" failures="7" skipped="0" errors="0" time="38.184955">
+<testsuite name="deployment-verification-final.spec.ts" timestamp="2025-08-18T11:10:36.813Z" hostname="chromium" tests="9" failures="7" skipped="0" time="122.994" errors="0">
+<testcase name="배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="7.065">
 <failure message="deployment-verification-final.spec.ts:4:7 새로운 홈페이지가 정상적으로 로드되는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:4:7 › 배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인 ───
 
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+    Error: Timed out 5000ms waiting for expect(page).toHaveTitle(expected)
 
-    Locator: locator('text=MASGOLF Summer Campaign')
-    Expected: visible
-    Received: <element(s) not found>
+    Expected pattern: /MASGOLF/
+    Received string:  ""
     Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=MASGOLF Summer Campaign')
+      - Expect "toHaveTitle" with timeout 5000ms
+        9 × unexpected value ""
 
 
+       6 |     
+       7 |     // 페이지 제목 확인
+    >  8 |     await expect(page).toHaveTitle(/MASGOLF/);
+         |                        ^
        9 |     
       10 |     // 메인 헤더 확인
-    > 11 |     await expect(page.locator('text=MASGOLF Summer Campaign')).toBeVisible();
-         |                                                                ^
-      12 |     await expect(page.locator('text=시니어 골퍼를 위한 특별한 선택')).toBeVisible();
-      13 |     
-      14 |     // 네비게이션 메뉴 확인
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:11:64
+      11 |     await expect(page.locator('text=MASGOLF Summer Campaign')).toBeVisible();
+        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:8:24
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-chromium/test-failed-1.png
@@ -44,7 +43,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.895">
+<testcase name="배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="7.269">
 <failure message="deployment-verification-final.spec.ts:25:7 8월 퍼널이 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:25:7 › 배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인 ─────
 
@@ -52,10 +51,12 @@
 
     Locator: locator('title')
     Expected string: "MAS Golf 8월 퍼널"
-    Received: <element(s) not found>
+    Received string: ""
     Call log:
       - Expect "toContainText" with timeout 5000ms
       - waiting for locator('title')
+        9 × locator resolved to <title></title>
+          - unexpected value ""
 
 
       30 |     
@@ -88,7 +89,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.969">
+<testcase name="배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="7.353">
 <failure message="deployment-verification-final.spec.ts:39:7 관리자 페이지 로그인이 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:39:7 › 배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인 
 
@@ -132,7 +133,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.216">
+<testcase name="배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.14">
 <failure message="deployment-verification-final.spec.ts:54:7 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:54:7 › 배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인 
 
@@ -173,7 +174,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="30.215">
+<testcase name="배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="30.159">
 <failure message="deployment-verification-final.spec.ts:72:7 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:72:7 › 배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인 
 
@@ -214,17 +215,16 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 로컬 서버도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="1.793">
+<testcase name="배포 후 최종 검증 › 로컬 서버도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="2.595">
 </testcase>
-<testcase name="배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.888">
+<testcase name="배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="2.072">
 <failure message="deployment-verification-final.spec.ts:100:7 로컬 8월 퍼널도 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:100:7 › 배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인 ─
 
-    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
+    Error: expect.toContainText: Error: strict mode violation: locator('title') resolved to 2 elements:
+        1) <title>previous</title> aka getByRole('button', { name: 'previous' })
+        2) <title>next</title> aka getByRole('button', { name: 'next' })
 
-    Locator: locator('title')
-    Expected string: "MAS Golf 8월 퍼널"
-    Received: <element(s) not found>
     Call log:
       - Expect "toContainText" with timeout 5000ms
       - waiting for locator('title')
@@ -260,28 +260,25 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.881">
+<testcase name="배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.801">
 <failure message="deployment-verification-final.spec.ts:111:7 로컬 관리자 페이지도 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:111:7 › 배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인 
 
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+    Test timeout of 30000ms exceeded.
 
-    Locator: locator('text=퍼널 관리')
-    Expected: visible
-    Received: <element(s) not found>
+    Error: page.fill: Test timeout of 30000ms exceeded.
     Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=퍼널 관리')
+      - waiting for locator('input[type="password"]')
 
 
+      113 |     
+      114 |     // 로그인
+    > 115 |     await page.fill('input[type="password"]', '1234');
+          |                ^
+      116 |     await page.click('button:has-text("로그인")');
       117 |     
       118 |     // 대시보드 확인
-    > 119 |     await expect(page.locator('text=퍼널 관리')).toBeVisible();
-          |                                              ^
-      120 |   });
-      121 |
-      122 |   test('API 엔드포인트들이 정상적으로 작동하는지 확인', async ({ page }) => {
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46
+        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:115:16
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/test-failed-1.png
@@ -304,623 +301,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › API 엔드포인트들이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="4.84">
-</testcase>
-</testsuite>
-<testsuite name="deployment-verification-final.spec.ts" timestamp="2025-08-18T10:55:57.080Z" hostname="firefox" tests="9" failures="7" skipped="0" time="100.493" errors="0">
-<testcase name="배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="7.867">
-<failure message="deployment-verification-final.spec.ts:4:7 새로운 홈페이지가 정상적으로 로드되는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:4:7 › 배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인 ────
-
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
-
-    Locator: locator('text=MASGOLF Summer Campaign')
-    Expected: visible
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=MASGOLF Summer Campaign')
-
-
-       9 |     
-      10 |     // 메인 헤더 확인
-    > 11 |     await expect(page.locator('text=MASGOLF Summer Campaign')).toBeVisible();
-         |                                                                ^
-      12 |     await expect(page.locator('text=시니어 골퍼를 위한 특별한 선택')).toBeVisible();
-      13 |     
-      14 |     // 네비게이션 메뉴 확인
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:11:64
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.95">
-<failure message="deployment-verification-final.spec.ts:25:7 8월 퍼널이 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:25:7 › 배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인 ──────
-
-    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
-
-    Locator: locator('title')
-    Expected string: "MAS Golf 8월 퍼널"
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toContainText" with timeout 5000ms
-      - waiting for locator('title')
-
-
-      30 |     
-      31 |     // 퍼널 페이지 제목 확인
-    > 32 |     await expect(page.locator('title')).toContainText('MAS Golf 8월 퍼널');
-         |                                         ^
-      33 |     
-      34 |     // iframe이 로드되는지 확인
-      35 |     const iframe = page.frameLocator('iframe');
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.718">
-<failure message="deployment-verification-final.spec.ts:39:7 관리자 페이지 로그인이 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:39:7 › 배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인 
-
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
-
-    Locator: locator('text=퍼널 관리')
-    Expected: visible
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=퍼널 관리')
-
-
-      48 |     
-      49 |     // 로그인 성공 후 대시보드 확인
-    > 50 |     await expect(page.locator('text=퍼널 관리')).toBeVisible();
-         |                                              ^
-      51 |     await expect(page.locator('text=실시간 A/B 테스트 성능 비교')).toBeVisible();
-      52 |   });
-      53 |
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:50:46
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.1">
-<failure message="deployment-verification-final.spec.ts:54:7 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:54:7 › 배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인 
-
-    Test timeout of 30000ms exceeded.
-
-    Error: page.click: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('text=퍼널 관리')
-
-
-      60 |     
-      61 |     // 퍼널 관리 탭 클릭
-    > 62 |     await page.click('text=퍼널 관리');
-         |                ^
-      63 |     
-      64 |     // 2025-08 탭 확인
-      65 |     await expect(page.locator('text=2025-08')).toBeVisible();
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:62:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="30.085">
-<failure message="deployment-verification-final.spec.ts:72:7 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:72:7 › 배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인 
-
-    Test timeout of 30000ms exceeded.
-
-    Error: page.click: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('text=퍼널 관리')
-
-
-      78 |     
-      79 |     // 퍼널 관리 탭 클릭
-    > 80 |     await page.click('text=퍼널 관리');
-         |                ^
-      81 |     
-      82 |     // 2025-08 탭 클릭
-      83 |     await page.click('text=2025-08');
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:80:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 로컬 서버도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="1.393">
-</testcase>
-<testcase name="배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="7.116">
-<failure message="deployment-verification-final.spec.ts:100:7 로컬 8월 퍼널도 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:100:7 › 배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인 ──
-
-    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
-
-    Locator: locator('title')
-    Expected string: "MAS Golf 8월 퍼널"
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toContainText" with timeout 5000ms
-      - waiting for locator('title')
-
-
-      102 |     
-      103 |     // 퍼널 페이지 확인
-    > 104 |     await expect(page.locator('title')).toContainText('MAS Golf 8월 퍼널');
-          |                                         ^
-      105 |     
-      106 |     // iframe 확인
-      107 |     const iframe = page.frameLocator('iframe');
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.572">
-<failure message="deployment-verification-final.spec.ts:111:7 로컬 관리자 페이지도 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [firefox] › deployment-verification-final.spec.ts:111:7 › 배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인 
-
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
-
-    Locator: locator('text=퍼널 관리')
-    Expected: visible
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=퍼널 관리')
-
-
-      117 |     
-      118 |     // 대시보드 확인
-    > 119 |     await expect(page.locator('text=퍼널 관리')).toBeVisible();
-          |                                              ^
-      120 |   });
-      121 |
-      122 |   test('API 엔드포인트들이 정상적으로 작동하는지 확인', async ({ page }) => {
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-firefox/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-firefox/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-firefox/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-firefox/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-firefox/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-firefox/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › API 엔드포인트들이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="3.692">
-</testcase>
-</testsuite>
-<testsuite name="deployment-verification-final.spec.ts" timestamp="2025-08-18T10:55:57.080Z" hostname="webkit" tests="9" failures="7" skipped="0" time="95.371" errors="0">
-<testcase name="배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="6.649">
-<failure message="deployment-verification-final.spec.ts:4:7 새로운 홈페이지가 정상적으로 로드되는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:4:7 › 배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인 ─────
-
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
-
-    Locator: locator('text=MASGOLF Summer Campaign')
-    Expected: visible
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=MASGOLF Summer Campaign')
-
-
-       9 |     
-      10 |     // 메인 헤더 확인
-    > 11 |     await expect(page.locator('text=MASGOLF Summer Campaign')).toBeVisible();
-         |                                                                ^
-      12 |     await expect(page.locator('text=시니어 골퍼를 위한 특별한 선택')).toBeVisible();
-      13 |     
-      14 |     // 네비게이션 메뉴 확인
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:11:64
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.174">
-<failure message="deployment-verification-final.spec.ts:25:7 8월 퍼널이 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:25:7 › 배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인 ───────
-
-    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
-
-    Locator: locator('title')
-    Expected string: "MAS Golf 8월 퍼널"
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toContainText" with timeout 5000ms
-      - waiting for locator('title')
-
-
-      30 |     
-      31 |     // 퍼널 페이지 제목 확인
-    > 32 |     await expect(page.locator('title')).toContainText('MAS Golf 8월 퍼널');
-         |                                         ^
-      33 |     
-      34 |     // iframe이 로드되는지 확인
-      35 |     const iframe = page.frameLocator('iframe');
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.108">
-<failure message="deployment-verification-final.spec.ts:39:7 관리자 페이지 로그인이 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:39:7 › 배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인 ─
-
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
-
-    Locator: locator('text=퍼널 관리')
-    Expected: visible
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=퍼널 관리')
-
-
-      48 |     
-      49 |     // 로그인 성공 후 대시보드 확인
-    > 50 |     await expect(page.locator('text=퍼널 관리')).toBeVisible();
-         |                                              ^
-      51 |     await expect(page.locator('text=실시간 A/B 테스트 성능 비교')).toBeVisible();
-      52 |   });
-      53 |
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:50:46
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.169">
-<failure message="deployment-verification-final.spec.ts:54:7 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:54:7 › 배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인 
-
-    Test timeout of 30000ms exceeded.
-
-    Error: page.click: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('text=퍼널 관리')
-
-
-      60 |     
-      61 |     // 퍼널 관리 탭 클릭
-    > 62 |     await page.click('text=퍼널 관리');
-         |                ^
-      63 |     
-      64 |     // 2025-08 탭 확인
-      65 |     await expect(page.locator('text=2025-08')).toBeVisible();
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:62:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="30.172">
-<failure message="deployment-verification-final.spec.ts:72:7 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:72:7 › 배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인 
-
-    Test timeout of 30000ms exceeded.
-
-    Error: page.click: Test timeout of 30000ms exceeded.
-    Call log:
-      - waiting for locator('text=퍼널 관리')
-
-
-      78 |     
-      79 |     // 퍼널 관리 탭 클릭
-    > 80 |     await page.click('text=퍼널 관리');
-         |                ^
-      81 |     
-      82 |     // 2025-08 탭 클릭
-      83 |     await page.click('text=2025-08');
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:80:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 로컬 서버도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="1.015">
-</testcase>
-<testcase name="배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.618">
-<failure message="deployment-verification-final.spec.ts:100:7 로컬 8월 퍼널도 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:100:7 › 배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인 ───
-
-    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
-
-    Locator: locator('title')
-    Expected string: "MAS Golf 8월 퍼널"
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toContainText" with timeout 5000ms
-      - waiting for locator('title')
-
-
-      102 |     
-      103 |     // 퍼널 페이지 확인
-    > 104 |     await expect(page.locator('title')).toContainText('MAS Golf 8월 퍼널');
-          |                                         ^
-      105 |     
-      106 |     // iframe 확인
-      107 |     const iframe = page.frameLocator('iframe');
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="5.765">
-<failure message="deployment-verification-final.spec.ts:111:7 로컬 관리자 페이지도 정상적으로 작동하는지 확인" type="FAILURE">
-<![CDATA[  [webkit] › deployment-verification-final.spec.ts:111:7 › 배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인 ─
-
-    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
-
-    Locator: locator('text=퍼널 관리')
-    Expected: visible
-    Received: <element(s) not found>
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('text=퍼널 관리')
-
-
-      117 |     
-      118 |     // 대시보드 확인
-    > 119 |     await expect(page.locator('text=퍼널 관리')).toBeVisible();
-          |                                              ^
-      120 |   });
-      121 |
-      122 |   test('API 엔드포인트들이 정상적으로 작동하는지 확인', async ({ page }) => {
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-webkit/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-webkit/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-webkit/error-context.md
-]]>
-</failure>
-<system-out>
-<![CDATA[
-[[ATTACHMENT|deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-webkit/test-failed-1.png]]
-
-[[ATTACHMENT|deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-webkit/video.webm]]
-
-[[ATTACHMENT|deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-webkit/error-context.md]]
-]]>
-</system-out>
-</testcase>
-<testcase name="배포 후 최종 검증 › API 엔드포인트들이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="2.701">
+<testcase name="배포 후 최종 검증 › API 엔드포인트들이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="5.54">
 </testcase>
 </testsuite>
 </testsuites>
