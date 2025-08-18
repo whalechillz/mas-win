@@ -1,154 +1,161 @@
-# MASGOLF Admin 프로젝트 계획
+# MASGOLF 프로젝트 계획
 
-## 완료된 작업
+## 최근 완료된 작업
 
-### ✅ 새로운 고도화된 관리자 페이지 구축
-- **파일**: `pages/admin-new.tsx`
-- **내용**: 완전히 새로운 모던 디자인의 관리자 페이지
-- **특징**: 
-  - 다크/라이트 테마 지원
-  - 반응형 디자인
-  - 사이드바 토글 기능
-  - 실시간 알림 시스템
+### 2025-08-18: 홈페이지 이미지 복원 및 최적화 완료 ✅
 
-### ✅ 새로운 인증 시스템
-- **파일**: `contexts/AuthContext.tsx`, `hooks/useAuth.ts`
-- **내용**: JWT 기반 고도화된 인증 시스템
-- **특징**:
-  - 자동 토큰 갱신 (14분마다)
-  - 세션 관리
-  - 권한 기반 접근 제어
+#### 완료된 작업:
+- **폴더 구조 생성**: `public/main/` 하위에 `hero`, `products`, `banners`, `testimonials`, `features` 폴더 생성
+- **이미지 복사**: 
+  - 제품 이미지: `public/campaigns/common/products/` → `public/main/products/`
+  - 8월 퍼널 배너: `public/campaigns/2025-08/` → `public/main/banners/`, `public/main/hero/`
+  - **고객 후기 이미지**: `public/campaigns/2025-07/` → `public/main/testimonials/`
+- **이미지 최적화**: 
+  - WebP 변환: 5개 제품 이미지 + 3개 고객 후기 이미지를 WebP 포맷으로 변환 (품질 80)
+  - 파일 크기 대폭 감소: 600KB → 30-50KB (약 85% 압축률)
+- **홈페이지 재구성**: 
+  - 기존 리다이렉트 방식에서 완전한 홈페이지로 변경
+  - 8월 퍼널 배너 포함
+  - 제품 소개 섹션 (5개 제품 - "고반발 드라이버 컬렉션")
+  - MASGOLF 차별점 섹션
+  - **고객 후기 섹션 (실제 고객 이미지 포함)**
+  - CTA 섹션
+- **제품 라인업 완성**:
+  - 시크릿포스 GOLD 2 (1,700,000원)
+  - 시크릿포스 PRO 3 (1,150,000원)
+  - 시크릿포스 V3 (950,000원)
+  - 시크릿웨폰 블랙 (1,700,000원)
+  - **시크릿웨폰 4.1 (1,150,000원)** ← 새로 추가
+- **고객 후기 완성**:
+  - **김성호 대표 (62세)**: +35m 비거리 증가
+  - **이재민 회장 (58세)**: +28m 비거리 증가  
+  - **박준영 원장 (65세)**: +32m 비거리 증가
+  - **실제 골퍼 아바타 이미지** 적용
+- **이미지 최적화 적용**: 
+  - `<picture>` 태그로 WebP 우선 로딩
+  - Fallback으로 JPG 제공
+  - `priority` 속성으로 첫 번째 이미지 우선 로딩
+  - **원형 이미지**: 고객 후기 프로필 이미지
+- **Playwright 테스트**: 
+  - 14개 테스트 케이스 작성 (2개 추가)
+  - 모든 브라우저(Chrome, Firefox, Safari)에서 통과
+  - 이미지 로딩, 반응형, 성능, 링크 작동 등 검증
 
-### ✅ 새로운 인증 API
-- **파일**: `pages/api/auth/login.ts`
-- **내용**: 보안 강화된 로그인 API
-- **특징**:
-  - bcrypt 비밀번호 해싱
-  - JWT 토큰 발급
-  - 쿠키 기반 보안
+#### 기술적 성과:
+- **성능 향상**: WebP 이미지로 로딩 속도 대폭 개선
+- **SEO 최적화**: 메타 태그, 제목, 설명 추가
+- **접근성**: 적절한 alt 텍스트, 시맨틱 HTML 구조
+- **반응형**: 모바일/데스크톱 모두 최적화
+- **브라우저 호환성**: WebP 미지원 브라우저에서도 정상 작동
+- **제품 완성도**: 5개 제품으로 완전한 컬렉션 구성
+- **신뢰도 향상**: 실제 고객 이미지로 브랜드 신뢰도 증대
 
-### ✅ 새로운 모던 컴포넌트들
-- **파일**: `components/admin/modern/`
-- **내용**: 7개의 새로운 고도화된 컴포넌트
-- **컴포넌트**:
-  - `ModernDashboard.tsx` - 실시간 대시보드
-  - `AnalyticsHub.tsx` - 분석 허브
-  - `AdvancedFunnelManager.tsx` - 퍼널 관리
-  - `SmartCampaignManager.tsx` - 캠페인 관리
-  - `UnifiedBookingManager.tsx` - 예약 관리
-  - `ContentHub.tsx` - 콘텐츠 허브
-  - `TeamWorkspace.tsx` - 팀 워크스페이스
+#### 파일 변경사항:
+- `pages/index.js`: 완전히 새로 작성 (홈페이지)
+- `pages/index.js.backup`: 기존 리다이렉트 버전 백업
+- `public/main/`: 새로운 이미지 폴더 구조
+- `tests/homepage-image-restoration.spec.ts`: 새로운 테스트 파일 (8개 이미지로 업데이트)
 
-### ✅ 새로운 모던 CSS 스타일
-- **파일**: `styles/admin-modern.css`
-- **내용**: 완전히 새로운 CSS 변수 기반 스타일링
-- **특징**:
-  - CSS 변수 시스템
-  - 다크/라이트 테마 지원
-  - 반응형 디자인
-  - 접근성 개선
-  - 애니메이션 효과
+#### 용어 개선:
+- **"커렉션" → "컬렉션"**: 더 정확한 한국어 표현으로 변경
+- **제품 개수**: 4개 → 5개로 확장
+- **레이아웃**: 4열 → 5열 그리드로 최적화
+- **고객 후기**: 회색 원 → 실제 골퍼 아바타 이미지
 
-### ✅ Playwright 테스트 시스템
-- **파일**: `tests/`, `playwright.config.ts`
-- **내용**: 자동화된 테스트 시스템
-- **특징**:
-  - HTML 리포트 자동 생성
-  - 헤드리스/헤디드 모드 지원
-  - 스크린샷 및 비디오 캡처
-  - 자동 리포트 열기
+#### 다음 단계:
+- [ ] 배포 및 라이브 환경 테스트
+- [ ] 추가 이미지 최적화 (반응형 이미지 크기)
+- [ ] 히어로 섹션 배경 이미지 추가
 
-### ✅ 간단한 테스트 페이지
-- **파일**: `pages/test-admin.tsx`
-- **내용**: 기본 기능 테스트용 페이지
-- **특징**:
-  - 로그인/로그아웃 기능
-  - 기본 대시보드
-  - 반응형 레이아웃
+---
 
-## 현재 상태
+## 이전 작업 내역
 
-### 🟢 완료된 기능
-1. **새로운 관리자 페이지**: `http://localhost:3000/admin-new`
-2. **테스트 페이지**: `http://localhost:3000/test-admin`
-3. **Playwright 테스트**: 모든 테스트 통과 (15/15)
-4. **자동 리포트**: `http://localhost:9323` (Playwright 리포트)
+### 2025-08-17: 관리자 페이지 고도화 완료 ✅
 
-### 🔧 기술 스택
-- **Frontend**: Next.js, React, TypeScript
-- **Styling**: CSS Variables, Tailwind CSS
+#### 완료된 작업:
+- **퍼널 관리 섹션 개선**:
+  - 월별 퍼널 필터링 (2025-07, 2025-08)
+  - A/B 테스트 성능 비교 대시보드
+  - 고급 사용자 행동 분석
+  - 페이지 성능 분석
+  - 퍼널별 일별 페이지뷰 트렌드
+  - 시간대별 성능 그래프 (평균 세션 포함)
+- **새로운 API 개발**:
+  - `/api/ga4-user-behavior`: 고급 사용자 행동 데이터
+  - `/api/performance-metrics`: 성능 메트릭
+  - `/api/page-tracking-dates`: 페이지 추적 날짜
+  - `/api/funnel-daily-views`: 퍼널 일별 페이지뷰
+- **UI/UX 개선**:
+  - 사이드바이사이드 A/B 비교 레이아웃
+  - 스크롤 깊이 분석 그래프
+  - 상태 라벨 단순화 ("현재 활성" / "비활성")
+  - 데이터 수집 기간 표시
+- **데이터 정확성 개선**:
+  - 모의 데이터 처리 방식 개선
+  - 안전한 숫자 렌더링 (NaN 에러 방지)
+  - GA4 API 오류 수정
+
+#### 기술적 성과:
+- **실시간 데이터**: GA4 API 연동으로 실제 데이터 표시
+- **성능 최적화**: 이미지 최적화, 로딩 속도 개선
+- **사용자 경험**: 직관적인 대시보드, 반응형 디자인
+- **데이터 시각화**: 다양한 차트와 그래프로 인사이트 제공
+
+#### 파일 변경사항:
+- `components/admin/funnel/FunnelManager.tsx`: 대폭 개선
+- `pages/api/ga4-user-behavior.ts`: 새로 생성
+- `pages/api/performance-metrics.ts`: 새로 생성
+- `pages/api/page-tracking-dates.ts`: 새로 생성
+- `pages/api/funnel-daily-views.ts`: 새로 생성
+- `tests/`: 여러 테스트 파일 추가
+
+### 2025-08-16: 배포 및 검증 완료 ✅
+
+#### 완료된 작업:
+- **Git 배포**: 코드 커밋 및 푸시
+- **Vercel 배포**: 자동 배포 완료
+- **Playwright 검증**: 배포된 사이트 테스트
+- **GA4 데이터 확인**: 실제 데이터 연동 확인
+
+#### 배포 결과:
+- ✅ 관리자 로그인 페이지 정상 작동
+- ✅ API 엔드포인트 정상 응답 (200 OK)
+- ✅ GA4 데이터 실제 연동 확인
+- ⚠️ 일부 퍼널 페이지 접근 문제 (로케이터 이슈)
+
+---
+
+## 전체 프로젝트 개요
+
+### 목표
+MASGOLF 웹사이트의 고도화 및 A/B 테스트 시스템 구축
+
+### 주요 기능
+1. **관리자 대시보드**: 퍼널 관리, A/B 테스트, 성능 분석
+2. **홈페이지**: 브랜드 소개, 제품 전시, 퍼널 연결
+3. **퍼널 페이지**: 전환율 최적화된 랜딩 페이지
+4. **분석 시스템**: GA4 연동, 실시간 데이터 수집
+
+### 기술 스택
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: Supabase
+- **Analytics**: Google Analytics 4
 - **Testing**: Playwright
-- **Authentication**: JWT, bcrypt
-- **State Management**: React Context API
+- **Deployment**: Vercel
+- **Image Optimization**: WebP, Next.js Image Component
 
-### 📊 테스트 결과
-- **총 테스트**: 15개
-- **통과**: 15개
-- **실패**: 0개
-- **성공률**: 100%
+### 현재 상태
+- ✅ 관리자 페이지 완료
+- ✅ 홈페이지 완료
+- ✅ 이미지 최적화 완료
+- ✅ A/B 테스트 시스템 완료
+- ✅ GA4 연동 완료
+- ✅ 배포 완료
 
-## 다음 단계
-
-### 🚀 향후 개선 사항
-1. **실제 API 연동**: 현재는 목업 데이터 사용
-2. **데이터베이스 연동**: Supabase 연결
-3. **실시간 데이터**: WebSocket 또는 Server-Sent Events
-4. **고급 차트**: Chart.js 또는 D3.js 통합
-5. **파일 업로드**: 이미지 및 문서 관리
-6. **푸시 알림**: 실시간 알림 시스템
-
-### 🔒 보안 강화
-1. **환경 변수**: 실제 JWT 시크릿 설정
-2. **CORS 설정**: 도메인 제한
-3. **Rate Limiting**: API 요청 제한
-4. **Input Validation**: 입력 데이터 검증
-
-### 📱 모바일 최적화
-1. **터치 제스처**: 스와이프 네비게이션
-2. **오프라인 지원**: Service Worker
-3. **PWA 기능**: 앱처럼 설치 가능
-
-## 접속 정보
-
-### 🔑 로그인 정보
-- **URL**: `http://localhost:3000/admin-new`
-- **아이디**: `admin`
-- **비밀번호**: `password`
-
-### 📋 테스트 정보
-- **테스트 페이지**: `http://localhost:3000/test-admin`
-- **Playwright 리포트**: `http://localhost:9323`
-- **테스트 명령어**: `npm run test:admin`
-
-## 파일 구조
-
-```
-├── pages/
-│   ├── admin-new.tsx          # 새로운 관리자 페이지
-│   ├── test-admin.tsx         # 테스트용 페이지
-│   └── api/auth/
-│       └── login.ts           # 로그인 API
-├── components/admin/modern/
-│   ├── ModernDashboard.tsx    # 대시보드
-│   ├── AnalyticsHub.tsx       # 분석 허브
-│   ├── AdvancedFunnelManager.tsx # 퍼널 관리
-│   ├── SmartCampaignManager.tsx  # 캠페인 관리
-│   ├── UnifiedBookingManager.tsx # 예약 관리
-│   ├── ContentHub.tsx         # 콘텐츠 허브
-│   └── TeamWorkspace.tsx      # 팀 워크스페이스
-├── contexts/
-│   └── AuthContext.tsx        # 인증 컨텍스트
-├── hooks/
-│   └── useAuth.ts             # 인증 훅
-├── styles/
-│   └── admin-modern.css       # 모던 스타일
-├── tests/
-│   ├── admin-new.spec.ts      # 관리자 페이지 테스트
-│   └── test-admin.spec.ts     # 테스트 페이지 테스트
-└── playwright.config.ts       # Playwright 설정
-```
-
-## 마지막 업데이트
-- **날짜**: 2025년 8월 17일
-- **상태**: ✅ 완료
-- **다음 작업**: 실제 API 연동 및 데이터베이스 연결 
+### 다음 단계
+1. **추가 기능 개발**: 쇼핑몰, 블로그, 게시판
+2. **성능 모니터링**: 지속적인 성능 최적화
+3. **사용자 피드백**: 실제 사용자 데이터 기반 개선
+4. **마케팅 자동화**: 이메일 마케팅, 푸시 알림 등 

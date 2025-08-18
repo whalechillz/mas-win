@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import CampaignKPIDashboard from '../components/admin/dashboard/CampaignKPIDashboard';
-import ContactManagement from '../components/admin/contacts/ContactManagement';
-import BookingManagement from '../components/admin/bookings/BookingManagement';
+import { ContactManagement } from '../components/admin/contacts/ContactManagement';
+import { BookingManagement } from '../components/admin/bookings/BookingManagement';
 import MarketingDashboardComplete from '../components/admin/marketing/MarketingDashboardComplete';
-import TeamMemberManagement from '../components/admin/team/TeamMemberManagement';
+import { TeamMemberManagement } from '../components/admin/team/TeamMemberManagement';
 import GA4RealtimeDashboard from '../components/admin/dashboard/GA4RealtimeDashboard';
 import IntegratedMarketingHub from '../components/admin/marketing/integrated/IntegratedMarketingHub';
 import MonthlyCampaignAnalytics from '../components/admin/campaigns/MonthlyCampaignAnalytics';
 import GA4AdvancedDashboard from '../components/admin/dashboard/GA4AdvancedDashboard';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FunnelManager } from '../components/admin/funnel/FunnelManager';
-import IntegratedABTestDashboard from '../components/admin/funnel/IntegratedABTestDashboard';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,11 +27,51 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // 데이터 상태 추가
+  const [bookings, setBookings] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
+
+  // 데이터 로딩 함수
+  const loadData = async () => {
+    setDataLoading(true);
+    try {
+      // 예약 데이터 로드
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (bookingsError) {
+        console.error('예약 데이터 로드 오류:', bookingsError);
+      } else {
+        setBookings(bookingsData || []);
+      }
+
+      // 문의 데이터 로드
+      const { data: contactsData, error: contactsError } = await supabase
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (contactsError) {
+        console.error('문의 데이터 로드 오류:', contactsError);
+      } else {
+        setContacts(contactsData || []);
+      }
+    } catch (error) {
+      console.error('데이터 로드 오류:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsAuthenticated(true);
+        loadData(); // 인증 후 데이터 로드
       }
     };
     checkAuth();
@@ -57,6 +96,7 @@ export default function Admin() {
       if (res.ok) {
         console.log('Login successful!');
         setIsAuthenticated(true);
+        loadData(); // 로그인 성공 후 데이터 로드
       } else {
         const errorData = await res.json();
         console.log('Login failed:', errorData);
@@ -184,8 +224,7 @@ export default function Admin() {
                 { id: 'dashboard', name: '대시보드' },
                 { id: 'funnel-manager', name: '퍼널 관리' },
                 { id: 'campaigns', name: '캠페인 관리' },
-                { id: 'contacts', name: '고객 관리' },
-                { id: 'bookings', name: '예약 관리' },
+                { id: 'customer-management', name: '예약상담관리' },
                 { id: 'marketing', name: '마케팅 콘텐츠' },
                 { id: 'team', name: '팀 관리' }
               ].map((tab) => (
@@ -217,17 +256,6 @@ export default function Admin() {
             {activeTab === 'funnel-manager' && (
               <div className="space-y-6">
                 <FunnelManager />
-                
-                {/* 통합된 A/B 테스트 대시보드로 교체 */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <IntegratedABTestDashboard />
-                </div>
-                
-                {/* 실시간 승자 모니터링 제거 */}
-                {/* <div className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">실시간 승자 모니터링</h2>
-                  <RealTimeWinnerMonitor />
-                </div> */}
               </div>
             )}
 
@@ -238,8 +266,29 @@ export default function Admin() {
               </div>
             )}
 
-            {activeTab === 'contacts' && <ContactManagement supabase={supabase} />}
-            {activeTab === 'bookings' && <BookingManagement supabase={supabase} />}
+            {activeTab === 'customer-management' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">예약 & 상담 통합 관리</h2>
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">예약 관리</h3>
+                    <BookingManagement 
+                      bookings={bookings || []} 
+                      supabase={supabase} 
+                      onUpdate={loadData}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">상담 관리</h3>
+                    <ContactManagement 
+                      contacts={contacts || []} 
+                      supabase={supabase} 
+                      onUpdate={loadData}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
             {activeTab === 'marketing' && <IntegratedMarketingHub />}
             {activeTab === 'team' && <TeamMemberManagement supabase={supabase} />}
           </div>
