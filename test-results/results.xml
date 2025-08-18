@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="9" failures="7" skipped="0" errors="0" time="38.184955">
-<testsuite name="deployment-verification-final.spec.ts" timestamp="2025-08-18T11:10:36.813Z" hostname="chromium" tests="9" failures="7" skipped="0" time="122.994" errors="0">
-<testcase name="배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="7.065">
+<testsuites id="" name="" tests="9" failures="7" skipped="0" errors="0" time="31.784235">
+<testsuite name="deployment-verification-final.spec.ts" timestamp="2025-08-18T12:18:16.683Z" hostname="chromium" tests="9" failures="7" skipped="0" time="97.609" errors="0">
+<testcase name="배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="6.359">
 <failure message="deployment-verification-final.spec.ts:4:7 새로운 홈페이지가 정상적으로 로드되는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:4:7 › 배포 후 최종 검증 › 새로운 홈페이지가 정상적으로 로드되는지 확인 ───
 
@@ -43,7 +43,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="7.269">
+<testcase name="배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.644">
 <failure message="deployment-verification-final.spec.ts:25:7 8월 퍼널이 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:25:7 › 배포 후 최종 검증 › 8월 퍼널이 정상적으로 작동하는지 확인 ─────
 
@@ -55,7 +55,7 @@
     Call log:
       - Expect "toContainText" with timeout 5000ms
       - waiting for locator('title')
-        9 × locator resolved to <title></title>
+        8 × locator resolved to <title></title>
           - unexpected value ""
 
 
@@ -89,7 +89,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="7.353">
+<testcase name="배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.541">
 <failure message="deployment-verification-final.spec.ts:39:7 관리자 페이지 로그인이 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:39:7 › 배포 후 최종 검증 › 관리자 페이지 로그인이 정상적으로 작동하는지 확인 
 
@@ -133,7 +133,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.14">
+<testcase name="배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.141">
 <failure message="deployment-verification-final.spec.ts:54:7 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:54:7 › 배포 후 최종 검증 › 관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인 
 
@@ -174,7 +174,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="30.159">
+<testcase name="배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" classname="deployment-verification-final.spec.ts" time="30.144">
 <failure message="deployment-verification-final.spec.ts:72:7 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:72:7 › 배포 후 최종 검증 › 관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인 
 
@@ -215,16 +215,17 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 로컬 서버도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="2.595">
+<testcase name="배포 후 최종 검증 › 로컬 서버도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="1.471">
 </testcase>
-<testcase name="배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="2.072">
+<testcase name="배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.595">
 <failure message="deployment-verification-final.spec.ts:100:7 로컬 8월 퍼널도 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:100:7 › 배포 후 최종 검증 › 로컬 8월 퍼널도 정상적으로 작동하는지 확인 ─
 
-    Error: expect.toContainText: Error: strict mode violation: locator('title') resolved to 2 elements:
-        1) <title>previous</title> aka getByRole('button', { name: 'previous' })
-        2) <title>next</title> aka getByRole('button', { name: 'next' })
+    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
 
+    Locator: locator('title')
+    Expected string: "MAS Golf 8월 퍼널"
+    Received: <element(s) not found>
     Call log:
       - Expect "toContainText" with timeout 5000ms
       - waiting for locator('title')
@@ -260,25 +261,28 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="30.801">
+<testcase name="배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="6.003">
 <failure message="deployment-verification-final.spec.ts:111:7 로컬 관리자 페이지도 정상적으로 작동하는지 확인" type="FAILURE">
 <![CDATA[  [chromium] › deployment-verification-final.spec.ts:111:7 › 배포 후 최종 검증 › 로컬 관리자 페이지도 정상적으로 작동하는지 확인 
 
-    Test timeout of 30000ms exceeded.
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
+    Locator: locator('text=퍼널 관리')
+    Expected: visible
+    Received: <element(s) not found>
     Call log:
-      - waiting for locator('input[type="password"]')
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=퍼널 관리')
 
 
-      113 |     
-      114 |     // 로그인
-    > 115 |     await page.fill('input[type="password"]', '1234');
-          |                ^
-      116 |     await page.click('button:has-text("로그인")');
       117 |     
       118 |     // 대시보드 확인
-        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:115:16
+    > 119 |     await expect(page.locator('text=퍼널 관리')).toBeVisible();
+          |                                              ^
+      120 |   });
+      121 |
+      122 |   test('API 엔드포인트들이 정상적으로 작동하는지 확인', async ({ page }) => {
+        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/test-failed-1.png
@@ -301,7 +305,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="배포 후 최종 검증 › API 엔드포인트들이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="5.54">
+<testcase name="배포 후 최종 검증 › API 엔드포인트들이 정상적으로 작동하는지 확인" classname="deployment-verification-final.spec.ts" time="3.711">
 </testcase>
 </testsuite>
 </testsuites>

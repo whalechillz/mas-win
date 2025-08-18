@@ -131,7 +131,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 7065,
+                      "duration": 6359,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/MASGOLF/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/MASGOLF/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:8:24",
@@ -155,7 +155,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:37.158Z",
+                      "startTime": "2025-08-18T12:18:17.001Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -205,10 +205,10 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 7269,
+                      "duration": 6644,
                       "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    9 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    9 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41",
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    8 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    8 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41",
                         "location": {
                           "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
                           "column": 41,
@@ -223,13 +223,13 @@
                             "column": 41,
                             "line": 32
                           },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    9 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 30 |\u001b[39m     \n \u001b[90m 31 |\u001b[39m     \u001b[90m// 퍼널 페이지 제목 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 32 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 33 |\u001b[39m     \n \u001b[90m 34 |\u001b[39m     \u001b[90m// iframe이 로드되는지 확인\u001b[39m\n \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41\u001b[22m"
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    8 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 30 |\u001b[39m     \n \u001b[90m 31 |\u001b[39m     \u001b[90m// 퍼널 페이지 제목 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 32 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 33 |\u001b[39m     \n \u001b[90m 34 |\u001b[39m     \u001b[90m// iframe이 로드되는지 확인\u001b[39m\n \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:37.164Z",
+                      "startTime": "2025-08-18T12:18:16.996Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -279,7 +279,7 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 7353,
+                      "duration": 6541,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:50:46",
@@ -303,7 +303,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:37.169Z",
+                      "startTime": "2025-08-18T12:18:16.975Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -353,7 +353,7 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "timedOut",
-                      "duration": 30140,
+                      "duration": 30141,
                       "error": {
                         "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                         "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -374,7 +374,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:37.162Z",
+                      "startTime": "2025-08-18T12:18:17.001Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -419,7 +419,7 @@
                       "workerIndex": 4,
                       "parallelIndex": 4,
                       "status": "timedOut",
-                      "duration": 30159,
+                      "duration": 30144,
                       "error": {
                         "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                         "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -440,7 +440,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:37.171Z",
+                      "startTime": "2025-08-18T12:18:16.986Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -485,12 +485,12 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 2595,
+                      "duration": 1471,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:37.166Z",
+                      "startTime": "2025-08-18T12:18:16.990Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -519,10 +519,10 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "failed",
-                      "duration": 2072,
+                      "duration": 6595,
                       "error": {
-                        "message": "Error: expect.toContainText: Error: strict mode violation: locator('title') resolved to 2 elements:\n    1) <title>previous</title> aka getByRole('button', { name: 'previous' })\n    2) <title>next</title> aka getByRole('button', { name: 'next' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n",
-                        "stack": "Error: expect.toContainText: Error: strict mode violation: locator('title') resolved to 2 elements:\n    1) <title>previous</title> aka getByRole('button', { name: 'previous' })\n    2) <title>next</title> aka getByRole('button', { name: 'next' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41",
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41",
                         "location": {
                           "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
                           "column": 41,
@@ -537,13 +537,13 @@
                             "column": 41,
                             "line": 104
                           },
-                          "message": "Error: expect.toContainText: Error: strict mode violation: locator('title') resolved to 2 elements:\n    1) <title>previous</title> aka getByRole('button', { name: 'previous' })\n    2) <title>next</title> aka getByRole('button', { name: 'next' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\n\n\u001b[0m \u001b[90m 102 |\u001b[39m     \n \u001b[90m 103 |\u001b[39m     \u001b[90m// 퍼널 페이지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 104 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 105 |\u001b[39m     \n \u001b[90m 106 |\u001b[39m     \u001b[90m// iframe 확인\u001b[39m\n \u001b[90m 107 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41\u001b[22m"
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\n\n\u001b[0m \u001b[90m 102 |\u001b[39m     \n \u001b[90m 103 |\u001b[39m     \u001b[90m// 퍼널 페이지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 104 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 105 |\u001b[39m     \n \u001b[90m 106 |\u001b[39m     \u001b[90m// iframe 확인\u001b[39m\n \u001b[90m 107 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:41.140Z",
+                      "startTime": "2025-08-18T12:18:19.627Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -591,30 +591,33 @@
                   "results": [
                     {
                       "workerIndex": 6,
-                      "parallelIndex": 5,
-                      "status": "timedOut",
-                      "duration": 30801,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6003,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46",
+                        "location": {
+                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
+                          "column": 46,
+                          "line": 119
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 117 |\u001b[39m     \n \u001b[90m 118 |\u001b[39m     \u001b[90m// 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 119 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 120 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 121 |\u001b[39m\n \u001b[90m 122 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
                             "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 16,
-                            "line": 115
+                            "column": 46,
+                            "line": 119
                           },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"password\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 113 |\u001b[39m     \n \u001b[90m 114 |\u001b[39m     \u001b[90m// 로그인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 115 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'1234'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 116 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"로그인\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 117 |\u001b[39m     \n \u001b[90m 118 |\u001b[39m     \u001b[90m// 대시보드 확인\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:115:16\u001b[22m"
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 117 |\u001b[39m     \n \u001b[90m 118 |\u001b[39m     \u001b[90m// 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 119 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 120 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 121 |\u001b[39m\n \u001b[90m 122 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:43.712Z",
+                      "startTime": "2025-08-18T12:18:24.928Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -632,7 +635,12 @@
                           "contentType": "text/markdown",
                           "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
+                        "column": 46,
+                        "line": 119
+                      }
                     }
                   ],
                   "status": "unexpected"
@@ -657,14 +665,14 @@
                   "results": [
                     {
                       "workerIndex": 7,
-                      "parallelIndex": 0,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 5540,
+                      "duration": 3711,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T11:10:46.037Z",
+                      "startTime": "2025-08-18T12:18:25.061Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -684,8 +692,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-18T11:10:36.770Z",
-    "duration": 38184.955,
+    "startTime": "2025-08-18T12:18:16.633Z",
+    "duration": 31784.235,
     "expected": 2,
     "skipped": 0,
     "unexpected": 7,

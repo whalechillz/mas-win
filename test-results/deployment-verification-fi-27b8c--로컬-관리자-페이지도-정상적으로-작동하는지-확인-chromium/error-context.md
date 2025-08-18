@@ -1,46 +1,14 @@
 # Page snapshot
 
 ```yaml
+- heading "MASGOLF Admin" [level=1]
+- paragraph: 세계 최고의 마케팅 대시보드
+- text: 아이디
+- textbox "관리자 아이디"
+- text: 비밀번호
+- textbox "비밀번호": "1234"
+- button "로그인"
+- paragraph: 🌟 세계 최고의 마케팅 팀을 위한 대시보드 🌟
+- paragraph: 관리자 전용 시스템 | 무단 접근 금지
 - alert
-- dialog "Server Error":
-  - navigation:
-    - button "previous" [disabled]:
-      - img "previous"
-    - button "next" [disabled]:
-      - img "next"
-    - text: 1 of 1 unhandled error
-  - heading "Server Error" [level=1]
-  - paragraph: "Error: Cannot find module './chunks/vendor-chunks/next.js' Require stack: - /Users/m2/MASLABS/win.masgolf.co.kr/.next/server/webpack-runtime.js - /Users/m2/MASLABS/win.masgolf.co.kr/.next/server/pages/_document.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/require.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/load-components.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/build/utils.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/dev/hot-middleware.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/dev/hot-reloader-webpack.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/lib/router-server.js - /Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/lib/start-server.js"
-  - text: This error happened while generating the page. Any console logs will be displayed in the terminal window.
-  - heading "Call Stack" [level=2]
-  - heading "Module.<anonymous>" [level=3]
-  - text: node:internal/modules/cjs/loader (1405:15)
-  - heading "<unknown>" [level=3]
-  - text: file:///Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/require-hook.js (54:36)
-  - heading "defaultResolveImpl" [level=3]
-  - text: node:internal/modules/cjs/loader (1061:19)
-  - heading "resolveForCJSWithHooks" [level=3]
-  - text: node:internal/modules/cjs/loader (1066:22)
-  - heading "Module._load" [level=3]
-  - text: node:internal/modules/cjs/loader (1215:37)
-  - heading "TracingChannel.traceSync" [level=3]
-  - text: node:diagnostics_channel (322:14)
-  - heading "wrapModuleLoad" [level=3]
-  - text: node:internal/modules/cjs/loader (235:24)
-  - heading "Module.<anonymous>" [level=3]
-  - text: node:internal/modules/cjs/loader (1491:12)
-  - heading "mod.require" [level=3]
-  - text: file:///Users/m2/MASLABS/win.masgolf.co.kr/node_modules/next/dist/server/require-hook.js (64:28)
-  - heading "require" [level=3]
-  - text: node:internal/modules/helpers (135:16)
-  - heading "__webpack_require__.f.require" [level=3]
-  - text: file:///Users/m2/MASLABS/win.masgolf.co.kr/.next/server/webpack-runtime.js (212:28)
-  - heading "<unknown>" [level=3]
-  - text: file:///Users/m2/MASLABS/win.masgolf.co.kr/.next/server/webpack-runtime.js (139:40)
-  - heading "Array.reduce" [level=3]
-  - text: <anonymous>
-  - heading "__webpack_require__.e" [level=3]
-  - text: file:///Users/m2/MASLABS/win.masgolf.co.kr/.next/server/webpack-runtime.js (138:67)
-  - heading "Array.map" [level=3]
-  - text: <anonymous>
 ```
