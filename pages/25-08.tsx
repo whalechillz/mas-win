@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Head from 'next/head';
 import { AdvancedUserTracker } from '../components/tracking/AdvancedUserTracker';
 import { PerformanceTracker } from '../components/tracking/PerformanceTracker';
 import Script from 'next/script';
@@ -93,6 +94,11 @@ export default function Funnel202508() {
 
   return (
     <>
+      <Head>
+        <title>MAS Golf 8월 퍼널</title>
+        <meta name="description" content="MASGOLF 8월 퍼널 페이지" />
+      </Head>
+      
       {/* Google Analytics 스크립트 */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=G-${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}

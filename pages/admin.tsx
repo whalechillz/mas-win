@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import { createClient } from '@supabase/supabase-js';
 import CampaignKPIDashboard from '../components/admin/dashboard/CampaignKPIDashboard';
 import { ContactManagement } from '../components/admin/contacts/ContactManagement';

@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 6
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "reporter": [
@@ -45,7 +45,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 1
         },
         "id": "chromium",
         "name": "chromium",
@@ -54,14 +54,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 15000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 1
         },
         "id": "firefox",
         "name": "firefox",
@@ -70,14 +70,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 15000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 6
+          "actualWorkers": 1
         },
         "id": "webkit",
         "name": "webkit",
@@ -86,7 +86,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 15000
       }
     ],
     "shard": null,
@@ -116,12 +116,12 @@
           "column": 6,
           "specs": [
             {
-              "title": "새로운 홈페이지가 정상적으로 로드되는지 확인",
+              "title": "로컬 관리자 페이지도 정상적으로 작동하는지 확인",
               "ok": false,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 15000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -131,493 +131,31 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6359,
+                      "duration": 6192,
                       "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/MASGOLF/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/MASGOLF/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:8:24",
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45",
                         "location": {
                           "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 24,
-                          "line": 8
+                          "column": 45,
+                          "line": 125
                         },
-                        "snippet": "\u001b[0m \u001b[90m  6 |\u001b[39m     \n \u001b[90m  7 |\u001b[39m     \u001b[90m// 페이지 제목 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveTitle(\u001b[35m/MASGOLF/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  9 |\u001b[39m     \n \u001b[90m 10 |\u001b[39m     \u001b[90m// 메인 헤더 확인\u001b[39m\n \u001b[90m 11 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=MASGOLF Summer Campaign'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 123 |\u001b[39m     \n \u001b[90m 124 |\u001b[39m     \u001b[90m// 로그인 성공 확인 (URL이 변경되었는지 또는 특정 요소가 표시되는지)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=로그아웃'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 126 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 127 |\u001b[39m\n \u001b[90m 128 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 24,
-                            "line": 8
+                            "column": 45,
+                            "line": 125
                           },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/MASGOLF/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m  6 |\u001b[39m     \n \u001b[90m  7 |\u001b[39m     \u001b[90m// 페이지 제목 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveTitle(\u001b[35m/MASGOLF/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  9 |\u001b[39m     \n \u001b[90m 10 |\u001b[39m     \u001b[90m// 메인 헤더 확인\u001b[39m\n \u001b[90m 11 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=MASGOLF Summer Campaign'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:8:24\u001b[22m"
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n\n\u001b[0m \u001b[90m 123 |\u001b[39m     \n \u001b[90m 124 |\u001b[39m     \u001b[90m// 로그인 성공 확인 (URL이 변경되었는지 또는 특정 요소가 표시되는지)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=로그아웃'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 126 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 127 |\u001b[39m\n \u001b[90m 128 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T12:18:17.001Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-28ff3-검증-새로운-홈페이지가-정상적으로-로드되는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 24,
-                        "line": 8
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-a564d7aea85195ae26ac",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 4,
-              "column": 7
-            },
-            {
-              "title": "8월 퍼널이 정상적으로 작동하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 6644,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    8 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    8 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 41,
-                          "line": 32
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 30 |\u001b[39m     \n \u001b[90m 31 |\u001b[39m     \u001b[90m// 퍼널 페이지 제목 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 32 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 33 |\u001b[39m     \n \u001b[90m 34 |\u001b[39m     \u001b[90m// iframe이 로드되는지 확인\u001b[39m\n \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 41,
-                            "line": 32
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\u001b[2m    8 × locator resolved to <title></title>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 30 |\u001b[39m     \n \u001b[90m 31 |\u001b[39m     \u001b[90m// 퍼널 페이지 제목 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 32 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 33 |\u001b[39m     \n \u001b[90m 34 |\u001b[39m     \u001b[90m// iframe이 로드되는지 확인\u001b[39m\n \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:32:41\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:16.996Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 41,
-                        "line": 32
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-3f600451284a471fa1ef",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 25,
-              "column": 7
-            },
-            {
-              "title": "관리자 페이지 로그인이 정상적으로 작동하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 6541,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:50:46",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 46,
-                          "line": 50
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 48 |\u001b[39m     \n \u001b[90m 49 |\u001b[39m     \u001b[90m// 로그인 성공 후 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 50 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 51 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=실시간 A/B 테스트 성능 비교'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 52 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 53 |\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 46,
-                            "line": 50
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 48 |\u001b[39m     \n \u001b[90m 49 |\u001b[39m     \u001b[90m// 로그인 성공 후 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 50 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 51 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=실시간 A/B 테스트 성능 비교'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 52 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 53 |\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:50:46\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:16.975Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 46,
-                        "line": 50
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-2e58535b79410294d2e4",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 39,
-              "column": 7
-            },
-            {
-              "title": "관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "timedOut",
-                      "duration": 30141,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 16,
-                            "line": 62
-                          },
-                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 60 |\u001b[39m     \n \u001b[90m 61 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 2025-08 탭 확인\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=2025-08'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:62:16\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:17.001Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-0f1c5a6c64a171c4753e",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 54,
-              "column": 7
-            },
-            {
-              "title": "관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
-                      "status": "timedOut",
-                      "duration": 30144,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 16,
-                            "line": 80
-                          },
-                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 78 |\u001b[39m     \n \u001b[90m 79 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 80 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 81 |\u001b[39m     \n \u001b[90m 82 |\u001b[39m     \u001b[90m// 2025-08 탭 클릭\u001b[39m\n \u001b[90m 83 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=2025-08'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:80:16\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:16.986Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-chromium/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-420f344a42c2321a59e4",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 72,
-              "column": 7
-            },
-            {
-              "title": "로컬 서버도 정상적으로 작동하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "passed",
-                      "duration": 1471,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:16.990Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-aea89206395313978333",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 92,
-              "column": 7
-            },
-            {
-              "title": "로컬 8월 퍼널도 정상적으로 작동하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "failed",
-                      "duration": 6595,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 41,
-                          "line": 104
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 102 |\u001b[39m     \n \u001b[90m 103 |\u001b[39m     \u001b[90m// 퍼널 페이지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 104 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 105 |\u001b[39m     \n \u001b[90m 106 |\u001b[39m     \u001b[90m// iframe 확인\u001b[39m\n \u001b[90m 107 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 41,
-                            "line": 104
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('title')\nExpected string: \u001b[32m\"MAS Golf 8월 퍼널\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title')\u001b[22m\n\n\n\u001b[0m \u001b[90m 102 |\u001b[39m     \n \u001b[90m 103 |\u001b[39m     \u001b[90m// 퍼널 페이지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 104 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 105 |\u001b[39m     \n \u001b[90m 106 |\u001b[39m     \u001b[90m// iframe 확인\u001b[39m\n \u001b[90m 107 |\u001b[39m     \u001b[36mconst\u001b[39m iframe \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mframeLocator(\u001b[32m'iframe'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:104:41\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:19.627Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8bf00-검증-로컬-8월-퍼널도-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 41,
-                        "line": 104
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-8304427a1e27d2d37986",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 100,
-              "column": 7
-            },
-            {
-              "title": "로컬 관리자 페이지도 정상적으로 작동하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 6003,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 46,
-                          "line": 119
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 117 |\u001b[39m     \n \u001b[90m 118 |\u001b[39m     \u001b[90m// 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 119 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 120 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 121 |\u001b[39m\n \u001b[90m 122 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 46,
-                            "line": 119
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 117 |\u001b[39m     \n \u001b[90m 118 |\u001b[39m     \u001b[90m// 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 119 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 120 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 121 |\u001b[39m\n \u001b[90m 122 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:119:46\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:24.928Z",
+                      "startTime": "2025-08-18T13:20:38.906Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -638,8 +176,8 @@
                       ],
                       "errorLocation": {
                         "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 46,
-                        "line": 119
+                        "column": 45,
+                        "line": 125
                       }
                     }
                   ],
@@ -648,41 +186,7 @@
               ],
               "id": "db86eb664f8d8b6a988c-9c2a810d3a82e337049e",
               "file": "deployment-verification-final.spec.ts",
-              "line": 111,
-              "column": 7
-            },
-            {
-              "title": "API 엔드포인트들이 정상적으로 작동하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 7,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 3711,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-18T12:18:25.061Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-26dc97cf0677fb3d1dcb",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 122,
+              "line": 110,
               "column": 7
             }
           ]
@@ -692,11 +196,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-18T12:18:16.633Z",
-    "duration": 31784.235,
-    "expected": 2,
+    "startTime": "2025-08-18T13:20:38.582Z",
+    "duration": 6788.65,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 7,
+    "unexpected": 1,
     "flaky": 0
   }
 }

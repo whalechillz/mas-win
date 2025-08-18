@@ -22,12 +22,18 @@ export default function Home() {
   // win.masgolf.co.kr에서 접속 시 로딩 표시
   if (hostname === 'win.masgolf.co.kr') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">퍼널로 이동 중...</p>
+      <>
+        <Head>
+          <title>MASGOLF - 퍼널로 이동 중</title>
+          <meta name="description" content="퍼널로 이동 중입니다." />
+        </Head>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">퍼널로 이동 중...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -678,7 +684,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+    </div>
         </footer>
       </main>
     </>
