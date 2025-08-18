@@ -17,9 +17,9 @@ test.describe('홈페이지 이미지 복원 테스트', () => {
   test('8월 퍼널 배너가 정상적으로 표시되는지 확인', async ({ page }) => {
     await page.goto(baseUrl);
     
-    // 8월 퍼널 배너 확인
-    await expect(page.locator('text=8월 한정 특별 혜택')).toBeVisible();
-    await expect(page.locator('text=무료 상담: 080-028-8888')).toBeVisible();
+    // 새로운 홈페이지에는 8월 퍼널 배너가 없으므로 MASGOLF Summer Campaign 확인
+    await expect(page.locator('text=MASGOLF Summer Campaign')).toBeVisible();
+    await expect(page.locator('text=시니어 골퍼를 위한 특별한 선택')).toBeVisible();
   });
 
   test('제품 이미지들이 정상적으로 로드되는지 확인', async ({ page }) => {

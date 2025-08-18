@@ -259,26 +259,26 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
   return (
     <div className="space-y-6">
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">전체 예약</p>
-          <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">전체 예약</p>
+          <p className="text-lg font-bold text-gray-900">{bookings.length}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">오늘 예약</p>
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">오늘 예약</p>
+          <p className="text-lg font-bold text-blue-600">
             {bookings.filter(b => new Date(b.date).toDateString() === new Date().toDateString()).length}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">연락 대기</p>
-          <p className="text-2xl font-bold text-yellow-600">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">연락 대기</p>
+          <p className="text-lg font-bold text-yellow-600">
             {bookings.filter(b => !b.status || b.status === 'pending').length}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">완료</p>
-          <p className="text-2xl font-bold text-green-600">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">완료</p>
+          <p className="text-lg font-bold text-green-600">
             {bookings.filter(b => b.status === 'completed').length}
           </p>
         </div>
@@ -305,7 +305,7 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-white"
           >
             <option value="all">전체 기간</option>
             <option value="today">오늘</option>
@@ -317,7 +317,7 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-white"
           >
             <option value="all">모든 상태</option>
             <option value="pending">대기중</option>
@@ -363,11 +363,11 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
         )}
 
         {/* 예약 테이블 */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <table className="w-full min-w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left">
+                <th className="px-3 py-2 text-left">
                   <input
                     type="checkbox"
                     checked={selectedBookings.length === filteredBookings.length && filteredBookings.length > 0}
@@ -378,21 +378,22 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                         setSelectedBookings([]);
                       }
                     }}
+                    className="w-4 h-4"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">고객명</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">연락처</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">예약일시</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">클럽</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">메모</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">액션</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">고객명</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">연락처</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">예약일시</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">클럽</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">메모</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredBookings.map((booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <input
                       type="checkbox"
                       checked={selectedBookings.includes(booking.id)}
@@ -403,30 +404,31 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                           setSelectedBookings(selectedBookings.filter(id => id !== booking.id));
                         }
                       }}
+                      className="w-4 h-4"
                     />
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{booking.name}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2 text-sm font-medium text-gray-900">{booking.name}</td>
+                  <td className="px-3 py-2">
                     <a
                       href={`tel:${booking.phone}`}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm"
                     >
-                      <Phone className="w-4 h-4" />
+                      <Phone className="w-3 h-3" />
                       {formatPhoneNumber(booking.phone)}
                     </a>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span>{booking.date} {booking.time}</span>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-gray-400" />
+                      <span className="text-sm">{booking.date} {booking.time}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">{booking.club || '-'}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2 text-sm">{booking.club || '-'}</td>
+                  <td className="px-3 py-2">
                     <select
                       value={booking.status || 'pending'}
                       onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      className={`px-1 py-0.5 text-xs font-medium rounded border-0 focus:ring-1 focus:ring-blue-500 ${
                         booking.status === 'completed' 
                           ? 'bg-green-100 text-green-800'
                           : booking.status === 'contacted'
@@ -439,21 +441,21 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                       <option value="completed">완료</option>
                     </select>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     {editingId === booking.id ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <input
                           type="text"
                           value={editMemo}
                           onChange={(e) => setEditMemo(e.target.value)}
-                          className="px-2 py-1 text-sm border border-gray-300 rounded"
+                          className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
                           autoFocus
                         />
                         <button
                           onClick={() => saveMemo(booking.id)}
-                          className="text-green-600 hover:text-green-700"
+                          className="text-green-600 hover:text-green-700 p-1"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
@@ -462,27 +464,27 @@ export function BookingManagement({ bookings, supabase, onUpdate }: BookingManag
                           setEditingId(booking.id);
                           setEditMemo(booking.memo || '');
                         }}
-                        className="text-sm text-gray-600 hover:text-gray-900"
+                        className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded"
                       >
                         {booking.memo || '메모 추가'}
                       </button>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-1">
                       <a
                         href={`tel:${booking.phone}`}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 p-1 rounded hover:bg-blue-50"
                         title="전화하기"
                       >
-                        <Phone className="w-4 h-4" />
+                        <Phone className="w-3 h-3" />
                       </a>
                       <button
                         onClick={() => deleteBooking(booking.id)}
                         className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50"
                         title="삭제"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>

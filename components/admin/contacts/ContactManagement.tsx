@@ -349,26 +349,26 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
   return (
     <div className="space-y-6">
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">전체 문의</p>
-          <p className="text-2xl font-bold text-gray-900">{contacts.length}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">전체 문의</p>
+          <p className="text-lg font-bold text-gray-900">{contacts.length}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">연락 대기</p>
-          <p className="text-2xl font-bold text-yellow-600">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">연락 대기</p>
+          <p className="text-lg font-bold text-yellow-600">
             {contacts.filter(c => !c.contacted).length}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">연락 완료</p>
-          <p className="text-2xl font-bold text-green-600">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">연락 완료</p>
+          <p className="text-lg font-bold text-green-600">
             {contacts.filter(c => c.contacted).length}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-500">응답률</p>
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <p className="text-xs text-gray-500">응답률</p>
+          <p className="text-lg font-bold text-blue-600">
             {contacts.length > 0 
               ? Math.round((contacts.filter(c => c.contacted).length / contacts.length) * 100)
               : 0}%
@@ -428,7 +428,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-white"
           >
             <option value="all">모든 상태</option>
             <option value="pending">대기중</option>
@@ -439,7 +439,7 @@ export function ContactManagement({ contacts, supabase, onUpdate }: ContactManag
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-white"
           >
             <option value="all">모든 시간대</option>
             <option value="오전">오전</option>
