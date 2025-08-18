@@ -1,25 +1,12 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-export default function Home() {
+export default function Home({ hostname }) {
   const router = useRouter();
-  const [hostname, setHostname] = useState('');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentHostname = window.location.hostname;
-      setHostname(currentHostname);
-      
-      if (currentHostname === 'win.masgolf.co.kr') {
-        router.replace('/25-08'); // 8월 퍼널로 리다이렉트
-      }
-    }
-  }, [router]);
-
-  // win.masgolf.co.kr에서 접속 시 로딩 표시
+  // win.masgolf.co.kr에서 접속 시 로딩 표시 (서버에서 리다이렉트되므로 이 부분은 실행되지 않음)
   if (hostname === 'win.masgolf.co.kr') {
     return (
       <>
@@ -689,4 +676,25 @@ export default function Home() {
       </main>
     </>
   );
+}
+
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const hostname = req.headers.host;
+
+  // win.masgolf.co.kr에서 접속 시 즉시 리다이렉트
+  if (hostname === 'win.masgolf.co.kr') {
+    return {
+      redirect: {
+        destination: '/25-08',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      hostname,
+    },
+  };
 }
