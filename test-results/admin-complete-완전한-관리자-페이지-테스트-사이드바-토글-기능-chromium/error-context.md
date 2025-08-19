@@ -1,0 +1,87 @@
+# Page snapshot
+
+```yaml
+- navigation:
+  - heading "MASGOLF 관리자" [level=1]
+  - button "로그아웃"
+- navigation:
+  - button "대시보드"
+  - button "퍼널 관리"
+  - button "캠페인 관리"
+  - button "예약상담관리"
+  - button "마케팅 콘텐츠"
+  - button "팀 관리"
+- heading "Google Ads 캠페인 KPI (현재 월)" [level=3]
+- text: 모의 데이터
+- button "새로고침"
+- strong: 모의 데이터 표시 중
+- text: "실제 Google Ads 데이터를 보려면 API 연결을 완료하세요. NA는 Not Available(현재 수집 불가)을 의미합니다. 기간: 2025-08-01 ~ 2025-08-19 (모의 데이터)"
+- paragraph: 총 노출수
+- paragraph: NA
+- paragraph: 총 클릭수
+- paragraph: NA
+- paragraph: 총 비용
+- paragraph: NA
+- paragraph: 총 전환
+- paragraph: NA
+- paragraph: 전체 CTR
+- paragraph: NA
+- paragraph: 전체 CPC
+- paragraph: NA
+- paragraph: 전체 ROAS
+- paragraph: NA
+- heading "현재 월 활성 캠페인" [level=4]
+- heading "MASGOLF 현재 월 캠페인" [level=5]
+- text: 활성
+- paragraph: 노출수
+- paragraph: NA
+- paragraph: 클릭수
+- paragraph: NA
+- paragraph: 비용
+- paragraph: NA
+- paragraph: CTR
+- paragraph: NA
+- text: 2025-08-01 ~ 2025-08-19
+- heading "골프 클럽 특가 캠페인" [level=5]
+- text: 활성
+- paragraph: 노출수
+- paragraph: NA
+- paragraph: 클릭수
+- paragraph: NA
+- paragraph: 비용
+- paragraph: NA
+- paragraph: CTR
+- paragraph: NA
+- text: "2025-08-01 ~ 2025-08-19 마지막 업데이트: 6:15:47 PM 데이터 기간: 2025-08-01 ~ 2025-08-19 (모의 데이터)"
+- heading "GA4 실시간 데이터" [level=3]
+- text: 실시간 데이터
+- button "🔄 새로고침"
+- heading "실시간 (현재 접속자)" [level=4]
+- paragraph: 현재 접속자
+- paragraph: "6"
+- paragraph: 실시간 페이지뷰
+- paragraph: "20"
+- paragraph: 실시간 이벤트
+- paragraph: "57"
+- heading "오늘 시간대별 트렌드" [level=4]
+- paragraph: 오늘 방문자
+- paragraph: "595"
+- paragraph: 오늘 페이지뷰
+- paragraph: "605"
+- paragraph: 오늘 이벤트
+- paragraph: "2678"
+- heading "오늘 시간대별 방문자 (0-24시)" [level=5]
+- application: 00시 03시 06시 09시 12시 15시 18시 21시 0 25 50 75 100
+- text: "현재 시간: 18시 15분"
+- heading "이번달 일별 트렌드" [level=4]
+- paragraph: 이번달 방문자
+- paragraph: "8074"
+- paragraph: 이번달 페이지뷰
+- paragraph: "12684"
+- paragraph: 이번달 이벤트
+- paragraph: "45801"
+- heading "현재월 일별 방문자 (1일-말일)" [level=5]
+- application: 31일 3일 6일 9일 12일 15일 18일 20일 23일 26일 29일 0 250 500 750 1000
+- text: "7월 31일 ~ 8월 29일 총 방문자: 8,686명 마지막 업데이트: 6:15:49 PM GA4 속성 ID: 497433231"
+- alert
+```

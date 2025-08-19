@@ -1,0 +1,203 @@
+# Page snapshot
+
+```yaml
+- main:
+  - text: MASGOLF
+  - navigation:
+    - link "드라이버":
+      - /url: /#drivers
+    - link "기술력":
+      - /url: /#technology
+    - link "고객후기":
+      - /url: /#reviews
+    - link "문의하기":
+      - /url: /#contact
+    - link "무료 시타":
+      - /url: /25-08
+  - text: MASGOLF Summer Campaign
+  - heading "시니어 골퍼를 위한 특별한 선택" [level=1]
+  - heading "나이가 들수록 비거리는 더 멀리 나가야 합니다" [level=2]
+  - paragraph: 스윙 스피드가 느려져도 괜찮습니다 초박형 2.2mm 페이스가 젊은 날의 비거리를 돌려드립니다
+  - link "무료 시타 신청하기":
+    - /url: /25-08
+  - link "제품 둘러보기":
+    - /url: /#products
+  - paragraph: 50대, 60대, 70대... 나이는 숫자에 불과합니다
+  - heading "MASGOLF의 차별점" [level=2]
+  - paragraph: 혁신적인 기술과 품질로 만드는 특별한 경험
+  - text: 🏆
+  - heading "R&A 공식 비공인" [level=3]
+  - paragraph: 영국 왕립 골프협회가 경계할 정도로 강력한 반발력
+  - text: 💪
+  - heading "시니어 최적화 설계" [level=3]
+  - paragraph: 느려진 스윙에도 최대 반발력을 내는 2.2mm 초박형 페이스
+  - text: 🚀
+  - heading "즉각적인 비거리 회복" [level=3]
+  - paragraph: 첫 시타부터 체감하는 30m 이상의 비거리 증가
+  - text: 💎
+  - heading "일본 장인정신" [level=3]
+  - paragraph: 40년 전통 골프스튜디오에서 한정 제작
+  - heading "페이스 두께의 비밀" [level=2]
+  - paragraph: 일반 드라이버보다 33.33% 얇은 2.2mm 티타늄 페이스
+  - img "2.2mm 티타늄 클럽 페이스"
+  - text: 2.2mm 티타늄 페이스
+  - heading "티타늄 소재의 차이" [level=3]
+  - text: ✓
+  - heading "DAT55G+ Grade 5 (시크릿포스 GOLD 2)" [level=4]
+  - paragraph: 최고급 항공우주용 티타늄. 최상의 탄성과 내구성으로 2.2mm 초박형 페이스 구현 가능
+  - text: ✓
+  - heading "SP700 Grade 5 (시크릿웨폰 블랙)" [level=4]
+  - paragraph: 특수 가공 티타늄. 블랙 PVD 코팅과 결합하여 프리미엄 비주얼과 성능 제공
+  - text: ✓
+  - heading "DAT55G (시크릿포스 PRO 3, V3)" [level=4]
+  - paragraph: 고강도 티타늄. 안정적인 성능과 내구성으로 일반 골퍼에게 최적
+  - paragraph: "\"한 번의 시타로 30m 비거리 증가를 직접 체험하세요\""
+  - heading "COR 0.87의 비밀" [level=2]
+  - paragraph: 영국 왕립 골프협회(R&A)가 경계하는 수치
+  - img "드라이버 임팩트 이미지 - COR 0.87"
+  - text: 0.87 반발 계수 (COR) 일반 드라이버 0.83 MASGOLF 고반발 0.87
+  - heading "COR이 높으면 왜 비거리가 늘어날까?" [level=3]
+  - heading "에너지 전달 효율" [level=4]
+  - paragraph: COR 0.87은 임팩트 시 87%의 에너지가 볼에 전달됩니다. 일반 드라이버(0.83)보다 4% 더 많은 에너지가 전달되어 비거리가 증가합니다.
+  - heading "실제 비거리 증가" [level=4]
+  - paragraph: COR 0.01 증가 시 약 7-8m의 비거리 증가 효과. 0.83 → 0.87은 약 30m의 비거리 증가를 의미합니다.
+  - heading "R&A 비공인 이유" [level=4]
+  - paragraph: R&A는 COR 0.83을 상한선으로 규정. MASGOLF의 0.87은 이를 초과하는 '비공인' 고반발 드라이버입니다.
+  - paragraph: "\"경기용이 아닌, 즐거운 라운드를 위한 선택\""
+  - heading "고반발 드라이버 컬렉션" [level=2]
+  - paragraph: 엄격한 품질관리로 한정 생산되는 프리미엄 드라이버
+  - img "시크릿포스 GOLD 2"
+  - text: BEST
+  - heading "시크릿포스 GOLD 2" [level=3]
+  - paragraph: 프리미엄 드라이버
+  - paragraph: 1,700,000원
+  - list:
+    - listitem: • DAT55G+ Grade 5 티타늄
+    - listitem: • 2.2mm 초박형 페이스
+    - listitem: • COR 0.87
+  - img "시크릿포스 PRO 3"
+  - heading "시크릿포스 PRO 3" [level=3]
+  - paragraph: 고반발 드라이버
+  - paragraph: 1,150,000원
+  - list:
+    - listitem: • DAT55G 티타늄
+    - listitem: • 2.3mm 페이스
+    - listitem: • COR 0.86
+  - img "시크릿포스 V3"
+  - heading "시크릿포스 V3" [level=3]
+  - paragraph: 투어 드라이버
+  - paragraph: 950,000원
+  - list:
+    - listitem: • DAT55G 티타늄
+    - listitem: • 2.4mm 페이스
+    - listitem: • COR 0.85
+  - img "시크릿웨폰 블랙"
+  - text: LIMITED
+  - heading "시크릿웨폰 블랙" [level=3]
+  - paragraph: 프리미엄 리미티드
+  - paragraph: 1,700,000원
+  - list:
+    - listitem: • SP700 Grade 5 티타늄
+    - listitem: • 2.2mm 초박형 페이스
+    - listitem: • COR 0.87
+  - img "시크릿웨폰 4.1"
+  - heading "시크릿웨폰 4.1" [level=3]
+  - paragraph: 중급 모델
+  - paragraph: 1,150,000원
+  - list:
+    - listitem: • SP700 Grade 5 티타늄
+    - listitem: • 2.3mm 페이스
+    - listitem: • COR 0.86
+  - link "무료 시타 신청하기":
+    - /url: /25-08
+  - heading "가족과 함께하는 골프의 의미" [level=2]
+  - paragraph: 나이가 들수록 소중해지는 것들
+  - img "가족과 함께하는 골프"
+  - text: 👨‍👦 아버지와 아들의 골프 "아버지, 정말 멋지세요!" - 아들의 한마디가 주는 행복
+  - heading "왜 시니어에게 고반발 드라이버가 필요한가?" [level=3]
+  - text: ✓
+  - heading "느려진 스윙 스피드 보완" [level=4]
+  - paragraph: 나이가 들면서 자연스럽게 느려지는 스윙 스피드를 고반발 페이스가 보완해줍니다
+  - text: ✓
+  - heading "자존감 회복" [level=4]
+  - paragraph: 동반자들과 비슷한 비거리로 자신감 있는 라운드가 가능합니다
+  - text: ✓
+  - heading "가족과의 즐거운 시간" [level=4]
+  - paragraph: 자녀들과 함께하는 라운드에서 멋진 모습을 보여줄 수 있습니다
+  - paragraph: 30년의 골프 경력, 이제는 장비가 당신을 도와드릴 차례입니다
+  - heading "시니어 골퍼들의 생생한 후기" [level=2]
+  - paragraph: 나이는 숫자에 불과, 비거리는 다시 돌아옵니다
+  - img "김성호 대표"
+  - heading "김성호 대표 (62세)" [level=3]
+  - paragraph: +35m 비거리 증가
+  - paragraph: "\"나이 들면서 비거리가 계속 줄어 고민이었는데, 이제 젊은 후배들과 비거리 차이가 거의 안 납니다. 드라이버 하나로 10년은 젊어진 느낌이에요.\""
+  - img "이재민 회장"
+  - heading "이재민 회장 (58세)" [level=3]
+  - paragraph: +28m 비거리 증가
+  - paragraph: "\"예전엔 파5홀에서 3온이 힘들었는데, 지금은 편하게 2온 합니다. 동반자들이 다들 비거리 늘었다고 놀라더군요.\""
+  - img "박준영 원장"
+  - heading "박준영 원장 (65세)" [level=3]
+  - paragraph: +32m 비거리 증가
+  - paragraph: "\"스윙 스피드가 예전 같지 않아 포기하고 있었는데, 고반발 드라이버로 바꾸니 젊은 시절 비거리가 다시 나옵니다. 골프가 다시 재미있어졌어요.\""
+  - paragraph: 지금 무료 시타를 신청하고 직접 경험해보세요
+  - link "무료 시타 신청하기":
+    - /url: /25-08
+  - link "문의하기":
+    - /url: /#contact
+  - heading "문의하기" [level=2]
+  - paragraph: MASGOLF 전문가가 답변해 드립니다
+  - text: 이름*
+  - textbox
+  - text: 이메일
+  - textbox
+  - text: 연락처*
+  - textbox
+  - text: 현재 클럽 브랜드*
+  - 'textbox "예: 타이틀리스트, 캘러웨이"'
+  - text: 로프트 각도*
+  - 'textbox "예: 9.5°, 10.5°"'
+  - text: 샤프트 강도*
+  - 'textbox "예: R, SR, S"'
+  - text: 현재 비거리*
+  - 'textbox "예: 캐리 170m / 토탈 200m"'
+  - text: 연령대*
+  - combobox:
+    - option "선택하세요" [selected]
+    - option "40대"
+    - option "50대"
+    - option "60대"
+    - option "70대"
+    - option "80대 이상"
+  - text: 문의내용
+  - textbox
+  - button "문의 전송"
+  - heading "MASGOLF®" [level=3]
+  - paragraph: MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. 20년 전통의 기술력으로 만든 고반발 드라이버 전문 브랜드로, 시니어 골퍼를 위한 특별한 골프 클럽을 제공합니다.
+  - paragraph: "사업자명: MASGOLF® | 대표자명: 김탁수"
+  - paragraph: "사업자등록번호: 877-07-00641"
+  - paragraph: "통신판매업신고번호: 제 2017-수원영통-0623호"
+  - paragraph: "상표권 등록일: 2003-07-31"
+  - heading "시타 센터" [level=4]
+  - paragraph: 주소
+  - paragraph: 수원시 영통구 법조로 149번길 200
+  - paragraph: (광교 갤러리아에서 차량 5분)
+  - paragraph: 연락처
+  - paragraph: "방문 상담 예약: 031-215-0013"
+  - paragraph: "비거리 상담: 080-028-8888 (무료)"
+  - paragraph: 영업시간
+  - paragraph: 월-금 09:00 - 18:00
+  - paragraph: 주말은 예약제로 운영합니다
+  - heading "연락처" [level=4]
+  - paragraph: 이메일
+  - paragraph: hello@masgolf.co.kr
+  - paragraph: 웹사이트
+  - link "www.mas9golf.com":
+    - /url: https://www.mas9golf.com
+  - link "www.masgolf.co.kr":
+    - /url: https://www.masgolf.co.kr
+  - link "무료 시타 신청 +30m 비거리":
+    - /url: /25-08
+  - paragraph: © 2025 MASGOLF All Rights Reserved.
+- img
+- alert
+```
