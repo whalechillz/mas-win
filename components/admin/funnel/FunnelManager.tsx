@@ -514,7 +514,9 @@ export function FunnelManager() {
                 <div className="text-center">
                   <p className="text-sm text-gray-600">파일 크기</p>
                   <p className="text-lg font-semibold text-gray-900">
-                    {performanceData?.liveA.fileSize ? formatFileSize(performanceData.liveA.fileSize) : '240 KB'}
+                    {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')?.size ? 
+                      formatFileSize(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')!.size) : 
+                      '196.48 KB'}
                   </p>
                 </div>
                 
@@ -578,7 +580,9 @@ export function FunnelManager() {
                 <div className="text-center">
                   <p className="text-sm text-gray-600">파일 크기</p>
                   <p className="text-lg font-semibold text-gray-900">
-                    {performanceData?.liveB.fileSize ? formatFileSize(performanceData.liveB.fileSize) : '230 KB'}
+                    {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')?.size ? 
+                      formatFileSize(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')!.size) : 
+                      '61.28 KB'}
                   </p>
                 </div>
                 
