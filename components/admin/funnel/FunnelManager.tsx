@@ -516,7 +516,7 @@ export function FunnelManager() {
                    <span className="font-medium">
                      {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')?.modifiedDate ? 
                        formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')!.modifiedDate) : 
-                       '2025년 8월 17일 오전 12:15'}
+                       '2025년 8월 19일 오전 09:32'}
                    </span>
                  </div>
                </div>
@@ -616,7 +616,7 @@ export function FunnelManager() {
                    <span className="font-medium">
                      {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')?.modifiedDate ? 
                        formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')!.modifiedDate) : 
-                       '2025년 8월 11일 오전 09:24'}
+                       '2025년 8월 19일 오전 09:30'}
                    </span>
                  </div>
                </div>
