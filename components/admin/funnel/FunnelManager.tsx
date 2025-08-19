@@ -488,14 +488,14 @@ export function FunnelManager() {
           <h3 className="text-lg font-medium text-gray-900 mb-4">A/B 테스트 성능 비교</h3>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Live-A 성능 */}
-            <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
-              <div className="text-center mb-4">
-                <h4 className="text-xl font-bold text-blue-900">버전 LIVE-A</h4>
-                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mt-2">
-                  현재 활성
-                </span>
-              </div>
+                         {/* Live-A 성능 */}
+             <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+               <div className="text-center mb-4">
+                 <h4 className="text-xl font-bold text-blue-900">버전 A (funnel-2025-08-live-a.html)</h4>
+                 <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mt-2">
+                   테스트 중
+                 </span>
+               </div>
               
               <div className="space-y-4">
                 {/* 핵심 지표 */}
@@ -552,14 +552,14 @@ export function FunnelManager() {
               </div>
             </div>
 
-            {/* Live-B 성능 */}
-            <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
-              <div className="text-center mb-4">
-                <h4 className="text-xl font-bold text-green-900">버전 LIVE-B</h4>
-                <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mt-2">
-                  테스트 중
-                </span>
-              </div>
+                         {/* Live-B 성능 */}
+             <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
+               <div className="text-center mb-4">
+                 <h4 className="text-xl font-bold text-green-900">버전 B (funnel-2025-08-live-b.html)</h4>
+                 <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mt-2">
+                   현재 활성
+                 </span>
+               </div>
               
               <div className="space-y-4">
                 {/* 핵심 지표 */}
@@ -617,12 +617,12 @@ export function FunnelManager() {
             </div>
           </div>
 
-          {/* 승자 표시 */}
-          <div className="mt-6 text-center">
-            <div className="inline-flex items-center px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
-              <span className="text-yellow-800 font-medium">🏆 현재 승자: 버전 LIVE-B (전환율 +0.6%)</span>
-            </div>
-          </div>
+                     {/* 승자 표시 */}
+           <div className="mt-6 text-center">
+             <div className="inline-flex items-center px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+               <span className="text-yellow-800 font-medium">🏆 현재 승자: 버전 B (funnel-2025-08-live-b.html) - 전환율 +0.6%</span>
+             </div>
+           </div>
 
 
         </div>
