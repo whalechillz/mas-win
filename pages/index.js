@@ -41,15 +41,15 @@ export default function Home({ hostname }) {
             <div className="text-center mb-8">
               <div className="text-sm text-yellow-400 mb-4">MASGOLF Summer Campaign</div>
               <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                시니어 골퍼를 위한 특별한 선택
+                +30m 비거리 증가
               </h1>
               <h2 className="text-3xl md:text-5xl font-bold text-yellow-400 mb-4">
-                나이가 들수록 비거리는<br />
-                더 멀리 나가야 합니다
+                R&A가 경계하는<br />
+                <span className="text-6xl md:text-7xl">0.87</span> 반발계수
               </h2>
               <p className="text-xl mb-8">
-                스윙 스피드가 느려져도 괜찮습니다<br />
-                초박형 2.2mm 페이스가 젊은 날의 비거리를 돌려드립니다
+                2.2mm 초박형 페이스의 비밀<br />
+                <span className="text-yellow-400 font-bold">첫 시타부터 체감</span>
               </p>
               <div className="flex flex-col md:flex-row gap-4 justify-center">
                 <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
@@ -61,7 +61,7 @@ export default function Home({ hostname }) {
               </div>
             </div>
             <p className="text-center text-lg">
-              50대, 60대, 70대... 나이는 숫자에 불과합니다
+              <span className="text-yellow-400 font-bold">20년 전통</span> | <span className="text-yellow-400 font-bold">일본 장인정신</span> | <span className="text-yellow-400 font-bold">한정 제작</span>
             </p>
           </div>
         </section>
