@@ -457,13 +457,17 @@ export function AdvancedUserAnalytics({ campaignId }: AdvancedUserAnalyticsProps
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-sm font-medium text-gray-500">바운스율</h3>
               <p className="text-2xl font-bold text-red-600">
-                {analyticsData.sessionMetrics.bounceRate.toFixed(1)}%
+                {typeof analyticsData.sessionMetrics.bounceRate === 'number'
+                  ? `${analyticsData.sessionMetrics.bounceRate.toFixed(1)}%`
+                  : analyticsData.sessionMetrics.bounceRate || 'NA'}
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-sm font-medium text-gray-500">페이지/세션</h3>
               <p className="text-2xl font-bold text-purple-600">
-                {analyticsData.sessionMetrics.pagesPerSession.toFixed(1)}
+                {typeof analyticsData.sessionMetrics.pagesPerSession === 'number'
+                  ? analyticsData.sessionMetrics.pagesPerSession.toFixed(1)
+                  : analyticsData.sessionMetrics.pagesPerSession || 'NA'}
               </p>
             </div>
           </div>

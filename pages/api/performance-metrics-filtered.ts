@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('GA4_PROPERTY_ID가 설정되지 않았습니다.');
     }
 
-    // 1. 페이지 로드 성능
+    // 1. 페이지 로드 성능 (페이지별로 가져온 후 필터링)
     const [pageLoadMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
@@ -31,14 +31,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { name: 'averageSessionDuration' }
       ],
       orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-      limit: 5
+      limit: 20
     });
 
-    // 2. 디바이스별 성능
+    // 관리자 페이지 제외 필터링
+    const filteredPageData = pageLoadMetrics.rows?.filter(row => 
+      !row.dimensionValues?.[0]?.value?.includes('/admin')
+    ).slice(0, 5).map(row => ({
+      page: row.dimensionValues?.[0]?.value || 'Unknown',
+      pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
+      avgSessionDuration: parseFloat(row.metricValues?.[1]?.value || '0')
+    })) || [];
+
+    // 2. 디바이스별 성능 (페이지별로 가져온 후 필터링)
     const [devicePerformance] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
-      dimensions: [{ name: 'deviceCategory' }],
+      dimensions: [{ name: 'deviceCategory' }, { name: 'pagePath' }],
       metrics: [
         { name: 'screenPageViews' },
         { name: 'averageSessionDuration' },
@@ -46,39 +55,79 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ]
     });
 
-    // 3. 시간대별 성능
+    // 관리자 페이지 제외 필터링
+    const filteredDeviceData = devicePerformance.rows?.filter(row => 
+      !row.dimensionValues?.[1]?.value?.includes('/admin')
+    ) || [];
+
+    // 디바이스별 데이터 집계
+    const deviceData = filteredDeviceData.reduce((acc, row) => {
+      const device = row.dimensionValues?.[0]?.value || 'Unknown';
+      const existing = acc.find(d => d.device === device);
+      
+      if (existing) {
+        existing.pageViews += parseInt(row.metricValues?.[0]?.value || '0');
+        existing.avgSessionDuration += parseFloat(row.metricValues?.[1]?.value || '0');
+        existing.bounceRate += parseFloat(row.metricValues?.[2]?.value || '0');
+        existing.count += 1;
+      } else {
+        acc.push({
+          device,
+          pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
+          avgSessionDuration: parseFloat(row.metricValues?.[1]?.value || '0'),
+          bounceRate: parseFloat(row.metricValues?.[2]?.value || '0'),
+          count: 1
+        });
+      }
+      return acc;
+    }, [] as any[]);
+
+    // 평균 계산
+    deviceData.forEach(device => {
+      device.avgSessionDuration /= device.count;
+      device.bounceRate /= device.count;
+      delete device.count;
+    });
+
+    // 3. 시간대별 성능 (페이지별로 가져온 후 필터링)
     const [hourlyPerformance] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
-      dimensions: [{ name: 'hour' }],
+      dimensions: [{ name: 'hour' }, { name: 'pagePath' }],
       metrics: [
         { name: 'screenPageViews' },
         { name: 'sessions' }
       ]
     });
 
-    // 데이터 정리
-    const pageData = pageLoadMetrics.rows?.map(row => ({
-      page: row.dimensionValues?.[0]?.value || 'Unknown',
-      pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
-      avgSessionDuration: parseFloat(row.metricValues?.[1]?.value || '0')
-    })) || [];
+    // 관리자 페이지 제외 필터링
+    const filteredHourlyData = hourlyPerformance.rows?.filter(row => 
+      !row.dimensionValues?.[1]?.value?.includes('/admin')
+    ) || [];
 
-    const deviceData = devicePerformance.rows?.map(row => ({
-      device: row.dimensionValues?.[0]?.value || 'Unknown',
-      pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
-      avgSessionDuration: parseFloat(row.metricValues?.[1]?.value || '0'),
-      bounceRate: parseFloat(row.metricValues?.[2]?.value || '0')
-    })) || [];
+    // 시간대별 데이터 집계
+    const hourlyData = filteredHourlyData.reduce((acc, row) => {
+      const hour = row.dimensionValues?.[0]?.value || '00';
+      const existing = acc.find(h => h.hour === hour);
+      
+      if (existing) {
+        existing.pageViews += parseInt(row.metricValues?.[0]?.value || '0');
+        existing.sessions += parseInt(row.metricValues?.[1]?.value || '0');
+      } else {
+        acc.push({
+          hour,
+          pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
+          sessions: parseInt(row.metricValues?.[1]?.value || '0')
+        });
+      }
+      return acc;
+    }, [] as any[]);
 
-    const hourlyData = hourlyPerformance.rows?.map(row => ({
-      hour: row.dimensionValues?.[0]?.value || '00',
-      pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
-      sessions: parseInt(row.metricValues?.[1]?.value || '0')
-    })) || [];
+    // 시간 순서대로 정렬
+    hourlyData.sort((a, b) => parseInt(a.hour) - parseInt(b.hour));
 
     // 성능 지표 계산
-    const totalPageViews = pageData.reduce((sum, page) => sum + page.pageViews, 0);
+    const totalPageViews = filteredPageData.reduce((sum, page) => sum + page.pageViews, 0);
     const avgSessionDuration = deviceData.reduce((sum, device) => sum + device.avgSessionDuration, 0) / deviceData.length;
     const avgBounceRate = deviceData.reduce((sum, device) => sum + device.bounceRate, 0) / deviceData.length;
 
@@ -89,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const performanceData = {
       // 페이지별 성능
-      pagePerformance: pageData,
+      pagePerformance: filteredPageData,
       
       // 디바이스별 성능
       devicePerformance: deviceData,
@@ -124,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       
       timestamp: new Date().toISOString(),
-      period: '2025-08-01 to today'
+      period: '2025-08-01 to today (관리자 페이지 제외)'
     };
 
     res.status(200).json(performanceData);
@@ -171,7 +220,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       },
       timestamp: new Date().toISOString(),
-      period: `${req.query.days || '30'}daysAgo to today`,
+      period: '2025-08-01 to today (관리자 페이지 제외)',
       status: 'mock_data',
       note: '실제 데이터 수집 중 - 모의 데이터 표시 (그래프 렌더링용)'
     };

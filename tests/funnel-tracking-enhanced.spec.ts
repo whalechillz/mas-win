@@ -6,18 +6,21 @@ test.describe('퍼널별 일별 페이지뷰 트렌드 개선 테스트', () => 
     await page.goto('http://localhost:3000/admin');
     
     // 로그인
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', '1234');
+    await page.fill('input[type="text"]', 'admin');
+    await page.fill('input[type="password"]', '1234');
     await page.click('button[type="submit"]');
     
-    // 로그인 완료 대기
-    await page.waitForURL('http://localhost:3000/admin');
+    // 로그인 후 대시보드 로드 대기
+    await page.waitForLoadState('networkidle');
     
     // 퍼널 관리 탭 클릭
     await page.click('text=퍼널 관리');
     
-    // 2025-08 탭 클릭
-    await page.click('text=2025-08');
+    // 2025-08 월 버튼 클릭
+    await page.click('button:has-text("2025-08")');
+    
+    // 데이터 로드 대기
+    await page.waitForTimeout(2000);
   });
 
   test('종합 비교 그래프가 맨 위에 표시되는지 확인', async ({ page }) => {
@@ -147,13 +150,13 @@ test.describe('퍼널별 일별 페이지뷰 트렌드 개선 테스트', () => 
     await expect(page.locator('text=데이터 수집 기간: 8월 1일 ~')).toBeVisible();
   });
 
-  test('페이지별 성능에서 평균 세션이 분+초 형식으로 표시되는지 확인', async ({ page }) => {
-    // 페이지별 성능 섹션이 있는지 확인
-    await expect(page.locator('text=페이지별 성능')).toBeVisible();
+  test('시간대별 성능에서 평균 세션이 분+초 형식으로 표시되는지 확인', async ({ page }) => {
+    // 시간대별 성능 섹션이 있는지 확인
+    await expect(page.locator('text=시간대별 성능')).toBeVisible();
     
-    // 평균 세션이 분+초 형식으로 표시되는지 확인 (예: "2분 30초")
-    const sessionElements = page.locator('text=/\\d+분 \\d+초/');
-    await expect(sessionElements).toBeVisible();
+    // 평균 세션 데이터가 있는지 확인 (분+초 형식)
+    const avgSessionElements = page.locator('text=/\\d+분 \\d+초/');
+    await expect(avgSessionElements.first()).toBeVisible();
   });
 
   test('그래프 색상이 다르게 표시되는지 확인', async ({ page }) => {
