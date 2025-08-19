@@ -12,13 +12,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       client_id: process.env.GOOGLE_ADS_CLIENT_ID,
       client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET,
       developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
-      customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID || process.env.GOOGLE_ADS_MCC_ID,
+      customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID, // 실제 데이터가 있는 클라이언트 계정 ID (하이픈 없이 10자리)
       refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN,
-    };
+      login_customer_id: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || process.env.GOOGLE_ADS_MCC_ID // 관리자(MCC) 계정 ID
+    } as const;
 
-    // 필수 환경 변수 확인
-    const missingVars = Object.entries(requiredEnvVars)
-      .filter(([key, value]) => !value || value.includes('your_'))
+    // Customer/Login Customer ID 디버깅
+    console.log('Customer ID Debug:');
+    console.log('GOOGLE_ADS_CUSTOMER_ID:', process.env.GOOGLE_ADS_CUSTOMER_ID);
+    console.log('GOOGLE_ADS_LOGIN_CUSTOMER_ID:', process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID);
+    console.log('GOOGLE_ADS_MCC_ID:', process.env.GOOGLE_ADS_MCC_ID);
+
+    // ID 형식 정리 (하이픈 제거)
+    const cleanCustomerId = requiredEnvVars.customer_id?.replace(/-/g, '');
+    const cleanLoginCustomerId = requiredEnvVars.login_customer_id?.replace(/-/g, '');
+    console.log('Using Customer ID (clean):', cleanCustomerId);
+    console.log('Using Login Customer ID (clean):', cleanLoginCustomerId);
+
+    // 필수 환경 변수 확인 (customer_id는 꼭 있어야 함)
+    const missingVars = Object.entries({
+      client_id: requiredEnvVars.client_id,
+      client_secret: requiredEnvVars.client_secret,
+      developer_token: requiredEnvVars.developer_token,
+      customer_id: cleanCustomerId,
+      refresh_token: requiredEnvVars.refresh_token
+    })
+      .filter(([_, value]) => !value || String(value).includes('your_'))
       .map(([key]) => key);
 
     if (missingVars.length > 0) {
@@ -33,8 +52,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const customer = client.Customer({
-      customer_id: requiredEnvVars.customer_id!,
+      customer_id: cleanCustomerId!,
       refresh_token: requiredEnvVars.refresh_token!,
+      login_customer_id: cleanLoginCustomerId // MCC가 있을 경우 지정
     });
 
     // 현재 월 데이터 조회 (8월)
@@ -92,7 +112,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Google Ads API Error:', error);
+    console.error('Google Ads API Error Details:');
+    console.error('Error Type:', typeof error);
+    console.error('Error Message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error Stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Full Error Object:', JSON.stringify(error, null, 2));
     
     // 오류 발생 시 모의 데이터로 폴백
     const currentDate = new Date();
@@ -135,6 +159,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dataSource: 'fallback_data',
       period: `${startDate} ~ ${endDate} (모의 데이터)`,
       error: error instanceof Error ? error.message : 'Unknown error',
+      errorDetails: {
+        type: typeof error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      },
       timestamp: new Date().toISOString()
     };
     

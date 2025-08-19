@@ -57,7 +57,15 @@ export default function CampaignKPIDashboard() {
   const campaigns = apiResponse?.campaigns || [];
   const isRealData = apiResponse?.dataSource === 'google_ads_api';
 
-  // 전체 KPI 계산
+  // 값 포맷터: 실데이터가 아니면 'NA' 표시
+  const formatValue = (value: number, opts?: { prefix?: string; suffix?: string }) => {
+    if (!isRealData) return 'NA';
+    const prefix = opts?.prefix ?? '';
+    const suffix = opts?.suffix ?? '';
+    return `${prefix}${value.toLocaleString()}${suffix}`;
+  };
+
+  // 전체 KPI 계산 (계산은 하되, 표시 시 포맷터 사용)
   const totalImpressions = campaigns.reduce((sum, campaign) => sum + campaign.impressions, 0);
   const totalClicks = campaigns.reduce((sum, campaign) => sum + campaign.clicks, 0);
   const totalCost = campaigns.reduce((sum, campaign) => sum + campaign.cost, 0);
@@ -128,7 +136,7 @@ export default function CampaignKPIDashboard() {
             <div className="text-sm text-yellow-800">
               <strong>모의 데이터 표시 중</strong>
               <br />
-              실제 Google Ads 데이터를 보려면 API 연결을 완료하세요.
+              실제 Google Ads 데이터를 보려면 API 연결을 완료하세요. NA는 Not Available(현재 수집 불가)을 의미합니다.
               <br />
               기간: {apiResponse?.period}
             </div>
@@ -142,7 +150,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm">총 노출수</p>
-              <p className="text-2xl font-bold">{totalImpressions.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{formatValue(totalImpressions)}</p>
             </div>
             <Eye className="w-8 h-8 text-blue-200" />
           </div>
@@ -152,7 +160,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">총 클릭수</p>
-              <p className="text-2xl font-bold">{totalClicks.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{formatValue(totalClicks)}</p>
             </div>
             <MousePointer className="w-8 h-8 text-green-200" />
           </div>
@@ -162,7 +170,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm">총 비용</p>
-              <p className="text-2xl font-bold">${totalCost.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{formatValue(totalCost, { prefix: '$' })}</p>
             </div>
             <DollarSign className="w-8 h-8 text-purple-200" />
           </div>
@@ -172,7 +180,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-100 text-sm">총 전환</p>
-              <p className="text-2xl font-bold">{totalConversions.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{formatValue(totalConversions)}</p>
             </div>
             <Target className="w-8 h-8 text-orange-200" />
           </div>
@@ -185,7 +193,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">전체 CTR</p>
-              <p className="text-xl font-bold text-gray-900">{overallCTR}%</p>
+              <p className="text-xl font-bold text-gray-900">{isRealData ? `${overallCTR}%` : 'NA'}</p>
             </div>
             <TrendingUp className="w-6 h-6 text-green-500" />
           </div>
@@ -195,7 +203,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">전체 CPC</p>
-              <p className="text-xl font-bold text-gray-900">${overallCPC}</p>
+              <p className="text-xl font-bold text-gray-900">{isRealData ? `$${overallCPC}` : 'NA'}</p>
             </div>
             <DollarSign className="w-6 h-6 text-blue-500" />
           </div>
@@ -205,7 +213,7 @@ export default function CampaignKPIDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">전체 ROAS</p>
-              <p className="text-xl font-bold text-gray-900">{overallROAS}x</p>
+              <p className="text-xl font-bold text-gray-900">{isRealData ? `${overallROAS}x` : 'NA'}</p>
             </div>
             <TrendingUp className="w-6 h-6 text-purple-500" />
           </div>
@@ -232,19 +240,19 @@ export default function CampaignKPIDashboard() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <p className="text-gray-600">노출수</p>
-                  <p className="font-semibold">{campaign.impressions.toLocaleString()}</p>
+                  <p className="font-semibold">{formatValue(campaign.impressions)}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">클릭수</p>
-                  <p className="font-semibold">{campaign.clicks.toLocaleString()}</p>
+                  <p className="font-semibold">{formatValue(campaign.clicks)}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">비용</p>
-                  <p className="font-semibold">${campaign.cost.toLocaleString()}</p>
+                  <p className="font-semibold">{formatValue(campaign.cost, { prefix: '$' })}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">CTR</p>
-                  <p className="font-semibold">{campaign.ctr}%</p>
+                  <p className="font-semibold">{isRealData ? `${campaign.ctr}%` : 'NA'}</p>
                 </div>
               </div>
               

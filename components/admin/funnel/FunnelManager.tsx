@@ -460,11 +460,14 @@ export function FunnelManager() {
                   </div>
                   
                   <div className="mt-4 text-center">
-                    <button className={`px-4 py-2 text-white rounded-lg text-sm transition-colors ${
-                      funnel.status === 'live'
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : 'bg-green-600 hover:bg-green-700'
-                    }`}>
+                    <button 
+                      onClick={() => window.open(`/versions/${funnel.name}`, '_blank')}
+                      className={`px-4 py-2 text-white rounded-lg text-sm transition-colors ${
+                        funnel.status === 'live'
+                          ? 'bg-blue-600 hover:bg-blue-700'
+                          : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
                       미리보기
                     </button>
                   </div>

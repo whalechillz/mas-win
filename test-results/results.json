@@ -54,7 +54,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 15000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
@@ -70,7 +70,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 15000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
@@ -86,7 +86,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 15000
+        "timeout": 30000
       }
     ],
     "shard": null,
@@ -103,25 +103,25 @@
   },
   "suites": [
     {
-      "title": "deployment-verification-final.spec.ts",
-      "file": "deployment-verification-final.spec.ts",
+      "title": "google-ads-kpi-debug.spec.ts",
+      "file": "google-ads-kpi-debug.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "배포 후 최종 검증",
-          "file": "deployment-verification-final.spec.ts",
+          "title": "Google Ads KPI 데이터 진단",
+          "file": "google-ads-kpi-debug.spec.ts",
           "line": 3,
           "column": 6,
           "specs": [
             {
-              "title": "로컬 관리자 페이지도 정상적으로 작동하는지 확인",
-              "ok": false,
+              "title": "관리자 페이지 로그인 및 Google Ads KPI 확인",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 15000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -130,63 +130,51 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 6192,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 45,
-                          "line": 125
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 123 |\u001b[39m     \n \u001b[90m 124 |\u001b[39m     \u001b[90m// 로그인 성공 확인 (URL이 변경되었는지 또는 특정 요소가 표시되는지)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=로그아웃'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 126 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 127 |\u001b[39m\n \u001b[90m 128 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 5147,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 45,
-                            "line": 125
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n\n\u001b[0m \u001b[90m 123 |\u001b[39m     \n \u001b[90m 124 |\u001b[39m     \u001b[90m// 로그인 성공 확인 (URL이 변경되었는지 또는 특정 요소가 표시되는지)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=로그아웃'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 126 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 127 |\u001b[39m\n \u001b[90m 128 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45\u001b[22m"
+                          "text": "로그인 후 페이지 URL: http://localhost:3000/admin\n"
+                        },
+                        {
+                          "text": "로그인 후 페이지 제목: \n"
+                        },
+                        {
+                          "text": "로그인 성공! 로그아웃 버튼 발견\n"
+                        },
+                        {
+                          "text": "찾은 텍스트: \"Google Ads\" (2개)\n"
+                        },
+                        {
+                          "text": "찾은 텍스트: \"Google Ads 캠페인\" (1개)\n"
+                        },
+                        {
+                          "text": "찾은 텍스트: \"캠페인 KPI\" (1개)\n"
+                        },
+                        {
+                          "text": "찾은 텍스트: \"Ads\" (2개)\n"
+                        },
+                        {
+                          "text": "찾은 텍스트: \"KPI\" (1개)\n"
+                        },
+                        {
+                          "text": "페이지에 포함된 주요 텍스트: MASGOLF 관리자로그아웃대시보드퍼널 관리캠페인 관리예약상담관리마케팅 콘텐츠팀 관리Google Ads 캠페인 KPI (현재 월)모의 데이터새로고침모의 데이터 표시 중실제 Google Ads 데이터를 보려면 API 연결을 완료하세요.기간: 2025-08-01 ~ 2025-08-18 (모의 데이터)총 노출수24,340총 클릭수1,459총 비용$4,236.12총 전환68전체 CTR5.99%전체 CPC$2.90전체 ROAS5.05x현재 월 활성 캠페인MASGOLF 현재 월 캠페인활성노출수15,420클릭수892비용$2,345.67CTR5.79%2025-08-01 ~ 2025-08-18골프 클럽 특가 캠페인활성노출수8,920클릭수567비용$1,890.45CTR6.36%2025-08-01 ~ 2025-08-18마지막 업데이트: 10:56:36 PM데이터 기간: 2025-08-01 ~ 2025-08-18 (모의 데이터)GA4 실시간 데이터실시간 데이터🔄새로고침실시간 (현재 접속자)현재 접속자2실시간 페이지뷰5실시간 이벤트26오늘 시간대별 트렌드오늘 방문자526오늘 페이지뷰687오늘 이벤트3350오늘 시간대별 방문자 (0-24시)00시03시06시09시12시15시18시21시020406080현재 시간: 22시 56분이번달 일별 트렌드이번달 방문자7465이번달 페이지뷰11861이번달 이벤트42192현재월 일별 방문자 (1일-말일)31일3일6일9일12일15일18일20일23일26일29일025050075010007월 31일 ~ 8월 29일총 방문자: 7,965명마지막 업데이트: 10:56:39 PMGA4 속성 ID: 497433231{\"props\":{\"pageProps\":{}},\"page\":\"/admin\",\"query\":{},\"buildId\":\"development\",\"nextExport\":true,\"autoExport\":true,\"isFallback\":false,\"scriptLoader\":[]}\n            feather.replace();\n          250\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-18T13:20:38.906Z",
+                      "startTime": "2025-08-18T13:56:34.341Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 45,
-                        "line": 125
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-9c2a810d3a82e337049e",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 110,
+              "id": "4304b106abe55ba6dda6-214d0610257a7ab6dd5a",
+              "file": "google-ads-kpi-debug.spec.ts",
+              "line": 4,
               "column": 7
             }
           ]
@@ -196,11 +184,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-18T13:20:38.582Z",
-    "duration": 6788.65,
-    "expected": 0,
+    "startTime": "2025-08-18T13:56:34.010Z",
+    "duration": 6191.485000000001,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }
