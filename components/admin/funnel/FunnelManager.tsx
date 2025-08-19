@@ -507,10 +507,7 @@ export function FunnelManager() {
                        '196.48 KB'}
                    </span>
                  </div>
-                 <div className="flex justify-between">
-                   <span className="text-sm text-gray-600">버전:</span>
-                   <span className="font-medium">live-a</span>
-                 </div>
+
                  <div className="flex justify-between">
                    <span className="text-sm text-gray-600">페이지뷰 시작일:</span>
                    <span className="font-medium">
@@ -607,10 +604,7 @@ export function FunnelManager() {
                        '61.28 KB'}
                    </span>
                  </div>
-                 <div className="flex justify-between">
-                   <span className="text-sm text-gray-600">버전:</span>
-                   <span className="font-medium">live-b</span>
-                 </div>
+
                  <div className="flex justify-between">
                    <span className="text-sm text-gray-600">페이지뷰 시작일:</span>
                    <span className="font-medium">
