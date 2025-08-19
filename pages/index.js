@@ -6,25 +6,7 @@ import { useRouter } from 'next/router';
 export default function Home({ hostname }) {
   const router = useRouter();
 
-  // win.masgolf.co.kr에서 접속 시 로딩 표시 (서버에서 리다이렉트되므로 이 부분은 실행되지 않음)
-  if (hostname === 'win.masgolf.co.kr') {
-    return (
-      <>
-        <Head>
-          <title>MASGOLF - 퍼널로 이동 중</title>
-          <meta name="description" content="퍼널로 이동 중입니다." />
-        </Head>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">퍼널로 이동 중...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // www.masgolf.co.kr 또는 기타 도메인에서 접속 시 새로운 홈페이지 표시
+  // 모든 도메인에서 새로운 홈페이지 표시
   return (
     <>
       <Head>
@@ -682,19 +664,10 @@ export async function getServerSideProps(context) {
   const { req } = context;
   const hostname = req.headers.host;
 
-  // win.masgolf.co.kr에서 접속 시 즉시 리다이렉트
-  if (hostname === 'win.masgolf.co.kr') {
-    return {
-      redirect: {
-        destination: '/25-08',
-        permanent: false,
-      },
-    };
-  }
-
+  // 모든 도메인에서 새로운 홈페이지 표시 (리다이렉트 제거)
   return {
     props: {
-      hostname,
+      hostname: hostname || '',
     },
   };
 }
