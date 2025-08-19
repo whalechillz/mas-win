@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- text: 🌴 8월 프로모션 12일 0시간 선착순 12명만
+- text: 🌴 8월 프로모션 11일 23시간 선착순 12명만
 - button "×"
 - heading "잠깐! 무료 선물 받고 가세요" [level=2]
 - img "여행용 방수팩"
@@ -230,7 +230,7 @@
   - listitem: ✓ MASGOLF 독점 NGS 샤프트 (도레이 원사, 리테일가 16만엔)
   - listitem: ✓ 3,000명 이상 맞춤 피팅 상담 데이터 기반 설계
   - listitem: ✓ 평균 변화 체감 기간 4주 내 효과
-- text: 19명 보는 중 BRAND STORY
+- text: 22명 보는 중 BRAND STORY
 - heading "20년 연속 비거리 1위 MASGOLF의 독보적 기술력" [level=2]
 - paragraph: 💥 "PGA 투어 프로들이 극찬한 '비거리 혁명' 단 4주면 당신도 +25m 보장!"
 - paragraph:

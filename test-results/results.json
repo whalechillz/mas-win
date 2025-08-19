@@ -54,7 +54,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 10000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
@@ -70,7 +70,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 10000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
@@ -86,7 +86,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 10000
       }
     ],
     "shard": null,
@@ -121,7 +121,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -131,12 +131,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1889,
+                      "duration": 2083,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:28:59.490Z",
+                      "startTime": "2025-08-19T15:04:03.098Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -155,7 +155,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -165,7 +165,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 8523,
+                      "duration": 6890,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/.*\\/25-08/\u001b[39m\nReceived string:  \u001b[31m\"https://win.masgolf.co.kr/\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"https://win.masgolf.co.kr/\"\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/.*\\/25-08/\u001b[39m\nReceived string:  \u001b[31m\"https://win.masgolf.co.kr/\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"https://win.masgolf.co.kr/\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:28:24",
@@ -189,7 +189,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:28:59.491Z",
+                      "startTime": "2025-08-19T15:04:03.132Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -229,7 +229,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -239,7 +239,7 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 7957,
+                      "duration": 7170,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:49:46",
@@ -263,7 +263,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:28:59.487Z",
+                      "startTime": "2025-08-19T15:04:03.119Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -303,7 +303,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -313,14 +313,14 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "timedOut",
-                      "duration": 30169,
+                      "duration": 10323,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
                         },
                         {
                           "location": {
@@ -328,13 +328,13 @@
                             "column": 16,
                             "line": 61
                           },
-                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 59 |\u001b[39m     \n \u001b[90m 60 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 61 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 62 |\u001b[39m     \n \u001b[90m 63 |\u001b[39m     \u001b[90m// 2025-08 탭 확인\u001b[39m\n \u001b[90m 64 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=2025-08'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:61:16\u001b[22m"
+                          "message": "Error: page.click: Test timeout of 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 59 |\u001b[39m     \n \u001b[90m 60 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 61 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 62 |\u001b[39m     \n \u001b[90m 63 |\u001b[39m     \u001b[90m// 2025-08 탭 확인\u001b[39m\n \u001b[90m 64 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=2025-08'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:61:16\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:28:59.491Z",
+                      "startTime": "2025-08-19T15:04:03.101Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -369,7 +369,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -379,14 +379,14 @@
                       "workerIndex": 4,
                       "parallelIndex": 4,
                       "status": "timedOut",
-                      "duration": 30136,
+                      "duration": 10280,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
                         },
                         {
                           "location": {
@@ -394,13 +394,13 @@
                             "column": 16,
                             "line": 79
                           },
-                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 77 |\u001b[39m     \n \u001b[90m 78 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 79 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 80 |\u001b[39m     \n \u001b[90m 81 |\u001b[39m     \u001b[90m// 2025-08 탭 클릭\u001b[39m\n \u001b[90m 82 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=2025-08'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:79:16\u001b[22m"
+                          "message": "Error: page.click: Test timeout of 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 77 |\u001b[39m     \n \u001b[90m 78 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 79 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 80 |\u001b[39m     \n \u001b[90m 81 |\u001b[39m     \u001b[90m// 2025-08 탭 클릭\u001b[39m\n \u001b[90m 82 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=2025-08'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:79:16\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:28:59.492Z",
+                      "startTime": "2025-08-19T15:04:03.126Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -435,7 +435,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -445,12 +445,12 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 1418,
+                      "duration": 1540,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:28:59.499Z",
+                      "startTime": "2025-08-19T15:04:03.116Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -469,7 +469,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -479,12 +479,12 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 2071,
+                      "duration": 1445,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:02.959Z",
+                      "startTime": "2025-08-19T15:04:05.786Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -503,7 +503,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -513,7 +513,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6686,
+                      "duration": 6331,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45",
@@ -537,7 +537,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:03.493Z",
+                      "startTime": "2025-08-19T15:04:06.330Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -577,7 +577,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -587,12 +587,12 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 7998,
+                      "duration": 7818,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:05.033Z",
+                      "startTime": "2025-08-19T15:04:07.234Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -628,7 +628,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -636,14 +636,14 @@
                   "results": [
                     {
                       "workerIndex": 6,
-                      "parallelIndex": 2,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1494,
+                      "duration": 1331,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:09.874Z",
+                      "startTime": "2025-08-19T15:04:11.565Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -662,7 +662,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -670,9 +670,9 @@
                   "results": [
                     {
                       "workerIndex": 7,
-                      "parallelIndex": 1,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 7894,
+                      "duration": 8271,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:20:61",
@@ -696,7 +696,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:10.501Z",
+                      "startTime": "2025-08-19T15:04:11.868Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -736,7 +736,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -746,7 +746,7 @@
                       "workerIndex": 8,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6923,
+                      "duration": 7481,
                       "error": {
                         "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n",
                         "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:28:61",
@@ -770,7 +770,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:10.581Z",
+                      "startTime": "2025-08-19T15:04:13.060Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -810,7 +810,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -818,14 +818,14 @@
                   "results": [
                     {
                       "workerIndex": 6,
-                      "parallelIndex": 2,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6232,
+                      "duration": 5050,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:11.620Z",
+                      "startTime": "2025-08-19T15:04:13.161Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -844,22 +844,22 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
+                      "workerIndex": 9,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 1065,
+                      "duration": 594,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:13.034Z",
+                      "startTime": "2025-08-19T15:04:14.984Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -878,22 +878,22 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
+                      "workerIndex": 10,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1997,
+                      "duration": 1966,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:14.101Z",
+                      "startTime": "2025-08-19T15:04:14.984Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -912,7 +912,7 @@
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 10000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -922,10 +922,10 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "failed",
-                      "duration": 2666,
+                      "duration": 2258,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.13716641197156, \"bounceRate\": 0.669734380845492, \"device\": \"mobile\", \"pageViews\": 16782}, {\"avgSessionDuration\": 341.56551113030747, \"bounceRate\": 0.36603221083455345, \"device\": \"desktop\", \"pageViews\": 1698}, {\"avgSessionDuration\": 194.10961954, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.4719221972266818, \"avgSessionDurationMinutes\": 3.254512761568217, \"performanceScore\": 66.98295018709115, \"totalPageViews\": 16258}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 87.88039733904527, \"page\": \"/\", \"pageViews\": 879}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T14:29:18.690Z\"}\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.13716641197156, \"bounceRate\": 0.669734380845492, \"device\": \"mobile\", \"pageViews\": 16782}, {\"avgSessionDuration\": 341.56551113030747, \"bounceRate\": 0.36603221083455345, \"device\": \"desktop\", \"pageViews\": 1698}, {\"avgSessionDuration\": 194.10961954, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.4719221972266818, \"avgSessionDurationMinutes\": 3.254512761568217, \"performanceScore\": 66.98295018709115, \"totalPageViews\": 16258}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 87.88039733904527, \"page\": \"/\", \"pageViews\": 879}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T14:29:18.690Z\"}\u001b[39m\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:92:18",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.219746542544414, \"bounceRate\": 0.669540445310743, \"device\": \"mobile\", \"pageViews\": 16770}, {\"avgSessionDuration\": 349.05436978892214, \"bounceRate\": 0.35479041916167664, \"device\": \"desktop\", \"pageViews\": 1678}, {\"avgSessionDuration\": 194.10961953999998, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.46811028815747324, \"avgSessionDurationMinutes\": 3.2965763103970365, \"performanceScore\": 66.56612660787215, \"totalPageViews\": 16250}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 88.77511772648515, \"page\": \"/\", \"pageViews\": 871}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T15:04:17.264Z\"}\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.219746542544414, \"bounceRate\": 0.669540445310743, \"device\": \"mobile\", \"pageViews\": 16770}, {\"avgSessionDuration\": 349.05436978892214, \"bounceRate\": 0.35479041916167664, \"device\": \"desktop\", \"pageViews\": 1678}, {\"avgSessionDuration\": 194.10961953999998, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.46811028815747324, \"avgSessionDurationMinutes\": 3.2965763103970365, \"performanceScore\": 66.56612660787215, \"totalPageViews\": 16250}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 88.77511772648515, \"page\": \"/\", \"pageViews\": 871}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T15:04:17.264Z\"}\u001b[39m\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:92:18",
                         "location": {
                           "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
                           "column": 18,
@@ -940,13 +940,13 @@
                             "column": 18,
                             "line": 92
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.13716641197156, \"bounceRate\": 0.669734380845492, \"device\": \"mobile\", \"pageViews\": 16782}, {\"avgSessionDuration\": 341.56551113030747, \"bounceRate\": 0.36603221083455345, \"device\": \"desktop\", \"pageViews\": 1698}, {\"avgSessionDuration\": 194.10961954, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.4719221972266818, \"avgSessionDurationMinutes\": 3.254512761568217, \"performanceScore\": 66.98295018709115, \"totalPageViews\": 16258}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 87.88039733904527, \"page\": \"/\", \"pageViews\": 879}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T14:29:18.690Z\"}\u001b[39m\n\n\u001b[0m \u001b[90m 90 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'overallMetrics'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 91 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'abTestPerformance'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 92 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'status'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 93 |\u001b[39m     \n \u001b[90m 94 |\u001b[39m     \u001b[90m// A/B 테스트 성능 데이터가 있는지 확인\u001b[39m\n \u001b[90m 95 |\u001b[39m     expect(data\u001b[33m.\u001b[39mabTestPerformance)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'versionA'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:92:18\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.219746542544414, \"bounceRate\": 0.669540445310743, \"device\": \"mobile\", \"pageViews\": 16770}, {\"avgSessionDuration\": 349.05436978892214, \"bounceRate\": 0.35479041916167664, \"device\": \"desktop\", \"pageViews\": 1678}, {\"avgSessionDuration\": 194.10961953999998, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.46811028815747324, \"avgSessionDurationMinutes\": 3.2965763103970365, \"performanceScore\": 66.56612660787215, \"totalPageViews\": 16250}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 88.77511772648515, \"page\": \"/\", \"pageViews\": 871}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T15:04:17.264Z\"}\u001b[39m\n\n\u001b[0m \u001b[90m 90 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'overallMetrics'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 91 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'abTestPerformance'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 92 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'status'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 93 |\u001b[39m     \n \u001b[90m 94 |\u001b[39m     \u001b[90m// A/B 테스트 성능 데이터가 있는지 확인\u001b[39m\n \u001b[90m 95 |\u001b[39m     expect(data\u001b[33m.\u001b[39mabTestPerformance)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'versionA'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:92:18\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T14:29:16.100Z",
+                      "startTime": "2025-08-19T15:04:15.055Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -982,8 +982,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-19T14:28:59.053Z",
-    "duration": 32759.299,
+    "startTime": "2025-08-19T15:04:02.706Z",
+    "duration": 18184.614,
     "expected": 8,
     "skipped": 0,
     "unexpected": 8,
