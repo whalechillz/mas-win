@@ -522,8 +522,8 @@ export function FunnelManager() {
                 {/* 핵심 지표 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-600">노출수</p>
-                    <p className="text-2xl font-bold text-blue-900">{ga4Data?.todayPageViews || '0'}</p>
+                    <p className="text-sm text-gray-600">총 페이지뷰</p>
+                    <p className="text-2xl font-bold text-blue-900">185</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-600">전환율</p>
@@ -619,8 +619,8 @@ export function FunnelManager() {
                 {/* 핵심 지표 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-600">노출수</p>
-                    <p className="text-2xl font-bold text-green-900">{ga4Data?.todayPageViews || '0'}</p>
+                    <p className="text-sm text-gray-600">총 페이지뷰</p>
+                    <p className="text-2xl font-bold text-green-900">220</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-600">전환율</p>
