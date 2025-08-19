@@ -23,13 +23,13 @@ export default function Home({ hostname }) {
             <div className="flex justify-between items-center">
               <div className="text-2xl font-bold text-gray-900">MASGOLF</div>
               <nav className="hidden md:flex space-x-8">
-                <Link href="#drivers" className="text-gray-700 hover:text-gray-900">드라이버</Link>
+                <a href="https://www.mas9golf.com" className="text-gray-700 hover:text-gray-900">드라이버</a>
                 <Link href="#technology" className="text-gray-700 hover:text-gray-900">기술력</Link>
                 <Link href="#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
-                <Link href="#contact" className="text-gray-700 hover:text-gray-900">문의하기</Link>
-                <Link href="/25-08" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                <a href="https://www.mas9golf.com/contact" className="text-gray-700 hover:text-gray-900">시타매장</a>
+                <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                   무료 시타
-                </Link>
+                </a>
               </nav>
             </div>
           </div>
@@ -52,9 +52,9 @@ export default function Home({ hostname }) {
                 초박형 2.2mm 페이스가 젊은 날의 비거리를 돌려드립니다
               </p>
               <div className="flex flex-col md:flex-row gap-4 justify-center">
-                <Link href="/25-08" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
                   무료 시타 신청하기
-                </Link>
+                </a>
                 <Link href="#products" className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-3 rounded-lg font-semibold transition-colors">
                   제품 둘러보기
                 </Link>
@@ -346,9 +346,9 @@ export default function Home({ hostname }) {
             </div>
             
             <div className="text-center mt-8">
-              <Link href="/25-08" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+              <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
                 무료 시타 신청하기
-              </Link>
+              </a>
             </div>
           </div>
         </section>
@@ -477,12 +477,12 @@ export default function Home({ hostname }) {
             <div className="text-center mt-8">
               <p className="text-lg mb-4">지금 무료 시타를 신청하고 직접 경험해보세요</p>
               <div className="flex flex-col md:flex-row gap-4 justify-center">
-                <Link href="/25-08" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
                   무료 시타 신청하기
-                </Link>
-                <Link href="#contact" className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
-                  문의하기
-                </Link>
+                </a>
+                <a href="https://www.mas9golf.com/contact" className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                  시타매장
+                </a>
               </div>
             </div>
           </div>
@@ -637,9 +637,9 @@ export default function Home({ hostname }) {
                     </div>
                   </div>
                   <div className="mt-6">
-                    <Link href="/25-08" className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block">
+                    <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block">
                       무료 시타 신청 +30m 비거리
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </div>
