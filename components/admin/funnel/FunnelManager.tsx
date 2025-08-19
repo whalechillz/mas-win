@@ -416,8 +416,8 @@ export function FunnelManager() {
         </div>
       </div>
 
-      {/* 선택된 월의 퍼널 목록 - 동적 필터링 */}
-      {selectedMonth && (
+      {/* 선택된 월의 퍼널 목록 - 8월이 아닌 경우에만 표시 */}
+      {selectedMonth && selectedMonth !== '2025-08' && (
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">{selectedMonth} 퍼널 목록</h3>
           
@@ -482,19 +482,43 @@ export function FunnelManager() {
         </div>
       )}
 
-      {/* A/B 테스트 성능 비교 - 좌우 비교 형태 */}
+      {/* 2025-08 퍼널 목록 - 통합된 성능 비교 */}
       {selectedMonth === '2025-08' && (
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">A/B 테스트 성능 비교</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">2025-08 퍼널 목록</h3>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                          {/* Live-A 성능 */}
              <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
                <div className="text-center mb-4">
-                 <h4 className="text-xl font-bold text-blue-900">버전 A (funnel-2025-08-live-a.html)</h4>
+                 <h4 className="text-xl font-bold text-blue-900">funnel-2025-08-live-a.html</h4>
                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mt-2">
                    테스트 중
                  </span>
+               </div>
+               
+               {/* 기본 정보 */}
+               <div className="space-y-3 mb-4">
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">파일 크기:</span>
+                   <span className="font-medium">
+                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')?.size ? 
+                       formatFileSize(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')!.size) : 
+                       '196.48 KB'}
+                   </span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">버전:</span>
+                   <span className="font-medium">live-a</span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">수정일:</span>
+                   <span className="font-medium">
+                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')?.modifiedDate ? 
+                       formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')!.modifiedDate) : 
+                       '2025년 8월 17일 오전 12:15'}
+                   </span>
+                 </div>
                </div>
               
               <div className="space-y-4">
@@ -552,15 +576,49 @@ export function FunnelManager() {
                   </div>
                 </div>
               </div>
+              
+              {/* 미리보기 버튼 */}
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={() => window.open('/versions/funnel-2025-08-live-a.html', '_blank')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+                >
+                  미리보기
+                </button>
+              </div>
             </div>
 
                          {/* Live-B 성능 */}
              <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
                <div className="text-center mb-4">
-                 <h4 className="text-xl font-bold text-green-900">버전 B (funnel-2025-08-live-b.html)</h4>
+                 <h4 className="text-xl font-bold text-green-900">funnel-2025-08-live-b.html</h4>
                  <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mt-2">
                    현재 활성
                  </span>
+               </div>
+               
+               {/* 기본 정보 */}
+               <div className="space-y-3 mb-4">
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">파일 크기:</span>
+                   <span className="font-medium">
+                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')?.size ? 
+                       formatFileSize(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')!.size) : 
+                       '61.28 KB'}
+                   </span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">버전:</span>
+                   <span className="font-medium">live-b</span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">수정일:</span>
+                   <span className="font-medium">
+                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')?.modifiedDate ? 
+                       formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')!.modifiedDate) : 
+                       '2025년 8월 11일 오전 09:24'}
+                   </span>
+                 </div>
                </div>
               
               <div className="space-y-4">
@@ -617,6 +675,16 @@ export function FunnelManager() {
                     <span className="font-medium">1.6</span>
                   </div>
                 </div>
+              </div>
+              
+              {/* 미리보기 버튼 */}
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={() => window.open('/versions/funnel-2025-08-live-b.html', '_blank')}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors"
+                >
+                  미리보기
+                </button>
               </div>
             </div>
           </div>
