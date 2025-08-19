@@ -664,7 +664,17 @@ export async function getServerSideProps(context) {
   const { req } = context;
   const hostname = req.headers.host;
 
-  // 모든 도메인에서 새로운 홈페이지 표시 (리다이렉트 제거)
+  // win.masgolf.co.kr만 /25-08로 리다이렉트
+  if (hostname === 'win.masgolf.co.kr') {
+    return {
+      redirect: {
+        destination: '/25-08',
+        permanent: false,
+      },
+    };
+  }
+
+  // 다른 도메인들은 새로운 홈페이지 표시
   return {
     props: {
       hostname: hostname || '',
