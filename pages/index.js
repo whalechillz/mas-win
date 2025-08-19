@@ -363,8 +363,8 @@ export default function Home({ hostname }) {
               <div className="relative">
                 <div className="relative h-96 bg-gray-200 rounded-lg overflow-hidden">
                   <Image
-                    src="/main/hero/hero2-1080x1920.jpg"
-                    alt="가족과 함께하는 골프"
+                    src="/campaigns-rare/2025-05-가정의달/캠페인-가정의달/hero_father_son_golf_1080x1920.jpg"
+                    alt="가정의달 아버지와 아들의 골프"
                     fill
                     className="object-cover"
                   />
