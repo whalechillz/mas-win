@@ -25,6 +25,19 @@
       "destination": "/"
     }
   ],
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.masgolf.co.kr"
+        }
+      ],
+      "destination": "/",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
