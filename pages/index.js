@@ -368,14 +368,6 @@ export default function Home({ hostname }) {
                     fill
                     className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="text-6xl mb-4">👨‍👦</div>
-                      <div className="text-2xl font-bold mb-2">아버지와 아들의 골프</div>
-                      <div className="text-lg">"아버지, 정말 멋지세요!"</div>
-                      <div className="text-sm mt-2">- 아들의 한마디가 주는 행복</div>
-                    </div>
-                  </div>
                 </div>
               </div>
               
