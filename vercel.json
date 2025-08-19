@@ -3,28 +3,6 @@
   "devCommand": "next dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "win.masgolf.co.kr"
-        }
-      ],
-      "destination": "/"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.masgolf.co.kr"
-        }
-      ],
-      "destination": "/"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
