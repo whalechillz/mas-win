@@ -25,6 +25,13 @@
       "destination": "/"
     }
   ],
+  "redirects": [
+    {
+      "source": "/main/:path*",
+      "destination": "/:path*",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
