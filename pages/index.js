@@ -334,12 +334,12 @@ export default function Home({ hostname }) {
                 </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold mb-2">시크릿웨폰 4.1</h3>
-                  <p className="text-sm text-gray-600 mb-2">중급 모델</p>
-                  <p className="text-xl font-bold text-red-600 mb-3">1,150,000원</p>
+                  <p className="text-sm text-gray-600 mb-2">프리미엄 드라이버</p>
+                  <p className="text-xl font-bold text-red-600 mb-3">1,700,000원</p>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• SP700 Grade 5 티타늄</li>
-                    <li>• 2.3mm 페이스</li>
-                    <li>• COR 0.86</li>
+                    <li>• 2.2mm 초박형 페이스</li>
+                    <li>• COR 0.87</li>
                   </ul>
                 </div>
               </div>
