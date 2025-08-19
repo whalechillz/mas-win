@@ -512,11 +512,11 @@ export function FunnelManager() {
                    <span className="font-medium">live-a</span>
                  </div>
                  <div className="flex justify-between">
-                   <span className="text-sm text-gray-600">수정일:</span>
+                   <span className="text-sm text-gray-600">페이지뷰 시작일:</span>
                    <span className="font-medium">
-                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')?.modifiedDate ? 
-                       formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')!.modifiedDate) : 
-                       '2025년 8월 19일 오전 09:32'}
+                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')?.createdDate ? 
+                       formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-a.html')!.createdDate) : 
+                       '2025년 8월 16일 오후 03:15'}
                    </span>
                  </div>
                </div>
@@ -612,11 +612,11 @@ export function FunnelManager() {
                    <span className="font-medium">live-b</span>
                  </div>
                  <div className="flex justify-between">
-                   <span className="text-sm text-gray-600">수정일:</span>
+                   <span className="text-sm text-gray-600">페이지뷰 시작일:</span>
                    <span className="font-medium">
-                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')?.modifiedDate ? 
-                       formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')!.modifiedDate) : 
-                       '2025년 8월 19일 오전 09:30'}
+                     {selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')?.createdDate ? 
+                       formatDate(selectedFunnels.find(f => f.name === 'funnel-2025-08-live-b.html')!.createdDate) : 
+                       '2025년 8월 11일 오전 12:24'}
                    </span>
                  </div>
                </div>
