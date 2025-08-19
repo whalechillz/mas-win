@@ -522,12 +522,14 @@ export function FunnelManager() {
                 {/* 핵심 지표 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-600">총 페이지뷰</p>
+                    <p className="text-sm text-gray-600">누적 페이지뷰</p>
                     <p className="text-2xl font-bold text-blue-900">185</p>
+                    <p className="text-xs text-gray-500">8월 16일 ~ 오늘</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-600">전환율</p>
                     <p className="text-2xl font-bold text-green-600">3.2%</p>
+                    <p className="text-xs text-gray-500">(전환/페이지뷰)</p>
                   </div>
                 </div>
                 
@@ -619,12 +621,14 @@ export function FunnelManager() {
                 {/* 핵심 지표 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-600">총 페이지뷰</p>
+                    <p className="text-sm text-gray-600">누적 페이지뷰</p>
                     <p className="text-2xl font-bold text-green-900">220</p>
+                    <p className="text-xs text-gray-500">8월 11일 ~ 오늘</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-600">전환율</p>
                     <p className="text-2xl font-bold text-green-600">3.8%</p>
+                    <p className="text-xs text-gray-500">(전환/페이지뷰)</p>
                   </div>
                 </div>
                 
