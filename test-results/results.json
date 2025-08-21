@@ -54,7 +54,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 10000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
@@ -70,7 +70,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 10000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
@@ -86,7 +86,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 10000
+        "timeout": 30000
       }
     ],
     "shard": null,
@@ -103,25 +103,25 @@
   },
   "suites": [
     {
-      "title": "deployment-verification-final.spec.ts",
-      "file": "deployment-verification-final.spec.ts",
+      "title": "vip-image-fixed-test.spec.ts",
+      "file": "vip-image-fixed-test.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "배포 후 최종 검증",
-          "file": "deployment-verification-final.spec.ts",
+          "title": "VIP 이미지 수정 테스트",
+          "file": "vip-image-fixed-test.spec.ts",
           "line": 3,
           "column": 6,
           "specs": [
             {
-              "title": "새로운 홈페이지가 정상적으로 로드되는지 확인",
+              "title": "수정된 VIP 이미지들이 정상적으로 로드되는지 확인",
               "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 10000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -131,12 +131,79 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2083,
+                      "duration": 2909,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "Dev-01 퍼널에서 VIP 이미지 개수: 5\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-badge-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-round-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "Dev-02 퍼널에서 VIP 이미지 개수: 5\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-badge-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-round-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T15:04:03.098Z",
+                      "startTime": "2025-08-21T00:30:46.365Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -144,18 +211,18 @@
                   "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-a564d7aea85195ae26ac",
-              "file": "deployment-verification-final.spec.ts",
+              "id": "40941706293fec46bd59-efe3a7d950fdf38a5991",
+              "file": "vip-image-fixed-test.spec.ts",
               "line": 4,
               "column": 7
             },
             {
-              "title": "8월 퍼널이 정상적으로 작동하는지 확인",
-              "ok": false,
+              "title": "개별 이미지 파일들이 정상적으로 접근 가능한지 확인",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 10000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -164,293 +231,448 @@
                     {
                       "workerIndex": 1,
                       "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 6890,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/.*\\/25-08/\u001b[39m\nReceived string:  \u001b[31m\"https://win.masgolf.co.kr/\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"https://win.masgolf.co.kr/\"\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/.*\\/25-08/\u001b[39m\nReceived string:  \u001b[31m\"https://win.masgolf.co.kr/\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"https://win.masgolf.co.kr/\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:28:24",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 24,
-                          "line": 28
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 26 |\u001b[39m     \n \u001b[90m 27 |\u001b[39m     \u001b[90m// 자동으로 /25-08로 리다이렉트되는지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/.*\\/25-08/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// 퍼널 페이지 제목 확인\u001b[39m\n \u001b[90m 31 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 2716,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 24,
-                            "line": 28
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/.*\\/25-08/\u001b[39m\nReceived string:  \u001b[31m\"https://win.masgolf.co.kr/\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"https://win.masgolf.co.kr/\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 26 |\u001b[39m     \n \u001b[90m 27 |\u001b[39m     \u001b[90m// 자동으로 /25-08로 리다이렉트되는지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/.*\\/25-08/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// 퍼널 페이지 제목 확인\u001b[39m\n \u001b[90m 31 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'MAS Golf 8월 퍼널'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:28:24\u001b[22m"
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-header-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-header-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-header-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-header-modern-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-round-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-round-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-badge-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-badge-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 크기: 960x720\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T15:04:03.132Z",
+                      "startTime": "2025-08-21T00:30:46.350Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-97fbb-최종-검증-8월-퍼널이-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 24,
-                        "line": 28
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-3f600451284a471fa1ef",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 24,
+              "id": "40941706293fec46bd59-c8dd8edd1b95f392b124",
+              "file": "vip-image-fixed-test.spec.ts",
+              "line": 60,
               "column": 7
             },
             {
-              "title": "관리자 페이지 로그인이 정상적으로 작동하는지 확인",
-              "ok": false,
+              "title": "수정된 VIP 이미지들이 정상적으로 로드되는지 확인",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 10000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
                   "results": [
                     {
                       "workerIndex": 2,
                       "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 7170,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:49:46",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 46,
-                          "line": 49
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 47 |\u001b[39m     \n \u001b[90m 48 |\u001b[39m     \u001b[90m// 로그인 성공 후 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 49 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 50 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=실시간 A/B 테스트 성능 비교'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 51 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 52 |\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 4208,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 46,
-                            "line": 49
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=퍼널 관리')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 47 |\u001b[39m     \n \u001b[90m 48 |\u001b[39m     \u001b[90m// 로그인 성공 후 대시보드 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 49 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=퍼널 관리'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 50 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=실시간 A/B 테스트 성능 비교'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 51 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 52 |\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:49:46\u001b[22m"
+                          "text": "Dev-01 퍼널에서 VIP 이미지 개수: 5\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-badge-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-round-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "Dev-02 퍼널에서 VIP 이미지 개수: 5\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-badge-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-round-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T15:04:03.119Z",
+                      "startTime": "2025-08-21T00:30:46.353Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-d7e3e-관리자-페이지-로그인이-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 46,
-                        "line": 49
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-2e58535b79410294d2e4",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 38,
+              "id": "40941706293fec46bd59-1d41a09e60cae7009934",
+              "file": "vip-image-fixed-test.spec.ts",
+              "line": 4,
               "column": 7
             },
             {
-              "title": "관리자 페이지 퍼널 관리 탭이 정상적으로 작동하는지 확인",
-              "ok": false,
+              "title": "개별 이미지 파일들이 정상적으로 접근 가능한지 확인",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 10000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
                   "results": [
                     {
                       "workerIndex": 3,
                       "parallelIndex": 3,
-                      "status": "timedOut",
-                      "duration": 10323,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 2517,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-header-senior-fixed.jpg\n"
                         },
                         {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 16,
-                            "line": 61
-                          },
-                          "message": "Error: page.click: Test timeout of 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 59 |\u001b[39m     \n \u001b[90m 60 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 61 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 62 |\u001b[39m     \n \u001b[90m 63 |\u001b[39m     \u001b[90m// 2025-08 탭 확인\u001b[39m\n \u001b[90m 64 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=2025-08'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:61:16\u001b[22m"
+                          "text": "✅ /campaigns/2025-09/vip-header-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-header-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-header-modern-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-round-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-round-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-badge-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-badge-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 크기: 960x720\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T15:04:03.101Z",
+                      "startTime": "2025-08-21T00:30:46.353Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-8cf7d-페이지-퍼널-관리-탭이-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ]
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-0f1c5a6c64a171c4753e",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 53,
+              "id": "40941706293fec46bd59-7dadf754fa9555e213b6",
+              "file": "vip-image-fixed-test.spec.ts",
+              "line": 60,
               "column": 7
             },
             {
-              "title": "관리자 페이지 GA4 데이터가 정상적으로 로드되는지 확인",
-              "ok": false,
+              "title": "수정된 VIP 이미지들이 정상적으로 로드되는지 확인",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 10000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
                   "results": [
                     {
                       "workerIndex": 4,
                       "parallelIndex": 4,
-                      "status": "timedOut",
-                      "duration": 10280,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 3627,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "message": "\u001b[31mTest timeout of 10000ms exceeded.\u001b[39m"
+                          "text": "Dev-01 퍼널에서 VIP 이미지 개수: 5\n"
                         },
                         {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 16,
-                            "line": 79
-                          },
-                          "message": "Error: page.click: Test timeout of 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=퍼널 관리')\u001b[22m\n\n\n\u001b[0m \u001b[90m 77 |\u001b[39m     \n \u001b[90m 78 |\u001b[39m     \u001b[90m// 퍼널 관리 탭 클릭\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 79 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=퍼널 관리'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 80 |\u001b[39m     \n \u001b[90m 81 |\u001b[39m     \u001b[90m// 2025-08 탭 클릭\u001b[39m\n \u001b[90m 82 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=2025-08'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:79:16\u001b[22m"
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-badge-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-round-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-01 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "Dev-02 퍼널에서 VIP 이미지 개수: 5\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-badge-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-round-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨\n"
+                        },
+                        {
+                          "text": "✅ Dev-02 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T15:04:03.126Z",
+                      "startTime": "2025-08-21T00:30:46.372Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-c20f1-페이지-GA4-데이터가-정상적으로-로드되는지-확인-chromium/error-context.md"
-                        }
-                      ]
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-420f344a42c2321a59e4",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 71,
+              "id": "40941706293fec46bd59-454074f7cc7268cc50c4",
+              "file": "vip-image-fixed-test.spec.ts",
+              "line": 4,
               "column": 7
             },
             {
-              "title": "로컬 서버도 정상적으로 작동하는지 확인",
+              "title": "개별 이미지 파일들이 정상적으로 접근 가능한지 확인",
               "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 10000,
+                  "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
                   "results": [
                     {
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 1540,
+                      "duration": 2787,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-header-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-header-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-header-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-header-modern-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-gold-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-black-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-product-silver-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-round-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-round-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-badge-senior-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 크기: 960x720\n"
+                        },
+                        {
+                          "text": "🔍 확인 중: /campaigns/2025-09/vip-badge-modern-fixed.jpg\n"
+                        },
+                        {
+                          "text": "✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 크기: 960x720\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T15:04:03.116Z",
+                      "startTime": "2025-08-21T00:30:46.339Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -458,521 +680,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "db86eb664f8d8b6a988c-aea89206395313978333",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 91,
-              "column": 7
-            },
-            {
-              "title": "로컬 8월 퍼널도 정상적으로 작동하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "passed",
-                      "duration": 1445,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:05.786Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-8304427a1e27d2d37986",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 99,
-              "column": 7
-            },
-            {
-              "title": "로컬 관리자 페이지도 정상적으로 작동하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 6331,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                          "column": 45,
-                          "line": 125
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 123 |\u001b[39m     \n \u001b[90m 124 |\u001b[39m     \u001b[90m// 로그인 성공 확인 (URL이 변경되었는지 또는 특정 요소가 표시되는지)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=로그아웃'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 126 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 127 |\u001b[39m\n \u001b[90m 128 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                            "column": 45,
-                            "line": 125
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('text=로그아웃')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=로그아웃')\u001b[22m\n\n\n\u001b[0m \u001b[90m 123 |\u001b[39m     \n \u001b[90m 124 |\u001b[39m     \u001b[90m// 로그인 성공 확인 (URL이 변경되었는지 또는 특정 요소가 표시되는지)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=로그아웃'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 126 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 127 |\u001b[39m\n \u001b[90m 128 |\u001b[39m   test(\u001b[32m'API 엔드포인트들이 정상적으로 작동하는지 확인'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts:125:45\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:06.330Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-fi-27b8c--로컬-관리자-페이지도-정상적으로-작동하는지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification-final.spec.ts",
-                        "column": 45,
-                        "line": 125
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-9c2a810d3a82e337049e",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 110,
-              "column": 7
-            },
-            {
-              "title": "API 엔드포인트들이 정상적으로 작동하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "passed",
-                      "duration": 7818,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:07.234Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "db86eb664f8d8b6a988c-26dc97cf0677fb3d1dcb",
-              "file": "deployment-verification-final.spec.ts",
-              "line": 128,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "deployment-verification.spec.ts",
-      "file": "deployment-verification.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "배포 검증 테스트",
-          "file": "deployment-verification.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
-            {
-              "title": "관리자 페이지 로그인 화면이 정상적으로 표시되는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 1331,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:11.565Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-2a090bedd9fbfdad9af2",
-              "file": "deployment-verification.spec.ts",
-              "line": 6,
-              "column": 7
-            },
-            {
-              "title": "8월 퍼널 A 파일이 정상적으로 접근 가능한지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 7,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 8271,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:20:61",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                          "column": 61,
-                          "line": 20
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 18 |\u001b[39m     \n \u001b[90m 19 |\u001b[39m     \u001b[90m// 페이지가 정상적으로 로드되는지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title:has-text(\"MASGOLF\")'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 21 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'meta[name=\"file-created\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 23 |\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                            "column": 61,
-                            "line": 20
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n\n\n\u001b[0m \u001b[90m 18 |\u001b[39m     \n \u001b[90m 19 |\u001b[39m     \u001b[90m// 페이지가 정상적으로 로드되는지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title:has-text(\"MASGOLF\")'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 21 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'meta[name=\"file-created\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 23 |\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:20:61\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:11.868Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-72845-월-퍼널-A-파일이-정상적으로-접근-가능한지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-72845-월-퍼널-A-파일이-정상적으로-접근-가능한지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-72845-월-퍼널-A-파일이-정상적으로-접근-가능한지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                        "column": 61,
-                        "line": 20
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-4e814b8b05b76f1f6b68",
-              "file": "deployment-verification.spec.ts",
-              "line": 16,
-              "column": 7
-            },
-            {
-              "title": "8월 퍼널 B 파일이 정상적으로 접근 가능한지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 7481,
-                      "error": {
-                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n",
-                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:28:61",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                          "column": 61,
-                          "line": 28
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 26 |\u001b[39m     \n \u001b[90m 27 |\u001b[39m     \u001b[90m// 페이지가 정상적으로 로드되는지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title:has-text(\"MASGOLF\")'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 29 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'meta[name=\"file-created\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 30 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 31 |\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                            "column": 61,
-                            "line": 28
-                          },
-                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('title:has-text(\"MASGOLF\")')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('title:has-text(\"MASGOLF\")')\u001b[22m\n\n\n\u001b[0m \u001b[90m 26 |\u001b[39m     \n \u001b[90m 27 |\u001b[39m     \u001b[90m// 페이지가 정상적으로 로드되는지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'title:has-text(\"MASGOLF\")'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 29 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'meta[name=\"file-created\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 30 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 31 |\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:28:61\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:13.060Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-851ca-월-퍼널-B-파일이-정상적으로-접근-가능한지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-851ca-월-퍼널-B-파일이-정상적으로-접근-가능한지-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-851ca-월-퍼널-B-파일이-정상적으로-접근-가능한지-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                        "column": 61,
-                        "line": 28
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-c0948daa3075b1922f55",
-              "file": "deployment-verification.spec.ts",
-              "line": 24,
-              "column": 7
-            },
-            {
-              "title": "API 엔드포인트들이 정상적으로 응답하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 5050,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:13.161Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-6cd401fde9ce853e8e4c",
-              "file": "deployment-verification.spec.ts",
-              "line": 32,
-              "column": 7
-            },
-            {
-              "title": "퍼널 관리 API가 8월 퍼널 파일들을 정확히 반환하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 594,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:14.984Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-d5a15cd6b07b888cc5bb",
-              "file": "deployment-verification.spec.ts",
-              "line": 46,
-              "column": 7
-            },
-            {
-              "title": "GA4 사용자 행동 API가 올바른 데이터 구조를 반환하는지 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 10,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 1966,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:14.984Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-ba3b1d45a76c60e1664a",
-              "file": "deployment-verification.spec.ts",
-              "line": 64,
-              "column": 7
-            },
-            {
-              "title": "성능 메트릭 API가 올바른 데이터 구조를 반환하는지 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 10000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "failed",
-                      "duration": 2258,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.219746542544414, \"bounceRate\": 0.669540445310743, \"device\": \"mobile\", \"pageViews\": 16770}, {\"avgSessionDuration\": 349.05436978892214, \"bounceRate\": 0.35479041916167664, \"device\": \"desktop\", \"pageViews\": 1678}, {\"avgSessionDuration\": 194.10961953999998, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.46811028815747324, \"avgSessionDurationMinutes\": 3.2965763103970365, \"performanceScore\": 66.56612660787215, \"totalPageViews\": 16250}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 88.77511772648515, \"page\": \"/\", \"pageViews\": 871}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T15:04:17.264Z\"}\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.219746542544414, \"bounceRate\": 0.669540445310743, \"device\": \"mobile\", \"pageViews\": 16770}, {\"avgSessionDuration\": 349.05436978892214, \"bounceRate\": 0.35479041916167664, \"device\": \"desktop\", \"pageViews\": 1678}, {\"avgSessionDuration\": 194.10961953999998, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.46811028815747324, \"avgSessionDurationMinutes\": 3.2965763103970365, \"performanceScore\": 66.56612660787215, \"totalPageViews\": 16250}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 88.77511772648515, \"page\": \"/\", \"pageViews\": 871}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T15:04:17.264Z\"}\u001b[39m\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:92:18",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                          "column": 18,
-                          "line": 92
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 90 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'overallMetrics'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 91 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'abTestPerformance'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 92 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'status'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 93 |\u001b[39m     \n \u001b[90m 94 |\u001b[39m     \u001b[90m// A/B 테스트 성능 데이터가 있는지 확인\u001b[39m\n \u001b[90m 95 |\u001b[39m     expect(data\u001b[33m.\u001b[39mabTestPerformance)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'versionA'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                            "column": 18,
-                            "line": 92
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\nExpected path: \u001b[32m\"status\"\u001b[39m\nReceived path: \u001b[31m[]\u001b[39m\n\nReceived value: \u001b[31m{\"abTestPerformance\": {\"versionA\": {\"fileSize\": 201197, \"firstContentfulPaint\": 0.8, \"largestContentfulPaint\": 1.5, \"pageLoadTime\": 1.2, \"performanceScore\": 85}, \"versionB\": {\"fileSize\": 62754, \"firstContentfulPaint\": 0.7, \"largestContentfulPaint\": 1.3, \"pageLoadTime\": 1.1, \"performanceScore\": 92}}, \"devicePerformance\": [{\"avgSessionDuration\": 50.219746542544414, \"bounceRate\": 0.669540445310743, \"device\": \"mobile\", \"pageViews\": 16770}, {\"avgSessionDuration\": 349.05436978892214, \"bounceRate\": 0.35479041916167664, \"device\": \"desktop\", \"pageViews\": 1678}, {\"avgSessionDuration\": 194.10961953999998, \"bounceRate\": 0.38, \"device\": \"tablet\", \"pageViews\": 81}], \"hourlyPerformance\": [{\"hour\": \"8\", \"pageViews\": 1812, \"sessions\": 1537}, {\"hour\": \"18\", \"pageViews\": 1550, \"sessions\": 950}, {\"hour\": \"11\", \"pageViews\": 1474, \"sessions\": 1149}, {\"hour\": \"15\", \"pageViews\": 1381, \"sessions\": 1060}, {\"hour\": \"10\", \"pageViews\": 1369, \"sessions\": 1106}, {\"hour\": \"12\", \"pageViews\": 1331, \"sessions\": 1077}, {\"hour\": \"14\", \"pageViews\": 1310, \"sessions\": 1097}, {\"hour\": \"13\", \"pageViews\": 1114, \"sessions\": 916}, {\"hour\": \"9\", \"pageViews\": 1073, \"sessions\": 944}, {\"hour\": \"6\", \"pageViews\": 973, \"sessions\": 861}, …], \"overallMetrics\": {\"avgBounceRate\": 0.46811028815747324, \"avgSessionDurationMinutes\": 3.2965763103970365, \"performanceScore\": 66.56612660787215, \"totalPageViews\": 16250}, \"pagePerformance\": [{\"avgSessionDuration\": 36.939137318039435, \"page\": \"/versions/funnel-2025-08-live.html\", \"pageViews\": 6893}, {\"avgSessionDuration\": 55.59898386487084, \"page\": \"/versions/funnel-2025-07-complete.html\", \"pageViews\": 5970}, {\"avgSessionDuration\": 66.29503272906045, \"page\": \"/versions/funnel-2025-08-live-b.html\", \"pageViews\": 1743}, {\"avgSessionDuration\": 88.77511772648515, \"page\": \"/\", \"pageViews\": 871}, {\"avgSessionDuration\": 65.8575262467742, \"page\": \"/versions/funnel-2025-08-live-a.html\", \"pageViews\": 773}], \"period\": \"30daysAgo to today\", \"timestamp\": \"2025-08-19T15:04:17.264Z\"}\u001b[39m\n\n\u001b[0m \u001b[90m 90 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'overallMetrics'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 91 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'abTestPerformance'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 92 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'status'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 93 |\u001b[39m     \n \u001b[90m 94 |\u001b[39m     \u001b[90m// A/B 테스트 성능 데이터가 있는지 확인\u001b[39m\n \u001b[90m 95 |\u001b[39m     expect(data\u001b[33m.\u001b[39mabTestPerformance)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'versionA'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts:92:18\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-08-19T15:04:15.055Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-9e331-릭-API가-올바른-데이터-구조를-반환하는지-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/deployment-verification-배포-9e331-릭-API가-올바른-데이터-구조를-반환하는지-확인-chromium/video.webm"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/deployment-verification.spec.ts",
-                        "column": 18,
-                        "line": 92
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "c7b1f4dba26240be011d-45fa6c7fffd8d3c477ba",
-              "file": "deployment-verification.spec.ts",
-              "line": 82,
+              "id": "40941706293fec46bd59-4528a5185584a94a9072",
+              "file": "vip-image-fixed-test.spec.ts",
+              "line": 60,
               "column": 7
             }
           ]
@@ -982,11 +692,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-19T15:04:02.706Z",
-    "duration": 18184.614,
-    "expected": 8,
+    "startTime": "2025-08-21T00:30:45.929Z",
+    "duration": 5804.862999999999,
+    "expected": 6,
     "skipped": 0,
-    "unexpected": 8,
+    "unexpected": 0,
     "flaky": 0
   }
 }
