@@ -2,6 +2,39 @@
 
 ## 최근 완료된 작업
 
+### 2025-08-18: HTML 파일 이미지 경로 에러 수정 완료 ✅
+
+#### 완료된 작업:
+- **이미지 로딩 에러 해결**:
+  - `funnel-2025-09-dev-02.html` 파일의 이미지 경로 수정
+  - 절대 경로(`/campaigns/2025-09/`)를 상대 경로(`../campaigns/2025-09/`)로 변경
+  - 파일을 직접 브라우저에서 열 때 이미지가 정상 로드되도록 수정
+- **수정된 이미지 경로들**:
+  - 헤더 배경 이미지: `vip-header-modern-fixed.jpg`
+  - VIP 배지 이미지: `vip-badge-modern-fixed.jpg`
+  - 혜택 카드 이미지들: `vip-warranty-modern.jpg`, `vip-swing-analysis-modern.jpg`, `vip-gifts-modern.jpg`, `vip-consultation-modern.jpg`, `vip-round-modern-fixed.jpg`, `vip-discount-modern.jpg`
+  - 제품 이미지들: `secret-force-gold-2.webp`, `secret-weapon-black.webp`, `secret-weapon-4-1.webp`
+- **Playwright 테스트로 검증**:
+  - 브라우저에서 페이지 정상 로드 확인
+  - 콘솔 에러 메시지 제거 확인
+  - 모든 이미지가 정상적으로 표시되는지 확인
+
+#### 기술적 성과:
+- **에러 해결**: `net::ERR_FILE_NOT_FOUND` 에러 완전 해결
+- **로컬 테스트 가능**: 파일을 직접 브라우저에서 열어도 정상 작동
+- **이미지 로딩 최적화**: 모든 이미지가 정상적으로 로드됨
+- **사용자 경험 개선**: 이미지가 없는 깨진 페이지에서 완전한 페이지로 복원
+
+#### 파일 변경사항:
+- `public/versions/funnel-2025-09-dev-02.html`: 이미지 경로 수정 (10개 이미지 경로 변경)
+
+#### 다음 단계:
+- [ ] 다른 HTML 파일들의 이미지 경로도 동일하게 수정
+- [ ] 웹 서버 배포 시 절대 경로로 자동 변경하는 스크립트 작성
+- [ ] 이미지 경로 검증 자동화 테스트 추가
+
+---
+
 ### 2025-08-18: 관리자 페이지 필터링 및 데이터 정확성 개선 완료 ✅
 
 #### 완료된 작업:
