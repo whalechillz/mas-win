@@ -75,6 +75,21 @@
             background: var(--autumn-white);
             font-size: 16px;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* 터치 친화적인 버튼 */
+        button, .cta-button {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        
+        /* 모바일에서 스크롤 부드럽게 */
+        html {
+            scroll-behavior: smooth;
         }
         
         .container {
@@ -186,6 +201,20 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .benefit-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 3px solid var(--autumn-red);
+            border-radius: 50%;
+            pointer-events: none;
         }
         
         .benefit-item img {
@@ -551,14 +580,17 @@
         @media (max-width: 768px) {
             .main-headlines h1 {
                 font-size: 2.5rem;
+                line-height: 1.1;
             }
             
             .sub-headline {
                 font-size: 1.2rem;
+                margin-bottom: 30px;
             }
             
             .benefits-section {
                 gap: 20px;
+                margin-top: 30px;
             }
             
             .benefit-item {
@@ -581,15 +613,47 @@
                 top: 20px;
                 right: 20px;
             }
+            
+            .header-content {
+                padding: 0 15px;
+            }
+            
+            .vip-benefits-grid,
+            .vip-products-grid,
+            .vip-testimonials-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .vip-benefit-card,
+            .vip-product-card {
+                padding: 25px 20px;
+            }
+            
+            .final-cta-title {
+                font-size: 2.2rem;
+            }
+            
+            .final-cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cta-button {
+                width: 100%;
+                max-width: 280px;
+            }
         }
         
         @media (max-width: 480px) {
             .main-headlines h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
+                line-height: 1.1;
             }
             
             .sub-headline {
                 font-size: 1rem;
+                margin-bottom: 25px;
             }
             
             .benefit-item {
@@ -601,6 +665,91 @@
             .benefit-item img {
                 width: 70px;
                 height: 70px;
+            }
+            
+            .logo {
+                width: 60px;
+                top: 15px;
+                right: 15px;
+            }
+            
+            .header-content {
+                padding: 0 10px;
+            }
+            
+            .vip-benefit-card,
+            .vip-product-card {
+                padding: 20px 15px;
+            }
+            
+            .vip-benefit-icon {
+                font-size: 2.5rem;
+            }
+            
+            .vip-benefit-title {
+                font-size: 1.3rem;
+            }
+            
+            .vip-product-image {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .final-cta-title {
+                font-size: 1.8rem;
+            }
+            
+            .final-cta-subtitle {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .main-headlines h1 {
+                font-size: 1.6rem;
+            }
+            
+            .sub-headline {
+                font-size: 0.9rem;
+            }
+            
+            .benefit-item {
+                width: 100px;
+                height: 100px;
+                padding: 8px;
+            }
+            
+            .benefit-item img {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .logo {
+                width: 50px;
+                top: 10px;
+                right: 10px;
+            }
+            
+            .whiskey-text {
+                font-size: 1.3rem;
+            }
+            
+            .vip-benefit-card,
+            .vip-product-card {
+                padding: 15px 10px;
+            }
+            
+            .vip-benefit-icon {
+                font-size: 2rem;
+            }
+            
+            .vip-benefit-title {
+                font-size: 1.1rem;
+            }
+            
+            .vip-product-image {
+                width: 120px;
+                height: 120px;
             }
         }
         
