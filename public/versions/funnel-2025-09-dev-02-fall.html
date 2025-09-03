@@ -271,6 +271,282 @@
             font-size: 1.2rem;
         }
         
+        /* VIP 혜택 섹션 */
+        .vip-benefits-section {
+            padding: 80px 0;
+            background: var(--autumn-white);
+        }
+        
+        .vip-benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .vip-benefit-card {
+            background: var(--autumn-white);
+            color: var(--autumn-black);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            border: 2px solid var(--autumn-gray-light);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .vip-benefit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border-color: var(--autumn-orange);
+        }
+        
+        .vip-benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--autumn-gradient);
+        }
+        
+        .vip-benefit-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--autumn-orange);
+        }
+        
+        .vip-benefit-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--autumn-orange);
+        }
+        
+        .vip-benefit-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--autumn-gray);
+        }
+        
+        /* 제품 섹션 */
+        .vip-products-section {
+            padding: 80px 0;
+            background: var(--autumn-gray-light);
+        }
+        
+        .vip-products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .vip-product-card {
+            background: var(--autumn-white);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--autumn-gray-light);
+        }
+        
+        .vip-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: var(--autumn-orange);
+        }
+        
+        .vip-product-card.vip-exclusive::before {
+            content: "VIP 전용";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--autumn-gradient-orange);
+            color: var(--autumn-white);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .vip-product-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid var(--autumn-gray-light);
+        }
+        
+        .vip-product-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--autumn-orange);
+            margin-bottom: 15px;
+        }
+        
+        .vip-product-price {
+            font-size: 1.8rem;
+            color: var(--autumn-orange);
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .vip-product-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+        
+        .vip-product-features li {
+            padding: 8px 0;
+            color: var(--autumn-gray);
+            position: relative;
+            padding-left: 25px;
+            font-size: 0.95rem;
+        }
+        
+        .vip-product-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--autumn-green);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        /* CTA 버튼 */
+        .cta-button {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 180px;
+        }
+        
+        .cta-primary {
+            background: var(--autumn-orange);
+            color: var(--autumn-white);
+        }
+        
+        .cta-primary:hover {
+            background: var(--autumn-orange-light);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(217, 119, 6, 0.4);
+        }
+        
+        /* 고객 후기 섹션 */
+        .vip-testimonials-section {
+            padding: 80px 0;
+            background: var(--autumn-gradient-orange);
+            color: var(--autumn-white);
+        }
+        
+        .vip-testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .vip-testimonial-card {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .vip-testimonial-text {
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .vip-testimonial-author {
+            font-weight: bold;
+            color: var(--autumn-gold-light);
+            font-size: 1rem;
+        }
+        
+        /* 최종 CTA 섹션 */
+        .final-cta-section {
+            padding: 80px 0;
+            background: var(--autumn-gradient);
+            color: var(--autumn-white);
+            text-align: center;
+        }
+        
+        .final-cta-title {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: var(--autumn-white);
+        }
+        
+        .final-cta-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+        
+        .final-cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: var(--autumn-white);
+            border: 2px solid var(--autumn-white);
+        }
+        
+        .cta-secondary:hover {
+            background: var(--autumn-white);
+            color: var(--autumn-orange);
+        }
+        
+        /* 푸터 */
+        .footer {
+            background: var(--autumn-black);
+            color: var(--autumn-white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer h3 {
+            color: var(--autumn-orange);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
         /* 반응형 디자인 */
         @media (max-width: 768px) {
             .main-headlines h1 {
@@ -414,6 +690,157 @@
         가을 시즌 혜택 마감까지
     </div>
     
+    <!-- VIP 혜택 섹션 -->
+    <section class="vip-benefits-section">
+        <div class="container">
+            <h2 class="story-title fade-in">💎 VIP 멤버십 전용 혜택</h2>
+            <div class="vip-benefits-grid">
+                <div class="vip-benefit-card fade-in">
+                    <div class="vip-benefit-icon">🏆</div>
+                    <h3 class="vip-benefit-title">평생 보증 서비스</h3>
+                    <p class="vip-benefit-description">VIP 멤버십 가입 시 모든 제품에 평생 보증이 적용됩니다. 드라이버 페이스 손상, 샤프트 파손 등 모든 상황에서 무료 수리 및 교체를 보장합니다.</p>
+                    <img src="../campaigns/2025-09/vip-warranty-modern.jpg" alt="평생 보증 서비스" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                </div>
+                <div class="vip-benefit-card fade-in">
+                    <div class="vip-benefit-icon">📅</div>
+                    <h3 class="vip-benefit-title">분기별 스윙 점검</h3>
+                    <p class="vip-benefit-description">전문 코치의 분기별 스윙 분석과 피팅 점검을 받을 수 있습니다. 계절별 변화에 따른 최적 설정을 제공합니다.</p>
+                    <img src="../campaigns/2025-09/vip-swing-analysis-modern.jpg" alt="분기별 스윙 점검" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                </div>
+                <div class="vip-benefit-card fade-in">
+                    <div class="vip-benefit-icon">🎁</div>
+                    <h3 class="vip-benefit-title">VIP 전용 사은품</h3>
+                    <p class="vip-benefit-description">명품 골프백, 프리미엄 골프공, 고급 골프장갑 등 VIP 전용 사은품을 매월 제공합니다.</p>
+                    <img src="../campaigns/2025-09/vip-gifts-modern.jpg" alt="VIP 전용 사은품" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                </div>
+                <div class="vip-benefit-card fade-in">
+                    <div class="vip-benefit-icon">📞</div>
+                    <h3 class="vip-benefit-title">24시간 VIP 상담</h3>
+                    <p class="vip-benefit-description">VIP 멤버 전용 상담 라인을 통해 언제든지 전문가의 조언을 받을 수 있습니다.</p>
+                    <img src="../campaigns/2025-09/vip-consultation-modern.jpg" alt="24시간 VIP 상담" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                </div>
+                <div class="vip-benefit-card fade-in">
+                    <div class="vip-benefit-icon">🏌️</div>
+                    <h3 class="vip-benefit-title">VIP 전용 라운드</h3>
+                    <p class="vip-benefit-description">분기별 VIP 멤버 전용 골프 라운드를 개최하여 네트워킹과 정보 공유의 기회를 제공합니다.</p>
+                    <img src="../campaigns/2025-09/vip-round-modern-fixed.jpg" alt="VIP 전용 라운드" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                </div>
+                <div class="vip-benefit-card fade-in">
+                    <div class="vip-benefit-icon">💳</div>
+                    <h3 class="vip-benefit-title">할인 혜택</h3>
+                    <p class="vip-benefit-description">모든 제품 구매 시 15% 할인, 액세서리 20% 할인 등 VIP 전용 할인 혜택을 제공합니다.</p>
+                    <img src="../campaigns/2025-09/vip-discount-modern.jpg" alt="할인 혜택" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 제품 섹션 -->
+    <section class="vip-products-section">
+        <div class="container">
+            <h2 class="story-title fade-in">🔥 VIP 전용 한정 제품</h2>
+            <div class="vip-products-grid">
+                <div class="vip-product-card vip-exclusive fade-in">
+                    <img src="../campaigns/2025-09/secret-force-gold-2.webp" alt="시크릿포스 GOLD 2" class="vip-product-image">
+                    <h3 class="vip-product-name">시크릿포스 GOLD 2</h3>
+                    <div class="vip-product-price">1,700,000원</div>
+                    <ul class="vip-product-features">
+                        <li>DAT55G+ Grade 5 티타늄</li>
+                        <li>2.2mm 초박형 페이스</li>
+                        <li>COR 0.87</li>
+                        <li>VIP 전용 평생 보증</li>
+                    </ul>
+                    <button class="cta-button cta-primary" onclick="openVipModal()">VIP 가격으로 구매하기</button>
+                </div>
+
+                <div class="vip-product-card vip-exclusive fade-in">
+                    <img src="../campaigns/2025-09/secret-weapon-black.webp" alt="시크릿웨폰 블랙" class="vip-product-image">
+                    <h3 class="vip-product-name">시크릿웨폰 블랙</h3>
+                    <div class="vip-product-price">1,700,000원</div>
+                    <ul class="vip-product-features">
+                        <li>SP700 Grade 5 티타늄</li>
+                        <li>2.2mm 초박형 페이스</li>
+                        <li>COR 0.87</li>
+                        <li>블랙 PVD 코팅</li>
+                    </ul>
+                    <button class="cta-button cta-primary" onclick="openVipModal()">VIP 가격으로 구매하기</button>
+                </div>
+
+                <div class="vip-product-card vip-exclusive fade-in">
+                    <img src="../campaigns/2025-09/secret-weapon-4-1.webp" alt="시크릿웨폰 4.1" class="vip-product-image">
+                    <h3 class="vip-product-name">시크릿웨폰 4.1</h3>
+                    <div class="vip-product-price">1,700,000원</div>
+                    <ul class="vip-product-features">
+                        <li>SP700 Grade 5 티타늄</li>
+                        <li>2.2mm 초박형 페이스</li>
+                        <li>COR 0.87</li>
+                        <li>프리미엄 드라이버</li>
+                    </ul>
+                    <button class="cta-button cta-primary" onclick="openVipModal()">VIP 가격으로 구매하기</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 고객 후기 -->
+    <section class="vip-testimonials-section">
+        <div class="container">
+            <h2 class="story-title fade-in">💬 VIP 멤버들의 생생한 후기</h2>
+            <div class="vip-testimonials-grid">
+                <div class="vip-testimonial-card fade-in">
+                    <div class="vip-testimonial-text">
+                        "VIP 멤버십 가입 후 평생 보증 덕분에 마음 놓고 사용할 수 있어요. 분기별 스윙 점검도 받고 있어서 실력도 계속 향상되고 있습니다."
+                    </div>
+                    <div class="vip-testimonial-author">- 이재민 회장 (45세, VIP 멤버 2년차)</div>
+                </div>
+                <div class="vip-testimonial-card fade-in">
+                    <div class="vip-testimonial-text">
+                        "VIP 전용 할인으로 시크릿포스 GOLD 2를 구매했는데, 정말 만족합니다. +28m 비거리 증가를 경험했고, 이제는 동반자들과 비거리 차이가 거의 안 나요."
+                    </div>
+                    <div class="vip-testimonial-author">- 박준영 원장 (52세, VIP 멤버 1년차)</div>
+                </div>
+                <div class="vip-testimonial-card fade-in">
+                    <div class="vip-testimonial-text">
+                        "VIP 멤버 전용 라운드에서 다른 멤버들과 정보도 공유하고, 네트워킹도 할 수 있어서 정말 좋습니다. MASGOLF VIP 멤버가 되어서 자랑스러워요."
+                    </div>
+                    <div class="vip-testimonial-author">- 김성호 대표 (48세, VIP 멤버 3년차)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 최종 CTA 섹션 -->
+    <section class="final-cta-section">
+        <div class="container">
+            <h2 class="final-cta-title fade-in">🎯 지금 VIP 멤버십에 가입하세요!</h2>
+            <p class="final-cta-subtitle fade-in">40-50대 골퍼를 위한 특별한 혜택</p>
+            <div class="final-cta-buttons fade-in">
+                <a href="tel:080-028-8888" class="cta-button cta-primary">📞 VIP 멤버십 상담하기</a>
+                <a href="https://www.mas9golf.com/try-a-massgoo" class="cta-button cta-secondary">🎯 무료 시타 신청하기</a>
+            </div>
+            <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.9;">
+                * VIP 멤버십은 9월 30일까지 한정 제공됩니다.<br>
+                * 평생 보증 및 분기별 스윙 점검은 VIP 멤버십 가입 시 자동 적용됩니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <h3>MASGOLF®</h3>
+                <p>20년 전통의 기술력으로 만든 프리미엄 골프 클럽</p>
+                <p>사업자명: MASGOLF® | 대표자명: 김탁수</p>
+                <p>사업자등록번호: 877-07-00641</p>
+                <p>통신판매업신고번호: 제 2017-수원영통-0623호</p>
+                <p>주소: 수원시 영통구 법조로 149번길 200</p>
+                <p>고객센터: 080-028-8888 (무료)</p>
+                <p>© 2025 MASGOLF. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
     <script>
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -454,6 +881,11 @@
                     topBanner.innerHTML = `가을 시즌 특별 혜택 마감 임박! 지금 상담 중인 고객: ${consulting}명 | 오늘 구매 완료: ${completed}명<i class="fas fa-clock alarm-icon"></i>`;
                 }
             }, 30000); // 30초마다 업데이트
+        }
+        
+        // VIP 모달 열기
+        function openVipModal() {
+            window.location.href = 'tel:080-028-8888';
         }
         
         // 페이지 로드 완료 이벤트
