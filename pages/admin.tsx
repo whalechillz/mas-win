@@ -69,10 +69,27 @@ export default function Admin() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsAuthenticated(true);
-        loadData(); // 인증 후 데이터 로드
+      try {
+        // 관리자 인증 확인
+        const res = await fetch('/api/admin-check-auth');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            console.log('Admin authentication valid:', data);
+            setIsAuthenticated(true);
+            loadData(); // 인증 후 데이터 로드
+            return;
+          }
+        }
+        
+        // Supabase 세션도 확인 (백업)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsAuthenticated(true);
+          loadData();
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
       }
     };
     checkAuth();
@@ -112,10 +129,29 @@ export default function Admin() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAuthenticated(false);
-    setUsername('');
-    setPassword('');
+    try {
+      // 관리자 로그아웃 API 호출
+      await fetch('/api/admin-logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      // Supabase 로그아웃도 실행 (백업)
+      await supabase.auth.signOut();
+      
+      // 상태 초기화
+      setIsAuthenticated(false);
+      setUsername('');
+      setPassword('');
+      
+      console.log('Logout successful');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // 에러가 있어도 로컬 상태는 초기화
+      setIsAuthenticated(false);
+      setUsername('');
+      setPassword('');
+    }
   };
 
   if (!isAuthenticated) {
