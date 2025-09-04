@@ -347,7 +347,7 @@ export function FunnelManager() {
     try {
       // 2025-09, 2025-08, 2025-07 퍼널의 개별 사용자 행동 데이터 가져오기
       const [live09Response, liveAResponse, liveBResponse, live07Response] = await Promise.all([
-        fetch('/api/ga4-funnel-user-behavior?path=/25-09&month=2025-09'),
+        fetch('/api/ga4-funnel-user-behavior?path=/versions/funnel-2025-09-live.html&month=2025-09'),
         fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-08-live-a&month=2025-08'),
         fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-08-live-b&month=2025-08'),
         fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-07-live&month=2025-07')
@@ -359,7 +359,7 @@ export function FunnelManager() {
       const live07Data = await live07Response.json();
       
       setFunnelUserBehaviorData({
-        '/25-09': live09Data,
+        '/versions/funnel-2025-09-live.html': live09Data,
         'funnel-2025-08-live-a': liveAData,
         'funnel-2025-08-live-b': liveBData,
         'funnel-2025-07-live': live07Data
@@ -793,8 +793,8 @@ export function FunnelManager() {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">페이지뷰 시작일:</span>
                   <span className="font-medium">
-                    {funnelTrackingData.find(f => f.page === '/25-09')?.firstDataCollection ? 
-                      formatDate(funnelTrackingData.find(f => f.page === '/25-09')!.firstDataCollection) : 
+                    {funnelTrackingData.find(f => f.page === '/versions/funnel-2025-09-live.html')?.firstDataCollection ? 
+                      formatDate(funnelTrackingData.find(f => f.page === '/versions/funnel-2025-09-live.html')!.firstDataCollection) : 
                       '2025년 9월 4일'}
                   </span>
                 </div>
@@ -806,7 +806,7 @@ export function FunnelManager() {
                  <div className="text-center">
                    <p className="text-sm text-gray-600">누적 페이지뷰</p>
                    <p className="text-2xl font-bold text-purple-900">
-                     {funnelUserBehaviorData['/25-09']?.pageMetrics?.pageViews || 'NA'}
+                     {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.pageMetrics?.pageViews || 'NA'}
                    </p>
                    <p className="text-xs text-gray-500">9월 4일 ~ 현재</p>
                  </div>
@@ -848,24 +848,24 @@ export function FunnelManager() {
                  <div className="flex justify-between">
                    <span className="text-sm text-gray-600">평균 세션:</span>
                    <span className="font-medium">
-                     {funnelUserBehaviorData['/25-09']?.calculatedMetrics?.avgSessionDurationMinutes 
-                       ? `${Math.floor(funnelUserBehaviorData['/25-09'].calculatedMetrics.avgSessionDurationMinutes)}분 ${Math.round((funnelUserBehaviorData['/25-09'].calculatedMetrics.avgSessionDurationMinutes % 1) * 60)}초`
+                     {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.calculatedMetrics?.avgSessionDurationMinutes 
+                       ? `${Math.floor(funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.avgSessionDurationMinutes)}분 ${Math.round((funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.avgSessionDurationMinutes % 1) * 60)}초`
                        : '1분 15초'}
                    </span>
                  </div>
                  <div className="flex justify-between">
                    <span className="text-sm text-gray-600">바운스율:</span>
                    <span className="font-medium">
-                     {typeof funnelUserBehaviorData['/25-09']?.sessionMetrics?.bounceRate === 'number'
-                       ? `${(funnelUserBehaviorData['/25-09'].sessionMetrics.bounceRate * 100).toFixed(1)}%`
+                     {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.sessionMetrics?.bounceRate === 'number'
+                       ? `${(funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics.bounceRate * 100).toFixed(1)}%`
                        : '65.2%'}
                    </span>
                  </div>
                  <div className="flex justify-between">
                    <span className="text-sm text-gray-600">페이지/세션:</span>
                    <span className="font-medium">
-                     {typeof funnelUserBehaviorData['/25-09']?.sessionMetrics?.pagesPerSession === 'number'
-                       ? funnelUserBehaviorData['/25-09'].sessionMetrics.pagesPerSession.toFixed(1)
+                     {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.sessionMetrics?.pagesPerSession === 'number'
+                       ? funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics.pagesPerSession.toFixed(1)
                        : '1.3'}
                    </span>
                  </div>
