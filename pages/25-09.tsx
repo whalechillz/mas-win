@@ -6,10 +6,15 @@ import Script from 'next/script';
 
 export default function Funnel202509() {
   const [isClient, setIsClient] = useState(false);
-  const [assignedVersion] = useState<string>("A"); // 9월 퍼널 버전
+  const [assignedVersion, setAssignedVersion] = useState<string>("A"); // A/B 테스트 버전
 
   useEffect(() => {
     setIsClient(true);
+    
+    // A/B 테스트 버전 할당 (50:50 분할)
+    const randomValue = Math.random();
+    const version = randomValue < 0.5 ? 'A' : 'B';
+    setAssignedVersion(version);
     
     // iframe에서 전화번호 클릭 메시지 처리
     const handleMessage = (event: MessageEvent) => {
@@ -28,27 +33,27 @@ export default function Funnel202509() {
 
   // GA4 이벤트 전송 (즉시 실행)
   useEffect(() => {
-    if (isClient) {
+    if (isClient && assignedVersion) {
       const sendGA4Events = () => {
         if (typeof window !== 'undefined' && (window as any).gtag) {
           // A/B 테스트 할당 이벤트
           (window as any).gtag('event', 'ab_test_assignment', {
             test_name: 'funnel-2025-09',
-            version: 'A',
+            version: assignedVersion,
             page_id: 'funnel-2025-09',
             timestamp: Date.now()
           });
           
-          console.log('A/B 테스트 이벤트 전송: 버전 A');
+          console.log(`A/B 테스트 이벤트 전송: 버전 ${assignedVersion}`);
           
           // 전환 이벤트 추적 함수
           const trackConversion = (eventName: string, parameters: any = {}) => {
             (window as any).gtag('event', eventName, {
               ...parameters,
-              custom_parameter_version: 'A',
+              custom_parameter_version: assignedVersion,
               custom_parameter_test_name: 'funnel-2025-09'
             });
-            console.log(`전환 이벤트 전송: ${eventName} (버전 A)`);
+            console.log(`전환 이벤트 전송: ${eventName} (버전 ${assignedVersion})`);
           };
           
           // 전화 클릭 이벤트 리스너
@@ -80,7 +85,7 @@ export default function Funnel202509() {
             });
           }
           
-          console.log('A/B 테스트 이벤트 설정 완료: 버전 A');
+          console.log(`A/B 테스트 이벤트 설정 완료: 버전 ${assignedVersion}`);
         } else {
           console.warn('GA4 gtag가 로드되지 않았습니다. 1초 후 재시도...');
           setTimeout(sendGA4Events, 1000);
@@ -90,7 +95,7 @@ export default function Funnel202509() {
       // 즉시 실행
       sendGA4Events();
     }
-  }, [isClient]);
+  }, [isClient, assignedVersion]);
 
   return (
     <>
@@ -110,7 +115,7 @@ export default function Funnel202509() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'G-${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}', {
-            page_title: 'MASGOLF 9월 퍼널 (A 버전)',
+            page_title: 'MASGOLF 9월 퍼널 (${assignedVersion} 버전)',
             page_location: window.location.href,
             custom_map: {
               'custom_parameter_version': 'version',
@@ -123,20 +128,20 @@ export default function Funnel202509() {
       {/* 고급 사용자 추적 */}
       <AdvancedUserTracker 
         pageId="funnel-2025-09"
-        version="A"
+        version={assignedVersion}
         testName="funnel-2025-09"
       />
 
       {/* 성능 추적 */}
       <PerformanceTracker 
         pageId="funnel-2025-09"
-        version="A"
+        version={assignedVersion}
         testName="funnel-2025-09"
       />
 
-      {/* 9월 퍼널 iframe */}
+      {/* A/B 테스트 퍼널 iframe */}
       <iframe
-        src="/versions/funnel-2025-09-live.html"
+        src={`/versions/funnel-2025-09-live-${assignedVersion.toLowerCase()}.html`}
         style={{
           width: '100%',
           height: '100vh',
@@ -144,7 +149,7 @@ export default function Funnel202509() {
           margin: 0,
           padding: 0
         }}
-        title="MAS Golf 9월 퍼널"
+        title={`MAS Golf 9월 퍼널 (${assignedVersion} 버전)`}
       />
     </>
   );
