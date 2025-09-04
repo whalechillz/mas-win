@@ -131,6 +131,7 @@
             justify-content: center;
             text-align: center;
             color: var(--autumn-white);
+            overflow: hidden;
         }
         
         .main-header::before {
@@ -142,6 +143,37 @@
             bottom: 0;
             background: rgba(0, 0, 0, 0.3);
             z-index: 1;
+        }
+        
+        .main-header::after {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            right: -10%;
+            bottom: -10%;
+            background-image: url('../campaigns/2025-09-add/background2.png');
+            background-size: 120% auto;
+            background-position: center;
+            background-repeat: no-repeat;
+            animation: backgroundFloat 25s ease-in-out infinite;
+            z-index: 0;
+            opacity: 0.8;
+        }
+        
+        @keyframes backgroundFloat {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-3%, -2%) scale(1.03);
+            }
+            50% {
+                transform: translate(2%, -3%) scale(1.02);
+            }
+            75% {
+                transform: translate(-2%, 2%) scale(1.04);
+            }
         }
         
         .header-content {
