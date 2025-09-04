@@ -661,6 +661,33 @@
             color: var(--autumn-orange);
         }
         
+        /* 고객 리뷰 이미지 섹션 */
+        .review-image-section {
+            background: var(--autumn-white);
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .review-image-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .review-image {
+            width: 100%;
+            max-width: 1000px;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .review-image:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
         /* 푸터 */
         .footer {
             background: var(--autumn-black);
@@ -689,6 +716,18 @@
         
         /* 반응형 디자인 */
         @media (max-width: 768px) {
+            .review-image-section {
+                padding: 30px 0;
+            }
+            
+            .review-image-container {
+                padding: 0 15px;
+            }
+            
+            .review-image {
+                border-radius: 10px;
+            }
+            
             .main-header {
                 background-size: 400% auto;
                 background-position: center 40%;
@@ -1097,6 +1136,15 @@
             <div class="final-cta-buttons fade-in">
                 <a href="tel:080-028-8888" class="cta-button cta-primary">마쓰구 상품 상담하기</a>
                 <a href="https://www.mas9golf.com/try-a-massgoo" class="cta-button cta-secondary">무료 시타 및 비거리 늘리기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 고객 리뷰 이미지 섹션 -->
+    <section class="review-image-section">
+        <div class="container">
+            <div class="review-image-container">
+                <img src="../campaigns/2025-09-add/massgoo-review.jpg" alt="마쓰구 고객 리뷰" class="review-image">
             </div>
         </div>
     </section>
