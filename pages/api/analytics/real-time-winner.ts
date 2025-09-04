@@ -32,7 +32,7 @@ interface VersionPerformance {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { testName = 'funnel-2025-08', action = 'check' } = req.query;
+  const { testName = 'funnel-2025-09', action = 'check' } = req.query;
 
   try {
     const analyticsDataClient = new BetaAnalyticsDataClient({
@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         filter: {
           fieldName: 'pagePath',
           stringFilter: {
-            value: '/25-08'
+            value: '/25-09'
           }
         }
       }

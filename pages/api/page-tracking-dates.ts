@@ -123,6 +123,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const mockData = {
       pages: [
         {
+          page: '/versions/funnel-2025-09-live.html',
+          firstDataCollection: '20250904',
+          lastDataCollection: '20250905',
+          totalDays: 2,
+          totalPageViews: 45,
+          hasData: true
+        },
+        {
+          page: '/25-09',
+          firstDataCollection: '20250904',
+          lastDataCollection: '20250905',
+          totalDays: 2,
+          totalPageViews: 38,
+          hasData: true
+        },
+        {
           page: '/versions/funnel-2025-08-live.html',
           firstDataCollection: '20250801',
           lastDataCollection: '20250817',

@@ -58,7 +58,7 @@ function getDetectedFunnelVersions(testName: string): string[] {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { dateRange = 'week', testName = 'funnel-2025-08' } = req.query;
+  const { dateRange = 'week', testName = 'funnel-2025-09' } = req.query;
 
   try {
     const analyticsDataClient = new BetaAnalyticsDataClient({
@@ -124,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         filter: {
           fieldName: 'pagePath',
           stringFilter: {
-            value: '/versions/funnel-2025-08'
+            value: '/versions/funnel-2025-09'
           }
         }
       }

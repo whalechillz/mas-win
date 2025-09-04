@@ -56,6 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 주요 퍼널 페이지들의 일별 데이터 조회
     const funnelPages = [
+      '/versions/funnel-2025-09-live.html',
+      '/25-09',
       '/versions/funnel-2025-08-live.html',
       '/versions/funnel-2025-08-live-a.html',
       '/versions/funnel-2025-08-live-b.html',
