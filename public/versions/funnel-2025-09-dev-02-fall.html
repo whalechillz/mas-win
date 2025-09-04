@@ -1122,6 +1122,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeAnimations();
             updateBannerNumbers();
+            updateCountdown();
         });
         
         // 애니메이션 초기화
@@ -1263,6 +1264,39 @@
                     }
                 }
             }, 20000); // 20초마다 업데이트
+        }
+        
+        // 카운트다운 업데이트 (9월 30일까지)
+        function updateCountdown() {
+            const countdownElement = document.querySelector('.bottom-banner');
+            if (!countdownElement) return;
+            
+            // 9월 30일 23:59:59까지
+            const targetDate = new Date('2025-09-30T23:59:59');
+            
+            function update() {
+                const now = new Date();
+                const timeLeft = targetDate - now;
+                
+                if (timeLeft <= 0) {
+                    countdownElement.innerHTML = '<i class="fas fa-clock alarm-icon"></i> 가을 시즌 혜택이 마감되었습니다!';
+                    return;
+                }
+                
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                countdownElement.innerHTML = `
+                    <i class="fas fa-clock alarm-icon"></i>
+                    가을 시즌 혜택 마감까지 ${days}일 ${hours}시 ${minutes}분 ${seconds}초
+                `;
+            }
+            
+            // 1초마다 업데이트
+            update();
+            setInterval(update, 1000);
         }
         
         // VIP 모달 열기
