@@ -404,7 +404,20 @@
         /* 제품 섹션 */
         .vip-products-section {
             padding: 80px 0;
-            background: transparent;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            position: relative;
+        }
+        
+        .vip-products-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 165, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255, 215, 0, 0.08) 0%, transparent 50%);
+            pointer-events: none;
         }
         
         .vip-products-grid {
@@ -415,15 +428,16 @@
         }
         
         .vip-product-card {
-            background: var(--autumn-white);
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 215, 0, 0.3);
             border-radius: 20px;
             padding: 30px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px rgba(255, 215, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            border: 2px solid transparent;
+            backdrop-filter: blur(10px);
         }
         
         .vip-product-card:hover {
@@ -437,10 +451,11 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: var(--autumn-gradient-orange);
-            color: var(--autumn-white);
+            background: linear-gradient(45deg, var(--autumn-gold), var(--autumn-orange));
+            color: var(--autumn-black);
             padding: 8px 16px;
             border-radius: 20px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
             font-size: 0.8rem;
             font-weight: bold;
         }
@@ -457,8 +472,9 @@
         .vip-product-name {
             font-size: 1.5rem;
             font-weight: bold;
-            color: var(--autumn-orange);
+            color: var(--autumn-gold);
             margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
         
         .vip-product-price {
@@ -475,7 +491,7 @@
         
         .vip-product-features li {
             padding: 8px 0;
-            color: var(--autumn-gray);
+            color: rgba(255, 255, 255, 0.9);
             position: relative;
             padding-left: 25px;
             font-size: 0.95rem;
@@ -485,9 +501,10 @@
             content: "✓";
             position: absolute;
             left: 0;
-            color: var(--autumn-green);
+            color: var(--autumn-gold);
             font-weight: bold;
             font-size: 1.2rem;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
         
         /* CTA 버튼 */
