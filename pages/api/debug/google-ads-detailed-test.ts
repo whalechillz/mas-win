@@ -98,12 +98,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 5단계: 간단한 쿼리 테스트 (계정 정보 조회)
     try {
+      // 먼저 사용 가능한 계정들을 조회해보기
       const accountInfo = await customer.query(`
         SELECT 
           customer.id,
           customer.descriptive_name,
           customer.currency_code,
-          customer.time_zone
+          customer.time_zone,
+          customer.manager
         FROM customer 
         LIMIT 1
       `);
@@ -121,17 +123,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
     } catch (error) {
+      // 더 자세한 오류 정보 수집
+      const errorInfo = {
+        message: error.message,
+        name: error.name,
+        code: error.code,
+        status: error.status,
+        details: error.details,
+        stack: error.stack?.split('\n').slice(0, 5), // 스택 트레이스 일부만
+        response: error.response?.data,
+        request: {
+          url: error.request?.url,
+          method: error.request?.method,
+          headers: error.request?.headers
+        }
+      };
+
+      // Customer ID 검증을 위한 추가 정보
+      const customerIdInfo = {
+        provided: envVars.customer_id,
+        format: /^\d{10}$/.test(envVars.customer_id || '') ? 'valid' : 'invalid',
+        withHyphens: envVars.customer_id ? `${envVars.customer_id.slice(0,3)}-${envVars.customer_id.slice(3,6)}-${envVars.customer_id.slice(6)}` : 'N/A'
+      };
+
       return res.status(200).json({
         step: 'API 쿼리 테스트',
         status: '실패',
         message: 'API 쿼리 실행 실패',
         error: error.message,
-        errorDetails: {
-          name: error.name,
-          code: error.code,
-          status: error.status,
-          details: error.details
-        },
+        errorDetails: errorInfo,
+        customerIdInfo,
         envValidation,
         nextStep: 'Developer Token 권한과 Customer ID를 확인하세요.'
       });
