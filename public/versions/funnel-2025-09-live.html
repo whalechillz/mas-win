@@ -1066,7 +1066,7 @@
     
     <!-- 상단 오렌지 배너 -->
     <div class="top-banner">
-        <span class="banner-text">가을 시즌 혜택 마감 임박!<br>상담중인 고객: <span class="consulting-count">5</span>명 | 구매 완료: <span class="purchase-count">0</span>명</span>
+        <span class="banner-text">가을 시즌 혜택 마감 임박!<br>상담중인 고객: <span class="consulting-count">5</span>명 | 구매 완료: <span class="purchase-count">3</span>명</span>
         <i class="fas fa-clock alarm-icon"></i>
     </div>
     
@@ -1457,7 +1457,7 @@
             
             // 현재까지의 진행률에 따라 구매 완료 수 계산 (최대 30명)
             const progressRatio = Math.min(daysPassed / totalDays, 1);
-            let currentPurchaseCount = Math.floor(progressRatio * 30);
+            let currentPurchaseCount = Math.max(3, Math.floor(progressRatio * 30)); // 최소 3명부터 시작
             
             // 상담 고객 수 랜덤 업데이트 (5~10명)
             setInterval(() => {
