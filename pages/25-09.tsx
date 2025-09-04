@@ -6,15 +6,10 @@ import Script from 'next/script';
 
 export default function Funnel202509() {
   const [isClient, setIsClient] = useState(false);
-  const [assignedVersion, setAssignedVersion] = useState<string>("A"); // A/B 테스트 버전
+  const [assignedVersion] = useState<string>("A"); // 단일 버전
 
   useEffect(() => {
     setIsClient(true);
-    
-    // A/B 테스트 버전 할당 (50:50 분할)
-    const randomValue = Math.random();
-    const version = randomValue < 0.5 ? 'A' : 'B';
-    setAssignedVersion(version);
     
     // iframe에서 전화번호 클릭 메시지 처리
     const handleMessage = (event: MessageEvent) => {
@@ -139,9 +134,9 @@ export default function Funnel202509() {
         testName="funnel-2025-09"
       />
 
-      {/* A/B 테스트 퍼널 iframe */}
+      {/* 9월 퍼널 iframe */}
       <iframe
-        src={`/versions/funnel-2025-09-live-${assignedVersion.toLowerCase()}.html`}
+        src="/versions/funnel-2025-09-live.html"
         style={{
           width: '100%',
           height: '100vh',
@@ -149,7 +144,7 @@ export default function Funnel202509() {
           margin: 0,
           padding: 0
         }}
-        title={`MAS Golf 9월 퍼널 (${assignedVersion} 버전)`}
+        title="MAS Golf 9월 퍼널"
       />
     </>
   );
