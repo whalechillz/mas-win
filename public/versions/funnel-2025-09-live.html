@@ -1000,7 +1000,7 @@
                     <div class="vip-benefit-icon">🎁</div>
                     <h3 class="vip-benefit-title">마쓰구 고객 전용 사은품</h3>
                     <p class="vip-benefit-description">여행용 방수팩, 쿨링패키지, 라운드패키지 등 월별 사은품을 무상 제공합니다.</p>
-                    <img src="../campaigns/2025-09/vip-gifts-modern.jpg" alt="VIP 전용 사은품" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
+                    <img src="../campaigns/2025-09-add/massgooball-gift.jpg" alt="마쓰구 고객 전용 사은품" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-top: 15px;">
                 </div>
                 <div class="vip-benefit-card fade-in">
                     <div class="vip-benefit-icon">📞</div>
@@ -1241,8 +1241,16 @@
             const consultingCount = document.querySelector('.consulting-count');
             const purchaseCount = document.querySelector('.purchase-count');
             
-            let currentPurchaseCount = 0;
-            const maxPurchaseCount = 30;
+            // 9월 30일까지 점진적으로 30명이 되도록 계산
+            const targetDate = new Date('2025-09-30 23:59:59');
+            const currentDate = new Date();
+            const daysRemaining = Math.max(0, Math.ceil((targetDate - currentDate) / (1000 * 60 * 60 * 24)));
+            const totalDays = 30; // 9월 전체 일수
+            const daysPassed = totalDays - daysRemaining;
+            
+            // 현재까지의 진행률에 따라 구매 완료 수 계산 (최대 30명)
+            const progressRatio = Math.min(daysPassed / totalDays, 1);
+            let currentPurchaseCount = Math.floor(progressRatio * 30);
             
             // 상담 고객 수 랜덤 업데이트 (5~10명)
             setInterval(() => {
@@ -1252,18 +1260,19 @@
                 }
             }, 15000); // 15초마다 업데이트
             
-            // 구매 완료 수 자연스럽게 증가 (이번달까지 최대 30명)
+            // 구매 완료 수 점진적 증가 (9월 30일까지 30명)
             setInterval(() => {
-                if (currentPurchaseCount < maxPurchaseCount) {
-                    currentPurchaseCount += Math.floor(Math.random() * 2) + 1; // 1~2명씩 증가
-                    if (currentPurchaseCount > maxPurchaseCount) {
-                        currentPurchaseCount = maxPurchaseCount;
-                    }
+                const now = new Date();
+                const newProgressRatio = Math.min((totalDays - Math.max(0, Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24)))) / totalDays, 1);
+                const newPurchaseCount = Math.floor(newProgressRatio * 30);
+                
+                if (newPurchaseCount > currentPurchaseCount) {
+                    currentPurchaseCount = newPurchaseCount;
                     if (purchaseCount) {
                         purchaseCount.textContent = currentPurchaseCount;
                     }
                 }
-            }, 20000); // 20초마다 업데이트
+            }, 60000); // 1분마다 업데이트
         }
         
         // 카운트다운 업데이트 (9월 30일까지)
