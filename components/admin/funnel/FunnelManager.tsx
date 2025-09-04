@@ -806,14 +806,18 @@ export function FunnelManager() {
                  <div className="text-center">
                    <p className="text-sm text-gray-600">누적 페이지뷰</p>
                    <p className="text-2xl font-bold text-purple-900">
-                     {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.pageMetrics?.pageViews || 'NA'}
+                     {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.devicePerformance?.reduce((sum, device) => sum + (device.pageViews || 0), 0) || 'NA'}
                    </p>
                    <p className="text-xs text-gray-500">9월 4일 ~ 현재</p>
                  </div>
                  <div className="text-center">
                    <p className="text-sm text-gray-600">전환율</p>
-                   <p className="text-2xl font-bold text-green-600">NA</p>
-                   <p className="text-xs text-gray-500">실제 전환 데이터 필요</p>
+                   <p className="text-2xl font-bold text-green-600">
+                     {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.calculatedMetrics?.conversionRate !== undefined 
+                       ? `${(funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.conversionRate * 100).toFixed(1)}%`
+                       : 'NA'}
+                   </p>
+                   <p className="text-xs text-gray-500">실제 전환 데이터</p>
                  </div>
                </div>
                
