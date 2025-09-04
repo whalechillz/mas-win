@@ -95,8 +95,10 @@ export default function Funnel202509() {
   return (
     <>
       <Head>
-        <title>MAS Golf 9월 퍼널</title>
-        <meta name="description" content="MASGOLF 9월 퍼널 페이지" />
+        <title>🔥 MASGOLF 가을 특가! 비거리 25m↑ 골프드라이버 + 위스키 증정 | 9월 한정</title>
+        <meta name="description" content="🎯 가을 골프 시즌 특별 혜택! 시크릿포스/웨폰 시리즈 최대 20% 할인 + Royal Salute 21 위스키 증정. 10년 보증, 전문 피터 상담 무료. 9월 30일까지 한정!" />
+        <link rel="canonical" href="https://win.masgolf.co.kr/25-09" />
+        <meta name="robots" content="index, follow" />
       </Head>
       
       {/* Google Analytics 스크립트 */}
