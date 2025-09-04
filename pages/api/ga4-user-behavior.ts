@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 1. 세션 지속 시간 및 바운스율
     const [sessionMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+      dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
       metrics: [
         { name: 'sessions' },
         { name: 'averageSessionDuration' },
@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 2. 디바이스별 성능
     const [deviceMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+      dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
       dimensions: [{ name: 'deviceCategory' }],
       metrics: [
         { name: 'totalUsers' },
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 3. 시간대별 성능 (평균 세션 지속 시간 추가)
     const [hourlyMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+      dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
       dimensions: [{ name: 'hour' }],
       metrics: [
         { name: 'totalUsers' },
@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 4. 페이지별 성능
     const [pageMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+      dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
       dimensions: [{ name: 'pagePath' }],
       metrics: [
         { name: 'screenPageViews' },
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 5. 사용자 행동 흐름 (이벤트 기반)
     const [eventMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+      dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
       dimensions: [{ name: 'eventName' }],
       metrics: [
         { name: 'eventCount' },
@@ -89,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 6. 스크롤 깊이 데이터 (퍼널별)
     const [scrollDepthMetrics] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+      dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
       dimensions: [
         { name: 'pagePath' },
         { name: 'eventName' }

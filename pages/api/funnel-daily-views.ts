@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (page && typeof page === 'string') {
       const [response] = await analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+        dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
         dimensions: [{ name: 'pagePath' }, { name: 'date' }],
         metrics: [{ name: 'screenPageViews' }],
         dimensionFilter: {
@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const [response] = await analyticsDataClient.runReport({
           property: `properties/${propertyId}`,
-          dateRanges: [{ startDate: '2025-08-01', endDate: 'today' }],
+          dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
           dimensions: [{ name: 'pagePath' }, { name: 'date' }],
           metrics: [{ name: 'screenPageViews' }],
           dimensionFilter: {
