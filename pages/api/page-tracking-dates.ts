@@ -121,23 +121,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // 오류 발생 시 모의 데이터 반환
     const mockData = {
-      pages: [
-        {
-          page: '/versions/funnel-2025-09-live.html',
-          firstDataCollection: '20250904',
-          lastDataCollection: '20250905',
-          totalDays: 2,
-          totalPageViews: 45,
-          hasData: true
-        },
-        {
-          page: '/25-09',
-          firstDataCollection: '20250904',
-          lastDataCollection: '20250905',
-          totalDays: 2,
-          totalPageViews: 38,
-          hasData: true
-        },
+              pages: [
+          {
+            page: '/25-09',
+            firstDataCollection: '20250904',
+            lastDataCollection: '20250905',
+            totalDays: 2,
+            totalPageViews: 45,
+            hasData: true
+          },
+          {
+            page: '/versions/funnel-2025-09-live.html',
+            firstDataCollection: '20250904',
+            lastDataCollection: '20250905',
+            totalDays: 2,
+            totalPageViews: 38,
+            hasData: true
+          },
         {
           page: '/versions/funnel-2025-08-live.html',
           firstDataCollection: '20250801',
