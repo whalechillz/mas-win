@@ -497,21 +497,50 @@
         }
         
         .vip-product-features li {
-            padding: 8px 0;
-            color: rgba(255, 255, 255, 0.9);
+            padding: 10px 0;
+            color: rgba(255, 255, 255, 0.95);
             position: relative;
-            padding-left: 25px;
+            padding-left: 35px;
             font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            line-height: 1.4;
         }
         
         .vip-product-features li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, var(--autumn-gold), #FFD700);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+        
+        .vip-product-features li::after {
             content: "✓";
             position: absolute;
             left: 0;
-            color: var(--autumn-gold);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
             font-weight: bold;
-            font-size: 1.2rem;
-            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+            color: #000;
+            z-index: 2;
         }
         
         /* 섹션 제목 스타일 */
