@@ -206,13 +206,24 @@
             cursor: pointer;
         }
         
-        .benefit-item:hover {
+        /* benefit-1.png만 호버 효과 적용 */
+        .benefit-item:first-child:hover {
             transform: scale(1.1) rotate(2deg);
             box-shadow: 0 12px 35px rgba(0,0,0,0.4);
         }
         
-        .benefit-item:active {
+        .benefit-item:first-child:active {
             transform: scale(0.95);
+        }
+        
+        /* benefit-2.png는 호버 효과 없음 */
+        .benefit-item:last-child {
+            cursor: default;
+        }
+        
+        .benefit-item:last-child:hover {
+            transform: none;
+            box-shadow: none;
         }
         
         .sub-headline {
@@ -233,16 +244,16 @@
         
         .benefit-item {
             text-align: center;
-            background: rgba(255, 255, 255, 0.95);
-            border: 3px solid var(--autumn-red);
-            border-radius: 50%;
-            padding: 0px;
-            width: 220px;
-            height: 220px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            width: auto;
+            height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            box-shadow: none;
         }
         
         .benefit-item img {
@@ -630,9 +641,9 @@
             }
             
             .benefit-item {
-                width: 150px;
-                height: 150px;
-                padding: 15px;
+                width: auto;
+                height: auto;
+                padding: 0;
             }
             
             .benefit-item img {
@@ -701,9 +712,9 @@
             }
             
             .benefit-item {
-                width: 120px;
-                height: 120px;
-                padding: 10px;
+                width: auto;
+                height: auto;
+                padding: 0;
             }
             
             .benefit-item img {
@@ -766,9 +777,9 @@
             }
             
             .benefit-item {
-                width: 100px;
-                height: 100px;
-                padding: 8px;
+                width: auto;
+                height: auto;
+                padding: 0;
             }
             
             .benefit-item img {
@@ -857,7 +868,7 @@
             
             <div class="benefits-section fade-in">
                 <div class="benefit-item float">
-                    <img src="../campaigns/2025-09-add/benefit-1-new2.png" alt="골프 클럽 점검">
+                    <img src="../campaigns/2025-09-add/benefit-1.png" alt="골프 클럽 점검">
                 </div>
                 
                 <div class="benefit-item float">
