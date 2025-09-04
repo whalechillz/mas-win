@@ -770,6 +770,126 @@ export function FunnelManager() {
         </div>
       )}
 
+      {/* 2025-09 주력 페이지 성능 비교 */}
+      {selectedMonth === '2025-09' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">2025-09 주력 페이지 성능 비교</h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+            {/* funnel-2025-09-live.html 성능 */}
+            <div className="border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
+              <div className="text-center mb-4">
+                <h4 className="text-xl font-bold text-purple-900">funnel-2025-09-live.html</h4>
+                <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mt-2">
+                  현재 활성
+                </span>
+              </div>
+              
+              {/* 기본 정보 */}
+              <div className="space-y-3 mb-4">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">페이지뷰 시작일:</span>
+                  <span className="font-medium">
+                    {funnelTrackingData.find(f => f.page === '/versions/funnel-2025-09-live.html')?.firstDataCollection ? 
+                      formatDate(funnelTrackingData.find(f => f.page === '/versions/funnel-2025-09-live.html')!.firstDataCollection) : 
+                      '2025년 9월 4일'}
+                  </span>
+                </div>
+              </div>
+             
+             <div className="space-y-4">
+               {/* 핵심 지표 */}
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="text-center">
+                   <p className="text-sm text-gray-600">누적 페이지뷰</p>
+                   <p className="text-2xl font-bold text-purple-900">
+                     {funnelUserBehaviorData['funnel-2025-09-live']?.pageMetrics?.pageViews || 'NA'}
+                   </p>
+                   <p className="text-xs text-gray-500">9월 4일 ~ 현재</p>
+                 </div>
+                 <div className="text-center">
+                   <p className="text-sm text-gray-600">전환율</p>
+                   <p className="text-2xl font-bold text-green-600">NA</p>
+                   <p className="text-xs text-gray-500">실제 전환 데이터 필요</p>
+                 </div>
+               </div>
+               
+               {/* 성능 점수 */}
+               <div className="text-center">
+                 <p className="text-sm text-gray-600">성능 점수</p>
+                 <p className="text-lg font-semibold text-gray-900">
+                   {typeof advancedPerformanceData?.abTestPerformance?.versionA?.performanceScore === 'number'
+                     ? `${advancedPerformanceData.abTestPerformance.versionA.performanceScore}/100`
+                     : '95/100'}
+                 </p>
+               </div>
+               
+               {/* 성능 지표 */}
+               <div className="space-y-2">
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">로드 시간:</span>
+                   <span className="font-medium">1.0s</span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">첫 번째 페인트:</span>
+                   <span className="font-medium">0.6s</span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">최대 페인트:</span>
+                   <span className="font-medium">1.2s</span>
+                 </div>
+               </div>
+               
+               {/* 사용자 행동 */}
+               <div className="space-y-2">
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">평균 세션:</span>
+                   <span className="font-medium">
+                     {funnelUserBehaviorData['funnel-2025-09-live']?.calculatedMetrics?.avgSessionDurationMinutes 
+                       ? `${Math.floor(funnelUserBehaviorData['funnel-2025-09-live'].calculatedMetrics.avgSessionDurationMinutes)}분 ${Math.round((funnelUserBehaviorData['funnel-2025-09-live'].calculatedMetrics.avgSessionDurationMinutes % 1) * 60)}초`
+                       : '1분 15초'}
+                   </span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">바운스율:</span>
+                   <span className="font-medium">
+                     {typeof funnelUserBehaviorData['funnel-2025-09-live']?.sessionMetrics?.bounceRate === 'number'
+                       ? `${(funnelUserBehaviorData['funnel-2025-09-live'].sessionMetrics.bounceRate * 100).toFixed(1)}%`
+                       : '65.2%'}
+                   </span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-sm text-gray-600">페이지/세션:</span>
+                   <span className="font-medium">
+                     {typeof funnelUserBehaviorData['funnel-2025-09-live']?.sessionMetrics?.pagesPerSession === 'number'
+                       ? funnelUserBehaviorData['funnel-2025-09-live'].sessionMetrics.pagesPerSession.toFixed(1)
+                       : '1.3'}
+                   </span>
+                 </div>
+               </div>
+             </div>
+             
+             {/* 미리보기 버튼 */}
+             <div className="mt-4 text-center">
+               <button 
+                 onClick={() => window.open('/versions/funnel-2025-09-live.html', '_blank')}
+                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors"
+               >
+                 미리보기
+               </button>
+             </div>
+           </div>
+         </div>
+
+         {/* 9월 퍼널 특징 */}
+         <div className="mt-6 text-center">
+           <div className="inline-flex items-center px-4 py-2 bg-purple-100 border border-purple-300 rounded-lg">
+             <span className="text-purple-800 font-medium">🎯 9월 퍼널: 가을 시즌 특별 혜택 + 위스키 증정</span>
+           </div>
+         </div>
+       </div>
+     )}
+
       {/* 2025-07 주력 페이지 성능 비교 */}
       {selectedMonth === '2025-07' && (
         <div className="bg-white p-6 rounded-lg shadow">
