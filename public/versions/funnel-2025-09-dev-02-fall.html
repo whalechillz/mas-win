@@ -131,7 +131,6 @@
             justify-content: center;
             text-align: center;
             color: var(--autumn-white);
-            overflow: hidden;
         }
         
         .main-header::before {
@@ -145,36 +144,7 @@
             z-index: 1;
         }
         
-        .main-header::after {
-            content: '';
-            position: absolute;
-            top: -10%;
-            left: -10%;
-            right: -10%;
-            bottom: -10%;
-            background-image: url('../campaigns/2025-09-add/background2.png');
-            background-size: 120% auto;
-            background-position: center;
-            background-repeat: no-repeat;
-            animation: backgroundFloat 25s ease-in-out infinite;
-            z-index: 0;
-            opacity: 0.8;
-        }
-        
-        @keyframes backgroundFloat {
-            0%, 100% {
-                transform: translate(0, 0) scale(1);
-            }
-            25% {
-                transform: translate(-3%, -2%) scale(1.03);
-            }
-            50% {
-                transform: translate(2%, -3%) scale(1.02);
-            }
-            75% {
-                transform: translate(-2%, 2%) scale(1.04);
-            }
-        }
+
         
         .header-content {
             position: relative;
@@ -210,6 +180,39 @@
         
         .title-gold {
             color: var(--autumn-gold);
+        }
+        
+        /* 드래그 기반 글자 애니메이션 */
+        .main-headlines h1 {
+            transition: all 0.3s ease;
+        }
+        
+        .main-headlines h1:hover {
+            transform: scale(1.05);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.9);
+        }
+        
+        .sub-headline {
+            transition: all 0.3s ease;
+        }
+        
+        .sub-headline:hover {
+            transform: translateY(-5px);
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.9);
+        }
+        
+        .benefit-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .benefit-item:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        }
+        
+        .benefit-item:active {
+            transform: scale(0.95);
         }
         
         .sub-headline {
@@ -1061,6 +1064,96 @@
             document.querySelectorAll('.fade-in').forEach(el => {
                 observer.observe(el);
             });
+            
+            // 드래그 기반 애니메이션 초기화
+            initializeDragAnimations();
+        }
+        
+        // 드래그 기반 애니메이션 초기화
+        function initializeDragAnimations() {
+            let isDragging = false;
+            let startY = 0;
+            let currentY = 0;
+            
+            // 터치 이벤트 (모바일)
+            document.addEventListener('touchstart', handleTouchStart);
+            document.addEventListener('touchmove', handleTouchMove);
+            document.addEventListener('touchend', handleTouchEnd);
+            
+            // 마우스 이벤트 (데스크톱)
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            function handleTouchStart(e) {
+                isDragging = true;
+                startY = e.touches[0].clientY;
+            }
+            
+            function handleTouchMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                currentY = e.touches[0].clientY;
+                updateDragAnimation();
+            }
+            
+            function handleTouchEnd() {
+                isDragging = false;
+                resetDragAnimation();
+            }
+            
+            function handleMouseDown(e) {
+                isDragging = true;
+                startY = e.clientY;
+            }
+            
+            function handleMouseMove(e) {
+                if (!isDragging) return;
+                currentY = e.clientY;
+                updateDragAnimation();
+            }
+            
+            function handleMouseUp() {
+                isDragging = false;
+                resetDragAnimation();
+            }
+            
+            function updateDragAnimation() {
+                const deltaY = currentY - startY;
+                const intensity = Math.min(Math.abs(deltaY) / 100, 1);
+                
+                // 제목 애니메이션
+                const title = document.querySelector('.main-headlines h1');
+                if (title) {
+                    title.style.transform = `translateY(${deltaY * 0.1}px) scale(${1 + intensity * 0.05})`;
+                    title.style.textShadow = `${intensity * 3}px ${intensity * 3}px ${intensity * 6}px rgba(0,0,0,0.9)`;
+                }
+                
+                // 부제목 애니메이션
+                const subtitle = document.querySelector('.sub-headline');
+                if (subtitle) {
+                    subtitle.style.transform = `translateY(${deltaY * 0.15}px)`;
+                    subtitle.style.textShadow = `${intensity * 2}px ${intensity * 2}px ${intensity * 4}px rgba(255,255,255,0.9)`;
+                }
+                
+                // 혜택 아이템 애니메이션
+                const benefitItems = document.querySelectorAll('.benefit-item');
+                benefitItems.forEach((item, index) => {
+                    const delay = index * 0.1;
+                    const itemIntensity = Math.max(0, intensity - delay);
+                    item.style.transform = `scale(${1 + itemIntensity * 0.1}) rotate(${itemIntensity * 2}deg)`;
+                    item.style.boxShadow = `0 ${8 + itemIntensity * 4}px ${25 + itemIntensity * 10}px rgba(0,0,0,${0.3 + itemIntensity * 0.1})`;
+                });
+            }
+            
+            function resetDragAnimation() {
+                const elements = document.querySelectorAll('.main-headlines h1, .sub-headline, .benefit-item');
+                elements.forEach(el => {
+                    el.style.transform = '';
+                    el.style.textShadow = '';
+                    el.style.boxShadow = '';
+                });
+            }
         }
         
         // 배너 숫자 업데이트
