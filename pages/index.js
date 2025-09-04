@@ -656,11 +656,11 @@ export async function getServerSideProps(context) {
   const { req } = context;
   const hostname = req.headers.host;
 
-  // win.masgolf.co.kr만 /25-08로 리다이렉트
+  // win.masgolf.co.kr만 /25-09로 리다이렉트
   if (hostname === 'win.masgolf.co.kr') {
     return {
       redirect: {
-        destination: '/25-08',
+        destination: '/25-09',
         permanent: false,
       },
     };
