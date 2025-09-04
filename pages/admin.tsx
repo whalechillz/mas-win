@@ -13,6 +13,7 @@ import MonthlyCampaignAnalytics from '../components/admin/campaigns/MonthlyCampa
 import GA4AdvancedDashboard from '../components/admin/dashboard/GA4AdvancedDashboard';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FunnelManager } from '../components/admin/funnel/FunnelManager';
+import GoogleAdsDiagnostic from '../components/admin/google-ads/GoogleAdsDiagnostic';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -259,6 +260,8 @@ export default function Admin() {
             <nav className="flex space-x-8">
               {[
                 { id: 'dashboard', name: '대시보드' },
+                { id: 'google-ads', name: 'Google Ads 관리' },
+                { id: 'ga4-analytics', name: 'GA4 분석' },
                 { id: 'funnel-manager', name: '퍼널 관리' },
                 { id: 'campaigns', name: '캠페인 관리' },
                 { id: 'customer-management', name: '예약상담관리' },
@@ -283,9 +286,69 @@ export default function Admin() {
           <div className="p-6">
             {activeTab === 'dashboard' && (
               <div className="space-y-6">
-                <CampaignKPIDashboard />
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">📊 종합 대시보드</h2>
+                  <p className="text-gray-600 mb-6">전체 성과 요약 및 주요 KPI를 한눈에 확인하세요.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">🎯 Google Ads</h3>
+                      <p className="text-sm text-gray-600 mb-3">캠페인 성과 및 광고 데이터</p>
+                      <button 
+                        onClick={() => setActiveTab('google-ads')}
+                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Google Ads 관리로 이동
+                      </button>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">📈 GA4 분석</h3>
+                      <p className="text-sm text-gray-600 mb-3">사용자 행동 및 웹사이트 분석</p>
+                      <button 
+                        onClick={() => setActiveTab('ga4-analytics')}
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        GA4 분석으로 이동
+                      </button>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">🔄 퍼널 관리</h3>
+                      <p className="text-sm text-gray-600 mb-3">랜딩페이지 성과 및 A/B 테스트</p>
+                      <button 
+                        onClick={() => setActiveTab('funnel-manager')}
+                        className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors"
+                      >
+                        퍼널 관리로 이동
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'google-ads' && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">🎯 Google Ads 관리</h2>
+                  <p className="text-gray-600">캠페인 성과, 광고 그룹 분석, 키워드 성과를 관리하세요.</p>
+                </div>
                 
-                {/* GA4 실시간 대시보드 */}
+                {/* Google Ads API 진단 도구 */}
+                <GoogleAdsDiagnostic />
+                
+                {/* Google Ads 캠페인 KPI */}
+                <CampaignKPIDashboard />
+              </div>
+            )}
+
+            {activeTab === 'ga4-analytics' && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">📈 GA4 분석</h2>
+                  <p className="text-gray-600">실시간 데이터, 사용자 행동 분석, 페이지 성과를 확인하세요.</p>
+                </div>
                 <GA4RealtimeDashboard />
               </div>
             )}
