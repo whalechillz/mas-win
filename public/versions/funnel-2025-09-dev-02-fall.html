@@ -832,7 +832,7 @@
     
     <!-- 상단 오렌지 배너 -->
     <div class="top-banner">
-        가을 시즌 특별 혜택 마감 임박! 지금 상담 중인 고객: 15명 | 오늘 구매 완료: 12명
+        <span class="banner-text">가을 시즌 혜택 마감 임박!<br>상담중인 고객: <span class="consulting-count">5</span>명 | 구매 완료: <span class="purchase-count">0</span>명</span>
         <i class="fas fa-clock alarm-icon"></i>
     </div>
     
@@ -1066,16 +1066,32 @@
         // 배너 숫자 업데이트
         function updateBannerNumbers() {
             const topBanner = document.querySelector('.top-banner');
-            const bottomBanner = document.querySelector('.bottom-banner');
+            const consultingCount = document.querySelector('.consulting-count');
+            const purchaseCount = document.querySelector('.purchase-count');
             
+            let currentPurchaseCount = 0;
+            const maxPurchaseCount = 30;
+            
+            // 상담 고객 수 랜덤 업데이트 (5~10명)
             setInterval(() => {
-                const consulting = Math.floor(Math.random() * 5) + 12;
-                const completed = Math.floor(Math.random() * 3) + 10;
-                
-                if (topBanner) {
-                    topBanner.innerHTML = `가을 시즌 특별 혜택 마감 임박! 지금 상담 중인 고객: ${consulting}명 | 오늘 구매 완료: ${completed}명<i class="fas fa-clock alarm-icon"></i>`;
+                const consulting = Math.floor(Math.random() * 6) + 5; // 5~10명
+                if (consultingCount) {
+                    consultingCount.textContent = consulting;
                 }
-            }, 30000); // 30초마다 업데이트
+            }, 15000); // 15초마다 업데이트
+            
+            // 구매 완료 수 자연스럽게 증가 (이번달까지 최대 30명)
+            setInterval(() => {
+                if (currentPurchaseCount < maxPurchaseCount) {
+                    currentPurchaseCount += Math.floor(Math.random() * 2) + 1; // 1~2명씩 증가
+                    if (currentPurchaseCount > maxPurchaseCount) {
+                        currentPurchaseCount = maxPurchaseCount;
+                    }
+                    if (purchaseCount) {
+                        purchaseCount.textContent = currentPurchaseCount;
+                    }
+                }
+            }, 20000); // 20초마다 업데이트
         }
         
         // VIP 모달 열기
