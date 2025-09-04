@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { path, month = '2025-08' } = req.query;
+    const { path, month = '2025-09' } = req.query;
     const propertyId = process.env.GA4_PROPERTY_ID;
 
     if (!propertyId) {

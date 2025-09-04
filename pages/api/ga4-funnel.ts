@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('퍼널 경로가 필요합니다.');
     }
 
-    const [year, monthNum] = (month as string || '2025-08').split('-');
+    const [year, monthNum] = (month as string || '2025-09').split('-');
     const startDate = `${year}-${monthNum}-01`;
     const endDate = `${year}-${monthNum}-${new Date(parseInt(year), parseInt(monthNum), 0).getDate()}`;
 
