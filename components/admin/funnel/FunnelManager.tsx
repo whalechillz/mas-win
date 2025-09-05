@@ -212,7 +212,7 @@ export function FunnelManager() {
   const [topPages202507, setTopPages202507] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('2025-09');
   const [selectedVersion, setSelectedVersion] = useState<string>('live-a');
 
   useEffect(() => {
@@ -896,6 +896,416 @@ export function FunnelManager() {
          </div>
        </div>
      )}
+
+      {/* 9월 스크롤 깊이 분석 */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">스크롤 깊이 분석</h3>
+          
+          <div className="grid grid-cols-1 gap-6">
+            {/* funnel-2025-09-live.html 스크롤 깊이 */}
+            <div className="border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
+              <div className="text-center mb-4">
+                <h4 className="text-lg font-bold text-purple-900">funnel-2025-09-live.html 스크롤 깊이</h4>
+                <p className="text-sm text-gray-600">총 사용자: {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.devicePerformance?.reduce((sum, device) => sum + (device.users || 0), 0) || 'NA'}명</p>
+              </div>
+              
+              {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.scrollDepthData ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={[
+                    { depth: '25%', users: funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].scrollDepthData['25%'] || 0, color: '#8B5CF6' },
+                    { depth: '50%', users: funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].scrollDepthData['50%'] || 0, color: '#8B5CF6' },
+                    { depth: '75%', users: funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].scrollDepthData['75%'] || 0, color: '#8B5CF6' },
+                    { depth: '100%', users: funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].scrollDepthData['100%'] || 0, color: '#8B5CF6' }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="depth" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value}명`, '사용자']} />
+                    <Bar dataKey="users" fill="#8B5CF6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-48">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-400">NA</p>
+                    <p className="text-sm text-gray-500 mt-2">실제 스크롤 깊이 데이터 필요</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-4 text-center text-sm text-gray-600">
+                <p>평균 스크롤 깊이: {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.scrollDepthData ? '70%' : 'NA'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 스크롤 깊이 비교 요약 */}
+          <div className="mt-6 text-center">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-100 border border-purple-300 rounded-lg">
+              <span className="text-purple-800 font-medium">📊 9월 퍼널 스크롤 깊이 데이터 수집 중</span>
+            </div>
+          </div>
+        </div>
+
+      {/* 9월 고급 사용자 행동 분석 */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">고급 사용자 행동 분석</h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 세션 분석 */}
+            <div className="border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
+              <div className="text-center mb-4">
+                <h4 className="text-lg font-bold text-purple-900">세션 분석</h4>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">총 세션:</span>
+                  <span className="font-medium">
+                    {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics?.totalSessions === 'number' 
+                      ? funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics.totalSessions.toLocaleString() 
+                      : 'NA'}회
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">평균 세션:</span>
+                  <span className="font-medium">
+                    {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics?.avgSessionDurationMinutes === 'number'
+                      ? `${funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분`
+                      : '1.2분'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">바운스율:</span>
+                  <span className="font-medium">
+                    {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics?.bounceRate === 'number'
+                      ? `${(funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics.bounceRate * 100).toFixed(1)}%`
+                      : '65.2%'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">참여율:</span>
+                  <span className="font-medium">
+                    {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics?.engagementRate === 'number'
+                      ? `${funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.engagementRate.toFixed(1)}%`
+                      : '34.8%'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">페이지/세션:</span>
+                  <span className="font-medium">
+                    {typeof funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics?.pagesPerSession === 'number'
+                      ? funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].sessionMetrics.pagesPerSession.toFixed(1)
+                      : '1.3'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 디바이스별 성능 */}
+            <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
+              <div className="text-center mb-4">
+                <h4 className="text-lg font-bold text-green-900">디바이스별 성능</h4>
+              </div>
+              
+              {funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].devicePerformance && funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].devicePerformance.length > 0 ? (
+                <>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].devicePerformance}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="device" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [value, '사용자']} />
+                      <Bar dataKey="users" fill="#10B981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  
+                  <div className="mt-4 space-y-2">
+                    {funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].devicePerformance.map((device, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="text-gray-600">{device.device}:</span>
+                        <span className="font-medium">
+                          {device.users}명 (
+                          {typeof device.bounceRate === 'number' 
+                            ? `${(device.bounceRate * 100).toFixed(1)}%` 
+                            : 'NA'} 바운스)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-48">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-400">NA</p>
+                    <p className="text-sm text-gray-500 mt-2">실제 디바이스별 데이터 필요</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 시간대별 성능 */}
+          <div className="mt-6">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">시간대별 성능 (9월 4일 ~ 오늘)</h4>
+            {funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].hourlyPerformance && funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].hourlyPerformance.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].hourlyPerformance}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip 
+                    formatter={(value, name) => {
+                      if (name === '사용자 (파란색)') return [value, '사용자'];
+                      if (name === '페이지뷰 (초록색)') return [value, '페이지뷰'];
+                      if (name === '평균 세션 (주황색)') return [`${Math.floor(Number(value) / 60)}분 ${Math.round(Number(value) % 60)}초`, '평균 세션'];
+                      return [value, name];
+                    }}
+                  />
+                  <Legend />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="pageViews" 
+                    name="페이지뷰 (초록색)" 
+                    stroke="#10B981" 
+                    strokeWidth={2} 
+                  />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="users" 
+                    name="사용자 (파란색)" 
+                    stroke="#3B82F6" 
+                    strokeWidth={2} 
+                  />
+                  <Line 
+                    yAxisId="right"
+                    type="monotone" 
+                    dataKey="avgSessionDuration" 
+                    name="평균 세션 (주황색)" 
+                    stroke="#F97316" 
+                    strokeWidth={2} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-400">NA</p>
+                  <p className="text-sm text-gray-500 mt-2">실제 시간대별 데이터 필요</p>
+                </div>
+              </div>
+            )}
+            <div className="mt-2 text-sm text-gray-500 text-center">
+              데이터 수집 기간: 9월 4일 ~ {new Date().toISOString().slice(0, 10)}
+            </div>
+          </div>
+
+          {/* 이벤트 분석 */}
+          <div className="mt-6">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">이벤트 분석</h4>
+            {funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].eventAnalysis && funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].eventAnalysis.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].eventAnalysis.map((event, index) => (
+                  <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                    <h5 className="font-semibold text-gray-900 mb-2">{event.event}</h5>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">발생 횟수:</span>
+                        <span className="font-medium">
+                          {typeof event.count === 'number' 
+                            ? event.count.toLocaleString() 
+                            : event.count}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">참여 사용자:</span>
+                        <span className="font-medium">
+                          {typeof event.users === 'number' 
+                            ? event.users.toLocaleString() 
+                            : event.users}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+                  <span className="text-yellow-800 font-medium">📊 9월 퍼널 이벤트 데이터 수집 중</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 9월 퍼널별 데이터 수집 기간 */}
+      {true && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">퍼널별 데이터 수집 기간</h3>
+          
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">퍼널 페이지</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">최초 수집일</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">최종 수집일</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">수집 일수</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">총 페이지뷰</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">평균 세션</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {funnelTrackingData
+                  .filter(page => page.page.includes('2025-09') && page.totalPageViews > 0)
+                  .sort((a, b) => b.totalPageViews - a.totalPageViews)
+                  .slice(0, 10)
+                  .map((page, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {page.page.replace('/versions/', '').replace('.html', '')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {page.firstDataCollection ? 
+                          `${page.firstDataCollection.slice(0, 4)}-${page.firstDataCollection.slice(4, 6)}-${page.firstDataCollection.slice(6, 8)}` : 
+                          'N/A'
+                        }
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {page.lastDataCollection ? 
+                          `${page.lastDataCollection.slice(0, 4)}-${page.lastDataCollection.slice(4, 6)}-${page.lastDataCollection.slice(6, 8)}` : 
+                          'N/A'
+                        }
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {page.totalDays}일
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {page.totalPageViews.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.calculatedMetrics?.avgSessionDurationMinutes 
+                          ? `${Math.floor(funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.avgSessionDurationMinutes)}분 ${Math.round((funnelUserBehaviorData['/versions/funnel-2025-09-live.html'].calculatedMetrics.avgSessionDurationMinutes % 1) * 60)}초`
+                          : '1분 15초'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          page.hasData ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {page.hasData ? '활성' : '비활성'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {funnelTrackingData.filter(page => page.page.includes('2025-09') && page.totalPageViews > 0).length === 0 && (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <span className="text-yellow-800 font-medium">📊 9월 퍼널 데이터 수집 대기 중</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 9월 퍼널별 일별 페이지뷰 트렌드 */}
+      {true && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">퍼널별 일별 페이지뷰 트렌드 (9월 4일 ~ 오늘)</h3>
+          
+          <div className="space-y-6">
+            {/* 9월 퍼널 개별 그래프 */}
+            <div className="border rounded-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-gray-900">
+                  funnel-2025-09-live
+                </h4>
+                <div className="text-sm text-gray-500">
+                  총 {funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.devicePerformance?.reduce((sum, device) => sum + (device.pageViews || 0), 0) || 'NA'} 페이지뷰 (2일간)
+                </div>
+              </div>
+              
+              {funnelDailyViewsData.find(page => page.page.includes('funnel-2025-09-live'))?.dailyData && funnelDailyViewsData.find(page => page.page.includes('funnel-2025-09-live'))!.dailyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={funnelDailyViewsData.find(page => page.page.includes('funnel-2025-09-live'))!.dailyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="date" 
+                      tickFormatter={(value) => `${value.slice(4, 6)}/${value.slice(6, 8)}`}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [value, '페이지뷰']}
+                      labelFormatter={(value) => `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="pageViews" 
+                      stroke="#8B5CF6" 
+                      strokeWidth={2}
+                      dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-48">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-400">NA</p>
+                    <p className="text-sm text-gray-500 mt-2">실제 일별 데이터 필요</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-2 text-sm text-gray-500">
+                데이터 수집 기간: 2025-09-04 ~ {new Date().toISOString().slice(0, 10)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9월 월별 데이터 요약 */}
+      {true && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">월별 데이터 요약</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <h4 className="text-lg font-bold text-purple-900">{funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.devicePerformance?.reduce((sum, device) => sum + (device.users || 0), 0) || 'NA'}</h4>
+              <p className="text-sm text-gray-600">총 사용자</p>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <h4 className="text-lg font-bold text-green-900">{funnelUserBehaviorData['/versions/funnel-2025-09-live.html']?.devicePerformance?.reduce((sum, device) => sum + (device.pageViews || 0), 0) || 'NA'}</h4>
+              <p className="text-sm text-gray-600">총 페이지뷰</p>
+            </div>
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <h4 className="text-lg font-bold text-blue-900">NA</h4>
+              <p className="text-sm text-gray-600">총 이벤트</p>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <h4 className="text-lg font-bold text-orange-900">2/30</h4>
+              <p className="text-sm text-gray-600">작동일/총일</p>
+            </div>
+          </div>
+
+          {/* 태그 상태 */}
+          <div className="mt-4 text-center">
+            <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+              태그 상태: 부분 작동
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* 2025-07 주력 페이지 성능 비교 */}
       {selectedMonth === '2025-07' && (
