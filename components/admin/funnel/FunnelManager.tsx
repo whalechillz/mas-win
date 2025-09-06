@@ -612,31 +612,6 @@ export default function FunnelManager() {
                         </div>
                       </div>
                       
-                      
-                      {/* 사용자 행동 데이터가 있을 때 표시 */}
-                      {userBehaviorData && (
-                        <div className="mt-4 p-3 bg-blue-50 rounded">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">사용자 행동 분석</h5>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="text-center">
-                              <p className="text-gray-600">평균 세션 시간</p>
-                              <p className="font-medium text-blue-600">
-                                {userBehaviorData?.sessionMetrics?.avgSessionDuration ? 
-                                  `${Math.floor(userBehaviorData.sessionMetrics.avgSessionDuration / 60)}분 ${Math.round(userBehaviorData.sessionMetrics.avgSessionDuration % 60)}초` : 
-                                  'N/A'}
-                              </p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-gray-600">바운스율</p>
-                              <p className="font-medium text-red-600">
-                                {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                                  `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
-                                  'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
