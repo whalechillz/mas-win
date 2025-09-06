@@ -586,6 +586,157 @@ export default function FunnelManager() {
           </div>
         )}
 
+        {/* 월별 상세 분석 - 2025-09 */}
+        {selectedMonth === '2025-09' && userBehaviorData && (
+          <div className="bg-white p-6 rounded-lg shadow mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">2025-09 상세 분석</h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 세션 메트릭 */}
+              <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                <div className="text-center mb-4">
+                  <h4 className="text-lg font-bold text-blue-900">세션 분석</h4>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">총 세션:</span>
+                    <span className="font-medium">
+                      {userBehaviorData?.sessionMetrics?.totalSessions?.toLocaleString() || '0'}회
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">평균 세션:</span>
+                    <span className="font-medium">
+                      {userBehaviorData?.calculatedMetrics?.avgSessionDurationMinutes ? 
+                        `${userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분` : 
+                        'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">바운스율:</span>
+                    <span className="font-medium">
+                      {userBehaviorData?.sessionMetrics?.bounceRate ? 
+                        `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                        'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">참여율:</span>
+                    <span className="font-medium">
+                      {userBehaviorData?.calculatedMetrics?.engagementRate ? 
+                        `${(userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1)}%` : 
+                        'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">페이지/세션:</span>
+                    <span className="font-medium">
+                      {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 디바이스별 성능 */}
+              {userBehaviorData?.devicePerformance && userBehaviorData.devicePerformance.length > 0 && (
+                <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                  <div className="text-center mb-4">
+                    <h4 className="text-lg font-bold text-green-900">디바이스별 성능</h4>
+                  </div>
+                  
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={userBehaviorData.devicePerformance}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="device" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [value, '사용자']} />
+                      <Bar dataKey="users" fill="#10B981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  
+                  <div className="mt-4 space-y-2">
+                    {userBehaviorData.devicePerformance.map((device, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="text-gray-600">{device.device}:</span>
+                        <span className="font-medium">
+                          {device.users}명 ({device.bounceRate ? `${(device.bounceRate * 100).toFixed(1)}%` : 'N/A'} 바운스)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 시간대별 성능 */}
+            {userBehaviorData?.hourlyPerformance && userBehaviorData.hourlyPerformance.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">시간대별 성능 (9월 1일 ~ 9월 30일)</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={userBehaviorData.hourlyPerformance}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === '사용자 (파란색)') return [value, '사용자'];
+                        if (name === '페이지뷰 (초록색)') return [value, '페이지뷰'];
+                        return [value, name];
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="pageViews" 
+                      name="페이지뷰 (초록색)" 
+                      stroke="#10B981" 
+                      strokeWidth={2} 
+                    />
+                    <Line 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="users" 
+                      name="사용자 (파란색)" 
+                      stroke="#3B82F6" 
+                      strokeWidth={2} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-2 text-sm text-gray-500 text-center">
+                  데이터 수집 기간: 9월 1일 ~ 9월 30일
+                </div>
+              </div>
+            )}
+
+            {/* 이벤트 분석 */}
+            {userBehaviorData?.eventAnalysis && userBehaviorData.eventAnalysis.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">이벤트 분석</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {userBehaviorData.eventAnalysis.map((event, index) => (
+                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                      <h5 className="font-semibold text-gray-900 mb-2">{event.event}</h5>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">발생 횟수:</span>
+                          <span className="font-medium">{event.count?.toLocaleString() || '0'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">참여 사용자:</span>
+                          <span className="font-medium">{event.users?.toLocaleString() || '0'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 월별 상세 분석 - 2025-07 */}
         {selectedMonth === '2025-07' && userBehaviorData && (
           <div className="bg-white p-6 rounded-lg shadow mb-8">
