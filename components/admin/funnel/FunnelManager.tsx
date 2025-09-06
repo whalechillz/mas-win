@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 
 interface FunnelFile {
   name: string;
@@ -36,6 +36,21 @@ interface GA4Data {
     today: string;
     monthStart: string;
     monthEnd: string;
+  };
+}
+
+interface PerformanceData {
+  liveA: {
+    pageLoadTime: number;
+    firstContentfulPaint: number;
+    largestContentfulPaint: number;
+    fileSize: number;
+  };
+  liveB: {
+    pageLoadTime: number;
+    firstContentfulPaint: number;
+    largestContentfulPaint: number;
+    fileSize: number;
   };
 }
 
@@ -79,27 +94,125 @@ interface UserBehaviorData {
   timestamp: string;
   period: string;
   status?: string;
+  scrollDepthData?: {
+    liveA?: {
+      totalUsers: number;
+      scrollDepth: {
+        '25%': number;
+        '50%': number;
+        '75%': number;
+        '100%': number;
+      };
+    };
+    liveB?: {
+      totalUsers: number;
+      scrollDepth: {
+        '25%': number;
+        '50%': number;
+        '75%': number;
+        '100%': number;
+      };
+    };
+  };
+}
+
+interface AdvancedPerformanceData {
+  pagePerformance: Array<{
+    page: string;
+    pageViews: number;
+    avgSessionDuration: number;
+  }>;
+  devicePerformance: Array<{
+    device: string;
+    pageViews: number;
+    avgSessionDuration: number;
+    bounceRate: number;
+  }>;
+  hourlyPerformance: Array<{
+    hour: string;
+    pageViews: number;
+    sessions: number;
+  }>;
+  overallMetrics: {
+    totalPageViews: number;
+    avgSessionDurationMinutes: number;
+    avgBounceRate: number;
+    performanceScore: number;
+  };
+  abTestPerformance: {
+    versionA: {
+      pageLoadTime: number;
+      firstContentfulPaint: number;
+      largestContentfulPaint: number;
+      fileSize: number;
+      performanceScore: number;
+    };
+    versionB: {
+      pageLoadTime: number;
+      firstContentfulPaint: number;
+      largestContentfulPaint: number;
+      fileSize: number;
+      performanceScore: number;
+    };
+  };
+  timestamp: string;
+  period: string;
+  status?: string;
 }
 
 interface MonthlyData {
+  month: string;
+  year: number;
   users: number;
   pageViews: number;
   events: number;
+  tagStatus: string;
   workingDays: number;
   totalDays: number;
-  tagStatus: 'working' | 'partial' | 'not_working';
-  timestamp: string;
-  period: string;
+  dailyData: Array<{
+    date: string;
+    users: number;
+    pageViews: number;
+    events: number;
+  }>;
+}
+
+interface FunnelTrackingData {
+  page: string;
+  firstDataCollection: string;
+  lastDataCollection: string;
+  totalDays: number;
+  totalPageViews: number;
+  hasData: boolean;
+}
+
+interface FunnelDailyViewsData {
+  page: string;
+  dailyData: Array<{
+    date: string;
+    pageViews: number;
+  }>;
+  totalDays: number;
+  totalPageViews: number;
+  firstDataDate: string | null;
+  lastDataDate: string | null;
 }
 
 export default function FunnelManager() {
   const [funnelData, setFunnelData] = useState<FunnelData | null>(null);
   const [ga4Data, setGa4Data] = useState<GA4Data | null>(null);
+  const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
   const [userBehaviorData, setUserBehaviorData] = useState<UserBehaviorData | null>(null);
+  const [advancedPerformanceData, setAdvancedPerformanceData] = useState<AdvancedPerformanceData | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData | null>(null);
+  const [funnelTrackingData, setFunnelTrackingData] = useState<FunnelTrackingData[]>([]);
+  const [funnelDailyViewsData, setFunnelDailyViewsData] = useState<FunnelDailyViewsData[]>([]);
+  const [funnelUserBehaviorData, setFunnelUserBehaviorData] = useState<{[key: string]: any}>({});
+  const [topPages202507, setTopPages202507] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>('2025-09');
+  const [selectedVersion, setSelectedVersion] = useState<string>('live-a');
 
   useEffect(() => {
     // 기본 퍼널 데이터만 먼저 로드
@@ -113,15 +226,51 @@ export default function FunnelManager() {
     }
     
     try {
+      fetchPerformanceData();
+    } catch (err) {
+      console.log('성능 데이터 로드 실패:', err);
+    }
+    
+    try {
       fetchUserBehaviorData();
     } catch (err) {
       console.log('사용자 행동 데이터 로드 실패:', err);
     }
     
     try {
+      fetchAdvancedPerformanceData();
+    } catch (err) {
+      console.log('고급 성능 데이터 로드 실패:', err);
+    }
+    
+    try {
       fetchMonthlyData();
     } catch (err) {
       console.log('월별 데이터 로드 실패:', err);
+    }
+    
+    try {
+      fetchFunnelTrackingData();
+    } catch (err) {
+      console.log('퍼널 추적 데이터 로드 실패:', err);
+    }
+    
+    try {
+      fetchFunnelDailyViewsData();
+    } catch (err) {
+      console.log('퍼널 일별 조회 데이터 로드 실패:', err);
+    }
+    
+    try {
+      fetchFunnelUserBehaviorData();
+    } catch (err) {
+      console.log('퍼널 사용자 행동 데이터 로드 실패:', err);
+    }
+    
+    try {
+      fetchTopPages202507();
+    } catch (err) {
+      console.log('상위 페이지 데이터 로드 실패:', err);
     }
   }, []);
 
@@ -196,6 +345,39 @@ export default function FunnelManager() {
     }
   };
 
+  const fetchPerformanceData = async () => {
+    try {
+      // 실제 성능 데이터는 API에서 가져와야 하지만, 여기서는 모의 데이터 사용
+      const mockData: PerformanceData = {
+        liveA: {
+          pageLoadTime: 1.2,
+          firstContentfulPaint: 0.8,
+          largestContentfulPaint: 1.5,
+          fileSize: 245760 // 240KB
+        },
+        liveB: {
+          pageLoadTime: 1.1,
+          firstContentfulPaint: 0.7,
+          largestContentfulPaint: 1.3,
+          fileSize: 235520 // 230KB
+        }
+      };
+      setPerformanceData(mockData);
+    } catch (err) {
+      console.error('성능 데이터 로드 실패:', err);
+    }
+  };
+
+  const fetchAdvancedPerformanceData = async () => {
+    try {
+      const response = await fetch('/api/performance-metrics-filtered');
+      const data = await response.json();
+      setAdvancedPerformanceData(data);
+    } catch (err) {
+      console.error('고급 성능 데이터 로드 실패:', err);
+    }
+  };
+
   const fetchMonthlyData = async () => {
     try {
       const response = await fetch('/api/ga4-monthly');
@@ -203,6 +385,71 @@ export default function FunnelManager() {
       setMonthlyData(data);
     } catch (err) {
       console.error('월별 데이터 로드 실패:', err);
+    }
+  };
+
+  const fetchFunnelTrackingData = async () => {
+    try {
+      const response = await fetch('/api/page-tracking-dates');
+      const data = await response.json();
+      // 퍼널 페이지들만 필터링
+      const funnelPages = data.pages.filter((page: any) => 
+        page.page.includes('funnel') || page.page.includes('25-08') || page.page.includes('25-07')
+      );
+      setFunnelTrackingData(funnelPages);
+    } catch (err) {
+      console.error('퍼널 추적 데이터 로드 실패:', err);
+    }
+  };
+
+  const fetchFunnelDailyViewsData = async () => {
+    try {
+      const response = await fetch('/api/funnel-daily-views');
+      const data = await response.json();
+      // 상위 5개 퍼널만 설정 (종합 퍼널 제외)
+      if (data.top5Funnels) {
+        setFunnelDailyViewsData(data.top5Funnels);
+      } else {
+        setFunnelDailyViewsData(data.funnelPages || []);
+      }
+    } catch (err) {
+      console.error('퍼널 일별 뷰 데이터 로드 실패:', err);
+    }
+  };
+
+  const fetchFunnelUserBehaviorData = async () => {
+    try {
+      // 2025-09, 2025-08, 2025-07 퍼널의 개별 사용자 행동 데이터 가져오기
+      const [live09Response, liveAResponse, liveBResponse, live07Response] = await Promise.all([
+        fetch('/api/ga4-funnel-user-behavior?path=/versions/funnel-2025-09-live.html&month=2025-09'),
+        fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-08-live-a&month=2025-08'),
+        fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-08-live-b&month=2025-08'),
+        fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-07-live&month=2025-07')
+      ]);
+      
+      const live09Data = await live09Response.json();
+      const liveAData = await liveAResponse.json();
+      const liveBData = await liveBResponse.json();
+      const live07Data = await live07Response.json();
+      
+      setFunnelUserBehaviorData({
+        '/versions/funnel-2025-09-live.html': live09Data,
+        'funnel-2025-08-live-a': liveAData,
+        'funnel-2025-08-live-b': liveBData,
+        'funnel-2025-07-live': live07Data
+      });
+    } catch (err) {
+      console.error('퍼널별 사용자 행동 데이터 로드 실패:', err);
+    }
+  };
+
+  const fetchTopPages202507 = async () => {
+    try {
+      const response = await fetch('/api/ga4-top-pages-2025-07');
+      const data = await response.json();
+      setTopPages202507(data.pages || []);
+    } catch (err) {
+      console.error('2025-07 상위 페이지 로드 실패:', err);
     }
   };
 
@@ -214,11 +461,28 @@ export default function FunnelManager() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'live': return 'bg-green-100 text-green-800';
+      case 'staging': return 'bg-yellow-100 text-yellow-800';
+      case 'dev': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
+    // GA4 데이터 형식 (YYYYMMDD) 처리
+    if (dateString && dateString.length === 8 && /^\d{8}$/.test(dateString)) {
+      const year = dateString.substring(0, 4);
+      const month = dateString.substring(4, 6);
+      const day = dateString.substring(6, 8);
+      return `${year}년 ${month}월 ${day}일`;
+    }
+    
+    // 일반 날짜 형식 처리
+    return new Date(dateString).toLocaleDateString('ko-KR', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -888,6 +1152,312 @@ export default function FunnelManager() {
           </div>
         )}
 
+        {/* A/B 테스트 성능 비교 */}
+        {performanceData && (
+          <div className="bg-white p-6 rounded-lg shadow mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">A/B 테스트 성능 비교</h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Live A 성능 */}
+              <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                <div className="text-center mb-4">
+                  <h4 className="text-lg font-bold text-blue-900">Live A 성능</h4>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">페이지 로드 시간:</span>
+                    <span className="font-medium">{performanceData.liveA.pageLoadTime}초</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">첫 콘텐츠 페인트:</span>
+                    <span className="font-medium">{performanceData.liveA.firstContentfulPaint}초</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">최대 콘텐츠 페인트:</span>
+                    <span className="font-medium">{performanceData.liveA.largestContentfulPaint}초</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">파일 크기:</span>
+                    <span className="font-medium">{formatFileSize(performanceData.liveA.fileSize)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Live B 성능 */}
+              <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                <div className="text-center mb-4">
+                  <h4 className="text-lg font-bold text-green-900">Live B 성능</h4>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">페이지 로드 시간:</span>
+                    <span className="font-medium">{performanceData.liveB.pageLoadTime}초</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">첫 콘텐츠 페인트:</span>
+                    <span className="font-medium">{performanceData.liveB.firstContentfulPaint}초</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">최대 콘텐츠 페인트:</span>
+                    <span className="font-medium">{performanceData.liveB.largestContentfulPaint}초</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">파일 크기:</span>
+                    <span className="font-medium">{formatFileSize(performanceData.liveB.fileSize)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 성능 비교 차트 */}
+            <div className="mt-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">성능 메트릭 비교</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={[
+                  { name: '페이지 로드 시간', LiveA: performanceData.liveA.pageLoadTime, LiveB: performanceData.liveB.pageLoadTime },
+                  { name: '첫 콘텐츠 페인트', LiveA: performanceData.liveA.firstContentfulPaint, LiveB: performanceData.liveB.firstContentfulPaint },
+                  { name: '최대 콘텐츠 페인트', LiveA: performanceData.liveA.largestContentfulPaint, LiveB: performanceData.liveB.largestContentfulPaint }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="LiveA" fill="#3B82F6" name="Live A" />
+                  <Bar dataKey="LiveB" fill="#10B981" name="Live B" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* 고급 성능 분석 */}
+        {advancedPerformanceData && (
+          <div className="bg-white p-6 rounded-lg shadow mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">고급 성능 분석</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <h4 className="text-lg font-bold text-blue-900">
+                  {advancedPerformanceData.overallMetrics.totalPageViews.toLocaleString()}
+                </h4>
+                <p className="text-sm text-gray-600">총 페이지뷰</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <h4 className="text-lg font-bold text-green-900">
+                  {advancedPerformanceData.overallMetrics.avgSessionDurationMinutes.toFixed(1)}분
+                </h4>
+                <p className="text-sm text-gray-600">평균 세션 시간</p>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-lg">
+                <h4 className="text-lg font-bold text-red-900">
+                  {(advancedPerformanceData.overallMetrics.avgBounceRate * 100).toFixed(1)}%
+                </h4>
+                <p className="text-sm text-gray-600">평균 바운스율</p>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <h4 className="text-lg font-bold text-purple-900">
+                  {advancedPerformanceData.overallMetrics.performanceScore.toFixed(1)}
+                </h4>
+                <p className="text-sm text-gray-600">성능 점수</p>
+              </div>
+            </div>
+
+            {/* A/B 테스트 성능 점수 비교 */}
+            <div className="mt-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">A/B 테스트 성능 점수</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="border rounded-lg p-4 bg-blue-50">
+                  <h5 className="font-semibold text-blue-900 mb-2">Version A</h5>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">성능 점수:</span>
+                      <span className="font-medium">{advancedPerformanceData.abTestPerformance.versionA.performanceScore.toFixed(1)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">파일 크기:</span>
+                      <span className="font-medium">{formatFileSize(advancedPerformanceData.abTestPerformance.versionA.fileSize)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="border rounded-lg p-4 bg-green-50">
+                  <h5 className="font-semibold text-green-900 mb-2">Version B</h5>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">성능 점수:</span>
+                      <span className="font-medium">{advancedPerformanceData.abTestPerformance.versionB.performanceScore.toFixed(1)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">파일 크기:</span>
+                      <span className="font-medium">{formatFileSize(advancedPerformanceData.abTestPerformance.versionB.fileSize)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 퍼널별 개별 추적 데이터 */}
+        {funnelTrackingData.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">퍼널별 추적 데이터</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {funnelTrackingData.map((funnel, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <h5 className="font-semibold text-gray-900 mb-2">{funnel.page}</h5>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">총 페이지뷰:</span>
+                      <span className="font-medium">{funnel.totalPageViews.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">추적 일수:</span>
+                      <span className="font-medium">{funnel.totalDays}일</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">첫 데이터:</span>
+                      <span className="font-medium">{formatDate(funnel.firstDataCollection)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">마지막 데이터:</span>
+                      <span className="font-medium">{formatDate(funnel.lastDataCollection)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">데이터 상태:</span>
+                      <span className={`font-medium ${funnel.hasData ? 'text-green-600' : 'text-red-600'}`}>
+                        {funnel.hasData ? '활성' : '비활성'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 일별 조회 데이터 및 시간별 추이 */}
+        {funnelDailyViewsData.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">퍼널별 일별 조회 추이</h3>
+            
+            <div className="space-y-6">
+              {funnelDailyViewsData.map((funnel, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">{funnel.page}</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="text-center p-3 bg-blue-50 rounded">
+                      <h5 className="text-lg font-bold text-blue-900">{funnel.totalPageViews.toLocaleString()}</h5>
+                      <p className="text-sm text-gray-600">총 페이지뷰</p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded">
+                      <h5 className="text-lg font-bold text-green-900">{funnel.totalDays}</h5>
+                      <p className="text-sm text-gray-600">추적 일수</p>
+                    </div>
+                    <div className="text-center p-3 bg-purple-50 rounded">
+                      <h5 className="text-lg font-bold text-purple-900">
+                        {funnel.totalPageViews > 0 ? (funnel.totalPageViews / funnel.totalDays).toFixed(1) : '0'}
+                      </h5>
+                      <p className="text-sm text-gray-600">일평균 조회</p>
+                    </div>
+                  </div>
+
+                  {/* 일별 조회 차트 */}
+                  {funnel.dailyData && funnel.dailyData.length > 0 && (
+                    <div className="mt-4">
+                      <h5 className="text-md font-semibold text-gray-700 mb-2">일별 조회 추이</h5>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={funnel.dailyData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => [value, '페이지뷰']} />
+                          <Line type="monotone" dataKey="pageViews" stroke="#3B82F6" strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 스크롤 깊이 분석 */}
+        {userBehaviorData?.scrollDepthData && (
+          <div className="bg-white p-6 rounded-lg shadow mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">스크롤 깊이 분석</h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {userBehaviorData.scrollDepthData.liveA && (
+                <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                  <div className="text-center mb-4">
+                    <h4 className="text-lg font-bold text-blue-900">Live A 스크롤 분석</h4>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">총 사용자:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveA.totalUsers.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">25% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveA.scrollDepth['25%']}명</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">50% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveA.scrollDepth['50%']}명</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">75% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveA.scrollDepth['75%']}명</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">100% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveA.scrollDepth['100%']}명</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {userBehaviorData.scrollDepthData.liveB && (
+                <div className="border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                  <div className="text-center mb-4">
+                    <h4 className="text-lg font-bold text-green-900">Live B 스크롤 분석</h4>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">총 사용자:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveB.totalUsers.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">25% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveB.scrollDepth['25%']}명</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">50% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveB.scrollDepth['50%']}명</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">75% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveB.scrollDepth['75%']}명</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">100% 스크롤:</span>
+                      <span className="font-medium">{userBehaviorData.scrollDepthData.liveB.scrollDepth['100%']}명</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 월별 데이터 요약 */}
         {monthlyData && (
           <div className="bg-white p-6 rounded-lg shadow">
@@ -921,6 +1491,140 @@ export default function FunnelManager() {
                 태그 상태: {monthlyData.tagStatus === 'working' ? '정상 작동' : 
                            monthlyData.tagStatus === 'partial' ? '부분 작동' : '작동 안함'}
               </span>
+            </div>
+
+            {/* 9월 퍼널 특화: 일별 데이터 추이 */}
+            {selectedMonth === '2025-09' && monthlyData.dailyData && monthlyData.dailyData.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">9월 일별 추이 (9월 1일 ~ 9월 30일)</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={monthlyData.dailyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === '사용자') return [value, '사용자'];
+                        if (name === '페이지뷰') return [value, '페이지뷰'];
+                        if (name === '이벤트') return [value, '이벤트'];
+                        return [value, name];
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="users" 
+                      name="사용자" 
+                      stroke="#3B82F6" 
+                      strokeWidth={2} 
+                    />
+                    <Line 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="pageViews" 
+                      name="페이지뷰" 
+                      stroke="#10B981" 
+                      strokeWidth={2} 
+                    />
+                    <Line 
+                      yAxisId="right"
+                      type="monotone" 
+                      dataKey="events" 
+                      name="이벤트" 
+                      stroke="#8B5CF6" 
+                      strokeWidth={2} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-2 text-sm text-gray-500 text-center">
+                  데이터 수집 기간: 9월 1일 ~ 9월 30일 (실시간 업데이트)
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 9월 퍼널 특화: 퍼널별 개별 사용자 행동 분석 */}
+        {selectedMonth === '2025-09' && funnelUserBehaviorData && Object.keys(funnelUserBehaviorData).length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">9월 퍼널별 개별 사용자 행동 분석</h3>
+            
+            <div className="space-y-6">
+              {Object.entries(funnelUserBehaviorData).map(([funnelPath, behaviorData], index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                    {funnelPath.replace('/versions/', '').replace('.html', '')}
+                  </h4>
+                  
+                  {behaviorData && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-blue-50 rounded">
+                        <h5 className="text-lg font-bold text-blue-900">
+                          {behaviorData.sessionMetrics?.totalSessions?.toLocaleString() || '0'}
+                        </h5>
+                        <p className="text-sm text-gray-600">총 세션</p>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 rounded">
+                        <h5 className="text-lg font-bold text-green-900">
+                          {behaviorData.sessionMetrics?.avgSessionDuration ? 
+                            `${Math.floor(behaviorData.sessionMetrics.avgSessionDuration / 60)}분 ${Math.round(behaviorData.sessionMetrics.avgSessionDuration % 60)}초` : 
+                            'N/A'}
+                        </h5>
+                        <p className="text-sm text-gray-600">평균 세션 시간</p>
+                      </div>
+                      <div className="text-center p-3 bg-red-50 rounded">
+                        <h5 className="text-lg font-bold text-red-900">
+                          {behaviorData.sessionMetrics?.bounceRate ? 
+                            `${(behaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                            'N/A'}
+                        </h5>
+                        <p className="text-sm text-gray-600">바운스율</p>
+                      </div>
+                      <div className="text-center p-3 bg-purple-50 rounded">
+                        <h5 className="text-lg font-bold text-purple-900">
+                          {behaviorData.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                        </h5>
+                        <p className="text-sm text-gray-600">페이지/세션</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2025-07 상위 페이지 분석 */}
+        {selectedMonth === '2025-07' && topPages202507.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">2025-07 상위 페이지 분석</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {topPages202507.map((page, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <h5 className="font-semibold text-gray-900 mb-2">{page.page}</h5>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">페이지뷰:</span>
+                      <span className="font-medium">{page.pageViews?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">사용자:</span>
+                      <span className="font-medium">{page.users?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">평균 세션 시간:</span>
+                      <span className="font-medium">
+                        {page.avgSessionDuration ? 
+                          `${Math.floor(page.avgSessionDuration / 60)}분 ${Math.round(page.avgSessionDuration % 60)}초` : 
+                          'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
