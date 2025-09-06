@@ -337,27 +337,8 @@ export default function FunnelManager() {
       }
       const data = await response.json();
       
-      // 월별로 다른 데이터를 생성 (API가 월별 데이터를 반환하지 않을 경우)
-      const monthNum = month ? parseInt(month.split('-')[1]) : 9;
-      const monthMultiplier = monthNum - 5; // 5월을 기준으로 차이 계산
-      
-      const monthlyData = {
-        ...data,
-        sessionMetrics: {
-          ...data.sessionMetrics,
-          totalSessions: Math.floor((data.sessionMetrics?.totalSessions || 13524) * (1 + monthMultiplier * 0.1)),
-          avgSessionDuration: (data.sessionMetrics?.avgSessionDuration || 122) + (monthMultiplier * 5),
-          bounceRate: Math.max(0.1, (data.sessionMetrics?.bounceRate || 0.258) - (monthMultiplier * 0.02)),
-          pagesPerSession: (data.sessionMetrics?.pagesPerSession || 1.5) + (monthMultiplier * 0.1)
-        },
-        calculatedMetrics: {
-          ...data.calculatedMetrics,
-          avgSessionDurationMinutes: ((data.sessionMetrics?.avgSessionDuration || 122) + (monthMultiplier * 5)) / 60,
-          engagementRate: Math.min(0.99, (data.calculatedMetrics?.engagementRate || 0.742) + (monthMultiplier * 0.05))
-        }
-      };
-      
-      setUserBehaviorData(monthlyData);
+      // API에서 받은 실제 데이터를 그대로 사용 (월별 가중치 제거)
+      setUserBehaviorData(data);
     } catch (err) {
       console.error('사용자 행동 데이터 로드 실패:', err);
       setUserBehaviorData(null);
