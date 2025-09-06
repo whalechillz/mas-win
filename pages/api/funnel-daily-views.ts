@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (page && typeof page === 'string') {
       const [response] = await analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
+        dateRanges: [{ startDate: '2025-09-01', endDate: '2025-09-30' }],
         dimensions: [{ name: 'pagePath' }, { name: 'date' }],
         metrics: [{ name: 'screenPageViews' }],
         dimensionFilter: {
@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const [response] = await analyticsDataClient.runReport({
           property: `properties/${propertyId}`,
-          dateRanges: [{ startDate: '2025-09-01', endDate: 'today' }],
+          dateRanges: [{ startDate: '2025-09-01', endDate: '2025-09-30' }],
           dimensions: [{ name: 'pagePath' }, { name: 'date' }],
           metrics: [{ name: 'screenPageViews' }],
           dimensionFilter: {
@@ -101,12 +101,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // 8월 1일부터 오늘까지의 모든 날짜 범위 생성
+    // 9월 1일부터 9월 30일까지의 모든 날짜 범위 생성
     const allDates: string[] = [];
-    const today = new Date();
-    const startDate = new Date('2025-08-01');
+    const endDate = new Date('2025-09-30');
+    const startDate = new Date('2025-09-01');
     
-    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(d.toISOString().slice(0, 10).replace(/-/g, ''));
     }
 
@@ -172,12 +172,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     console.error('Funnel Daily Views API Error:', error);
     
-    // 오류 발생 시 모의 데이터 반환 (8월 1일부터 오늘까지)
+    // 오류 발생 시 모의 데이터 반환 (9월 1일부터 9월 30일까지)
     const allDates: string[] = [];
-    const today = new Date();
-    const startDate = new Date('2025-08-01');
+    const endDate = new Date('2025-09-30');
+    const startDate = new Date('2025-09-01');
     
-    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(d.toISOString().slice(0, 10).replace(/-/g, ''));
     }
 
