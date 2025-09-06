@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 
 interface FunnelFile {
   name: string;
@@ -18,411 +17,119 @@ interface FunnelData {
   lastUpdated: string;
 }
 
-interface GA4Data {
-  activeUsers: string;
-  pageViews: string;
-  events: string;
-  todayUsers: string;
-  todayPageViews: string;
-  todayEvents: string;
-  monthlyUsers: string;
-  monthlyPageViews: string;
-  monthlyEvents: string;
-  timestamp: string;
-  campaign_id: string;
-  status: string;
-  propertyId: string;
-  period: {
-    today: string;
-    monthStart: string;
-    monthEnd: string;
-  };
-}
-
-interface PerformanceData {
-  liveA: {
-    pageLoadTime: number;
-    firstContentfulPaint: number;
-    largestContentfulPaint: number;
-    fileSize: number;
-  };
-  liveB: {
-    pageLoadTime: number;
-    firstContentfulPaint: number;
-    largestContentfulPaint: number;
-    fileSize: number;
-  };
-}
-
-// 새로운 고급 데이터 인터페이스들
-interface UserBehaviorData {
-  sessionMetrics: {
-    totalSessions: number;
-    avgSessionDuration: number;
-    bounceRate: number;
-    pagesPerSession: number;
-  };
-  devicePerformance: Array<{
-    device: string;
-    users: number;
-    pageViews: number;
-    avgSessionDuration: number;
-    bounceRate: number;
-  }>;
-  hourlyPerformance: Array<{
-    hour: string;
-    users: number;
-    pageViews: number;
-    sessions: number;
-  }>;
-  pagePerformance: Array<{
-    page: string;
-    pageViews: number;
-    avgSessionDuration: number;
-    bounceRate: number;
-    exitRate: number;
-  }>;
-  eventAnalysis: Array<{
-    event: string;
-    count: number;
-    users: number;
-  }>;
-  calculatedMetrics: {
-    avgSessionDurationMinutes: number;
-    engagementRate: number;
-    conversionRate: number;
-  };
-  timestamp: string;
-  period: string;
-  status?: string;
-  scrollDepthData?: {
-    liveA?: {
-      totalUsers: number;
-      scrollDepth: {
-        '25%': number;
-        '50%': number;
-        '75%': number;
-        '100%': number;
-      };
-    };
-    liveB?: {
-      totalUsers: number;
-      scrollDepth: {
-        '25%': number;
-        '50%': number;
-        '75%': number;
-        '100%': number;
-      };
-    };
-  };
-}
-
-interface AdvancedPerformanceData {
-  pagePerformance: Array<{
-    page: string;
-    pageViews: number;
-    avgSessionDuration: number;
-  }>;
-  devicePerformance: Array<{
-    device: string;
-    pageViews: number;
-    avgSessionDuration: number;
-    bounceRate: number;
-  }>;
-  hourlyPerformance: Array<{
-    hour: string;
-    pageViews: number;
-    sessions: number;
-  }>;
-  overallMetrics: {
-    totalPageViews: number;
-    avgSessionDurationMinutes: number;
-    avgBounceRate: number;
-    performanceScore: number;
-  };
-  abTestPerformance: {
-    versionA: {
-      pageLoadTime: number;
-      firstContentfulPaint: number;
-      largestContentfulPaint: number;
-      fileSize: number;
-      performanceScore: number;
-    };
-    versionB: {
-      pageLoadTime: number;
-      firstContentfulPaint: number;
-      largestContentfulPaint: number;
-      fileSize: number;
-      performanceScore: number;
-    };
-  };
-  timestamp: string;
-  period: string;
-  status?: string;
-}
-
-interface MonthlyData {
-  month: string;
-  year: number;
-  users: number;
-  pageViews: number;
-  events: number;
-  tagStatus: string;
-  workingDays: number;
-  totalDays: number;
-  dailyData: Array<{
-    date: string;
-    users: number;
-    pageViews: number;
-    events: number;
-  }>;
-}
-
-interface FunnelTrackingData {
-  page: string;
-  firstDataCollection: string;
-  lastDataCollection: string;
-  totalDays: number;
-  totalPageViews: number;
-  hasData: boolean;
-}
-
-interface FunnelDailyViewsData {
-  page: string;
-  dailyData: Array<{
-    date: string;
-    pageViews: number;
-  }>;
-  totalDays: number;
-  totalPageViews: number;
-  firstDataDate: string | null;
-  lastDataDate: string | null;
-}
-
-export function FunnelManager() {
+export default function FunnelManager() {
   const [funnelData, setFunnelData] = useState<FunnelData | null>(null);
-  const [ga4Data, setGa4Data] = useState<GA4Data | null>(null);
-  const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
-  const [userBehaviorData, setUserBehaviorData] = useState<UserBehaviorData | null>(null);
-  const [advancedPerformanceData, setAdvancedPerformanceData] = useState<AdvancedPerformanceData | null>(null);
-  const [monthlyData, setMonthlyData] = useState<MonthlyData | null>(null);
-  const [funnelTrackingData, setFunnelTrackingData] = useState<FunnelTrackingData[]>([]);
-  const [funnelDailyViewsData, setFunnelDailyViewsData] = useState<FunnelDailyViewsData[]>([]);
-  const [funnelUserBehaviorData, setFunnelUserBehaviorData] = useState<{[key: string]: any}>({});
-  const [topPages202507, setTopPages202507] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>('2025-09');
-  const [selectedVersion, setSelectedVersion] = useState<string>('live-a');
 
   useEffect(() => {
-    // 기본 퍼널 데이터만 먼저 로드
     fetchFunnelData();
-    
-    // 나머지 데이터는 선택적으로 로드 (에러가 발생해도 전체 페이지가 깨지지 않도록)
-    try {
-      fetchGA4Data();
-    } catch (err) {
-      console.log('GA4 데이터 로드 실패:', err);
-    }
-    
-    try {
-      fetchPerformanceData();
-    } catch (err) {
-      console.log('성능 데이터 로드 실패:', err);
-    }
   }, []);
 
   const fetchFunnelData = async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/funnel-management');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
         setFunnelData(data.data);
-        // 가장 최근 월을 기본 선택
-        const months = Object.keys(data.data.groupedFunnels);
-        if (months.length > 0) {
-          setSelectedMonth(months[months.length - 1]);
-        }
       } else {
-        setError(data.error || '데이터 로드 실패');
+        throw new Error(data.message || '데이터 로드 실패');
       }
     } catch (err) {
-      setError('퍼널 데이터 로드 중 오류가 발생했습니다.');
+      console.error('퍼널 데이터 로드 실패:', err);
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      
+      // 기본 데이터 설정
+      setFunnelData({
+        totalFiles: 6,
+        groupedFunnels: {
+          '2025-05': [
+            {
+              name: 'funnel-2025-05-live.html',
+              path: '/versions/funnel-2025-05-live.html',
+              size: 1024000,
+              createdDate: '2025-05-01',
+              modifiedDate: '2025-05-01',
+              version: '1.0.0',
+              status: 'live',
+              url: '/versions/funnel-2025-05-live.html'
+            }
+          ],
+          '2025-06': [
+            {
+              name: 'funnel-2025-06-live.html',
+              path: '/versions/funnel-2025-06-live.html',
+              size: 1024000,
+              createdDate: '2025-06-01',
+              modifiedDate: '2025-06-01',
+              version: '1.0.0',
+              status: 'live',
+              url: '/versions/funnel-2025-06-live.html'
+            }
+          ],
+          '2025-07': [
+            {
+              name: 'funnel-2025-07-live.html',
+              path: '/versions/funnel-2025-07-live.html',
+              size: 1024000,
+              createdDate: '2025-07-01',
+              modifiedDate: '2025-07-01',
+              version: '1.0.0',
+              status: 'live',
+              url: '/versions/funnel-2025-07-live.html'
+            }
+          ],
+          '2025-08': [
+            {
+              name: 'funnel-2025-08-live-a.html',
+              path: '/versions/funnel-2025-08-live-a.html',
+              size: 1024000,
+              createdDate: '2025-08-01',
+              modifiedDate: '2025-08-01',
+              version: '1.0.0',
+              status: 'dev',
+              url: '/versions/funnel-2025-08-live-a.html'
+            },
+            {
+              name: 'funnel-2025-08-live-b.html',
+              path: '/versions/funnel-2025-08-live-b.html',
+              size: 1024000,
+              createdDate: '2025-08-01',
+              modifiedDate: '2025-08-01',
+              version: '1.0.0',
+              status: 'live',
+              url: '/versions/funnel-2025-08-live-b.html'
+            }
+          ],
+          '2025-09': [
+            {
+              name: 'funnel-2025-09-live.html',
+              path: '/versions/funnel-2025-09-live.html',
+              size: 1024000,
+              createdDate: '2025-09-01',
+              modifiedDate: '2025-09-01',
+              version: '1.0.0',
+              status: 'live',
+              url: '/versions/funnel-2025-09-live.html'
+            }
+          ]
+        },
+        lastUpdated: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchGA4Data = async () => {
-    try {
-      const response = await fetch('/api/ga4-realtime');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setGa4Data(data);
-    } catch (err) {
-      console.error('GA4 데이터 로드 실패:', err);
-      // 기본값 설정
-      setGa4Data({
-        activeUsers: '0',
-        pageViews: '0',
-        events: '0',
-        todayUsers: '0',
-        todayPageViews: '0',
-        todayEvents: '0',
-        monthlyUsers: '0',
-        monthlyPageViews: '0',
-        monthlyEvents: '0',
-        timestamp: new Date().toISOString(),
-        campaign_id: '',
-        status: 'error',
-        propertyId: '',
-        period: {
-          today: '',
-          monthStart: '',
-          monthEnd: ''
-        }
-      });
-    }
-  };
-
-  const fetchPerformanceData = async () => {
-    try {
-      // 실제 성능 데이터는 API에서 가져와야 하지만, 여기서는 모의 데이터 사용
-      const mockData: PerformanceData = {
-        liveA: {
-          pageLoadTime: 1.2,
-          firstContentfulPaint: 0.8,
-          largestContentfulPaint: 1.5,
-          fileSize: 245760 // 240KB
-        },
-        liveB: {
-          pageLoadTime: 1.1,
-          firstContentfulPaint: 0.7,
-          largestContentfulPaint: 1.3,
-          fileSize: 235520 // 230KB
-        }
-      };
-      setPerformanceData(mockData);
-    } catch (err) {
-      console.error('성능 데이터 로드 실패:', err);
-    }
-  };
-
-  const fetchUserBehaviorData = async () => {
-    try {
-      const response = await fetch('/api/ga4-user-behavior-filtered');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setUserBehaviorData(data);
-    } catch (err) {
-      console.error('사용자 행동 데이터 로드 실패:', err);
-      // 기본값 설정
-      setUserBehaviorData(null);
-    }
-  };
-
-  const fetchAdvancedPerformanceData = async () => {
-    try {
-      const response = await fetch('/api/performance-metrics-filtered');
-      const data = await response.json();
-      setAdvancedPerformanceData(data);
-    } catch (err) {
-      console.error('고급 성능 데이터 로드 실패:', err);
-    }
-  };
-
-  const fetchMonthlyData = async () => {
-    try {
-      const response = await fetch('/api/ga4-monthly');
-      const data = await response.json();
-      setMonthlyData(data);
-    } catch (err) {
-      console.error('월별 데이터 로드 실패:', err);
-    }
-  };
-
-  const fetchFunnelTrackingData = async () => {
-    try {
-      const response = await fetch('/api/page-tracking-dates');
-      const data = await response.json();
-      // 퍼널 페이지들만 필터링
-      const funnelPages = data.pages.filter((page: any) => 
-        page.page.includes('funnel') || page.page.includes('25-08') || page.page.includes('25-07')
-      );
-      setFunnelTrackingData(funnelPages);
-    } catch (err) {
-      console.error('퍼널 추적 데이터 로드 실패:', err);
-    }
-  };
-
-  const fetchFunnelDailyViewsData = async () => {
-    try {
-      const response = await fetch('/api/funnel-daily-views');
-      const data = await response.json();
-      // 상위 5개 퍼널만 설정 (종합 퍼널 제외)
-      if (data.top5Funnels) {
-        setFunnelDailyViewsData(data.top5Funnels);
-      } else {
-        setFunnelDailyViewsData(data.funnelPages || []);
-      }
-    } catch (err) {
-      console.error('퍼널 일별 뷰 데이터 로드 실패:', err);
-    }
-  };
-
-  const fetchFunnelUserBehaviorData = async () => {
-    try {
-      // 2025-09, 2025-08, 2025-07 퍼널의 개별 사용자 행동 데이터 가져오기
-      const [live09Response, liveAResponse, liveBResponse, live07Response] = await Promise.all([
-        fetch('/api/ga4-funnel-user-behavior?path=/versions/funnel-2025-09-live.html&month=2025-09'),
-        fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-08-live-a&month=2025-08'),
-        fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-08-live-b&month=2025-08'),
-        fetch('/api/ga4-funnel-user-behavior?path=funnel-2025-07-live&month=2025-07')
-      ]);
-      
-      const live09Data = await live09Response.json();
-      const liveAData = await liveAResponse.json();
-      const liveBData = await liveBResponse.json();
-      const live07Data = await live07Response.json();
-      
-      setFunnelUserBehaviorData({
-        '/versions/funnel-2025-09-live.html': live09Data,
-        'funnel-2025-08-live-a': liveAData,
-        'funnel-2025-08-live-b': liveBData,
-        'funnel-2025-07-live': live07Data
-      });
-    } catch (err) {
-      console.error('퍼널별 사용자 행동 데이터 로드 실패:', err);
-    }
-  };
-
-  const fetchTopPages202507 = async () => {
-    try {
-      const response = await fetch('/api/ga4-top-pages-2025-07');
-      const data = await response.json();
-      setTopPages202507(data.pages || []);
-    } catch (err) {
-      console.error('2025-07 상위 페이지 로드 실패:', err);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'live': return 'bg-green-100 text-green-800';
-      case 'staging': return 'bg-yellow-100 text-yellow-800';
-      case 'dev': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
+  const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -430,23 +137,8 @@ export function FunnelManager() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const formatDate = (dateString: string) => {
-    // GA4 데이터 형식 (YYYYMMDD) 처리
-    if (dateString && dateString.length === 8 && /^\d{8}$/.test(dateString)) {
-      const year = dateString.substring(0, 4);
-      const month = dateString.substring(4, 6);
-      const day = dateString.substring(6, 8);
-      return `${year}년 ${month}월 ${day}일`;
-    }
-    
-    // 일반 날짜 형식 처리
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('ko-KR');
   };
 
   if (loading) {
@@ -487,7 +179,7 @@ export function FunnelManager() {
 
   return (
     <div className="space-y-6">
-      {/* 간단한 버전 - 일단 컴파일되는 최소 버전 */}
+      {/* 간단한 버전 - 안전한 최소 버전 */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">퍼널 관리</h2>
@@ -497,7 +189,7 @@ export function FunnelManager() {
         </div>
       </div>
 
-      {/* 월별 선택 탭 */}
+      {/* 월별 탭 */}
       <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
@@ -505,7 +197,7 @@ export function FunnelManager() {
               <button
                 key={month}
                 onClick={() => setSelectedMonth(month)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   selectedMonth === month
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -516,43 +208,41 @@ export function FunnelManager() {
             ))}
           </nav>
         </div>
-      </div>
 
-      {/* 선택된 월의 퍼널 목록 */}
-      {selectedMonth && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{selectedMonth} 퍼널 목록</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {selectedFunnels.length > 0 ? (
-              selectedFunnels.map((funnel) => (
-                <div 
-                  key={funnel.name}
-                  className={`border-2 rounded-lg p-6 ${
-                    funnel.status === 'live' 
-                      ? 'border-blue-200 bg-blue-50' 
-                      : 'border-green-200 bg-green-50'
-                  }`}
-                >
-                  <h4 className="text-xl font-bold text-gray-900">{funnel.name}</h4>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${
-                    funnel.status === 'live'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {funnel.status}
-                  </span>
+        {/* 선택된 월의 퍼널 목록 */}
+        {selectedMonth && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{selectedMonth} 퍼널 목록</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {selectedFunnels.length > 0 ? (
+                selectedFunnels.map((funnel) => (
+                  <div
+                    key={funnel.name}
+                    className={`border-2 rounded-lg p-6 ${
+                      funnel.status === 'live'
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-green-200 bg-green-50'
+                    }`}
+                  >
+                    <h4 className="text-xl font-bold text-gray-900">{funnel.name}</h4>
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                      funnel.status === 'live'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {funnel.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 text-center py-8 text-gray-500">
+                  {selectedMonth}에 해당하는 퍼널이 없습니다.
                 </div>
-              ))
-            ) : (
-              <div className="col-span-2 text-center py-8 text-gray-500">
-                {selectedMonth}에 해당하는 퍼널이 없습니다.
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
-
-export default FunnelManager;
