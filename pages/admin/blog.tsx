@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import RichTextEditor from '../../components/RichTextEditor';
 import Head from 'next/head';
 
 export default function BlogAdmin() {
@@ -22,7 +23,8 @@ export default function BlogAdmin() {
     view_count: 0,
     is_featured: false,
     is_scheduled: false,
-    scheduled_at: ''
+    scheduled_at: '',
+    author: '마쓰구골프'
   });
 
   // 마쓰구 브랜드 전략 상태
@@ -153,8 +155,53 @@ export default function BlogAdmin() {
       view_count: 0,
       is_featured: false,
       is_scheduled: false,
-      scheduled_at: ''
+      scheduled_at: '',
+      author: '마쓰구골프'
     });
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 파일 크기 체크 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('파일 크기는 10MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    // 파일 타입 체크
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    try {
+      // 임시로 Base64로 변환하여 미리보기
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData({ ...formData, featured_image: e.target.result });
+      };
+      reader.readAsDataURL(file);
+      
+      // TODO: 실제 서버 업로드 구현
+      console.log('이미지 업로드:', file.name);
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error);
+      alert('이미지 업로드에 실패했습니다.');
+    }
+  };
+
+  const handleImageDrop = (event) => {
+    event.preventDefault();
+    event.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      const fakeEvent = { target: { files: [file] } };
+      handleImageUpload(fakeEvent);
+    }
   };
 
   const generateSlug = (title) => {
@@ -536,27 +583,92 @@ export default function BlogAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    대표 이미지 URL
+                    작성자
                   </label>
                   <input
-                    type="url"
-                    value={formData.featured_image}
-                    onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                    type="text"
+                    value={formData.author}
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="작성자명을 입력하세요"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    내용 (HTML)
+                    대표 이미지
                   </label>
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={10}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                    required
+                  
+                  {/* 드래그 앤 드롭 영역 */}
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+                    }}
+                    onDragLeave={(e) => {
+                      e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+                    }}
+                    onDrop={handleImageDrop}
+                  >
+                    <div className="space-y-2">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <div className="text-sm text-gray-600">
+                        <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                          <span>이미지 파일을 선택하거나</span>
+                          <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
+                        </label>
+                        <span className="pl-1">드래그 앤 드롭하세요</span>
+                      </div>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF 최대 10MB</p>
+                    </div>
+                  </div>
+                  
+                  {/* 현재 이미지 미리보기 */}
+                  {formData.featured_image && (
+                    <div className="mt-4">
+                      <img 
+                        src={formData.featured_image} 
+                        alt="미리보기" 
+                        className="h-32 w-32 object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, featured_image: '' })}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800"
+                      >
+                        이미지 제거
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* URL 직접 입력 */}
+                  <div className="mt-4">
+                    <label className="block text-xs text-gray-600 mb-1">또는 URL 직접 입력:</label>
+                    <input
+                      type="url"
+                      value={formData.featured_image}
+                      onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    내용
+                  </label>
+                  <RichTextEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
+                    placeholder="블로그 내용을 입력하세요..."
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    서식, 링크, 이미지를 포함한 풍부한 콘텐츠를 작성할 수 있습니다.
+                  </p>
                 </div>
 
                 {/* 추가 관리 필드들 */}

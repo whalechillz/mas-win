@@ -61,6 +61,7 @@ async function getPosts(req, res) {
       is_featured: post.is_featured,
       is_scheduled: post.is_scheduled || false,
       scheduled_at: post.scheduled_at,
+      author: post.author || '마쓰구골프',
       createdAt: post.created_at,
       updatedAt: post.updated_at
     }));
@@ -91,7 +92,8 @@ async function createPost(req, res) {
       meta_description,
       meta_keywords,
       is_scheduled,
-      scheduled_at
+      scheduled_at,
+      author
     } = req.body;
 
     const supabase = createServerSupabase();
@@ -113,7 +115,8 @@ async function createPost(req, res) {
       view_count: 0,
       is_featured: false,
       is_scheduled: is_scheduled || false,
-      scheduled_at: scheduled_at || null
+      scheduled_at: scheduled_at || null,
+      author: author || '마쓰구골프'
     };
 
     const { data, error } = await supabase
