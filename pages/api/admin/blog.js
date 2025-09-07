@@ -40,16 +40,11 @@ async function getPosts(req, res) {
       });
     }
     
-    // Supabase 클라이언트 사용 (최소 설정)
-    console.log('Admin API: Using Supabase client with minimal configuration');
+    // Supabase 클라이언트 사용 (기본 설정)
+    console.log('Admin API: Using Supabase client with default configuration');
     
     const { createClient } = require('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, serviceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
+    const supabase = createClient(supabaseUrl, serviceKey);
     
     console.log('Admin API: Supabase client created, attempting to fetch posts...');
     
