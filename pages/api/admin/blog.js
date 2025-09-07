@@ -40,9 +40,10 @@ async function getPosts(req, res) {
       });
     }
     
-    // Supabase REST API 직접 사용
-    console.log('Admin API: Using Supabase REST API directly');
+    // Supabase REST API 직접 사용 (node-fetch 사용)
+    console.log('Admin API: Using Supabase REST API with node-fetch');
     
+    const fetch = require('node-fetch');
     const response = await fetch(`${supabaseUrl}/rest/v1/blog_posts?select=*&order=created_at.desc`, {
       method: 'GET',
       headers: {
