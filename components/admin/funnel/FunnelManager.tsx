@@ -264,7 +264,7 @@ export default function FunnelManager() {
     }
     
     try {
-      fetchFunnelUserBehaviorData(selectedMonth);
+      fetchFunnelUserBehaviorData();
     } catch (err) {
       console.log('퍼널 사용자 행동 데이터 로드 실패:', err);
     }
@@ -337,8 +337,34 @@ export default function FunnelManager() {
       }
       const data = await response.json();
       
-      // API에서 받은 실제 데이터를 그대로 사용 (월별 가중치 제거)
-      setUserBehaviorData(data);
+      // API에서 "NA" 문자열이 오는 경우를 안전하게 처리
+      if (data.status === 'error' || data.sessionMetrics?.totalSessions === 'NA') {
+        // GA4 API 연결 실패 시 기본값 설정
+        setUserBehaviorData({
+          sessionMetrics: {
+            totalSessions: 0,
+            avgSessionDuration: 0,
+            bounceRate: 0,
+            pagesPerSession: 0
+          },
+          devicePerformance: [],
+          hourlyPerformance: [],
+          pagePerformance: [],
+          eventAnalysis: [],
+          scrollDepthData: {},
+          calculatedMetrics: {
+            avgSessionDurationMinutes: 0,
+            engagementRate: 0,
+            conversionRate: 0
+          },
+          timestamp: new Date().toISOString(),
+          period: 'GA4 API 연결 실패',
+          status: 'error'
+        });
+      } else {
+        // API에서 받은 실제 데이터를 그대로 사용
+        setUserBehaviorData(data);
+      }
     } catch (err) {
       console.error('사용자 행동 데이터 로드 실패:', err);
       setUserBehaviorData(null);
@@ -624,14 +650,16 @@ export default function FunnelManager() {
               <div className="text-center p-4 bg-red-50 rounded-lg">
                 <h4 className="text-2xl font-bold text-red-900">
                   {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                    `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                    `${typeof userBehaviorData.sessionMetrics.bounceRate === 'number' ? (userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1) : '0'}%` : 
                     'N/A'}
                 </h4>
                 <p className="text-sm text-gray-600">바운스율</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <h4 className="text-2xl font-bold text-purple-900">
-                  {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                  {typeof userBehaviorData?.sessionMetrics?.pagesPerSession === 'number' 
+                    ? userBehaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                    : 'N/A'}
                 </h4>
                 <p className="text-sm text-gray-600">페이지/세션</p>
               </div>
@@ -662,7 +690,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">평균 세션:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.avgSessionDurationMinutes ? 
-                        `${userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.avgSessionDurationMinutes === 'number' ? userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1) : '0'}분` : 
                         'N/A'}
                     </span>
                   </div>
@@ -670,7 +698,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">바운스율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                        `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.sessionMetrics.bounceRate === 'number' ? (userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
@@ -678,14 +706,16 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">참여율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.engagementRate ? 
-                        `${(userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.engagementRate === 'number' ? (userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">페이지/세션:</span>
                     <span className="font-medium">
-                      {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                      {typeof userBehaviorData?.sessionMetrics?.pagesPerSession === 'number' 
+                    ? userBehaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                    : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -813,7 +843,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">평균 세션:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.avgSessionDurationMinutes ? 
-                        `${userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.avgSessionDurationMinutes === 'number' ? userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1) : '0'}분` : 
                         'N/A'}
                     </span>
                   </div>
@@ -821,7 +851,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">바운스율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                        `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.sessionMetrics.bounceRate === 'number' ? (userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
@@ -829,14 +859,16 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">참여율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.engagementRate ? 
-                        `${(userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.engagementRate === 'number' ? (userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">페이지/세션:</span>
                     <span className="font-medium">
-                      {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                      {typeof userBehaviorData?.sessionMetrics?.pagesPerSession === 'number' 
+                    ? userBehaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                    : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -964,7 +996,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">평균 세션:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.avgSessionDurationMinutes ? 
-                        `${userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.avgSessionDurationMinutes === 'number' ? userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1) : '0'}분` : 
                         'N/A'}
                     </span>
                   </div>
@@ -972,7 +1004,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">바운스율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                        `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.sessionMetrics.bounceRate === 'number' ? (userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
@@ -980,14 +1012,16 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">참여율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.engagementRate ? 
-                        `${(userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.engagementRate === 'number' ? (userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">페이지/세션:</span>
                     <span className="font-medium">
-                      {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                      {typeof userBehaviorData?.sessionMetrics?.pagesPerSession === 'number' 
+                    ? userBehaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                    : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -1112,7 +1146,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">평균 세션:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.avgSessionDurationMinutes ? 
-                        `${userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.avgSessionDurationMinutes === 'number' ? userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1) : '0'}분` : 
                         'N/A'}
                     </span>
                   </div>
@@ -1120,7 +1154,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">바운스율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                        `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.sessionMetrics.bounceRate === 'number' ? (userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
@@ -1128,14 +1162,16 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">참여율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.engagementRate ? 
-                        `${(userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.engagementRate === 'number' ? (userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">페이지/세션:</span>
                     <span className="font-medium">
-                      {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                      {typeof userBehaviorData?.sessionMetrics?.pagesPerSession === 'number' 
+                    ? userBehaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                    : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -1263,7 +1299,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">평균 세션:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.avgSessionDurationMinutes ? 
-                        `${userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1)}분` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.avgSessionDurationMinutes === 'number' ? userBehaviorData.calculatedMetrics.avgSessionDurationMinutes.toFixed(1) : '0'}분` : 
                         'N/A'}
                     </span>
                   </div>
@@ -1271,7 +1307,7 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">바운스율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.sessionMetrics?.bounceRate ? 
-                        `${(userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.sessionMetrics.bounceRate === 'number' ? (userBehaviorData.sessionMetrics.bounceRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
@@ -1279,14 +1315,16 @@ export default function FunnelManager() {
                     <span className="text-sm text-gray-600">참여율:</span>
                     <span className="font-medium">
                       {userBehaviorData?.calculatedMetrics?.engagementRate ? 
-                        `${(userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1)}%` : 
+                        `${typeof userBehaviorData.calculatedMetrics?.engagementRate === 'number' ? (userBehaviorData.calculatedMetrics.engagementRate * 100).toFixed(1) : '0'}%` : 
                         'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">페이지/세션:</span>
                     <span className="font-medium">
-                      {userBehaviorData?.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                      {typeof userBehaviorData?.sessionMetrics?.pagesPerSession === 'number' 
+                    ? userBehaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                    : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -1486,19 +1524,25 @@ export default function FunnelManager() {
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <h4 className="text-lg font-bold text-green-900">
-                  {advancedPerformanceData.overallMetrics.avgSessionDurationMinutes.toFixed(1)}분
+                  {typeof advancedPerformanceData?.overallMetrics?.avgSessionDurationMinutes === 'number' 
+                    ? advancedPerformanceData.overallMetrics.avgSessionDurationMinutes.toFixed(1) 
+                    : '0'}분
                 </h4>
                 <p className="text-sm text-gray-600">평균 세션 시간</p>
               </div>
               <div className="text-center p-4 bg-red-50 rounded-lg">
                 <h4 className="text-lg font-bold text-red-900">
-                  {(advancedPerformanceData.overallMetrics.avgBounceRate * 100).toFixed(1)}%
+                  {typeof advancedPerformanceData?.overallMetrics?.avgBounceRate === 'number' 
+                    ? (advancedPerformanceData.overallMetrics.avgBounceRate * 100).toFixed(1) 
+                    : '0'}%
                 </h4>
                 <p className="text-sm text-gray-600">평균 바운스율</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <h4 className="text-lg font-bold text-purple-900">
-                  {advancedPerformanceData.overallMetrics.performanceScore.toFixed(1)}
+                  {typeof advancedPerformanceData?.overallMetrics?.performanceScore === 'number' 
+                    ? advancedPerformanceData.overallMetrics.performanceScore.toFixed(1) 
+                    : '0'}
                 </h4>
                 <p className="text-sm text-gray-600">성능 점수</p>
               </div>
@@ -1513,7 +1557,9 @@ export default function FunnelManager() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">성능 점수:</span>
-                      <span className="font-medium">{advancedPerformanceData.abTestPerformance.versionA.performanceScore.toFixed(1)}</span>
+                      <span className="font-medium">{typeof advancedPerformanceData?.abTestPerformance?.versionA?.performanceScore === 'number' 
+                        ? advancedPerformanceData.abTestPerformance.versionA.performanceScore.toFixed(1) 
+                        : '0'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">파일 크기:</span>
@@ -1526,7 +1572,9 @@ export default function FunnelManager() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">성능 점수:</span>
-                      <span className="font-medium">{advancedPerformanceData.abTestPerformance.versionB.performanceScore.toFixed(1)}</span>
+                      <span className="font-medium">{typeof advancedPerformanceData?.abTestPerformance?.versionB?.performanceScore === 'number' 
+                        ? advancedPerformanceData.abTestPerformance.versionB.performanceScore.toFixed(1) 
+                        : '0'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">파일 크기:</span>
@@ -1823,7 +1871,9 @@ export default function FunnelManager() {
                       </div>
                       <div className="text-center p-3 bg-purple-50 rounded">
                         <h5 className="text-lg font-bold text-purple-900">
-                          {behaviorData.sessionMetrics?.pagesPerSession?.toFixed(1) || 'N/A'}
+                          {typeof behaviorData.sessionMetrics?.pagesPerSession === 'number' 
+                            ? behaviorData.sessionMetrics.pagesPerSession.toFixed(1) 
+                            : 'N/A'}
                         </h5>
                         <p className="text-sm text-gray-600">페이지/세션</p>
                       </div>

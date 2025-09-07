@@ -1,0 +1,41 @@
+{
+  "products": [
+    {
+      "title": "카테고리",
+      "price": "",
+      "image": "",
+      "url": "",
+      "index": 93
+    },
+    {
+      "title": "제품 종류",
+      "price": "",
+      "image": "",
+      "url": "",
+      "index": 94
+    },
+    {
+      "title": "재고",
+      "price": "",
+      "image": "",
+      "url": "",
+      "index": 95
+    },
+    {
+      "title": "공개/비공개",
+      "price": "",
+      "image": "",
+      "url": "",
+      "index": 96
+    },
+    {
+      "title": "사전 주문",
+      "price": "",
+      "image": "",
+      "url": "",
+      "index": 97
+    }
+  ],
+  "categories": [],
+  "collections": []
+}
