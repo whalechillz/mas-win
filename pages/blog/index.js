@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
+import fs from 'fs';
+import path from 'path';
 
 // 고급스러운 아이콘 컴포넌트들
 const HomeIcon = () => (
@@ -22,33 +24,39 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-export default function BlogIndex() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function BlogIndex({ posts: staticPosts }) {
+  const [posts, setPosts] = useState(staticPosts || []);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('/api/blog/posts');
-        const data = await response.json();
-        
-        if (response.ok) {
-          setPosts(data.posts);
-        } else {
-          console.error('Failed to fetch posts:', data.error);
-          // 에러 시 빈 배열로 설정
+    // 정적 데이터가 있으면 사용, 없으면 API에서 가져오기
+    if (staticPosts && staticPosts.length > 0) {
+      setPosts(staticPosts);
+      setLoading(false);
+    } else {
+      setLoading(true);
+      const fetchPosts = async () => {
+        try {
+          const response = await fetch('/api/blog/posts');
+          const data = await response.json();
+          
+          if (response.ok) {
+            setPosts(data.posts);
+          } else {
+            console.error('Failed to fetch posts:', data.error);
+            setPosts([]);
+          }
+        } catch (error) {
+          console.error('Error fetching posts:', error);
           setPosts([]);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchPosts();
-  }, []);
+      fetchPosts();
+    }
+  }, [staticPosts]);
 
   if (loading) {
     return (
@@ -192,4 +200,48 @@ export default function BlogIndex() {
       </div>
     </>
   );
+}
+
+// 정적 생성용 getStaticProps
+export async function getStaticProps() {
+  try {
+    // 마이그레이션된 게시물 데이터 로드
+    const postsDirectory = path.join(process.cwd(), 'mas9golf/migrated-posts');
+    const filenames = fs.readdirSync(postsDirectory);
+    
+    const posts = filenames
+      .filter(name => name.endsWith('.json'))
+      .map(filename => {
+        const filePath = path.join(postsDirectory, filename);
+        const fileContents = fs.readFileSync(filePath, 'utf8');
+        const postData = JSON.parse(fileContents);
+        
+        return {
+          id: postData.id,
+          title: postData.title,
+          slug: postData.slug,
+          excerpt: postData.excerpt,
+          featuredImage: postData.featuredImage,
+          publishedAt: postData.publishedAt,
+          category: postData.category,
+          tags: postData.tags
+        };
+      })
+      .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+    return {
+      props: {
+        posts: posts
+      },
+      revalidate: 3600 // 1시간마다 재생성
+    };
+  } catch (error) {
+    console.error('Error loading posts:', error);
+    return {
+      props: {
+        posts: []
+      },
+      revalidate: 3600
+    };
+  }
 }
