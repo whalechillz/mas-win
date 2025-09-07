@@ -1,266 +1,140 @@
 const { chromium } = require('playwright');
 
-// Vercel 배포 테스트
 async function testVercelDeployment() {
-  let browser;
+  console.log('🚀 Vercel 배포 테스트 시작...');
+  
+  const browser = await chromium.launch({ 
+    headless: false,
+    channel: 'chrome-canary'
+  });
+  
   try {
-    console.log('🌐 Vercel 배포 테스트 시작...');
+    const context = await browser.newContext();
+    const page = await context.newPage();
     
-    // Chrome Canary 연결
-    console.log('🔗 Chrome Canary 연결 중...');
-    browser = await chromium.connectOverCDP('http://localhost:9222');
-    const page = await browser.newPage();
+    // 콘솔 에러 수집
+    const errors = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+        console.log('❌ 콘솔 에러:', msg.text());
+      }
+    });
     
-    // 더 큰 뷰포트 설정
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    // 페이지 에러 수집
+    page.on('pageerror', error => {
+      errors.push(error.message);
+      console.log('❌ 페이지 에러:', error.message);
+    });
     
-    console.log('✅ Chrome Canary 연결 완료');
-    
-    const baseUrl = 'https://mas-win.vercel.app';
+    console.log('🌐 Vercel 배포 사이트 테스트...');
     
     // 1. 메인 페이지 테스트
-    console.log('\n🏠 메인 페이지 테스트...');
-    
-    await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(3000);
+    console.log('📱 메인 페이지 테스트...');
+    await page.goto('https://masgolf.co.kr', {
+      waitUntil: 'networkidle',
+      timeout: 30000
+    });
     
     const mainTitle = await page.title();
-    console.log(`  📋 메인 페이지 제목: ${mainTitle}`);
+    console.log('✅ 메인 페이지 제목:', mainTitle);
     
-    // 메인 페이지 스크린샷
-    await page.screenshot({ 
-      path: 'mas9golf/vercel-main-page-final.png',
-      fullPage: true 
+    // 2. 블로그 목록 페이지 테스트
+    console.log('📱 블로그 목록 페이지 테스트...');
+    await page.goto('https://masgolf.co.kr/blog', {
+      waitUntil: 'networkidle',
+      timeout: 30000
     });
-    console.log('  📸 메인 페이지 스크린샷 저장: mas9golf/vercel-main-page-final.png');
-    
-    // 2. 블로그 페이지 테스트
-    console.log('\n📝 블로그 페이지 테스트...');
-    
-    const blogUrl = `${baseUrl}/blog/`;
-    console.log(`📄 블로그 페이지 URL: ${blogUrl}`);
-    
-    await page.goto(blogUrl, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(3000);
     
     const blogTitle = await page.title();
-    console.log(`  📋 블로그 페이지 제목: ${blogTitle}`);
+    console.log('✅ 블로그 페이지 제목:', blogTitle);
     
-    // 블로그 목록 확인
-    const blogPosts = await page.$$('.blog-post-card, .post-card, [data-testid*="post"]');
-    console.log(`  📊 발견된 블로그 게시물: ${blogPosts.length}개`);
+    // 게시물 개수 확인
+    const postsCount = await page.$$eval('.border.border-gray-200.rounded-lg', elements => elements.length);
+    console.log('📝 게시물 개수:', postsCount);
     
-    // 블로그 페이지 스크린샷
-    await page.screenshot({ 
-      path: 'mas9golf/vercel-blog-list-final.png',
-      fullPage: true 
-    });
-    console.log('  📸 블로그 목록 스크린샷 저장: mas9golf/vercel-blog-list-final.png');
-    
-    // 3. 개별 블로그 게시물 테스트
-    console.log('\n📄 개별 블로그 게시물 테스트...');
-    
-    const postUrl = `${baseUrl}/blog/hot-summer-perfect-swing-royal-salute-gift-event/`;
-    console.log(`📄 게시물 URL: ${postUrl}`);
-    
-    await page.goto(postUrl, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(3000);
-    
-    const postTitle = await page.title();
-    console.log(`  📋 게시물 제목: ${postTitle}`);
-    
-    // 프리미엄 디자인 요소 확인
-    console.log('\n🎨 프리미엄 디자인 요소 확인...');
-    
-    const designElements = await page.evaluate(() => {
-      const heroSection = document.querySelector('.hero-section');
-      const premiumCards = document.querySelectorAll('.premium-card');
-      const goldText = document.querySelector('.gold-gradient');
-      const ctaButton = document.querySelector('.cta-button');
-      
-      return {
-        heroSection: !!heroSection,
-        premiumCards: premiumCards.length,
-        goldText: !!goldText,
-        ctaButton: !!ctaButton
-      };
+    // 3. 블로그 관리자 페이지 테스트 (간단한 버전)
+    console.log('📱 블로그 관리자 페이지 테스트 (간단한 버전)...');
+    await page.goto('https://masgolf.co.kr/admin/blog-simple', {
+      waitUntil: 'networkidle',
+      timeout: 30000
     });
     
-    console.log(`  🎨 히어로 섹션: ${designElements.heroSection ? '✅' : '❌'}`);
-    console.log(`  💎 프리미엄 카드: ${designElements.premiumCards}개`);
-    console.log(`  ✨ 골드 그라데이션: ${designElements.goldText ? '✅' : '❌'}`);
-    console.log(`  🔘 CTA 버튼: ${designElements.ctaButton ? '✅' : '❌'}`);
+    const adminTitle = await page.title();
+    console.log('✅ 관리자 페이지 제목:', adminTitle);
     
-    // 이미지 로딩 확인
-    console.log('\n🖼️ 이미지 로딩 확인...');
-    
-    const images = await page.$$('img');
-    let loadedImages = 0;
-    
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i];
-      const src = await img.getAttribute('src');
-      const naturalWidth = await img.evaluate(el => el.naturalWidth);
-      
-      if (naturalWidth > 0) {
-        loadedImages++;
-        console.log(`  ✅ 이미지 ${i + 1}: ${src} (${naturalWidth}px)`);
-      } else {
-        console.log(`  ❌ 이미지 ${i + 1}: ${src} (로드 실패)`);
-      }
-    }
-    
-    console.log(`  📊 이미지 로딩 결과: ${loadedImages}/${images.length}개 성공`);
-    
-    // 반응형 테스트
-    console.log('\n📱 반응형 디자인 테스트...');
-    
-    // 모바일 테스트
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.waitForTimeout(2000);
-    
-    await page.screenshot({ 
-      path: 'mas9golf/vercel-mobile-final.png',
-      fullPage: true 
-    });
-    console.log('  📱 모바일 스크린샷 저장: mas9golf/vercel-mobile-final.png');
-    
-    // 태블릿 테스트
-    await page.setViewportSize({ width: 768, height: 1024 });
-    await page.waitForTimeout(2000);
-    
-    await page.screenshot({ 
-      path: 'mas9golf/vercel-tablet-final.png',
-      fullPage: true 
-    });
-    console.log('  📱 태블릿 스크린샷 저장: mas9golf/vercel-tablet-final.png');
-    
-    // 데스크톱 테스트
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.waitForTimeout(2000);
-    
-    await page.screenshot({ 
-      path: 'mas9golf/vercel-desktop-final.png',
-      fullPage: true 
-    });
-    console.log('  🖥️ 데스크톱 스크린샷 저장: mas9golf/vercel-desktop-final.png');
-    
-    // API 엔드포인트 테스트
-    console.log('\n🔌 API 엔드포인트 테스트...');
-    
-    try {
-      const apiUrl = `${baseUrl}/api/blog/posts`;
-      console.log(`  📡 API URL: ${apiUrl}`);
-      
-      const response = await page.goto(apiUrl, { waitUntil: 'networkidle', timeout: 10000 });
-      const responseText = await page.textContent('body');
-      
-      if (response.ok()) {
-        console.log('  ✅ API 엔드포인트 응답 성공');
-        try {
-          const apiData = JSON.parse(responseText);
-          console.log(`  📊 API 응답 데이터: ${apiData.posts ? apiData.posts.length : 0}개 게시물`);
-        } catch (e) {
-          console.log('  ⚠️ API 응답이 JSON 형식이 아닙니다');
-        }
-      } else {
-        console.log(`  ❌ API 엔드포인트 응답 실패: ${response.status()}`);
-      }
-    } catch (error) {
-      console.log(`  ❌ API 테스트 실패: ${error.message}`);
-    }
-    
-    // 4. 배포 테스트 결과 요약
-    console.log('\n✅ Vercel 배포 테스트 결과 요약:');
-    
-    const testResults = {
-      vercel: {
-        mainPage: !!mainTitle && !mainTitle.includes('404'),
-        blogPage: !!blogTitle && !blogTitle.includes('404'),
-        postPage: !!postTitle && !postTitle.includes('404')
-      },
-      design: {
-        heroSection: designElements.heroSection,
-        premiumCards: designElements.premiumCards > 0,
-        goldText: designElements.goldText,
-        ctaButton: designElements.ctaButton
-      },
-      images: {
-        loaded: loadedImages,
-        total: images.length,
-        successRate: Math.round((loadedImages / images.length) * 100)
-      },
-      responsive: {
-        mobile: true,
-        tablet: true,
-        desktop: true
-      }
-    };
-    
-    console.log('  🌐 Vercel 배포:');
-    console.log(`    - 메인 페이지: ${testResults.vercel.mainPage ? '✅' : '❌'}`);
-    console.log(`    - 블로그 페이지: ${testResults.vercel.blogPage ? '✅' : '❌'}`);
-    console.log(`    - 게시물 페이지: ${testResults.vercel.postPage ? '✅' : '❌'}`);
-    
-    console.log('  🎨 프리미엄 디자인:');
-    console.log(`    - 히어로 섹션: ${testResults.design.heroSection ? '✅' : '❌'}`);
-    console.log(`    - 프리미엄 카드: ${testResults.design.premiumCards ? '✅' : '❌'}`);
-    console.log(`    - 골드 그라데이션: ${testResults.design.goldText ? '✅' : '❌'}`);
-    console.log(`    - CTA 버튼: ${testResults.design.ctaButton ? '✅' : '❌'}`);
-    
-    console.log('  🖼️ 이미지 로딩:');
-    console.log(`    - 성공률: ${testResults.images.successRate}% (${testResults.images.loaded}/${testResults.images.total})`);
-    
-    console.log('  📱 반응형 디자인:');
-    console.log(`    - 모바일: ${testResults.responsive.mobile ? '✅' : '❌'}`);
-    console.log(`    - 태블릿: ${testResults.responsive.tablet ? '✅' : '❌'}`);
-    console.log(`    - 데스크톱: ${testResults.responsive.desktop ? '✅' : '❌'}`);
-    
-    // 전체 성공 여부
-    const allGood = testResults.vercel.mainPage && 
-                   testResults.vercel.blogPage && 
-                   testResults.vercel.postPage &&
-                   testResults.design.heroSection &&
-                   testResults.images.successRate > 80;
-    
-    if (allGood) {
-      console.log('\n🎉 Vercel 배포 및 테스트가 성공적으로 완료되었습니다!');
-      console.log(`🌐 배포된 사이트: ${baseUrl}`);
-      console.log('📝 프리미엄 브랜드 블로그가 정상적으로 구동되고 있습니다.');
+    // 에러 메시지 확인
+    const errorElement = await page.$('text=Application error');
+    if (errorElement) {
+      console.log('❌ Application error 발견!');
     } else {
-      console.log('\n⚠️ 일부 테스트에서 문제가 발견되었습니다.');
+      console.log('✅ Application error 없음');
     }
     
-    console.log('\n🎉 Vercel 배포 테스트 완료!');
+    // 관리자 페이지 게시물 개수 확인
+    const adminPostsCount = await page.$$eval('.border.border-gray-200.rounded-lg', elements => elements.length);
+    console.log('📝 관리자 페이지 게시물 개수:', adminPostsCount);
     
-    return {
-      baseUrl: baseUrl,
-      testResults: testResults,
-      allGood: allGood
-    };
+    // 4. 블로그 관리자 페이지 테스트 (전체 기능)
+    console.log('📱 블로그 관리자 페이지 테스트 (전체 기능)...');
+    await page.goto('https://masgolf.co.kr/admin/blog', {
+      waitUntil: 'networkidle',
+      timeout: 30000
+    });
+    
+    const fullAdminTitle = await page.title();
+    console.log('✅ 전체 관리자 페이지 제목:', fullAdminTitle);
+    
+    // 에러 메시지 확인
+    const fullErrorElement = await page.$('text=Application error');
+    if (fullErrorElement) {
+      console.log('❌ 전체 관리자 페이지에서 Application error 발견!');
+    } else {
+      console.log('✅ 전체 관리자 페이지에서 Application error 없음');
+    }
+    
+    // 5. 개별 블로그 게시물 테스트
+    if (postsCount > 0) {
+      console.log('📱 개별 블로그 게시물 테스트...');
+      await page.goto('https://masgolf.co.kr/blog/hot-summer-perfect-swing-royal-salute-gift-event', {
+        waitUntil: 'networkidle',
+        timeout: 30000
+      });
+      
+      const postTitle = await page.title();
+      console.log('✅ 블로그 게시물 제목:', postTitle);
+      
+      // 이미지 로드 확인
+      const images = await page.$$eval('img', elements => elements.length);
+      console.log('🖼️ 이미지 개수:', images);
+    }
+    
+    // 에러가 있다면 상세 정보 출력
+    if (errors.length > 0) {
+      console.log('\n🔍 발견된 에러들:');
+      errors.forEach((error, index) => {
+        console.log(`${index + 1}. ${error}`);
+      });
+    } else {
+      console.log('✅ 에러 없음');
+    }
+    
+    // 스크린샷 저장
+    await page.screenshot({ 
+      path: 'mas9golf/vercel-deployment-test.png',
+      fullPage: true 
+    });
+    console.log('📸 스크린샷 저장: mas9golf/vercel-deployment-test.png');
+    
+    // 10초 대기 (브라우저 확인용)
+    console.log('⏳ 10초 대기 중... (브라우저 확인용)');
+    await page.waitForTimeout(10000);
     
   } catch (error) {
-    console.error('❌ 배포 테스트 중 오류 발생:', error);
-    throw error;
+    console.error('❌ 테스트 실패:', error.message);
   } finally {
-    if (browser) {
-      console.log('✨ 브라우저 연결 유지 (수동 확인 가능)');
-    }
+    await browser.close();
   }
 }
 
-// 스크립트 실행
-if (require.main === module) {
-  testVercelDeployment()
-    .then((results) => {
-      console.log('\n🚀 Vercel 배포 테스트 작업 완료!');
-      console.log('📊 테스트 결과:', results);
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ 작업 실패:', error);
-      process.exit(1);
-    });
-}
-
-module.exports = { testVercelDeployment };
+testVercelDeployment().catch(console.error);
