@@ -31,7 +31,9 @@ export default function BlogAdmin() {
       }
       const data = await response.json();
       console.log('API 응답 데이터:', data);
-      setPosts(Array.isArray(data) ? data : []);
+      // API 응답이 {posts: [...]} 형태인 경우 처리
+      const postsArray = data.posts || data;
+      setPosts(Array.isArray(postsArray) ? postsArray : []);
     } catch (error) {
       console.error('게시물 로드 실패:', error);
       setPosts([]);
