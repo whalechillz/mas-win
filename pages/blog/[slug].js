@@ -401,8 +401,7 @@ export async function getStaticProps({ params }) {
     return {
       props: {
         post: postData
-      },
-      revalidate: 3600 // 1시간마다 재생성
+      }
     };
   } catch (error) {
     console.error('Error loading post:', error);

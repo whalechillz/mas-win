@@ -221,7 +221,7 @@ export async function getStaticProps() {
           title: postData.title,
           slug: postData.slug,
           excerpt: postData.excerpt,
-          featuredImage: postData.featuredImage,
+          featuredImage: postData.featured_image || postData.featuredImage || null,
           publishedAt: postData.publishedAt,
           category: postData.category,
           tags: postData.tags
@@ -232,16 +232,14 @@ export async function getStaticProps() {
     return {
       props: {
         posts: posts
-      },
-      revalidate: 3600 // 1시간마다 재생성
+      }
     };
   } catch (error) {
     console.error('Error loading posts:', error);
     return {
       props: {
         posts: []
-      },
-      revalidate: 3600
+      }
     };
   }
 }
