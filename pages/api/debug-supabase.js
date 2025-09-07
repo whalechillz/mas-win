@@ -61,7 +61,6 @@ export default async function handler(req, res) {
     let networkTest = {};
     
     try {
-      const fetch = require('node-fetch');
       const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`, {
         method: 'GET',
         headers: {
@@ -150,7 +149,6 @@ export default async function handler(req, res) {
     
     try {
       // 직접 fetch 사용
-      const fetch = require('node-fetch');
       const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/blog_posts?select=*&limit=1`, {
         method: 'GET',
         headers: {

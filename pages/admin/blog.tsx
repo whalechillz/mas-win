@@ -6,6 +6,7 @@ export default function BlogAdmin() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -44,18 +45,42 @@ export default function BlogAdmin() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
+      console.log('🔍 게시물 로딩 시작...');
+      
       // 관리자 API를 사용하여 데이터를 가져옴
       const response = await fetch('/api/admin/blog');
+      
+      const debugData = {
+        url: '/api/admin/blog',
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        timestamp: new Date().toISOString()
+      };
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        debugData.error = errorText;
+        setDebugInfo(debugData);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const data = await response.json();
       console.log('Admin API 응답 데이터:', data);
+      
+      debugData.responseData = data;
+      setDebugInfo(debugData);
+      
       // API 응답이 {posts: [...]} 형태인 경우 처리
       const postsArray = data.posts || data;
       setPosts(Array.isArray(postsArray) ? postsArray : []);
     } catch (error) {
       console.error('게시물 로드 실패:', error);
+      setDebugInfo(prev => ({
+        ...prev,
+        error: error.message,
+        stack: error.stack
+      }));
       setPosts([]);
     } finally {
       setLoading(false);
@@ -851,6 +876,27 @@ export default function BlogAdmin() {
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-gray-600">로딩 중...</p>
+                {debugInfo && (
+                  <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left max-w-4xl mx-auto">
+                    <h3 className="font-bold text-gray-800 mb-2">🔍 디버그 정보</h3>
+                    <div className="text-sm text-gray-700 space-y-2">
+                      <p><strong>URL:</strong> {debugInfo.url}</p>
+                      <p><strong>Status:</strong> {debugInfo.status} {debugInfo.statusText}</p>
+                      <p><strong>Timestamp:</strong> {debugInfo.timestamp}</p>
+                      {debugInfo.error && (
+                        <div className="mt-2 p-2 bg-red-100 rounded">
+                          <p className="text-red-800"><strong>Error:</strong> {debugInfo.error}</p>
+                        </div>
+                      )}
+                      {debugInfo.responseData && (
+                        <div className="mt-2 p-2 bg-green-100 rounded">
+                          <p className="text-green-800"><strong>Response:</strong></p>
+                          <pre className="text-xs overflow-auto">{JSON.stringify(debugInfo.responseData, null, 2)}</pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
