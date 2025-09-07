@@ -20,7 +20,9 @@ export default function BlogAdmin() {
     meta_description: '',
     meta_keywords: '',
     view_count: 0,
-    is_featured: false
+    is_featured: false,
+    is_scheduled: false,
+    scheduled_at: ''
   });
 
   // 마쓰구 브랜드 전략 상태
@@ -108,7 +110,9 @@ export default function BlogAdmin() {
       meta_description: post.meta_description || '',
       meta_keywords: post.meta_keywords || '',
       view_count: post.view_count || 0,
-      is_featured: post.is_featured || false
+      is_featured: post.is_featured || false,
+      is_scheduled: post.is_scheduled || false,
+      scheduled_at: post.scheduled_at || ''
     });
     setShowForm(true);
   };
@@ -147,7 +151,9 @@ export default function BlogAdmin() {
       meta_description: '',
       meta_keywords: '',
       view_count: 0,
-      is_featured: false
+      is_featured: false,
+      is_scheduled: false,
+      scheduled_at: ''
     });
   };
 
@@ -603,6 +609,48 @@ export default function BlogAdmin() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      발행 예약
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="is_scheduled"
+                          checked={formData.is_scheduled}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            is_scheduled: e.target.checked,
+                            status: e.target.checked ? 'draft' : formData.status
+                          })}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="is_scheduled" className="ml-2 block text-sm text-gray-700">
+                          예약 발행 사용
+                        </label>
+                      </div>
+                      
+                      {formData.is_scheduled && (
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">
+                            예약 발행 시간
+                          </label>
+                          <input
+                            type="datetime-local"
+                            value={formData.scheduled_at ? new Date(formData.scheduled_at).toISOString().slice(0, 16) : ''}
+                            onChange={(e) => setFormData({ ...formData, scheduled_at: new Date(e.target.value).toISOString() })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            min={new Date().toISOString().slice(0, 16)}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            예약된 시간에 자동으로 게시됩니다.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       조회수
                     </label>
                     <input
@@ -711,6 +759,11 @@ export default function BlogAdmin() {
                           <span>조회수: {post.view_count || 0}</span>
                           <span>작성일: {new Date(post.publishedAt).toLocaleDateString('ko-KR')}</span>
                           {post.is_featured && <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">추천</span>}
+                          {post.is_scheduled && (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                              예약: {new Date(post.scheduled_at).toLocaleDateString('ko-KR')}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex space-x-2 ml-4">
