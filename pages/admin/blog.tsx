@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export default function BlogAdmin() {
   const [posts, setPosts] = useState([]);
@@ -30,10 +26,14 @@ export default function BlogAdmin() {
       setLoading(true);
       // 현재는 로컬 JSON 파일에서 데이터를 가져옴
       const response = await fetch('/api/blog/posts');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setPosts(data);
+      setPosts(data || []);
     } catch (error) {
       console.error('게시물 로드 실패:', error);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
