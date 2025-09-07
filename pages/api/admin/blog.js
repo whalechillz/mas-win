@@ -40,25 +40,16 @@ async function getPosts(req, res) {
       });
     }
     
-    // Supabase REST API 직접 사용 (node-fetch 사용)
-    console.log('Admin API: Using Supabase REST API with node-fetch');
+    // Supabase 클라이언트 사용 (간단한 방식)
+    console.log('Admin API: Using Supabase client with simple configuration');
     
-    const fetch = require('node-fetch');
-    const response = await fetch(`${supabaseUrl}/rest/v1/blog_posts?select=*&order=created_at.desc`, {
-      method: 'GET',
-      headers: {
-        'apikey': serviceKey,
-        'Authorization': `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, serviceKey);
     
-    if (!response.ok) {
-      throw new Error(`Supabase API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const posts = await response.json();
-    const error = null; // REST API에서는 error 객체가 없음
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Admin API: 게시물 로드 실패:', error);
