@@ -41,21 +41,60 @@ const ArrowRightIcon = () => (
 export default function BlogIndex({ posts: staticPosts }) {
   const [posts, setPosts] = useState(staticPosts || []);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalPosts: 0,
+    hasNext: false,
+    hasPrev: false
+  });
+
+  // 페이지 변경 함수
+  const handlePageChange = async (page) => {
+    setLoading(true);
+    setCurrentPage(page);
+    
+    try {
+      const response = await fetch(`/api/blog/posts?page=${page}&limit=6`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setPosts(data.posts);
+        setPagination(data.pagination);
+      } else {
+        console.error('Failed to fetch posts:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // 정적 데이터가 있으면 사용, 없으면 API에서 가져오기
     if (staticPosts && staticPosts.length > 0) {
       setPosts(staticPosts);
       setLoading(false);
+      // 정적 데이터의 경우 페이지네이션 정보 설정
+      setPagination({
+        currentPage: 1,
+        totalPages: Math.ceil(staticPosts.length / 6),
+        totalPosts: staticPosts.length,
+        hasNext: staticPosts.length > 6,
+        hasPrev: false
+      });
     } else {
       setLoading(true);
       const fetchPosts = async () => {
         try {
-          const response = await fetch('/api/blog/posts');
+          const response = await fetch('/api/blog/posts?page=1&limit=6');
           const data = await response.json();
           
           if (response.ok) {
             setPosts(data.posts);
+            setPagination(data.pagination);
           } else {
             console.error('Failed to fetch posts:', data.error);
             setPosts([]);
@@ -191,25 +230,42 @@ export default function BlogIndex({ posts: staticPosts }) {
           </div>
 
           {/* 고급스러운 페이지네이션 */}
-          <div className="mt-16 flex justify-center">
-            <nav className="flex items-center space-x-2">
-              <button className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100">
-                이전
-              </button>
-              <button className="px-4 py-3 bg-gradient-to-r from-slate-900 to-slate-700 text-white font-semibold rounded-xl shadow-lg">
-                1
-              </button>
-              <button className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100">
-                2
-              </button>
-              <button className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100">
-                3
-              </button>
-              <button className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100">
-                다음
-              </button>
-            </nav>
-          </div>
+          {pagination.totalPages > 1 && (
+            <div className="mt-16 flex justify-center">
+              <nav className="flex items-center space-x-2">
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPrev}
+                  className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  이전
+                </button>
+                
+                {/* 페이지 번호들 */}
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-4 py-3 font-medium transition-colors duration-200 rounded-xl ${
+                      pageNum === currentPage
+                        ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNext}
+                  className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  다음
+                </button>
+              </nav>
+            </div>
+          )}
         </main>
       </div>
     </>
