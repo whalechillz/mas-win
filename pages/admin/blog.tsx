@@ -230,11 +230,6 @@ export default function BlogAdmin() {
       return;
     }
 
-    // 임시로 기본 슬러그 생성 사용 (OpenAI API 키 문제 해결 전까지)
-    alert('AI 슬러그 생성 기능이 일시적으로 비활성화되었습니다. 기본 슬러그를 사용합니다.');
-    
-    // 향후 OpenAI API 키가 복구되면 아래 코드를 활성화
-    /*
     try {
       const response = await fetch('/api/generate-slug', {
         method: 'POST',
@@ -256,7 +251,6 @@ export default function BlogAdmin() {
       console.error('AI 슬러그 생성 에러:', error);
       alert('AI 슬러그 생성 중 오류가 발생했습니다.');
     }
-    */
   };
 
   return (
