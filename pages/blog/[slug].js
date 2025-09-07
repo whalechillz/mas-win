@@ -3,6 +3,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import fs from 'fs';
+import path from 'path';
 
 // 7월 퍼널 스타일의 고급스러운 아이콘 컴포넌트들
 const ArrowLeftIcon = () => (
@@ -60,38 +62,42 @@ const GalleryIcon = () => (
   </div>
 );
 
-export default function BlogPost() {
+export default function BlogPost({ post: staticPost }) {
   const router = useRouter();
   const { slug } = router.query;
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [post, setPost] = useState(staticPost || null);
+  const [loading, setLoading] = useState(!staticPost);
   const [relatedPosts, setRelatedPosts] = useState([]);
 
   useEffect(() => {
-    if (!slug) return;
-
-    const fetchPost = async () => {
-      try {
-        const response = await fetch(`/api/blog/${slug}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-          setPost(data.post);
-          setRelatedPosts(data.relatedPosts || []);
-        } else {
-          console.error('Failed to fetch post:', data.error);
+    // 정적 데이터가 있으면 사용, 없으면 API에서 가져오기
+    if (staticPost) {
+      setPost(staticPost);
+      setLoading(false);
+    } else if (slug) {
+      const fetchPost = async () => {
+        try {
+          const response = await fetch(`/api/blog/${slug}`);
+          const data = await response.json();
+          
+          if (response.ok) {
+            setPost(data.post);
+            setRelatedPosts(data.relatedPosts || []);
+          } else {
+            console.error('Failed to fetch post:', data.error);
+            setPost(null);
+          }
+        } catch (error) {
+          console.error('Error fetching post:', error);
           setPost(null);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching post:', error);
-        setPost(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchPost();
-  }, [slug]);
+      fetchPost();
+    }
+  }, [slug, staticPost]);
 
   if (loading) {
     return (
@@ -333,4 +339,75 @@ export default function BlogPost() {
       </div>
     </>
   );
+}
+
+// 정적 생성용 getStaticPaths
+export async function getStaticPaths() {
+  try {
+    const postsDirectory = path.join(process.cwd(), 'mas9golf/migrated-posts');
+    const filenames = fs.readdirSync(postsDirectory);
+    
+    const paths = filenames
+      .filter(name => name.endsWith('.json'))
+      .map(filename => {
+        const filePath = path.join(postsDirectory, filename);
+        const fileContents = fs.readFileSync(filePath, 'utf8');
+        const postData = JSON.parse(fileContents);
+        
+        return {
+          params: {
+            slug: postData.slug
+          }
+        };
+      });
+
+    return {
+      paths,
+      fallback: false // 404 페이지로 리다이렉트
+    };
+  } catch (error) {
+    console.error('Error generating static paths:', error);
+    return {
+      paths: [],
+      fallback: false
+    };
+  }
+}
+
+// 정적 생성용 getStaticProps
+export async function getStaticProps({ params }) {
+  try {
+    const postsDirectory = path.join(process.cwd(), 'mas9golf/migrated-posts');
+    const filenames = fs.readdirSync(postsDirectory);
+    
+    const postFile = filenames.find(filename => {
+      if (!filename.endsWith('.json')) return false;
+      const filePath = path.join(postsDirectory, filename);
+      const fileContents = fs.readFileSync(filePath, 'utf8');
+      const postData = JSON.parse(fileContents);
+      return postData.slug === params.slug;
+    });
+
+    if (!postFile) {
+      return {
+        notFound: true
+      };
+    }
+
+    const filePath = path.join(postsDirectory, postFile);
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    const postData = JSON.parse(fileContents);
+
+    return {
+      props: {
+        post: postData
+      },
+      revalidate: 3600 // 1시간마다 재생성
+    };
+  } catch (error) {
+    console.error('Error loading post:', error);
+    return {
+      notFound: true
+    };
+  }
 }

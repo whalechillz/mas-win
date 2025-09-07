@@ -15,5 +15,8 @@ module.exports = {
   experimental: {
     serverMinification: false,
   },
+  // 정적 생성 설정
+  output: 'export',
+  trailingSlash: true,
   // 리다이렉트 제거 - 메인 페이지가 index.js를 직접 사용하도록 함
 };
