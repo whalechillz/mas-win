@@ -15,8 +15,9 @@ module.exports = {
   experimental: {
     serverMinification: false,
   },
-  // 정적 생성 설정
-  output: 'export',
+  // 정적 생성 설정 (Vercel 호환)
   trailingSlash: true,
+  // 정적 HTML 내보내기 비활성화 (Vercel 서버리스 함수 사용)
+  // output: 'export',
   // 리다이렉트 제거 - 메인 페이지가 index.js를 직접 사용하도록 함
 };
