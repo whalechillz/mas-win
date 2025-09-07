@@ -448,7 +448,7 @@ export default function BlogAdmin() {
                   <p className="text-xs text-gray-600 mt-2">
                     선택한 전략에 따라 마쓰구 브랜드가 자연스럽게 통합된 콘텐츠를 생성합니다.
                     <br />
-                    <span className="text-blue-600 font-medium">🔍 웹 검색 기능이 포함되어 최신 정보를 반영합니다.</span>
+                    <span className="text-blue-600 font-medium">🔍 브랜드 정보 검색 기능이 포함되어 정확한 정보를 반영합니다.</span>
                   </p>
                 </div>
 
