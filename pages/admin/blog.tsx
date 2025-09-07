@@ -34,13 +34,13 @@ export default function BlogAdmin() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      // 현재는 로컬 JSON 파일에서 데이터를 가져옴
-      const response = await fetch('/api/blog/posts');
+      // 관리자 API를 사용하여 데이터를 가져옴
+      const response = await fetch('/api/admin/blog');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('API 응답 데이터:', data);
+      console.log('Admin API 응답 데이터:', data);
       // API 응답이 {posts: [...]} 형태인 경우 처리
       const postsArray = data.posts || data;
       setPosts(Array.isArray(postsArray) ? postsArray : []);
