@@ -222,7 +222,7 @@ export async function getStaticProps() {
           slug: postData.slug,
           excerpt: postData.excerpt,
           featuredImage: postData.featured_image || postData.featuredImage || null,
-          publishedAt: postData.publishedAt,
+          publishedAt: postData.publishedAt || postData.published_at || new Date().toISOString(),
           category: postData.category,
           tags: postData.tags
         };
