@@ -204,7 +204,7 @@ export default function BlogAdmin() {
     }
   };
 
-  // AI 콘텐츠 생성
+  // AI 콘텐츠 생성 (웹 검색 포함)
   const generateAIContent = async (type) => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
@@ -212,7 +212,7 @@ export default function BlogAdmin() {
     }
 
     try {
-      const response = await fetch('/api/generate-localized-content', {
+      const response = await fetch('/api/generate-enhanced-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -224,12 +224,13 @@ export default function BlogAdmin() {
           brandWeight: brandStrategy.brandWeight,
           customerChannel: brandStrategy.customerChannel,
           painPoint: brandStrategy.painPoint || null,
-          customerPersona: brandStrategy.customerPersona
+          customerPersona: brandStrategy.customerPersona,
+          enableWebSearch: true
         })
       });
 
       if (response.ok) {
-        const { content } = await response.json();
+        const { content, webSearchEnabled, webSearchResults } = await response.json();
         
         if (type === 'excerpt') {
           setFormData({ ...formData, excerpt: content });
@@ -237,6 +238,11 @@ export default function BlogAdmin() {
           setFormData({ ...formData, content: content });
         } else if (type === 'meta') {
           setFormData({ ...formData, meta_description: content });
+        }
+        
+        // 웹 검색 결과 알림
+        if (webSearchEnabled) {
+          console.log('✅ 웹 검색 정보가 포함된 콘텐츠 생성 완료');
         }
       } else {
         console.error('AI 콘텐츠 생성 실패');
@@ -441,6 +447,8 @@ export default function BlogAdmin() {
                   
                   <p className="text-xs text-gray-600 mt-2">
                     선택한 전략에 따라 마쓰구 브랜드가 자연스럽게 통합된 콘텐츠를 생성합니다.
+                    <br />
+                    <span className="text-blue-600 font-medium">🔍 웹 검색 기능이 포함되어 최신 정보를 반영합니다.</span>
                   </p>
                 </div>
 
