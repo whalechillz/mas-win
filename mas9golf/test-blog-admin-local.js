@@ -109,7 +109,7 @@ async function checkLocalServer() {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
-    await page.goto('http://localhost:3001', { timeout: 5000 });
+    await page.goto('http://localhost:3000', { timeout: 5000 });
     console.log('✅ 로컬 서버 실행 중');
     return true;
   } catch (error) {
