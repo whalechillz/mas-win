@@ -26,6 +26,16 @@ export default function BlogAdmin() {
     author: '마쓰구골프'
   });
 
+  // 마쓰구 브랜드 전략 상태
+  const [brandStrategy, setBrandStrategy] = useState({
+    contentType: 'information',
+    audienceTemp: 'warm',
+    brandWeight: 'medium',
+    customerChannel: 'local_customers',
+    painPoint: '',
+    customerPersona: 'competitive_maintainer'
+  });
+
   // 게시물 목록 불러오기
   const fetchPosts = async () => {
     try {
@@ -165,6 +175,79 @@ export default function BlogAdmin() {
       .trim();
   };
 
+  // AI 슬러그 생성
+  const generateAISlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/generate-slug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: formData.title })
+      });
+
+      if (response.ok) {
+        const { slug } = await response.json();
+        setFormData({
+          ...formData,
+          slug
+        });
+      } else {
+        console.error('AI 슬러그 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 슬러그 생성 에러:', error);
+      alert('AI 슬러그 생성 중 오류가 발생했습니다.');
+    }
+  };
+
+  // AI 콘텐츠 생성
+  const generateAIContent = async (type) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/generate-localized-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          type: type,
+          keywords: formData.tags.join(', '),
+          contentType: brandStrategy.contentType,
+          audienceTemp: brandStrategy.audienceTemp,
+          brandWeight: brandStrategy.brandWeight,
+          customerChannel: brandStrategy.customerChannel,
+          painPoint: brandStrategy.painPoint || null,
+          customerPersona: brandStrategy.customerPersona
+        })
+      });
+
+      if (response.ok) {
+        const { content } = await response.json();
+        
+        if (type === 'excerpt') {
+          setFormData({ ...formData, excerpt: content });
+        } else if (type === 'content') {
+          setFormData({ ...formData, content: content });
+        } else if (type === 'meta') {
+          setFormData({ ...formData, meta_description: content });
+        }
+      } else {
+        console.error('AI 콘텐츠 생성 실패');
+        alert('AI 콘텐츠 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('AI 콘텐츠 생성 에러:', error);
+      alert('AI 콘텐츠 생성 중 오류가 발생했습니다.');
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -221,14 +304,144 @@ export default function BlogAdmin() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     슬러그 *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="URL 슬러그"
-                    required
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="URL 슬러그"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAISlug}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                      title="AI로 SEO 최적화된 슬러그 생성"
+                    >
+                      🤖 AI
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    제목 입력 시 자동 생성되며, AI 버튼으로 더 정교한 슬러그를 생성할 수 있습니다.
+                  </p>
+                </div>
+
+                {/* 마쓰구 브랜드 전략 선택 */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-4">🎯 마쓰구 브랜드 전략</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 유형</label>
+                      <select 
+                        value={brandStrategy.contentType}
+                        onChange={(e) => setBrandStrategy({...brandStrategy, contentType: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="information">골프 정보</option>
+                        <option value="tutorial">튜토리얼</option>
+                        <option value="testimonial">고객 후기</option>
+                        <option value="event">이벤트</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">오디언스 온도</label>
+                      <select 
+                        value={brandStrategy.audienceTemp}
+                        onChange={(e) => setBrandStrategy({...brandStrategy, audienceTemp: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="cold">차가운 오디언스 (처음 접함)</option>
+                        <option value="warm">따뜻한 오디언스 (관심 있음)</option>
+                        <option value="hot">뜨거운 오디언스 (구매 의도 높음)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">브랜드 강도</label>
+                      <select 
+                        value={brandStrategy.brandWeight}
+                        onChange={(e) => setBrandStrategy({...brandStrategy, brandWeight: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="low">낮음 (정보 중심)</option>
+                        <option value="medium">중간 (비교 강조)</option>
+                        <option value="high">높음 (브랜드 강조)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">고객 채널</label>
+                      <select 
+                        value={brandStrategy.customerChannel}
+                        onChange={(e) => setBrandStrategy({...brandStrategy, customerChannel: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="local_customers">내방고객 (경기 근방)</option>
+                        <option value="online_customers">온라인고객 (전국 단위)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">고객 페르소나</label>
+                      <select 
+                        value={brandStrategy.customerPersona}
+                        onChange={(e) => setBrandStrategy({...brandStrategy, customerPersona: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="high_rebound_preferrer">고반발 드라이버 선호 상급 골퍼</option>
+                        <option value="health_conscious_senior">건강을 고려한 비거리 증가 시니어 골퍼</option>
+                        <option value="competitive_maintainer">경기력을 유지하고 싶은 중상급 골퍼</option>
+                        <option value="returning_senior">최근 골프를 다시 시작한 60대 이상 골퍼</option>
+                        <option value="beginner_distance">골프 입문자를 위한 비거리 향상 초급 골퍼</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">페인 포인트</label>
+                      <select 
+                        value={brandStrategy.painPoint}
+                        onChange={(e) => setBrandStrategy({...brandStrategy, painPoint: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">선택 안함</option>
+                        <option value="distance_decrease">비거리 감소</option>
+                        <option value="service_dissatisfaction">서비스 불만족</option>
+                        <option value="equipment_durability">장비 내구성</option>
+                        <option value="fitting_accuracy">피팅 정확도</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button 
+                      type="button"
+                      onClick={() => generateAIContent('excerpt')} 
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      🤖 AI 요약
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => generateAIContent('content')} 
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                    >
+                      🤖 AI 본문
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => generateAIContent('meta')} 
+                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                    >
+                      🤖 AI 메타
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-600 mt-2">
+                    선택한 전략에 따라 마쓰구 브랜드가 자연스럽게 통합된 콘텐츠를 생성합니다.
+                  </p>
                 </div>
 
                 <div>
