@@ -30,7 +30,8 @@ export default function BlogAdmin() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setPosts(data || []);
+      console.log('API 응답 데이터:', data);
+      setPosts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('게시물 로드 실패:', error);
       setPosts([]);
