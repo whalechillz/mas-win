@@ -14,7 +14,13 @@ export default function BlogAdmin() {
     featured_image: '',
     publishedAt: new Date().toISOString(),
     category: '골프',
-    tags: []
+    tags: [],
+    status: 'published',
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
+    view_count: 0,
+    is_featured: false
   });
 
   // 마쓰구 브랜드 전략 상태
@@ -96,7 +102,13 @@ export default function BlogAdmin() {
       featured_image: post.featured_image,
       publishedAt: post.publishedAt,
       category: post.category,
-      tags: post.tags || []
+      tags: post.tags || [],
+      status: post.status || 'published',
+      meta_title: post.meta_title || '',
+      meta_description: post.meta_description || '',
+      meta_keywords: post.meta_keywords || '',
+      view_count: post.view_count || 0,
+      is_featured: post.is_featured || false
     });
     setShowForm(true);
   };
@@ -129,7 +141,13 @@ export default function BlogAdmin() {
       featured_image: '',
       publishedAt: new Date().toISOString(),
       category: '골프',
-      tags: []
+      tags: [],
+      status: 'published',
+      meta_title: '',
+      meta_description: '',
+      meta_keywords: '',
+      view_count: 0,
+      is_featured: false
     });
   };
 
@@ -535,6 +553,120 @@ export default function BlogAdmin() {
                   />
                 </div>
 
+                {/* 추가 관리 필드들 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      카테고리
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="골프">골프</option>
+                      <option value="고반발 드라이버">고반발 드라이버</option>
+                      <option value="시니어 드라이버">시니어 드라이버</option>
+                      <option value="고객 후기">고객 후기</option>
+                      <option value="이벤트">이벤트</option>
+                      <option value="튜토리얼">튜토리얼</option>
+                      <option value="고객스토리">고객스토리</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      게시 상태
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="published">게시됨</option>
+                      <option value="draft">초안</option>
+                      <option value="archived">보관됨</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      게시일
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.publishedAt ? new Date(formData.publishedAt).toISOString().slice(0, 16) : ''}
+                      onChange={(e) => setFormData({ ...formData, publishedAt: new Date(e.target.value).toISOString() })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      조회수
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.view_count}
+                      onChange={(e) => setFormData({ ...formData, view_count: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_featured"
+                    checked={formData.is_featured}
+                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-700">
+                    추천 게시물로 설정
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    메타 제목 (SEO)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.meta_title}
+                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="검색 엔진 최적화를 위한 제목"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    메타 설명 (SEO)
+                  </label>
+                  <textarea
+                    value={formData.meta_description}
+                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="검색 결과에 표시될 설명"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    메타 키워드 (SEO)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.meta_keywords}
+                    onChange={(e) => setFormData({ ...formData, meta_keywords: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="쉼표로 구분된 키워드"
+                  />
+                </div>
+
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
@@ -575,7 +707,10 @@ export default function BlogAdmin() {
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <span>슬러그: {post.slug}</span>
                           <span>카테고리: {post.category}</span>
+                          <span>상태: {post.status === 'published' ? '게시됨' : post.status === 'draft' ? '초안' : '보관됨'}</span>
+                          <span>조회수: {post.view_count || 0}</span>
                           <span>작성일: {new Date(post.publishedAt).toLocaleDateString('ko-KR')}</span>
+                          {post.is_featured && <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">추천</span>}
                         </div>
                       </div>
                       <div className="flex space-x-2 ml-4">

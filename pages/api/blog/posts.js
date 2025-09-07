@@ -1,57 +1,62 @@
 // Blog posts API endpoint
-import fs from 'fs';
-import path from 'path';
+import { createServerSupabase } from '../../../lib/supabase';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { page = 1, limit = 10 } = req.query;
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + parseInt(limit);
   
   try {
-    // Read posts from JSON files
-    const postsDir = path.join(process.cwd(), 'mas9golf', 'migrated-posts');
-    const files = fs.readdirSync(postsDir);
-    const posts = [];
+    const supabase = createServerSupabase();
+    
+    // Get total count
+    const { count } = await supabase
+      .from('blog_posts')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'published');
 
-    for (const file of files) {
-      if (file.endsWith('.json')) {
-        const filePath = path.join(postsDir, file);
-        const postData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        posts.push({
-          id: postData.id,
-          title: postData.title,
-          slug: postData.slug,
-          excerpt: postData.excerpt,
-          content: postData.content,
-          featured_image: postData.featured_image,
-          publishedAt: postData.publishedAt || postData.published_at,
-          category: postData.category,
-          tags: postData.tags,
-          meta_title: postData.meta_title,
-          meta_description: postData.meta_description,
-          meta_keywords: postData.meta_keywords,
-          status: postData.status || 'published'
-        });
-      }
+    // Get paginated posts
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .range(startIndex, endIndex - 1);
+
+    if (error) {
+      console.error('Error fetching blog posts:', error);
+      return res.status(500).json({ error: 'Failed to load blog posts' });
     }
 
-    // Sort by published date (newest first)
-    posts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-    
-    const paginatedPosts = posts.slice(startIndex, endIndex);
+    // Transform data for frontend
+    const transformedPosts = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      featured_image: post.featured_image,
+      publishedAt: post.published_at,
+      category: post.category,
+      tags: post.tags,
+      meta_title: post.meta_title,
+      meta_description: post.meta_description,
+      meta_keywords: post.meta_keywords,
+      status: post.status
+    }));
     
     res.status(200).json({
-      posts: paginatedPosts,
+      posts: transformedPosts,
       pagination: {
         currentPage: parseInt(page),
-        totalPages: Math.ceil(posts.length / limit),
-        totalPosts: posts.length,
-        hasNext: endIndex < posts.length,
+        totalPages: Math.ceil(count / limit),
+        totalPosts: count,
+        hasNext: endIndex < count,
         hasPrev: startIndex > 0
       }
     });
   } catch (error) {
-    console.error('Error reading blog posts:', error);
+    console.error('Error in blog posts API:', error);
     res.status(500).json({ error: 'Failed to load blog posts' });
   }
 }
