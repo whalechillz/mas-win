@@ -96,9 +96,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 5단계: 간단한 쿼리 테스트 (계정 정보 조회)
+    // 5단계: Developer Token 검증
     try {
-      // 먼저 사용 가능한 계정들을 조회해보기
+      // 먼저 간단한 쿼리로 Developer Token 유효성 검증
+      const tokenValidation = await customer.query(`
+        SELECT 
+          customer.id
+        FROM customer 
+        LIMIT 1
+      `);
+      
+      // Developer Token이 유효한 경우에만 계정 정보 조회
       const accountInfo = await customer.query(`
         SELECT 
           customer.id,
@@ -136,6 +144,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           url: error.request?.url,
           method: error.request?.method,
           headers: error.request?.headers
+        },
+        // Google Ads API 특화 오류 정보
+        googleAdsError: {
+          errorCode: error.code,
+          errorMessage: error.message,
+          errorDetails: error.details,
+          requestId: error.requestId,
+          errors: error.errors
         }
       };
 
@@ -146,15 +162,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         withHyphens: envVars.customer_id ? `${envVars.customer_id.slice(0,3)}-${envVars.customer_id.slice(3,6)}-${envVars.customer_id.slice(6)}` : 'N/A'
       };
 
+      // 오류 유형별 구체적인 분석
+      let specificError = '알 수 없는 오류';
+      let specificNextStep = 'Google Ads API 문서를 확인하세요.';
+      
+      if (error.message?.includes('DEVELOPER_TOKEN_INVALID')) {
+        specificError = 'Developer Token이 유효하지 않습니다.';
+        specificNextStep = 'Google Ads API Center에서 Developer Token 상태를 확인하고 재승인을 요청하세요.';
+      } else if (error.message?.includes('CUSTOMER_NOT_FOUND')) {
+        specificError = 'Customer ID를 찾을 수 없습니다.';
+        specificNextStep = '올바른 10자리 Customer ID를 사용하고 있는지 확인하세요.';
+      } else if (error.message?.includes('AUTHENTICATION_ERROR')) {
+        specificError = '인증 오류가 발생했습니다.';
+        specificNextStep = 'Refresh Token이 유효한지 확인하고 필요시 재발급하세요.';
+      } else if (error.message?.includes('PERMISSION_DENIED')) {
+        specificError = '권한이 거부되었습니다.';
+        specificNextStep = 'Google Ads 계정에서 API 접근 권한을 확인하세요.';
+      }
+
       return res.status(200).json({
         step: 'API 쿼리 테스트',
         status: '실패',
-        message: 'API 쿼리 실행 실패',
-        error: error.message,
+        message: specificError,
+        originalError: error.message,
         errorDetails: errorInfo,
         customerIdInfo,
         envValidation,
-        nextStep: 'Developer Token 권한과 Customer ID를 확인하세요.'
+        nextStep: specificNextStep
       });
     }
 

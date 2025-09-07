@@ -1,0 +1,23 @@
+[
+  {
+    "title": "뜨거운 여름, 완벽한 스윙 로얄살루트 증정 행사",
+    "oldUrl": "/post/뜨거운-여름-완벽한-스윙-로얄살루트-증정-행사",
+    "newSlug": "",
+    "status": "error",
+    "error": "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[placeholder*=\"URL\"], input[data-hook*=\"url\"], input[aria-label*=\"URL\"]') to be visible\u001b[22m\n"
+  },
+  {
+    "title": "시니어 골퍼의 인생 드라이버, 마쓰구 고반발로 골프가 즐거워진다! 라운딩 리얼후기",
+    "oldUrl": "/post/시니어-골퍼-인생-드라이버-마쓰구-고반발-드라이버-라운딩-리얼후기",
+    "newSlug": "",
+    "status": "error",
+    "error": "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[placeholder*=\"URL\"], input[data-hook*=\"url\"], input[aria-label*=\"URL\"]') to be visible\u001b[22m\n"
+  },
+  {
+    "title": "성귀애 고객님의 마쓰구 드라이버 라운딩 후기 - 젝시오 대비 30M 비거리 향상",
+    "oldUrl": "/post/성귀애-고객님-마쓰구-드라이버-라운딩-후기-젝시오-대비-30m-비거리-향상",
+    "newSlug": "",
+    "status": "error",
+    "error": "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[placeholder*=\"URL\"], input[data-hook*=\"url\"], input[aria-label*=\"URL\"]') to be visible\u001b[22m\n"
+  }
+]

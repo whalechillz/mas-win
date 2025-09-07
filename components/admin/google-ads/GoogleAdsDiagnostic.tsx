@@ -43,7 +43,12 @@ export default function GoogleAdsDiagnostic() {
           step: 'API 쿼리 테스트',
           status: data.status === '성공' ? 'success' : 'failed',
           message: data.message,
-          details: data.data,
+          details: {
+            ...data.data,
+            originalError: data.originalError,
+            errorDetails: data.errorDetails,
+            customerIdInfo: data.customerIdInfo
+          },
           nextStep: data.nextStep
         }
       ];

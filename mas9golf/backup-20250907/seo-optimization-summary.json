@@ -1,0 +1,87 @@
+{
+  "project": "마쓰구골프 블로그 SEO 최적화",
+  "total_posts": 162,
+  "optimization_date": "2024-09-07",
+  "status": "진행 중",
+  "completed_posts": "1-5번",
+  "remaining_posts": "6-162번",
+  "progress_percentage": 3.1,
+  "core_keywords": [
+    "고반발 드라이버",
+    "시니어 드라이버", 
+    "골프 드라이버",
+    "남성 드라이버",
+    "골프 피팅"
+  ],
+  "seo_templates": {
+    "고반발_드라이버": {
+      "title_suffix": "| 마쓰구골프 고반발 드라이버 전문",
+      "meta_prefix": "마쓰구골프 고반발 드라이버로 비거리를 늘려보세요.",
+      "meta_suffix": "전문 피팅과 맞춤 제작으로 골프 실력을 향상시키세요."
+    },
+    "시니어": {
+      "title_suffix": "| 마쓰구골프 시니어 드라이버 전문", 
+      "meta_prefix": "마쓰구골프 시니어 드라이버로 편안하고 멀리 보내세요.",
+      "meta_suffix": "시니어 골퍼를 위한 전문 피팅 서비스입니다."
+    },
+    "후기": {
+      "title_suffix": "| 마쓰구골프 드라이버 실제 후기",
+      "meta_prefix": "마쓰구골프 드라이버 실제 사용 후기입니다.",
+      "meta_suffix": "비거리 향상과 만족도를 확인해보세요."
+    },
+    "이벤트": {
+      "title_suffix": "| 마쓰구골프 특별 이벤트",
+      "meta_prefix": "마쓰구골프 특별 이벤트로 고반발 드라이버를 만나보세요.",
+      "meta_suffix": "한정 기간 특가 혜택을 놓치지 마세요."
+    }
+  },
+  "completed_posts_detail": [
+    {
+      "index": 1,
+      "title": "새해 특별 혜택! 프리미엄 골프 드라이버와 액세서리 단 30분께만 증정!",
+      "old_url": "/post/high-rebound-driver-winter-sale",
+      "new_url": "/post/special-benefit-premium-golf-driver-30-gift",
+      "keywords": "고반발 드라이버, 비거리 향상, 골프 드라이버, 남성 드라이버",
+      "category": "이벤트"
+    },
+    {
+      "index": 2,
+      "title": "MASGOLF – 초고반발 드라이버 피팅 전문 브랜드 | 비거리 최대 +25m 증가",
+      "old_url": "/post/high-cor-driver-fitting", 
+      "new_url": "/post/masgolf-high-rebound-driver-professional-distance-25m",
+      "keywords": "고반발 드라이버, 비거리 향상, 골프 드라이버, 남성 드라이버",
+      "category": "고반발_드라이버"
+    },
+    {
+      "index": 3,
+      "title": "뜨거운 여름, 완벽한 스윙 로얄살루트 증정 행사",
+      "old_url": "/post/뜨거운-여름-완벽한-스윙-로얄살루트-증정-행사",
+      "new_url": "/post/hot-summer-perfect-gift",
+      "keywords": "골프 드라이버, 고반발 드라이버, 마쓰구골프, 골프 피팅",
+      "category": "이벤트"
+    },
+    {
+      "index": 4,
+      "title": "롱기스트 드라이버 찾는다면? MASGOLF(구.마쓰구골프) 고반발 드라이버로 인생 황금기를 완성하세요",
+      "old_url": "/post/senior-golf-longest-driver-mas",
+      "new_url": "/post/longest-driver-masgolfgolf-high-rebound-driver-completion",
+      "keywords": "고반발 드라이버, 비거리 향상, 골프 드라이버, 남성 드라이버",
+      "category": "고반발_드라이버"
+    },
+    {
+      "index": 5,
+      "title": "시니어 골퍼의 인생 드라이버, 마쓰구 고반발로 골프가 즐거워진다! 라운딩 리얼후기",
+      "old_url": "/post/시니어-골퍼-인생-드라이버-마쓰구-고반발-드라이버-라운딩-리얼후기",
+      "new_url": "/post/senior-driver-high-rebound-golf-review",
+      "keywords": "고반발 드라이버, 비거리 향상, 골프 드라이버, 남성 드라이버",
+      "category": "후기"
+    }
+  ],
+  "next_batch": "6-10번 게시물",
+  "files": {
+    "full_data": "mas9golf/blog-posts-seo-optimized.json",
+    "guide": "mas9golf/seo-optimization-guide.md",
+    "summary": "mas9golf/seo-optimization-summary.json",
+    "script": "mas9golf/seo-optimizer.js"
+  }
+}
