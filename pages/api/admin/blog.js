@@ -40,8 +40,19 @@ async function getPosts(req, res) {
       });
     }
     
-    const supabase = createServerSupabase();
-    console.log('Admin API: Supabase client created');
+    // Supabase 클라이언트 직접 생성
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      supabaseUrl,
+      serviceKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+    console.log('Admin API: Supabase client created directly');
     
     const { data: posts, error } = await supabase
       .from('blog_posts')
