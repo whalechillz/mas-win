@@ -16,40 +16,34 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Perplexity API를 통한 웹 검색
-const searchWeb = async (query) => {
+// GPT-4o-mini를 통한 브랜드 정보 검색
+const searchBrandInfo = async (title) => {
   try {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a research assistant. Provide accurate, up-to-date information about golf brands, products, and industry trends. Focus on Korean golf market and brands like Marumang, MASGOLF, etc.'
-          },
-          {
-            role: 'user',
-            content: query
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.3,
-      }),
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `당신은 골프 브랜드 전문가입니다. 다음 브랜드들에 대한 정확한 정보를 제공하세요:
+
+1. 마루망(Marumang) - 한국 골프 브랜드
+2. MASGOLF(마쓰구) - 초고반발 드라이버 전문 브랜드
+3. 기타 골프 브랜드들
+
+제목에서 언급된 브랜드에 대한 정확한 정보, 특징, 기술력, 시장 포지션 등을 제공하세요.`
+        },
+        {
+          role: "user",
+          content: `다음 제목에서 언급된 골프 브랜드에 대한 정보를 제공해주세요: "${title}"`
+        }
+      ],
+      max_tokens: 300,
+      temperature: 0.3,
     });
 
-    if (!response.ok) {
-      throw new Error(`Perplexity API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error('Web search error:', error);
+    console.error('Brand search error:', error);
     return null;
   }
 };
@@ -77,27 +71,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 웹 검색으로 최신 정보 수집
-    let webSearchResults = '';
+    // 브랜드 정보 검색
+    let brandSearchResults = '';
     if (enableWebSearch) {
-      console.log('🔍 웹 검색 중...');
+      console.log('🔍 브랜드 정보 검색 중...');
       
-      // 제목에서 브랜드명 추출하여 검색
-      const searchQueries = [
-        `${title} 골프 브랜드 정보`,
-        `마루망 골프 브랜드 특징`,
-        `MASGOLF 드라이버 기술`,
-        `골프 드라이버 페이스 두께 기술`
-      ];
-
-      const searchPromises = searchQueries.map(query => searchWeb(query));
-      const searchResults = await Promise.all(searchPromises);
+      brandSearchResults = await searchBrandInfo(title);
       
-      webSearchResults = searchResults
-        .filter(result => result !== null)
-        .join('\n\n');
-      
-      console.log('✅ 웹 검색 완료:', webSearchResults.length, '자');
+      if (brandSearchResults) {
+        console.log('✅ 브랜드 정보 검색 완료:', brandSearchResults.length, '자');
+      } else {
+        console.log('⚠️ 브랜드 정보 검색 실패');
+      }
     }
 
     // 고객 채널별 맞춤 메시지 생성
@@ -127,9 +112,9 @@ export default async function handler(req, res) {
 고객 채널: ${channel.name}
 고객 페르소나: ${persona.name}
 
-${webSearchResults ? `
-최신 웹 검색 정보:
-${webSearchResults}
+${brandSearchResults ? `
+브랜드 정보:
+${brandSearchResults}
 ` : ''}
 
 고객 페르소나 정보:
@@ -160,7 +145,7 @@ ${painMessage ? `
 - 채널 메시지: ${brandMessage.location}
 - 신뢰 지표: ${brandMessage.trust?.join(', ')}
 
-요약은 2-3문장으로 핵심 내용을 간결하게 전달하되, 웹 검색 정보와 고객 페르소나, 마쓰구 브랜드 가치를 자연스럽게 포함하세요.`;
+요약은 2-3문장으로 핵심 내용을 간결하게 전달하되, 브랜드 정보와 고객 페르소나, 마쓰구 브랜드 가치를 자연스럽게 포함하세요.`;
         break;
         
       case 'content':
@@ -174,9 +159,9 @@ ${painMessage ? `
 고객 채널: ${channel.name}
 고객 페르소나: ${persona.name}
 
-${webSearchResults ? `
-최신 웹 검색 정보:
-${webSearchResults}
+${brandSearchResults ? `
+브랜드 정보:
+${brandSearchResults}
 ` : ''}
 
 고객 페르소나 정보:
@@ -208,7 +193,7 @@ ${painMessage ? `
 - 신뢰 지표: ${brandMessage.trust?.join(', ')}
 
 본문은 SEO에 최적화되면서도 독자에게 실질적인 도움이 되는 내용으로 작성하세요. 
-웹 검색 정보를 활용하여 최신 정보를 포함하고, 고객 페르소나와 마쓰구 브랜드의 구체적인 장점을 자연스럽게 포함하세요.`;
+브랜드 정보를 활용하여 정확한 정보를 포함하고, 고객 페르소나와 마쓰구 브랜드의 구체적인 장점을 자연스럽게 포함하세요.`;
         break;
         
       case 'meta':
@@ -221,9 +206,9 @@ ${painMessage ? `
 고객 채널: ${channel.name}
 고객 페르소나: ${persona.name}
 
-${webSearchResults ? `
-최신 웹 검색 정보:
-${webSearchResults}
+${brandSearchResults ? `
+브랜드 정보:
+${brandSearchResults}
 ` : ''}
 
 고객 채널 정보:
@@ -235,7 +220,7 @@ ${webSearchResults}
 - 채널 메시지: ${brandMessage.location}
 
 메타 설명은 150-160자 내외로 작성하고, 검색 결과에서 클릭을 유도할 수 있도록 매력적으로 작성하세요.
-웹 검색 정보와 고객 채널 정보, 마쓰구 브랜드의 핵심 가치를 포함하세요.`;
+브랜드 정보와 고객 채널 정보, 마쓰구 브랜드의 핵심 가치를 포함하세요.`;
         break;
         
       default:
@@ -276,7 +261,7 @@ MASGOLF(마쓰구) - 초고반발 드라이버 & 맞춤 피팅 전문 브랜드
 4. 구체적인 데이터와 실적 제시
 5. 지역 기반 접근성 강조
 6. 오디언스 온도에 맞는 메시지 강도 조정
-7. 웹 검색 정보를 활용한 최신 정보 포함
+7. 브랜드 정보를 활용한 정확한 정보 포함
 8. 골프 브랜드(마루망 등)에 대한 정확한 정보 제공`
         },
         {
@@ -303,7 +288,7 @@ MASGOLF(마쓰구) - 초고반발 드라이버 & 맞춤 피팅 전문 브랜드
         channelInfo: channel
       },
       webSearchEnabled: enableWebSearch,
-      webSearchResults: webSearchResults ? '웹 검색 정보가 포함되었습니다' : '웹 검색을 사용하지 않았습니다'
+      webSearchResults: brandSearchResults ? '브랜드 정보가 포함되었습니다' : '브랜드 정보 검색을 사용하지 않았습니다'
     });
 
   } catch (error) {
