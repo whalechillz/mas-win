@@ -122,10 +122,86 @@ export default function BlogAdmin() {
   };
 
   const generateSlug = (title) => {
-    return title
+    if (!title) return '';
+    
+    // 한글을 영문으로 변환하는 매핑 테이블
+    const koreanToEnglish = {
+      '뜨거운': 'hot',
+      '여름': 'summer',
+      '완벽한': 'perfect',
+      '스윙': 'swing',
+      '로얄살루트': 'royal-salute',
+      '증정': 'gift',
+      '행사': 'event',
+      '골프': 'golf',
+      '드라이버': 'driver',
+      '고반발': 'high-rebound',
+      '비거리': 'distance',
+      '증가': 'increase',
+      '맞춤': 'custom',
+      '제작': 'manufacturing',
+      '서비스': 'service',
+      '프리미엄': 'premium',
+      '기술': 'technology',
+      '디자인': 'design',
+      '클럽': 'club',
+      '헤드': 'head',
+      '정밀한': 'precise',
+      '세심하게': 'carefully',
+      '설계된': 'designed',
+      '최신': 'latest',
+      '적용된': 'applied',
+      '특별한': 'special',
+      '경험': 'experience',
+      '선사': 'provide',
+      '품격': 'class',
+      '있는': 'with',
+      '퍼포먼스': 'performance',
+      '준비': 'preparation',
+      '한정': 'limited',
+      '썸머': 'summer',
+      '스페셜': 'special',
+      '최대': 'maximum',
+      '년': 'year',
+      'ml': 'ml',
+      '평균': 'average',
+      'm': 'm',
+      '대': 'age',
+      '골퍼': 'golfer',
+      '맞춤': 'custom',
+      '설계': 'design',
+      '전문적인': 'professional',
+      '제작': 'manufacturing',
+      '무료': 'free',
+      '전문': 'professional',
+      '상담': 'consultation',
+      '선착순': 'first-come-first-served',
+      '한정': 'limited',
+      '예약': 'reservation',
+      '카카오톡': 'kakao-talk',
+      '갤러리': 'gallery',
+      '제품': 'product',
+      '이미지': 'image',
+      '메인': 'main',
+      '디테일': 'detail',
+      '증정품': 'gift'
+    };
+
+    let slug = title;
+    
+    // 한글을 영문으로 변환
+    Object.keys(koreanToEnglish).forEach(korean => {
+      const english = koreanToEnglish[korean];
+      slug = slug.replace(new RegExp(korean, 'g'), english);
+    });
+    
+    // SEO 최적화: 소문자 변환, 특수문자 제거, 공백을 하이픈으로 변환
+    return slug
       .toLowerCase()
-      .replace(/[^a-z0-9가-힣\s]/g, '')
-      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\s-]/g, '') // 영문, 숫자, 공백, 하이픈만 유지
+      .replace(/\s+/g, '-') // 공백을 하이픈으로 변환
+      .replace(/-+/g, '-') // 연속된 하이픈을 하나로 변환
+      .replace(/^-|-$/g, '') // 앞뒤 하이픈 제거
       .trim();
   };
 
@@ -136,6 +212,35 @@ export default function BlogAdmin() {
       title,
       slug: generateSlug(title)
     });
+  };
+
+  const generateAISlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/generate-slug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: formData.title })
+      });
+
+      if (response.ok) {
+        const { slug } = await response.json();
+        setFormData({
+          ...formData,
+          slug
+        });
+      } else {
+        console.error('AI 슬러그 생성 실패');
+        alert('AI 슬러그 생성에 실패했습니다. 기본 슬러그를 사용합니다.');
+      }
+    } catch (error) {
+      console.error('AI 슬러그 생성 에러:', error);
+      alert('AI 슬러그 생성 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -181,13 +286,26 @@ export default function BlogAdmin() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       슬러그
                     </label>
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={generateAISlug}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                        title="AI로 SEO 최적화된 슬러그 생성"
+                      >
+                        🤖 AI
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      제목 입력 시 자동 생성되며, AI 버튼으로 더 정교한 슬러그를 생성할 수 있습니다.
+                    </p>
                   </div>
                 </div>
 
