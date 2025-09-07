@@ -184,7 +184,17 @@ export default function BlogAdmin() {
       '이미지': 'image',
       '메인': 'main',
       '디테일': 'detail',
-      '증정품': 'gift'
+      '증정품': 'gift',
+      '고반발': 'high-rebound',
+      '드라이버': 'driver',
+      '멀리': 'distance',
+      '보낼수': 'send',
+      '있을까': 'possible',
+      '스윙': 'swing',
+      '완벽한': 'perfect',
+      '로얄살루트': 'royal-salute',
+      '증정': 'gift',
+      '행사': 'event'
     };
 
     let slug = title;
@@ -220,6 +230,11 @@ export default function BlogAdmin() {
       return;
     }
 
+    // 임시로 기본 슬러그 생성 사용 (OpenAI API 키 문제 해결 전까지)
+    alert('AI 슬러그 생성 기능이 일시적으로 비활성화되었습니다. 기본 슬러그를 사용합니다.');
+    
+    // 향후 OpenAI API 키가 복구되면 아래 코드를 활성화
+    /*
     try {
       const response = await fetch('/api/generate-slug', {
         method: 'POST',
@@ -241,6 +256,7 @@ export default function BlogAdmin() {
       console.error('AI 슬러그 생성 에러:', error);
       alert('AI 슬러그 생성 중 오류가 발생했습니다.');
     }
+    */
   };
 
   return (
