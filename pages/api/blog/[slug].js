@@ -1,83 +1,67 @@
 // Individual blog post API endpoint
-export default function handler(req, res) {
+import { createServerSupabase } from '../../../lib/supabase';
+
+export default async function handler(req, res) {
   const { slug } = req.query;
   
-  // Import the posts data
-  const posts = [
-  {
-    "id": 1,
-    "title": "뜨거운 여름, 완벽한 스윙 로얄살루트 증정 행사",
-    "slug": "hot-summer-perfect-swing-royal-salute-gift-event",
-    "content": "\n        <div class=\"premium-blog-content\">\n          <!-- 히어로 섹션 -->\n          <div class=\"hero-section\">\n            <div class=\"hero-background\">\n              <div class=\"hero-overlay\"></div>\n            </div>\n            <div class=\"hero-content\">\n              <div class=\"hero-badge\">\n                <span class=\"badge-text\">7월 한정 썸머 스페셜</span>\n                <span class=\"badge-gift\">최대 21년 로얄살루트 700ml</span>\n              </div>\n              <h1 class=\"hero-title\">\n                <span class=\"title-line-1\">뜨거운 여름,</span>\n                <span class=\"title-line-2 gold-gradient\">완벽한 스윙</span>\n              </h1>\n              <p class=\"hero-subtitle\">품격 있는 퍼포먼스를 위한 준비</p>\n              <div class=\"hero-cta\">\n                <button class=\"cta-button\">\n                  <i class=\"fas fa-flag\"></i>\n                  나만의 맞춤 클럽 찾기\n                </button>\n              </div>\n            </div>\n          </div>\n          \n          <!-- 프리미엄 특징 섹션 -->\n          <div class=\"premium-features-section\">\n            <div class=\"section-header\">\n              <div class=\"section-icon premium-icon\">\n                <i class=\"fas fa-trophy\"></i>\n              </div>\n              <h2 class=\"section-title\">프리미엄 특징</h2>\n            </div>\n            <div class=\"features-grid\">\n              <div class=\"feature-card premium-card\">\n                <div class=\"feature-icon\">\n                  <i class=\"fas fa-bolt\"></i>\n                </div>\n                <h3 class=\"feature-title\">고반발 드라이버 기술</h3>\n                <p class=\"feature-description\">최신 고반발 기술로 평균 25m 비거리 증가를 경험하세요.</p>\n              </div>\n              <div class=\"feature-card premium-card\">\n                <div class=\"feature-icon\">\n                  <i class=\"fas fa-cog\"></i>\n                </div>\n                <h3 class=\"feature-title\">맞춤 제작 서비스</h3>\n                <p class=\"feature-description\">50-60대 골퍼를 위한 전문적인 맞춤 설계와 제작 서비스.</p>\n              </div>\n              <div class=\"feature-card premium-card\">\n                <div class=\"feature-icon\">\n                  <i class=\"fas fa-gift\"></i>\n                </div>\n                <h3 class=\"feature-title\">로얄살루트 증정</h3>\n                <p class=\"feature-description\">최대 21년 로얄살루트 700ml 증정으로 더욱 특별한 경험을 선사합니다.</p>\n              </div>\n            </div>\n          </div>\n          \n          <!-- 전문 상담 섹션 -->\n          <div class=\"consultation-section\">\n            <div class=\"section-header\">\n              <div class=\"section-icon premium-icon\">\n                <i class=\"fas fa-phone\"></i>\n              </div>\n              <h2 class=\"section-title\">전문 상담 및 예약</h2>\n            </div>\n            <div class=\"consultation-content\">\n              <div class=\"consultation-card\">\n                <div class=\"phone-display\">\n                  <div class=\"phone-icon\">\n                    <i class=\"fas fa-phone-alt\"></i>\n                  </div>\n                  <div class=\"phone-info\">\n                    <p class=\"phone-number\">080-028-8888</p>\n                    <p class=\"consultation-text\">무료 전문 상담</p>\n                    <p class=\"urgency-text\">선착순 한정</p>\n                  </div>\n                </div>\n                <div class=\"consultation-buttons\">\n                  <button class=\"consultation-btn primary\">\n                    <i class=\"fas fa-calendar-alt\"></i>\n                    상담 예약하기\n                  </button>\n                  <button class=\"consultation-btn secondary\">\n                    <i class=\"fas fa-comments\"></i>\n                    카카오톡 상담\n                  </button>\n                </div>\n              </div>\n            </div>\n          </div>\n          \n          <!-- 제품 갤러리 섹션 -->\n          <div class=\"gallery-section\">\n            <div class=\"section-header\">\n              <div class=\"section-icon premium-icon\">\n                <i class=\"fas fa-images\"></i>\n              </div>\n              <h2 class=\"section-title\">제품 갤러리</h2>\n            </div>\n            <div class=\"gallery-grid\">\n              <div class=\"gallery-item premium-gallery-item\">\n                <div class=\"gallery-image\">\n                  <img src=\"/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-featured.png\" alt=\"MAS 드라이버 메인 이미지\" class=\"gallery-img\">\n                  <div class=\"gallery-overlay\">\n                    <i class=\"fas fa-search-plus\"></i>\n                  </div>\n                </div>\n                <div class=\"gallery-caption\">\n                  <h4>MAS 고반발 드라이버</h4>\n                  <p>최신 기술이 적용된 프리미엄 드라이버</p>\n                </div>\n              </div>\n              <div class=\"gallery-item premium-gallery-item\">\n                <div class=\"gallery-image\">\n                  <img src=\"/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-gallery-1.png\" alt=\"드라이버 디테일 이미지\" class=\"gallery-img\">\n                  <div class=\"gallery-overlay\">\n                    <i class=\"fas fa-search-plus\"></i>\n                  </div>\n                </div>\n                <div class=\"gallery-caption\">\n                  <h4>정밀한 디자인</h4>\n                  <p>세심하게 설계된 클럽 헤드 디자인</p>\n                </div>\n              </div>\n              <div class=\"gallery-item premium-gallery-item\">\n                <div class=\"gallery-image\">\n                  <img src=\"/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-gallery-2.png\" alt=\"로얄살루트 증정품\" class=\"gallery-img\">\n                  <div class=\"gallery-overlay\">\n                    <i class=\"fas fa-search-plus\"></i>\n                  </div>\n                </div>\n                <div class=\"gallery-caption\">\n                  <h4>로얄살루트 증정</h4>\n                  <p>최대 21년 로얄살루트 700ml 증정</p>\n                </div>\n              </div>\n            </div>\n          </div>\n        </div>\n        \n        <style>\n          /* 프리미엄 블로그 스타일 */\n          .premium-blog-content {\n            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n            line-height: 1.7;\n            color: #1a1a1a;\n            max-width: 1200px;\n            margin: 0 auto;\n            padding: 0;\n          }\n          \n          /* 히어로 섹션 */\n          .hero-section {\n            position: relative;\n            min-height: 80vh;\n            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            overflow: hidden;\n          }\n          \n          .hero-background {\n            position: absolute;\n            top: 0;\n            left: 0;\n            right: 0;\n            bottom: 0;\n            background: url('/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-featured.png') center/cover;\n            opacity: 0.3;\n          }\n          \n          .hero-overlay {\n            position: absolute;\n            top: 0;\n            left: 0;\n            right: 0;\n            bottom: 0;\n            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.8) 100%);\n          }\n          \n          .hero-content {\n            position: relative;\n            z-index: 2;\n            text-align: center;\n            color: white;\n            padding: 2rem;\n          }\n          \n          .hero-badge {\n            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);\n            padding: 1rem 2rem;\n            border-radius: 50px;\n            margin-bottom: 2rem;\n            display: inline-block;\n            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);\n          }\n          \n          .badge-text {\n            display: block;\n            font-size: 1.1rem;\n            font-weight: 600;\n            margin-bottom: 0.5rem;\n          }\n          \n          .badge-gift {\n            display: block;\n            font-size: 0.9rem;\n            opacity: 0.9;\n          }\n          \n          .hero-title {\n            font-size: 4rem;\n            font-weight: 900;\n            margin: 2rem 0;\n            line-height: 1.1;\n          }\n          \n          .title-line-1 {\n            display: block;\n            color: white;\n          }\n          \n          .title-line-2 {\n            display: block;\n            background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);\n            -webkit-background-clip: text;\n            -webkit-text-fill-color: transparent;\n            background-clip: text;\n            filter: drop-shadow(0 0 20px rgba(255,215,0,0.5));\n          }\n          \n          .hero-subtitle {\n            font-size: 1.5rem;\n            margin-bottom: 3rem;\n            opacity: 0.9;\n            font-weight: 300;\n          }\n          \n          .cta-button {\n            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);\n            color: white;\n            border: none;\n            padding: 1.5rem 3rem;\n            font-size: 1.2rem;\n            font-weight: 600;\n            border-radius: 50px;\n            cursor: pointer;\n            transition: all 0.3s ease;\n            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);\n            display: inline-flex;\n            align-items: center;\n            gap: 1rem;\n          }\n          \n          .cta-button:hover {\n            transform: translateY(-3px);\n            box-shadow: 0 15px 40px rgba(220, 38, 38, 0.4);\n          }\n          \n          /* 프리미엄 특징 섹션 */\n          .premium-features-section {\n            padding: 6rem 2rem;\n            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);\n          }\n          \n          .section-header {\n            display: flex;\n            align-items: center;\n            gap: 1.5rem;\n            margin-bottom: 4rem;\n            justify-content: center;\n          }\n          \n          .premium-icon {\n            width: 80px;\n            height: 80px;\n            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);\n            border-radius: 20px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            color: white;\n            font-size: 2rem;\n            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);\n          }\n          \n          .section-title {\n            font-size: 3rem;\n            font-weight: 800;\n            color: #1a1a1a;\n            margin: 0;\n          }\n          \n          .features-grid {\n            display: grid;\n            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));\n            gap: 3rem;\n            max-width: 1000px;\n            margin: 0 auto;\n          }\n          \n          .premium-card {\n            background: white;\n            padding: 3rem 2rem;\n            border-radius: 20px;\n            box-shadow: 0 20px 60px rgba(0,0,0,0.1);\n            text-align: center;\n            transition: all 0.3s ease;\n            border: 1px solid rgba(0,0,0,0.05);\n          }\n          \n          .premium-card:hover {\n            transform: translateY(-10px);\n            box-shadow: 0 30px 80px rgba(0,0,0,0.15);\n          }\n          \n          .feature-icon {\n            width: 80px;\n            height: 80px;\n            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);\n            border-radius: 20px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            margin: 0 auto 2rem;\n            color: #dc2626;\n            font-size: 2rem;\n          }\n          \n          .feature-title {\n            font-size: 1.5rem;\n            font-weight: 700;\n            color: #1a1a1a;\n            margin-bottom: 1rem;\n          }\n          \n          .feature-description {\n            font-size: 1.1rem;\n            color: #6b7280;\n            line-height: 1.6;\n          }\n          \n          /* 상담 섹션 */\n          .consultation-section {\n            padding: 6rem 2rem;\n            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);\n            color: white;\n          }\n          \n          .consultation-content {\n            max-width: 800px;\n            margin: 0 auto;\n          }\n          \n          .consultation-card {\n            background: rgba(255,255,255,0.1);\n            backdrop-filter: blur(20px);\n            border-radius: 30px;\n            padding: 3rem;\n            border: 1px solid rgba(255,255,255,0.2);\n          }\n          \n          .phone-display {\n            display: flex;\n            align-items: center;\n            gap: 2rem;\n            margin-bottom: 3rem;\n            justify-content: center;\n          }\n          \n          .phone-icon {\n            width: 80px;\n            height: 80px;\n            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);\n            border-radius: 20px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 2rem;\n          }\n          \n          .phone-number {\n            font-size: 2.5rem;\n            font-weight: 800;\n            margin: 0;\n            color: white;\n          }\n          \n          .consultation-text {\n            font-size: 1.2rem;\n            margin: 0.5rem 0;\n            opacity: 0.9;\n          }\n          \n          .urgency-text {\n            font-size: 1rem;\n            color: #fbbf24;\n            margin: 0;\n            font-weight: 600;\n          }\n          \n          .consultation-buttons {\n            display: flex;\n            gap: 1.5rem;\n            justify-content: center;\n            flex-wrap: wrap;\n          }\n          \n          .consultation-btn {\n            padding: 1.2rem 2.5rem;\n            border: none;\n            border-radius: 50px;\n            font-size: 1.1rem;\n            font-weight: 600;\n            cursor: pointer;\n            transition: all 0.3s ease;\n            display: inline-flex;\n            align-items: center;\n            gap: 0.8rem;\n          }\n          \n          .consultation-btn.primary {\n            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);\n            color: white;\n            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);\n          }\n          \n          .consultation-btn.secondary {\n            background: rgba(255,255,255,0.1);\n            color: white;\n            border: 2px solid rgba(255,255,255,0.3);\n          }\n          \n          .consultation-btn:hover {\n            transform: translateY(-3px);\n          }\n          \n          .consultation-btn.primary:hover {\n            box-shadow: 0 15px 40px rgba(220, 38, 38, 0.4);\n          }\n          \n          /* 갤러리 섹션 */\n          .gallery-section {\n            padding: 6rem 2rem;\n            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);\n          }\n          \n          .gallery-grid {\n            display: grid;\n            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));\n            gap: 3rem;\n            max-width: 1000px;\n            margin: 0 auto;\n          }\n          \n          .premium-gallery-item {\n            background: white;\n            border-radius: 20px;\n            overflow: hidden;\n            box-shadow: 0 20px 60px rgba(0,0,0,0.1);\n            transition: all 0.3s ease;\n          }\n          \n          .premium-gallery-item:hover {\n            transform: translateY(-10px);\n            box-shadow: 0 30px 80px rgba(0,0,0,0.15);\n          }\n          \n          .gallery-image {\n            position: relative;\n            overflow: hidden;\n            height: 250px;\n          }\n          \n          .gallery-img {\n            width: 100%;\n            height: 100%;\n            object-fit: cover;\n            transition: transform 0.3s ease;\n          }\n          \n          .gallery-overlay {\n            position: absolute;\n            top: 0;\n            left: 0;\n            right: 0;\n            bottom: 0;\n            background: rgba(0,0,0,0.5);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            opacity: 0;\n            transition: opacity 0.3s ease;\n            color: white;\n            font-size: 2rem;\n          }\n          \n          .premium-gallery-item:hover .gallery-overlay {\n            opacity: 1;\n          }\n          \n          .premium-gallery-item:hover .gallery-img {\n            transform: scale(1.1);\n          }\n          \n          .gallery-caption {\n            padding: 2rem;\n          }\n          \n          .gallery-caption h4 {\n            font-size: 1.3rem;\n            font-weight: 700;\n            color: #1a1a1a;\n            margin-bottom: 0.5rem;\n          }\n          \n          .gallery-caption p {\n            color: #6b7280;\n            line-height: 1.6;\n          }\n          \n          /* 반응형 디자인 */\n          @media (max-width: 768px) {\n            .hero-title {\n              font-size: 2.5rem;\n            }\n            \n            .section-title {\n              font-size: 2rem;\n            }\n            \n            .features-grid {\n              grid-template-columns: 1fr;\n              gap: 2rem;\n            }\n            \n            .gallery-grid {\n              grid-template-columns: 1fr;\n              gap: 2rem;\n            }\n            \n            .phone-display {\n              flex-direction: column;\n              text-align: center;\n            }\n            \n            .consultation-buttons {\n              flex-direction: column;\n              align-items: center;\n            }\n            \n            .consultation-btn {\n              width: 100%;\n              max-width: 300px;\n            }\n          }\n        </style>\n    ",
-    "excerpt": "7월 한정 썸머 스페셜! 최대 21년 로얄살루트 증정. MAS 드라이버로 평균 25m 비거리 증가. 50-60대 골퍼 맞춤 설계.",
-    "featured_image": "/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-featured.png",
-    "meta_title": "뜨거운 여름, 완벽한 스윙 로얄살루트 증정 행사 | MASGOLF High-Rebound Driver",
-    "meta_description": "뜨거운 여름, 완벽한 스윙을 위한 프리미엄 골프 드라이버. 고반발 기술로 비거리 25m 증가, 로얄살루트 증정 혜택.",
-    "keywords": [
-      "마스골프",
-      "MASGOLF",
-      "골프드라이버",
-      "비거리증가",
-      "로얄살루트",
-      "여름골프",
-      "골프클럽",
-      "고반발드라이버"
-    ],
-    "category": "golf-driver",
-    "tags": [
-      "고반발드라이버",
-      "골프드라이버",
-      "MASGOLF",
-      "드라이버피팅",
-      "로얄살루트",
-      "여름골프"
-    ],
-    "author": "마쓰구골프",
-    "published_at": "2024-07-09T00:00:00.000Z",
-    "created_at": "2025-09-07T04:04:26.455Z",
-    "updated_at": "2025-09-07T05:05:28.751Z",
-    "status": "published",
-    "images": [
-      {
-        "originalSrc": "https://static.wixstatic.com/media/be5bc3_0eebf55a2a194e90bdc0ed50067cadb7~mv2.jpg/v1/fill/w_740,h_592,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/be5bc3_0eebf55a2a194e90bdc0ed50067cadb7~mv2.jpg",
-        "localPath": "/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-gallery-1.png",
-        "alt": "ree",
-        "width": 740,
-        "height": 592
-      },
-      {
-        "originalSrc": "https://static.wixstatic.com/media/be5bc3_e309731e69c54ad69bba962ab293f9b7~mv2.png/v1/fill/w_740,h_376,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/be5bc3_e309731e69c54ad69bba962ab293f9b7~mv2.png",
-        "localPath": "/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-gallery-2.png",
-        "alt": "ree",
-        "width": 740,
-        "height": 376
-      },
-      {
-        "originalSrc": "https://static.wixstatic.com/media/be5bc3_b3c1a3029c8348f19720aba6f95038e9~mv2.png/v1/fill/w_740,h_401,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/be5bc3_b3c1a3029c8348f19720aba6f95038e9~mv2.png",
-        "localPath": "/mas9golf/blog/images/post-1-hot-summer-perfect-swing-royal-salute-gift-event-gallery-3.png",
-        "alt": "ree",
-        "width": 740,
-        "height": 401
-      }
-    ],
-    "original_url": "https://www.mas9golf.com/post/hot-summer-perfect-swing-royal-salute-gift-event",
-    "migration_source": "wix-clone"
+  try {
+    const supabase = createServerSupabase();
+    
+    // Get the specific post
+    const { data: post, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single();
+
+    if (error || !post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Get related posts (same category, excluding current post)
+    const { data: relatedPosts } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug, excerpt, featured_image, published_at, category')
+      .eq('category', post.category)
+      .neq('id', post.id)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(3);
+
+    // Transform data for frontend
+    const transformedPost = {
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      featured_image: post.featured_image,
+      publishedAt: post.published_at,
+      category: post.category,
+      tags: post.tags,
+      meta_title: post.meta_title,
+      meta_description: post.meta_description,
+      meta_keywords: post.meta_keywords,
+      status: post.status
+    };
+
+    const transformedRelatedPosts = (relatedPosts || []).map(relatedPost => ({
+      id: relatedPost.id,
+      title: relatedPost.title,
+      slug: relatedPost.slug,
+      excerpt: relatedPost.excerpt,
+      featured_image: relatedPost.featured_image,
+      publishedAt: relatedPost.published_at,
+      category: relatedPost.category
+    }));
+    
+    res.status(200).json({
+      post: transformedPost,
+      relatedPosts: transformedRelatedPosts
+    });
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    res.status(500).json({ error: 'Failed to load blog post' });
   }
-];
-  
-  const post = posts.find(p => p.slug === slug);
-  
-  if (!post) {
-    return res.status(404).json({ error: "Post not found" });
-  }
-  
-  // Find related posts (same category, excluding current post)
-  const relatedPosts = posts
-    .filter(p => p.category === post.category && p.id !== post.id)
-    .slice(0, 3);
-  
-  res.status(200).json({
-    post,
-    relatedPosts
-  });
 }
