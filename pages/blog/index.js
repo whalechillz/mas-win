@@ -5,6 +5,20 @@ import Image from 'next/image';
 import fs from 'fs';
 import path from 'path';
 
+// 날짜 포맷팅 함수
+function formatDate(dateString) {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return '날짜 정보 없음';
+  }
+}
+
 // 고급스러운 아이콘 컴포넌트들
 const HomeIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,7 +176,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                       <div className="flex items-center gap-2 text-slate-500 text-sm">
                         <CalendarIcon />
                         <time className="font-medium">
-                          {new Date(post.published_at).toLocaleDateString('ko-KR')}
+                          {formatDate(post.publishedAt)}
                         </time>
                       </div>
                       <div className="flex items-center text-slate-500 text-sm font-medium group-hover:text-slate-700 transition-colors duration-200">
