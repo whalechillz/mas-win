@@ -34,7 +34,9 @@ async function updatePost(req, res, id) {
       status,
       meta_title,
       meta_description,
-      meta_keywords
+      meta_keywords,
+      is_scheduled,
+      scheduled_at
     } = req.body;
 
     const supabase = createServerSupabase();
@@ -53,6 +55,8 @@ async function updatePost(req, res, id) {
       meta_title,
       meta_description,
       meta_keywords,
+      is_scheduled: is_scheduled || false,
+      scheduled_at: scheduled_at || null,
       updated_at: new Date().toISOString()
     };
 
