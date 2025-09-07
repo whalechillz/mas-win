@@ -53,7 +53,8 @@ async function getPosts(req, res) {
       return res.status(500).json({ 
         error: '게시물을 불러올 수 없습니다.',
         details: error.message,
-        code: error.code
+        code: error.code,
+        fullError: JSON.stringify(error)
       });
     }
 
@@ -86,9 +87,12 @@ async function getPosts(req, res) {
     return res.status(200).json(transformedPosts);
   } catch (error) {
     console.error('Admin API: 게시물 로드 실패:', error);
+    console.error('Admin API: Error stack:', error.stack);
     return res.status(500).json({ 
       error: '게시물을 불러올 수 없습니다.',
-      details: error.message
+      details: error.message,
+      stack: error.stack,
+      type: error.constructor.name
     });
   }
 }
