@@ -7,6 +7,7 @@ import {
   CONTENT_TEMPLATES,
   CUSTOMER_PERSONAS,
   MASLOW_NEEDS_MAPPING,
+  CONTENT_STRATEGY,
   generateBrandMessage,
   generatePainPointMessage
 } from '../../lib/masgolf-brand-data';
@@ -102,17 +103,26 @@ ${painMessage ? `
         prompt = `골프 드라이버 관련 블로그 포스트의 본문을 작성해주세요.
 
 제목: "${title}"
-키워드: ${localKeywords}
+키워드: ${channelKeywords}
 콘텐츠 유형: ${contentType}
 오디언스 온도: ${audienceTemp}
 브랜드 강도: ${brandWeight}
-지역: ${LOCAL_MESSAGES[location]?.location || '수원 갤러리아 광교 5분 거리'}
-오디언스 세그먼트: ${audience.characteristics}
+고객 채널: ${channel.name}
+고객 페르소나: ${persona.name}
 
-지역 맞춤 정보:
-- 위치: ${LOCAL_MESSAGES[location]?.location}
-- 접근성: ${LOCAL_MESSAGES[location]?.accessibility?.join(', ')}
-- 타겟 지역: ${LOCAL_MESSAGES[location]?.target_areas?.join(', ')}
+고객 페르소나 정보:
+- 특성: ${persona.characteristics}
+- 핵심 관심사: ${persona.core_concerns?.join(', ')}
+- 동기: ${persona.motivations?.join(', ')}
+- 페인 포인트: ${persona.pain_points?.join(', ')}
+- 마쓰구 포커스: ${persona.masgolf_focus}
+- 매슬로 욕구: ${persona.maslow_needs?.join(', ')}
+
+고객 채널 정보:
+- 위치: ${channel.location}
+- 접근성: ${channel.accessibility?.join(', ')}
+- 타겟 지역: ${channel.target_areas?.join(', ')}
+- 장점: ${channel.advantages?.join(', ')}
 
 ${painMessage ? `
 페인 포인트 해결:
@@ -123,13 +133,13 @@ ${painMessage ? `
 ` : ''}
 
 브랜드 메시지:
-- 핵심 메시지: ${localMessage.core?.join(', ')}
-- CTA: ${localMessage.cta}
-- 지역 메시지: ${localMessage.location}
-- 신뢰 지표: ${localMessage.trust?.join(', ')}
+- 핵심 메시지: ${brandMessage.core?.join(', ')}
+- CTA: ${brandMessage.cta}
+- 채널 메시지: ${brandMessage.location}
+- 신뢰 지표: ${brandMessage.trust?.join(', ')}
 
 본문은 SEO에 최적화되면서도 독자에게 실질적인 도움이 되는 내용으로 작성하세요. 
-지역별 접근성과 마쓰구 브랜드의 구체적인 장점을 자연스럽게 포함하세요.`;
+고객 페르소나와 채널 정보, 마쓰구 브랜드의 구체적인 장점을 자연스럽게 포함하세요.`;
         break;
         
       case 'meta':
@@ -139,18 +149,19 @@ ${painMessage ? `
 콘텐츠 유형: ${contentType}
 오디언스 온도: ${audienceTemp}
 브랜드 강도: ${brandWeight}
-지역: ${LOCAL_MESSAGES[location]?.location || '수원 갤러리아 광교 5분 거리'}
+고객 채널: ${channel.name}
+고객 페르소나: ${persona.name}
 
-지역 맞춤 정보:
-- 위치: ${LOCAL_MESSAGES[location]?.location}
-- 타겟 지역: ${LOCAL_MESSAGES[location]?.target_areas?.join(', ')}
+고객 채널 정보:
+- 위치: ${channel.location}
+- 타겟 지역: ${channel.target_areas?.join(', ')}
 
 브랜드 메시지:
-- 핵심 메시지: ${localMessage.core?.join(', ')}
-- 지역 메시지: ${localMessage.location}
+- 핵심 메시지: ${brandMessage.core?.join(', ')}
+- 채널 메시지: ${brandMessage.location}
 
 메타 설명은 150-160자 내외로 작성하고, 검색 결과에서 클릭을 유도할 수 있도록 매력적으로 작성하세요.
-지역 정보와 마쓰구 브랜드의 핵심 가치를 포함하세요.`;
+고객 채널 정보와 마쓰구 브랜드의 핵심 가치를 포함하세요.`;
         break;
         
       default:
@@ -209,12 +220,12 @@ MASGOLF(마쓰구) - 초고반발 드라이버 & 맞춤 피팅 전문 브랜드
         contentType,
         audienceTemp, 
         brandWeight,
-        location,
+        customerChannel,
         painPoint,
-        audienceSegment,
-        keyMessages: localMessage.core,
-        cta: localMessage.cta,
-        localInfo: LOCAL_MESSAGES[location]
+        customerPersona,
+        keyMessages: brandMessage.core,
+        cta: brandMessage.cta,
+        channelInfo: channel
       }
     });
 
