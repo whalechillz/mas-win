@@ -23,6 +23,23 @@ async function getPosts(req, res) {
   try {
     console.log('Admin API: Getting posts...');
     
+    // 환경 변수 확인
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    console.log('Admin API: Environment check:', {
+      supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
+      serviceKey: serviceKey ? 'Set' : 'Missing'
+    });
+    
+    if (!supabaseUrl || !serviceKey) {
+      console.error('Admin API: Missing environment variables');
+      return res.status(500).json({ 
+        error: '환경 변수가 설정되지 않았습니다.',
+        details: 'Supabase URL or Service Key missing'
+      });
+    }
+    
     const supabase = createServerSupabase();
     console.log('Admin API: Supabase client created');
     
