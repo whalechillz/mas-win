@@ -72,11 +72,11 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationStatus('Playwright로 실제 콘텐츠 캡처 중...');
+    setMigrationStatus('간단한 마이그레이션 진행 중...');
     
     try {
-      // Playwright 기반 마이그레이션 (강석님 블로그 방식)
-      const migrationResponse = await fetch('/api/migrate-blog-with-playwright', {
+      // 간단한 마이그레이션 (Playwright 대안)
+      const migrationResponse = await fetch('/api/migrate-blog-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: migrationUrl })
@@ -1232,7 +1232,7 @@ export default function BlogAdmin() {
                   🔄 블로그 마이그레이션
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Playwright로 실제 블로그 콘텐츠와 이미지를 고화질로 캡처해서 가져옵니다. (강석님 블로그 방식)
+                  간단한 방식으로 블로그 콘텐츠와 이미지를 가져옵니다. (HTTP 405 오류 해결)
                 </p>
                 <div className="space-y-4">
                   <div className="max-w-md mx-auto">
