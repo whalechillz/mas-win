@@ -37,26 +37,113 @@ export default async function handler(req, res) {
 
     const html = await response.text();
     
-    // 간단한 파싱
+    // 제목 추출
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : '제목 없음';
 
-    // 이미지 URL 추출
+    // 실제 콘텐츠 추출 (더 간단하고 효과적인 방법)
+    let content = '';
+    
+    // 1. 메타 태그에서 설명 추출
+    const metaDescMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/i);
+    if (metaDescMatch) {
+      content += metaDescMatch[1] + '\n\n';
+    }
+    
+    // 2. Open Graph 설명 추출
+    const ogDescMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]*)"[^>]*>/i);
+    if (ogDescMatch) {
+      content += ogDescMatch[1] + '\n\n';
+    }
+    
+    // 3. Twitter 카드 설명 추출
+    const twitterDescMatch = html.match(/<meta[^>]*name="twitter:description"[^>]*content="([^"]*)"[^>]*>/i);
+    if (twitterDescMatch) {
+      content += twitterDescMatch[1] + '\n\n';
+    }
+    
+    // 4. JSON-LD 구조화된 데이터에서 설명 추출
+    const jsonLdMatches = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi);
+    if (jsonLdMatches) {
+      jsonLdMatches.forEach(match => {
+        try {
+          const jsonContent = match.replace(/<script[^>]*>|<\/script>/gi, '');
+          const data = JSON.parse(jsonContent);
+          if (data.description) {
+            content += data.description + '\n\n';
+          }
+          if (data.articleBody) {
+            content += data.articleBody + '\n\n';
+          }
+        } catch (e) {
+          // JSON 파싱 오류 무시
+        }
+      });
+    }
+    
+    // 5. 일반적인 텍스트 콘텐츠 추출
+    const textMatches = html.match(/<p[^>]*>([^<]+)<\/p>/gi);
+    if (textMatches) {
+      textMatches.forEach(match => {
+        const text = match.replace(/<[^>]*>/g, '').trim();
+        if (text && text.length > 20) {
+          content += text + '\n\n';
+        }
+      });
+    }
+    
+    // 6. 제목 태그들 추출
+    const headingMatches = html.match(/<h[1-6][^>]*>([^<]+)<\/h[1-6]>/gi);
+    if (headingMatches) {
+      headingMatches.forEach(match => {
+        const text = match.replace(/<[^>]*>/g, '').trim();
+        if (text && text.length > 5) {
+          content += '## ' + text + '\n\n';
+        }
+      });
+    }
+    
+    // 7. 리스트 아이템 추출
+    const listMatches = html.match(/<li[^>]*>([^<]+)<\/li>/gi);
+    if (listMatches) {
+      listMatches.forEach(match => {
+        const text = match.replace(/<[^>]*>/g, '').trim();
+        if (text && text.length > 10) {
+          content += '- ' + text + '\n';
+        }
+      });
+    }
+    
+    // 8. 콘텐츠가 없으면 기본 메시지
+    if (!content.trim()) {
+      content = `마이그레이션된 콘텐츠: ${title}\n\n원본 URL: ${url}\n\n이미지 수: 0개`;
+    }
+
+    // 이미지 URL 추출 (더 정확하게)
     const imageMatches = html.match(/<img[^>]+src="([^"]+)"[^>]*>/gi) || [];
     const images = imageMatches.map(img => {
       const srcMatch = img.match(/src="([^"]+)"/);
       return srcMatch ? srcMatch[1] : null;
-    }).filter(Boolean).slice(0, 5); // 최대 5개만
+    }).filter(Boolean).slice(0, 10); // 최대 10개로 증가
 
     // 고유 slug 생성
     const slug = await generateUniqueSlug(title);
 
+    // 이미지를 콘텐츠에 포함
+    let finalContent = content;
+    if (images.length > 0) {
+      finalContent += '\n\n## 이미지\n\n';
+      images.forEach((imageUrl, index) => {
+        finalContent += `![이미지 ${index + 1}](${imageUrl})\n\n`;
+      });
+    }
+    
     // 블로그 포스트 생성
     const blogPost = await createBlogPost({
       title: title,
       slug: slug,
-      content: `마이그레이션된 콘텐츠: ${title}\n\n원본 URL: ${url}\n\n이미지 수: ${images.length}개`,
-      excerpt: title.substring(0, 200) + '...',
+      content: finalContent,
+      excerpt: content.substring(0, 200) + '...',
       featured_image: images.length > 0 ? images[0] : '',
       category: '비거리 향상 드라이버',
       tags: ['마이그레이션', '간단버전'],
@@ -68,7 +155,7 @@ export default async function handler(req, res) {
       success: true,
       data: {
         title,
-        content: `마이그레이션된 콘텐츠: ${title}`,
+        content: finalContent,
         images: images.map((url, index) => ({
           originalUrl: url,
           storedUrl: url, // 원본 URL 사용
