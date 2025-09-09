@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import { transformToSlug } from '../../lib/masgolf-brand-data.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,16 +17,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 먼저 MASSGOO 브랜드 규칙에 따라 변환
+    const transformedTitle = transformToSlug(title);
+    
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: "You are an SEO expert. Convert Korean titles to SEO-optimized English slugs. Rules: 1) Use lowercase 2) Replace spaces with hyphens 3) Remove special characters 4) Keep it concise and keyword-rich 5) Make it URL-friendly. Example: '뜨거운 여름, 완벽한 스윙 로얄살루트 증정 행사' → 'hot-summer-perfect-swing-royal-salute-gift-event'"
+          content: "You are an SEO expert. Convert Korean titles to SEO-optimized English slugs. Rules: 1) Use lowercase 2) Replace spaces with hyphens 3) Remove special characters 4) Keep it concise and keyword-rich 5) Make it URL-friendly 6) Special brand name conversion: '마쓰구' → 'massgoo', 'MASSGOO' → 'massgoo'. Example: '뜨거운 여름, 완벽한 스윙 로얄살루트 증정 행사' → 'hot-summer-perfect-swing-royal-salute-gift-event'"
         },
         {
           role: "user",
-          content: `Convert this Korean title to an SEO-optimized English slug: "${title}"`
+          content: `Convert this Korean title to an SEO-optimized English slug: "${transformedTitle}"`
         }
       ],
       max_tokens: 50,
