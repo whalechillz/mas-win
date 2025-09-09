@@ -242,15 +242,13 @@ export default function BlogIndex({ posts: staticPosts }) {
                 <Link href={`/blog/${post.slug}`}>
                   <div className="relative h-64 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
-                    <Image
+                    <img
                       src={post.featuredImage || '/placeholder-image.jpg'}
                       alt={post.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
                         e.target.src = '/placeholder-image.jpg';
                       }}
-                      unoptimized={true}
                     />
                     <div className="absolute top-4 left-4 z-20">
                       <span className="px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-xs font-semibold rounded-full shadow-lg">
