@@ -60,12 +60,8 @@ export default function BlogIndex({ posts: staticPosts }) {
       const data = await response.json();
       
       if (response.ok) {
-        // API 응답 데이터 변환 (published_at -> publishedAt)
-        const transformedPosts = data.posts.map(post => ({
-          ...post,
-          publishedAt: post.published_at
-        }));
-        setPosts(transformedPosts);
+        // API 응답 데이터를 그대로 사용 (published_at 필드 유지)
+        setPosts(data.posts);
         setPagination(data.pagination);
       } else {
         console.error('Failed to fetch posts:', data.error);
@@ -89,12 +85,8 @@ export default function BlogIndex({ posts: staticPosts }) {
       const data = await response.json();
       
       if (response.ok) {
-        // API 응답 데이터 변환 (published_at -> publishedAt)
-        const transformedPosts = data.posts.map(post => ({
-          ...post,
-          publishedAt: post.published_at
-        }));
-        setPosts(transformedPosts);
+        // API 응답 데이터를 그대로 사용 (published_at 필드 유지)
+        setPosts(data.posts);
         setPagination(data.pagination);
       } else {
         console.error('Failed to fetch posts:', data.error);
@@ -284,7 +276,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                       <div className="flex items-center gap-2 text-slate-500 text-sm">
                         <CalendarIcon />
                         <time className="font-medium">
-                          {formatDate(post.publishedAt)}
+                          {formatDate(post.published_at || post.publishedAt)}
                         </time>
                       </div>
                       <div className="flex items-center text-slate-500 text-sm font-medium group-hover:text-slate-700 transition-colors duration-200">
