@@ -51,8 +51,9 @@ export default async function handler(req, res) {
         postsQuery = postsQuery.eq('category', category);
       }
       
-      // 페이지네이션된 게시물 조회
+      // 페이지네이션된 게시물 조회 (추천 글 우선, 그 다음 최신 순)
       const { data: posts, error } = await postsQuery
+        .order('is_featured', { ascending: false })
         .order('published_at', { ascending: false })
         .range(startIndex, endIndex);
       
