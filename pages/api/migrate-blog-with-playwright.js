@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-aws-lambda';
 import sharp from 'sharp';
 
 const supabase = createClient(
