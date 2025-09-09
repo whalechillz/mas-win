@@ -79,9 +79,13 @@ async function migrateBlogWithPlaywright(url) {
     // 마크다운 콘텐츠 생성 (이미지 포함)
     const markdownContent = await generateMarkdownWithImages(contentText, contentImages);
     
+    // slug 생성
+    const slug = generateSlug(title);
+    
     // 블로그 포스트 생성
     const blogPost = await createBlogPost({
       title: title,
+      slug: slug,
       content: markdownContent,
       excerpt: contentText.substring(0, 200) + '...',
       featured_image: contentImages.length > 0 ? contentImages[0].storedUrl : '',
@@ -235,6 +239,16 @@ async function generateMarkdownWithImages(contentText, images) {
   });
   
   return markdown;
+}
+
+function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s]/g, '') // 특수문자 제거
+    .replace(/\s+/g, '-') // 공백을 하이픈으로
+    .replace(/-+/g, '-') // 연속된 하이픈을 하나로
+    .replace(/^-|-$/g, '') // 앞뒤 하이픈 제거
+    .substring(0, 100); // 길이 제한
 }
 
 async function createBlogPost(postData) {
