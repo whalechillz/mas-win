@@ -6,6 +6,7 @@ export default function BlogAdmin() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'migration'
   
   // 디버깅용 useEffect
   useEffect(() => {
@@ -41,79 +42,6 @@ export default function BlogAdmin() {
     painPoint: '',
     customerPersona: 'competitive_maintainer'
   });
-
-  // 베리에이션 생성 관련 상태
-  const [showVariationForm, setShowVariationForm] = useState(false);
-  const [selectedPostForVariation, setSelectedPostForVariation] = useState(null);
-  const [variationType, setVariationType] = useState('rewrite'); // rewrite, expand, summarize, different_angle
-
-  // 베리에이션 생성 함수들
-  const handleCreateVariation = (post) => {
-    setSelectedPostForVariation(post);
-    setShowVariationForm(true);
-    setShowForm(true);
-    
-    // 기존 포스트 데이터를 폼에 로드
-    setFormData({
-      title: `${post.title} (베리에이션)`,
-      slug: `${post.slug}-variation-${Date.now()}`,
-      excerpt: post.excerpt,
-      content: post.content,
-      featured_image: post.featured_image,
-      category: post.category,
-      tags: post.tags || [],
-      status: 'draft',
-      meta_title: post.meta_title,
-      meta_description: post.meta_description,
-      meta_keywords: post.meta_keywords,
-      view_count: 0,
-      is_featured: false,
-      is_scheduled: false,
-      scheduled_at: null,
-      author: '마쓰구골프'
-    });
-  };
-
-  const handleGenerateVariation = async () => {
-    if (!selectedPostForVariation) return;
-
-    try {
-      const response = await fetch('/api/generate-blog-variation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          originalPost: selectedPostForVariation,
-          variationType: variationType,
-          brandStrategy: brandStrategy
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        // 생성된 베리에이션을 폼에 적용
-        setFormData(prev => ({
-          ...prev,
-          title: result.title,
-          slug: result.slug,
-          excerpt: result.excerpt,
-          content: result.content,
-          meta_title: result.meta_title,
-          meta_description: result.meta_description,
-          meta_keywords: result.meta_keywords
-        }));
-        
-        alert('베리에이션이 성공적으로 생성되었습니다!');
-      } else {
-        throw new Error('베리에이션 생성에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('베리에이션 생성 오류:', error);
-      alert('베리에이션 생성 중 오류가 발생했습니다.');
-    }
-  };
 
   
   // AI 이미지 생성 관련 상태
@@ -297,7 +225,7 @@ export default function BlogAdmin() {
     try {
       console.log('📝 게시물 저장 중...');
       
-      if (editingPost && editingPost.id) {
+      if (editingPost) {
         // 수정
         const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
@@ -309,7 +237,6 @@ export default function BlogAdmin() {
           alert('게시물이 수정되었습니다!');
           fetchPosts();
           resetForm();
-          setEditingPost(null);
         } else {
           const error = await response.json();
           alert('수정 실패: ' + error.error);
@@ -392,11 +319,7 @@ export default function BlogAdmin() {
       const response = await fetch('/api/generate-slug', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          category: formData.category,
-          contentType: brandStrategy.contentType
-        })
+        body: JSON.stringify({ title: formData.title })
       });
 
       if (response.ok) {
@@ -405,36 +328,12 @@ export default function BlogAdmin() {
           ...formData,
           slug
         });
-        alert('SEO 최적화된 슬러그가 생성되었습니다!');
       } else {
         console.error('AI 슬러그 생성 실패');
-        // 실패 시 기본 슬러그 생성
-        const basicSlug = formData.title
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .trim();
-        setFormData({
-          ...formData,
-          slug: basicSlug
-        });
-        alert('기본 슬러그가 생성되었습니다.');
       }
     } catch (error) {
       console.error('AI 슬러그 생성 에러:', error);
-      // 에러 시 기본 슬러그 생성
-      const basicSlug = formData.title
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-      setFormData({
-        ...formData,
-        slug: basicSlug
-      });
-      alert('기본 슬러그가 생성되었습니다.');
+      alert('AI 슬러그 생성 중 오류가 발생했습니다.');
     }
   };
 
@@ -1065,7 +964,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: imageUrls[i],
                 fileName: `fal-ai-${Date.now()}-${i + 1}.jpeg`,
-                blogPostId: editingPost?.id || null
+                blogPostId: formData.id || null
               })
             });
             
@@ -1205,6 +1104,7 @@ export default function BlogAdmin() {
             <button
               onClick={() => {
                 console.log('새 게시물 작성 버튼 클릭됨');
+                setActiveTab('create');
                 setShowForm(true);
               }}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium cursor-pointer z-10 relative"
@@ -1214,12 +1114,74 @@ export default function BlogAdmin() {
             </button>
           </div>
 
+          {/* 탭 네비게이션 */}
+          <div className="mb-8">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('list')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'list'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📋 블로그 목록
+              </button>
+              <button
+                onClick={() => setActiveTab('create')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'create'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                ✍️ 새 게시물 작성
+              </button>
+              <button
+                onClick={() => setActiveTab('migration')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'migration'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                🔄 블로그 마이그레이션
+              </button>
+            </nav>
+          </div>
+
+          {/* 탭별 콘텐츠 */}
+          {activeTab === 'migration' && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="text-center py-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  🔄 블로그 마이그레이션
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  기존 블로그를 가져와서 똑같이 복사하거나 개선할 수 있습니다.
+                </p>
+                <div className="space-y-4">
+                  <div className="max-w-md mx-auto">
+                    <input
+                      type="url"
+                      placeholder="https://www.mas9golf.com/post/..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <button className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
+                    마이그레이션 시작
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 게시물 작성/수정 폼 */}
-          {showForm && (
+          {(activeTab === 'create' || showForm) && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">
-                  {editingPost ? '게시물 수정' : showVariationForm ? '블로그 베리에이션 생성' : '새 게시물 작성'}
+                  {editingPost ? '게시물 수정' : '새 게시물 작성'}
                 </h2>
                 <button
                   type="button"
@@ -1254,80 +1216,6 @@ export default function BlogAdmin() {
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* 콘텐츠 소스 입력란 */}
-                {/* 베리에이션 타입 선택 */}
-                {showVariationForm && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-purple-800 mb-3">
-                      🎨 베리에이션 타입 선택
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="variationType"
-                          value="rewrite"
-                          checked={variationType === 'rewrite'}
-                          onChange={(e) => setVariationType(e.target.value)}
-                          className="text-purple-600"
-                        />
-                        <span className="text-sm">
-                          <strong>재작성</strong><br />
-                          <span className="text-gray-600">같은 내용, 다른 표현</span>
-                        </span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="variationType"
-                          value="expand"
-                          checked={variationType === 'expand'}
-                          onChange={(e) => setVariationType(e.target.value)}
-                          className="text-purple-600"
-                        />
-                        <span className="text-sm">
-                          <strong>확장</strong><br />
-                          <span className="text-gray-600">더 상세한 내용 추가</span>
-                        </span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="variationType"
-                          value="summarize"
-                          checked={variationType === 'summarize'}
-                          onChange={(e) => setVariationType(e.target.value)}
-                          className="text-purple-600"
-                        />
-                        <span className="text-sm">
-                          <strong>요약</strong><br />
-                          <span className="text-gray-600">핵심 내용만 간추림</span>
-                        </span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="variationType"
-                          value="different_angle"
-                          checked={variationType === 'different_angle'}
-                          onChange={(e) => setVariationType(e.target.value)}
-                          className="text-purple-600"
-                        />
-                        <span className="text-sm">
-                          <strong>다른 관점</strong><br />
-                          <span className="text-gray-600">새로운 시각으로 접근</span>
-                        </span>
-                      </label>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleGenerateVariation}
-                      className="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      🤖 AI 베리에이션 생성
-                    </button>
-                  </div>
-                )}
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     📝 콘텐츠 소스 & 글감
@@ -2470,7 +2358,8 @@ export default function BlogAdmin() {
           )}
 
           {/* 게시물 목록 */}
-          <div className="bg-white rounded-lg shadow-md">
+          {activeTab === 'list' && (
+            <div className="bg-white rounded-lg shadow-md">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -2515,12 +2404,6 @@ export default function BlogAdmin() {
                               수정
                             </button>
                             <button
-                              onClick={() => handleCreateVariation(post)}
-                              className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition-colors ml-2"
-                            >
-                              베리에이션
-                            </button>
-                            <button
                               onClick={() => handleDelete(post.id)}
                               className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                             >
@@ -2534,7 +2417,8 @@ export default function BlogAdmin() {
                 )}
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </>
