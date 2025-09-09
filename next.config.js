@@ -14,7 +14,8 @@ module.exports = {
       'v3.fal.media',
       'oaidalleapiprodscus.blob.core.windows.net',
       'yyytjudftvpmcnppaymw.supabase.co',
-      'masgolf.co.kr'
+      'masgolf.co.kr',
+      'static.wixstatic.com'
     ],
     remotePatterns: [
       {
@@ -34,6 +35,12 @@ module.exports = {
         hostname: 'yyytjudftvpmcnppaymw.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.wixstatic.com',
+        port: '',
+        pathname: '/media/**',
       }
     ],
     dangerouslyAllowSVG: true,
