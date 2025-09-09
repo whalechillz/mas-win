@@ -72,11 +72,11 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationStatus('Puppeteer로 고화질 이미지 캡처 중...');
+    setMigrationStatus('고화질 이미지 URL 변환 중...');
     
     try {
-      // Puppeteer 기반 고화질 마이그레이션 (강석님 블로그 방식)
-      const migrationResponse = await fetch('/api/migrate-blog-high-quality', {
+      // 향상된 고화질 마이그레이션 (강석님 블로그 방식)
+      const migrationResponse = await fetch('/api/migrate-blog-enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: migrationUrl })
@@ -1232,7 +1232,7 @@ export default function BlogAdmin() {
                   🔄 블로그 마이그레이션
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Puppeteer로 실제 블로그 콘텐츠와 이미지를 고화질로 캡처해서 가져옵니다. (강석님 블로그 방식)
+                  실제 블로그 콘텐츠와 이미지를 고화질로 변환해서 가져옵니다. (강석님 블로그 방식)
                 </p>
                 <div className="space-y-4">
                   <div className="max-w-md mx-auto">
