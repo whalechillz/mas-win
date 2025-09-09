@@ -3,8 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import fs from 'fs';
-import path from 'path';
+import { marked } from 'marked';
 
 // 7월 퍼널 스타일의 고급스러운 아이콘 컴포넌트들
 const ArrowLeftIcon = () => (
@@ -61,6 +60,19 @@ const GalleryIcon = () => (
     </svg>
   </div>
 );
+
+// 마크다운을 HTML로 변환하는 함수
+const convertMarkdownToHtml = (markdown) => {
+  if (!markdown) return '';
+  
+  // marked 설정
+  marked.setOptions({
+    breaks: true, // 줄바꿈을 <br>로 변환
+    gfm: true, // GitHub Flavored Markdown 지원
+  });
+  
+  return marked(markdown);
+};
 
 export default function BlogPost({ post: staticPost }) {
   const router = useRouter();
@@ -155,7 +167,7 @@ export default function BlogPost({ post: staticPost }) {
               "@type": "BlogPosting",
               "headline": post.title,
               "image": post.featured_image,
-              "datePublished": post.published_at,
+              "datePublished": post.publishedAt,
               "author": {
                 "@type": "Person",
                 "name": "마쓰구골프"
@@ -212,7 +224,7 @@ export default function BlogPost({ post: staticPost }) {
               </div>
             )}
 
-            <div className="px-8 md:px-12 py-12">
+            <div className="px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-10 md:py-12">
               {/* 카테고리 */}
               <div className="mb-6">
                 <span className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm font-semibold rounded-full shadow-lg">
@@ -221,16 +233,16 @@ export default function BlogPost({ post: staticPost }) {
               </div>
 
               {/* 제목 */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-8 leading-tight tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-8 leading-tight tracking-tight">
                 {post.title}
               </h1>
 
               {/* 메타 정보 */}
-              <div className="flex flex-wrap items-center gap-6 mb-10 text-slate-600">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-10 text-slate-600">
                 <div className="flex items-center gap-2">
                   <CalendarIcon />
-                  <time dateTime={post.published_at} className="font-medium">
-                    {new Date(post.published_at).toLocaleDateString('ko-KR', {
+                  <time dateTime={post.publishedAt} className="font-medium">
+                    {new Date(post.publishedAt).toLocaleDateString('ko-KR', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
@@ -254,8 +266,8 @@ export default function BlogPost({ post: staticPost }) {
 
               {/* 본문 내용 */}
               <div 
-                className="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-a:text-blue-600 prose-a:font-medium prose-strong:text-gray-900 prose-strong:font-semibold"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                className="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-a:text-blue-600 prose-a:font-medium prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-li:text-gray-700 prose-li:leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(post.content) }}
               />
 
               {/* 절제된 공유 섹션 */}
@@ -319,7 +331,7 @@ export default function BlogPost({ post: staticPost }) {
                         </p>
                         <div className="flex items-center justify-between">
                           <time className="text-xs text-slate-500 font-medium">
-                            {new Date(relatedPost.published_at).toLocaleDateString('ko-KR')}
+                            {new Date(relatedPost.publishedAt).toLocaleDateString('ko-KR')}
                           </time>
                           <div className="flex items-center text-slate-500 text-xs font-medium group-hover:text-slate-700 transition-colors duration-200">
                             <span>자세히 보기</span>
@@ -341,66 +353,30 @@ export default function BlogPost({ post: staticPost }) {
   );
 }
 
-// 정적 생성용 getStaticPaths
-export async function getStaticPaths() {
+// 동적 라우팅을 위한 getServerSideProps
+export async function getServerSideProps({ params }) {
   try {
-    const postsDirectory = path.join(process.cwd(), 'mas9golf/migrated-posts');
-    const filenames = fs.readdirSync(postsDirectory);
+    const { slug } = params;
     
-    const paths = filenames
-      .filter(name => name.endsWith('.json'))
-      .map(filename => {
-        const filePath = path.join(postsDirectory, filename);
-        const fileContents = fs.readFileSync(filePath, 'utf8');
-        const postData = JSON.parse(fileContents);
-        
-        return {
-          params: {
-            slug: postData.slug
-          }
-        };
-      });
-
-    return {
-      paths,
-      fallback: false // 404 페이지로 리다이렉트
-    };
-  } catch (error) {
-    console.error('Error generating static paths:', error);
-    return {
-      paths: [],
-      fallback: false
-    };
-  }
-}
-
-// 정적 생성용 getStaticProps
-export async function getStaticProps({ params }) {
-  try {
-    const postsDirectory = path.join(process.cwd(), 'mas9golf/migrated-posts');
-    const filenames = fs.readdirSync(postsDirectory);
+    // API에서 데이터 가져오기
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://masgolf.co.kr' 
+      : 'http://localhost:3000';
     
-    const postFile = filenames.find(filename => {
-      if (!filename.endsWith('.json')) return false;
-      const filePath = path.join(postsDirectory, filename);
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-      const postData = JSON.parse(fileContents);
-      return postData.slug === params.slug;
-    });
-
-    if (!postFile) {
+    const response = await fetch(`${baseUrl}/api/blog/${slug}`);
+    
+    if (!response.ok) {
       return {
         notFound: true
       };
     }
-
-    const filePath = path.join(postsDirectory, postFile);
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const postData = JSON.parse(fileContents);
-
+    
+    const data = await response.json();
+    
     return {
       props: {
-        post: postData
+        post: data.post,
+        relatedPosts: data.relatedPosts || []
       }
     };
   } catch (error) {

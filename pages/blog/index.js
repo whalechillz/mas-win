@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import fs from 'fs';
-import path from 'path';
 
 // 날짜 포맷팅 함수
 function formatDate(dateString) {
@@ -42,6 +40,7 @@ export default function BlogIndex({ posts: staticPosts }) {
   const [posts, setPosts] = useState(staticPosts || []);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState('전체');
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -56,11 +55,46 @@ export default function BlogIndex({ posts: staticPosts }) {
     setCurrentPage(page);
     
     try {
-      const response = await fetch(`/api/blog/posts?page=${page}&limit=6`);
+      const categoryParam = selectedCategory !== '전체' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
+      const response = await fetch(`/api/blog/posts?page=${page}&limit=6${categoryParam}`);
       const data = await response.json();
       
       if (response.ok) {
-        setPosts(data.posts);
+        // API 응답 데이터 변환 (published_at -> publishedAt)
+        const transformedPosts = data.posts.map(post => ({
+          ...post,
+          publishedAt: post.published_at
+        }));
+        setPosts(transformedPosts);
+        setPagination(data.pagination);
+      } else {
+        console.error('Failed to fetch posts:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 카테고리 변경 함수
+  const handleCategoryChange = async (category) => {
+    setLoading(true);
+    setSelectedCategory(category);
+    setCurrentPage(1);
+    
+    try {
+      const categoryParam = category !== '전체' ? `&category=${encodeURIComponent(category)}` : '';
+      const response = await fetch(`/api/blog/posts?page=1&limit=6${categoryParam}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        // API 응답 데이터 변환 (published_at -> publishedAt)
+        const transformedPosts = data.posts.map(post => ({
+          ...post,
+          publishedAt: post.published_at
+        }));
+        setPosts(transformedPosts);
         setPagination(data.pagination);
       } else {
         console.error('Failed to fetch posts:', data.error);
@@ -128,14 +162,47 @@ export default function BlogIndex({ posts: staticPosts }) {
   return (
     <>
       <Head>
-        <title>마쓰구골프 블로그 | 고반발 드라이버 전문 브랜드</title>
-        <meta name="description" content="마쓰구골프 블로그에서 고반발 드라이버, 시니어 드라이버, 골프 피팅 등 골프 관련 정보와 고객 후기를 확인하세요." />
-        <meta name="keywords" content="고반발 드라이버, 시니어 드라이버, 골프 드라이버, 남성 드라이버, 골프 피팅, 마쓰구골프" />
-        <meta property="og:title" content="마쓰구골프 블로그 | 고반발 드라이버 전문 브랜드" />
-        <meta property="og:description" content="마쓰구골프 블로그에서 고반발 드라이버, 시니어 드라이버, 골프 피팅 등 골프 관련 정보와 고객 후기를 확인하세요." />
+        <title>마쓰구 블로그 | 22년 전통의 맞춤형 드라이버 전문 브랜드</title>
+        <meta name="description" content="마쓰구 블로그에서 22년 전통의 맞춤형 드라이버, 골프 피팅, 고객 성공 스토리 등 골프 관련 정보를 확인하세요." />
+        <meta name="keywords" content="마쓰구, 맞춤형 드라이버, 골프 드라이버, 골프 피팅, 22년 전통, 비거리 향상, 고객 성공 스토리" />
+        <meta property="og:title" content="마쓰구 블로그 | 22년 전통의 맞춤형 드라이버 전문 브랜드" />
+        <meta property="og:description" content="마쓰구 블로그에서 22년 전통의 맞춤형 드라이버, 골프 피팅, 고객 성공 스토리 등 골프 관련 정보를 확인하세요." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://masgolf.co.kr/blog" />
         <link rel="canonical" href="https://masgolf.co.kr/blog" />
+        
+        {/* 구조화된 데이터 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Blog",
+              "name": "마쓰구골프 블로그",
+              "description": "고반발 드라이버 전문 브랜드의 골프 정보와 고객 후기",
+              "url": "https://masgolf.co.kr/blog",
+              "publisher": {
+                "@type": "Organization",
+                "name": "마쓰구골프",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://masgolf.co.kr/logo.png"
+                }
+              },
+              "blogPost": posts.map(post => ({
+                "@type": "BlogPosting",
+                "headline": post.title,
+                "description": post.excerpt,
+                "url": `https://masgolf.co.kr/blog/${post.slug}`,
+                "datePublished": post.publishedAt,
+                "author": {
+                  "@type": "Person",
+                  "name": "마쓰구"
+                }
+              }))
+            })
+          }}
+        />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -144,8 +211,8 @@ export default function BlogIndex({ posts: staticPosts }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">마쓰구골프 블로그</h1>
-                <p className="mt-3 text-slate-600 text-lg font-medium">고반발 드라이버 전문 브랜드의 골프 정보와 고객 후기</p>
+                <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">마쓰구 블로그</h1>
+                <p className="mt-3 text-slate-600 text-lg font-medium">22년 전통의 맞춤형 드라이버 전문 브랜드</p>
               </div>
               <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group">
                 <HomeIcon />
@@ -160,21 +227,19 @@ export default function BlogIndex({ posts: staticPosts }) {
           {/* 고급스러운 카테고리 필터 */}
           <div className="mb-12">
             <div className="flex flex-wrap gap-3">
-              <button className="px-6 py-3 bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
-                전체
-              </button>
-              <button className="px-6 py-3 bg-white/70 backdrop-blur-sm text-slate-700 rounded-full text-sm font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:-translate-y-0.5">
-                고반발 드라이버
-              </button>
-              <button className="px-6 py-3 bg-white/70 backdrop-blur-sm text-slate-700 rounded-full text-sm font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:-translate-y-0.5">
-                시니어 드라이버
-              </button>
-              <button className="px-6 py-3 bg-white/70 backdrop-blur-sm text-slate-700 rounded-full text-sm font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:-translate-y-0.5">
-                고객 후기
-              </button>
-              <button className="px-6 py-3 bg-white/70 backdrop-blur-sm text-slate-700 rounded-full text-sm font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:-translate-y-0.5">
-                이벤트
-              </button>
+              {['전체', '비거리 향상 드라이버', '맞춤형 드라이버', '고객 성공 스토리', '골프 팁 & 가이드', '이벤트 & 프로모션'].map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryChange(category)}
+                  className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                    selectedCategory === category
+                      ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-white/70 backdrop-blur-sm text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -186,7 +251,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                   <div className="relative h-64 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
                     <Image
-                      src={post.featured_image}
+                      src={post.featuredImage || '/placeholder-image.jpg'}
                       alt={post.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -275,35 +340,36 @@ export default function BlogIndex({ posts: staticPosts }) {
 // 정적 생성용 getStaticProps
 export async function getStaticProps() {
   try {
-    // 마이그레이션된 게시물 데이터 로드
-    const postsDirectory = path.join(process.cwd(), 'mas9golf/migrated-posts');
-    const filenames = fs.readdirSync(postsDirectory);
+    // Supabase에서 게시물 데이터 로드
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/blog/posts/`);
+    const data = await response.json();
     
-    const posts = filenames
-      .filter(name => name.endsWith('.json'))
-      .map(filename => {
-        const filePath = path.join(postsDirectory, filename);
-        const fileContents = fs.readFileSync(filePath, 'utf8');
-        const postData = JSON.parse(fileContents);
-        
-        return {
-          id: postData.id,
-          title: postData.title,
-          slug: postData.slug,
-          excerpt: postData.excerpt,
-          featuredImage: postData.featured_image || postData.featuredImage || null,
-          publishedAt: postData.publishedAt || postData.published_at || new Date().toISOString(),
-          category: postData.category,
-          tags: postData.tags
-        };
-      })
-      .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    if (response.ok && data.posts) {
+      const posts = data.posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        featuredImage: post.featured_image || null,
+        publishedAt: post.published_at,
+        category: post.category,
+        tags: post.tags || []
+      }));
 
-    return {
-      props: {
-        posts: posts
-      }
-    };
+      return {
+        props: {
+          posts: posts
+        },
+        revalidate: 60 // 60초마다 재생성
+      };
+    } else {
+      console.error('Failed to fetch posts from API:', data.error);
+      return {
+        props: {
+          posts: []
+        }
+      };
+    }
   } catch (error) {
     console.error('Error loading posts:', error);
     return {
