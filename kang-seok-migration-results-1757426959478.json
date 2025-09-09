@@ -1,0 +1,58 @@
+[
+  {
+    "name": "MASSGOO 로고",
+    "type": "logo",
+    "originalUrl": "https://static.wixstatic.com/media/abee05_627c6fec85f241e7a9458084a67e36b9~mv2.jpg/v1/crop/x_0,y_521,w_2400,h_928/fill/w_203,h_69,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/%EB%A7%88%EC%93%B0%EA%B5%AC.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "강석님 프로필",
+    "type": "profile",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_120,h_170,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "골프 장비",
+    "type": "equipment",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_78c51b941ff84e15ae0224439323f180~mv2.jpg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/94f4be_78c51b941ff84e15ae0224439323f180~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "드라이버 헤드",
+    "type": "driver",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_68677951d32544c39809afc98c693277~mv2.jpg/v1/fill/w_220,h_330,fp_0.50_0.50,q_90/94f4be_68677951d32544c39809afc98c693277~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "스윙 모습",
+    "type": "swing",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_6ba406c468914150a13c6a8603d06f12~mv2.jpg/v1/fill/w_404,h_330,fp_0.50_0.50,q_90/94f4be_6ba406c468914150a13c6a8603d06f12~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "골프 클럽",
+    "type": "club",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad~mv2.jpg/v1/fill/w_323,h_323,fp_0.50_0.50,q_90/94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "골프 장비 세트",
+    "type": "equipment-set",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_6ceba23029f947c9941a1206181daec9~mv2.jpg/v1/fill/w_324,h_323,fp_0.50_0.50,q_90/94f4be_6ceba23029f947c9941a1206181daec9~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  },
+  {
+    "name": "골프 공",
+    "type": "ball",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_c760743db9604476a67e16bbfe894c90~mv2.jpg/v1/fill/w_323,h_323,fp_0.50_0.50,q_90/94f4be_c760743db9604476a67e16bbfe894c90~mv2.jpg",
+    "error": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "success": false
+  }
+]
