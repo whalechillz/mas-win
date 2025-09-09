@@ -445,15 +445,45 @@ export default function BlogAdmin() {
       if (response.ok) {
         const { imageUrls, metadata } = await response.json();
         
-        // 3단계: 이미지 생성 완료
-        setImageGenerationStep('3단계: 이미지 생성 완료!');
+        // 3단계: 생성된 이미지를 Supabase에 저장
+        setImageGenerationStep('3단계: 이미지를 Supabase에 저장 중...');
+        const savedImages = [];
         
-        // 생성된 이미지들을 상태에 저장
-        setGeneratedImages(imageUrls);
+        for (let i = 0; i < imageUrls.length; i++) {
+          try {
+            const saveResponse = await fetch('/api/save-generated-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: imageUrls[i],
+                fileName: `dalle3-${Date.now()}-${i + 1}.png`,
+                blogPostId: formData.id || null
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const { storedUrl } = await saveResponse.json();
+              savedImages.push(storedUrl);
+              console.log(`✅ 이미지 ${i + 1} 저장 완료:`, storedUrl);
+            } else {
+              console.warn(`⚠️ 이미지 ${i + 1} 저장 실패, 원본 URL 사용:`, imageUrls[i]);
+              savedImages.push(imageUrls[i]);
+            }
+          } catch (error) {
+            console.warn(`⚠️ 이미지 ${i + 1} 저장 중 오류:`, error);
+            savedImages.push(imageUrls[i]);
+          }
+        }
+        
+        // 4단계: 이미지 생성 완료
+        setImageGenerationStep('4단계: 이미지 생성 및 저장 완료!');
+        
+        // 저장된 이미지들을 상태에 저장
+        setGeneratedImages(savedImages);
         setShowGeneratedImages(true);
         
-        // 생성된 모든 이미지를 갤러리에 추가
-        imageUrls.forEach((imageUrl, index) => {
+        // 저장된 모든 이미지를 갤러리에 추가
+        savedImages.forEach((imageUrl, index) => {
           addToImageGallery(imageUrl, 'ai-generated', {
             model: 'DALL-E 3',
             prompt: imageGenerationPrompt,
@@ -921,15 +951,45 @@ export default function BlogAdmin() {
       if (response.ok) {
         const { imageUrls, metadata } = await response.json();
         
-        // 3단계: 이미지 생성 완료
-        setImageGenerationStep('3단계: 초고품질 실사 이미지 생성 완료!');
+        // 3단계: 생성된 이미지를 Supabase에 저장
+        setImageGenerationStep('3단계: 이미지를 Supabase에 저장 중...');
+        const savedImages = [];
         
-        // 생성된 이미지들을 상태에 저장
-        setGeneratedImages(imageUrls);
+        for (let i = 0; i < imageUrls.length; i++) {
+          try {
+            const saveResponse = await fetch('/api/save-generated-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: imageUrls[i],
+                fileName: `fal-ai-${Date.now()}-${i + 1}.jpeg`,
+                blogPostId: formData.id || null
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const { storedUrl } = await saveResponse.json();
+              savedImages.push(storedUrl);
+              console.log(`✅ FAL AI 이미지 ${i + 1} 저장 완료:`, storedUrl);
+            } else {
+              console.warn(`⚠️ FAL AI 이미지 ${i + 1} 저장 실패, 원본 URL 사용:`, imageUrls[i]);
+              savedImages.push(imageUrls[i]);
+            }
+          } catch (error) {
+            console.warn(`⚠️ FAL AI 이미지 ${i + 1} 저장 중 오류:`, error);
+            savedImages.push(imageUrls[i]);
+          }
+        }
+        
+        // 4단계: 이미지 생성 완료
+        setImageGenerationStep('4단계: 초고품질 실사 이미지 생성 및 저장 완료!');
+        
+        // 저장된 이미지들을 상태에 저장
+        setGeneratedImages(savedImages);
         setShowGeneratedImages(true);
         
-        // 생성된 모든 이미지를 갤러리에 추가
-        imageUrls.forEach((imageUrl, index) => {
+        // 저장된 모든 이미지를 갤러리에 추가
+        savedImages.forEach((imageUrl, index) => {
           addToImageGallery(imageUrl, 'ai-generated', {
             model: 'FAL AI',
             prompt: imageGenerationPrompt,
