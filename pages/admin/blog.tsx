@@ -63,6 +63,8 @@ export default function BlogAdmin() {
   const [scrapedData, setScrapedData] = useState(null);
 
   // 마이그레이션 시작 함수
+  
+  // 마이그레이션 시작 함수 (개선된 버전)
   const handleMigration = async () => {
     if (!migrationUrl) {
       alert('URL을 입력해주세요.');
@@ -80,7 +82,23 @@ export default function BlogAdmin() {
         body: JSON.stringify({ url: migrationUrl })
       });
 
-      const scrapeResult = await scrapeResponse.json();
+      // 응답 상태 확인
+      if (!scrapeResponse.ok) {
+        throw new Error(`스크래핑 실패: HTTP ${scrapeResponse.status}`);
+      }
+
+      // 응답 텍스트로 먼저 받기
+      const scrapeText = await scrapeResponse.text();
+      console.log('스크래핑 응답:', scrapeText.substring(0, 200));
+
+      // JSON 파싱 시도
+      let scrapeResult;
+      try {
+        scrapeResult = JSON.parse(scrapeText);
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError);
+        throw new Error('스크래핑 응답을 파싱할 수 없습니다: ' + parseError.message);
+      }
       
       if (!scrapeResult.success) {
         throw new Error(scrapeResult.error || '스크래핑 실패');
@@ -103,20 +121,30 @@ export default function BlogAdmin() {
           })
         });
 
-        const imageResult = await imageResponse.json();
-        
-        if (imageResult.success) {
-          // 이미지 URL 교체
-          let updatedContent = scrapeResult.data.content;
-          imageResult.results.forEach((result, index) => {
-            if (result.success && scrapeResult.data.images[index]) {
-              updatedContent = updatedContent.replace(
-                scrapeResult.data.images[index], 
-                result.storedUrl
-              );
+        // 이미지 마이그레이션 응답 확인
+        if (!imageResponse.ok) {
+          console.warn('이미지 마이그레이션 실패, 원본 이미지 사용');
+        } else {
+          const imageText = await imageResponse.text();
+          try {
+            const imageResult = JSON.parse(imageText);
+            
+            if (imageResult.success) {
+              // 이미지 URL 교체
+              let updatedContent = scrapeResult.data.content;
+              imageResult.results.forEach((result, index) => {
+                if (result.success && scrapeResult.data.images[index]) {
+                  updatedContent = updatedContent.replace(
+                    scrapeResult.data.images[index], 
+                    result.storedUrl
+                  );
+                }
+              });
+              scrapeResult.data.content = updatedContent;
             }
-          });
-          scrapeResult.data.content = updatedContent;
+          } catch (parseError) {
+            console.warn('이미지 마이그레이션 응답 파싱 실패, 원본 이미지 사용');
+          }
         }
       }
 
@@ -138,7 +166,19 @@ export default function BlogAdmin() {
         })
       });
 
-      const createResult = await createResponse.json();
+      // 블로그 포스트 생성 응답 확인
+      if (!createResponse.ok) {
+        throw new Error(`블로그 포스트 생성 실패: HTTP ${createResponse.status}`);
+      }
+
+      const createText = await createResponse.text();
+      let createResult;
+      try {
+        createResult = JSON.parse(createText);
+      } catch (parseError) {
+        console.error('블로그 포스트 생성 응답 파싱 오류:', parseError);
+        throw new Error('블로그 포스트 생성 응답을 파싱할 수 없습니다: ' + parseError.message);
+      }
       
       if (createResult.success) {
         setMigrationStatus('마이그레이션 완료!');
@@ -162,6 +202,7 @@ export default function BlogAdmin() {
       setIsMigrating(false);
     }
   };
+
 
 
   // 이미지 갤러리 관리 상태
