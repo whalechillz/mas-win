@@ -72,15 +72,15 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationStatus('고화질 이미지 URL 변환 중...');
+    setMigrationStatus('프로덕션 최적화된 마이그레이션 처리 중...');
     
     try {
       // 향상된 고화질 마이그레이션 (강석님 블로그 방식)
-      const migrationResponse = await fetch('/api/migrate-blog-enhanced/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: migrationUrl })
-      });
+        const migrationResponse = await fetch('/api/migrate-blog-production/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: migrationUrl })
+        });
 
       // 응답 상태 확인
       if (!migrationResponse.ok) {
@@ -1231,9 +1231,9 @@ export default function BlogAdmin() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   🔄 블로그 마이그레이션
                 </h2>
-                <p className="text-gray-600 mb-6">
-                  실제 블로그 콘텐츠와 이미지를 고화질로 변환해서 가져옵니다. (강석님 블로그 방식)
-                </p>
+        <p className="text-gray-600 mb-6">
+          프로덕션 환경에 최적화된 마이그레이션으로 안정적인 콘텐츠와 이미지 처리를 제공합니다.
+        </p>
                 <div className="space-y-4">
                   <div className="max-w-md mx-auto">
                     <input
