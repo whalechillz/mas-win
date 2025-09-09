@@ -1,0 +1,74 @@
+[
+  {
+    "name": "MASSGOO 로고",
+    "type": "logo",
+    "originalUrl": "https://static.wixstatic.com/media/abee05_627c6fec85f241e7a9458084a67e36b9~mv2.jpg/v1/crop/x_0,y_521,w_2400,h_928/fill/w_203,h_69,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/%EB%A7%88%EC%93%B0%EA%B5%AC.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/abee05_627c6fec85f241e7a9458084a67e36b9~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/%EB%A7%88%EC%93%B0%EA%B5%AC.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-logo--EB-A7-88-EC-93-B0-EA-B5-AC-jpg-1757426970124.webp",
+    "fileName": "kang-seok-logo--EB-A7-88-EC-93-B0-EA-B5-AC-jpg-1757426970124.webp",
+    "success": true
+  },
+  {
+    "name": "강석님 프로필",
+    "type": "profile",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_120,h_170,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-profile-94f4be_a394473798764e3a8010db94d36b0ad4-1757426972465.webp",
+    "fileName": "kang-seok-profile-94f4be_a394473798764e3a8010db94d36b0ad4-1757426972465.webp",
+    "success": true
+  },
+  {
+    "name": "골프 장비",
+    "type": "equipment",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_78c51b941ff84e15ae0224439323f180~mv2.jpg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/94f4be_78c51b941ff84e15ae0224439323f180~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_78c51b941ff84e15ae0224439323f180~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_78c51b941ff84e15ae0224439323f180~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-equipment-94f4be_78c51b941ff84e15ae0224439323f180-1757426974556.webp",
+    "fileName": "kang-seok-equipment-94f4be_78c51b941ff84e15ae0224439323f180-1757426974556.webp",
+    "success": true
+  },
+  {
+    "name": "드라이버 헤드",
+    "type": "driver",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_68677951d32544c39809afc98c693277~mv2.jpg/v1/fill/w_220,h_330,fp_0.50_0.50,q_90/94f4be_68677951d32544c39809afc98c693277~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_68677951d32544c39809afc98c693277~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_68677951d32544c39809afc98c693277~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-driver-94f4be_68677951d32544c39809afc98c693277-1757426976728.webp",
+    "fileName": "kang-seok-driver-94f4be_68677951d32544c39809afc98c693277-1757426976728.webp",
+    "success": true
+  },
+  {
+    "name": "스윙 모습",
+    "type": "swing",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_6ba406c468914150a13c6a8603d06f12~mv2.jpg/v1/fill/w_404,h_330,fp_0.50_0.50,q_90/94f4be_6ba406c468914150a13c6a8603d06f12~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_6ba406c468914150a13c6a8603d06f12~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_6ba406c468914150a13c6a8603d06f12~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-swing-94f4be_6ba406c468914150a13c6a8603d06f12-1757426978871.webp",
+    "fileName": "kang-seok-swing-94f4be_6ba406c468914150a13c6a8603d06f12-1757426978871.webp",
+    "success": true
+  },
+  {
+    "name": "골프 클럽",
+    "type": "club",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad~mv2.jpg/v1/fill/w_323,h_323,fp_0.50_0.50,q_90/94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-club-94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad-1757426981002.webp",
+    "fileName": "kang-seok-club-94f4be_be5b4bf9040a48e3b4ed2a4cc309d3ad-1757426981002.webp",
+    "success": true
+  },
+  {
+    "name": "골프 장비 세트",
+    "type": "equipment-set",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_6ceba23029f947c9941a1206181daec9~mv2.jpg/v1/fill/w_324,h_323,fp_0.50_0.50,q_90/94f4be_6ceba23029f947c9941a1206181daec9~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_6ceba23029f947c9941a1206181daec9~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_6ceba23029f947c9941a1206181daec9~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-equipment-set-94f4be_6ceba23029f947c9941a1206181daec9-1757426983111.webp",
+    "fileName": "kang-seok-equipment-set-94f4be_6ceba23029f947c9941a1206181daec9-1757426983111.webp",
+    "success": true
+  },
+  {
+    "name": "골프 공",
+    "type": "ball",
+    "originalUrl": "https://static.wixstatic.com/media/94f4be_c760743db9604476a67e16bbfe894c90~mv2.jpg/v1/fill/w_323,h_323,fp_0.50_0.50,q_90/94f4be_c760743db9604476a67e16bbfe894c90~mv2.jpg",
+    "highQualityUrl": "https://static.wixstatic.com/media/94f4be_c760743db9604476a67e16bbfe894c90~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_c760743db9604476a67e16bbfe894c90~mv2.jpg",
+    "storedUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/kang-seok-ball-94f4be_c760743db9604476a67e16bbfe894c90-1757426985249.webp",
+    "fileName": "kang-seok-ball-94f4be_c760743db9604476a67e16bbfe894c90-1757426985249.webp",
+    "success": true
+  }
+]
