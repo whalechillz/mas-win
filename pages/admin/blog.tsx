@@ -76,7 +76,7 @@ export default function BlogAdmin() {
     
     try {
       // 향상된 고화질 마이그레이션 (강석님 블로그 방식)
-      const migrationResponse = await fetch('/api/migrate-blog-enhanced', {
+      const migrationResponse = await fetch('/api/migrate-blog-enhanced/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: migrationUrl })
