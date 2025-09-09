@@ -255,6 +255,10 @@ export default function BlogIndex({ posts: staticPosts }) {
                       alt={post.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg';
+                      }}
+                      unoptimized={true}
                     />
                     <div className="absolute top-4 left-4 z-20">
                       <span className="px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-xs font-semibold rounded-full shadow-lg">

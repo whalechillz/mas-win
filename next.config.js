@@ -10,6 +10,32 @@ module.exports = {
   },
   images: {
     unoptimized: true,
+    domains: [
+      'v3.fal.media',
+      'oaidalleapiprodscus.blob.core.windows.net',
+      'yyytjudftvpmcnppaymw.supabase.co',
+      'masgolf.co.kr'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'v3.fal.media',
+        port: '',
+        pathname: '/files/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'oaidalleapiprodscus.blob.core.windows.net',
+        port: '',
+        pathname: '/private/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yyytjudftvpmcnppaymw.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      }
+    ],
   },
   // Node.js 18 fetch 문제 해결
   experimental: {
