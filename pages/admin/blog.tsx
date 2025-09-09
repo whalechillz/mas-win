@@ -56,6 +56,113 @@ export default function BlogAdmin() {
   
   // 마크다운 미리보기 상태
   const [showContentPreview, setShowContentPreview] = useState(false);
+  // 마이그레이션 관련 상태
+  const [migrationUrl, setMigrationUrl] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
+  const [scrapedData, setScrapedData] = useState(null);
+
+  // 마이그레이션 시작 함수
+  const handleMigration = async () => {
+    if (!migrationUrl) {
+      alert('URL을 입력해주세요.');
+      return;
+    }
+
+    setIsMigrating(true);
+    setMigrationStatus('스크래핑 중...');
+    
+    try {
+      // 1. 스크래핑
+      const scrapeResponse = await fetch('/api/scrape-blog-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: migrationUrl })
+      });
+
+      const scrapeResult = await scrapeResponse.json();
+      
+      if (!scrapeResult.success) {
+        throw new Error(scrapeResult.error || '스크래핑 실패');
+      }
+
+      setScrapedData(scrapeResult.data);
+      setMigrationStatus('이미지 마이그레이션 중...');
+
+      // 2. 이미지 마이그레이션 (이미지가 있는 경우)
+      if (scrapeResult.data.images && scrapeResult.data.images.length > 0) {
+        const imageResponse = await fetch('/api/migrate-wix-images-playwright', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            images: scrapeResult.data.images.map((url, index) => ({
+              name: 'Image ' + (index + 1),
+              url: url,
+              type: 'content'
+            }))
+          })
+        });
+
+        const imageResult = await imageResponse.json();
+        
+        if (imageResult.success) {
+          // 이미지 URL 교체
+          let updatedContent = scrapeResult.data.content;
+          imageResult.results.forEach((result, index) => {
+            if (result.success && scrapeResult.data.images[index]) {
+              updatedContent = updatedContent.replace(
+                scrapeResult.data.images[index], 
+                result.storedUrl
+              );
+            }
+          });
+          scrapeResult.data.content = updatedContent;
+        }
+      }
+
+      setMigrationStatus('블로그 포스트 생성 중...');
+
+      // 3. 블로그 포스트 생성
+      const createResponse = await fetch('/api/blog/posts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: scrapeResult.data.title,
+          content: scrapeResult.data.content,
+          excerpt: scrapeResult.data.description || scrapeResult.data.content.substring(0, 200) + '...',
+          featured_image: scrapeResult.data.images && scrapeResult.data.images.length > 0 ? scrapeResult.data.images[0] : '',
+          category: '비거리 향상 드라이버',
+          tags: ['마이그레이션', '자동생성'],
+          status: 'published',
+          author: '마쓰구골프'
+        })
+      });
+
+      const createResult = await createResponse.json();
+      
+      if (createResult.success) {
+        setMigrationStatus('마이그레이션 완료!');
+        alert('마이그레이션이 성공적으로 완료되었습니다!');
+        
+        // 폼 초기화
+        setMigrationUrl('');
+        setScrapedData(null);
+        
+        // 블로그 목록 새로고침
+        fetchPosts();
+      } else {
+        throw new Error(createResult.error || '블로그 포스트 생성 실패');
+      }
+
+    } catch (error) {
+      console.error('마이그레이션 오류:', error);
+      setMigrationStatus('오류: ' + error.message);
+      alert('마이그레이션 실패: ' + error.message);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
 
   // 이미지 갤러리 관리 상태
   const [imageGallery, setImageGallery] = useState([]);
@@ -1151,6 +1258,8 @@ export default function BlogAdmin() {
           </div>
 
           {/* 탭별 콘텐츠 */}
+          
+          {/* 탭별 콘텐츠 */}
           {activeTab === 'migration' && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <div className="text-center py-8">
@@ -1164,17 +1273,40 @@ export default function BlogAdmin() {
                   <div className="max-w-md mx-auto">
                     <input
                       type="url"
+                      value={migrationUrl}
+                      onChange={(e) => setMigrationUrl(e.target.value)}
                       placeholder="https://www.mas9golf.com/post/..."
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      disabled={isMigrating}
                     />
                   </div>
-                  <button className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
-                    마이그레이션 시작
+                  <button 
+                    onClick={handleMigration}
+                    disabled={isMigrating || !migrationUrl}
+                    className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isMigrating ? '마이그레이션 중...' : '마이그레이션 시작'}
                   </button>
+                  
+                  {migrationStatus && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 text-sm">{migrationStatus}</p>
+                    </div>
+                  )}
+                  
+                  {scrapedData && (
+                    <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-left">
+                      <h3 className="font-semibold text-gray-900 mb-2">스크래핑 결과:</h3>
+                      <p className="text-sm text-gray-700"><strong>제목:</strong> {scrapedData.title}</p>
+                      <p className="text-sm text-gray-700"><strong>이미지 수:</strong> {scrapedData.images ? scrapedData.images.length : 0}개</p>
+                      <p className="text-sm text-gray-700"><strong>플랫폼:</strong> {scrapedData.platform}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
+
 
           {/* 게시물 작성/수정 폼 */}
           {(activeTab === 'create' || showForm) && (
