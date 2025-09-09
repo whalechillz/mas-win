@@ -36,6 +36,8 @@ module.exports = {
         pathname: '/storage/v1/object/public/**',
       }
     ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Node.js 18 fetch 문제 해결
   experimental: {
