@@ -64,7 +64,7 @@ export default function BlogAdmin() {
 
   // 마이그레이션 시작 함수
   
-  // 마이그레이션 시작 함수 (개선된 버전)
+  // 마이그레이션 시작 함수 (Playwright 방식 - 강석님 블로그처럼)
   const handleMigration = async () => {
     if (!migrationUrl) {
       alert('URL을 입력해주세요.');
@@ -72,127 +72,51 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationStatus('스크래핑 중...');
+    setMigrationStatus('Playwright로 실제 콘텐츠 캡처 중...');
     
     try {
-      // 1. 스크래핑
-      const scrapeResponse = await fetch('/api/scrape-blog-content', {
+      // Playwright 기반 마이그레이션 (강석님 블로그 방식)
+      const migrationResponse = await fetch('/api/migrate-blog-with-playwright', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: migrationUrl })
       });
 
       // 응답 상태 확인
-      if (!scrapeResponse.ok) {
-        throw new Error(`스크래핑 실패: HTTP ${scrapeResponse.status}`);
+      if (!migrationResponse.ok) {
+        throw new Error(`마이그레이션 실패: HTTP ${migrationResponse.status}`);
       }
 
       // 응답 텍스트로 먼저 받기
-      const scrapeText = await scrapeResponse.text();
-      console.log('스크래핑 응답:', scrapeText.substring(0, 200));
+      const migrationText = await migrationResponse.text();
+      console.log('마이그레이션 응답:', migrationText.substring(0, 200));
 
       // JSON 파싱 시도
-      let scrapeResult;
+      let migrationResult;
       try {
-        scrapeResult = JSON.parse(scrapeText);
+        migrationResult = JSON.parse(migrationText);
       } catch (parseError) {
         console.error('JSON 파싱 오류:', parseError);
-        throw new Error('스크래핑 응답을 파싱할 수 없습니다: ' + parseError.message);
+        throw new Error('마이그레이션 응답을 파싱할 수 없습니다: ' + parseError.message);
       }
       
-      if (!scrapeResult.success) {
-        throw new Error(scrapeResult.error || '스크래핑 실패');
+      if (!migrationResult.success) {
+        throw new Error(migrationResult.error || '마이그레이션 실패');
       }
 
-      setScrapedData(scrapeResult.data);
-      setMigrationStatus('이미지 마이그레이션 중...');
-
-      // 2. 이미지 마이그레이션 (이미지가 있는 경우)
-      if (scrapeResult.data.images && scrapeResult.data.images.length > 0) {
-        const imageResponse = await fetch('/api/migrate-wix-images-playwright', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            images: scrapeResult.data.images.map((url, index) => ({
-              name: 'Image ' + (index + 1),
-              url: url,
-              type: 'content'
-            }))
-          })
-        });
-
-        // 이미지 마이그레이션 응답 확인
-        if (!imageResponse.ok) {
-          console.warn('이미지 마이그레이션 실패, 원본 이미지 사용');
-        } else {
-          const imageText = await imageResponse.text();
-          try {
-            const imageResult = JSON.parse(imageText);
-            
-            if (imageResult.success) {
-              // 이미지 URL 교체
-              let updatedContent = scrapeResult.data.content;
-              imageResult.results.forEach((result, index) => {
-                if (result.success && scrapeResult.data.images[index]) {
-                  updatedContent = updatedContent.replace(
-                    scrapeResult.data.images[index], 
-                    result.storedUrl
-                  );
-                }
-              });
-              scrapeResult.data.content = updatedContent;
-            }
-          } catch (parseError) {
-            console.warn('이미지 마이그레이션 응답 파싱 실패, 원본 이미지 사용');
-          }
-        }
-      }
-
-      setMigrationStatus('블로그 포스트 생성 중...');
-
-      // 3. 블로그 포스트 생성
-      const createResponse = await fetch('/api/blog/posts/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: scrapeResult.data.title,
-          content: scrapeResult.data.content,
-          excerpt: scrapeResult.data.description || scrapeResult.data.content.substring(0, 200) + '...',
-          featured_image: scrapeResult.data.images && scrapeResult.data.images.length > 0 ? scrapeResult.data.images[0] : '',
-          category: '비거리 향상 드라이버',
-          tags: ['마이그레이션', '자동생성'],
-          status: 'published',
-          author: '마쓰구골프'
-        })
-      });
-
-      // 블로그 포스트 생성 응답 확인
-      if (!createResponse.ok) {
-        throw new Error(`블로그 포스트 생성 실패: HTTP ${createResponse.status}`);
-      }
-
-      const createText = await createResponse.text();
-      let createResult;
-      try {
-        createResult = JSON.parse(createText);
-      } catch (parseError) {
-        console.error('블로그 포스트 생성 응답 파싱 오류:', parseError);
-        throw new Error('블로그 포스트 생성 응답을 파싱할 수 없습니다: ' + parseError.message);
-      }
+      setScrapedData(migrationResult.data);
+      setMigrationStatus('마이그레이션 완료!');
       
-      if (createResult.success) {
-        setMigrationStatus('마이그레이션 완료!');
-        alert('마이그레이션이 성공적으로 완료되었습니다!');
-        
-        // 폼 초기화
-        setMigrationUrl('');
-        setScrapedData(null);
-        
-        // 블로그 목록 새로고침
-        fetchPosts();
-      } else {
-        throw new Error(createResult.error || '블로그 포스트 생성 실패');
-      }
+      // 성공 메시지
+      const imageCount = migrationResult.data.images ? migrationResult.data.images.length : 0;
+      alert(`🎉 마이그레이션이 성공적으로 완료되었습니다!\n\n📝 제목: ${migrationResult.data.title}\n🖼️ 이미지: ${imageCount}개 캡처 완료\n📄 콘텐츠: 실제 블로그 내용 추출 완료`);
+      
+      // 폼 초기화
+      setMigrationUrl('');
+      setScrapedData(null);
+      
+      // 블로그 목록 새로고침
+      fetchPosts();
 
     } catch (error) {
       console.error('마이그레이션 오류:', error);
@@ -1308,7 +1232,7 @@ export default function BlogAdmin() {
                   🔄 블로그 마이그레이션
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  기존 블로그를 가져와서 똑같이 복사하거나 개선할 수 있습니다.
+                  Playwright로 실제 블로그 콘텐츠와 이미지를 고화질로 캡처해서 가져옵니다. (강석님 블로그 방식)
                 </p>
                 <div className="space-y-4">
                   <div className="max-w-md mx-auto">
