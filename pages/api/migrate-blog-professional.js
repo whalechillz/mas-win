@@ -168,9 +168,7 @@ export default async function handler(req, res) {
     // 8. 고유 slug 생성
     const slug = await generateUniqueSlug(title);
 
-    // 9. Supabase에 저장 (태그 오류 수정)
-    const tagsString = extractedTags.length > 0 ? extractedTags.join(", ") : "마이그레이션, 블로그";
-    
+    // 9. Supabase에 저장 (tags 필드 제거)
     const { data: post, error: insertError } = await supabase
       .from("blog_posts")
       .insert({
@@ -179,10 +177,8 @@ export default async function handler(req, res) {
         content: structuredContent,
         featured_image: processedImages[0]?.processedUrl || null,
         published_at: new Date().toISOString(),
-        is_featured: false,
-        author: "마쓰구골프",
-        excerpt: fullTextContent.substring(0, 300) + "...",
-        tags: tagsString
+        status: 'published',
+        excerpt: fullTextContent.substring(0, 300) + "..."
       })
       .select()
       .single();
