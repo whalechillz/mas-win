@@ -51,6 +51,39 @@ export default async function handler(req, res) {
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : "제목 없음";
 
+    // 2.1. 날짜 추출 (다양한 형식 지원)
+    let publishedDate = new Date();
+    
+    // 메타 태그에서 날짜 추출
+    const metaDateMatch = html.match(/<meta[^>]*property="article:published_time"[^>]*content="([^"]+)"/i) ||
+                         html.match(/<meta[^>]*name="date"[^>]*content="([^"]+)"/i) ||
+                         html.match(/<meta[^>]*name="pubdate"[^>]*content="([^"]+)"/i);
+    
+    if (metaDateMatch) {
+      publishedDate = new Date(metaDateMatch[1]);
+    } else {
+      // HTML에서 날짜 패턴 추출
+      const datePatterns = [
+        /(\d{4})[년\-\/](\d{1,2})[월\-\/](\d{1,2})[일]/g,
+        /(\d{4})\-(\d{1,2})\-(\d{1,2})/g,
+        /(\d{1,2})[월\-\/](\d{1,2})[일\-\/](\d{4})/g
+      ];
+      
+      for (const pattern of datePatterns) {
+        const dateMatch = html.match(pattern);
+        if (dateMatch) {
+          const dateStr = dateMatch[0];
+          const parsedDate = new Date(dateStr.replace(/[년월일]/g, '-').replace(/\-$/, ''));
+          if (!isNaN(parsedDate.getTime())) {
+            publishedDate = parsedDate;
+            break;
+          }
+        }
+      }
+    }
+    
+    console.log(`📅 추출된 날짜: ${publishedDate.toISOString()}`);
+
     // 3. 블로그 콘텐츠만 추출 (메뉴 제거)
     const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
     const bodyContent = bodyMatch ? bodyMatch[1] : html;
@@ -83,16 +116,28 @@ export default async function handler(req, res) {
       return content.split(/\s+/).filter(t => t.length > 0);
     }).flat();
 
-    // 5. 모든 이미지 URL 추출
+    // 5. 모든 이미지 URL 추출 (개선된 스크래핑)
     const imageMatches = html.match(/<img[^>]+src="[^"]+"[^>]*>/gi) || [];
     const allImages = imageMatches.map(img => {
       const srcMatch = img.match(/src="([^"]+)"/);
       return srcMatch ? srcMatch[1] : null;
     }).filter(Boolean);
 
+    // CSS 배경 이미지도 추출
+    const backgroundImageMatches = html.match(/background-image:\s*url\(['"]?([^'"]+)['"]?\)/gi) || [];
+    const backgroundImages = backgroundImageMatches.map(bg => {
+      const urlMatch = bg.match(/url\(['"]?([^'"]+)['"]?\)/);
+      return urlMatch ? urlMatch[1] : null;
+    }).filter(Boolean);
+
+    // 모든 이미지 URL 통합 및 중복 제거
+    const allImageUrls = [...new Set([...allImages, ...backgroundImages])];
+    
+    console.log(`🖼️ 발견된 이미지 수: ${allImageUrls.length}`);
+
     // 6. 이미지 처리 (모든 이미지 가져오기)
     const processedImages = [];
-    const contentImages = allImages.slice(0, 10); // 모든 이미지 가져오기 (최대 10개)
+    const contentImages = allImageUrls.slice(0, 15); // 모든 이미지 가져오기 (최대 15개)
 
     for (let i = 0; i < contentImages.length; i++) {
       const imageUrl = contentImages[i];
@@ -100,14 +145,23 @@ export default async function handler(req, res) {
       try {
         console.log(`🖼️ 이미지 ${i + 1} 처리 시작`);
         
-        if (!imageUrl || !imageUrl.startsWith("http")) {
+        if (!imageUrl || (!imageUrl.startsWith("http") && !imageUrl.startsWith("//"))) {
           continue;
+        }
+
+        // 상대 URL을 절대 URL로 변환
+        let absoluteImageUrl = imageUrl;
+        if (imageUrl.startsWith("//")) {
+          absoluteImageUrl = "https:" + imageUrl;
+        } else if (imageUrl.startsWith("/")) {
+          const urlObj = new URL(url);
+          absoluteImageUrl = urlObj.origin + imageUrl;
         }
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        const imageResponse = await fetch(imageUrl, {
+        const imageResponse = await fetch(absoluteImageUrl, {
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "image/*"
@@ -141,8 +195,8 @@ export default async function handler(req, res) {
           if (uploadError) {
             console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, uploadError);
             processedImages.push({
-              originalUrl: imageUrl,
-              processedUrl: imageUrl,
+              originalUrl: absoluteImageUrl,
+              processedUrl: absoluteImageUrl,
               alt: `이미지 ${i + 1}`,
               status: "upload-failed"
             });
@@ -154,7 +208,7 @@ export default async function handler(req, res) {
             .getPublicUrl(fileName).data.publicUrl;
 
           processedImages.push({
-            originalUrl: imageUrl,
+            originalUrl: absoluteImageUrl,
             processedUrl: publicUrl,
             alt: `이미지 ${i + 1}`,
             fileName: fileName,
@@ -167,8 +221,8 @@ export default async function handler(req, res) {
       } catch (error) {
         console.error(`❌ 이미지 ${i + 1} 처리 실패:`, error.message);
         processedImages.push({
-          originalUrl: imageUrl,
-          processedUrl: imageUrl,
+          originalUrl: absoluteImageUrl,
+          processedUrl: absoluteImageUrl,
           alt: `이미지 ${i + 1}`,
           status: "error"
         });
@@ -189,7 +243,7 @@ export default async function handler(req, res) {
         slug: slug,
         content: structuredContent,
         featured_image: processedImages[0]?.processedUrl || null,
-        published_at: new Date().toISOString(),
+        published_at: publishedDate.toISOString(),
         status: 'published',
         excerpt: fullTextContent.substring(0, 300) + "..."
       })
