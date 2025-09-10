@@ -72,11 +72,11 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationStatus('프로덕션 최적화된 마이그레이션 처리 중...');
+    setMigrationStatus('GPT-4o-mini로 전문적인 콘텐츠 구조화 및 고화질 이미지 처리 중...');
     
     try {
       // 향상된 고화질 마이그레이션 (강석님 블로그 방식)
-        const migrationResponse = await fetch('/api/test-migration/', {
+        const migrationResponse = await fetch('/api/migrate-blog-professional/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: migrationUrl })
@@ -1232,7 +1232,7 @@ export default function BlogAdmin() {
                   🔄 블로그 마이그레이션
                 </h2>
         <p className="text-gray-600 mb-6">
-          프로덕션 환경에 최적화된 마이그레이션으로 안정적인 콘텐츠와 이미지 처리를 제공합니다.
+          GPT-4o-mini로 전문적인 콘텐츠 구조화와 고화질 이미지 처리를 통해 강석 블로그 수준의 완벽한 마이그레이션을 제공합니다.
         </p>
                 <div className="space-y-4">
                   <div className="max-w-md mx-auto">
