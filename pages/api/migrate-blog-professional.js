@@ -51,12 +51,25 @@ export default async function handler(req, res) {
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : "제목 없음";
 
-    // 3. 완전한 텍스트 추출 (모든 내용 포함)
+    // 3. 블로그 콘텐츠만 추출 (메뉴 제거)
     const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
     const bodyContent = bodyMatch ? bodyMatch[1] : html;
     
+    // 메뉴, 네비게이션, 헤더, 푸터 제거
+    const cleanContent = bodyContent
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "")
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "")
+      .replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, "")
+      .replace(/<div[^>]*class="[^"]*nav[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+      .replace(/<div[^>]*class="[^"]*menu[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+      .replace(/<div[^>]*class="[^"]*header[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+      .replace(/<div[^>]*class="[^"]*top[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
+      .replace(/<ul[^>]*class="[^"]*nav[^"]*"[^>]*>[\s\S]*?<\/ul>/gi, "")
+      .replace(/<ul[^>]*class="[^"]*menu[^"]*"[^>]*>[\s\S]*?<\/ul>/gi, "");
+    
     // 모든 텍스트 노드 추출 (HTML 태그 제거)
-    const fullTextContent = bodyContent
+    const fullTextContent = cleanContent
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
       .replace(/<[^>]+>/g, " ")
@@ -226,12 +239,18 @@ async function generateCompleteContent(title, fullText, tags, images) {
           content: `당신은 전문적인 블로그 콘텐츠 편집자입니다. 
           
 다음 작업을 수행해주세요:
-1. 원본 텍스트에서 제목, 본문, 태그를 정확히 구분
+1. 원본 텍스트에서 실제 블로그 콘텐츠만 추출 (메뉴, 네비게이션 제외)
 2. 제목은 한 번만 사용 (중복 제거)
 3. 본문을 논리적인 단락으로 구성 (H2, H3 제목 포함)
-4. 모든 내용을 포함 (하단 내용 누락 방지)
-5. 태그를 마지막에 정리
+4. 모든 실제 콘텐츠를 포함 (하단 내용 누락 방지)
+5. 메뉴나 네비게이션 텍스트는 완전히 제거
 6. 마크다운 형식으로 출력
+
+중요: 다음 텍스트들은 제거하세요:
+- "시리즈", "제품 모아보기", "시타신청", "이벤트", "더 보기"
+- "시크리트포스", "시크리트웨폰" 등의 제품명 나열
+- "top of page" 같은 네비게이션 텍스트
+- 메뉴 관련 모든 텍스트
 
 출력 형식:
 # 제목
