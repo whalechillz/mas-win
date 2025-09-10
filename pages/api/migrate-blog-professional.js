@@ -90,9 +90,9 @@ export default async function handler(req, res) {
       return srcMatch ? srcMatch[1] : null;
     }).filter(Boolean);
 
-    // 6. 이미지 처리 (탑 이미지 제외하고 첫 번째 콘텐츠 이미지부터)
+    // 6. 이미지 처리 (모든 이미지 가져오기)
     const processedImages = [];
-    const contentImages = allImages.slice(1, 7); // 첫 번째 이미지(탑 이미지) 제외하고 2-7번째 이미지 사용
+    const contentImages = allImages.slice(0, 10); // 모든 이미지 가져오기 (최대 10개)
 
     for (let i = 0; i < contentImages.length; i++) {
       const imageUrl = contentImages[i];
