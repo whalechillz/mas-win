@@ -40,32 +40,48 @@ export default async function handler(req, res) {
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : '제목 없음';
 
-    // 3. 이미지 URL 추출 (최대 3개로 제한)
+    // 3. 이미지 URL 추출 (탑 이미지 제외하고 첫 번째 콘텐츠 이미지부터)
     const imageMatches = html.match(/<img[^>]+src="[^"]+"[^>]*>/gi) || [];
-    const images = imageMatches.map(img => {
+    const allImages = imageMatches.map(img => {
       const srcMatch = img.match(/src="([^"]+)"/);
       return srcMatch ? srcMatch[1] : null;
-    }).filter(Boolean).slice(0, 3);
+    }).filter(Boolean);
+    
+    // 탑 이미지(큰 프로필 이미지) 제외하고 첫 번째 콘텐츠 이미지부터 선택
+    const images = allImages.slice(1, 4); // 첫 번째 이미지 제외하고 2-4번째 이미지 사용
 
-    // 4. 간단한 콘텐츠 추출
+    // 4. 더 나은 콘텐츠 추출 (실제 본문 내용만)
     const contentMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
     const bodyContent = contentMatch ? contentMatch[1] : html;
     
+    // 실제 본문 내용 추출 (제목, 메타데이터 제외)
     const textContent = bodyContent
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
 
-    // 5. 간단한 마크다운 생성
+    // 5. 개선된 마크다운 생성
     let markdownContent = `# ${title}\n\n`;
     
-    const paragraphs = textContent.split('.').filter(p => p.trim().length > 20);
-    paragraphs.forEach((paragraph, index) => {
-      if (index < 3) { // 최대 3개 단락
-        markdownContent += `${paragraph.trim()}.\n\n`;
+    // 문장 단위로 나누어 더 자연스러운 단락 구성
+    const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 30);
+    const paragraphs = [];
+    
+    // 2-3개 문장씩 묶어서 단락으로 구성
+    for (let i = 0; i < sentences.length && paragraphs.length < 3; i += 2) {
+      const paragraph = sentences.slice(i, i + 2).join('. ').trim();
+      if (paragraph.length > 50) {
+        paragraphs.push(paragraph + '.');
       }
+    }
+    
+    paragraphs.forEach(paragraph => {
+      markdownContent += `${paragraph}\n\n`;
     });
 
     // 이미지 추가
