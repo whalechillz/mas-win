@@ -1,11 +1,11 @@
 /**
- * 전문적인 블로그 마이그레이션 API
- * 강석 블로그 수준의 고품질 마이그레이션
+ * 완전한 블로그 마이그레이션 API
+ * 제목 중복, 태그 누락, 하단 내용 누락 문제 해결
  */
 
-import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
-import OpenAI from 'openai';
+import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
+import OpenAI from "openai";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -17,68 +17,87 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
     const { url } = req.body;
 
     if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
+      return res.status(400).json({ error: "URL is required" });
     }
 
-    console.log('🎯 전문적인 블로그 마이그레이션 시작:', url);
+    console.log("🚀 완전한 마이그레이션 시작:", url);
 
-    // 1. 페이지 스크래핑으로 기본 정보 추출
+    // 1. 완전한 웹페이지 스크래핑
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
       }
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const html = await response.text();
-    
-    // 2. 제목 추출
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const title = titleMatch ? titleMatch[1].trim() : '제목 없음';
 
-    // 3. 이미지 URL 추출 및 고화질 다운로드
-    const imageMatches = html.match(/<img[^>]+src="([^"]+)"[^>]*>/gi) || [];
-    const images = imageMatches.map(img => {
+    // 2. 제목 추출 (중복 방지)
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : "제목 없음";
+
+    // 3. 완전한 텍스트 추출 (모든 내용 포함)
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    const bodyContent = bodyMatch ? bodyMatch[1] : html;
+    
+    // 모든 텍스트 노드 추출 (HTML 태그 제거)
+    const fullTextContent = bodyContent
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // 4. 태그 추출 (완전한 태그 추출)
+    const tagMatches = html.match(/태그[^>]*>([^<]+)</gi) || [];
+    const extractedTags = tagMatches.map(tag => {
+      const content = tag.replace(/태그[^>]*>/, "").replace(/</, "").trim();
+      return content.split(/\s+/).filter(t => t.length > 0);
+    }).flat();
+
+    // 5. 모든 이미지 URL 추출
+    const imageMatches = html.match(/<img[^>]+src="[^"]+"[^>]*>/gi) || [];
+    const allImages = imageMatches.map(img => {
       const srcMatch = img.match(/src="([^"]+)"/);
       return srcMatch ? srcMatch[1] : null;
-    }).filter(Boolean).slice(0, 10);
+    }).filter(Boolean);
 
-    // 4. 안정적인 이미지 처리 (실패해도 계속 진행)
+    // 6. 이미지 처리 (탑 이미지 제외하고 첫 번째 콘텐츠 이미지부터)
     const processedImages = [];
-    for (let i = 0; i < images.length; i++) {
-      const imageUrl = images[i];
+    const contentImages = allImages.slice(1, 7); // 첫 번째 이미지(탑 이미지) 제외하고 2-7번째 이미지 사용
+
+    for (let i = 0; i < contentImages.length; i++) {
+      const imageUrl = contentImages[i];
       
       try {
-        console.log(`🖼️ 이미지 ${i + 1} 처리 시작: ${imageUrl}`);
+        console.log(`🖼️ 이미지 ${i + 1} 처리 시작`);
         
-        // 이미지 URL 유효성 검사
-        if (!imageUrl || !imageUrl.startsWith('http')) {
-          console.log(`⚠️ 이미지 ${i + 1} URL 무효, 건너뜀`);
+        if (!imageUrl || !imageUrl.startsWith("http")) {
           continue;
         }
 
-        // 실제 이미지 다운로드 (타임아웃 설정)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const imageResponse = await fetch(imageUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-            'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "image/*"
           },
           signal: controller.signal
         });
@@ -89,43 +108,36 @@ export default async function handler(req, res) {
           const imageBuffer = await imageResponse.arrayBuffer();
           const buffer = Buffer.from(imageBuffer);
           
-          // 이미지 크기 검사 (너무 작으면 건너뜀)
           if (buffer.length < 1000) {
-            console.log(`⚠️ 이미지 ${i + 1} 크기가 너무 작음 (${buffer.length} bytes), 건너뜀`);
             continue;
           }
 
-          // Sharp로 WebP 최적화
           const optimizedBuffer = await sharp(buffer)
-            .webp({ quality: 95 })
+            .resize(1200, 800, { fit: "inside", withoutEnlargement: true })
+            .webp({ quality: 90 })
             .toBuffer();
 
-          // Supabase Storage에 저장
-          const fileName = `professional-migration-${Date.now()}-${i + 1}.webp`;
+          const fileName = `complete-migration-${Date.now()}-${i + 1}.webp`;
           const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('blog-images')
+            .from("blog-images")
             .upload(fileName, optimizedBuffer, {
-              contentType: 'image/webp',
-              cacheControl: '3600'
+              contentType: "image/webp",
+              cacheControl: "3600"
             });
 
           if (uploadError) {
             console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, uploadError);
-            // 업로드 실패해도 원본 URL로 계속 진행
             processedImages.push({
               originalUrl: imageUrl,
-              processedUrl: imageUrl, // 원본 URL 사용
+              processedUrl: imageUrl,
               alt: `이미지 ${i + 1}`,
-              fileName: `original-${i + 1}`,
-              size: buffer.length,
-              optimizedSize: buffer.length,
-              status: 'upload-failed'
+              status: "upload-failed"
             });
             continue;
           }
 
           const publicUrl = supabase.storage
-            .from('blog-images')
+            .from("blog-images")
             .getPublicUrl(fileName).data.publicUrl;
 
           processedImages.push({
@@ -133,134 +145,125 @@ export default async function handler(req, res) {
             processedUrl: publicUrl,
             alt: `이미지 ${i + 1}`,
             fileName: fileName,
-            size: buffer.length,
-            optimizedSize: optimizedBuffer.length,
-            status: 'success'
+            status: "success"
           });
 
-          console.log(`✅ 이미지 ${i + 1} 고화질 처리 완료: ${fileName}`);
-        } else {
-          console.log(`⚠️ 이미지 ${i + 1} 다운로드 실패 (HTTP ${imageResponse.status}), 원본 URL 사용`);
-          // 다운로드 실패해도 원본 URL로 계속 진행
-          processedImages.push({
-            originalUrl: imageUrl,
-            processedUrl: imageUrl, // 원본 URL 사용
-            alt: `이미지 ${i + 1}`,
-            fileName: `original-${i + 1}`,
-            size: 0,
-            optimizedSize: 0,
-            status: 'download-failed'
-          });
+          console.log(`✅ 이미지 ${i + 1} 처리 완료: ${fileName}`);
         }
         
       } catch (error) {
         console.error(`❌ 이미지 ${i + 1} 처리 실패:`, error.message);
-        // 처리 실패해도 원본 URL로 계속 진행
         processedImages.push({
           originalUrl: imageUrl,
-          processedUrl: imageUrl, // 원본 URL 사용
+          processedUrl: imageUrl,
           alt: `이미지 ${i + 1}`,
-          fileName: `original-${i + 1}`,
-          size: 0,
-          optimizedSize: 0,
-          status: 'error'
+          status: "error"
         });
       }
     }
 
-    // 5. GPT-4o-mini로 콘텐츠 구조화 및 최적화
-    const structuredContent = await generateStructuredContent(html, title, processedImages);
+    // 7. GPT-4o-mini로 완전한 콘텐츠 정제
+    const structuredContent = await generateCompleteContent(title, fullTextContent, extractedTags, processedImages);
 
-    // 6. 고유 slug 생성
+    // 8. 고유 slug 생성
     const slug = await generateUniqueSlug(title);
 
-    // 7. 블로그 포스트 생성
-    const blogPost = await createBlogPost({
-      title: title,
-      slug: slug,
-      content: structuredContent,
-      excerpt: structuredContent.substring(0, 200) + '...',
-      featured_image: processedImages.length > 0 ? processedImages[0].processedUrl : '',
-      category: '비거리 향상 드라이버',
-      tags: ['마이그레이션', '고화질', '전문적'],
-      status: 'published',
-      author: '마쓰구골프'
-    });
-
-    res.status(200).json({
-      success: true,
-      data: {
-        title,
+    // 9. Supabase에 저장
+    const { data: post, error: insertError } = await supabase
+      .from("blog_posts")
+      .insert({
+        title: title,
+        slug: slug,
         content: structuredContent,
+        featured_image: processedImages[0]?.processedUrl || null,
+        published_at: new Date().toISOString(),
+        is_featured: false,
+        author: "마쓰구골프",
+        excerpt: fullTextContent.substring(0, 300) + "...",
+        tags: extractedTags.join(", ")
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      throw new Error(`데이터베이스 저장 실패: ${insertError.message}`);
+    }
+
+    console.log(`✅ 완전한 마이그레이션 완료: ${post.id}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "완전한 마이그레이션 성공",
+      data: {
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        content: post.content,
+        featured_image: post.featured_image,
         images: processedImages,
-        blogPost,
-        originalUrl: url,
-        platform: 'professional-migration',
-        migratedAt: new Date().toISOString(),
-        note: '강석 블로그 수준의 전문적인 마이그레이션 완료'
+        tags: extractedTags,
+        imageCount: processedImages.length,
+        tagCount: extractedTags.length,
+        status: "complete-migration-success"
       }
     });
 
   } catch (error) {
-    console.error('마이그레이션 오류:', error);
-    res.status(500).json({ 
-      error: '마이그레이션 중 오류가 발생했습니다.',
-      details: error.message 
+    console.error("완전한 마이그레이션 오류:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 }
 
-// GPT-4o-mini로 콘텐츠 구조화
-async function generateStructuredContent(html, title, images) {
+// GPT-4o-mini로 완전한 콘텐츠 정제
+async function generateCompleteContent(title, fullText, tags, images) {
   try {
-    // 기본 텍스트 추출
-    const textContent = html
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `당신은 전문적인 블로그 콘텐츠 구조화 전문가입니다. 
+          content: `당신은 전문적인 블로그 콘텐츠 편집자입니다. 
           
-다음 요구사항에 따라 콘텐츠를 구조화하세요:
+다음 작업을 수행해주세요:
+1. 원본 텍스트에서 제목, 본문, 태그를 정확히 구분
+2. 제목은 한 번만 사용 (중복 제거)
+3. 본문을 논리적인 단락으로 구성 (H2, H3 제목 포함)
+4. 모든 내용을 포함 (하단 내용 누락 방지)
+5. 태그를 마지막에 정리
+6. 마크다운 형식으로 출력
 
-1. **제목 구조**: H1, H2, H3를 적절히 사용
-2. **단락 구분**: 명확한 단락 구분과 가독성
-3. **이미지 배치**: 적절한 위치에 이미지 삽입
-4. **마크다운 형식**: 표준 마크다운 문법 사용
-5. **SEO 최적화**: 키워드와 구조화된 콘텐츠
+출력 형식:
+# 제목
 
-예시 형식:
-# 메인 제목
-## 섹션 제목
-### 하위 제목
+## 소제목 (필요시)
 
-단락 내용...
+본문 내용...
 
-![이미지 설명](이미지URL)
+## 소제목 (필요시)
 
-## 다음 섹션
-...`
+본문 내용...
+
+### 태그
+태그1, 태그2, 태그3`
         },
         {
           role: "user",
-          content: `다음 콘텐츠를 전문적인 블로그 포스트로 구조화해주세요:
+          content: `원본 제목: ${title}
 
-제목: ${title}
-원본 텍스트: ${textContent.substring(0, 2000)}
-이미지 개수: ${images.length}개
+원본 텍스트:
+${fullText}
 
-이미지들을 적절한 위치에 배치하고, H1, H2, H3 제목을 사용하여 구조화된 마크다운 콘텐츠를 생성해주세요.`
+원본 태그:
+${tags.join(", ")}
+
+위 내용을 전문적인 블로그 포스트로 정제해주세요.`
         }
       ],
       max_tokens: 2000,
-      temperature: 0.7,
+      temperature: 0.3
     });
 
     let structuredContent = response.choices[0].message.content;
@@ -269,7 +272,7 @@ async function generateStructuredContent(html, title, images) {
     images.forEach((image, index) => {
       const imageMarkdown = `![${image.alt}](${image.processedUrl})`;
       structuredContent = structuredContent.replace(
-        new RegExp(`!\\[이미지 ${index + 1}\\]\\([^)]+\\)`, 'g'),
+        new RegExp(`!\[이미지 ${index + 1}\]\([^)]+\)`, "g"),
         imageMarkdown
       );
     });
@@ -277,12 +280,19 @@ async function generateStructuredContent(html, title, images) {
     return structuredContent;
 
   } catch (error) {
-    console.error('콘텐츠 구조화 오류:', error);
+    console.error("콘텐츠 정제 오류:", error);
     // 기본 구조로 폴백
-    let fallbackContent = `# ${title}\n\n`;
+    let fallbackContent = `# ${title}
+
+`;
     images.forEach((image, index) => {
-      fallbackContent += `![${image.alt}](${image.processedUrl})\n\n`;
+      fallbackContent += `![${image.alt}](${image.processedUrl})
+
+`;
     });
+    fallbackContent += `
+### 태그
+${tags.join(", ")}`;
     return fallbackContent;
   }
 }
@@ -290,19 +300,19 @@ async function generateStructuredContent(html, title, images) {
 async function generateUniqueSlug(title) {
   let baseSlug = title
     .toLowerCase()
-    .replace(/[^a-z0-9가-힣\s]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
+    .replace(/[^a-z0-9가-힣\s]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
     .substring(0, 80);
   
   let slug = baseSlug;
   
   while (true) {
     const { data: existing } = await supabase
-      .from('blog_posts')
-      .select('id')
-      .eq('slug', slug)
+      .from("blog_posts")
+      .select("id")
+      .eq("slug", slug)
       .single();
     
     if (!existing) {
@@ -314,18 +324,4 @@ async function generateUniqueSlug(title) {
   }
   
   return slug;
-}
-
-async function createBlogPost(postData) {
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .insert([postData])
-    .select()
-    .single();
-  
-  if (error) {
-    throw new Error(`블로그 포스트 생성 실패: ${error.message}`);
-  }
-  
-  return data;
 }
