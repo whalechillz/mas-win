@@ -242,15 +242,16 @@ export default function BlogIndex({ posts: staticPosts }) {
                 <Link href={`/blog/${post.slug}`}>
                   <div className="relative h-64 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
-                    <Image
-                      src={post.featured_image || '/placeholder-image.jpg'}
+                    <img
+                      src={post.featured_image || 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=No+Image'}
                       alt={post.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      priority={false}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
-                        e.target.src = '/placeholder-image.jpg';
+                        console.log('이미지 로드 실패:', e.target.src);
+                        e.target.src = 'https://via.placeholder.com/400x300/EF4444/FFFFFF?text=Error';
+                      }}
+                      onLoad={(e) => {
+                        console.log('이미지 로드 성공:', e.target.src);
                       }}
                     />
                     <div className="absolute top-4 left-4 z-20">
