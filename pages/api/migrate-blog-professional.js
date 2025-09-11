@@ -291,13 +291,52 @@ export default async function handler(req, res) {
       }
     }
 
-    // 7. GPT-4o-mini로 완전한 콘텐츠 정제
-    const structuredContent = await generateCompleteContent(title, fullTextContent, extractedTags, processedImages);
+    // 7. 본문에 이미지 삽입
+    let contentWithImages = fullTextContent;
+    
+    // 성공적으로 처리된 이미지들을 본문에 삽입
+    const successfulImages = processedImages.filter(img => img.status === 'success');
+    
+    if (successfulImages.length > 0) {
+      // 첫 번째 이미지는 대표 이미지로 사용되므로 본문에는 두 번째부터 삽입
+      const contentImages = successfulImages.slice(1);
+      
+      // 본문에 이미지 삽입 (단락 사이사이에 배치)
+      const paragraphs = contentWithImages.split('\n\n');
+      let imageIndex = 0;
+      
+      const contentWithImagesArray = [];
+      
+      for (let i = 0; i < paragraphs.length; i++) {
+        contentWithImagesArray.push(paragraphs[i]);
+        
+        // 단락 사이에 이미지 삽입 (2-3단락마다)
+        if (imageIndex < contentImages.length && (i + 1) % 2 === 0) {
+          const image = contentImages[imageIndex];
+          contentWithImagesArray.push(`\n\n![${image.alt}](${image.processedUrl})\n\n`);
+          imageIndex++;
+        }
+      }
+      
+      // 마지막에 남은 이미지들 추가
+      while (imageIndex < contentImages.length) {
+        const image = contentImages[imageIndex];
+        contentWithImagesArray.push(`\n\n![${image.alt}](${image.processedUrl})\n\n`);
+        imageIndex++;
+      }
+      
+      contentWithImages = contentWithImagesArray.join('');
+    }
+    
+    console.log(`🖼️ 본문에 삽입된 이미지 수: ${successfulImages.length - 1}`);
 
-    // 8. 고유 slug 생성
+    // 8. GPT-4o-mini로 완전한 콘텐츠 정제
+    const structuredContent = await generateCompleteContent(title, contentWithImages, extractedTags, processedImages);
+
+    // 9. 고유 slug 생성
     const slug = await generateUniqueSlug(title);
 
-    // 9. Supabase에 저장 (tags 필드 제거)
+    // 10. Supabase에 저장 (tags 필드 제거)
     const { data: post, error: insertError } = await supabase
       .from("blog_posts")
       .insert({
