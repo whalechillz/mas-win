@@ -9,6 +9,8 @@ export default function BlogAdmin() {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'migration'
   const [selectedPosts, setSelectedPosts] = useState([]); // 선택된 게시물 ID들
   const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'card'
+  const [sortBy, setSortBy] = useState('published_at'); // 정렬 기준
+  const [sortOrder, setSortOrder] = useState('desc'); // 정렬 순서
   
   // 디버깅용 useEffect
   useEffect(() => {
@@ -162,7 +164,13 @@ export default function BlogAdmin() {
       setLoading(true);
       console.log('🔍 게시물 목록 불러오는 중...');
       
-      const response = await fetch('/api/admin/blog');
+      // 정렬 파라미터 추가
+      const sortParams = new URLSearchParams({
+        sortBy: sortBy,
+        sortOrder: sortOrder
+      });
+      
+      const response = await fetch(`/api/admin/blog?${sortParams}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -387,7 +395,14 @@ export default function BlogAdmin() {
       return;
     }
 
-    if (!confirm(`선택된 ${selectedPosts.length}개 게시물을 삭제하시겠습니까?`)) {
+    // 선택된 게시물 정보 수집
+    const selectedPostTitles = selectedPosts
+      .map(id => posts.find(post => post.id === id)?.title)
+      .filter(Boolean)
+      .slice(0, 5); // 최대 5개만 표시
+
+    const confirmMessage = `선택된 ${selectedPosts.length}개의 게시물을 삭제하시겠습니까?\n\n삭제될 게시물:\n${selectedPostTitles.join('\n')}${selectedPosts.length > 5 ? '\n...' : ''}\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`;
+    if (!confirm(confirmMessage)) {
       return;
     }
 
@@ -588,7 +603,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: imageUrls[i],
                 fileName: `dalle3-${Date.now()}-${i + 1}.png`,
-                blogPostId: formData.id || null
+                blogPostId: editingPost?.id || null
               })
             });
             
@@ -1094,7 +1109,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: imageUrls[i],
                 fileName: `fal-ai-${Date.now()}-${i + 1}.jpeg`,
-                blogPostId: formData.id || null
+                blogPostId: editingPost?.id || null
               })
             });
             
@@ -1220,6 +1235,13 @@ export default function BlogAdmin() {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  // 정렬 옵션 변경 시 자동 새로고침
+  useEffect(() => {
+    if (posts.length > 0) { // 초기 로드가 아닐 때만
+      fetchPosts();
+    }
+  }, [sortBy, sortOrder]);
 
   return (
     <>
@@ -2582,6 +2604,29 @@ export default function BlogAdmin() {
                             className={`px-3 py-1 rounded text-sm ${viewMode === 'card' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
                           >
                             🎴 카드
+                          </button>
+                        </div>
+                        
+                        {/* 정렬 옵션 */}
+                        <div className="flex items-center space-x-2">
+                          <label className="text-sm font-medium text-gray-700">정렬:</label>
+                          <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="published_at">📅 게시일</option>
+                            <option value="created_at">⚡ 생성일</option>
+                            <option value="updated_at">✏️ 수정일</option>
+                            <option value="title">📝 제목</option>
+                            <option value="view_count">👁️ 조회수</option>
+                          </select>
+                          <button
+                            onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+                            className={`px-2 py-1 rounded text-sm ${sortOrder === 'desc' ? 'bg-gray-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                            title={sortOrder === 'desc' ? '내림차순 (최신순)' : '오름차순 (오래된순)'}
+                          >
+                            {sortOrder === 'desc' ? '↓' : '↑'}
                           </button>
                         </div>
                       </div>

@@ -20,10 +20,21 @@ export default async function handler(req, res) {
       // 게시물 목록 조회
       console.log('📝 게시물 목록 조회 중...');
       
+      // 정렬 옵션 파라미터 처리
+      const { sortBy = 'published_at', sortOrder = 'desc' } = req.query;
+      console.log('정렬 옵션:', { sortBy, sortOrder });
+      
+      // 정렬 옵션 검증
+      const validSortFields = ['published_at', 'created_at', 'updated_at', 'title', 'view_count'];
+      const validSortOrders = ['asc', 'desc'];
+      
+      const finalSortBy = validSortFields.includes(sortBy) ? sortBy : 'published_at';
+      const finalSortOrder = validSortOrders.includes(sortOrder) ? sortOrder : 'desc';
+      
       const { data: posts, error } = await supabase
         .from('blog_posts')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order(finalSortBy, { ascending: finalSortOrder === 'asc' });
       
       if (error) {
         console.error('❌ Supabase 쿼리 에러:', error);
