@@ -11,6 +11,8 @@ export default function BlogAdmin() {
   const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'card'
   const [sortBy, setSortBy] = useState('published_at'); // 정렬 기준
   const [sortOrder, setSortOrder] = useState('desc'); // 정렬 순서
+  const [showImageManager, setShowImageManager] = useState(false); // 이미지 관리자 표시
+  const [postImages, setPostImages] = useState([]); // 게시물 이미지 목록
   
   // 디버깅용 useEffect
   useEffect(() => {
@@ -441,6 +443,67 @@ export default function BlogAdmin() {
       tags: Array.isArray(post.tags) ? post.tags : []
     });
     setShowForm(true);
+    // 게시물 이미지 목록 로드
+    loadPostImages(post.id);
+  };
+
+  // 게시물 이미지 목록 로드
+  const loadPostImages = async (postId) => {
+    try {
+      const response = await fetch(`/api/admin/blog-images?postId=${postId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setPostImages(data.images || []);
+        console.log('✅ 게시물 이미지 로드 성공:', data.images?.length || 0, '개');
+      } else {
+        console.error('❌ 게시물 이미지 로드 실패:', data.error);
+        setPostImages([]);
+      }
+    } catch (error) {
+      console.error('❌ 게시물 이미지 로드 에러:', error);
+      setPostImages([]);
+    }
+  };
+
+  // 이미지 삽입 (새로운 함수)
+  const insertImageToContentNew = (imageUrl, altText = '이미지') => {
+    const imageMarkdown = `![${altText}](${imageUrl})`;
+    const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
+    const cursorPosition = textarea?.selectionStart || 0;
+    const content = formData.content;
+    const newContent = content.slice(0, cursorPosition) + imageMarkdown + content.slice(cursorPosition);
+    
+    setFormData(prev => ({
+      ...prev,
+      content: newContent
+    }));
+  };
+
+  // 이미지 삭제
+  const deleteImage = async (imageName) => {
+    if (!confirm('이미지를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/blog-images?imageName=${imageName}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        // 로컬 상태에서도 제거
+        setPostImages(prev => prev.filter(img => img.name !== imageName));
+        console.log('✅ 이미지 삭제 성공:', imageName);
+        alert('이미지가 삭제되었습니다.');
+      } else {
+        const error = await response.json();
+        alert('이미지 삭제 실패: ' + error.error);
+      }
+    } catch (error) {
+      console.error('❌ 이미지 삭제 에러:', error);
+      alert('이미지 삭제 중 오류가 발생했습니다.');
+    }
   };
 
   // 제목에서 슬러그 자동 생성
@@ -2196,14 +2259,98 @@ export default function BlogAdmin() {
                       </div>
                     </div>
                   ) : (
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={10}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
-                    required
-                  />
+                    <div className="space-y-4">
+                      {/* 이미지 관리 버튼 */}
+                      {editingPost && (
+                        <div className="flex justify-between items-center">
+                          <button
+                            type="button"
+                            onClick={() => setShowImageManager(!showImageManager)}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
+                          >
+                            <span>🖼️</span>
+                            <span>이미지 관리 ({postImages.length}개)</span>
+                          </button>
+                          <span className="text-sm text-gray-500">
+                            Supabase 스토리지에서 이미지를 관리할 수 있습니다
+                          </span>
+                        </div>
+                      )}
+
+                      {/* 이미지 관리 패널 */}
+                      {showImageManager && editingPost && (
+                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                          <h4 className="text-lg font-medium text-gray-900 mb-4">
+                            🖼️ 이미지 갤러리 ({postImages.length}개)
+                          </h4>
+                          
+                          {postImages.length === 0 ? (
+                            <p className="text-gray-500 text-center py-8">
+                              이 게시물에 연결된 이미지가 없습니다.
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                              {postImages.map((image, index) => (
+                                <div key={index} className="relative group">
+                                  <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                    <img
+                                      src={image.url}
+                                      alt={image.name}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x200/EF4444/FFFFFF?text=Error';
+                                      }}
+                                    />
+                                  </div>
+                                  
+                                  {/* 이미지 액션 버튼들 */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <div className="flex space-x-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => insertImageToContentNew(image.url, image.name)}
+                                        className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                                        title="본문에 삽입"
+                                      >
+                                        📝 삽입
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteImage(image.name)}
+                                        className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                                        title="이미지 삭제"
+                                      >
+                                        🗑️ 삭제
+                                      </button>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* 이미지 정보 */}
+                                  <div className="mt-2">
+                                    <p className="text-xs text-gray-600 truncate" title={image.name}>
+                                      {image.name}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      {(image.size / 1024).toFixed(1)}KB
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <textarea
+                        name="content"
+                        value={formData.content}
+                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        rows={10}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
+                        required
+                      />
+                    </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
                     💡 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)
