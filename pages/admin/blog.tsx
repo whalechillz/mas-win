@@ -7,6 +7,8 @@ export default function BlogAdmin() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'migration'
+  const [selectedPosts, setSelectedPosts] = useState([]); // 선택된 게시물 ID들
+  const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'card'
   
   // 디버깅용 useEffect
   useEffect(() => {
@@ -360,12 +362,39 @@ export default function BlogAdmin() {
     }
   };
 
-  // 일괄 삭제
-  const handleBulkDelete = async (ids) => {
+  // 체크박스 선택/해제
+  const handlePostSelect = (postId) => {
+    setSelectedPosts(prev => 
+      prev.includes(postId) 
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId]
+    );
+  };
+
+  // 모두 선택/해제
+  const handleSelectAll = () => {
+    if (selectedPosts.length === posts.length) {
+      setSelectedPosts([]);
+    } else {
+      setSelectedPosts(posts.map(post => post.id));
+    }
+  };
+
+  // 선택된 게시물 삭제
+  const handleSelectedDelete = async () => {
+    if (selectedPosts.length === 0) {
+      alert('삭제할 게시물을 선택해주세요.');
+      return;
+    }
+
+    if (!confirm(`선택된 ${selectedPosts.length}개 게시물을 삭제하시겠습니까?`)) {
+      return;
+    }
+
     try {
-      console.log('🗑️ 일괄 삭제 중...', ids);
+      console.log('🗑️ 선택된 게시물 삭제 중...', selectedPosts);
       
-      const deletePromises = ids.map(id => 
+      const deletePromises = selectedPosts.map(id => 
         fetch(`/api/admin/blog/${id}`, {
           method: 'DELETE'
         })
@@ -375,15 +404,17 @@ export default function BlogAdmin() {
       const failedDeletes = responses.filter(response => !response.ok);
       
       if (failedDeletes.length === 0) {
-        alert(`${ids.length}개 게시물이 삭제되었습니다!`);
+        alert(`${selectedPosts.length}개 게시물이 삭제되었습니다!`);
+        setSelectedPosts([]);
         fetchPosts();
       } else {
-        alert(`${ids.length - failedDeletes.length}개 삭제 성공, ${failedDeletes.length}개 삭제 실패`);
+        alert(`${selectedPosts.length - failedDeletes.length}개 삭제 성공, ${failedDeletes.length}개 삭제 실패`);
+        setSelectedPosts([]);
         fetchPosts();
       }
     } catch (error) {
-      console.error('일괄 삭제 오류:', error);
-      alert('일괄 삭제 중 오류가 발생했습니다.');
+      console.error('선택된 게시물 삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -2514,32 +2545,65 @@ export default function BlogAdmin() {
                   </div>
                 ) : (
                   <>
-                    {/* 일괄 삭제 버튼 */}
+                    {/* 안전한 선택적 삭제 기능 */}
                     <div className="mb-4 flex justify-between items-center">
                       <div className="flex items-center space-x-4">
-                        <button
-                          onClick={() => {
-                            const testPostIds = [70, 71, 72]; // 테스트 글 ID들
-                            if (confirm(`테스트 글 ${testPostIds.length}개를 모두 삭제하시겠습니까?`)) {
-                              handleBulkDelete(testPostIds);
-                            }
-                          }}
-                          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2"
-                        >
-                          <span>🗑️</span>
-                          <span>테스트 글 일괄 삭제</span>
-                        </button>
-                        <span className="text-sm text-gray-500">
-                          총 {posts.length}개 게시물
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedPosts.length === posts.length && posts.length > 0}
+                            onChange={handleSelectAll}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <label className="text-sm font-medium text-gray-700">
+                            모두 선택
+                          </label>
+                        </div>
+                        
+                        {selectedPosts.length > 0 && (
+                          <button
+                            onClick={handleSelectedDelete}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2"
+                          >
+                            <span>🗑️</span>
+                            <span>선택된 {selectedPosts.length}개 삭제</span>
+                          </button>
+                        )}
+                        
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-3 py-1 rounded text-sm ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                          >
+                            📋 목록
+                          </button>
+                          <button
+                            onClick={() => setViewMode('card')}
+                            className={`px-3 py-1 rounded text-sm ${viewMode === 'card' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                          >
+                            🎴 카드
+                          </button>
+                        </div>
                       </div>
+                      
+                      <span className="text-sm text-gray-500">
+                        총 {posts.length}개 게시물
+                      </span>
                     </div>
                     
-                    <div className="space-y-4">
-                    {posts.map((post) => (
-                      <div key={post.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    {viewMode === 'list' ? (
+                      <div className="space-y-4">
+                      {posts.map((post) => (
+                      <div key={post.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${selectedPosts.includes(post.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
                         <div className="flex justify-between items-start">
-                          <div className="flex-1">
+                          <div className="flex items-start space-x-3 flex-1">
+                            <input
+                              type="checkbox"
+                              checked={selectedPosts.includes(post.id)}
+                              onChange={() => handlePostSelect(post.id)}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                            />
+                            <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
                               {post.title}
                             </h3>
@@ -2557,6 +2621,7 @@ export default function BlogAdmin() {
                                   추천
                                 </span>
                               )}
+                            </div>
                             </div>
                           </div>
                           <div className="flex space-x-2">
@@ -2582,8 +2647,69 @@ export default function BlogAdmin() {
                           </div>
                         </div>
                       </div>
-                    ))}
-                    </div>
+                      ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {posts.map((post) => (
+                          <div key={post.id} className={`group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-900/5 border overflow-hidden hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-500 hover:-translate-y-2 ${selectedPosts.includes(post.id) ? 'border-blue-500 bg-blue-50' : 'border-slate-200/50'}`}>
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                checked={selectedPosts.includes(post.id)}
+                                onChange={() => handlePostSelect(post.id)}
+                                className="absolute top-4 left-4 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 z-10"
+                              />
+                              <div className="relative h-64 overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
+                                <img
+                                  src={post.featured_image || 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=No+Image'}
+                                  alt={post.title}
+                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute top-4 right-4 z-20">
+                                  <span className="px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-xs font-semibold rounded-full shadow-lg">
+                                    {post.category}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="p-6">
+                                <h3 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200">
+                                  {post.title}
+                                </h3>
+                                <p className="text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+                                  {post.excerpt}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-slate-500 text-sm">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <time className="font-medium">
+                                      {new Date(post.published_at).toLocaleDateString('ko-KR')}
+                                    </time>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                                      className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
+                                    >
+                                      보기
+                                    </button>
+                                    <button
+                                      onClick={() => handleEdit(post)}
+                                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                                    >
+                                      수정
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
