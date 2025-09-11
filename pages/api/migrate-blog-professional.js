@@ -344,6 +344,10 @@ export default async function handler(req, res) {
 
     // 8. GPT-4o-mini로 완전한 콘텐츠 정제
     const structuredContent = await generateCompleteContent(title, contentWithImages, extractedTags, processedImages);
+    
+    // 8.1. 중복 제목 제거 (추가 안전장치)
+    const cleanedContent = removeDuplicateTitles(structuredContent, title);
+    console.log(`📝 중복 제목 제거 완료`);
 
     // 9. 고유 slug 생성
     const slug = await generateUniqueSlug(title);
@@ -354,7 +358,7 @@ export default async function handler(req, res) {
       .insert({
         title: title,
         slug: slug,
-        content: structuredContent,
+        content: cleanedContent,
         featured_image: processedImages[0]?.processedUrl || null,
         published_at: publishedDate.toISOString(),
         status: 'published',
@@ -395,6 +399,51 @@ export default async function handler(req, res) {
   }
 }
 
+// 중복 제목 제거 함수
+function removeDuplicateTitles(content, originalTitle) {
+  try {
+    // 원본 제목에서 핵심 키워드 추출 (공백으로 분리)
+    const originalKeywords = originalTitle.split(/[\s,]+/).filter(word => word.length > 2);
+    
+    // 마크다운 제목 패턴 찾기 (# ## ###)
+    const titlePattern = /^(#{1,3})\s+(.+)$/gm;
+    const lines = content.split('\n');
+    const cleanedLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const titleMatch = line.match(titlePattern);
+      
+      if (titleMatch) {
+        const titleText = titleMatch[2];
+        
+        // 원본 제목과 유사도 검사
+        const titleKeywords = titleText.split(/[\s,]+/).filter(word => word.length > 2);
+        const commonKeywords = originalKeywords.filter(keyword => 
+          titleKeywords.some(titleKeyword => 
+            titleKeyword.includes(keyword) || keyword.includes(titleKeyword)
+          )
+        );
+        
+        // 유사도가 50% 이상이면 제거 (중복 제목으로 판단)
+        const similarity = commonKeywords.length / Math.max(originalKeywords.length, titleKeywords.length);
+        
+        if (similarity > 0.5) {
+          console.log(`🗑️ 중복 제목 제거: "${titleText}" (유사도: ${(similarity * 100).toFixed(1)}%)`);
+          continue; // 이 라인은 건너뛰기
+        }
+      }
+      
+      cleanedLines.push(line);
+    }
+    
+    return cleanedLines.join('\n');
+  } catch (error) {
+    console.error('중복 제목 제거 오류:', error);
+    return content; // 오류 시 원본 반환
+  }
+}
+
 // GPT-4o-mini로 완전한 콘텐츠 정제
 async function generateCompleteContent(title, fullText, tags, images) {
   try {
@@ -407,18 +456,24 @@ async function generateCompleteContent(title, fullText, tags, images) {
           
 다음 작업을 수행해주세요:
 1. 원본 텍스트에서 실제 블로그 콘텐츠만 추출 (메뉴, 네비게이션 제외)
-2. 제목은 한 번만 사용 (중복 제거)
+2. **절대 중복 제목을 만들지 마세요** - 원본 제목과 유사한 제목은 모두 제거
 3. 본문을 논리적인 단락으로 구성 (H2, H3 제목 포함)
 4. 모든 실제 콘텐츠를 포함 (하단 내용 누락 방지)
 5. 메뉴나 네비게이션 텍스트는 완전히 제거
 6. 마크다운 형식으로 출력
 7. **중요: 이미지 마크다운(![alt](url))은 절대 제거하지 말고 그대로 유지하세요**
 
+**제목 처리 규칙:**
+- 원본 제목과 유사한 모든 제목은 제거
+- "MBC 표준FM의 싱글벙글쇼 MC 강석" 같은 반복 제목 금지
+- 소제목은 원본 제목과 완전히 다른 내용만 사용
+
 중요: 다음 텍스트들은 제거하세요:
 - "시리즈", "제품 모아보기", "시타신청", "이벤트", "더 보기"
 - "시크리트포스", "시크리트웨폰" 등의 제품명 나열
 - "top of page" 같은 네비게이션 텍스트
 - 메뉴 관련 모든 텍스트
+- 원본 제목과 유사한 모든 제목
 
 **이미지 처리 규칙:**
 - 이미지 마크다운(![alt](url))은 그대로 유지
@@ -426,9 +481,9 @@ async function generateCompleteContent(title, fullText, tags, images) {
 - 이미지 alt 텍스트는 의미있게 유지
 
 출력 형식:
-# 제목
+# 제목 (원본 제목만 사용)
 
-## 소제목 (필요시)
+## 소제목 (원본 제목과 완전히 다른 내용)
 
 본문 내용...
 
@@ -436,7 +491,7 @@ async function generateCompleteContent(title, fullText, tags, images) {
 
 본문 내용...
 
-## 소제목 (필요시)
+## 소제목 (원본 제목과 완전히 다른 내용)
 
 본문 내용...
 
