@@ -134,6 +134,8 @@ export default async function handler(req, res) {
     const allImageUrls = [...new Set([...allImages, ...backgroundImages])];
     
     console.log(`🖼️ 발견된 이미지 수: ${allImageUrls.length}`);
+    console.log(`🖼️ 중복 제거 전: img=${allImages.length}, background=${backgroundImages.length}`);
+    console.log(`🖼️ 중복 제거 후: ${allImageUrls.length}`);
 
     // Wix 이미지 URL을 고화질로 변환하는 함수
     function convertWixToHighQuality(wixUrl) {
@@ -196,10 +198,13 @@ export default async function handler(req, res) {
     const highQualityImages = contentImages.map(convertWixToHighQuality);
     
     console.log(`🖼️ 필터링된 콘텐츠 이미지 수: ${highQualityImages.length}`);
+    console.log(`🖼️ 처리할 이미지 URL들:`, highQualityImages.slice(0, 5)); // 처음 5개만 로그
 
     // 6. 이미지 처리 (고화질 콘텐츠 이미지 가져오기)
     const processedImages = [];
     const imagesToProcess = highQualityImages.slice(0, 15); // 고화질 콘텐츠 이미지 (최대 15개)
+    
+    console.log(`🖼️ 실제 처리할 이미지 수: ${imagesToProcess.length}`);
 
     for (let i = 0; i < imagesToProcess.length; i++) {
       const imageUrl = imagesToProcess[i];
@@ -297,9 +302,13 @@ export default async function handler(req, res) {
     // 성공적으로 처리된 이미지들을 본문에 삽입
     const successfulImages = processedImages.filter(img => img.status === 'success');
     
+    console.log(`🖼️ 성공적으로 처리된 이미지 수: ${successfulImages.length}`);
+    
     if (successfulImages.length > 0) {
       // 첫 번째 이미지는 대표 이미지로 사용되므로 본문에는 두 번째부터 삽입
       const contentImages = successfulImages.slice(1);
+      
+      console.log(`🖼️ 본문에 삽입할 이미지 수: ${contentImages.length}`);
       
       // 본문에 이미지 삽입 (단락 사이사이에 배치)
       const paragraphs = contentWithImages.split('\n\n');
@@ -314,6 +323,7 @@ export default async function handler(req, res) {
         if (imageIndex < contentImages.length && (i + 1) % 2 === 0) {
           const image = contentImages[imageIndex];
           contentWithImagesArray.push(`\n\n![${image.alt}](${image.processedUrl})\n\n`);
+          console.log(`🖼️ 본문에 이미지 삽입: ${imageIndex + 1}/${contentImages.length} - ${image.alt}`);
           imageIndex++;
         }
       }
@@ -322,10 +332,12 @@ export default async function handler(req, res) {
       while (imageIndex < contentImages.length) {
         const image = contentImages[imageIndex];
         contentWithImagesArray.push(`\n\n![${image.alt}](${image.processedUrl})\n\n`);
+        console.log(`🖼️ 마지막에 이미지 추가: ${imageIndex + 1}/${contentImages.length} - ${image.alt}`);
         imageIndex++;
       }
       
       contentWithImages = contentWithImagesArray.join('');
+      console.log(`🖼️ 최종 본문에 삽입된 이미지 수: ${imageIndex}`);
     }
     
     console.log(`🖼️ 본문에 삽입된 이미지 수: ${successfulImages.length - 1}`);
