@@ -480,6 +480,15 @@ export default function BlogAdmin() {
     }));
   };
 
+  // 대표이미지 설정
+  const setFeaturedImage = (imageUrl) => {
+    setFormData(prev => ({
+      ...prev,
+      featured_image: imageUrl
+    }));
+    alert('대표이미지가 설정되었습니다!');
+  };
+
   // 이미지 삭제
   const deleteImage = async (imageName) => {
     if (!confirm('이미지를 삭제하시겠습니까?')) {
@@ -2280,9 +2289,16 @@ export default function BlogAdmin() {
                       {/* 이미지 관리 패널 */}
                       {showImageManager && editingPost && (
                         <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                          <h4 className="text-lg font-medium text-gray-900 mb-4">
-                            🖼️ 이미지 갤러리 ({postImages.length}개)
-                          </h4>
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-lg font-medium text-gray-900">
+                              🖼️ 이미지 갤러리 ({postImages.length}개)
+                            </h4>
+                            {formData.featured_image && (
+                              <div className="text-sm text-green-600 font-medium">
+                                ⭐ 현재 대표이미지: {postImages.find(img => img.url === formData.featured_image)?.name || '설정됨'}
+                              </div>
+                            )}
+                          </div>
                           
                           {postImages.length === 0 ? (
                             <p className="text-gray-500 text-center py-8">
@@ -2305,7 +2321,19 @@ export default function BlogAdmin() {
                                   
                                   {/* 이미지 액션 버튼들 */}
                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                    <div className="flex space-x-2">
+                                    <div className="flex flex-col space-y-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => setFeaturedImage(image.url)}
+                                        className={`px-3 py-1 rounded text-sm transition-colors ${
+                                          formData.featured_image === image.url 
+                                            ? 'bg-green-600 text-white' 
+                                            : 'bg-green-500 text-white hover:bg-green-600'
+                                        }`}
+                                        title="대표이미지로 설정"
+                                      >
+                                        {formData.featured_image === image.url ? '⭐ 대표' : '⭐ 대표'}
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={() => insertImageToContentNew(image.url, image.name)}
@@ -2357,141 +2385,7 @@ export default function BlogAdmin() {
                   </p>
                 </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            대표 이미지
-          </label>
-          
-          {/* 이미지 미리보기 */}
-          {formData.featured_image && (
-            <div className="mb-4">
-              <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
-                <img
-                  src={formData.featured_image}
-                  alt="미리보기"
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={handleImageDelete}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                  title="이미지 삭제"
-                >
-                  ×
-                </button>
-              </div>
-              {/* 대표이미지 본문 삽입 버튼 */}
-              <div className="mt-2 flex justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => insertFeaturedImageToContent('start')}
-                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                >
-                  📝 앞에 삽입
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertFeaturedImageToContent('middle')}
-                  className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                >
-                  📝 중간 삽입
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertFeaturedImageToContent('end')}
-                  className="px-3 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
-                >
-                  📝 뒤에 삽입
-                </button>
-              </div>
-            </div>
-          )}
-          
-          {/* 드래그 앤 드롭 영역 */}
-          <div
-            className={`w-full h-32 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors ${
-              isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-            }`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragOver(true);
-            }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragOver(false);
-              handleImageUpload(e.dataTransfer.files[0]);
-            }}
-          >
-            <div className="text-center">
-              <svg className="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <p className="mt-2 text-sm text-gray-600">
-                이미지를 드래그하거나 클릭하여 업로드
-              </p>
-            </div>
-          </div>
-          
-          {/* 파일 선택 버튼 */}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImageUpload(e.target.files[0])}
-            className="hidden"
-            id="image-upload"
-          />
-          <label
-            htmlFor="image-upload"
-            className="mt-2 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            이미지 선택
-          </label>
-          
-          {/* URL 직접 입력 */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              또는 URL 직접 입력
-            </label>
-            <div className="flex gap-2">
-            <input
-              type="url"
-              value={formData.featured_image}
-              onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="https://example.com/image.jpg 또는 /blog/images/image.png"
-            />
-              {formData.featured_image && (
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => insertFeaturedImageToContent('start')}
-                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                  >
-                    앞
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertFeaturedImageToContent('middle')}
-                    className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                  >
-                    중간
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertFeaturedImageToContent('end')}
-                    className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
-                  >
-                    뒤
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* 대표 이미지 섹션은 이미지 갤러리로 통합됨 */}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
