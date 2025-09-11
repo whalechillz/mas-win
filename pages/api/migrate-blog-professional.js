@@ -135,12 +135,74 @@ export default async function handler(req, res) {
     
     console.log(`🖼️ 발견된 이미지 수: ${allImageUrls.length}`);
 
-    // 6. 이미지 처리 (모든 이미지 가져오기)
-    const processedImages = [];
-    const contentImages = allImageUrls.slice(0, 15); // 모든 이미지 가져오기 (최대 15개)
+    // Wix 이미지 URL을 고화질로 변환하는 함수
+    function convertWixToHighQuality(wixUrl) {
+      if (!wixUrl || !wixUrl.includes('static.wixstatic.com')) {
+        return wixUrl;
+      }
 
-    for (let i = 0; i < contentImages.length; i++) {
-      const imageUrl = contentImages[i];
+      try {
+        // 현재 URL 예시:
+        // https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_120,h_170,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg
+        
+        // 고화질 변환:
+        // https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg
+        
+        const baseUrl = wixUrl.split('/v1/')[0];
+        const fileName = wixUrl.split('/').pop();
+        
+        return `${baseUrl}/v1/fill/w_2000,h_2000,al_c,q_95/${fileName}`;
+      } catch (error) {
+        console.error('Wix URL 변환 실패:', error);
+        return wixUrl;
+      }
+    }
+
+    // 이미지 필터링 - 로고/네비게이션 이미지 제외
+    function isContentImage(imageUrl, imgTag) {
+      if (!imageUrl) return false;
+      
+      // 로고 관련 키워드 제외
+      const logoKeywords = ['logo', 'nav', 'menu', 'header', 'top', 'brand', 'icon'];
+      const urlLower = imageUrl.toLowerCase();
+      const tagLower = (imgTag || '').toLowerCase();
+      
+      for (const keyword of logoKeywords) {
+        if (urlLower.includes(keyword) || tagLower.includes(keyword)) {
+          return false;
+        }
+      }
+      
+      // 너무 작은 이미지 제외 (로고나 아이콘일 가능성)
+      const sizeMatch = imgTag?.match(/width="(\d+)"|height="(\d+)"/i);
+      if (sizeMatch) {
+        const width = parseInt(sizeMatch[1]) || 0;
+        const height = parseInt(sizeMatch[2]) || 0;
+        if (width < 100 || height < 100) {
+          return false;
+        }
+      }
+      
+      return true;
+    }
+
+    // 콘텐츠 이미지만 필터링
+    const contentImages = allImageUrls.filter((url, index) => {
+      const imgTag = imageMatches[index];
+      return isContentImage(url, imgTag);
+    });
+
+    // Wix 이미지를 고화질로 변환
+    const highQualityImages = contentImages.map(convertWixToHighQuality);
+    
+    console.log(`🖼️ 필터링된 콘텐츠 이미지 수: ${highQualityImages.length}`);
+
+    // 6. 이미지 처리 (고화질 콘텐츠 이미지 가져오기)
+    const processedImages = [];
+    const imagesToProcess = highQualityImages.slice(0, 15); // 고화질 콘텐츠 이미지 (최대 15개)
+
+    for (let i = 0; i < imagesToProcess.length; i++) {
+      const imageUrl = imagesToProcess[i];
       
       try {
         console.log(`🖼️ 이미지 ${i + 1} 처리 시작`);
