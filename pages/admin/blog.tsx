@@ -360,6 +360,33 @@ export default function BlogAdmin() {
     }
   };
 
+  // 일괄 삭제
+  const handleBulkDelete = async (ids) => {
+    try {
+      console.log('🗑️ 일괄 삭제 중...', ids);
+      
+      const deletePromises = ids.map(id => 
+        fetch(`/api/admin/blog/${id}`, {
+          method: 'DELETE'
+        })
+      );
+      
+      const responses = await Promise.all(deletePromises);
+      const failedDeletes = responses.filter(response => !response.ok);
+      
+      if (failedDeletes.length === 0) {
+        alert(`${ids.length}개 게시물이 삭제되었습니다!`);
+        fetchPosts();
+      } else {
+        alert(`${ids.length - failedDeletes.length}개 삭제 성공, ${failedDeletes.length}개 삭제 실패`);
+        fetchPosts();
+      }
+    } catch (error) {
+      console.error('일괄 삭제 오류:', error);
+      alert('일괄 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // 게시물 수정 모드로 전환
   const handleEdit = (post) => {
     setEditingPost(post);
@@ -2486,7 +2513,29 @@ export default function BlogAdmin() {
                     <p className="text-gray-500">게시물이 없습니다.</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <>
+                    {/* 일괄 삭제 버튼 */}
+                    <div className="mb-4 flex justify-between items-center">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={() => {
+                            const testPostIds = [70, 71, 72]; // 테스트 글 ID들
+                            if (confirm(`테스트 글 ${testPostIds.length}개를 모두 삭제하시겠습니까?`)) {
+                              handleBulkDelete(testPostIds);
+                            }
+                          }}
+                          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2"
+                        >
+                          <span>🗑️</span>
+                          <span>테스트 글 일괄 삭제</span>
+                        </button>
+                        <span className="text-sm text-gray-500">
+                          총 {posts.length}개 게시물
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
                     {posts.map((post) => (
                       <div key={post.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start">
@@ -2534,11 +2583,12 @@ export default function BlogAdmin() {
                         </div>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             )}
-            </div>
+          </div>
           )}
         </div>
       </div>
