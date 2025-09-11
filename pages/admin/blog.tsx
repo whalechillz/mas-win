@@ -72,7 +72,7 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationStatus('Production 마이그레이션 API로 고화질 이미지 처리 중...');
+    setMigrationStatus('GPT-4o-mini로 전문적인 콘텐츠 구조화 및 고화질 이미지 처리 중...');
     
     try {
       // 향상된 고화질 마이그레이션 (강석님 블로그 방식)
@@ -1305,9 +1305,10 @@ export default function BlogAdmin() {
                       author: '마쓰구골프'
                     });
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-sm"
+                  className="text-gray-500 hover:text-gray-700 text-lg font-bold p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  title="닫기"
                 >
-                  ✕ 닫기
+                  ✕
                 </button>
               </div>
               
@@ -2435,20 +2436,36 @@ export default function BlogAdmin() {
                   )}
                 </div>
 
-                <div className="flex space-x-4">
-                  <button
-                    type="submit"
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    {editingPost ? '수정' : '저장'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-                  >
-                    취소
-                  </button>
+                <div className="flex justify-between">
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditingPost(null);
+                        resetForm();
+                      }}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                    >
+                      <span>←</span>
+                      <span>뒤로가기</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      type="submit"
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {editingPost ? '수정' : '저장'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -2494,6 +2511,13 @@ export default function BlogAdmin() {
                             </div>
                           </div>
                           <div className="flex space-x-2">
+                            <button
+                              onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                              className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors flex items-center space-x-1"
+                            >
+                              <span>👁️</span>
+                              <span>보기</span>
+                            </button>
                             <button
                               onClick={() => handleEdit(post)}
                               className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
