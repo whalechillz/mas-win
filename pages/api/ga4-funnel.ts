@@ -29,8 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const startDate = `${year}-${monthNum}-01`;
     const endDate = `${year}-${monthNum}-${new Date(parseInt(year), parseInt(monthNum), 0).getDate()}`;
 
-    // 퍼널별 데이터 요청
-    const [response] = await analyticsDataClient.runReport({
+    // 퍼널별 데이터 요청 - 먼저 모든 페이지 경로 확인
+    const [allPagesResponse] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate, endDate }],
       metrics: [
@@ -41,19 +41,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dimensions: [
         { name: 'pagePath' },
       ],
-      dimensionFilter: {
-        filter: {
-          fieldName: 'pagePath',
-          stringFilter: {
-            matchType: 'CONTAINS',
-            value: path as string,
-          },
-        },
-      },
+      limit: 100,
+    });
+
+    // 디버깅: 모든 페이지 경로 로그
+    console.log('GA4 페이지 경로들:', allPagesResponse.rows?.map(row => row.dimensionValues?.[0]?.value));
+
+    // 특정 경로 필터링
+    const funnelData = (allPagesResponse.rows || []).filter(row => {
+      const pagePath = row.dimensionValues?.[0]?.value || '';
+      return pagePath.includes(path as string);
     });
 
     // 데이터 집계
-    const funnelData = response.rows || [];
     const totalVisitors = funnelData.reduce((sum, row) => sum + parseInt(row.metricValues?.[0]?.value || '0'), 0);
     const totalPageViews = funnelData.reduce((sum, row) => sum + parseInt(row.metricValues?.[1]?.value || '0'), 0);
     const totalEvents = funnelData.reduce((sum, row) => sum + parseInt(row.metricValues?.[2]?.value || '0'), 0);
