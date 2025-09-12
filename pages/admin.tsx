@@ -14,6 +14,7 @@ import GA4AdvancedDashboard from '../components/admin/dashboard/GA4AdvancedDashb
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import FunnelManagerSimplified from '../components/admin/funnel/FunnelManagerSimplified';
 import GoogleAdsDiagnostic from '../components/admin/google-ads/GoogleAdsDiagnostic';
+import MarketingManagementUnified from '../components/admin/marketing/MarketingManagementUnified';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -262,8 +263,7 @@ export default function Admin() {
                 { id: 'dashboard', name: '대시보드' },
                 { id: 'google-ads', name: 'Google Ads 관리' },
                 { id: 'ga4-analytics', name: 'GA4 분석' },
-                { id: 'funnel-manager', name: '퍼널 관리' },
-                { id: 'campaigns', name: '캠페인 관리' },
+                { id: 'marketing-management', name: '마케팅 관리' },
                 { id: 'customer-management', name: '예약상담관리' },
                 { id: 'marketing', name: '마케팅 콘텐츠' },
                 { id: 'team', name: '팀 관리' }
@@ -314,13 +314,13 @@ export default function Admin() {
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">🔄 퍼널 관리</h3>
-                      <p className="text-sm text-gray-600 mb-3">랜딩페이지 성과 및 A/B 테스트</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">📊 마케팅 관리</h3>
+                      <p className="text-sm text-gray-600 mb-3">캠페인, 퍼널, A/B 테스트 통합 관리</p>
                       <button 
-                        onClick={() => setActiveTab('funnel-manager')}
+                        onClick={() => setActiveTab('marketing-management')}
                         className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors"
                       >
-                        퍼널 관리로 이동
+                        마케팅 관리로 이동
                       </button>
                     </div>
                   </div>
@@ -353,16 +353,9 @@ export default function Admin() {
               </div>
             )}
 
-            {activeTab === 'funnel-manager' && (
+            {activeTab === 'marketing-management' && (
               <div className="space-y-6">
-                <FunnelManagerSimplified />
-              </div>
-            )}
-
-            {activeTab === 'campaigns' && (
-              <div className="space-y-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">캠페인 관리</h2>
-                <MonthlyCampaignAnalytics />
+                <MarketingManagementUnified />
               </div>
             )}
 
