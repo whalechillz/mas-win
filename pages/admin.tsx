@@ -12,7 +12,7 @@ import IntegratedMarketingHub from '../components/admin/marketing/integrated/Int
 import MonthlyCampaignAnalytics from '../components/admin/campaigns/MonthlyCampaignAnalytics';
 import GA4AdvancedDashboard from '../components/admin/dashboard/GA4AdvancedDashboard';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import FunnelManager from '../components/admin/funnel/FunnelManager';
+import FunnelManagerSimplified from '../components/admin/funnel/FunnelManagerSimplified';
 import GoogleAdsDiagnostic from '../components/admin/google-ads/GoogleAdsDiagnostic';
 
 const supabase = createClient(
@@ -355,7 +355,7 @@ export default function Admin() {
 
             {activeTab === 'funnel-manager' && (
               <div className="space-y-6">
-                <FunnelManager />
+                <FunnelManagerSimplified />
               </div>
             )}
 
