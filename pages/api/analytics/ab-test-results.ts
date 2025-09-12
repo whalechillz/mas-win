@@ -221,19 +221,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return sum;
     }, 0);
 
-    // 실제 데이터 기반 A/B 테스트 결과 생성
+    // 실제 A/B 테스트 할당 데이터가 있는지 확인
+    if (totalABTestAssignments === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          testName: testName as string,
+          dateRange: { startDate, endDate },
+          results: detectedVersions.map((version) => ({
+            testName: testName as string,
+            version: version.toUpperCase(),
+            sessions: 0,
+            exposures: 0,
+            conversions: 0,
+            conversionRate: 0,
+            avgSessionDuration: 0,
+            bounceRate: 0,
+            pageViews: 0,
+            uniqueUsers: 0
+          })),
+          significance: {
+            conversionRate: false,
+            sessionDuration: false,
+            bounceRate: false
+          },
+          winner: null,
+          confidence: 0,
+          totalVersions: detectedVersions.length,
+          versionDistribution: {}
+        },
+        detectedVersions,
+        note: 'A/B 테스트 데이터 수집 중 - 실제 할당 이벤트가 없습니다',
+        realData: {
+          totalSessions,
+          totalABTestAssignments,
+          totalScrollEvents,
+          totalConversions,
+          detectedVersionsCount: detectedVersions.length
+        }
+      });
+    }
+
+    // 실제 데이터 기반 A/B 테스트 결과 생성 (실제 할당 데이터가 있을 때만)
     const results: ABTestResult[] = detectedVersions.map((version, index) => {
-      // 실제 데이터를 기반으로 버전별 분배
-      const versionSessions = Math.floor(totalSessions / detectedVersions.length) + (index * 2);
-      const versionExposures = Math.floor(totalABTestAssignments / detectedVersions.length) + (index * 3);
-      const versionScrolls = Math.floor(totalScrollEvents / detectedVersions.length) + (index * 5);
-      const versionConversions = Math.floor(totalConversions / detectedVersions.length) + index;
+      // 실제 A/B 테스트 할당 이벤트에서 버전별 데이터 추출
+      const versionData = abTestAssignmentData.find(row => 
+        row.dimensionValues?.[1]?.value?.toLowerCase() === version.toLowerCase()
+      );
+      
+      const versionSessions = versionData ? parseInt(versionData.metricValues?.[0]?.value || '0') : 0;
+      const versionConversions = Math.floor(totalConversions / detectedVersions.length); // 전환은 전체에서 균등 분배
       
       return {
         testName: testName as string,
         version: version.toUpperCase(),
         sessions: versionSessions,
-        exposures: versionExposures,
+        exposures: versionSessions, // 할당된 세션 수와 동일
         conversions: versionConversions,
         conversionRate: versionSessions > 0 ? (versionConversions / versionSessions * 100) : 0,
         avgSessionDuration: avgSessionDuration,
@@ -282,38 +325,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const mockData: ABTestComparison = {
       testName: testName as string,
-      dateRange: { startDate: '2025-08-01', endDate: '2025-08-15' },
-      results: detectedVersions.map((version, index) => ({
+      dateRange: { startDate: '2025-09-01', endDate: '2025-09-15' },
+      results: detectedVersions.map((version) => ({
         testName: testName as string,
         version: version.toUpperCase(),
-        sessions: 7 + index,
-        exposures: 7 + index, // 실시간 노출 수 추가
-        conversions: 1 + index,
-        conversionRate: 14.3 + (index * 2.1),
-        avgSessionDuration: 147,
-        bounceRate: 20.0,
-        pageViews: 27 + index,
-        uniqueUsers: 5 + index // 고유 사용자 수 추가
+        sessions: 0,
+        exposures: 0,
+        conversions: 0,
+        conversionRate: 0,
+        avgSessionDuration: 0,
+        bounceRate: 0,
+        pageViews: 0,
+        uniqueUsers: 0
       })),
       significance: {
-        conversionRate: true,
+        conversionRate: false,
         sessionDuration: false,
         bounceRate: false
       },
-      winner: detectedVersions.length > 1 ? detectedVersions[1].toUpperCase() : null,
-      confidence: 75.0,
+      winner: null,
+      confidence: 0,
       totalVersions: detectedVersions.length,
-      versionDistribution: detectedVersions.reduce((acc, version) => {
-        acc[version.toUpperCase()] = 100 / detectedVersions.length;
-        return acc;
-      }, {} as Record<string, number>)
+      versionDistribution: {}
     };
     
     res.status(200).json({
       success: true,
       data: mockData,
       detectedVersions,
-      note: '모의 데이터 (API 오류 시 대체)'
+      note: 'API 오류 - 실제 데이터 수집 중'
     });
   }
 }

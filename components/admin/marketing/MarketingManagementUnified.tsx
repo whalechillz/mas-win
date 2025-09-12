@@ -155,9 +155,11 @@ export default function MarketingManagementUnified() {
       if (response.ok) {
         const data = await response.json();
         setAbTestData(data);
+        console.log('A/B 테스트 데이터:', data);
       }
     } catch (error) {
       console.error('A/B 테스트 데이터 로드 오류:', error);
+      setAbTestData(null);
     }
   };
 
@@ -527,51 +529,93 @@ export default function MarketingManagementUnified() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2">Version A (기존)</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-blue-700">사용자:</span>
-                    <span className="font-semibold text-blue-900">1,506명</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-blue-700">성능 점수:</span>
-                    <span className="font-semibold text-blue-900">85.0</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-blue-700">파일 크기:</span>
-                    <span className="font-semibold text-blue-900">196.48 KB</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-green-50 rounded-lg p-4">
-                <h3 className="font-semibold text-green-900 mb-2">Version B (개선) ⭐</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-green-700">사용자:</span>
-                    <span className="font-semibold text-green-900">3,012명</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-green-700">성능 점수:</span>
-                    <span className="font-semibold text-green-900">92.0</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-green-700">파일 크기:</span>
-                    <span className="font-semibold text-green-900">61.28 KB</span>
+              {abTestData?.data?.results?.map((result: any, index: number) => (
+                <div key={result.version} className={`${index === 0 ? 'bg-blue-50' : 'bg-green-50'} rounded-lg p-4`}>
+                  <h3 className={`font-semibold ${index === 0 ? 'text-blue-900' : 'text-green-900'} mb-2`}>
+                    Version {result.version} {index === 0 ? '(기존)' : '(개선)'}
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className={index === 0 ? 'text-blue-700' : 'text-green-700'}>사용자:</span>
+                      <span className={`font-semibold ${index === 0 ? 'text-blue-900' : 'text-green-900'}`}>
+                        {result.uniqueUsers > 0 ? `${result.uniqueUsers}명` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={index === 0 ? 'text-blue-700' : 'text-green-700'}>전환율:</span>
+                      <span className={`font-semibold ${index === 0 ? 'text-blue-900' : 'text-green-900'}`}>
+                        {result.conversionRate > 0 ? `${result.conversionRate.toFixed(1)}%` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={index === 0 ? 'text-blue-700' : 'text-green-700'}>세션:</span>
+                      <span className={`font-semibold ${index === 0 ? 'text-blue-900' : 'text-green-900'}`}>
+                        {result.sessions > 0 ? `${result.sessions}회` : 'N/A'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )) || (
+                <>
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-blue-900 mb-2">Version A (기존)</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">사용자:</span>
+                        <span className="font-semibold text-blue-900">N/A</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">전환율:</span>
+                        <span className="font-semibold text-blue-900">N/A</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">세션:</span>
+                        <span className="font-semibold text-blue-900">N/A</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-green-900 mb-2">Version B (개선)</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-green-700">사용자:</span>
+                        <span className="font-semibold text-green-900">N/A</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-green-700">전환율:</span>
+                        <span className="font-semibold text-green-900">N/A</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-green-700">세션:</span>
+                        <span className="font-semibold text-green-900">N/A</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             
-            <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center">
-                <span className="text-yellow-800 font-medium">🏆 현재 승자: Version B</span>
-                <span className="ml-2 text-sm text-yellow-700">(신뢰도: 95%)</span>
+                <span className="text-gray-800 font-medium">
+                  {abTestData?.data?.winner ? `🏆 현재 승자: Version ${abTestData.data.winner}` : '📊 데이터 수집 중'}
+                </span>
+                <span className="ml-2 text-sm text-gray-700">
+                  {abTestData?.data?.confidence > 0 ? `(신뢰도: ${abTestData.data.confidence}%)` : '(실제 데이터 대기 중)'}
+                </span>
               </div>
-              <div className="mt-2 text-sm text-yellow-700">
-                Version B가 성능과 파일 크기 모두에서 우수한 결과를 보입니다.
+              <div className="mt-2 text-sm text-gray-700">
+                {abTestData?.data?.winner 
+                  ? `Version ${abTestData.data.winner}가 더 나은 성과를 보입니다.`
+                  : 'A/B 테스트가 시작되었습니다. 충분한 데이터가 수집되면 결과를 표시합니다.'
+                }
               </div>
+              {abTestData?.note && (
+                <div className="mt-2 text-xs text-gray-500">
+                  {abTestData.note}
+                </div>
+              )}
             </div>
 
             {expandedSections['ab-test-details'] && (
@@ -583,15 +627,15 @@ export default function MarketingManagementUnified() {
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>25% 스크롤:</span>
-                        <span>654명</span>
+                        <span>N/A</span>
                       </div>
                       <div className="flex justify-between">
                         <span>50% 스크롤:</span>
-                        <span>500명</span>
+                        <span>N/A</span>
                       </div>
                       <div className="flex justify-between">
                         <span>100% 스크롤:</span>
-                        <span>192명</span>
+                        <span>N/A</span>
                       </div>
                     </div>
                   </div>
@@ -600,15 +644,15 @@ export default function MarketingManagementUnified() {
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>25% 스크롤:</span>
-                        <span>1,318명</span>
+                        <span>N/A</span>
                       </div>
                       <div className="flex justify-between">
                         <span>50% 스크롤:</span>
-                        <span>1,098명</span>
+                        <span>N/A</span>
                       </div>
                       <div className="flex justify-between">
                         <span>100% 스크롤:</span>
-                        <span>512명</span>
+                        <span>N/A</span>
                       </div>
                     </div>
                   </div>
