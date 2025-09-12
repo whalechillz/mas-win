@@ -12,6 +12,20 @@ export default function GoogleAdsDiagnostic() {
   const [diagnosticResults, setDiagnosticResults] = useState<DiagnosticResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [currentStep, setCurrentStep] = useState('');
+  const [envCheckResults, setEnvCheckResults] = useState<any>(null);
+
+  // 환경변수 확인 함수 추가
+  const checkEnvironmentVariables = async () => {
+    try {
+      const response = await fetch('/api/debug/env-check');
+      const data = await response.json();
+      setEnvCheckResults(data);
+      return data;
+    } catch (error) {
+      console.error('환경변수 확인 실패:', error);
+      return null;
+    }
+  };
 
   const runDiagnostic = async () => {
     setIsRunning(true);
@@ -19,15 +33,24 @@ export default function GoogleAdsDiagnostic() {
     setCurrentStep('진단 시작...');
 
     try {
+      // 1단계: 환경변수 확인
+      setCurrentStep('환경변수 확인 중...');
+      const envData = await checkEnvironmentVariables();
+      
+      // 2단계: Google Ads API 진단
+      setCurrentStep('Google Ads API 진단 중...');
       const response = await fetch('/api/debug/google-ads-detailed-test');
       const data = await response.json();
 
       const results: DiagnosticResult[] = [
         {
           step: '환경변수 확인',
-          status: data.envValidation ? 'success' : 'failed',
-          message: data.envValidation ? '모든 환경변수가 설정되었습니다.' : '환경변수 설정에 문제가 있습니다.',
-          details: data.envValidation
+          status: envData?.summary?.googleAdsReady ? 'success' : 'failed',
+          message: envData?.summary?.googleAdsReady 
+            ? '모든 Google Ads 환경변수가 설정되었습니다.' 
+            : `환경변수 설정에 문제가 있습니다. (${envData?.summary?.setVars}/${envData?.summary?.totalVars} 설정됨)`,
+          details: envData?.googleAds?.variables,
+          nextStep: envData?.summary?.googleAdsReady ? null : 'Vercel Dashboard에서 환경변수를 설정하세요.'
         },
         {
           step: 'API 클라이언트 초기화',
@@ -153,6 +176,79 @@ export default function GoogleAdsDiagnostic() {
             <li>• <strong>OAuth 토큰 오류:</strong> Refresh Token이 유효한지 확인하고 필요시 재발급하세요</li>
           </ul>
         </div>
+
+        {/* 계정 권한 문제 해결 가이드 */}
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <h4 className="font-medium text-red-900 mb-2">🚨 계정 권한 문제 해결</h4>
+          <div className="text-sm text-red-800 space-y-2">
+            <p><strong>현재 문제:</strong> <code>authentication_error: 29</code> (Developer Token이 유효하지 않음)</p>
+            <p><strong>근본 원인:</strong> Standard Access 승인이 API Center에 반영되지 않음</p>
+            <p><strong>해결 방법:</strong></p>
+            <ol className="ml-4 space-y-1 list-decimal">
+              <li><strong>Google Ads API Center</strong>에서 액세스 수준이 "일반 액세스"로 표시됨</li>
+              <li><strong>Google Ads API Compliance 팀</strong>에 직접 문의 필요</li>
+              <li><strong>계정 정지 상태</strong> 확인 및 해결</li>
+              <li><strong>OAuth 토큰 재발급</strong> (임시 해결책)</li>
+            </ol>
+            <p className="mt-2">
+              <strong>즉시 해야 할 일:</strong>
+            </p>
+            <ul className="ml-4 space-y-1 list-disc">
+              <li>
+                <a href="https://developers.google.com/google-ads/api/support" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Google Ads API 지원팀에 문의
+                </a>
+              </li>
+              <li>
+                <a href="https://ads.google.com/aw/apicenter" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  API Center에서 계정 상태 확인
+                </a>
+              </li>
+              <li>
+                <a href="https://developers.google.com/oauthplayground/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  OAuth 2.0 Playground에서 새 토큰 발급
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* 환경변수 설정 가이드 추가 */}
+        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <h4 className="font-medium text-yellow-900 mb-2">🔧 환경변수 설정 가이드</h4>
+          <div className="text-sm text-yellow-800 space-y-2">
+            <p><strong>필수 환경변수:</strong></p>
+            <ul className="ml-4 space-y-1">
+              <li>• <code>GOOGLE_ADS_CLIENT_ID</code> - Google Cloud Console에서 발급</li>
+              <li>• <code>GOOGLE_ADS_CLIENT_SECRET</code> - Google Cloud Console에서 발급</li>
+              <li>• <code>GOOGLE_ADS_DEVELOPER_TOKEN</code> - Google Ads API Center에서 발급</li>
+              <li>• <code>GOOGLE_ADS_CUSTOMER_ID</code> - 10자리 Customer ID (하이픈 없이)</li>
+              <li>• <code>GOOGLE_ADS_REFRESH_TOKEN</code> - OAuth 인증 후 발급</li>
+            </ul>
+            <p className="mt-2">
+              <strong>설정 방법:</strong> Vercel Dashboard → Settings → Environment Variables에서 추가
+            </p>
+          </div>
+        </div>
+
+        {/* 환경변수 상태 표시 */}
+        {envCheckResults && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <h4 className="font-medium text-blue-900 mb-2">📊 현재 환경변수 상태</h4>
+            <div className="text-sm text-blue-800 space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p><strong>Google Ads:</strong> {envCheckResults.summary?.setVars}/{envCheckResults.summary?.totalVars} 설정됨</p>
+                  <p><strong>상태:</strong> {envCheckResults.summary?.googleAdsReady ? '✅ 준비됨' : '❌ 설정 필요'}</p>
+                </div>
+                <div>
+                  <p><strong>GA4:</strong> {envCheckResults.ga4?.set}/{envCheckResults.ga4?.total} 설정됨</p>
+                  <p><strong>상태:</strong> {envCheckResults.summary?.ga4Ready ? '✅ 준비됨' : '❌ 설정 필요'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

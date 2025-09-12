@@ -4,10 +4,7 @@ import Script from 'next/script';
 
 export default function Funnel202509Production() {
   const [isClient, setIsClient] = useState(false);
-  const [assignedVersion] = useState<string>(() => {
-    // 50% 확률로 A 또는 B 버전 랜덤 할당
-    return Math.random() < 0.5 ? "A" : "B";
-  });
+  const [assignedVersion] = useState<string>("A");
   const [isLoading, setIsLoading] = useState(true);
   const [showFallback, setShowFallback] = useState(false);
   const [fallbackTimer, setFallbackTimer] = useState<NodeJS.Timeout | null>(null);
@@ -44,34 +41,39 @@ export default function Funnel202509Production() {
     
     window.addEventListener('message', handleMessage);
     
-    // 카카오톡 인앱 브라우저에서는 완전한 페이지 로딩 시도
-    if (isKakaoInApp) {
-      console.log('카카오톡 인앱 브라우저: 완전한 페이지 로딩 시도');
-      // 카카오톡에서도 iframe 사용하여 완전한 콘텐츠 표시
-      setIsLoading(false);
-      setShowFallback(false);
-      
-      return () => {
-        window.removeEventListener('message', handleMessage);
-      };
-    }
-    
-    // 일반 브라우저에서만 fallback 타이머 적용
-    const loadingTimeout = 5000;
-    const fallbackTimeout = 15000;
+    // 카카오톡 인앱 브라우저에서는 더 빠른 타이머 적용
+    const loadingTimeout = isKakaoInApp ? 2000 : 5000;
+    const fallbackTimeout = isKakaoInApp ? 5000 : 15000;
     
     // 백업 타이머
     const loadingTimer = setTimeout(() => {
-      console.log('백업 타이머: 로딩 완료 (일반 브라우저)');
+      console.log(`백업 타이머: 로딩 완료 (${isKakaoInApp ? '카카오톡' : '일반'} 브라우저)`);
       setIsLoading(false);
     }, loadingTimeout);
     
     // 대체 콘텐츠 타이머
     const timer = setTimeout(() => {
-      console.log('대체 콘텐츠 표시 (iframe 로드 실패) - 일반 브라우저');
+      console.log(`대체 콘텐츠 표시 (iframe 로드 실패) - ${isKakaoInApp ? '카카오톡' : '일반'} 브라우저`);
       setShowFallback(true);
     }, fallbackTimeout);
     setFallbackTimer(timer);
+    
+    // 카카오톡 인앱 브라우저에서는 즉시 대체 콘텐츠 표시 옵션
+    if (isKakaoInApp) {
+      const immediateFallbackTimer = setTimeout(() => {
+        console.log('카카오톡 인앱 브라우저: 즉시 대체 콘텐츠 표시');
+        setShowFallback(true);
+        setIsLoading(false);
+      }, 3000);
+      
+      return () => {
+        window.removeEventListener('message', handleMessage);
+        clearTimeout(loadingTimer);
+        clearTimeout(timer);
+        clearTimeout(immediateFallbackTimer);
+        // clearInterval(counterInterval); // 카운터 관련 타이머 제거
+      };
+    }
     
     return () => {
       window.removeEventListener('message', handleMessage);

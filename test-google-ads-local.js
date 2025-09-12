@@ -1,4 +1,5 @@
 const { GoogleAdsApi } = require('google-ads-api');
+require('dotenv').config({ path: '.env.local' });
 
 async function testGoogleAdsAPI() {
   try {

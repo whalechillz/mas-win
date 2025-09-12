@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🔥 MASGOLF 가을 특가! 비거리 25m↑ 골프드라이버 + 위스키 증정 | 9월 한정</title>
     
     <!-- SEO Meta Tags -->
@@ -51,6 +51,9 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 모바일 성능 최적화 스크립트 -->
+    <script src="/mobile-performance-fix.js" defer></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
@@ -136,7 +139,7 @@
         
         /* 메인 헤더 섹션 */
         .main-header {
-            background-image: url('../campaigns/2025-09/background3.png');
+            background-image: url('../campaigns/2025-09/2025-09-bg.jpeg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -147,6 +150,11 @@
             justify-content: center;
             text-align: center;
             color: var(--autumn-white);
+            /* 모바일 최적화 */
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-attachment: scroll; /* 모바일에서 fixed 대신 scroll 사용 */
         }
         
         .main-header::before {
@@ -860,7 +868,7 @@
             .main-header {
                 background-size: 400% auto;
                 background-position: center 40%;
-                background-attachment: fixed;
+                /* background-attachment: fixed; 제거 - 모바일 호환성 */
             }
             
             .main-headlines h1 {
@@ -937,7 +945,7 @@
             .main-header {
                 background-size: 500% auto;
                 background-position: center 45%;
-                background-attachment: fixed;
+                /* background-attachment: fixed; 제거 - 모바일 호환성 */
             }
             
             .main-headlines h1 {
@@ -1006,7 +1014,7 @@
             .main-header {
                 background-size: 600% auto;
                 background-position: center 50%;
-                background-attachment: fixed;
+                /* background-attachment: fixed; 제거 - 모바일 호환성 */
             }
             
             .main-headlines h1 {
@@ -1141,11 +1149,7 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WPBX97JG"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     
-    <!-- 상단 오렌지 배너 -->
-    <div class="top-banner">
-        <span class="banner-text">가을 시즌 혜택 마감 임박!<br>상담중인 고객: <span class="consulting-count">5</span>명 | 구매 완료: <span class="purchase-count">3</span>명</span>
-        <i class="fas fa-clock alarm-icon"></i>
-    </div>
+    <!-- 상단 오렌지 배너 제거됨 (Next.js 페이지에서 처리) -->
     
     <!-- 메인 헤더 섹션 -->
     <header class="main-header">
@@ -1154,10 +1158,10 @@
         
         <div class="header-content">
             <div class="main-headlines fade-in">
-                <h1><span class="title-white">당신의 가을,</span><br><span class="title-gold">늘어난 비거리로 증명하다.</span></h1>
+                <h1 id="main-headline"><span class="title-white">당신의 가을,</span><br><span class="title-gold">늘어난 비거리로 증명하다.</span></h1>
             </div>
             
-            <p class="sub-headline fade-in">골프 성수기 특별 점검 혜택</p>
+            <p class="sub-headline fade-in" id="sub-headline">골프 성수기 특별 점검 혜택</p>
             
             <div class="benefits-section fade-in">
                 <div class="benefit-item float">
@@ -1235,63 +1239,6 @@
         </div>
     </section>
 
-    <!-- 자주 묻는 질문 섹션 -->
-    <section class="faq-section">
-        <div class="container">
-            <h2 class="story-title fade-in">자주 묻는 질문</h2>
-            <div class="faq-container">
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        <span>라운딩 전 시타를 예약하고 싶어요</span>
-                        <span class="faq-icon">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>해당 페이지 내 시타 예약 / 문의 남기기 또는 <strong>080-028-8888</strong>로 전화주시면 예약을 도와드립니다.</p>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        <span>라운딩 패키지는 어떻게 받을 수 있나요?</span>
-                        <span class="faq-icon">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>전화 상담만 받으셔도 바로 택배로 보내드립니다. 라운딩 가시기 전에 충분히 받아보실 수 있도록 신속하게 발송해드립니다.</p>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        <span>어떻게 비거리가 더 나올 수 있는거죠?</span>
-                        <span class="faq-icon">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>특수 제작된 초박형(2.2mm) 페이스와 NGS 샤프트로 반발계수가 0.87로 비거리가 극대화 되는 제품입니다.</p>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        <span>50-60대에게도 효과가 있나요?</span>
-                        <span class="faq-icon">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>네, 오히려 경험 많은 골퍼일수록 효과가 큽니다. 안정된 스윙에 MAS의 고반발 기술이 더해져 평균 25m의 비거리 증가를 경험하실 수 있습니다. 실제로 30년 이상 경력의 고객분들이 가장 높은 만족도를 보이고 계십니다.</p>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        <span>AS와 품질 보증은 어떻게 되나요?</span>
-                        <span class="faq-icon">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>샤프트 10년 무료 교체 보증을 제공합니다. 헤드는 시크리트웨폰 블랙 2년, 시크리트포스 PRO 3과 V3는 1년 품질 보증입니다. 전국 AS 센터에서 즉시 처리 가능하며, 하자 발생 시 무상 교체해 드립니다.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- 제품 섹션 -->
     <section class="vip-products-section">
@@ -1370,8 +1317,66 @@
             <h2 class="final-cta-title fade-in">지금부터 마쓰구와<br>함께해보세요!</h2>
             <p class="final-cta-subtitle fade-in">마쓰구 회원들을 위한 특별한 혜택!</p>
             <div class="final-cta-buttons fade-in">
-                <a href="tel:080-028-8888" class="cta-button cta-primary">마쓰구 상품 상담하기</a>
+                <a href="tel:080-028-8888" class="cta-button cta-primary" id="main-cta">마쓰구 상품 상담하기</a>
                 <a href="https://www.mas9golf.com/try-a-massgoo" class="cta-button cta-secondary">무료 시타 및 비거리 늘리기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 자주 묻는 질문 섹션 (맨 하단으로 이동) -->
+    <section class="faq-section">
+        <div class="container">
+            <h2 class="story-title fade-in">자주 묻는 질문</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>라운딩 전 시타를 예약하고 싶어요</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>해당 페이지 내 시타 예약 / 문의 남기기 또는 <strong>080-028-8888</strong>로 전화주시면 예약을 도와드립니다.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>라운딩 패키지는 어떻게 받을 수 있나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>전화 상담만 받으셔도 바로 택배로 보내드립니다. 라운딩 가시기 전에 충분히 받아보실 수 있도록 신속하게 발송해드립니다.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>어떻게 비거리가 더 나올 수 있는거죠?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>특수 제작된 초박형(2.2mm) 페이스와 NGS 샤프트로 반발계수가 0.87로 비거리가 극대화 되는 제품입니다.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>50-60대에게도 효과가 있나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>네, 오히려 경험 많은 골퍼일수록 효과가 큽니다. 안정된 스윙에 MAS의 고반발 기술이 더해져 평균 25m의 비거리 증가를 경험하실 수 있습니다. 실제로 30년 이상 경력의 고객분들이 가장 높은 만족도를 보이고 계십니다.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>AS와 품질 보증은 어떻게 되나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>샤프트 10년 무료 교체 보증을 제공합니다. 헤드는 시크리트웨폰 블랙 2년, 시크리트포스 PRO 3과 V3는 1년 품질 보증입니다. 전국 AS 센터에서 즉시 처리 가능하며, 하자 발생 시 무상 교체해 드립니다.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1402,10 +1407,62 @@
     </footer>
     
     <script>
+        // A/B 테스트 버전 할당
+        function getABTestVersion() {
+            // 부모 창에서 버전 정보 가져오기
+            if (window.parent && window.parent !== window) {
+                try {
+                    // 부모 창의 버전 정보 확인
+                    const parentVersion = window.parent.assignedVersion;
+                    if (parentVersion) {
+                        return parentVersion;
+                    }
+                } catch (e) {
+                    console.log('부모 창 접근 불가, 로컬 버전 할당');
+                }
+            }
+            
+            // 로컬에서 50% 확률로 버전 할당
+            return Math.random() < 0.5 ? 'A' : 'B';
+        }
+        
+        // A/B 테스트 적용
+        function applyABTest() {
+            const version = getABTestVersion();
+            console.log('A/B 테스트 버전:', version);
+            
+            const mainHeadline = document.getElementById('main-headline');
+            const subHeadline = document.getElementById('sub-headline');
+            const mainCta = document.getElementById('main-cta');
+            
+            if (version === 'B') {
+                // B 버전: 개선된 헤드라인
+                if (mainHeadline) {
+                    mainHeadline.innerHTML = '<span class="title-white">50대도 25m 비거리 증가!</span><br><span class="title-gold">검증된 기술</span>';
+                }
+                if (subHeadline) {
+                    subHeadline.textContent = '지금 무료 체험하기 | 9월 30일까지 한정';
+                }
+                if (mainCta) {
+                    mainCta.textContent = '🔥 지금 무료 상담받기 (한정 수량)';
+                }
+            }
+            
+            // GA4 이벤트 전송
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'ab_test_assignment', {
+                    test_name: 'funnel-2025-09',
+                    version: version,
+                    page_id: 'funnel-2025-09'
+                });
+            }
+        }
+        
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
+            applyABTest(); // A/B 테스트 적용
             initializeAnimations();
-            updateBannerNumbers();
+            // updateBannerNumbers(); // 제거됨 - 거짓 정보 방지
             updateCountdown();
         });
         
@@ -1519,45 +1576,7 @@
             }
         }
         
-        // 배너 숫자 업데이트
-        function updateBannerNumbers() {
-            const topBanner = document.querySelector('.top-banner');
-            const consultingCount = document.querySelector('.consulting-count');
-            const purchaseCount = document.querySelector('.purchase-count');
-            
-            // 9월 30일까지 점진적으로 30명이 되도록 계산
-            const targetDate = new Date('2025-09-30 23:59:59');
-            const currentDate = new Date();
-            const daysRemaining = Math.max(0, Math.ceil((targetDate - currentDate) / (1000 * 60 * 60 * 24)));
-            const totalDays = 30; // 9월 전체 일수
-            const daysPassed = totalDays - daysRemaining;
-            
-            // 현재까지의 진행률에 따라 구매 완료 수 계산 (최대 30명)
-            const progressRatio = Math.min(daysPassed / totalDays, 1);
-            let currentPurchaseCount = Math.max(3, Math.floor(progressRatio * 30)); // 최소 3명부터 시작
-            
-            // 상담 고객 수 랜덤 업데이트 (5~10명)
-            setInterval(() => {
-                const consulting = Math.floor(Math.random() * 6) + 5; // 5~10명
-                if (consultingCount) {
-                    consultingCount.textContent = consulting;
-                }
-            }, 15000); // 15초마다 업데이트
-            
-            // 구매 완료 수 점진적 증가 (9월 30일까지 30명)
-            setInterval(() => {
-                const now = new Date();
-                const newProgressRatio = Math.min((totalDays - Math.max(0, Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24)))) / totalDays, 1);
-                const newPurchaseCount = Math.floor(newProgressRatio * 30);
-                
-                if (newPurchaseCount > currentPurchaseCount) {
-                    currentPurchaseCount = newPurchaseCount;
-                    if (purchaseCount) {
-                        purchaseCount.textContent = currentPurchaseCount;
-                    }
-                }
-            }, 60000); // 1분마다 업데이트
-        }
+        // 배너 숫자 업데이트 (제거됨 - 거짓 정보 방지)
         
         // 카운트다운 업데이트 (9월 30일까지)
         function updateCountdown() {
@@ -1624,6 +1643,13 @@
                 'event_category': 'page_view',
                 'event_label': 'autumn_campaign_2025_09'
             });
+            
+            // iframe 로드 완료 메시지 전송
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'iframe-loaded'
+                }, '*');
+            }
         });
     </script>
 </body>
