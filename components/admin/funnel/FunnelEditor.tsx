@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Editor } from '@tinymce/tinymce-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
 import { useRouter } from 'next/router';
 
 interface FunnelEditorProps {
@@ -20,11 +23,31 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image,
+      Link.configure({
+        openOnClick: false,
+      }),
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      setContent(editor.getHTML());
+    },
+  });
+
   useEffect(() => {
     if (fileName && !initialContent) {
       loadFunnelContent();
     }
   }, [fileName]);
+
+  useEffect(() => {
+    if (editor && content) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
 
   const loadFunnelContent = async () => {
     setLoading(true);
@@ -120,287 +143,137 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
 
       {/* 에디터 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <Editor
-          apiKey="no-api-key" // TinyMCE Cloud 사용 시 API 키 필요
-          value={content}
-          onEditorChange={(newContent) => setContent(newContent)}
-          init={{
-            height: 600,
-            menubar: true,
-            plugins: [
-              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-              'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons',
-              'template', 'codesample', 'hr', 'pagebreak', 'nonbreaking', 'toc',
-              'imagetools', 'textpattern', 'noneditable', 'quickbars', 'accordion'
-            ],
-            toolbar: 'undo redo | blocks | ' +
-              'bold italic forecolor backcolor | alignleft aligncenter ' +
-              'alignright alignjustify | bullist numlist outdent indent | ' +
-              'removeformat | help | image | link | table | code | fullscreen | preview',
-            content_style: `
-              body { 
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                font-size: 14px; 
-                line-height: 1.6;
-                color: #333;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .funnel-container {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 20px;
-              }
-              .funnel-content {
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                overflow: hidden;
-              }
-              .hero-section {
-                background: linear-gradient(135deg, #ff6b6b, #ffa500);
-                color: white;
-                padding: 60px 20px;
-                text-align: center;
-              }
-              .hero-title {
-                font-size: 2.5rem;
-                font-weight: bold;
-                margin-bottom: 20px;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-              }
-              .hero-subtitle {
-                font-size: 1.2rem;
-                margin-bottom: 30px;
-                opacity: 0.9;
-              }
-              .cta-button {
-                background: #ff4757;
-                color: white;
-                padding: 15px 30px;
-                border: none;
-                border-radius: 8px;
-                font-size: 1.1rem;
-                font-weight: bold;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                transition: all 0.3s ease;
-              }
-              .cta-button:hover {
-                background: #ff3742;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
-              }
-              .product-section {
-                padding: 40px 20px;
-                background: #f8f9fa;
-              }
-              .product-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 30px;
-                margin-top: 30px;
-              }
-              .product-card {
-                background: white;
-                border-radius: 12px;
-                padding: 30px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                text-align: center;
-                transition: transform 0.3s ease;
-              }
-              .product-card:hover {
-                transform: translateY(-5px);
-              }
-              .product-image {
-                width: 100%;
-                height: 200px;
-                object-fit: cover;
-                border-radius: 8px;
-                margin-bottom: 20px;
-              }
-              .product-title {
-                font-size: 1.5rem;
-                font-weight: bold;
-                margin-bottom: 15px;
-                color: #2c3e50;
-              }
-              .product-price {
-                font-size: 1.8rem;
-                font-weight: bold;
-                color: #e74c3c;
-                margin-bottom: 20px;
-              }
-              .testimonial-section {
-                background: #2c3e50;
-                color: white;
-                padding: 60px 20px;
-                text-align: center;
-              }
-              .testimonial-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 30px;
-                margin-top: 40px;
-              }
-              .testimonial-card {
-                background: rgba(255,255,255,0.1);
-                padding: 30px;
-                border-radius: 12px;
-                backdrop-filter: blur(10px);
-              }
-              .testimonial-text {
-                font-style: italic;
-                margin-bottom: 20px;
-                font-size: 1.1rem;
-                line-height: 1.6;
-              }
-              .testimonial-author {
-                font-weight: bold;
-                color: #f39c12;
-              }
-              .footer-section {
-                background: #34495e;
-                color: white;
-                padding: 40px 20px;
-                text-align: center;
-              }
-              .footer-links {
-                display: flex;
-                justify-content: center;
-                gap: 30px;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
-              }
-              .footer-link {
-                color: #bdc3c7;
-                text-decoration: none;
-                transition: color 0.3s ease;
-              }
-              .footer-link:hover {
-                color: white;
-              }
-              @media (max-width: 768px) {
-                .hero-title { font-size: 2rem; }
-                .product-grid { grid-template-columns: 1fr; }
-                .testimonial-grid { grid-template-columns: 1fr; }
-                .footer-links { flex-direction: column; gap: 15px; }
-              }
-            `,
-            templates: [
-              {
-                title: '퍼널 페이지 템플릿',
-                description: '기본 퍼널 페이지 레이아웃',
-                content: `
-                  <div class="funnel-container">
-                    <div class="funnel-content">
-                      <div class="hero-section">
-                        <h1 class="hero-title">🔥 특별 혜택!</h1>
-                        <p class="hero-subtitle">지금 바로 확인하세요</p>
-                        <a href="#" class="cta-button">지금 시작하기</a>
-                      </div>
-                      
-                      <div class="product-section">
-                        <h2>추천 제품</h2>
-                        <div class="product-grid">
-                          <div class="product-card">
-                            <img src="https://via.placeholder.com/300x200" alt="제품1" class="product-image">
-                            <h3 class="product-title">프리미엄 제품</h3>
-                            <div class="product-price">₩299,000</div>
-                            <p>최고의 품질과 성능을 자랑하는 제품입니다.</p>
-                          </div>
-                          <div class="product-card">
-                            <img src="https://via.placeholder.com/300x200" alt="제품2" class="product-image">
-                            <h3 class="product-title">베스트셀러</h3>
-                            <div class="product-price">₩199,000</div>
-                            <p>많은 고객들이 선택한 인기 제품입니다.</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="testimonial-section">
-                        <h2>고객 후기</h2>
-                        <div class="testimonial-grid">
-                          <div class="testimonial-card">
-                            <p class="testimonial-text">"정말 만족스러운 제품입니다. 강력 추천합니다!"</p>
-                            <div class="testimonial-author">- 김고객님</div>
-                          </div>
-                          <div class="testimonial-card">
-                            <p class="testimonial-text">"품질이 뛰어나고 가격도 합리적입니다."</p>
-                            <div class="testimonial-author">- 이고객님</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="footer-section">
-                        <div class="footer-links">
-                          <a href="#" class="footer-link">이용약관</a>
-                          <a href="#" class="footer-link">개인정보처리방침</a>
-                          <a href="#" class="footer-link">고객센터</a>
-                        </div>
-                        <p>&copy; 2025 MASGOLF. All rights reserved.</p>
-                      </div>
-                    </div>
-                  </div>
-                `
-              }
-            ],
-            image_upload_handler: async (blobInfo, progress) => {
-              try {
-                const formData = new FormData();
-                formData.append('file', blobInfo.blob(), blobInfo.filename());
-                
-                const response = await fetch('/api/upload-image', {
-                  method: 'POST',
-                  body: formData,
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                  return data.url;
-                } else {
-                  throw new Error('이미지 업로드 실패');
-                }
-              } catch (error) {
-                console.error('이미지 업로드 오류:', error);
-                throw error;
-              }
-            },
-            file_picker_callback: (callback, value, meta) => {
-              if (meta.filetype === 'image') {
-                const input = document.createElement('input');
-                input.setAttribute('type', 'file');
-                input.setAttribute('accept', 'image/*');
-                input.click();
-                
-                input.onchange = async () => {
-                  const file = input.files[0];
-                  if (file) {
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    try {
-                      const response = await fetch('/api/upload-image', {
-                        method: 'POST',
-                        body: formData,
-                      });
-                      
-                      const data = await response.json();
-                      if (data.success) {
-                        callback(data.url, { title: file.name });
-                      }
-                    } catch (error) {
-                      console.error('파일 업로드 오류:', error);
+        {editor && (
+          <div className="space-y-4">
+            {/* 툴바 */}
+            <div className="border-b border-gray-200 pb-4">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('bold') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  굵게
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('italic') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  기울임
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().toggleStrike().run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('strike') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  취소선
+                </button>
+                <div className="w-px h-8 bg-gray-300"></div>
+                <button
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  H1
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  H2
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  H3
+                </button>
+                <div className="w-px h-8 bg-gray-300"></div>
+                <button
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('bulletList') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  목록
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive('orderedList') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  번호목록
+                </button>
+                <div className="w-px h-8 bg-gray-300"></div>
+                <button
+                  onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive({ textAlign: 'left' }) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  왼쪽
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive({ textAlign: 'center' }) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  가운데
+                </button>
+                <button
+                  onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                  className={`px-3 py-2 rounded text-sm font-medium ${
+                    editor.isActive({ textAlign: 'right' }) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  오른쪽
+                </button>
+                <div className="w-px h-8 bg-gray-300"></div>
+                <button
+                  onClick={() => {
+                    const url = window.prompt('이미지 URL을 입력하세요:');
+                    if (url) {
+                      editor.chain().focus().setImage({ src: url }).run();
                     }
-                  }
-                };
-              }
-            }
-          }}
-        />
+                  }}
+                  className="px-3 py-2 rounded text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                >
+                  이미지
+                </button>
+                <button
+                  onClick={() => {
+                    const url = window.prompt('링크 URL을 입력하세요:');
+                    if (url) {
+                      editor.chain().focus().setLink({ href: url }).run();
+                    }
+                  }}
+                  className="px-3 py-2 rounded text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                >
+                  링크
+                </button>
+              </div>
+            </div>
+
+            {/* 에디터 영역 */}
+            <div className="min-h-[600px] border border-gray-300 rounded-lg p-4 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+              <EditorContent 
+                editor={editor} 
+                className="prose prose-sm max-w-none focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
