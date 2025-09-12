@@ -48,11 +48,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('GA4 페이지 경로들:', allPagesResponse.rows?.map(row => row.dimensionValues?.[0]?.value));
 
     // 특정 경로 필터링 - 여러 경로 패턴 확인
+    const pathStr = path as string;
     const searchPaths = [
-      path as string,
-      `${path}/`,
-      path as string,
-      path as string.replace('/', '')
+      pathStr,
+      `${pathStr}/`,
+      pathStr,
+      pathStr.replace('/', '')
     ];
     
     const funnelData = (allPagesResponse.rows || []).filter(row => {
