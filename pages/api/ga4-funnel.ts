@@ -47,10 +47,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 디버깅: 모든 페이지 경로 로그
     console.log('GA4 페이지 경로들:', allPagesResponse.rows?.map(row => row.dimensionValues?.[0]?.value));
 
-    // 특정 경로 필터링
+    // 특정 경로 필터링 - 여러 경로 패턴 확인
+    const searchPaths = [
+      path as string,
+      `${path}/`,
+      path as string,
+      path as string.replace('/', '')
+    ];
+    
     const funnelData = (allPagesResponse.rows || []).filter(row => {
       const pagePath = row.dimensionValues?.[0]?.value || '';
-      return pagePath.includes(path as string);
+      return searchPaths.some(searchPath => pagePath.includes(searchPath));
     });
 
     // 데이터 집계
@@ -69,7 +76,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       events: totalEvents,
       conversionRate,
       startDate,
-      endDate
+      endDate,
+      debug: {
+        allPagePaths: allPagesResponse.rows?.map(row => row.dimensionValues?.[0]?.value) || [],
+        filteredPaths: funnelData.map(row => row.dimensionValues?.[0]?.value) || [],
+        searchPaths: searchPaths
+      }
     });
   } catch (error) {
     console.error('GA4 Funnel API Error:', error);
