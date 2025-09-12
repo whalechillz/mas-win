@@ -103,11 +103,11 @@ export default function MarketingManagementUnified() {
       const response = await fetch('/api/ga4-monthly');
       if (response.ok) {
         const data = await response.json();
-        // 배열인지 확인하고 설정
-        if (Array.isArray(data)) {
-          setMonthlyData(data);
+        // API는 객체를 반환하므로 배열로 감싸서 설정
+        if (data && typeof data === 'object') {
+          setMonthlyData([data]); // 객체를 배열로 감싸기
         } else {
-          console.log('월별 데이터가 배열이 아닙니다:', data);
+          console.log('월별 데이터가 유효하지 않습니다:', data);
           setMonthlyData([]);
         }
       }
@@ -304,7 +304,7 @@ export default function MarketingManagementUnified() {
           {/* 월별 캠페인 분석 */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">월별 캠페인 분석</h2>
-            {Array.isArray(monthlyData) && monthlyData.length > 0 ? (
+            {Array.isArray(monthlyData) && monthlyData.length > 0 && !loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {monthlyData.map((month) => (
                   <div key={month.month} className="border border-gray-200 rounded-lg p-4">
