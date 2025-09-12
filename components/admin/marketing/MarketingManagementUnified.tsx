@@ -185,6 +185,14 @@ export default function MarketingManagementUnified() {
     return (bytes / 1024).toFixed(2) + ' KB';
   };
 
+  const handlePreview = (fileName: string) => {
+    window.open(`/versions/${fileName}`, '_blank');
+  };
+
+  const handleEdit = (fileName: string) => {
+    window.open(`/admin/funnel-editor?file=${fileName}`, '_blank');
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'working':
@@ -450,10 +458,16 @@ export default function MarketingManagementUnified() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
+                        <button 
+                          onClick={() => handlePreview(funnel.name)}
+                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                        >
                           미리보기
                         </button>
-                        <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors">
+                        <button 
+                          onClick={() => handleEdit(funnel.name)}
+                          className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
+                        >
                           편집
                         </button>
                       </div>
