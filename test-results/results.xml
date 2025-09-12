@@ -1,156 +1,92 @@
-<testsuites id="" name="" tests="6" failures="0" skipped="0" errors="0" time="5.804862999999999">
-<testsuite name="vip-image-fixed-test.spec.ts" timestamp="2025-08-21T00:30:46.015Z" hostname="chromium" tests="2" failures="0" skipped="0" time="5.625" errors="0">
-<testcase name="VIP 이미지 수정 테스트 › 수정된 VIP 이미지들이 정상적으로 로드되는지 확인" classname="vip-image-fixed-test.spec.ts" time="2.909">
+<testsuites id="" name="" tests="2" failures="1" skipped="0" errors="0" time="31.784661">
+<testsuite name="migration-test.spec.ts" timestamp="2025-09-10T15:29:51.752Z" hostname="chromium-nightly" tests="2" failures="1" skipped="0" time="38.115" errors="0">
+<testcase name="Blog Migration Test with Chromium Nightly › Production Migration Test" classname="migration-test.spec.ts" time="30.418">
+<failure message="migration-test.spec.ts:4:7 Production Migration Test" type="FAILURE">
+<![CDATA[  [chromium-nightly] › migration-test.spec.ts:4:7 › Blog Migration Test with Chromium Nightly › Production Migration Test 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.textContent: Target page, context or browser has been closed
+
+      43 |       
+      44 |       // 오류 메시지 확인
+    > 45 |       const errorMessage = await page.textContent('text=오류:');
+         |                                       ^
+      46 |       if (errorMessage) {
+      47 |         console.log('📊 오류 메시지:', errorMessage);
+      48 |         
+        at /Users/m2/MASLABS/win.masgolf.co.kr/tests/migration-test.spec.ts:45:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/error-context.md
+]]>
+</failure>
 <system-out>
-<![CDATA[Dev-01 퍼널에서 VIP 이미지 개수: 5
-✅ Dev-01 이미지: /campaigns/2025-09/vip-badge-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-round-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨
-Dev-02 퍼널에서 VIP 이미지 개수: 5
-✅ Dev-02 이미지: /campaigns/2025-09/vip-badge-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-round-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨
+<![CDATA[🎭 Testing with browser: chromium
+📱 관리자 페이지 접속 중...
+🔄 블로그 마이그레이션 탭 클릭...
+📝 URL 입력 중...
+🚀 마이그레이션 시작 버튼 클릭...
+⏳ 마이그레이션 결과 대기 중...
+❌ 마이그레이션 실패 또는 타임아웃
+
+[[ATTACHMENT|migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/test-failed-1.png]]
+
+[[ATTACHMENT|migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/video.webm]]
+
+[[ATTACHMENT|migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="VIP 이미지 수정 테스트 › 개별 이미지 파일들이 정상적으로 접근 가능한지 확인" classname="vip-image-fixed-test.spec.ts" time="2.716">
+<testcase name="Blog Migration Test with Chromium Nightly › API Endpoint Test" classname="migration-test.spec.ts" time="7.697">
 <system-out>
-<![CDATA[🔍 확인 중: /campaigns/2025-09/vip-header-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-header-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-header-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-header-modern-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-round-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-round-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-badge-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-badge-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 크기: 960x720
-]]>
-</system-out>
-</testcase>
-</testsuite>
-<testsuite name="vip-image-fixed-test.spec.ts" timestamp="2025-08-21T00:30:46.015Z" hostname="firefox" tests="2" failures="0" skipped="0" time="6.725" errors="0">
-<testcase name="VIP 이미지 수정 테스트 › 수정된 VIP 이미지들이 정상적으로 로드되는지 확인" classname="vip-image-fixed-test.spec.ts" time="4.208">
-<system-out>
-<![CDATA[Dev-01 퍼널에서 VIP 이미지 개수: 5
-✅ Dev-01 이미지: /campaigns/2025-09/vip-badge-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-round-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨
-Dev-02 퍼널에서 VIP 이미지 개수: 5
-✅ Dev-02 이미지: /campaigns/2025-09/vip-badge-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-round-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨
-]]>
-</system-out>
-</testcase>
-<testcase name="VIP 이미지 수정 테스트 › 개별 이미지 파일들이 정상적으로 접근 가능한지 확인" classname="vip-image-fixed-test.spec.ts" time="2.517">
-<system-out>
-<![CDATA[🔍 확인 중: /campaigns/2025-09/vip-header-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-header-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-header-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-header-modern-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-round-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-round-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-badge-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-badge-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 크기: 960x720
-]]>
-</system-out>
-</testcase>
-</testsuite>
-<testsuite name="vip-image-fixed-test.spec.ts" timestamp="2025-08-21T00:30:46.015Z" hostname="webkit" tests="2" failures="0" skipped="0" time="6.414" errors="0">
-<testcase name="VIP 이미지 수정 테스트 › 수정된 VIP 이미지들이 정상적으로 로드되는지 확인" classname="vip-image-fixed-test.spec.ts" time="3.627">
-<system-out>
-<![CDATA[Dev-01 퍼널에서 VIP 이미지 개수: 5
-✅ Dev-01 이미지: /campaigns/2025-09/vip-badge-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-round-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨
-✅ Dev-01 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨
-Dev-02 퍼널에서 VIP 이미지 개수: 5
-✅ Dev-02 이미지: /campaigns/2025-09/vip-badge-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-round-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 정상 로드됨
-✅ Dev-02 이미지: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 정상 로드됨
-]]>
-</system-out>
-</testcase>
-<testcase name="VIP 이미지 수정 테스트 › 개별 이미지 파일들이 정상적으로 접근 가능한지 확인" classname="vip-image-fixed-test.spec.ts" time="2.787">
-<system-out>
-<![CDATA[🔍 확인 중: /campaigns/2025-09/vip-header-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-header-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-header-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-header-modern-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-gold-fixed.jpg
-✅ /campaigns/2025-09/vip-product-gold-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-black-fixed.jpg
-✅ /campaigns/2025-09/vip-product-black-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-product-silver-fixed.jpg
-✅ /campaigns/2025-09/vip-product-silver-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-round-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-round-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-round-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-round-modern-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-badge-senior-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-senior-fixed.jpg - 크기: 960x720
-🔍 확인 중: /campaigns/2025-09/vip-badge-modern-fixed.jpg
-✅ /campaigns/2025-09/vip-badge-modern-fixed.jpg - 크기: 960x720
+<![CDATA[🔍 API 엔드포인트 테스트: chromium
+📊 API 응답 상태: [33m200[39m
+📊 API 응답 헤더: {
+  [32m'content-type'[39m: [32m'application/json; charset=utf-8'[39m,
+  etag: [32m'"i8v0erb3kh26x"'[39m,
+  vary: [32m'Accept-Encoding'[39m,
+  [32m'content-encoding'[39m: [32m'gzip'[39m,
+  date: [32m'Wed, 10 Sep 2025 15:30:00 GMT'[39m,
+  connection: [32m'keep-alive'[39m,
+  [32m'keep-alive'[39m: [32m'timeout=5'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m
+}
+✅ API 정상 작동
+📊 응답 데이터: {
+  success: [33mtrue[39m,
+  message: [32m'완전한 마이그레이션 성공'[39m,
+  data: {
+    id: [33m61[39m,
+    title: [32m'연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험'[39m,
+    slug: [32m'연기경력-33년-골프경력-33년-배우-이경영님의-마쓰구골프-체험'[39m,
+    content: [32m'# 연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험\n'[39m +
+      [32m'\n'[39m +
+      [32m'배우 이경영님은 용의눈물, 왕건, 명성황후, 무풍지대, 무인시대, 연개소문, 이산, 자이언트, 무신 등 다양한 작품에 출연하며 33년간 꾸준히 연기활동을 이어오고 있습니다. 그의 연기 경력만큼이나 골프에 대한 사랑도 깊다고 합니다.\n'[39m +
+      [32m'\n'[39m +
+      [32m'## 이경영님의 골프 사랑\n'[39m +
+      [32m'\n'[39m +
+      [32m'이경영님은 골프에 대한 열정을 가지고 있으며, 이는 그의 연기에 대한 사랑과도 맞닿아 있습니다. 강렬한 눈빛과 함께 강렬한 티샷을 보여주신 이경영님은 골프를 통해 또 다른 매력을 발산하고 있습니다. \n'[39m +
+      [32m'\n'[39m +
+      [32m'앞으로도 왕성한 연기활동과 함께 골프에서도 멋진 모습을 보여주시길 기대합니다.\n'[39m +
+      [32m'\n'[39m +
+      [32m'### 태그\n'[39m +
+      [32m'이경영, 골프, 연기'[39m,
+    featured_image: [32m'https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757518194120-1.webp'[39m,
+    images: [ [36m[Object][39m, [36m[Object][39m, [36m[Object][39m, [36m[Object][39m, [36m[Object][39m ],
+    tags: [],
+    imageCount: [33m5[39m,
+    tagCount: [33m0[39m,
+    status: [32m'complete-migration-success'[39m
+  }
+}
 ]]>
 </system-out>
 </testcase>
