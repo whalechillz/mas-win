@@ -103,10 +103,17 @@ export default function MarketingManagementUnified() {
       const response = await fetch('/api/ga4-monthly');
       if (response.ok) {
         const data = await response.json();
-        setMonthlyData(data);
+        // 배열인지 확인하고 설정
+        if (Array.isArray(data)) {
+          setMonthlyData(data);
+        } else {
+          console.log('월별 데이터가 배열이 아닙니다:', data);
+          setMonthlyData([]);
+        }
       }
     } catch (error) {
       console.error('월별 데이터 로드 오류:', error);
+      setMonthlyData([]);
     }
   };
 
@@ -128,10 +135,17 @@ export default function MarketingManagementUnified() {
       const response = await fetch('/api/ga4-funnel/');
       if (response.ok) {
         const data = await response.json();
-        setFunnelPerformance(data);
+        // 배열인지 확인하고 설정
+        if (Array.isArray(data)) {
+          setFunnelPerformance(data);
+        } else {
+          console.log('퍼널 성과 데이터가 배열이 아닙니다:', data);
+          setFunnelPerformance([]);
+        }
       }
     } catch (error) {
       console.error('퍼널 성과 데이터 로드 오류:', error);
+      setFunnelPerformance([]);
     }
   };
 
@@ -283,7 +297,7 @@ export default function MarketingManagementUnified() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">월별 캠페인 분석</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {monthlyData.map((month) => (
+              {Array.isArray(monthlyData) && monthlyData.map((month) => (
                 <div key={month.month} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">{month.month}</h3>
@@ -339,7 +353,7 @@ export default function MarketingManagementUnified() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {funnelPerformance.map((funnel) => (
+              {Array.isArray(funnelPerformance) && funnelPerformance.map((funnel) => (
                 <div key={funnel.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">{funnel.name}</h3>
