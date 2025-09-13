@@ -198,15 +198,15 @@ export default function BlogIndex({ posts: staticPosts }) {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        {/* 고급스러운 헤더 */}
+        {/* 모바일 최적화된 헤더 */}
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">마쓰구 블로그</h1>
-                <p className="mt-3 text-slate-600 text-lg font-medium">22년 전통의 맞춤형 드라이버 전문 브랜드</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 sm:py-6 lg:h-20">
+              <div className="mb-4 sm:mb-0">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">마쓰구 블로그</h1>
+                <p className="mt-1 sm:mt-3 text-slate-600 text-sm sm:text-base lg:text-lg font-medium">22년 전통의 맞춤형 드라이버 전문 브랜드</p>
               </div>
-              <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group">
+              <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group text-sm sm:text-base">
                 <HomeIcon />
                 <span className="group-hover:translate-x-0.5 transition-transform duration-200">홈으로 돌아가기</span>
               </Link>
@@ -215,15 +215,15 @@ export default function BlogIndex({ posts: staticPosts }) {
         </header>
 
         {/* 메인 콘텐츠 */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* 고급스러운 카테고리 필터 */}
-          <div className="mb-12">
-            <div className="flex flex-wrap gap-3">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+          {/* 모바일 최적화된 카테고리 필터 */}
+          <div className="mb-8 sm:mb-12">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               {['전체', '비거리 향상 드라이버', '맞춤형 드라이버', '고객 성공 스토리', '골프 팁 & 가이드', '이벤트 & 프로모션'].map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
-                  className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                  className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
                     selectedCategory === category
                       ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg hover:shadow-xl'
                       : 'bg-white/70 backdrop-blur-sm text-slate-700 border border-slate-200 hover:bg-slate-50'
@@ -235,15 +235,15 @@ export default function BlogIndex({ posts: staticPosts }) {
             </div>
           </div>
 
-          {/* 고급스러운 블로그 게시물 그리드 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* 모바일 최적화된 블로그 게시물 그리드 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {posts.map((post) => (
               <article key={post.id} className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-900/5 border border-slate-200/50 overflow-hidden hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-500 hover:-translate-y-2">
                 <Link href={`/blog/${post.slug}`}>
                   <div className="relative h-64 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
                     <img
-                      src={post.featuredImage || '/placeholder-image.svg'}
+                      src={post.featured_image || '/placeholder-image.svg'}
                       alt={post.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
@@ -260,28 +260,28 @@ export default function BlogIndex({ posts: staticPosts }) {
                       </span>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <h2 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200">
+                  <div className="p-4 sm:p-6">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200">
                       {post.title}
                     </h2>
-                    <p className="text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+                    <p className="text-slate-600 mb-3 sm:mb-4 line-clamp-3 leading-relaxed text-sm sm:text-base">
                       {post.excerpt}
                     </p>
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
                       {post.tags.slice(0, 3).map((tag, index) => (
-                        <span key={index} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full border border-slate-200">
+                        <span key={index} className="px-2 py-1 sm:px-3 sm:py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full border border-slate-200">
                           #{tag}
                         </span>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-slate-500 text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                      <div className="flex items-center gap-2 text-slate-500 text-xs sm:text-sm">
                         <CalendarIcon />
                         <time className="font-medium">
                           {formatDate(post.published_at || post.publishedAt)}
                         </time>
                       </div>
-                      <div className="flex items-center text-slate-500 text-sm font-medium group-hover:text-slate-700 transition-colors duration-200">
+                      <div className="flex items-center text-slate-500 text-xs sm:text-sm font-medium group-hover:text-slate-700 transition-colors duration-200">
                         <span>자세히 보기</span>
                         <ArrowRightIcon />
                       </div>
@@ -292,37 +292,84 @@ export default function BlogIndex({ posts: staticPosts }) {
             ))}
           </div>
 
-          {/* 고급스러운 페이지네이션 */}
+          {/* 모바일 최적화된 페이지네이션 */}
           {pagination.totalPages > 1 && (
-            <div className="mt-16 flex justify-center">
-              <nav className="flex items-center space-x-2">
+            <div className="mt-8 sm:mt-16 flex justify-center">
+              <nav className="flex items-center space-x-1 sm:space-x-2">
                 <button 
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={!pagination.hasPrev}
-                  className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 sm:px-4 sm:py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   이전
                 </button>
                 
-                {/* 페이지 번호들 */}
-                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`px-4 py-3 font-medium transition-colors duration-200 rounded-xl ${
-                      pageNum === currentPage
-                        ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
+                {/* 페이지 번호들 - 모바일에서는 현재 페이지 주변만 표시 */}
+                {pagination.totalPages <= 5 ? (
+                  // 페이지가 5개 이하면 모두 표시
+                  Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base ${
+                        pageNum === currentPage
+                          ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))
+                ) : (
+                  // 페이지가 많으면 현재 페이지 주변만 표시
+                  <>
+                    {currentPage > 2 && (
+                      <>
+                        <button
+                          onClick={() => handlePageChange(1)}
+                          className="px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base"
+                        >
+                          1
+                        </button>
+                        {currentPage > 3 && <span className="px-2 text-slate-400">...</span>}
+                      </>
+                    )}
+                    
+                    {Array.from({ length: Math.min(3, pagination.totalPages) }, (_, i) => {
+                      const pageNum = Math.max(1, Math.min(pagination.totalPages, currentPage - 1 + i));
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base ${
+                            pageNum === currentPage
+                              ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
+                              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                    
+                    {currentPage < pagination.totalPages - 1 && (
+                      <>
+                        {currentPage < pagination.totalPages - 2 && <span className="px-2 text-slate-400">...</span>}
+                        <button
+                          onClick={() => handlePageChange(pagination.totalPages)}
+                          className="px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base"
+                        >
+                          {pagination.totalPages}
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
                 
                 <button 
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={!pagination.hasNext}
-                  className="px-4 py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 sm:px-4 sm:py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   다음
                 </button>
