@@ -198,15 +198,15 @@ export default function BlogIndex({ posts: staticPosts }) {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        {/* 모바일 최적화된 헤더 */}
+        {/* PC/모바일 최적화된 헤더 */}
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 sm:py-6 lg:h-20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-6 sm:py-8 lg:py-12">
               <div className="mb-4 sm:mb-0">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">마쓰구 블로그</h1>
-                <p className="mt-1 sm:mt-3 text-slate-600 text-sm sm:text-base lg:text-lg font-medium">22년 전통의 맞춤형 드라이버 전문 브랜드</p>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 tracking-tight">마쓰구 블로그</h1>
+                <p className="mt-2 sm:mt-4 text-slate-600 text-sm sm:text-base lg:text-lg xl:text-xl font-medium">22년 전통의 맞춤형 드라이버 전문 브랜드</p>
               </div>
-              <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group text-sm sm:text-base">
+              <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group text-sm sm:text-base lg:text-lg">
                 <HomeIcon />
                 <span className="group-hover:translate-x-0.5 transition-transform duration-200">홈으로 돌아가기</span>
               </Link>
@@ -215,18 +215,18 @@ export default function BlogIndex({ posts: staticPosts }) {
         </header>
 
         {/* 메인 콘텐츠 */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-          {/* 모바일 최적화된 카테고리 필터 */}
-          <div className="mb-8 sm:mb-12">
-            <div className="flex flex-wrap gap-2 sm:gap-3">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+          {/* PC/모바일 최적화된 카테고리 필터 */}
+          <div className="mb-10 sm:mb-12 lg:mb-16">
+            <div className="flex flex-wrap gap-3 sm:gap-4 lg:gap-5">
               {['전체', '비거리 향상 드라이버', '맞춤형 드라이버', '고객 성공 스토리', '골프 팁 & 가이드', '이벤트 & 프로모션'].map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
-                  className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                  className={`px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 rounded-full text-xs sm:text-sm lg:text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
                     selectedCategory === category
                       ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg hover:shadow-xl'
-                      : 'bg-white/70 backdrop-blur-sm text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      : 'bg-white/70 backdrop-blur-sm text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
                   {category}
@@ -235,10 +235,10 @@ export default function BlogIndex({ posts: staticPosts }) {
             </div>
           </div>
 
-          {/* 모바일 최적화된 블로그 게시물 그리드 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          {/* PC/모바일 최적화된 블로그 게시물 그리드 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
             {posts.map((post) => (
-              <article key={post.id} className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-900/5 border border-slate-200/50 overflow-hidden hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-500 hover:-translate-y-2">
+              <article key={post.id} className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-900/5 border border-slate-200/50 overflow-hidden hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-500 hover:-translate-y-2 lg:hover:-translate-y-3">
                 <Link href={`/blog/${post.slug}`}>
                   <div className="relative h-64 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
@@ -292,14 +292,14 @@ export default function BlogIndex({ posts: staticPosts }) {
             ))}
           </div>
 
-          {/* 모바일 최적화된 페이지네이션 */}
+          {/* PC/모바일 최적화된 페이지네이션 */}
           {pagination.totalPages > 1 && (
-            <div className="mt-8 sm:mt-16 flex justify-center">
-              <nav className="flex items-center space-x-1 sm:space-x-2">
+            <div className="mt-12 sm:mt-16 lg:mt-20 flex justify-center">
+              <nav className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                 <button 
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={!pagination.hasPrev}
-                  className="px-3 py-2 sm:px-4 sm:py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  className="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base lg:text-lg"
                 >
                   이전
                 </button>
@@ -311,7 +311,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                     <button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base ${
+                      className={`px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base lg:text-lg ${
                         pageNum === currentPage
                           ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
                           : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
@@ -327,7 +327,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                       <>
                         <button
                           onClick={() => handlePageChange(1)}
-                          className="px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base"
+                          className="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base lg:text-lg"
                         >
                           1
                         </button>
@@ -341,7 +341,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base ${
+                          className={`px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base lg:text-lg ${
                             pageNum === currentPage
                               ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
                               : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
@@ -357,7 +357,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                         {currentPage < pagination.totalPages - 2 && <span className="px-2 text-slate-400">...</span>}
                         <button
                           onClick={() => handlePageChange(pagination.totalPages)}
-                          className="px-3 py-2 sm:px-4 sm:py-3 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base"
+                          className="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base lg:text-lg"
                         >
                           {pagination.totalPages}
                         </button>
@@ -369,7 +369,7 @@ export default function BlogIndex({ posts: staticPosts }) {
                 <button 
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={!pagination.hasNext}
-                  className="px-3 py-2 sm:px-4 sm:py-3 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  className="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-slate-500 hover:text-slate-700 font-medium transition-colors duration-200 rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base lg:text-lg"
                 >
                   다음
                 </button>
