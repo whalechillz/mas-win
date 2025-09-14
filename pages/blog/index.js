@@ -221,7 +221,7 @@ export default function BlogIndex({ posts: staticPosts, initialPagination }) {
           {/* PC/모바일 최적화된 카테고리 필터 */}
           <div className="mb-10 sm:mb-12 lg:mb-16">
             <div className="flex flex-wrap gap-3 sm:gap-4 lg:gap-5">
-              {['전체', '비거리 향상 드라이버', '맞춤형 드라이버', '고객 성공 스토리', '골프 팁 & 가이드', '이벤트 & 프로모션'].map((category) => (
+              {['전체', '고객 후기', '기술 및 성능', '골프 팁 & 가이드', '제품 소개', '브랜드 스토리', '이벤트 & 프로모션'].map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}

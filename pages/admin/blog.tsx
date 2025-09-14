@@ -26,7 +26,7 @@ export default function BlogAdmin() {
     excerpt: '',
     content: '',
     featured_image: '',
-    category: '비거리 향상 드라이버',
+    category: '고객 후기',
     tags: [],
     status: 'published',
     meta_title: '',
@@ -286,7 +286,7 @@ export default function BlogAdmin() {
       excerpt: '',
       content: '',
       featured_image: '',
-      category: '비거리 향상 드라이버',
+      category: '고객 후기',
       tags: [],
       status: 'published',
       meta_title: '',
@@ -2397,10 +2397,11 @@ export default function BlogAdmin() {
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="비거리 향상 드라이버">비거리 향상 드라이버</option>
-                      <option value="맞춤형 드라이버">맞춤형 드라이버</option>
-                      <option value="고객 성공 스토리">고객 성공 스토리</option>
+                      <option value="고객 후기">고객 후기</option>
+                      <option value="기술 및 성능">기술 및 성능</option>
                       <option value="골프 팁 & 가이드">골프 팁 & 가이드</option>
+                      <option value="제품 소개">제품 소개</option>
+                      <option value="브랜드 스토리">브랜드 스토리</option>
                       <option value="이벤트 & 프로모션">이벤트 & 프로모션</option>
                     </select>
                   </div>
