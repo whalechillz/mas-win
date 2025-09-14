@@ -36,12 +36,12 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-export default function BlogIndex({ posts: staticPosts }) {
+export default function BlogIndex({ posts: staticPosts, initialPagination }) {
   const [posts, setPosts] = useState(staticPosts || []);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('전체');
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState(initialPagination || {
     currentPage: 1,
     totalPages: 1,
     totalPosts: 0,
@@ -56,11 +56,12 @@ export default function BlogIndex({ posts: staticPosts }) {
     
     try {
       const categoryParam = selectedCategory !== '전체' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
-      const response = await fetch(`/api/blog/posts?page=${page}&limit=6${categoryParam}`);
+      const response = await fetch(`/api/blog/posts/?page=${page}&limit=6${categoryParam}`);
       const data = await response.json();
       
       if (response.ok) {
         // API 응답 데이터를 그대로 사용 (published_at 필드 유지)
+        console.log('📊 페이지 변경 API 응답:', data);
         setPosts(data.posts);
         setPagination(data.pagination);
       } else {
@@ -81,7 +82,7 @@ export default function BlogIndex({ posts: staticPosts }) {
     
     try {
       const categoryParam = category !== '전체' ? `&category=${encodeURIComponent(category)}` : '';
-      const response = await fetch(`/api/blog/posts?page=1&limit=6${categoryParam}`);
+      const response = await fetch(`/api/blog/posts/?page=1&limit=6${categoryParam}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -115,10 +116,11 @@ export default function BlogIndex({ posts: staticPosts }) {
       setLoading(true);
       const fetchPosts = async () => {
         try {
-          const response = await fetch('/api/blog/posts?page=1&limit=6');
+          const response = await fetch('/api/blog/posts/?page=1&limit=6');
           const data = await response.json();
           
           if (response.ok) {
+            console.log('📊 API 응답 데이터:', data);
             setPosts(data.posts);
             setPagination(data.pagination);
           } else {
@@ -304,67 +306,74 @@ export default function BlogIndex({ posts: staticPosts }) {
                   이전
                 </button>
                 
-                {/* 페이지 번호들 - 모바일에서는 현재 페이지 주변만 표시 */}
-                {pagination.totalPages <= 5 ? (
-                  // 페이지가 5개 이하면 모두 표시
-                  Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base lg:text-lg ${
-                        pageNum === currentPage
-                          ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
-                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))
-                ) : (
-                  // 페이지가 많으면 현재 페이지 주변만 표시
-                  <>
-                    {currentPage > 2 && (
-                      <>
-                        <button
-                          onClick={() => handlePageChange(1)}
-                          className="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base lg:text-lg"
-                        >
-                          1
-                        </button>
-                        {currentPage > 3 && <span className="px-2 text-slate-400">...</span>}
-                      </>
-                    )}
+                {/* 페이지 번호들 - 중복 방지 로직 개선 */}
+                {(() => {
+                  const totalPages = pagination.totalPages;
+                  const current = currentPage;
+                  const pages = [];
+                  
+                  if (totalPages <= 7) {
+                    // 7페이지 이하면 모두 표시
+                    for (let i = 1; i <= totalPages; i++) {
+                      pages.push(i);
+                    }
+                  } else {
+                    // 7페이지 초과면 스마트 페이지네이션
+                    // 항상 첫 페이지 표시
+                    pages.push(1);
                     
-                    {Array.from({ length: Math.min(3, pagination.totalPages) }, (_, i) => {
-                      const pageNum = Math.max(1, Math.min(pagination.totalPages, currentPage - 1 + i));
+                    if (current <= 4) {
+                      // 현재 페이지가 앞쪽에 있을 때
+                      for (let i = 2; i <= Math.min(5, totalPages - 1); i++) {
+                        pages.push(i);
+                      }
+                      if (totalPages > 5) {
+                        pages.push('...');
+                        pages.push(totalPages);
+                      }
+                    } else if (current >= totalPages - 3) {
+                      // 현재 페이지가 뒤쪽에 있을 때
+                      if (totalPages > 5) {
+                        pages.push('...');
+                      }
+                      for (let i = Math.max(2, totalPages - 4); i <= totalPages; i++) {
+                        pages.push(i);
+                      }
+                    } else {
+                      // 현재 페이지가 중간에 있을 때
+                      pages.push('...');
+                      for (let i = current - 1; i <= current + 1; i++) {
+                        pages.push(i);
+                      }
+                      pages.push('...');
+                      pages.push(totalPages);
+                    }
+                  }
+                  
+                  return pages.map((page, index) => {
+                    if (page === '...') {
                       return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base lg:text-lg ${
-                            pageNum === currentPage
-                              ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
-                              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
+                        <span key={`ellipsis-${index}`} className="px-2 text-slate-400 text-sm sm:text-base lg:text-lg">
+                          ...
+                        </span>
                       );
-                    })}
+                    }
                     
-                    {currentPage < pagination.totalPages - 1 && (
-                      <>
-                        {currentPage < pagination.totalPages - 2 && <span className="px-2 text-slate-400">...</span>}
-                        <button
-                          onClick={() => handlePageChange(pagination.totalPages)}
-                          className="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-sm sm:text-base lg:text-lg"
-                        >
-                          {pagination.totalPages}
-                        </button>
-                      </>
-                    )}
-                  </>
-                )}
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 font-medium transition-colors duration-200 rounded-xl text-sm sm:text-base lg:text-lg ${
+                          page === current
+                            ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  });
+                })()}
                 
                 <button 
                   onClick={() => handlePageChange(currentPage + 1)}
@@ -386,7 +395,7 @@ export default function BlogIndex({ posts: staticPosts }) {
 export async function getStaticProps() {
   try {
     // Supabase에서 게시물 데이터 로드
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/blog/posts/`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/blog/posts/?page=1&limit=100`);
     const data = await response.json();
     
     if (response.ok && data.posts) {
@@ -403,7 +412,8 @@ export async function getStaticProps() {
 
       return {
         props: {
-          posts: posts
+          posts: posts,
+          initialPagination: data.pagination
         },
         revalidate: 60 // 60초마다 재생성
       };
