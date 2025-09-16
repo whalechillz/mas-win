@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# 사이트맵
+Sitemap: https://win.masgolf.co.kr/sitemap.xml
+
+# 관리자 페이지 제외
+Disallow: /admin/
+Disallow: /api/
+
+# 개발/테스트 페이지 제외
+Disallow: /_next/
+Disallow: /test/
