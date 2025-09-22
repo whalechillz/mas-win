@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { marked } from 'marked';
 // import WysiwygEditor from '../../components/WysiwygEditor';
+
+// 마크다운을 HTML로 변환하는 함수
+const convertMarkdownToHtml = (markdown) => {
+  if (!markdown) return '';
+  
+  // marked 설정
+  marked.setOptions({
+    breaks: true, // 줄바꿈을 <br>로 변환
+    gfm: true, // GitHub Flavored Markdown 지원
+  });
+  
+  return marked(markdown);
+};
 
 export default function BlogAdmin() {
   const [posts, setPosts] = useState([]);
@@ -2248,20 +2262,9 @@ export default function BlogAdmin() {
                   </div>
                   {showContentPreview ? (
                     <div className="w-full p-4 border border-gray-300 rounded-lg bg-white min-h-[300px]">
-                      <div className="prose prose-sm max-w-none">
+                      <div className="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-a:text-blue-600 prose-a:font-medium prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-li:text-gray-700 prose-li:leading-relaxed">
                         {formData.content ? (
-                          <div dangerouslySetInnerHTML={{
-                            __html: formData.content
-                              .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg shadow-sm border mb-4" />')
-                              .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                              .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                              .replace(/### ([^\n]+)/g, '<h3 class="text-lg font-bold mb-2 text-gray-900">$1</h3>')
-                              .replace(/## ([^\n]+)/g, '<h2 class="text-xl font-bold mb-3 text-gray-900">$1</h2>')
-                              .replace(/# ([^\n]+)/g, '<h1 class="text-2xl font-bold mb-4 text-gray-900">$1</h1>')
-                              .replace(/\n\n/g, '</p><p class="mb-4 leading-relaxed">')
-                              .replace(/^/, '<p class="mb-4 leading-relaxed">')
-                              .replace(/$/, '</p>')
-                          }} />
+                          <div dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(formData.content) }} />
                         ) : (
                           <p className="text-gray-500 italic">내용이 없습니다. 편집 모드에서 내용을 입력하세요.</p>
                         )}
