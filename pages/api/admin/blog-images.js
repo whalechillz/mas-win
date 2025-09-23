@@ -43,12 +43,44 @@ export default async function handler(req, res) {
         });
       }
 
-      // 게시물 ID와 관련된 이미지들 필터링
-      const postImages = files.filter(file => 
-        file.name.includes(`migration-${postId}`) || 
-        file.name.includes(`complete-migration`) ||
-        file.name.includes(`blog-${postId}`)
-      );
+      // 먼저 해당 게시물의 정보를 가져와서 본문에서 사용된 이미지 URL들을 추출
+      const { data: postData, error: postError } = await supabase
+        .from('blog_posts')
+        .select('content, featured_image')
+        .eq('id', postId)
+        .single();
+
+      if (postError) {
+        console.error('❌ 게시물 조회 에러:', postError);
+        return res.status(500).json({
+          error: '게시물 정보를 불러올 수 없습니다.',
+          details: postError.message
+        });
+      }
+
+      // 게시물 본문에서 이미지 URL 추출 (마크다운 형식: ![alt](url))
+      const imageUrlRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/g;
+      const contentImages = [];
+      let match;
+      while ((match = imageUrlRegex.exec(postData.content || '')) !== null) {
+        contentImages.push(match[1]);
+      }
+
+      // featured_image도 추가
+      if (postData.featured_image) {
+        contentImages.push(postData.featured_image);
+      }
+
+      console.log('📝 게시물에서 추출된 이미지 URL:', contentImages.length, '개');
+
+      // 추출된 URL들과 매치되는 파일들만 필터링
+      const postImages = files.filter(file => {
+        const { data: urlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(file.name);
+        
+        return contentImages.includes(urlData.publicUrl);
+      });
 
       // 이미지 URL 생성
       const imagesWithUrl = postImages.map(file => {

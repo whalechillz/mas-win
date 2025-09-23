@@ -1444,8 +1444,8 @@ export default function BlogAdmin() {
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">
-                  {editingPost ? '게시물 수정' : '새 게시물 작성'}
-                </h2>
+                {editingPost ? '게시물 수정' : '새 게시물 작성'}
+              </h2>
                 <button
                   type="button"
                   onClick={() => {
@@ -1820,7 +1820,7 @@ export default function BlogAdmin() {
                         >
                           ✕ 닫기
                         </button>
-                      </div>
+                </div>
                       <div className="p-3 bg-white border border-green-200 rounded">
                         <p className="text-xs text-gray-700 leading-relaxed">
                           {previewPrompt}
@@ -2064,96 +2064,169 @@ export default function BlogAdmin() {
                 </div>
               )}
 
-              {/* 기존 이미지 갤러리 */}
-              {imageGallery.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  아직 이미지가 없습니다. 이미지를 업로드하거나 AI로 생성해보세요.
-                </p>
-              ) : (
-                <div>
-                  <h5 className="text-md font-medium text-gray-800 mb-3">📁 내 이미지 갤러리</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {imageGallery.map((image) => (
-                      <div key={image.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                        <div className="relative">
-                          <img
-                            src={image.url}
-                            alt={`Gallery Image ${image.id}`}
-                            className="w-full h-32 object-cover"
-                          />
-                          <div className="absolute top-2 right-2 flex gap-1">
-                            <span className={`px-2 py-1 text-xs rounded ${
-                              image.type === 'upload' ? 'bg-blue-100 text-blue-800' :
-                              image.type === 'ai-generated' ? 'bg-purple-100 text-purple-800' :
-                              image.type === 'paragraph' ? 'bg-green-100 text-green-800' :
-                              image.type === 'recommended' ? 'bg-orange-100 text-orange-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {image.type === 'upload' ? '업로드' :
-                               image.type === 'ai-generated' ? 'AI생성' :
-                               image.type === 'paragraph' ? '단락' :
-                               image.type === 'recommended' ? '추천' : '기타'}
-                            </span>
-                            <button
-                              onClick={() => removeFromImageGallery(image.id)}
-                              className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
-                            >
-                              ×
-                            </button>
+              {/* 게시물별 이미지 갤러리 */}
+              {editingPost ? (
+                // 게시물 편집 모드: 해당 게시물의 이미지만 표시
+                postImages.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">
+                    이 게시물에 연결된 이미지가 없습니다. 이미지를 업로드하거나 AI로 생성해보세요.
+                  </p>
+                ) : (
+                  <div>
+                    <h5 className="text-md font-medium text-gray-800 mb-3">
+                      📁 이 게시물의 이미지 ({postImages.length}개)
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {postImages.map((image, index) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                          <div className="relative">
+                            <img
+                              src={image.url}
+                              alt={image.name || `Image ${index + 1}`}
+                              className="w-full h-32 object-cover"
+                            />
+                            <div className="absolute top-2 right-2 flex gap-1">
+                              {formData.featured_image === image.url && (
+                                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800 font-bold">
+                                  ⭐ 대표
+                                </span>
+                              )}
+                              <button
+                                onClick={() => deleteImage(image.name)}
+                                className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                          <div className="p-3">
+                            <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
+                              {image.name}
+                            </div>
+                            <div className="flex gap-1 mb-2">
+                              <button
+                                onClick={() => setFeaturedImage(image.url)}
+                                className={`px-2 py-1 text-xs rounded ${
+                                  formData.featured_image === image.url 
+                                    ? 'bg-yellow-600 text-white' 
+                                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                }`}
+                              >
+                                ⭐ 대표
+                              </button>
+                              <button
+                                onClick={() => copyImageUrl(image.url)}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                              >
+                                📋 복사
+                              </button>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => insertImageToContentNew(image.url, image.name || '이미지')}
+                                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                              >
+                                📝 삽입
+                              </button>
+                            </div>
                           </div>
                         </div>
-                        <div className="p-3">
-                          <div className="flex gap-1 mb-2">
-                            <button
-                              onClick={() => setAsFeaturedImage(image.url)}
-                              className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
-                            >
-                              ⭐ 대표
-                            </button>
-                            <button
-                              onClick={() => copyImageUrl(image.url)}
-                              className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                            >
-                              📋 복사
-                            </button>
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => insertImageToContent(image.url, 'start')}
-                              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                            >
-                              앞
-                            </button>
-                            <button
-                              onClick={() => insertImageToContent(image.url, 'middle')}
-                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                            >
-                              중간
-                            </button>
-                            <button
-                              onClick={() => insertImageToContent(image.url, 'end')}
-                              className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
-                            >
-                              뒤
-                            </button>
-                          </div>
-                          {image.metadata && (
-                            <details className="mt-2 text-xs text-gray-500">
-                              <summary className="cursor-pointer">메타데이터</summary>
-                              <div className="mt-1 text-xs">
-                                {image.metadata.model && <p>모델: {image.metadata.model}</p>}
-                                {image.metadata.fileName && <p>파일: {image.metadata.fileName}</p>}
-                                {image.metadata.paragraphIndex !== undefined && <p>단락: {image.metadata.paragraphIndex + 1}</p>}
-                                {image.metadata.relevance && <p>관련도: {image.metadata.relevance}%</p>}
-                                {image.metadata.matchedKeywords && <p>키워드: {image.metadata.matchedKeywords.join(', ')}</p>}
-                              </div>
-                            </details>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )
+              ) : (
+                // 새 게시물 작성 모드: 전역 이미지 갤러리 표시
+                imageGallery.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">
+                    아직 이미지가 없습니다. 이미지를 업로드하거나 AI로 생성해보세요.
+                  </p>
+                ) : (
+                  <div>
+                    <h5 className="text-md font-medium text-gray-800 mb-3">📁 내 이미지 갤러리</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {imageGallery.map((image) => (
+                        <div key={image.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                          <div className="relative">
+                            <img
+                              src={image.url}
+                              alt={`Gallery Image ${image.id}`}
+                              className="w-full h-32 object-cover"
+                            />
+                            <div className="absolute top-2 right-2 flex gap-1">
+                              <span className={`px-2 py-1 text-xs rounded ${
+                                image.type === 'upload' ? 'bg-blue-100 text-blue-800' :
+                                image.type === 'ai-generated' ? 'bg-purple-100 text-purple-800' :
+                                image.type === 'paragraph' ? 'bg-green-100 text-green-800' :
+                                image.type === 'recommended' ? 'bg-orange-100 text-orange-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {image.type === 'upload' ? '업로드' :
+                                 image.type === 'ai-generated' ? 'AI생성' :
+                                 image.type === 'paragraph' ? '단락' :
+                                 image.type === 'recommended' ? '추천' : '기타'}
+                              </span>
+                              <button
+                                onClick={() => removeFromImageGallery(image.id)}
+                                className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                          <div className="p-3">
+                            <div className="flex gap-1 mb-2">
+                              <button
+                                onClick={() => setAsFeaturedImage(image.url)}
+                                className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                              >
+                                ⭐ 대표
+                              </button>
+                              <button
+                                onClick={() => copyImageUrl(image.url)}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                              >
+                                📋 복사
+                              </button>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => insertImageToContent(image.url, 'start')}
+                                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                              >
+                                앞
+                              </button>
+                              <button
+                                onClick={() => insertImageToContent(image.url, 'middle')}
+                                className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                              >
+                                중간
+                              </button>
+                              <button
+                                onClick={() => insertImageToContent(image.url, 'end')}
+                                className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
+                              >
+                                뒤
+                              </button>
+                            </div>
+                            {image.metadata && (
+                              <details className="mt-2 text-xs text-gray-500">
+                                <summary className="cursor-pointer">메타데이터</summary>
+                                <div className="mt-1 text-xs">
+                                  {image.metadata.model && <p>모델: {image.metadata.model}</p>}
+                                  {image.metadata.fileName && <p>파일: {image.metadata.fileName}</p>}
+                                  {image.metadata.paragraphIndex !== undefined && <p>단락: {image.metadata.paragraphIndex + 1}</p>}
+                                  {image.metadata.relevance && <p>관련도: {image.metadata.relevance}%</p>}
+                                  {image.metadata.matchedKeywords && <p>키워드: {image.metadata.matchedKeywords.join(', ')}</p>}
+                                </div>
+                              </details>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
               )}
             </div>
           )}
@@ -2296,7 +2369,7 @@ export default function BlogAdmin() {
                             <h4 className="text-lg font-medium text-gray-900">
                               🖼️ 이미지 갤러리 ({postImages.length}개)
                             </h4>
-                            {formData.featured_image && (
+          {formData.featured_image && (
                               <div className="text-sm text-green-600 font-medium">
                                 ⭐ 현재 대표이미지: {postImages.find(img => img.url === formData.featured_image)?.name || '설정됨'}
                               </div>
@@ -2315,18 +2388,18 @@ export default function BlogAdmin() {
                                     <img
                                       src={image.url}
                                       alt={image.name}
-                                      className="w-full h-full object-cover"
+                  className="w-full h-full object-cover"
                                       onError={(e) => {
                                         (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x200/EF4444/FFFFFF?text=Error';
                                       }}
-                                    />
+                />
                                   </div>
                                   
                                   {/* 이미지 액션 버튼들 */}
                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                                     <div className="flex flex-col space-y-1">
-                                      <button
-                                        type="button"
+                <button
+                  type="button"
                                         onClick={() => setFeaturedImage(image.url)}
                                         className={`px-3 py-1 rounded text-sm transition-colors ${
                                           formData.featured_image === image.url 
@@ -2349,12 +2422,12 @@ export default function BlogAdmin() {
                                         type="button"
                                         onClick={() => deleteImage(image.name)}
                                         className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
-                                        title="이미지 삭제"
-                                      >
+                  title="이미지 삭제"
+                >
                                         🗑️ 삭제
-                                      </button>
-                                    </div>
-                                  </div>
+                </button>
+              </div>
+            </div>
                                   
                                   {/* 이미지 정보 */}
                                   <div className="mt-2">
@@ -2363,9 +2436,9 @@ export default function BlogAdmin() {
                                     </p>
                                     <p className="text-xs text-gray-400">
                                       {(image.size / 1024).toFixed(1)}KB
-                                    </p>
-                                  </div>
-                                </div>
+              </p>
+            </div>
+          </div>
                               ))}
                             </div>
                           )}
@@ -2377,16 +2450,16 @@ export default function BlogAdmin() {
                         value={formData.content}
                         onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                         rows={10}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
                         required
-                      />
-                    </div>
+            />
+          </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
                     💡 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)
                   </p>
-                </div>
+        </div>
 
         {/* 대표 이미지 섹션은 이미지 갤러리로 통합됨 */}
 
@@ -2563,7 +2636,7 @@ export default function BlogAdmin() {
 
                 <div className="flex justify-between">
                   <div className="flex space-x-2">
-                    <button
+                  <button
                       type="button"
                       onClick={() => {
                         setShowForm(false);
@@ -2574,14 +2647,14 @@ export default function BlogAdmin() {
                     >
                       <span>←</span>
                       <span>뒤로가기</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={resetForm}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetForm}
                       className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors"
-                    >
-                      취소
-                    </button>
+                  >
+                    취소
+                  </button>
                   </div>
                   <div className="flex space-x-2">
                     <button
@@ -2598,7 +2671,7 @@ export default function BlogAdmin() {
 
           {/* 게시물 목록 */}
           {activeTab === 'list' && (
-            <div className="bg-white rounded-lg shadow-md">
+          <div className="bg-white rounded-lg shadow-md">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -2682,8 +2755,8 @@ export default function BlogAdmin() {
                     </div>
                     
                     {viewMode === 'list' ? (
-                      <div className="space-y-4">
-                      {posts.map((post) => (
+                  <div className="space-y-4">
+                    {posts.map((post) => (
                       <div key={post.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${selectedPosts.includes(post.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
                         <div className="flex justify-between items-start">
                           <div className="flex items-start space-x-3 flex-1">
@@ -2693,7 +2766,7 @@ export default function BlogAdmin() {
                               onChange={() => handlePostSelect(post.id)}
                               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1"
                             />
-                            <div className="flex-1">
+                          <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
                               {post.title}
                             </h3>
@@ -2794,11 +2867,11 @@ export default function BlogAdmin() {
                                     </button>
                                   </div>
                                 </div>
-                              </div>
-                            </div>
                           </div>
-                        ))}
+                        </div>
                       </div>
+                    ))}
+                  </div>
                     )}
                   </>
                 )}
