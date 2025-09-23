@@ -2266,7 +2266,7 @@ export default function BlogAdmin() {
                                 uploadFormData.append('image', file);
                                 
                                 // 서버에 업로드
-                                const response = await fetch('/api/upload-image', {
+                                const response = await fetch('/api/upload-image/', {
                                   method: 'POST',
                                   body: uploadFormData,
                                 });
