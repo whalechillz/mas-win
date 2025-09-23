@@ -2285,6 +2285,11 @@ export default function BlogAdmin() {
                                     uploadedAt: new Date().toISOString()
                                   });
                                   
+                                  // 현재 게시물의 이미지 목록 새로고침
+                                  if (editingPost) {
+                                    await loadPostImages(editingPost.id);
+                                  }
+                                  
                                   alert('이미지가 업로드되었습니다!');
                                 } else {
                                   throw new Error('업로드 실패');
