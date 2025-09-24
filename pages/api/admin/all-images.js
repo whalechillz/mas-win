@@ -15,16 +15,39 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      const { limit = 50, offset = 0 } = req.query;
+      const { limit = 50, offset = 0, page = 1 } = req.query;
+      const pageSize = parseInt(limit);
+      const currentPage = parseInt(page);
+      const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
       
-      console.log('📝 전체 이미지 목록 조회 중...', { limit, offset });
+      console.log('📝 전체 이미지 목록 조회 중...', { limit: pageSize, offset: currentOffset, page: currentPage });
       
-      // blog-images 버킷에서 모든 이미지 조회
+      // 먼저 전체 개수를 조회
+      const { data: allFiles, error: countError } = await supabase.storage
+        .from('blog-images')
+        .list('', {
+          limit: 1000, // 전체 개수 조회를 위한 큰 값
+          offset: 0,
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
+
+      if (countError) {
+        console.error('❌ 전체 개수 조회 에러:', countError);
+        return res.status(500).json({
+          error: '이미지 목록을 불러올 수 없습니다.',
+          details: countError.message
+        });
+      }
+
+      const totalCount = allFiles.length;
+      const totalPages = Math.ceil(totalCount / pageSize);
+      
+      // 페이지네이션된 이미지 조회
       const { data: files, error } = await supabase.storage
         .from('blog-images')
         .list('', {
-          limit: parseInt(limit),
-          offset: parseInt(offset),
+          limit: pageSize,
+          offset: currentOffset,
           sortBy: { column: 'created_at', order: 'desc' }
         });
 
@@ -57,7 +80,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ 
         images: imagesWithUrl,
         count: imagesWithUrl.length,
-        total: files.length
+        total: totalCount,
+        pagination: {
+          currentPage,
+          totalPages,
+          pageSize,
+          hasNextPage: currentPage < totalPages,
+          hasPrevPage: currentPage > 1,
+          nextPage: currentPage < totalPages ? currentPage + 1 : null,
+          prevPage: currentPage > 1 ? currentPage - 1 : null
+        }
       });
       
     } else {

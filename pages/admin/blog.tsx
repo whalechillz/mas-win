@@ -212,6 +212,13 @@ export default function BlogAdmin() {
   const [allImages, setAllImages] = useState([]);
   const [showAllImages, setShowAllImages] = useState(false);
   const [isLoadingAllImages, setIsLoadingAllImages] = useState(false);
+  const [allImagesPagination, setAllImagesPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -578,15 +585,22 @@ export default function BlogAdmin() {
     }
   };
 
-  // 전체 이미지 목록 로드
-  const loadAllImages = async () => {
+  // 전체 이미지 목록 로드 (페이지네이션 지원)
+  const loadAllImages = async (page = 1, limit = 24) => {
     try {
       setIsLoadingAllImages(true);
-      const response = await fetch('/api/admin/all-images?limit=100');
+      const response = await fetch(`/api/admin/all-images?page=${page}&limit=${limit}`);
       const data = await response.json();
       
       if (response.ok) {
         setAllImages(data.images || []);
+        setAllImagesPagination(data.pagination || {
+          currentPage: 1,
+          totalPages: 1,
+          total: 0,
+          hasNextPage: false,
+          hasPrevPage: false
+        });
         console.log('✅ 전체 이미지 로드 성공:', data.images?.length || 0, '개');
       } else {
         console.error('❌ 전체 이미지 로드 실패:', data.error);
@@ -2356,7 +2370,7 @@ export default function BlogAdmin() {
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <h6 className="text-sm font-medium text-gray-700">
-                      총 {allImages.length}개의 이미지
+                      총 {allImagesPagination.total}개의 이미지 (페이지 {allImagesPagination.currentPage}/{allImagesPagination.totalPages})
                     </h6>
                     <div className="text-xs text-gray-500">
                       💡 이미지를 클릭하여 현재 게시물에 삽입하세요
@@ -2422,6 +2436,59 @@ export default function BlogAdmin() {
                       </div>
                     ))}
                   </div>
+                  
+                  {/* 페이지네이션 */}
+                  {allImagesPagination.totalPages > 1 && (
+                    <div className="mt-4 flex justify-center items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => loadAllImages(allImagesPagination.prevPage)}
+                        disabled={!allImagesPagination.hasPrevPage}
+                        className={`px-3 py-1 text-sm rounded ${
+                          allImagesPagination.hasPrevPage
+                            ? 'bg-gray-500 text-white hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        ← 이전
+                      </button>
+                      
+                      <div className="flex gap-1">
+                        {Array.from({ length: Math.min(5, allImagesPagination.totalPages) }, (_, i) => {
+                          const pageNum = Math.max(1, allImagesPagination.currentPage - 2) + i;
+                          if (pageNum > allImagesPagination.totalPages) return null;
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              type="button"
+                              onClick={() => loadAllImages(pageNum)}
+                              className={`px-2 py-1 text-sm rounded ${
+                                pageNum === allImagesPagination.currentPage
+                                  ? 'bg-purple-500 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => loadAllImages(allImagesPagination.nextPage)}
+                        disabled={!allImagesPagination.hasNextPage}
+                        className={`px-3 py-1 text-sm rounded ${
+                          allImagesPagination.hasNextPage
+                            ? 'bg-gray-500 text-white hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        다음 →
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
