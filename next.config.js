@@ -15,7 +15,8 @@ module.exports = {
       'oaidalleapiprodscus.blob.core.windows.net',
       'yyytjudftvpmcnppaymw.supabase.co',
       'masgolf.co.kr',
-      'static.wixstatic.com'
+      'static.wixstatic.com',
+      'img.youtube.com'
     ],
     remotePatterns: [
       {
@@ -41,6 +42,12 @@ module.exports = {
         hostname: 'static.wixstatic.com',
         port: '',
         pathname: '/media/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        port: '',
+        pathname: '/vi/**',
       }
     ],
     dangerouslyAllowSVG: true,

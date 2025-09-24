@@ -307,13 +307,13 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
                         <h2>추천 제품</h2>
                         <div class="product-grid">
                           <div class="product-card">
-                            <img src="https://via.placeholder.com/300x200" alt="제품1" class="product-image">
+                            <img src="/placeholder-image.jpg" alt="제품1" class="product-image">
                             <h3 class="product-title">프리미엄 제품</h3>
                             <div class="product-price">₩299,000</div>
                             <p>최고의 품질과 성능을 자랑하는 제품입니다.</p>
                           </div>
                           <div class="product-card">
-                            <img src="https://via.placeholder.com/300x200" alt="제품2" class="product-image">
+                            <img src="/placeholder-image.jpg" alt="제품2" class="product-image">
                             <h3 class="product-title">베스트셀러</h3>
                             <div class="product-price">₩199,000</div>
                             <p>많은 고객들이 선택한 인기 제품입니다.</p>
