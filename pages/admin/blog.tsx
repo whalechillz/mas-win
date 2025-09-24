@@ -2273,10 +2273,13 @@ export default function BlogAdmin() {
                                 if (response.ok) {
                                   const result = await response.json();
                                   const imageMarkdown = `\n\n![업로드 이미지](${result.imageUrl})\n\n`;
-                                  setFormData({ 
+                                  
+                                  // 먼저 formData 업데이트
+                                  const updatedFormData = { 
                                     ...formData, 
                                     content: formData.content + imageMarkdown 
-                                  });
+                                  };
+                                  setFormData(updatedFormData);
                                   
                                   // 업로드된 이미지를 갤러리에 추가
                                   addToImageGallery(result.imageUrl, 'upload', {
@@ -2284,9 +2287,19 @@ export default function BlogAdmin() {
                                     uploadedAt: new Date().toISOString()
                                   });
                                   
-                                  // 현재 게시물의 이미지 목록 새로고침
+                                  // 현재 게시물의 이미지 목록에 직접 추가 (즉시 반영)
                                   if (editingPost) {
-                                    await loadPostImages(editingPost.id);
+                                    const newImage = {
+                                      id: Date.now() + Math.random(),
+                                      name: result.fileName,
+                                      size: 0, // 업로드 시에는 크기 정보가 없음
+                                      created_at: new Date().toISOString(),
+                                      updated_at: new Date().toISOString(),
+                                      url: result.imageUrl,
+                                      is_featured: false
+                                    };
+                                    
+                                    setPostImages(prev => [newImage, ...prev]);
                                   }
                                   
                                   alert('이미지가 업로드되었습니다!');
