@@ -229,6 +229,8 @@ export default function BlogAdmin() {
   // 이미지 미리보기 상태
   const [previewImage, setPreviewImage] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [imageUsageInfo, setImageUsageInfo] = useState(null);
+  const [isLoadingUsageInfo, setIsLoadingUsageInfo] = useState(false);
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -644,6 +646,26 @@ export default function BlogAdmin() {
       setDuplicateImages([]);
     } finally {
       setIsLoadingDuplicates(false);
+    }
+  };
+
+  // 이미지 사용 현황 조회
+  const loadImageUsageInfo = async (imageUrl) => {
+    setIsLoadingUsageInfo(true);
+    try {
+      const response = await fetch(`/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(imageUrl)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setImageUsageInfo(data);
+      } else {
+        console.error('이미지 사용 현황 조회 실패');
+        setImageUsageInfo(null);
+      }
+    } catch (error) {
+      console.error('이미지 사용 현황 조회 오류:', error);
+      setImageUsageInfo(null);
+    } finally {
+      setIsLoadingUsageInfo(false);
     }
   };
 
@@ -2474,6 +2496,8 @@ export default function BlogAdmin() {
                               // 이미지 미리보기 모달 열기
                               setPreviewImage(image);
                               setShowImagePreview(true);
+                              // 이미지 사용 현황 자동 로드
+                              loadImageUsageInfo(image.url);
                             }}
                           />
                           <div className="absolute top-1 right-1">
@@ -2614,13 +2638,19 @@ export default function BlogAdmin() {
                             onClick={() => {
                               const toDelete = group.images.slice(1); // 첫 번째 제외하고 삭제
                               
-                              // 사용 중인 이미지가 있는지 확인
-                              const usedImages = toDelete.filter(img => img.usage && img.usage.length > 0);
+                              // 사용 중인 이미지가 있는지 확인 (전체 사이트 범위)
+                              const usedImages = toDelete.filter(img => img.usageSummary && img.usageSummary.isUsed);
                               if (usedImages.length > 0) {
-                                const usedTitles = usedImages.map(img => 
-                                  img.usage.map(u => u.title).join(', ')
-                                ).join(', ');
-                                alert(`⚠️ 사용 중인 이미지가 있습니다!\n\n사용 중인 게시물: ${usedTitles}\n\n이미지를 삭제하면 해당 게시물에서 이미지가 깨질 수 있습니다.`);
+                                const usedDetails = usedImages.map(img => {
+                                  const usageTypes = [];
+                                  if (img.usageSummary.blogPosts > 0) usageTypes.push(`블로그 ${img.usageSummary.blogPosts}개`);
+                                  if (img.usageSummary.funnelPages > 0) usageTypes.push(`퍼널 ${img.usageSummary.funnelPages}개`);
+                                  if (img.usageSummary.staticPages > 0) usageTypes.push(`정적페이지 ${img.usageSummary.staticPages}개`);
+                                  
+                                  return `${img.name}: ${usageTypes.join(', ')}`;
+                                }).join('\n');
+                                
+                                alert(`⚠️ 전체 사이트에서 사용 중인 이미지가 있습니다!\n\n${usedDetails}\n\n이미지를 삭제하면 해당 페이지들에서 이미지가 깨질 수 있습니다.\n\n삭제를 계속하려면 확인을 다시 눌러주세요.`);
                                 return;
                               }
                               
@@ -2663,23 +2693,54 @@ export default function BlogAdmin() {
                                     {image.name}
                                   </div>
                                   
-                                  {/* 사용 정보 표시 */}
-                                  {image.usage && image.usage.length > 0 ? (
+                                  {/* 사용 정보 표시 (전체 사이트 범위) */}
+                                  {image.usageSummary && image.usageSummary.isUsed ? (
                                     <div className="text-xs">
                                       <div className="text-green-600 font-medium mb-1">
-                                        📝 사용 중인 게시물:
+                                        📝 전체 사이트에서 사용 중 ({image.usageSummary.totalUsage}곳):
                                       </div>
-                                      {image.usage.map((usage, idx) => (
-                                        <div key={idx} className="text-gray-600 mb-1">
-                                          • {usage.title}
-                                          {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표이미지)</span>}
-                                          {usage.isInContent && <span className="text-blue-600 ml-1">(본문)</span>}
+                                      
+                                      {/* 사용 현황 요약 */}
+                                      <div className="mb-2 text-gray-500">
+                                        {image.usageSummary.blogPosts > 0 && (
+                                          <span className="mr-2">📰 블로그: {image.usageSummary.blogPosts}개</span>
+                                        )}
+                                        {image.usageSummary.funnelPages > 0 && (
+                                          <span className="mr-2">🎯 퍼널: {image.usageSummary.funnelPages}개</span>
+                                        )}
+                                        {image.usageSummary.staticPages > 0 && (
+                                          <span className="mr-2">📄 정적페이지: {image.usageSummary.staticPages}개</span>
+                                        )}
+                                      </div>
+                                      
+                                      {/* 상세 사용 현황 */}
+                                      {image.usage && image.usage.length > 0 && (
+                                        <div className="max-h-20 overflow-y-auto">
+                                          {image.usage.map((usage, idx) => (
+                                            <div key={idx} className="text-gray-600 mb-1 border-l-2 border-gray-200 pl-2">
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs">
+                                                  {usage.type === 'blog_post' && '📰'}
+                                                  {usage.type === 'funnel_page' && '🎯'}
+                                                  {usage.type === 'static_page' && '📄'}
+                                                </span>
+                                                <span className="truncate" title={usage.title}>
+                                                  {usage.title}
+                                                </span>
+                                              </div>
+                                              <div className="text-xs text-gray-500 ml-4">
+                                                {usage.isFeatured && <span className="text-yellow-600 mr-2">⭐ 대표이미지</span>}
+                                                {usage.isInContent && <span className="text-blue-600 mr-2">📝 본문</span>}
+                                                <span className="text-gray-400">{usage.url}</span>
+                                              </div>
+                                            </div>
+                                          ))}
                                         </div>
-                                      ))}
+                                      )}
                                     </div>
                                   ) : (
                                     <div className="text-xs text-gray-400">
-                                      📭 사용되지 않음
+                                      📭 전체 사이트에서 사용되지 않음
                                     </div>
                                   )}
                                 </div>
@@ -2732,6 +2793,83 @@ export default function BlogAdmin() {
                       <p><strong>크기:</strong> {previewImage.size ? (previewImage.size / 1024 / 1024).toFixed(2) + ' MB' : '알 수 없음'}</p>
                       <p><strong>생성일:</strong> {new Date(previewImage.created_at).toLocaleDateString()}</p>
                     </div>
+                  </div>
+                  
+                  {/* 이미지 사용 현황 정보 */}
+                  <div className="mb-4">
+                    <h4 className="font-medium text-gray-800 mb-2">사용 현황</h4>
+                    {isLoadingUsageInfo ? (
+                      <div className="text-sm text-gray-500">사용 현황을 조회 중...</div>
+                    ) : imageUsageInfo ? (
+                      <div className="text-sm">
+                        {imageUsageInfo.summary.isUsed ? (
+                          <div>
+                            <div className="text-green-600 font-medium mb-2">
+                              📝 전체 사이트에서 사용 중 ({imageUsageInfo.summary.totalUsage}곳)
+                            </div>
+                            
+                            {/* 사용 현황 요약 */}
+                            <div className="mb-3 text-gray-600">
+                              {imageUsageInfo.summary.blogPosts > 0 && (
+                                <span className="inline-block mr-3 mb-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  📰 블로그: {imageUsageInfo.summary.blogPosts}개
+                                </span>
+                              )}
+                              {imageUsageInfo.summary.funnelPages > 0 && (
+                                <span className="inline-block mr-3 mb-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
+                                  🎯 퍼널: {imageUsageInfo.summary.funnelPages}개
+                                </span>
+                              )}
+                              {imageUsageInfo.summary.staticPages > 0 && (
+                                <span className="inline-block mr-3 mb-1 px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">
+                                  📄 정적페이지: {imageUsageInfo.summary.staticPages}개
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* 상세 사용 현황 */}
+                            <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
+                              {imageUsageInfo.usage.blogPosts.map((post, idx) => (
+                                <div key={`blog-${idx}`} className="text-xs text-gray-600 mb-1">
+                                  📰 <strong>{post.title}</strong>
+                                  <div className="ml-4 text-gray-500">
+                                    {post.isFeatured && <span className="text-yellow-600 mr-2">⭐ 대표이미지</span>}
+                                    {post.isInContent && <span className="text-blue-600 mr-2">📝 본문</span>}
+                                    <span className="text-gray-400">{post.url}</span>
+                                  </div>
+                                </div>
+                              ))}
+                              {imageUsageInfo.usage.funnelPages.map((page, idx) => (
+                                <div key={`funnel-${idx}`} className="text-xs text-gray-600 mb-1">
+                                  🎯 <strong>{page.title}</strong>
+                                  <div className="ml-4 text-gray-500">
+                                    {page.isFeatured && <span className="text-yellow-600 mr-2">⭐ 대표이미지</span>}
+                                    {page.isInContent && <span className="text-blue-600 mr-2">📝 본문</span>}
+                                    <span className="text-gray-400">{page.url}</span>
+                                  </div>
+                                </div>
+                              ))}
+                              {imageUsageInfo.usage.staticPages.map((page, idx) => (
+                                <div key={`static-${idx}`} className="text-xs text-gray-600 mb-1">
+                                  📄 <strong>{page.title}</strong>
+                                  <div className="ml-4 text-gray-500">
+                                    {page.isFeatured && <span className="text-yellow-600 mr-2">⭐ 대표이미지</span>}
+                                    {page.isInContent && <span className="text-blue-600 mr-2">📝 본문</span>}
+                                    <span className="text-gray-400">{page.url}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-gray-500">
+                            📭 전체 사이트에서 사용되지 않음
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">사용 현황을 불러올 수 없습니다.</div>
+                    )}
                   </div>
                   
                   <div className="flex gap-3">
