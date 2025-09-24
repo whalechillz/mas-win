@@ -324,7 +324,12 @@ export default function BlogAdmin() {
     console.log('🚨 이벤트 타입:', e.type);
     console.log('🚨 이벤트 타겟:', e.target);
     console.log('🚨 이벤트 현재 타겟:', e.currentTarget);
-    console.log('🚨 스택 트레이스:', new Error().stack);
+    
+    // 의도하지 않은 호출인지 확인 (이벤트 타겟이 submit 버튼이 아닌 경우)
+    if (e.target && e.target.type !== 'submit' && e.target.tagName !== 'BUTTON') {
+      console.log('🚨 의도하지 않은 폼 제출 감지, 무시합니다.');
+      return;
+    }
     
     try {
       console.log('📝 게시물 저장 중...');
@@ -1506,7 +1511,7 @@ export default function BlogAdmin() {
                 </button>
               </div>
               
-              <form className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* 콘텐츠 소스 입력란 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1913,7 +1918,6 @@ export default function BlogAdmin() {
                                 📋 복사
                               </button>
                               <button
-                                type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   insertImageToContentLegacy(imageUrl);
@@ -1971,7 +1975,6 @@ export default function BlogAdmin() {
                                   📋 URL 복사
                                 </button>
                                 <button
-                                  type="button"
                                   onClick={() => insertImageToContentLegacy(item.imageUrl)}
                                   className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                 >
@@ -2153,7 +2156,6 @@ export default function BlogAdmin() {
                             </div>
                             <div className="flex gap-1">
                               <button
-                                type="button"
                                 onClick={() => insertImageToContentNew(image.url, image.name || '이미지')}
                                 className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                               >
@@ -2222,21 +2224,18 @@ export default function BlogAdmin() {
                             </div>
                             <div className="flex gap-1">
                               <button
-                                type="button"
                                 onClick={() => insertImageToContent(image.url, 'start')}
                                 className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                               >
                                 앞
                               </button>
                               <button
-                                type="button"
                                 onClick={() => insertImageToContent(image.url, 'middle')}
                                 className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
                               >
                                 중간
                               </button>
                               <button
-                                type="button"
                                 onClick={() => insertImageToContent(image.url, 'end')}
                                 className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
                               >
@@ -2336,10 +2335,26 @@ export default function BlogAdmin() {
                                     
                                     setPostImages(prev => [newImage, ...prev]);
                                     
-                                    // 이미지 업로드 후 갤러리만 새로고침 (임시 저장 제거)
-                                    setTimeout(async () => {
-                                      await loadPostImages(editingPost.id);
-                                    }, 100);
+                                    // 이미지 업로드 후 게시물을 임시로 저장하여 데이터베이스에 최신 내용 반영
+                                    try {
+                                      const saveResponse = await fetch(`/api/admin/blog/${editingPost.id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify(updatedFormData),
+                                      });
+                                      
+                                      if (saveResponse.ok) {
+                                        console.log('✅ 이미지 업로드 후 게시물 임시 저장 성공');
+                                        // 저장 후 갤러리 새로고침
+                                        setTimeout(async () => {
+                                          await loadPostImages(editingPost.id);
+                                        }, 500);
+                                      }
+                                    } catch (saveError) {
+                                      console.error('❌ 게시물 임시 저장 실패:', saveError);
+                                    }
                                   }
                                   
                                   alert('이미지가 업로드되었습니다!');
@@ -2617,8 +2632,7 @@ export default function BlogAdmin() {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      type="button"
-                      onClick={handleSubmit}
+                      type="submit"
                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       {editingPost ? '수정' : '저장'}
