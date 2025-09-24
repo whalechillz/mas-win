@@ -319,6 +319,13 @@ export default function BlogAdmin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // 디버깅: 어떤 이벤트가 폼 제출을 트리거했는지 확인
+    console.log('🚨 handleSubmit 호출됨!');
+    console.log('🚨 이벤트 타입:', e.type);
+    console.log('🚨 이벤트 타겟:', e.target);
+    console.log('🚨 이벤트 현재 타겟:', e.currentTarget);
+    console.log('🚨 스택 트레이스:', new Error().stack);
+    
     try {
       console.log('📝 게시물 저장 중...');
       
@@ -1499,7 +1506,7 @@ export default function BlogAdmin() {
                 </button>
               </div>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form className="space-y-4">
                 {/* 콘텐츠 소스 입력란 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2610,7 +2617,8 @@ export default function BlogAdmin() {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={handleSubmit}
                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       {editingPost ? '수정' : '저장'}
