@@ -225,6 +225,10 @@ export default function BlogAdmin() {
   const [showDuplicates, setShowDuplicates] = useState(false);
   const [isLoadingDuplicates, setIsLoadingDuplicates] = useState(false);
   const [selectedDuplicates, setSelectedDuplicates] = useState([]);
+  
+  // 이미지 미리보기 상태
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showImagePreview, setShowImagePreview] = useState(false);
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -2467,18 +2471,9 @@ export default function BlogAdmin() {
                             alt={image.name || `Image ${index + 1}`}
                             className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => {
-                              // 현재 게시물에 이미지 삽입
-                              if (useWysiwyg) {
-                                const imageHtml = `<img src="${image.url}" alt="${image.name || '이미지'}" style="max-width: 100%; height: auto;" />`;
-                                const newHtmlContent = htmlContent + imageHtml;
-                                setHtmlContent(newHtmlContent);
-                                const markdownContent = convertHtmlToMarkdown(newHtmlContent);
-                                setFormData(prev => ({ ...prev, content: markdownContent }));
-                              } else {
-                                const imageMarkdown = `![${image.name || '이미지'}](${image.url})`;
-                                setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
-                              }
-                              alert('이미지가 본문에 삽입되었습니다!');
+                              // 이미지 미리보기 모달 열기
+                              setPreviewImage(image);
+                              setShowImagePreview(true);
                             }}
                           />
                           <div className="absolute top-1 right-1">
@@ -2618,46 +2613,75 @@ export default function BlogAdmin() {
                             type="button"
                             onClick={() => {
                               const toDelete = group.images.slice(1); // 첫 번째 제외하고 삭제
+                              
+                              // 사용 중인 이미지가 있는지 확인
+                              const usedImages = toDelete.filter(img => img.usage && img.usage.length > 0);
+                              if (usedImages.length > 0) {
+                                const usedTitles = usedImages.map(img => 
+                                  img.usage.map(u => u.title).join(', ')
+                                ).join(', ');
+                                alert(`⚠️ 사용 중인 이미지가 있습니다!\n\n사용 중인 게시물: ${usedTitles}\n\n이미지를 삭제하면 해당 게시물에서 이미지가 깨질 수 있습니다.`);
+                                return;
+                              }
+                              
                               deleteDuplicateImages(toDelete.map(img => img.name));
                             }}
                             className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                           >
-                            중복 삭제 ({group.count - 1}개)
+                            안전한 중복 삭제 ({group.count - 1}개)
                           </button>
                         </div>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {group.images.map((image, imageIndex) => (
                             <div key={imageIndex} className={`border-2 rounded-lg overflow-hidden ${
                               imageIndex === 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
                             }`}>
-                              <div className="relative">
-                                <img
-                                  src={image.url}
-                                  alt={image.name}
-                                  className="w-full h-20 object-cover"
-                                />
-                                <div className="absolute top-1 left-1">
-                                  <span className={`px-1 py-0.5 text-xs rounded ${
-                                    imageIndex === 0 
-                                      ? 'bg-green-500 text-white' 
-                                      : 'bg-red-500 text-white'
-                                  }`}>
-                                    {imageIndex === 0 ? '유지' : '삭제'}
-                                  </span>
+                              <div className="flex">
+                                <div className="w-24 h-24 flex-shrink-0">
+                                  <img
+                                    src={image.url}
+                                    alt={image.name}
+                                    className="w-full h-full object-cover"
+                                  />
                                 </div>
-                                <div className="absolute top-1 right-1">
-                                  <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
-                                    {imageIndex + 1}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="p-2">
-                                <div className="text-xs text-gray-600 truncate" title={image.name}>
-                                  {image.name}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {new Date(image.created_at).toLocaleDateString()}
+                                <div className="flex-1 p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className={`px-2 py-1 text-xs rounded ${
+                                      imageIndex === 0 
+                                        ? 'bg-green-500 text-white' 
+                                        : 'bg-red-500 text-white'
+                                    }`}>
+                                      {imageIndex === 0 ? '유지' : '삭제'}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(image.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="text-xs text-gray-600 truncate mb-2" title={image.name}>
+                                    {image.name}
+                                  </div>
+                                  
+                                  {/* 사용 정보 표시 */}
+                                  {image.usage && image.usage.length > 0 ? (
+                                    <div className="text-xs">
+                                      <div className="text-green-600 font-medium mb-1">
+                                        📝 사용 중인 게시물:
+                                      </div>
+                                      {image.usage.map((usage, idx) => (
+                                        <div key={idx} className="text-gray-600 mb-1">
+                                          • {usage.title}
+                                          {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표이미지)</span>}
+                                          {usage.isInContent && <span className="text-blue-600 ml-1">(본문)</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-gray-400">
+                                      📭 사용되지 않음
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -2675,6 +2699,89 @@ export default function BlogAdmin() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* 이미지 미리보기 모달 */}
+          {showImagePreview && previewImage && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
+                <div className="flex justify-between items-center p-4 border-b">
+                  <h3 className="text-lg font-semibold">이미지 미리보기</h3>
+                  <button
+                    onClick={() => setShowImagePreview(false)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <div className="p-4">
+                  <div className="mb-4">
+                    <img
+                      src={previewImage.url}
+                      alt={previewImage.name}
+                      className="max-w-full max-h-[60vh] object-contain mx-auto"
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h4 className="font-medium text-gray-800 mb-2">파일 정보</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p><strong>파일명:</strong> {previewImage.name}</p>
+                      <p><strong>크기:</strong> {previewImage.size ? (previewImage.size / 1024 / 1024).toFixed(2) + ' MB' : '알 수 없음'}</p>
+                      <p><strong>생성일:</strong> {new Date(previewImage.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // 현재 게시물에 이미지 삽입
+                        if (useWysiwyg) {
+                          const imageHtml = `<img src="${previewImage.url}" alt="${previewImage.name || '이미지'}" style="max-width: 100%; height: auto;" />`;
+                          const newHtmlContent = htmlContent + imageHtml;
+                          setHtmlContent(newHtmlContent);
+                          const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+                          setFormData(prev => ({ ...prev, content: markdownContent }));
+                        } else {
+                          const imageMarkdown = `![${previewImage.name || '이미지'}](${previewImage.url})`;
+                          setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
+                        }
+                        setShowImagePreview(false);
+                        alert('이미지가 본문에 삽입되었습니다!');
+                      }}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                    >
+                      📝 본문에 삽입
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, featured_image: previewImage.url });
+                        setShowImagePreview(false);
+                        alert('대표 이미지로 설정되었습니다!');
+                      }}
+                      className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    >
+                      ⭐ 대표 이미지로 설정
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(previewImage.url);
+                        alert('이미지 URL이 복사되었습니다!');
+                      }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      📋 URL 복사
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
                 </div>

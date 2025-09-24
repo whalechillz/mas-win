@@ -10,45 +10,99 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 이미지 해시 계산 (간단한 파일명 기반)
+// 이미지 해시 계산 (개선된 버전 - 더 정확한 중복 감지)
 const calculateImageHash = (filename) => {
-  // 파일명에서 실제 이미지 이름 부분만 추출
+  // 1. 파일명에서 실제 이미지 이름 부분만 추출
   // blog-upload-1758725641002-waterproof-p.jpg -> waterproof-p
-  const match = filename.match(/blog-upload-\d+-(.+?)\./);
-  if (match) {
-    return match[1]; // 실제 이미지 이름 부분
+  const blogUploadMatch = filename.match(/blog-upload-\d+-(.+?)\./);
+  if (blogUploadMatch) {
+    return blogUploadMatch[1];
   }
+  
+  // 2. august-funnel-1757852476987-hero-image-1-face.webp -> hero-image-1-face
+  const funnelMatch = filename.match(/august-funnel-\d+-(.+?)\./);
+  if (funnelMatch) {
+    return funnelMatch[1];
+  }
+  
+  // 3. complete-migration-1757776491130-9.webp -> 9
+  const migrationMatch = filename.match(/complete-migration-\d+-(.+?)\./);
+  if (migrationMatch) {
+    return migrationMatch[1];
+  }
+  
+  // 4. 기타 패턴들
+  const otherMatch = filename.match(/([a-zA-Z0-9-_]+)\.(jpg|jpeg|png|gif|webp)$/i);
+  if (otherMatch) {
+    return otherMatch[1];
+  }
+  
   return filename;
 };
 
-// 중복 이미지 찾기
-const findDuplicateImages = (images) => {
+// 이미지가 어떤 블로그 글에 사용되는지 확인
+const checkImageUsage = async (imageUrl) => {
+  try {
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('id, title, content, featured_image')
+      .or(`content.ilike.%${imageUrl}%,featured_image.eq.${imageUrl}`);
+    
+    if (error) {
+      console.error('이미지 사용 확인 오류:', error);
+      return [];
+    }
+    
+    return posts || [];
+  } catch (error) {
+    console.error('이미지 사용 확인 에러:', error);
+    return [];
+  }
+};
+
+// 중복 이미지 찾기 (개선된 버전)
+const findDuplicateImages = async (images) => {
   const hashMap = new Map();
   const duplicates = [];
   
+  // 이미지들을 해시별로 그룹화
   images.forEach(image => {
     const hash = calculateImageHash(image.name);
     
     if (hashMap.has(hash)) {
-      // 중복 발견
       const existingGroup = hashMap.get(hash);
       existingGroup.push(image);
     } else {
-      // 새로운 그룹 생성
       hashMap.set(hash, [image]);
     }
   });
   
-  // 중복이 있는 그룹만 반환
-  hashMap.forEach((group, hash) => {
+  // 중복이 있는 그룹만 처리하고 사용 정보 확인
+  for (const [hash, group] of hashMap) {
     if (group.length > 1) {
+      // 각 이미지의 사용 정보 확인
+      const imagesWithUsage = await Promise.all(
+        group.map(async (image) => {
+          const usage = await checkImageUsage(image.url);
+          return {
+            ...image,
+            usage: usage.map(post => ({
+              id: post.id,
+              title: post.title,
+              isFeatured: post.featured_image === image.url,
+              isInContent: post.content.includes(image.url)
+            }))
+          };
+        })
+      );
+      
       duplicates.push({
         hash,
         count: group.length,
-        images: group
+        images: imagesWithUsage
       });
     }
-  });
+  }
   
   return duplicates.sort((a, b) => b.count - a.count);
 };
@@ -92,8 +146,8 @@ export default async function handler(req, res) {
         };
       });
 
-      // 중복 이미지 찾기
-      const duplicates = findDuplicateImages(imagesWithUrl);
+      // 중복 이미지 찾기 (비동기 처리)
+      const duplicates = await findDuplicateImages(imagesWithUrl);
       
       console.log('✅ 중복 이미지 분석 완료:', duplicates.length, '개 그룹');
       
