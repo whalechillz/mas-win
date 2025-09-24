@@ -25,7 +25,6 @@ export default function BlogAdmin() {
   const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'card'
   const [sortBy, setSortBy] = useState('published_at'); // 정렬 기준
   const [sortOrder, setSortOrder] = useState('desc'); // 정렬 순서
-  const [showImageManager, setShowImageManager] = useState(false); // 이미지 관리자 표시
   const [postImages, setPostImages] = useState([]); // 게시물 이미지 목록
   
   // 디버깅용 useEffect
@@ -2266,7 +2265,7 @@ export default function BlogAdmin() {
                                 uploadFormData.append('image', file);
                                 
                                 // 서버에 업로드
-                                const response = await fetch('/api/upload-image/', {
+                                const response = await fetch('/api/upload-image', {
                                   method: 'POST',
                                   body: uploadFormData,
                                 });
@@ -2350,105 +2349,7 @@ export default function BlogAdmin() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* 이미지 관리 버튼 */}
-                      {editingPost && (
-                        <div className="flex justify-between items-center">
-                          <button
-                            type="button"
-                            onClick={() => setShowImageManager(!showImageManager)}
-                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
-                          >
-                            <span>🖼️</span>
-                            <span>이미지 관리 ({postImages.length}개)</span>
-                          </button>
-                          <span className="text-sm text-gray-500">
-                            Supabase 스토리지에서 이미지를 관리할 수 있습니다
-                          </span>
-                        </div>
-                      )}
 
-                      {/* 이미지 관리 패널 */}
-                      {showImageManager && editingPost && (
-                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                          <div className="flex justify-between items-center mb-4">
-                            <h4 className="text-lg font-medium text-gray-900">
-                              🖼️ 이미지 갤러리 ({postImages.length}개)
-                            </h4>
-          {formData.featured_image && (
-                              <div className="text-sm text-green-600 font-medium">
-                                ⭐ 현재 대표이미지: {postImages.find(img => img.url === formData.featured_image)?.name || '설정됨'}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {postImages.length === 0 ? (
-                            <p className="text-gray-500 text-center py-8">
-                              이 게시물에 연결된 이미지가 없습니다.
-                            </p>
-                          ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                              {postImages.map((image, index) => (
-                                <div key={index} className="relative group">
-                                  <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                    <img
-                                      src={image.url}
-                                      alt={image.name}
-                  className="w-full h-full object-cover"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x200/EF4444/FFFFFF?text=Error';
-                                      }}
-                />
-                                  </div>
-                                  
-                                  {/* 이미지 액션 버튼들 */}
-                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                    <div className="flex flex-col space-y-1">
-                <button
-                  type="button"
-                                        onClick={() => setFeaturedImage(image.url)}
-                                        className={`px-3 py-1 rounded text-sm transition-colors ${
-                                          formData.featured_image === image.url 
-                                            ? 'bg-green-600 text-white' 
-                                            : 'bg-green-500 text-white hover:bg-green-600'
-                                        }`}
-                                        title="대표이미지로 설정"
-                                      >
-                                        {formData.featured_image === image.url ? '⭐ 대표' : '⭐ 대표'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => insertImageToContentNew(image.url, image.name)}
-                                        className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
-                                        title="본문에 삽입"
-                                      >
-                                        📝 삽입
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => deleteImage(image.name)}
-                                        className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
-                  title="이미지 삭제"
-                >
-                                        🗑️ 삭제
-                </button>
-              </div>
-            </div>
-                                  
-                                  {/* 이미지 정보 */}
-                                  <div className="mt-2">
-                                    <p className="text-xs text-gray-600 truncate" title={image.name}>
-                                      {image.name}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                      {(image.size / 1024).toFixed(1)}KB
-              </p>
-            </div>
-          </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
 
                       <textarea
                         name="content"
