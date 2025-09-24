@@ -40,23 +40,44 @@ const calculateImageHash = (filename) => {
   return filename;
 };
 
-// 이미지가 어떤 블로그 글에 사용되는지 확인
-const checkImageUsage = async (imageUrl) => {
+// 전체 사이트에서 이미지 사용 현황을 확인하는 함수
+const checkImageUsageAcrossSite = async (imageUrl) => {
   try {
-    const { data: posts, error } = await supabase
-      .from('blog_posts')
-      .select('id, title, content, featured_image')
-      .or(`content.ilike.%${imageUrl}%,featured_image.eq.${imageUrl}`);
+    // 새로운 사용 현황 추적 API 호출
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(imageUrl)}`);
     
-    if (error) {
-      console.error('이미지 사용 확인 오류:', error);
-      return [];
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return posts || [];
+    const data = await response.json();
+    return data.usage || { blogPosts: [], funnelPages: [], staticPages: [], totalUsage: 0 };
+    
   } catch (error) {
-    console.error('이미지 사용 확인 에러:', error);
-    return [];
+    console.error('이미지 사용 현황 추적 오류:', error);
+    
+    // 폴백: 기존 방식으로 블로그 게시물만 확인
+    try {
+      const { data: posts, error } = await supabase
+        .from('blog_posts')
+        .select('id, title, content, featured_image')
+        .or(`content.ilike.%${imageUrl}%,featured_image.eq.${imageUrl}`);
+      
+      if (error) {
+        console.error('이미지 사용 확인 오류:', error);
+        return { blogPosts: [], funnelPages: [], staticPages: [], totalUsage: 0 };
+      }
+      
+      return {
+        blogPosts: posts || [],
+        funnelPages: [],
+        staticPages: [],
+        totalUsage: (posts || []).length
+      };
+    } catch (fallbackError) {
+      console.error('폴백 이미지 사용 확인 에러:', fallbackError);
+      return { blogPosts: [], funnelPages: [], staticPages: [], totalUsage: 0 };
+    }
   }
 };
 
@@ -80,18 +101,53 @@ const findDuplicateImages = async (images) => {
   // 중복이 있는 그룹만 처리하고 사용 정보 확인
   for (const [hash, group] of hashMap) {
     if (group.length > 1) {
-      // 각 이미지의 사용 정보 확인
+      // 각 이미지의 사용 정보 확인 (전체 사이트 범위)
       const imagesWithUsage = await Promise.all(
         group.map(async (image) => {
-          const usage = await checkImageUsage(image.url);
-          return {
-            ...image,
-            usage: usage.map(post => ({
+          const usageData = await checkImageUsageAcrossSite(image.url);
+          
+          // 모든 사용 현황을 하나의 배열로 통합
+          const allUsage = [
+            ...usageData.blogPosts.map(post => ({
               id: post.id,
               title: post.title,
-              isFeatured: post.featured_image === image.url,
-              isInContent: post.content.includes(image.url)
+              type: 'blog_post',
+              url: `/blog/${post.slug}`,
+              isFeatured: post.isFeatured,
+              isInContent: post.isInContent,
+              created_at: post.created_at
+            })),
+            ...usageData.funnelPages.map(page => ({
+              id: page.id,
+              title: page.title,
+              type: 'funnel_page',
+              url: `/funnel/${page.slug}`,
+              isFeatured: page.isFeatured,
+              isInContent: page.isInContent,
+              created_at: page.created_at
+            })),
+            ...usageData.staticPages.map(page => ({
+              id: page.id,
+              title: page.title,
+              type: 'static_page',
+              url: `/${page.slug}`,
+              isFeatured: page.isFeatured,
+              isInContent: page.isInContent,
+              created_at: page.created_at
             }))
+          ];
+          
+          return {
+            ...image,
+            usage: allUsage,
+            usageSummary: {
+              totalUsage: usageData.totalUsage,
+              blogPosts: usageData.blogPosts.length,
+              funnelPages: usageData.funnelPages.length,
+              staticPages: usageData.staticPages.length,
+              isUsed: usageData.totalUsage > 0,
+              isSafeToDelete: usageData.totalUsage === 0
+            }
           };
         })
       );
