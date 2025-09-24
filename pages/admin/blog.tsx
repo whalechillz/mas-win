@@ -1,7 +1,63 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { marked } from 'marked';
+import dynamic from 'next/dynamic';
 // import WysiwygEditor from '../../components/WysiwygEditor';
+
+// React Quill을 동적으로 로드 (SSR 문제 방지)
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import 'react-quill/dist/quill.snow.css';
+
+// React Quill 설정
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    ['link', 'image'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header', 'bold', 'italic', 'underline', 'strike',
+  'color', 'background', 'list', 'bullet', 'align',
+  'link', 'image'
+];
+
+// HTML을 마크다운으로 변환하는 함수
+const convertHtmlToMarkdown = (html) => {
+  if (!html) return '';
+  
+  // 간단한 HTML to Markdown 변환
+  let markdown = html
+    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+    .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+    .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+    .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+    .replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi, '![$2]($1)')
+    .replace(/<img[^>]*alt="([^"]*)"[^>]*src="([^"]*)"[^>]*>/gi, '![$1]($2)')
+    .replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '![]($1)')
+    .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+    .replace(/<br[^>]*>/gi, '\n')
+    .replace(/<ul[^>]*>(.*?)<\/ul>/gis, (match, content) => {
+      return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n';
+    })
+    .replace(/<ol[^>]*>(.*?)<\/ol>/gis, (match, content) => {
+      let counter = 1;
+      return content.replace(/<li[^>]*>(.*?)<\/li>/gi, () => `${counter++}. $1\n`) + '\n';
+    })
+    .replace(/<[^>]*>/g, '') // 남은 HTML 태그 제거
+    .replace(/\n\s*\n\s*\n/g, '\n\n') // 연속된 줄바꿈 정리
+    .trim();
+    
+  return markdown;
+};
 
 // 마크다운을 HTML로 변환하는 함수
 const convertMarkdownToHtml = (markdown) => {
@@ -158,6 +214,9 @@ export default function BlogAdmin() {
   const [showTitleOptions, setShowTitleOptions] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
+  // WYSIWYG 에디터 상태
+  const [useWysiwyg, setUseWysiwyg] = useState(true);
+  const [htmlContent, setHtmlContent] = useState('');
   
   // 이미지 생성 과정 투명성 상태
   const [imageGenerationStep, setImageGenerationStep] = useState('');
@@ -312,6 +371,17 @@ export default function BlogAdmin() {
     setShowForm(false);
   };
 
+  // WYSIWYG 에디터 내용 변경 핸들러
+  const handleQuillChange = (content) => {
+    setHtmlContent(content);
+    // HTML을 마크다운으로 변환하여 formData에 저장
+    const markdownContent = convertHtmlToMarkdown(content);
+    setFormData(prev => ({
+      ...prev,
+      content: markdownContent
+    }));
+  };
+
   // 게시물 저장/수정
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -331,6 +401,15 @@ export default function BlogAdmin() {
     
     try {
       console.log('📝 게시물 저장 중...');
+      
+      // WYSIWYG 에디터 사용 시 최신 HTML을 마크다운으로 변환
+      if (useWysiwyg && htmlContent) {
+        const markdownContent = convertHtmlToMarkdown(htmlContent);
+        setFormData(prev => ({
+          ...prev,
+          content: markdownContent
+        }));
+      }
       
       if (editingPost) {
         // 수정
@@ -465,6 +544,11 @@ export default function BlogAdmin() {
       ...post,
       tags: Array.isArray(post.tags) ? post.tags : []
     });
+    
+    // 마크다운을 HTML로 변환하여 WYSIWYG 에디터에 표시
+    const htmlContent = convertMarkdownToHtml(post.content);
+    setHtmlContent(htmlContent);
+    
     setShowForm(true);
     // 게시물 이미지 목록 로드
     loadPostImages(post.id);
@@ -491,16 +575,31 @@ export default function BlogAdmin() {
 
   // 이미지 삽입 (새로운 함수)
   const insertImageToContentNew = (imageUrl, altText = '이미지') => {
-    const imageMarkdown = `![${altText}](${imageUrl})`;
-    const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
-    const cursorPosition = textarea?.selectionStart || 0;
-    const content = formData.content;
-    const newContent = content.slice(0, cursorPosition) + imageMarkdown + content.slice(cursorPosition);
-    
-    setFormData(prev => ({
-      ...prev,
-      content: newContent
-    }));
+    if (useWysiwyg) {
+      // WYSIWYG 에디터에 이미지 삽입
+      const imageHtml = `<img src="${imageUrl}" alt="${altText}" style="max-width: 100%; height: auto;" />`;
+      const newHtmlContent = htmlContent + imageHtml;
+      setHtmlContent(newHtmlContent);
+      
+      // HTML을 마크다운으로 변환하여 formData에 저장
+      const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+      setFormData(prev => ({
+        ...prev,
+        content: markdownContent
+      }));
+    } else {
+      // 기존 마크다운 방식
+      const imageMarkdown = `![${altText}](${imageUrl})`;
+      const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
+      const cursorPosition = textarea?.selectionStart || 0;
+      const content = formData.content;
+      const newContent = content.slice(0, cursorPosition) + imageMarkdown + content.slice(cursorPosition);
+      
+      setFormData(prev => ({
+        ...prev,
+        content: newContent
+      }));
+    }
   };
 
   // 대표이미지 설정
@@ -858,11 +957,26 @@ export default function BlogAdmin() {
 
   // 이미지를 내용에 삽입 (기존 함수 - 하위 호환성 유지)
   const insertImageToContentLegacy = (imageUrl) => {
-    const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
-    setFormData({ 
-      ...formData, 
-      content: formData.content + imageMarkdown 
-    });
+    if (useWysiwyg) {
+      // WYSIWYG 에디터에 이미지 삽입
+      const imageHtml = `<p><img src="${imageUrl}" alt="이미지" style="max-width: 100%; height: auto;" /></p>`;
+      const newHtmlContent = htmlContent + imageHtml;
+      setHtmlContent(newHtmlContent);
+      
+      // HTML을 마크다운으로 변환하여 formData에 저장
+      const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+      setFormData(prev => ({
+        ...prev,
+        content: markdownContent
+      }));
+    } else {
+      // 기존 마크다운 방식
+      const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
+      setFormData({ 
+        ...formData, 
+        content: formData.content + imageMarkdown 
+      });
+    }
     alert('이미지가 내용에 삽입되었습니다! WYSIWYG 에디터에서 미리보기를 확인하세요.');
   };
 
@@ -1008,29 +1122,53 @@ export default function BlogAdmin() {
 
   // 이미지를 본문에 삽입 (위치 선택)
   const insertImageToContent = (imageUrl, position = 'middle') => {
-    const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
-    
-    const content = formData.content;
-    const lines = content.split('\n');
-    let insertPosition = 0;
-    
-    switch (position) {
-      case 'start': // 맨 앞
-        insertPosition = 0;
-        break;
-      case 'middle': // 중간
-        insertPosition = lines.length > 4 ? Math.floor(lines.length / 2) : 0;
-        break;
-      case 'end': // 맨 뒤
-        insertPosition = lines.length;
-        break;
+    if (useWysiwyg) {
+      // WYSIWYG 에디터에 이미지 삽입
+      const imageHtml = `<p><img src="${imageUrl}" alt="이미지" style="max-width: 100%; height: auto;" /></p>`;
+      let newHtmlContent = htmlContent;
+      
+      if (position === 'start') {
+        newHtmlContent = imageHtml + htmlContent;
+      } else if (position === 'end') {
+        newHtmlContent = htmlContent + imageHtml;
+      } else { // middle
+        newHtmlContent = htmlContent + imageHtml;
+      }
+      
+      setHtmlContent(newHtmlContent);
+      
+      // HTML을 마크다운으로 변환하여 formData에 저장
+      const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+      setFormData(prev => ({
+        ...prev,
+        content: markdownContent
+      }));
+    } else {
+      // 기존 마크다운 방식
+      const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
+      
+      const content = formData.content;
+      const lines = content.split('\n');
+      let insertPosition = 0;
+      
+      switch (position) {
+        case 'start': // 맨 앞
+          insertPosition = 0;
+          break;
+        case 'middle': // 중간
+          insertPosition = lines.length > 4 ? Math.floor(lines.length / 2) : 0;
+          break;
+        case 'end': // 맨 뒤
+          insertPosition = lines.length;
+          break;
+      }
+      
+      // 선택된 위치에 이미지 삽입
+      lines.splice(insertPosition, 0, imageMarkdown.trim());
+      const newContent = lines.join('\n');
+      
+      setFormData({ ...formData, content: newContent });
     }
-    
-    // 선택된 위치에 이미지 삽입
-    lines.splice(insertPosition, 0, imageMarkdown.trim());
-    const newContent = lines.join('\n');
-    
-    setFormData({ ...formData, content: newContent });
     
     const positionText = { start: '맨 앞', middle: '중간', end: '맨 뒤' }[position];
     alert(`이미지가 본문 ${positionText}에 삽입되었습니다!`);
@@ -2307,21 +2445,84 @@ export default function BlogAdmin() {
                     </div>
                   ) : (
                     <div className="space-y-4">
+                      {/* 에디터 모드 선택 */}
+                      <div className="flex gap-2 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setUseWysiwyg(true)}
+                          className={`px-3 py-1 text-sm rounded ${
+                            useWysiwyg 
+                              ? 'bg-blue-500 text-white' 
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          🖼️ WYSIWYG (이미지 보기)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseWysiwyg(false)}
+                          className={`px-3 py-1 text-sm rounded ${
+                            !useWysiwyg 
+                              ? 'bg-blue-500 text-white' 
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          📝 마크다운 (코드 보기)
+                        </button>
+                      </div>
 
-
-                      <textarea
-                        name="content"
-                        value={formData.content}
-                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                        rows={10}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
-                        required
-            />
-          </div>
+                      {useWysiwyg ? (
+                        <div className="wysiwyg-editor">
+                          <style jsx>{`
+                            .wysiwyg-editor .ql-editor {
+                              min-height: 300px;
+                              font-size: 16px;
+                              line-height: 1.6;
+                            }
+                            .wysiwyg-editor .ql-editor img {
+                              max-width: 100%;
+                              height: auto;
+                              border-radius: 8px;
+                              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                              margin: 10px 0;
+                            }
+                            .wysiwyg-editor .ql-toolbar {
+                              border-top: 1px solid #ccc;
+                              border-left: 1px solid #ccc;
+                              border-right: 1px solid #ccc;
+                              border-radius: 8px 8px 0 0;
+                            }
+                            .wysiwyg-editor .ql-container {
+                              border-bottom: 1px solid #ccc;
+                              border-left: 1px solid #ccc;
+                              border-right: 1px solid #ccc;
+                              border-radius: 0 0 8px 8px;
+                            }
+                          `}</style>
+                          <ReactQuill
+                            value={htmlContent}
+                            onChange={handleQuillChange}
+                            modules={quillModules}
+                            formats={quillFormats}
+                            placeholder="게시물 내용을 입력하세요. 이미지는 실제로 보입니다!"
+                            style={{ minHeight: '300px' }}
+                          />
+                        </div>
+                      ) : (
+                        <textarea
+                          name="content"
+                          value={formData.content}
+                          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                          rows={10}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
+                          required
+                        />
+                      )}
+                    </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    💡 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)
+                    💡 {useWysiwyg ? 'WYSIWYG 모드: 이미지가 실제로 보입니다!' : '마크다운 모드: 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)'}
                   </p>
         </div>
 
