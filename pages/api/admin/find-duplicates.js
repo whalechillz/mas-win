@@ -10,41 +10,28 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 이미지 콘텐츠 기반 해시 계산 (실제 이미지 데이터 분석)
-const calculateImageContentHash = async (imageUrl) => {
-  try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
-    }
-    const buffer = await response.arrayBuffer();
-    const hash = crypto.createHash('md5').update(Buffer.from(buffer)).digest('hex');
-    return hash;
-  } catch (error) {
-    console.error(`❌ 이미지 콘텐츠 해시 계산 실패 (${imageUrl}):`, error);
-    // 폴백: 파일명 기반 해시
-    return calculateFilenameHash(imageUrl.split('/').pop());
-  }
-};
-
-// 파일명 기반 해시 (폴백용)
-const calculateFilenameHash = (filename) => {
+// 이미지 해시 계산 (간단한 파일명 기반 - 안정적인 버전)
+const calculateImageHash = (filename) => {
   // 1. 파일명에서 실제 이미지 이름 부분만 추출
+  // blog-upload-1758725641002-waterproof-p.jpg -> waterproof-p
   const blogUploadMatch = filename.match(/blog-upload-\d+-(.+?)\./);
   if (blogUploadMatch) {
     return blogUploadMatch[1];
   }
   
+  // 2. august-funnel-1757852476987-hero-image-1-face.webp -> hero-image-1-face
   const funnelMatch = filename.match(/august-funnel-\d+-(.+?)\./);
   if (funnelMatch) {
     return funnelMatch[1];
   }
   
+  // 3. complete-migration-1757776491130-9.webp -> 9
   const migrationMatch = filename.match(/complete-migration-\d+-(.+?)\./);
   if (migrationMatch) {
     return migrationMatch[1];
   }
   
+  // 4. 기타 패턴들
   const otherMatch = filename.match(/([a-zA-Z0-9-_]+)\.(jpg|jpeg|png|gif|webp)$/i);
   if (otherMatch) {
     return otherMatch[1];
@@ -94,92 +81,35 @@ const checkImageUsageAcrossSite = async (imageUrl) => {
   }
 };
 
-// 중복 이미지 찾기 (개선된 버전)
-const findDuplicateImages = async (images) => {
+// 중복 이미지 찾기 (안정적인 버전)
+const findDuplicateImages = (images) => {
   const hashMap = new Map();
   const duplicates = [];
   
-  // 이미지들을 콘텐츠 해시별로 그룹화 (비동기 처리)
-  for (const image of images) {
-    const contentHash = await calculateImageContentHash(image.url);
+  // 이미지들을 해시별로 그룹화
+  images.forEach(image => {
+    const hash = calculateImageHash(image.name);
     
-    if (hashMap.has(contentHash)) {
-      const existingGroup = hashMap.get(contentHash);
+    if (hashMap.has(hash)) {
+      // 중복 발견
+      const existingGroup = hashMap.get(hash);
       existingGroup.push(image);
     } else {
-      hashMap.set(contentHash, [image]);
+      // 새로운 그룹 생성
+      hashMap.set(hash, [image]);
     }
-  }
+  });
   
-  // 중복이 있는 그룹만 처리하고 사용 정보 확인
-  for (const [hash, group] of hashMap) {
+  // 중복이 있는 그룹만 반환
+  hashMap.forEach((group, hash) => {
     if (group.length > 1) {
-      // 각 이미지의 사용 정보 확인 (전체 사이트 범위)
-      const imagesWithUsage = await Promise.all(
-        group.map(async (image) => {
-          const usageData = await checkImageUsageAcrossSite(image.url);
-          
-          // 모든 사용 현황을 하나의 배열로 통합
-          const allUsage = [
-            ...usageData.blogPosts.map(post => ({
-              id: post.id,
-              title: post.title,
-              type: 'blog_post',
-              url: `/blog/${post.slug}`,
-              isFeatured: post.isFeatured,
-              isInContent: post.isInContent,
-              created_at: post.created_at
-            })),
-            ...usageData.funnelPages.map(page => ({
-              id: page.id,
-              title: page.title,
-              type: 'funnel_page',
-              url: `/funnel/${page.slug}`,
-              isFeatured: page.isFeatured,
-              isInContent: page.isInContent,
-              created_at: page.created_at
-            })),
-            ...usageData.staticPages.map(page => ({
-              id: page.id,
-              title: page.title,
-              type: 'static_page',
-              url: `/${page.slug}`,
-              isFeatured: page.isFeatured,
-              isInContent: page.isInContent,
-              created_at: page.created_at
-            }))
-          ];
-          
-          return {
-            ...image,
-            usage: allUsage,
-            usageSummary: {
-              totalUsage: usageData.totalUsage,
-              blogPosts: usageData.blogPosts.length,
-              funnelPages: usageData.funnelPages.length,
-              staticPages: usageData.staticPages.length,
-              isUsed: usageData.totalUsage > 0,
-              isSafeToDelete: usageData.totalUsage === 0
-            }
-          };
-        })
-      );
-      
       duplicates.push({
         hash,
         count: group.length,
-        images: imagesWithUsage,
-        // 그룹 정보 추가
-        groupInfo: {
-          contentHash: hash,
-          totalImages: group.length,
-          duplicateCount: group.length - 1, // 첫 번째 제외하고 삭제 가능한 개수
-          firstImage: group[0], // 유지할 첫 번째 이미지
-          duplicateImages: group.slice(1) // 삭제할 중복 이미지들
-        }
+        images: group
       });
     }
-  }
+  });
   
   return duplicates.sort((a, b) => b.count - a.count);
 };
@@ -223,8 +153,8 @@ export default async function handler(req, res) {
         };
       });
 
-      // 중복 이미지 찾기 (비동기 처리)
-      const duplicates = await findDuplicateImages(imagesWithUrl);
+      // 중복 이미지 찾기
+      const duplicates = findDuplicateImages(imagesWithUrl);
       
       console.log('✅ 중복 이미지 분석 완료:', duplicates.length, '개 그룹');
       

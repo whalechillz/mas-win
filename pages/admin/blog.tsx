@@ -226,10 +226,6 @@ export default function BlogAdmin() {
   const [isLoadingDuplicates, setIsLoadingDuplicates] = useState(false);
   const [selectedDuplicates, setSelectedDuplicates] = useState([]);
   
-  // 유사 이미지 관리 상태
-  const [similarImages, setSimilarImages] = useState([]);
-  const [showSimilarImages, setShowSimilarImages] = useState(false);
-  const [isLoadingSimilarImages, setIsLoadingSimilarImages] = useState(false);
   
   // 이미지 미리보기 상태
   const [previewImage, setPreviewImage] = useState(null);
@@ -717,26 +713,6 @@ export default function BlogAdmin() {
     }
   };
 
-  // 유사 이미지 찾기
-  const findSimilarImages = async () => {
-    setIsLoadingSimilarImages(true);
-    try {
-      const response = await fetch('/api/admin/similar-images');
-      if (response.ok) {
-        const data = await response.json();
-        setSimilarImages(data.similarGroups || []);
-        console.log('✅ 유사 이미지 분석 완료:', data.similarGroups?.length || 0, '개 그룹');
-      } else {
-        console.error('❌ 유사 이미지 분석 실패');
-        setSimilarImages([]);
-      }
-    } catch (error) {
-      console.error('❌ 유사 이미지 분석 에러:', error);
-      setSimilarImages([]);
-    } finally {
-      setIsLoadingSimilarImages(false);
-    }
-  };
 
   // 중복 이미지 삭제
   const deleteDuplicateImages = async (imageNames) => {
@@ -2350,18 +2326,6 @@ export default function BlogAdmin() {
                 {showDuplicates ? '중복 관리 닫기' : '중복 이미지 찾기'}
               </button>
               
-              <button
-                type="button"
-                onClick={() => {
-                  setShowSimilarImages(!showSimilarImages);
-                  if (!showSimilarImages) {
-                    findSimilarImages();
-                  }
-                }}
-                className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
-              >
-                {showSimilarImages ? '유사 관리 닫기' : '유사 이미지 찾기'}
-              </button>
               {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                   {postImages.length}개 이미지
@@ -2792,91 +2756,91 @@ export default function BlogAdmin() {
                           </button>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {group.images.map((image, imageIndex) => (
-                            <div key={imageIndex} className={`border-2 rounded-lg overflow-hidden ${
-                              imageIndex === 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
-                            }`}>
-                              <div className="flex">
-                                <div className="w-24 h-24 flex-shrink-0">
-                                  <img
-                                    src={image.url}
-                                    alt={image.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                                <div className="flex-1 p-3">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className={`px-2 py-1 text-xs rounded ${
+                        {/* 나란히 비교 보기 */}
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">📊 나란히 비교 보기</h5>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {group.images.slice(0, 2).map((image, imageIndex) => (
+                              <div key={imageIndex} className={`border-2 rounded-lg overflow-hidden ${
+                                imageIndex === 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
+                              }`}>
+                                <div className="p-3">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <span className={`px-3 py-1 text-sm font-medium rounded ${
                                       imageIndex === 0 
                                         ? 'bg-green-500 text-white' 
                                         : 'bg-red-500 text-white'
                                     }`}>
-                                      {imageIndex === 0 ? '유지' : '삭제'}
+                                      {imageIndex === 0 ? '✅ 유지할 이미지' : '❌ 삭제할 이미지'}
                                     </span>
                                     <span className="text-xs text-gray-500">
                                       {new Date(image.created_at).toLocaleDateString()}
                                     </span>
                                   </div>
                                   
-                                  <div className="text-xs text-gray-600 truncate mb-2" title={image.name}>
+                                  {/* 큰 이미지 표시 */}
+                                  <div className="mb-3">
+                                    <img
+                                      src={image.url}
+                                      alt={image.name}
+                                      className="w-full h-48 object-cover rounded border"
+                                    />
+                                  </div>
+                                  
+                                  <div className="text-sm text-gray-700 font-medium mb-2" title={image.name}>
                                     {image.name}
                                   </div>
                                   
-                                  {/* 사용 정보 표시 (전체 사이트 범위) */}
-                                  {image.usageSummary && image.usageSummary.isUsed ? (
-                                    <div className="text-xs">
-                                      <div className="text-green-600 font-medium mb-1">
-                                        📝 전체 사이트에서 사용 중 ({image.usageSummary.totalUsage}곳):
-                                      </div>
-                                      
-                                      {/* 사용 현황 요약 */}
-                                      <div className="mb-2 text-gray-500">
-                                        {image.usageSummary.blogPosts > 0 && (
-                                          <span className="mr-2">📰 블로그: {image.usageSummary.blogPosts}개</span>
-                                        )}
-                                        {image.usageSummary.funnelPages > 0 && (
-                                          <span className="mr-2">🎯 퍼널: {image.usageSummary.funnelPages}개</span>
-                                        )}
-                                        {image.usageSummary.staticPages > 0 && (
-                                          <span className="mr-2">📄 정적페이지: {image.usageSummary.staticPages}개</span>
-                                        )}
-                                      </div>
-                                      
-                                      {/* 상세 사용 현황 */}
-                                      {image.usage && image.usage.length > 0 && (
-                                        <div className="max-h-20 overflow-y-auto">
-                                          {image.usage.map((usage, idx) => (
-                                            <div key={idx} className="text-gray-600 mb-1 border-l-2 border-gray-200 pl-2">
-                                              <div className="flex items-center gap-1">
-                                                <span className="text-xs">
-                                                  {usage.type === 'blog_post' && '📰'}
-                                                  {usage.type === 'funnel_page' && '🎯'}
-                                                  {usage.type === 'static_page' && '📄'}
-                                                </span>
-                                                <span className="truncate" title={usage.title}>
-                                                  {usage.title}
-                                                </span>
-                                              </div>
-                                              <div className="text-xs text-gray-500 ml-4">
-                                                {usage.isFeatured && <span className="text-yellow-600 mr-2">⭐ 대표이미지</span>}
-                                                {usage.isInContent && <span className="text-blue-600 mr-2">📝 본문</span>}
-                                                <span className="text-gray-400">{usage.url}</span>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="text-xs text-gray-400">
-                                      📭 전체 사이트에서 사용되지 않음
-                                    </div>
-                                  )}
+                                  <div className="text-xs text-gray-500 space-y-1">
+                                    <div>📁 파일명: {image.name}</div>
+                                    <div>📅 생성일: {new Date(image.created_at).toLocaleString()}</div>
+                                    <div>🔗 URL: {image.url.substring(0, 50)}...</div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* 전체 이미지 목록 */}
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">📋 전체 중복 이미지 목록</h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {group.images.map((image, imageIndex) => (
+                              <div key={imageIndex} className={`border rounded-lg overflow-hidden ${
+                                imageIndex === 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
+                              }`}>
+                                <div className="flex">
+                                  <div className="w-20 h-20 flex-shrink-0">
+                                    <img
+                                      src={image.url}
+                                      alt={image.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <div className="flex-1 p-2">
+                                    <div className="flex items-center gap-1 mb-1">
+                                      <span className={`px-2 py-1 text-xs rounded ${
+                                        imageIndex === 0 
+                                          ? 'bg-green-500 text-white' 
+                                          : 'bg-red-500 text-white'
+                                      }`}>
+                                        {imageIndex === 0 ? '유지' : '삭제'}
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="text-xs text-gray-600 truncate mb-1" title={image.name}>
+                                      {image.name}
+                                    </div>
+                                    
+                                    <div className="text-xs text-gray-500">
+                                      {new Date(image.created_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -2893,101 +2857,6 @@ export default function BlogAdmin() {
             </div>
           )}
 
-          {/* 유사 이미지 관리 */}
-          {showSimilarImages && (
-            <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-orange-800">
-                  🔍 유사 이미지 관리
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowSimilarImages(false)}
-                  className="text-orange-600 hover:text-orange-800"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <p className="text-sm text-orange-700 mb-4">
-                압축률, 크기, 확장자가 다른 유사한 이미지들을 찾아서 관리하세요.
-              </p>
-              
-              <div className="flex gap-2 mb-4">
-                <button
-                  type="button"
-                  onClick={findSimilarImages}
-                  disabled={isLoadingSimilarImages}
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
-                >
-                  {isLoadingSimilarImages ? '분석 중...' : '유사 이미지 찾기'}
-                </button>
-              </div>
-              
-              {isLoadingSimilarImages && (
-                <div className="text-center py-4">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                  <p className="text-sm text-orange-600 mt-2">유사 이미지를 분석하는 중...</p>
-                </div>
-              )}
-              
-              {similarImages.length > 0 && (
-                <div className="space-y-4">
-                  <div className="text-sm text-orange-700">
-                    유사 이미지 {similarImages.length}개 그룹을 찾았습니다.
-                  </div>
-                  
-                  {similarImages.map((group, groupIndex) => (
-                    <div key={groupIndex} className="bg-white border border-orange-200 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-sm font-medium text-orange-700">
-                          그룹 {groupIndex + 1}: 유사도 {Math.round(group.similarityScore * 100)}% ({group.count}개)
-                        </h4>
-                        <div className="text-xs text-orange-600">
-                          {group.similarityScore >= 0.8 && '🟢 높은 유사도'}
-                          {group.similarityScore >= 0.7 && group.similarityScore < 0.8 && '🟡 중간 유사도'}
-                          {group.similarityScore < 0.7 && '🔴 낮은 유사도'}
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {group.images.map((image, imageIndex) => (
-                          <div key={imageIndex} className="border border-orange-200 rounded-lg overflow-hidden">
-                            <div className="flex">
-                              <div className="w-20 h-20 flex-shrink-0">
-                                <img
-                                  src={image.url}
-                                  alt={image.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="flex-1 p-2">
-                                <div className="text-xs text-gray-600 truncate mb-1" title={image.name}>
-                                  {image.name}
-                                </div>
-                                <div className="text-xs text-gray-500 space-y-1">
-                                  <div>크기: {image.metadata?.width}×{image.metadata?.height}</div>
-                                  <div>형식: {image.metadata?.format}</div>
-                                  <div>파일크기: {(image.metadata?.fileSize / 1024 / 1024).toFixed(2)}MB</div>
-                                  <div>압축률: {image.metadata?.compressionRatio?.toFixed(2)}</div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {similarImages.length === 0 && !isLoadingSimilarImages && (
-                <div className="text-center py-8 text-orange-600">
-                  <p>유사한 이미지가 없습니다! 🎉</p>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* 이미지 미리보기 모달 */}
           {showImagePreview && previewImage && (
