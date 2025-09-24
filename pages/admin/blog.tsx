@@ -660,7 +660,7 @@ export default function BlogAdmin() {
       });
 
       if (response.ok) {
-        alert('이미지가 삭제되었습니다!');
+        alert('이미지가 Supabase에서 완전히 삭제되었습니다!');
         
         // 전체 이미지 갤러리에서 삭제된 이미지 제거
         setAllImages(prev => prev.filter(img => img.name !== imageName));
@@ -691,6 +691,30 @@ export default function BlogAdmin() {
       console.error('이미지 삭제 오류:', error);
       alert('이미지 삭제 중 오류가 발생했습니다.');
     }
+  };
+
+  // 이미지 링크만 제거 함수 (Supabase는 유지, 게시물에서만 제거)
+  const removeImageFromPost = (imageName) => {
+    // 현재 게시물의 이미지 목록에서만 제거
+    setPostImages(prev => prev.filter(img => img.name !== imageName));
+    
+    // 대표 이미지가 제거된 경우 초기화
+    if (formData.featured_image && formData.featured_image.includes(imageName)) {
+      setFormData(prev => ({ ...prev, featured_image: '' }));
+    }
+    
+    // 본문에서 제거된 이미지 URL 제거
+    if (useWysiwyg) {
+      const updatedHtmlContent = htmlContent.replace(new RegExp(`<img[^>]*src="[^"]*${imageName}[^"]*"[^>]*>`, 'g'), '');
+      setHtmlContent(updatedHtmlContent);
+      const markdownContent = convertHtmlToMarkdown(updatedHtmlContent);
+      setFormData(prev => ({ ...prev, content: markdownContent }));
+    } else {
+      const updatedContent = formData.content.replace(new RegExp(`!\\[.*?\\]\\([^)]*${imageName}[^)]*\\)`, 'g'), '');
+      setFormData(prev => ({ ...prev, content: updatedContent }));
+    }
+    
+    alert('이미지가 이 게시물에서 제거되었습니다. (Supabase에는 유지됨)');
   };
 
   // 이미지 사용 현황 조회
@@ -792,9 +816,9 @@ export default function BlogAdmin() {
     alert('대표이미지가 설정되었습니다!');
   };
 
-  // 이미지 삭제 (게시물 이미지 갤러리용)
+  // 이미지 삭제 (게시물 이미지 갤러리용) - Supabase에서 완전 삭제
   const deleteImage = async (imageName) => {
-    if (!confirm(`정말로 "${imageName}" 이미지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+    if (!confirm(`정말로 "${imageName}" 이미지를 Supabase에서 완전히 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`)) {
       return;
     }
 
@@ -806,6 +830,8 @@ export default function BlogAdmin() {
       });
       
       if (response.ok) {
+        alert('이미지가 Supabase에서 완전히 삭제되었습니다!');
+        
         // 로컬 상태에서도 제거
         setPostImages(prev => prev.filter(img => img.name !== imageName));
         
@@ -2613,18 +2639,32 @@ export default function BlogAdmin() {
                             >
                               📋 복사
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (confirm(`정말로 "${image.name}" 이미지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
-                                  // 이미지 삭제 API 호출
-                                  deleteImageFromStorage(image.name);
-                                }
-                              }}
-                              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                            >
-                              🗑️ 삭제
-                            </button>
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`"${image.name}" 이미지를 이 게시물에서만 제거하시겠습니까?\n\n(Supabase에는 유지됩니다)`)) {
+                                    removeImageFromPost(image.name);
+                                  }
+                                }}
+                                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                title="게시물에서만 제거 (Supabase 유지)"
+                              >
+                                🔗 링크제거
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`정말로 "${image.name}" 이미지를 Supabase에서 완전히 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`)) {
+                                    deleteImageFromStorage(image.name);
+                                  }
+                                }}
+                                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                title="Supabase에서 완전 삭제"
+                              >
+                                🗑️ 완전삭제
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
