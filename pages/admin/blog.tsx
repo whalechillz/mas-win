@@ -323,7 +323,8 @@ export default function BlogAdmin() {
     console.log('🚨 이벤트 현재 타겟:', e.currentTarget);
     
     // 의도하지 않은 호출인지 확인 (이벤트 타겟이 submit 버튼이 아닌 경우)
-    if (e.target && e.target.type !== 'submit' && e.target.tagName !== 'BUTTON') {
+    // 단, 명시적으로 저장 버튼을 클릭한 경우는 허용
+    if (e.target && e.target.type !== 'submit' && e.target.tagName !== 'BUTTON' && !e.target.textContent?.includes('수정') && !e.target.textContent?.includes('저장')) {
       console.log('🚨 의도하지 않은 폼 제출 감지, 무시합니다.');
       return;
     }
@@ -1968,7 +1969,7 @@ export default function BlogAdmin() {
         <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <div className="flex justify-between items-center mb-3">
             <h4 className="text-lg font-semibold text-gray-800">🖼️ 이미지 갤러리</h4>
-            <div className="flex gap-2">
+              <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowImageGallery(!showImageGallery)}
@@ -1976,18 +1977,17 @@ export default function BlogAdmin() {
               >
                 {showImageGallery ? '갤러리 닫기' : '갤러리 열기'}
               </button>
-              {imageGallery.length > 0 && (
+              {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                  {imageGallery.length}개 이미지
+                  {postImages.length}개 이미지
                 </span>
               )}
             </div>
           </div>
                   
-          {showImageGallery && (
-            <div className="mt-4">
-
-              {/* 게시물별 이미지 갤러리 */}
+            {showImageGallery && (
+              <div className="mt-4">
+                {/* 게시물별 이미지 갤러리 */}
               {editingPost ? (
                 // 게시물 편집 모드: 해당 게시물의 이미지만 표시
                 postImages.length === 0 ? (
