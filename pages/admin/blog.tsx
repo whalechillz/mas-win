@@ -654,6 +654,49 @@ export default function BlogAdmin() {
     }
   };
 
+  // 이미지 삭제 함수
+  const deleteImageFromStorage = async (imageName) => {
+    try {
+      const response = await fetch('/api/admin/delete-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageName })
+      });
+
+      if (response.ok) {
+        alert('이미지가 삭제되었습니다!');
+        
+        // 전체 이미지 갤러리에서 삭제된 이미지 제거
+        setAllImages(prev => prev.filter(img => img.name !== imageName));
+        
+        // 현재 게시물 이미지에서도 삭제된 이미지 제거
+        setPostImages(prev => prev.filter(img => img.name !== imageName));
+        
+        // 대표 이미지가 삭제된 경우 초기화
+        if (formData.featured_image && formData.featured_image.includes(imageName)) {
+          setFormData(prev => ({ ...prev, featured_image: '' }));
+        }
+        
+        // 본문에서 삭제된 이미지 URL 제거
+        if (useWysiwyg) {
+          const updatedHtmlContent = htmlContent.replace(new RegExp(`<img[^>]*src="[^"]*${imageName}[^"]*"[^>]*>`, 'g'), '');
+          setHtmlContent(updatedHtmlContent);
+          const markdownContent = convertHtmlToMarkdown(updatedHtmlContent);
+          setFormData(prev => ({ ...prev, content: markdownContent }));
+        } else {
+          const updatedContent = formData.content.replace(new RegExp(`!\\[.*?\\]\\([^)]*${imageName}[^)]*\\)`, 'g'), '');
+          setFormData(prev => ({ ...prev, content: updatedContent }));
+        }
+        
+      } else {
+        alert('이미지 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('이미지 삭제 오류:', error);
+      alert('이미지 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // 이미지 사용 현황 조회
   const loadImageUsageInfo = async (imageUrl) => {
     setIsLoadingUsageInfo(true);
@@ -773,20 +816,25 @@ export default function BlogAdmin() {
     alert('대표이미지가 설정되었습니다!');
   };
 
-  // 이미지 삭제
+  // 이미지 삭제 (게시물 이미지 갤러리용)
   const deleteImage = async (imageName) => {
-    if (!confirm('이미지를 삭제하시겠습니까?')) {
+    if (!confirm(`정말로 "${imageName}" 이미지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/admin/blog-images?imageName=${imageName}`, {
-        method: 'DELETE'
+      const response = await fetch('/api/admin/delete-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageName })
       });
       
       if (response.ok) {
         // 로컬 상태에서도 제거
         setPostImages(prev => prev.filter(img => img.name !== imageName));
+        
+        // 전체 이미지 갤러리에서도 제거 (실시간 동기화)
+        setAllImages(prev => prev.filter(img => img.name !== imageName));
         
         // 삭제된 이미지의 URL을 찾아서 본문에서도 제거
         const deletedImage = postImages.find(img => img.name === imageName);
@@ -2549,7 +2597,38 @@ export default function BlogAdmin() {
                           <div className="text-xs text-gray-600 truncate" title={image.name}>
                             {image.name}
                           </div>
-                          <div className="flex gap-1 mt-1">
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // 현재 게시물에 이미지 삽입
+                                if (useWysiwyg) {
+                                  const imageHtml = `<img src="${image.url}" alt="${image.name || '이미지'}" style="max-width: 100%; height: auto;" />`;
+                                  const newHtmlContent = htmlContent + imageHtml;
+                                  setHtmlContent(newHtmlContent);
+                                  const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+                                  setFormData(prev => ({ ...prev, content: markdownContent }));
+                                } else {
+                                  const imageMarkdown = `![${image.name || '이미지'}](${image.url})`;
+                                  setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
+                                }
+                                
+                                // 이미지 갤러리 섹션에 실시간 추가
+                                const newImage = {
+                                  id: `temp-${Date.now()}`,
+                                  name: image.name,
+                                  url: image.url,
+                                  created_at: new Date().toISOString(),
+                                  size: image.size || 0
+                                };
+                                setPostImages(prev => [newImage, ...prev]);
+                                
+                                alert('이미지가 본문과 갤러리에 삽입되었습니다!');
+                              }}
+                              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                            >
+                              📝 삽입
+                            </button>
                             <button
                               type="button"
                               onClick={() => {
@@ -2569,6 +2648,18 @@ export default function BlogAdmin() {
                               className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
                             >
                               📋 복사
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`정말로 "${image.name}" 이미지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+                                  // 이미지 삭제 API 호출
+                                  deleteImageFromStorage(image.name);
+                                }
+                              }}
+                              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                            >
+                              🗑️ 삭제
                             </button>
                           </div>
                         </div>
