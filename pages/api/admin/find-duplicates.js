@@ -10,28 +10,30 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 이미지 해시 계산 (간단한 파일명 기반 - 안정적인 버전)
+// 이미지 해시 계산 (개선된 버전 - 더 정확한 중복 감지)
 const calculateImageHash = (filename) => {
-  // 1. 파일명에서 실제 이미지 이름 부분만 추출
-  // blog-upload-1758725641002-waterproof-p.jpg -> waterproof-p
+  // 1. blog-upload 패턴: 타임스탬프까지 포함하여 더 정확한 구분
+  // blog-upload-1758725641002-waterproof-p.jpg -> blog-upload-waterproof-p
   const blogUploadMatch = filename.match(/blog-upload-\d+-(.+?)\./);
   if (blogUploadMatch) {
-    return blogUploadMatch[1];
+    return `blog-upload-${blogUploadMatch[1]}`;
   }
   
-  // 2. august-funnel-1757852476987-hero-image-1-face.webp -> hero-image-1-face
+  // 2. august-funnel 패턴: 타임스탬프까지 포함
+  // august-funnel-1757852476987-hero-image-1-face.webp -> august-funnel-hero-image-1-face
   const funnelMatch = filename.match(/august-funnel-\d+-(.+?)\./);
   if (funnelMatch) {
-    return funnelMatch[1];
+    return `august-funnel-${funnelMatch[1]}`;
   }
   
-  // 3. complete-migration-1757776491130-9.webp -> 9
-  const migrationMatch = filename.match(/complete-migration-\d+-(.+?)\./);
+  // 3. complete-migration 패턴: 타임스탬프까지 포함하여 정확한 구분
+  // complete-migration-1757776491130-9.webp -> complete-migration-1757776491130-9
+  const migrationMatch = filename.match(/complete-migration-(\d+)-(.+?)\./);
   if (migrationMatch) {
-    return migrationMatch[1];
+    return `complete-migration-${migrationMatch[1]}-${migrationMatch[2]}`;
   }
   
-  // 4. 기타 패턴들
+  // 4. 기타 패턴들: 전체 파일명을 해시로 사용
   const otherMatch = filename.match(/([a-zA-Z0-9-_]+)\.(jpg|jpeg|png|gif|webp)$/i);
   if (otherMatch) {
     return otherMatch[1];
