@@ -516,6 +516,28 @@ export default function BlogAdmin() {
       if (response.ok) {
         // 로컬 상태에서도 제거
         setPostImages(prev => prev.filter(img => img.name !== imageName));
+        
+        // 삭제된 이미지의 URL을 찾아서 본문에서도 제거
+        const deletedImage = postImages.find(img => img.name === imageName);
+        if (deletedImage) {
+          // 본문에서 해당 이미지 URL을 포함한 마크다운 라인 제거
+          const imageUrl = deletedImage.url;
+          const imageMarkdownRegex = new RegExp(`!\\[.*?\\]\\(${imageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g');
+          
+          setFormData(prev => ({
+            ...prev,
+            content: prev.content.replace(imageMarkdownRegex, '').replace(/\n\n\n+/g, '\n\n') // 연속된 빈 줄 정리
+          }));
+          
+          // 대표 이미지로 설정되어 있다면 제거
+          if (formData.featured_image === imageUrl) {
+            setFormData(prev => ({
+              ...prev,
+              featured_image: ''
+            }));
+          }
+        }
+        
         console.log('✅ 이미지 삭제 성공:', imageName);
         alert('이미지가 삭제되었습니다.');
       } else {
