@@ -1906,6 +1906,7 @@ export default function BlogAdmin() {
                                 📋 복사
                               </button>
                               <button
+                                type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   insertImageToContentLegacy(imageUrl);
@@ -1963,6 +1964,7 @@ export default function BlogAdmin() {
                                   📋 URL 복사
                                 </button>
                                 <button
+                                  type="button"
                                   onClick={() => insertImageToContentLegacy(item.imageUrl)}
                                   className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                 >
@@ -2144,6 +2146,7 @@ export default function BlogAdmin() {
                             </div>
                             <div className="flex gap-1">
                               <button
+                                type="button"
                                 onClick={() => insertImageToContentNew(image.url, image.name || '이미지')}
                                 className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                               >
@@ -2212,18 +2215,21 @@ export default function BlogAdmin() {
                             </div>
                             <div className="flex gap-1">
                               <button
+                                type="button"
                                 onClick={() => insertImageToContent(image.url, 'start')}
                                 className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                               >
                                 앞
                               </button>
                               <button
+                                type="button"
                                 onClick={() => insertImageToContent(image.url, 'middle')}
                                 className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
                               >
                                 중간
                               </button>
                               <button
+                                type="button"
                                 onClick={() => insertImageToContent(image.url, 'end')}
                                 className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
                               >
