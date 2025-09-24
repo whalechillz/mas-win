@@ -226,6 +226,11 @@ export default function BlogAdmin() {
   const [isLoadingDuplicates, setIsLoadingDuplicates] = useState(false);
   const [selectedDuplicates, setSelectedDuplicates] = useState([]);
   
+  // 유사 이미지 관리 상태
+  const [similarImages, setSimilarImages] = useState([]);
+  const [showSimilarImages, setShowSimilarImages] = useState(false);
+  const [isLoadingSimilarImages, setIsLoadingSimilarImages] = useState(false);
+  
   // 이미지 미리보기 상태
   const [previewImage, setPreviewImage] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
@@ -666,6 +671,27 @@ export default function BlogAdmin() {
       setImageUsageInfo(null);
     } finally {
       setIsLoadingUsageInfo(false);
+    }
+  };
+
+  // 유사 이미지 찾기
+  const findSimilarImages = async () => {
+    setIsLoadingSimilarImages(true);
+    try {
+      const response = await fetch('/api/admin/similar-images');
+      if (response.ok) {
+        const data = await response.json();
+        setSimilarImages(data.similarGroups || []);
+        console.log('✅ 유사 이미지 분석 완료:', data.similarGroups?.length || 0, '개 그룹');
+      } else {
+        console.error('❌ 유사 이미지 분석 실패');
+        setSimilarImages([]);
+      }
+    } catch (error) {
+      console.error('❌ 유사 이미지 분석 에러:', error);
+      setSimilarImages([]);
+    } finally {
+      setIsLoadingSimilarImages(false);
     }
   };
 
@@ -2275,6 +2301,19 @@ export default function BlogAdmin() {
               >
                 {showDuplicates ? '중복 관리 닫기' : '중복 이미지 찾기'}
               </button>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSimilarImages(!showSimilarImages);
+                  if (!showSimilarImages) {
+                    findSimilarImages();
+                  }
+                }}
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
+              >
+                {showSimilarImages ? '유사 관리 닫기' : '유사 이미지 찾기'}
+              </button>
               {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                   {postImages.length}개 이미지
@@ -2758,6 +2797,102 @@ export default function BlogAdmin() {
                       각 그룹에서 첫 번째 이미지는 유지되고 나머지는 삭제됩니다.
                     </p>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 유사 이미지 관리 */}
+          {showSimilarImages && (
+            <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-orange-800">
+                  🔍 유사 이미지 관리
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowSimilarImages(false)}
+                  className="text-orange-600 hover:text-orange-800"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <p className="text-sm text-orange-700 mb-4">
+                압축률, 크기, 확장자가 다른 유사한 이미지들을 찾아서 관리하세요.
+              </p>
+              
+              <div className="flex gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={findSimilarImages}
+                  disabled={isLoadingSimilarImages}
+                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
+                >
+                  {isLoadingSimilarImages ? '분석 중...' : '유사 이미지 찾기'}
+                </button>
+              </div>
+              
+              {isLoadingSimilarImages && (
+                <div className="text-center py-4">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                  <p className="text-sm text-orange-600 mt-2">유사 이미지를 분석하는 중...</p>
+                </div>
+              )}
+              
+              {similarImages.length > 0 && (
+                <div className="space-y-4">
+                  <div className="text-sm text-orange-700">
+                    유사 이미지 {similarImages.length}개 그룹을 찾았습니다.
+                  </div>
+                  
+                  {similarImages.map((group, groupIndex) => (
+                    <div key={groupIndex} className="bg-white border border-orange-200 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-sm font-medium text-orange-700">
+                          그룹 {groupIndex + 1}: 유사도 {Math.round(group.similarityScore * 100)}% ({group.count}개)
+                        </h4>
+                        <div className="text-xs text-orange-600">
+                          {group.similarityScore >= 0.8 && '🟢 높은 유사도'}
+                          {group.similarityScore >= 0.7 && group.similarityScore < 0.8 && '🟡 중간 유사도'}
+                          {group.similarityScore < 0.7 && '🔴 낮은 유사도'}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {group.images.map((image, imageIndex) => (
+                          <div key={imageIndex} className="border border-orange-200 rounded-lg overflow-hidden">
+                            <div className="flex">
+                              <div className="w-20 h-20 flex-shrink-0">
+                                <img
+                                  src={image.url}
+                                  alt={image.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 p-2">
+                                <div className="text-xs text-gray-600 truncate mb-1" title={image.name}>
+                                  {image.name}
+                                </div>
+                                <div className="text-xs text-gray-500 space-y-1">
+                                  <div>크기: {image.metadata?.width}×{image.metadata?.height}</div>
+                                  <div>형식: {image.metadata?.format}</div>
+                                  <div>파일크기: {(image.metadata?.fileSize / 1024 / 1024).toFixed(2)}MB</div>
+                                  <div>압축률: {image.metadata?.compressionRatio?.toFixed(2)}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {similarImages.length === 0 && !isLoadingSimilarImages && (
+                <div className="text-center py-8 text-orange-600">
+                  <p>유사한 이미지가 없습니다! 🎉</p>
                 </div>
               )}
             </div>

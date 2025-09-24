@@ -10,28 +10,41 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 이미지 해시 계산 (개선된 버전 - 더 정확한 중복 감지)
-const calculateImageHash = (filename) => {
+// 이미지 콘텐츠 기반 해시 계산 (실제 이미지 데이터 분석)
+const calculateImageContentHash = async (imageUrl) => {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const buffer = await response.arrayBuffer();
+    const hash = crypto.createHash('md5').update(Buffer.from(buffer)).digest('hex');
+    return hash;
+  } catch (error) {
+    console.error(`❌ 이미지 콘텐츠 해시 계산 실패 (${imageUrl}):`, error);
+    // 폴백: 파일명 기반 해시
+    return calculateFilenameHash(imageUrl.split('/').pop());
+  }
+};
+
+// 파일명 기반 해시 (폴백용)
+const calculateFilenameHash = (filename) => {
   // 1. 파일명에서 실제 이미지 이름 부분만 추출
-  // blog-upload-1758725641002-waterproof-p.jpg -> waterproof-p
   const blogUploadMatch = filename.match(/blog-upload-\d+-(.+?)\./);
   if (blogUploadMatch) {
     return blogUploadMatch[1];
   }
   
-  // 2. august-funnel-1757852476987-hero-image-1-face.webp -> hero-image-1-face
   const funnelMatch = filename.match(/august-funnel-\d+-(.+?)\./);
   if (funnelMatch) {
     return funnelMatch[1];
   }
   
-  // 3. complete-migration-1757776491130-9.webp -> 9
   const migrationMatch = filename.match(/complete-migration-\d+-(.+?)\./);
   if (migrationMatch) {
     return migrationMatch[1];
   }
   
-  // 4. 기타 패턴들
   const otherMatch = filename.match(/([a-zA-Z0-9-_]+)\.(jpg|jpeg|png|gif|webp)$/i);
   if (otherMatch) {
     return otherMatch[1];
@@ -86,17 +99,17 @@ const findDuplicateImages = async (images) => {
   const hashMap = new Map();
   const duplicates = [];
   
-  // 이미지들을 해시별로 그룹화
-  images.forEach(image => {
-    const hash = calculateImageHash(image.name);
+  // 이미지들을 콘텐츠 해시별로 그룹화 (비동기 처리)
+  for (const image of images) {
+    const contentHash = await calculateImageContentHash(image.url);
     
-    if (hashMap.has(hash)) {
-      const existingGroup = hashMap.get(hash);
+    if (hashMap.has(contentHash)) {
+      const existingGroup = hashMap.get(contentHash);
       existingGroup.push(image);
     } else {
-      hashMap.set(hash, [image]);
+      hashMap.set(contentHash, [image]);
     }
-  });
+  }
   
   // 중복이 있는 그룹만 처리하고 사용 정보 확인
   for (const [hash, group] of hashMap) {
@@ -155,7 +168,15 @@ const findDuplicateImages = async (images) => {
       duplicates.push({
         hash,
         count: group.length,
-        images: imagesWithUsage
+        images: imagesWithUsage,
+        // 그룹 정보 추가
+        groupInfo: {
+          contentHash: hash,
+          totalImages: group.length,
+          duplicateCount: group.length - 1, // 첫 번째 제외하고 삭제 가능한 개수
+          firstImage: group[0], // 유지할 첫 번째 이미지
+          duplicateImages: group.slice(1) // 삭제할 중복 이미지들
+        }
       });
     }
   }
