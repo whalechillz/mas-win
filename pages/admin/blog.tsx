@@ -158,9 +158,6 @@ export default function BlogAdmin() {
   const [showTitleOptions, setShowTitleOptions] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
-  // 추천 이미지 관련 상태
-  const [recommendedImages, setRecommendedImages] = useState([]);
-  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   
   // 이미지 생성 과정 투명성 상태
   const [imageGenerationStep, setImageGenerationStep] = useState('');
@@ -1090,43 +1087,6 @@ export default function BlogAdmin() {
     alert('선택한 제목이 적용되었습니다!');
   };
 
-  // 추천 이미지 로드
-  const loadRecommendedImages = async () => {
-    if (!formData.title && !formData.excerpt) {
-      alert('제목이나 요약을 먼저 입력해주세요.');
-      return;
-    }
-
-    setIsLoadingRecommendations(true);
-    
-    try {
-      const response = await fetch('/api/get-recommended-images', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: brandStrategy.contentType,
-          customerPersona: brandStrategy.customerPersona
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('추천 이미지 로드에 실패했습니다.');
-      }
-
-      const data = await response.json();
-      setRecommendedImages(data.recommendedImages || []);
-      
-      console.log('✅ 추천 이미지 로드 완료:', data.recommendedImages?.length || 0, '개');
-      alert(`${data.recommendedImages?.length || 0}개의 추천 이미지를 찾았습니다!`);
-    } catch (error) {
-      console.error('추천 이미지 로드 오류:', error);
-      alert(`추천 이미지 로드에 실패했습니다: ${error.message}`);
-    } finally {
-      setIsLoadingRecommendations(false);
-    }
-  };
 
   // ChatGPT로 스마트 프롬프트 미리보기
   const previewImagePrompt = async (model = 'dalle3') => {
@@ -2011,23 +1971,6 @@ export default function BlogAdmin() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={loadRecommendedImages}
-                disabled={isLoadingRecommendations}
-                className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 flex items-center gap-1"
-              >
-                {isLoadingRecommendations ? (
-                  <>
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                    추천 로딩...
-                  </>
-                ) : (
-                  <>
-                    🔍 추천 이미지
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
                 onClick={() => setShowImageGallery(!showImageGallery)}
                 className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
               >
@@ -2043,59 +1986,6 @@ export default function BlogAdmin() {
                   
           {showImageGallery && (
             <div className="mt-4">
-              {/* 추천 이미지 섹션 */}
-              {recommendedImages.length > 0 && (
-                <div className="mb-6">
-                  <h5 className="text-md font-medium text-purple-800 mb-3">🎯 현재 콘텐츠에 맞는 추천 이미지</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {recommendedImages.map((image, index) => (
-                      <div key={`recommended-${index}`} className="bg-purple-50 border border-purple-200 rounded-lg overflow-hidden shadow-sm">
-                        <div className="relative">
-                          <img
-                            src={image.url}
-                            alt={`Recommended Image ${index + 1}`}
-                            className="w-full h-32 object-cover"
-                          />
-                          <div className="absolute top-2 right-2 flex gap-1">
-                            <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-800">
-                              추천
-                            </span>
-                            <button
-                              onClick={() => addToImageGallery(image.url, 'recommended', {
-                                source: 'recommended',
-                                relevance: image.relevance,
-                                matchedKeywords: image.matchedKeywords
-                              })}
-                              className="w-5 h-5 bg-purple-500 text-white rounded-full text-xs hover:bg-purple-600"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                        <div className="p-3">
-                          <div className="text-xs text-purple-600 mb-2">
-                            관련도: {image.relevance}% | 키워드: {image.matchedKeywords?.join(', ')}
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => setAsFeaturedImage(image.url)}
-                              className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
-                            >
-                              ⭐ 대표
-                            </button>
-                            <button
-                              onClick={() => copyImageUrl(image.url)}
-                              className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                            >
-                              📋 복사
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* 게시물별 이미지 갤러리 */}
               {editingPost ? (
