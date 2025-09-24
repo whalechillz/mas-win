@@ -2301,29 +2301,10 @@ export default function BlogAdmin() {
                                     
                                     setPostImages(prev => [newImage, ...prev]);
                                     
-                                    // 게시물을 임시로 저장하여 데이터베이스에 최신 내용 반영
-                                    try {
-                                      const saveResponse = await fetch('/api/admin/blog', {
-                                        method: 'PUT',
-                                        headers: {
-                                          'Content-Type': 'application/json',
-                                        },
-                                        body: JSON.stringify({
-                                          id: editingPost.id,
-                                          ...updatedFormData
-                                        }),
-                                      });
-                                      
-                                      if (saveResponse.ok) {
-                                        console.log('✅ 이미지 업로드 후 게시물 임시 저장 성공');
-                                        // 저장 후 갤러리 새로고침
-                                        setTimeout(async () => {
-                                          await loadPostImages(editingPost.id);
-                                        }, 500);
-                                      }
-                                    } catch (saveError) {
-                                      console.error('❌ 게시물 임시 저장 실패:', saveError);
-                                    }
+                                    // 이미지 업로드 후 갤러리만 새로고침 (임시 저장 제거)
+                                    setTimeout(async () => {
+                                      await loadPostImages(editingPost.id);
+                                    }, 100);
                                   }
                                   
                                   alert('이미지가 업로드되었습니다!');
