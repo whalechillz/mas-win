@@ -45,10 +45,10 @@ const convertHtmlToMarkdown = (html) => {
     .replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '![]($1)')
     .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
     .replace(/<br[^>]*>/gi, '\n')
-    .replace(/<ul[^>]*>(.*?)<\/ul>/gis, (match, content) => {
+    .replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (match, content) => {
       return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n';
     })
-    .replace(/<ol[^>]*>(.*?)<\/ol>/gis, (match, content) => {
+    .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, content) => {
       let counter = 1;
       return content.replace(/<li[^>]*>(.*?)<\/li>/gi, () => `${counter++}. $1\n`) + '\n';
     })
@@ -207,6 +207,11 @@ export default function BlogAdmin() {
   // 이미지 갤러리 관리 상태
   const [imageGallery, setImageGallery] = useState([]);
   const [showImageGallery, setShowImageGallery] = useState(false);
+  
+  // 전체 이미지 갤러리 상태
+  const [allImages, setAllImages] = useState([]);
+  const [showAllImages, setShowAllImages] = useState(false);
+  const [isLoadingAllImages, setIsLoadingAllImages] = useState(false);
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -538,7 +543,7 @@ export default function BlogAdmin() {
   };
 
   // 게시물 수정 모드로 전환
-  const handleEdit = (post) => {
+  const handleEdit = async (post) => {
     setEditingPost(post);
     setFormData({
       ...post,
@@ -546,7 +551,7 @@ export default function BlogAdmin() {
     });
     
     // 마크다운을 HTML로 변환하여 WYSIWYG 에디터에 표시
-    const htmlContent = convertMarkdownToHtml(post.content);
+    const htmlContent = await convertMarkdownToHtml(post.content);
     setHtmlContent(htmlContent);
     
     setShowForm(true);
@@ -570,6 +575,28 @@ export default function BlogAdmin() {
     } catch (error) {
       console.error('❌ 게시물 이미지 로드 에러:', error);
       setPostImages([]);
+    }
+  };
+
+  // 전체 이미지 목록 로드
+  const loadAllImages = async () => {
+    try {
+      setIsLoadingAllImages(true);
+      const response = await fetch('/api/admin/all-images?limit=100');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAllImages(data.images || []);
+        console.log('✅ 전체 이미지 로드 성공:', data.images?.length || 0, '개');
+      } else {
+        console.error('❌ 전체 이미지 로드 실패:', data.error);
+        setAllImages([]);
+      }
+    } catch (error) {
+      console.error('❌ 전체 이미지 로드 에러:', error);
+      setAllImages([]);
+    } finally {
+      setIsLoadingAllImages(false);
     }
   };
 
@@ -2115,6 +2142,18 @@ export default function BlogAdmin() {
               >
                 {showImageGallery ? '갤러리 닫기' : '갤러리 열기'}
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAllImages(!showAllImages);
+                  if (!showAllImages) {
+                    loadAllImages();
+                  }
+                }}
+                className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+              >
+                {showAllImages ? '전체 갤러리 닫기' : '전체 이미지 보기'}
+              </button>
               {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                   {postImages.length}개 이미지
@@ -2288,6 +2327,102 @@ export default function BlogAdmin() {
                     </div>
                   </div>
                 )
+              )}
+            </div>
+          )}
+
+          {/* 전체 이미지 갤러리 */}
+          {showAllImages && (
+            <div className="mt-4">
+              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <h5 className="text-md font-medium text-purple-800 mb-2">
+                  🌟 전체 이미지 갤러리
+                </h5>
+                <p className="text-sm text-purple-600">
+                  업로드된 모든 이미지를 확인하고 현재 게시물에 삽입할 수 있습니다.
+                </p>
+              </div>
+              
+              {isLoadingAllImages ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                  <p className="text-gray-500 mt-2">이미지를 불러오는 중...</p>
+                </div>
+              ) : allImages.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  업로드된 이미지가 없습니다.
+                </p>
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h6 className="text-sm font-medium text-gray-700">
+                      총 {allImages.length}개의 이미지
+                    </h6>
+                    <div className="text-xs text-gray-500">
+                      💡 이미지를 클릭하여 현재 게시물에 삽입하세요
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+                    {allImages.map((image, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="relative">
+                          <img
+                            src={image.url}
+                            alt={image.name || `Image ${index + 1}`}
+                            className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => {
+                              // 현재 게시물에 이미지 삽입
+                              if (useWysiwyg) {
+                                const imageHtml = `<img src="${image.url}" alt="${image.name || '이미지'}" style="max-width: 100%; height: auto;" />`;
+                                const newHtmlContent = htmlContent + imageHtml;
+                                setHtmlContent(newHtmlContent);
+                                const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+                                setFormData(prev => ({ ...prev, content: markdownContent }));
+                              } else {
+                                const imageMarkdown = `![${image.name || '이미지'}](${image.url})`;
+                                setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
+                              }
+                              alert('이미지가 본문에 삽입되었습니다!');
+                            }}
+                          />
+                          <div className="absolute top-1 right-1">
+                            <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
+                              {index + 1}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <div className="text-xs text-gray-600 truncate" title={image.name}>
+                            {image.name}
+                          </div>
+                          <div className="flex gap-1 mt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, featured_image: image.url });
+                                alert('대표 이미지로 설정되었습니다!');
+                              }}
+                              className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                            >
+                              ⭐ 대표
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(image.url);
+                                alert('이미지 URL이 복사되었습니다!');
+                              }}
+                              className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                            >
+                              📋 복사
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}
