@@ -219,6 +219,12 @@ export default function BlogAdmin() {
     hasNextPage: false,
     hasPrevPage: false
   });
+  
+  // 중복 이미지 관리 상태
+  const [duplicateImages, setDuplicateImages] = useState([]);
+  const [showDuplicates, setShowDuplicates] = useState(false);
+  const [isLoadingDuplicates, setIsLoadingDuplicates] = useState(false);
+  const [selectedDuplicates, setSelectedDuplicates] = useState([]);
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -611,6 +617,69 @@ export default function BlogAdmin() {
       setAllImages([]);
     } finally {
       setIsLoadingAllImages(false);
+    }
+  };
+
+  // 중복 이미지 찾기
+  const findDuplicateImages = async () => {
+    try {
+      setIsLoadingDuplicates(true);
+      const response = await fetch('/api/admin/find-duplicates');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setDuplicateImages(data.duplicates || []);
+        console.log('✅ 중복 이미지 분석 완료:', data.duplicates?.length || 0, '개 그룹');
+        alert(`중복 이미지 ${data.duplicateGroups}개 그룹을 찾았습니다. (총 ${data.duplicateCount}개 중복)`);
+      } else {
+        console.error('❌ 중복 이미지 분석 실패:', data.error);
+        setDuplicateImages([]);
+      }
+    } catch (error) {
+      console.error('❌ 중복 이미지 분석 에러:', error);
+      setDuplicateImages([]);
+    } finally {
+      setIsLoadingDuplicates(false);
+    }
+  };
+
+  // 중복 이미지 삭제
+  const deleteDuplicateImages = async (imageNames) => {
+    if (!imageNames || imageNames.length === 0) {
+      alert('삭제할 이미지를 선택해주세요.');
+      return;
+    }
+
+    if (!confirm(`선택한 ${imageNames.length}개의 중복 이미지를 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/find-duplicates', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageNames })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        console.log('✅ 중복 이미지 삭제 성공:', data.deletedImages?.length || 0, '개');
+        alert(`${data.deletedImages?.length || 0}개의 중복 이미지가 삭제되었습니다.`);
+        
+        // 중복 이미지 목록 새로고침
+        await findDuplicateImages();
+        // 전체 이미지 목록도 새로고침
+        await loadAllImages(allImagesPagination.currentPage);
+      } else {
+        console.error('❌ 중복 이미지 삭제 실패:', data.error);
+        alert('중복 이미지 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ 중복 이미지 삭제 에러:', error);
+      alert('중복 이미지 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -2168,6 +2237,18 @@ export default function BlogAdmin() {
               >
                 {showAllImages ? '전체 갤러리 닫기' : '전체 이미지 보기'}
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDuplicates(!showDuplicates);
+                  if (!showDuplicates) {
+                    findDuplicateImages();
+                  }
+                }}
+                className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+              >
+                {showDuplicates ? '중복 관리 닫기' : '중복 이미지 찾기'}
+              </button>
               {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                   {postImages.length}개 이미지
@@ -2489,6 +2570,109 @@ export default function BlogAdmin() {
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 중복 이미지 관리 */}
+          {showDuplicates && (
+            <div className="mt-4">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <h5 className="text-md font-medium text-red-800 mb-2">
+                  🔍 중복 이미지 관리
+                </h5>
+                <p className="text-sm text-red-600">
+                  중복된 이미지를 찾아서 정리하고 저장 공간을 절약하세요.
+                </p>
+              </div>
+              
+              {isLoadingDuplicates ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                  <p className="text-gray-500 mt-2">중복 이미지를 분석하는 중...</p>
+                </div>
+              ) : duplicateImages.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  중복된 이미지가 없습니다! 🎉
+                </p>
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h6 className="text-sm font-medium text-gray-700">
+                      중복 이미지 {duplicateImages.length}개 그룹 발견
+                    </h6>
+                    <div className="text-xs text-gray-500">
+                      💡 첫 번째 이미지는 유지하고 나머지를 삭제하세요
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {duplicateImages.map((group, groupIndex) => (
+                      <div key={groupIndex} className="bg-white border border-red-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <h7 className="text-sm font-medium text-red-700">
+                            그룹 {groupIndex + 1}: {group.hash} ({group.count}개 중복)
+                          </h7>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const toDelete = group.images.slice(1); // 첫 번째 제외하고 삭제
+                              deleteDuplicateImages(toDelete.map(img => img.name));
+                            }}
+                            className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                          >
+                            중복 삭제 ({group.count - 1}개)
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {group.images.map((image, imageIndex) => (
+                            <div key={imageIndex} className={`border-2 rounded-lg overflow-hidden ${
+                              imageIndex === 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
+                            }`}>
+                              <div className="relative">
+                                <img
+                                  src={image.url}
+                                  alt={image.name}
+                                  className="w-full h-20 object-cover"
+                                />
+                                <div className="absolute top-1 left-1">
+                                  <span className={`px-1 py-0.5 text-xs rounded ${
+                                    imageIndex === 0 
+                                      ? 'bg-green-500 text-white' 
+                                      : 'bg-red-500 text-white'
+                                  }`}>
+                                    {imageIndex === 0 ? '유지' : '삭제'}
+                                  </span>
+                                </div>
+                                <div className="absolute top-1 right-1">
+                                  <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
+                                    {imageIndex + 1}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="p-2">
+                                <div className="text-xs text-gray-600 truncate" title={image.name}>
+                                  {image.name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(image.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ <strong>주의:</strong> 중복 이미지 삭제는 되돌릴 수 없습니다. 
+                      각 그룹에서 첫 번째 이미지는 유지되고 나머지는 삭제됩니다.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
