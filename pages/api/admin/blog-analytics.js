@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { period = '7d', blog_slug } = req.query;
+    const { period = '7d', blog_slug, excludeInternal = 'false' } = req.query;
     
     // 기간 계산
     const now = new Date();
@@ -53,6 +53,14 @@ export default async function handler(req, res) {
       .select('*', { count: 'exact', head: true })
       .gte('created_at', startDate.toISOString());
 
+    // 내부 카운터 제외 (test, localhost, 127.0.0.1 등)
+    if (excludeInternal === 'true') {
+      totalViewsQuery = totalViewsQuery
+        .neq('traffic_source', 'test')
+        .neq('ip_address', '127.0.0.1')
+        .not('user_agent', 'ilike', '%localhost%');
+    }
+
     if (blog_slug) {
       totalViewsQuery = totalViewsQuery.eq('blog_slug', blog_slug);
     }
@@ -69,6 +77,14 @@ export default async function handler(req, res) {
       .from('blog_analytics')
       .select('traffic_source')
       .gte('created_at', startDate.toISOString());
+
+    // 내부 카운터 제외
+    if (excludeInternal === 'true') {
+      trafficQuery = trafficQuery
+        .neq('traffic_source', 'test')
+        .neq('ip_address', '127.0.0.1')
+        .not('user_agent', 'ilike', '%localhost%');
+    }
 
     if (blog_slug) {
       trafficQuery = trafficQuery.eq('blog_slug', blog_slug);

@@ -721,14 +721,15 @@ export default function BlogAdmin() {
   const [blogAnalytics, setBlogAnalytics] = useState(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
-  const loadBlogAnalytics = async (period = '7d') => {
+  const loadBlogAnalytics = async (period = '7d', excludeInternal = false) => {
     setIsLoadingAnalytics(true);
     try {
-      const response = await fetch(`/api/admin/blog-analytics?period=${period}`);
+      const url = `/api/admin/blog-analytics?period=${period}${excludeInternal ? '&excludeInternal=true' : ''}`;
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setBlogAnalytics(data);
-        console.log('✅ 블로그 분석 로드 성공:', data.totalViews, '조회수');
+        console.log('✅ 블로그 분석 로드 성공:', data.totalViews, '조회수', excludeInternal ? '(내부 제외)' : '');
       } else {
         console.error('❌ 블로그 분석 로드 실패');
       }
@@ -736,6 +737,29 @@ export default function BlogAdmin() {
       console.error('❌ 블로그 분석 로드 에러:', error);
     } finally {
       setIsLoadingAnalytics(false);
+    }
+  };
+
+  const resetBlogAnalytics = async () => {
+    try {
+      const response = await fetch('/api/admin/blog-analytics-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ 블로그 분석 데이터 리셋 성공');
+        alert('모든 블로그 분석 데이터가 삭제되었습니다.');
+        setBlogAnalytics(null);
+      } else {
+        console.error('❌ 블로그 분석 리셋 실패');
+        alert('데이터 리셋에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ 블로그 분석 리셋 에러:', error);
+      alert('데이터 리셋 중 오류가 발생했습니다.');
     }
   };
 
@@ -1864,13 +1888,39 @@ export default function BlogAdmin() {
                     <h3 className="text-lg font-semibold text-blue-800">
                       📊 블로그 분석 대시보드
                     </h3>
-                    <button
-                      type="button"
-                      onClick={() => setBlogAnalytics(null)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      ✕
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('내부 카운터(테스트, localhost 등)를 제외하시겠습니까?')) {
+                            loadBlogAnalytics('7d', true);
+                          }
+                        }}
+                        className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                        title="내부 카운터 제외"
+                      >
+                        🔍 내부 제외
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('정말로 모든 블로그 분석 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                            resetBlogAnalytics();
+                          }
+                        }}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                        title="모든 데이터 삭제"
+                      >
+                        🗑️ 리셋
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBlogAnalytics(null)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
