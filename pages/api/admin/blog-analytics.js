@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       }
 
       // 트래픽 소스별 분석
-      const { data: trafficSources, error: trafficError } = await supabase
+      let { data: trafficSources, error: trafficError } = await supabase
         .from('blog_analytics')
         .select('traffic_source')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       }
 
       // 검색어 분석
-      const { data: searchKeywords, error: searchError } = await supabase
+      let { data: searchKeywords, error: searchError } = await supabase
         .from('blog_analytics')
         .select('search_keyword')
         .not('search_keyword', 'is', null)
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       }
 
       // UTM 캠페인 분석
-      const { data: utmCampaigns, error: utmError } = await supabase
+      let { data: utmCampaigns, error: utmError } = await supabase
         .from('blog_analytics')
         .select('utm_campaign, utm_source, utm_medium')
         .not('utm_campaign', 'is', null)
