@@ -81,6 +81,94 @@ export default function BlogPost({ post: staticPost }) {
   const [loading, setLoading] = useState(!staticPost);
   const [relatedPosts, setRelatedPosts] = useState([]);
 
+  // 블로그 페이지 상세 추적
+  useEffect(() => {
+    if (post && typeof window !== 'undefined') {
+      // UTM 파라미터 추출
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmSource = urlParams.get('utm_source');
+      const utmMedium = urlParams.get('utm_medium');
+      const utmCampaign = urlParams.get('utm_campaign');
+      const utmTerm = urlParams.get('utm_term');
+      const utmContent = urlParams.get('utm_content');
+      
+      // 리퍼러 정보
+      const referrer = document.referrer;
+      const isGoogleSearch = referrer.includes('google.com');
+      const isNaverSearch = referrer.includes('naver.com');
+      const isDirect = !referrer || referrer === window.location.origin;
+      
+      // 검색어 추출 (Google/Naver)
+      let searchKeyword = '';
+      if (isGoogleSearch) {
+        const googleMatch = referrer.match(/[?&]q=([^&]+)/);
+        if (googleMatch) {
+          searchKeyword = decodeURIComponent(googleMatch[1]);
+        }
+      } else if (isNaverSearch) {
+        const naverMatch = referrer.match(/[?&]query=([^&]+)/);
+        if (naverMatch) {
+          searchKeyword = decodeURIComponent(naverMatch[1]);
+        }
+      }
+
+      // Google Analytics 4 이벤트 전송
+      if (window.gtag) {
+        window.gtag('event', 'blog_view', {
+          blog_title: post.title,
+          blog_slug: post.slug,
+          blog_category: post.category,
+          utm_source: utmSource || 'direct',
+          utm_medium: utmMedium || (isGoogleSearch ? 'organic' : isNaverSearch ? 'organic' : 'direct'),
+          utm_campaign: utmCampaign || 'none',
+          utm_term: utmTerm || searchKeyword || 'none',
+          utm_content: utmContent || 'none',
+          referrer: referrer || 'direct',
+          search_keyword: searchKeyword || 'none',
+          traffic_source: isGoogleSearch ? 'google_organic' : isNaverSearch ? 'naver_organic' : utmSource ? 'paid' : 'direct'
+        });
+
+        // 페이지뷰 이벤트
+        window.gtag('event', 'page_view', {
+          page_title: post.title,
+          page_location: window.location.href,
+          page_path: window.location.pathname,
+          content_group1: 'blog',
+          content_group2: post.category
+        });
+      }
+
+      // Supabase 조회수 추적
+      const trackBlogView = async () => {
+        try {
+          await fetch('/api/track-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              campaign_id: 'blog',
+              page: window.location.pathname,
+              blog_title: post.title,
+              blog_slug: post.slug,
+              blog_category: post.category,
+              utm_source: utmSource,
+              utm_medium: utmMedium,
+              utm_campaign: utmCampaign,
+              utm_term: utmTerm,
+              utm_content: utmContent,
+              referrer: referrer,
+              search_keyword: searchKeyword,
+              traffic_source: isGoogleSearch ? 'google_organic' : isNaverSearch ? 'naver_organic' : utmSource ? 'paid' : 'direct'
+            })
+          });
+        } catch (error) {
+          console.error('블로그 조회수 추적 실패:', error);
+        }
+      };
+
+      trackBlogView();
+    }
+  }, [post]);
+
   useEffect(() => {
     // 정적 데이터가 있으면 사용, 없으면 API에서 가져오기
     if (staticPost) {
