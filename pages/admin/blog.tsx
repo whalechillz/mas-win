@@ -717,6 +717,28 @@ export default function BlogAdmin() {
     alert('이미지가 이 게시물에서 제거되었습니다. (Supabase에는 유지됨)');
   };
 
+  // 블로그 분석 데이터 로드
+  const [blogAnalytics, setBlogAnalytics] = useState(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+
+  const loadBlogAnalytics = async (period = '7d') => {
+    setIsLoadingAnalytics(true);
+    try {
+      const response = await fetch(`/api/admin/blog-analytics?period=${period}`);
+      if (response.ok) {
+        const data = await response.json();
+        setBlogAnalytics(data);
+        console.log('✅ 블로그 분석 로드 성공:', data.totalViews, '조회수');
+      } else {
+        console.error('❌ 블로그 분석 로드 실패');
+      }
+    } catch (error) {
+      console.error('❌ 블로그 분석 로드 에러:', error);
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
   // 이미지 사용 현황 조회
   const loadImageUsageInfo = async (imageUrl) => {
     setIsLoadingUsageInfo(true);
@@ -2352,6 +2374,16 @@ export default function BlogAdmin() {
                 {showDuplicates ? '중복 관리 닫기' : '중복 이미지 찾기'}
               </button>
               
+              <button
+                type="button"
+                onClick={() => {
+                  loadBlogAnalytics('7d');
+                }}
+                className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+              >
+                📊 블로그 분석
+              </button>
+              
               {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                   {postImages.length}개 이미지
@@ -2897,6 +2929,99 @@ export default function BlogAdmin() {
             </div>
           )}
 
+          {/* 블로그 분석 대시보드 */}
+          {blogAnalytics && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-blue-800">
+                  📊 블로그 분석 대시보드
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setBlogAnalytics(null)}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">총 조회수</h4>
+                  <p className="text-2xl font-bold text-blue-600">{blogAnalytics.totalViews.toLocaleString()}</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">트래픽 소스</h4>
+                  <p className="text-lg font-semibold text-green-600">{blogAnalytics.trafficSources.length}개</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">검색어</h4>
+                  <p className="text-lg font-semibold text-purple-600">{blogAnalytics.searchKeywords.length}개</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">캠페인</h4>
+                  <p className="text-lg font-semibold text-orange-600">{blogAnalytics.utmCampaigns.length}개</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 트래픽 소스 */}
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-800 mb-3">🚦 트래픽 소스</h4>
+                  <div className="space-y-2">
+                    {blogAnalytics.trafficSources.slice(0, 5).map((source, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">{source.source}</span>
+                        <span className="text-sm font-medium text-blue-600">{source.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 검색어 */}
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-800 mb-3">🔍 검색어</h4>
+                  <div className="space-y-2">
+                    {blogAnalytics.searchKeywords.slice(0, 5).map((keyword, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600 truncate">{keyword.keyword}</span>
+                        <span className="text-sm font-medium text-green-600">{keyword.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* UTM 캠페인 */}
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-800 mb-3">📢 UTM 캠페인</h4>
+                  <div className="space-y-2">
+                    {blogAnalytics.utmCampaigns.slice(0, 5).map((campaign, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600 truncate">{campaign.campaign}</span>
+                        <span className="text-sm font-medium text-purple-600">{campaign.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 블로그별 조회수 */}
+                <div className="bg-white p-4 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-800 mb-3">📝 블로그별 조회수</h4>
+                  <div className="space-y-2">
+                    {blogAnalytics.blogViews.slice(0, 5).map((blog, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-600 truncate">{blog.title}</p>
+                          <p className="text-xs text-gray-400">{blog.category}</p>
+                        </div>
+                        <span className="text-sm font-medium text-orange-600">{blog.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 이미지 미리보기 모달 */}
           {showImagePreview && previewImage && (
