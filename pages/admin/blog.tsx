@@ -1812,6 +1812,19 @@ export default function BlogAdmin() {
                 <h2 className="text-xl font-semibold">
                 {editingPost ? '게시물 수정' : '새 게시물 작성'}
               </h2>
+              
+              {/* 블로그 분석 버튼 - 최상단으로 이동 */}
+              {editingPost && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    loadBlogAnalytics('7d');
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 flex items-center gap-2"
+                >
+                  📊 블로그 분석
+                </button>
+              )}
                 <button
                   type="button"
                   onClick={() => {
@@ -2374,15 +2387,6 @@ export default function BlogAdmin() {
                 {showDuplicates ? '중복 관리 닫기' : '중복 이미지 찾기'}
               </button>
               
-              <button
-                type="button"
-                onClick={() => {
-                  loadBlogAnalytics('7d');
-                }}
-                className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
-              >
-                📊 블로그 분석
-              </button>
               
               {postImages.length > 0 && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
