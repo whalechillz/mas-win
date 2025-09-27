@@ -1825,8 +1825,7 @@ export default function BlogAdmin() {
                 setActiveTab('create');
                 setShowForm(true);
               }}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium cursor-pointer z-10 relative"
-              style={{ minWidth: '150px', minHeight: '50px' }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer z-10 relative"
             >
               새 게시물 작성
             </button>
@@ -2779,7 +2778,7 @@ export default function BlogAdmin() {
                     이 게시물에 연결된 이미지가 없습니다. 이미지를 업로드하거나 AI로 생성해보세요.
                   </p>
                 ) : (
-                  <div>
+                <div>
                     <h5 className="text-md font-medium text-gray-800 mb-3">
                       📁 이 게시물의 이미지 ({postImages.length}개)
                     </h5>
@@ -2804,7 +2803,7 @@ export default function BlogAdmin() {
                               >
                                 ×
                               </button>
-                            </div>
+                </div>
                           </div>
                           <div className="p-3">
                             <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
@@ -2990,7 +2989,7 @@ export default function BlogAdmin() {
                             <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
                               {index + 1}
                             </span>
-                          </div>
+                </div>
                         </div>
                         <div className="p-2">
                           <div className="text-xs text-gray-600 truncate" title={image.name}>
@@ -3159,7 +3158,7 @@ export default function BlogAdmin() {
                   중복된 이미지가 없습니다! 🎉
                 </p>
               ) : (
-                <div>
+        <div>
                   <div className="flex justify-between items-center mb-3">
                     <h6 className="text-sm font-medium text-gray-700">
                       중복 이미지 {duplicateImages.length}개 그룹 발견
@@ -3206,7 +3205,7 @@ export default function BlogAdmin() {
                         </div>
                         
                         {/* 나란히 비교 보기 */}
-                        <div className="mb-4">
+            <div className="mb-4">
                           <h5 className="text-sm font-medium text-gray-700 mb-2">📊 나란히 비교 보기</h5>
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {group.images.slice(0, 2).map((image, imageIndex) => (
@@ -3264,8 +3263,8 @@ export default function BlogAdmin() {
                                     <img
                                       src={image.url}
                                       alt={image.name}
-                                      className="w-full h-full object-cover"
-                                    />
+                  className="w-full h-full object-cover"
+                />
                                   </div>
                                   <div className="flex-1 p-2">
                                     <div className="flex items-center gap-1 mb-1">
@@ -3313,13 +3312,13 @@ export default function BlogAdmin() {
               <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
                 <div className="flex justify-between items-center p-4 border-b">
                   <h3 className="text-lg font-semibold">이미지 미리보기</h3>
-                  <button
+                <button
                     onClick={() => setShowImagePreview(false)}
                     className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
+                >
+                  ×
+                </button>
+              </div>
                 
                 <div className="p-4">
                   <div className="mb-4">
@@ -3328,7 +3327,7 @@ export default function BlogAdmin() {
                       alt={previewImage.name}
                       className="max-w-full max-h-[60vh] object-contain mx-auto"
                     />
-                  </div>
+            </div>
                   
                   <div className="mb-4">
                     <h4 className="font-medium text-gray-800 mb-2">파일 정보</h4>
@@ -3461,8 +3460,8 @@ export default function BlogAdmin() {
                     >
                       📋 URL 복사
                     </button>
-                  </div>
-                </div>
+            </div>
+          </div>
               </div>
             </div>
           )}
@@ -3471,7 +3470,7 @@ export default function BlogAdmin() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     요약
-                  </label>
+          </label>
                   <textarea
                     value={formData.excerpt}
                     onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
@@ -3485,7 +3484,7 @@ export default function BlogAdmin() {
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-sm font-medium text-gray-700">
                     내용 *
-                  </label>
+            </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -3689,12 +3688,12 @@ export default function BlogAdmin() {
                           value={formData.content}
                           onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                           rows={10}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
                           required
-                        />
+            />
                       )}
-                    </div>
+          </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
                     💡 {useWysiwyg ? 'WYSIWYG 모드: 이미지가 실제로 보입니다!' : '마크다운 모드: 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)'}
@@ -4073,7 +4072,7 @@ export default function BlogAdmin() {
                                   e.stopPropagation();
                                   handlePostSelect(post.id);
                                 }}
-                                className="absolute top-4 left-4 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 z-10 cursor-pointer"
+                                className="absolute top-4 left-4 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 z-50 cursor-pointer"
                               />
                               <div className="relative h-64 overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
