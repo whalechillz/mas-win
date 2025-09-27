@@ -76,7 +76,7 @@ export default function BlogAdmin() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'migration'
+  const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'migration', 'naver-scraper'
   const [selectedPosts, setSelectedPosts] = useState([]); // 선택된 게시물 ID들
   const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'card'
   const [sortBy, setSortBy] = useState('published_at'); // 정렬 기준
@@ -985,6 +985,14 @@ export default function BlogAdmin() {
   const [aiUsageStats, setAiUsageStats] = useState(null);
   const [isLoadingAIStats, setIsLoadingAIStats] = useState(false);
 
+  // 네이버 블로그 스크래퍼 상태
+  const [naverBlogId, setNaverBlogId] = useState('');
+  const [naverPostUrls, setNaverPostUrls] = useState('');
+  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
+  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
+  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
+  const [naverScraperMode, setNaverScraperMode] = useState('blogId'); // 'blogId' 또는 'urls'
+
   const loadBlogAnalytics = async (period = '7d', excludeInternal = false) => {
     setIsLoadingAnalytics(true);
     try {
@@ -1044,6 +1052,73 @@ export default function BlogAdmin() {
       console.error('❌ AI 사용량 통계 로드 에러:', error);
     } finally {
       setIsLoadingAIStats(false);
+    }
+  };
+
+  // 네이버 블로그 스크래핑 함수
+  const handleNaverBlogScrape = async () => {
+    if (!naverBlogId && !naverPostUrls) {
+      alert('블로그 ID 또는 포스트 URL을 입력해주세요.');
+      return;
+    }
+
+    setIsScrapingNaver(true);
+    try {
+      const requestBody = {
+        options: {
+          includeImages: true,
+          includeContent: true
+        }
+      };
+
+      if (naverScraperMode === 'blogId' && naverBlogId) {
+        requestBody.blogId = naverBlogId;
+      } else if (naverScraperMode === 'urls' && naverPostUrls) {
+        const urls = naverPostUrls.split('\n').filter(url => url.trim());
+        requestBody.postUrls = urls;
+      }
+
+      const response = await fetch('/api/admin/naver-blog-scraper', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setScrapedNaverPosts(result.posts);
+        alert(`✅ ${result.successfulPosts}개 포스트 성공적으로 스크래핑되었습니다.`);
+      } else {
+        alert(`❌ 스크래핑 실패: ${result.error || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('네이버 블로그 스크래핑 오류:', error);
+      alert('❌ 스크래핑 중 오류가 발생했습니다.');
+    } finally {
+      setIsScrapingNaver(false);
+    }
+  };
+
+  // 네이버 포스트 선택/해제
+  const handleNaverPostSelect = (postIndex) => {
+    const newSelected = new Set(selectedNaverPosts);
+    if (newSelected.has(postIndex)) {
+      newSelected.delete(postIndex);
+    } else {
+      newSelected.add(postIndex);
+    }
+    setSelectedNaverPosts(newSelected);
+  };
+
+  // 네이버 포스트 전체 선택/해제
+  const handleSelectAllNaverPosts = () => {
+    if (selectedNaverPosts.size === scrapedNaverPosts.length) {
+      setSelectedNaverPosts(new Set());
+    } else {
+      setSelectedNaverPosts(new Set(scrapedNaverPosts.map((_, index) => index)));
     }
   };
 
@@ -2123,6 +2198,19 @@ export default function BlogAdmin() {
               >
                 🔄 블로그 마이그레이션
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab('naver-scraper');
+                  setShowForm(false);
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'naver-scraper'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                🔵 네이버 블로그 스크래퍼
+              </button>
             </nav>
           </div>
 
@@ -2176,6 +2264,145 @@ export default function BlogAdmin() {
             </div>
           )}
 
+          {/* 네이버 블로그 스크래퍼 탭 */}
+          {activeTab === 'naver-scraper' && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="text-center py-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  🔵 네이버 블로그 스크래퍼
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  RSS 피드 기반으로 네이버 블로그의 모든 포스트를 자동으로 수집하고 스크래핑합니다.
+                </p>
+                
+                {/* 모드 선택 */}
+                <div className="mb-6">
+                  <div className="flex justify-center space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="blogId"
+                        checked={naverScraperMode === 'blogId'}
+                        onChange={(e) => setNaverScraperMode(e.target.value)}
+                        className="mr-2"
+                      />
+                      블로그 ID로 수집
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="urls"
+                        checked={naverScraperMode === 'urls'}
+                        onChange={(e) => setNaverScraperMode(e.target.value)}
+                        className="mr-2"
+                      />
+                      URL 직접 입력
+                    </label>
+                  </div>
+                </div>
+
+                {/* 입력 필드 */}
+                <div className="space-y-4">
+                  {naverScraperMode === 'blogId' ? (
+                    <div className="max-w-md mx-auto">
+                      <input
+                        type="text"
+                        value={naverBlogId}
+                        onChange={(e) => setNaverBlogId(e.target.value)}
+                        placeholder="massgoogolf (블로그 ID만 입력)"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={isScrapingNaver}
+                      />
+                      <p className="text-sm text-gray-500 mt-2">
+                        예: https://blog.naver.com/massgoogolf → massgoogolf
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="max-w-2xl mx-auto">
+                      <textarea
+                        value={naverPostUrls}
+                        onChange={(e) => setNaverPostUrls(e.target.value)}
+                        placeholder="네이버 블로그 포스트 URL들을 한 줄씩 입력하세요&#10;https://blog.naver.com/massgoogolf/223958579134&#10;https://blog.naver.com/massgoogolf/223958579135"
+                        rows={6}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={isScrapingNaver}
+                      />
+                    </div>
+                  )}
+                  
+                  <button 
+                    onClick={handleNaverBlogScrape}
+                    disabled={isScrapingNaver || (!naverBlogId && !naverPostUrls)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isScrapingNaver ? '스크래핑 중...' : '🔍 네이버 블로그 스크래핑 시작'}
+                  </button>
+                </div>
+
+                {/* 스크래핑 결과 */}
+                {scrapedNaverPosts.length > 0 && (
+                  <div className="mt-8 text-left">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        스크래핑 결과 ({scrapedNaverPosts.length}개 포스트)
+                      </h3>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleSelectAllNaverPosts}
+                          className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        >
+                          {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
+                        </button>
+                        {selectedNaverPosts.size > 0 && (
+                          <button className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                            선택된 {selectedNaverPosts.size}개 마이그레이션
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-4 max-h-96 overflow-y-auto">
+                      {scrapedNaverPosts.map((post, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedNaverPosts.has(index)}
+                              onChange={() => handleNaverPostSelect(index)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900 mb-2">
+                                {post.title || '제목 없음'}
+                              </h4>
+                              <p className="text-sm text-gray-600 mb-2">
+                                <strong>URL:</strong> {post.originalUrl}
+                              </p>
+                              {post.publishDate && (
+                                <p className="text-sm text-gray-500 mb-2">
+                                  <strong>발행일:</strong> {post.publishDate}
+                                </p>
+                              )}
+                              {post.images && post.images.length > 0 && (
+                                <p className="text-sm text-blue-600 mb-2">
+                                  <strong>이미지:</strong> {post.images.length}개
+                                </p>
+                              )}
+                              {post.error && (
+                                <p className="text-sm text-red-600">
+                                  <strong>오류:</strong> {post.error}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 게시물 작성/수정 폼 */}
           {(activeTab === 'create' || showForm) && (
