@@ -220,6 +220,10 @@ export default function BlogAdmin() {
     hasPrevPage: false
   });
   
+  // 이미지 선택 상태 (체크박스용)
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [isDeletingImages, setIsDeletingImages] = useState(false);
+  
   // 중복 이미지 관리 상태
   const [duplicateImages, setDuplicateImages] = useState([]);
   const [showDuplicates, setShowDuplicates] = useState(false);
@@ -733,6 +737,92 @@ export default function BlogAdmin() {
     } catch (error) {
       console.error('이미지 삭제 오류:', error);
       alert('이미지 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 이미지 선택 관련 함수들
+  const handleImageSelect = (imageName) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageName)) {
+        newSet.delete(imageName);
+      } else {
+        newSet.add(imageName);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllImages = () => {
+    if (selectedImages.size === allImages.length) {
+      // 모두 선택된 상태면 모두 해제
+      setSelectedImages(new Set());
+    } else {
+      // 일부만 선택되거나 아무것도 선택되지 않은 상태면 모두 선택
+      setSelectedImages(new Set(allImages.map(img => img.name)));
+    }
+  };
+
+  const handleBulkDeleteImages = async () => {
+    if (selectedImages.size === 0) {
+      alert('삭제할 이미지를 선택해주세요.');
+      return;
+    }
+
+    const confirmMessage = `선택된 ${selectedImages.size}개의 이미지를 완전히 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    setIsDeletingImages(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (const imageName of selectedImages) {
+        try {
+          const response = await fetch('/api/admin/delete-image', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageName })
+          });
+
+          if (response.ok) {
+            successCount++;
+            // 로컬 상태에서 제거
+            setAllImages(prev => prev.filter(img => img.name !== imageName));
+            setPostImages(prev => prev.filter(img => img.name !== imageName));
+            
+            // 대표 이미지가 삭제된 경우 초기화
+            if (formData.featured_image && formData.featured_image.includes(imageName)) {
+              setFormData(prev => ({ ...prev, featured_image: '' }));
+            }
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error(`이미지 ${imageName} 삭제 오류:`, error);
+          failCount++;
+        }
+      }
+
+      // 선택 상태 초기화
+      setSelectedImages(new Set());
+      
+      // 결과 알림
+      if (successCount > 0 && failCount === 0) {
+        alert(`✅ ${successCount}개의 이미지가 성공적으로 삭제되었습니다!`);
+      } else if (successCount > 0 && failCount > 0) {
+        alert(`⚠️ ${successCount}개 성공, ${failCount}개 실패했습니다.`);
+      } else {
+        alert(`❌ 이미지 삭제에 실패했습니다.`);
+      }
+
+    } catch (error) {
+      console.error('일괄 삭제 오류:', error);
+      alert('일괄 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsDeletingImages(false);
     }
   };
 
@@ -2933,6 +3023,9 @@ export default function BlogAdmin() {
                   setShowAllImages(!showAllImages);
                   if (!showAllImages) {
                     loadAllImages();
+                  } else {
+                    // 갤러리를 닫을 때 선택 상태 초기화
+                    setSelectedImages(new Set());
                   }
                 }}
                 className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
@@ -3162,10 +3255,65 @@ export default function BlogAdmin() {
                     </div>
                   </div>
                   
+                  {/* 체크박스 선택 컨트롤 */}
+                  <div className="flex justify-between items-center mb-3 p-2 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedImages.size === allImages.length && allImages.length > 0}
+                          onChange={handleSelectAllImages}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          {selectedImages.size === allImages.length && allImages.length > 0 ? '전체 해제' : '전체 선택'}
+                        </span>
+                      </label>
+                      {selectedImages.size > 0 && (
+                        <span className="text-sm text-blue-600 font-medium">
+                          {selectedImages.size}개 선택됨
+                        </span>
+                      )}
+                    </div>
+                    
+                    {selectedImages.size > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleBulkDeleteImages}
+                        disabled={isDeletingImages}
+                        className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        {isDeletingImages ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            삭제 중...
+                          </>
+                        ) : (
+                          <>
+                            🗑️ 선택된 {selectedImages.size}개 삭제
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
                     {allImages.map((image, index) => (
-                      <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                      <div key={index} className={`bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all ${
+                        selectedImages.has(image.name) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}>
                         <div className="relative">
+                          {/* 체크박스 */}
+                          <div className="absolute top-1 left-1 z-10">
+                            <input
+                              type="checkbox"
+                              checked={selectedImages.has(image.name)}
+                              onChange={() => handleImageSelect(image.name)}
+                              className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                          
                           <img
                             src={image.url}
                             alt={image.name || `Image ${index + 1}`}
@@ -3182,7 +3330,7 @@ export default function BlogAdmin() {
                             <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
                               {index + 1}
                             </span>
-                </div>
+                          </div>
                         </div>
                         <div className="p-2">
                           <div className="text-xs text-gray-600 truncate" title={image.name}>
