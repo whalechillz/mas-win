@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { marked } from 'marked';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 // import WysiwygEditor from '../../components/WysiwygEditor';
 
 // React Quill을 동적으로 로드 (SSR 문제 방지)
@@ -73,6 +74,7 @@ const convertMarkdownToHtml = (markdown) => {
 };
 
 export default function BlogAdmin() {
+  const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -87,6 +89,17 @@ export default function BlogAdmin() {
   useEffect(() => {
     console.log('showForm 상태:', showForm);
   }, [showForm]);
+
+  // URL 파라미터 처리 (편집 모드)
+  useEffect(() => {
+    if (router.isReady && router.query.edit) {
+      const postId = router.query.edit;
+      console.log('편집 모드로 전환:', postId);
+      setEditingPost(postId);
+      setShowForm(true);
+      setActiveTab('create');
+    }
+  }, [router.isReady, router.query.edit]);
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [formData, setFormData] = useState({
@@ -1146,7 +1159,7 @@ export default function BlogAdmin() {
           featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
           category: '고객 후기',
           tags: ['네이버 블로그', '마이그레이션'],
-          status: 'published',
+          status: 'draft', // 초안으로 저장
           meta_title: post.title || '',
           meta_description: post.excerpt || '',
           meta_keywords: '네이버 블로그, 마이그레이션',
@@ -1155,7 +1168,7 @@ export default function BlogAdmin() {
           is_scheduled: false,
           scheduled_at: null,
           author: '마쓰구골프',
-          published_at: post.publishDate || new Date().toISOString()
+          published_at: null // 초안이므로 발행일 없음
         };
 
         // 블로그 포스트 생성 API 호출
@@ -1173,9 +1186,15 @@ export default function BlogAdmin() {
 
         const result = await response.json();
         console.log('포스트 생성 성공:', result);
+        
+        // 첫 번째 포스트의 수정 페이지로 이동
+        if (selectedPosts.indexOf(post) === 0) {
+          // 수정 페이지로 이동
+          window.location.href = `/admin/blog?edit=${result.id}`;
+        }
       }
 
-      alert(`✅ ${selectedPosts.length}개 포스트가 성공적으로 마이그레이션되었습니다.`);
+      alert(`✅ ${selectedPosts.length}개 포스트가 초안으로 마이그레이션되었습니다. 수정 페이지로 이동합니다.`);
       
       // 선택 초기화
       setSelectedNaverPosts(new Set());

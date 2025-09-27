@@ -196,16 +196,57 @@ function extractNaverTitle(html) {
 function extractNaverContent(html) {
   // 네이버 블로그의 다양한 콘텐츠 컨테이너 시도
   const contentSelectors = [
+    // 스마트에디터 3.0
     /<div[^>]*class="[^"]*se-main-container[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+    // 스마트에디터 2.0
     /<div[^>]*class="[^"]*post-view[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
-    /<div[^>]*id="postViewArea"[^>]*>([\s\S]*?)<\/div>/i
+    // 일반적인 포스트 영역
+    /<div[^>]*id="postViewArea"[^>]*>([\s\S]*?)<\/div>/i,
+    // 스마트에디터 4.0
+    /<div[^>]*class="[^"]*se-component[^"]*"[^"]*se-text[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+    // 더 넓은 범위의 콘텐츠 영역
+    /<div[^>]*class="[^"]*se-text[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+    // 본문 영역
+    /<div[^>]*class="[^"]*post_ct[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+    // 콘텐츠 영역
+    /<div[^>]*class="[^"]*contents[^"]*"[^>]*>([\s\S]*?)<\/div>/i
   ];
 
   for (const selector of contentSelectors) {
     const match = html.match(selector);
     if (match && match[1]) {
-      return match[1].trim();
+      let content = match[1].trim();
+      
+      // HTML 태그 제거하고 텍스트만 추출
+      content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+      content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+      content = content.replace(/<[^>]+>/g, ' ');
+      content = content.replace(/\s+/g, ' ').trim();
+      
+      if (content.length > 50) { // 의미있는 콘텐츠가 있는지 확인
+        return content;
+      }
     }
+  }
+
+  // 마지막 시도: 전체 HTML에서 텍스트 추출
+  let fallbackContent = html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // 네이버 블로그 관련 텍스트 제거
+  fallbackContent = fallbackContent
+    .replace(/네이버 블로그/g, '')
+    .replace(/블로그/g, '')
+    .replace(/Naver Blog/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  if (fallbackContent.length > 100) {
+    return fallbackContent.substring(0, 1000) + '...'; // 1000자로 제한
   }
 
   return '콘텐츠를 추출할 수 없습니다.';
