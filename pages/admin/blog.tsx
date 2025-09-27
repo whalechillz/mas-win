@@ -2721,6 +2721,125 @@ export default function BlogAdmin() {
                   </div>
                 )}
 
+        {/* 대표 이미지 섹션 - 최우선 위치 (이미지 갤러리 위) */}
+        <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 shadow-lg">
+          <h4 className="text-xl font-bold text-blue-900 mb-4 flex items-center">
+            🖼️ 대표 이미지 관리
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">최우선</span>
+          </h4>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                대표 이미지 URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={formData.featured_image}
+                  onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="대표 이미지 URL을 입력하세요"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, featured_image: '' })}
+                  className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                  title="대표 이미지 제거"
+                >
+                  🗑️ 제거
+                </button>
+              </div>
+            </div>
+            
+            {formData.featured_image ? (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-green-700 flex items-center">
+                    ✅ 현재 대표 이미지
+                  </p>
+                  {/* 외부 링크인 경우 Supabase에 저장 버튼 */}
+                  {formData.featured_image.includes('unsplash.com') || formData.featured_image.includes('http') ? (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/admin/save-external-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              imageUrl: formData.featured_image,
+                              fileName: `featured-image-${Date.now()}.jpg`
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const result = await response.json();
+                            setFormData({ ...formData, featured_image: result.supabaseUrl });
+                            alert('✅ 외부 이미지가 Supabase에 저장되었습니다!');
+                          } else {
+                            alert('❌ 이미지 저장에 실패했습니다.');
+                          }
+                        } catch (error) {
+                          console.error('이미지 저장 오류:', error);
+                          alert('❌ 이미지 저장 중 오류가 발생했습니다.');
+                        }
+                      }}
+                      className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                      title="외부 이미지를 Supabase에 저장하고 최적화"
+                    >
+                      💾 Supabase에 저장
+                    </button>
+                  ) : null}
+                </div>
+                
+                <div className="relative w-full max-w-lg">
+                  <img
+                    src={formData.featured_image}
+                    alt="대표 이미지 미리보기"
+                    className="w-full h-40 object-cover rounded-lg border-2 border-gray-200 shadow-md"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextElementSibling.style.display = 'block';
+                    }}
+                  />
+                  <div className="hidden w-full h-40 bg-gray-100 rounded-lg border-2 border-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                    이미지를 불러올 수 없습니다
+                  </div>
+                </div>
+                
+                <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 break-all">
+                  <strong>URL:</strong> {formData.featured_image}
+                </div>
+                
+                {/* 이미지 상태 표시 */}
+                <div className="mt-2 flex items-center gap-2">
+                  {formData.featured_image.includes('supabase.co') ? (
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      ✅ Supabase 최적화됨
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                      ⚠️ 외부 링크 (불안정)
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 font-medium">
+                  ⚠️ 대표 이미지가 설정되지 않았습니다. 블로그 목록에서 이미지가 표시되지 않을 수 있습니다.
+                </p>
+              </div>
+            )}
+            
+            <div className="bg-blue-100 p-3 rounded-lg">
+              <p className="text-xs text-blue-800">
+                💡 <strong>권장사항:</strong> 외부 URL (Unsplash 등)은 불안정할 수 있으니 "💾 Supabase에 저장" 버튼을 눌러 안정적인 호스팅과 최적화를 받으세요.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* 이미지 갤러리 관리 */}
         <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <div className="flex justify-between items-center mb-3">
@@ -3699,67 +3818,6 @@ export default function BlogAdmin() {
                   </p>
         </div>
 
-        {/* 대표 이미지 섹션 - 더 눈에 띄게 */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-lg font-semibold text-blue-800 mb-3">🖼️ 대표 이미지 관리</h4>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                대표 이미지 URL
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={formData.featured_image}
-                  onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="대표 이미지 URL을 입력하세요"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, featured_image: '' })}
-                  className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                  title="대표 이미지 제거"
-                >
-                  🗑️ 제거
-                </button>
-              </div>
-            </div>
-            
-            {formData.featured_image ? (
-              <div className="mt-3">
-                <p className="text-sm font-medium text-gray-700 mb-2">✅ 현재 대표 이미지:</p>
-                <div className="relative w-full max-w-md">
-                  <img
-                    src={formData.featured_image}
-                    alt="대표 이미지 미리보기"
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextElementSibling.style.display = 'block';
-                    }}
-                  />
-                  <div className="hidden w-full h-32 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 text-sm">
-                    이미지를 불러올 수 없습니다
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600 mt-1 break-all">
-                  URL: {formData.featured_image}
-                </p>
-              </div>
-            ) : (
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  ⚠️ 대표 이미지가 설정되지 않았습니다. 블로그 목록에서 이미지가 표시되지 않을 수 있습니다.
-                </p>
-              </div>
-            )}
-            
-            <p className="text-xs text-gray-500">
-              💡 외부 URL (Unsplash 등) 또는 Supabase Storage URL을 입력하세요. 이미지 갤러리에서도 선택할 수 있습니다.
-            </p>
-          </div>
-        </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
