@@ -4017,13 +4017,6 @@ export default function BlogAdmin() {
                             </p>
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span>카테고리: {post.category}</span>
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                post.status === 'published' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-orange-100 text-orange-800'
-                              }`}>
-                                {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
-                              </span>
                               <span>작성자: {post.author}</span>
                               <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
                               <span>조회수: {post.view_count || 0}</span>
@@ -4035,7 +4028,15 @@ export default function BlogAdmin() {
                             </div>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex items-center space-x-2">
+                            {/* 상태 라벨을 액션 버튼 근처로 이동 */}
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              post.status === 'published' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-orange-100 text-orange-800'
+                            }`}>
+                              {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
+                            </span>
                             <button
                               onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
                               className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors flex items-center space-x-1"
@@ -4086,16 +4087,6 @@ export default function BlogAdmin() {
                                     {post.category}
                                   </span>
                                 </div>
-                                {/* 발행 상태 라벨을 더 명확하게 표시 */}
-                                <div className="absolute top-4 left-16 z-30">
-                                  <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-lg border-2 ${
-                                    post.status === 'published' 
-                                      ? 'bg-green-500 text-white border-green-600' 
-                                      : 'bg-orange-500 text-white border-orange-600'
-                                  }`}>
-                                    {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
-                                  </span>
-                                </div>
                               </div>
                               <div className="p-6">
                                 <h3 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200">
@@ -4113,7 +4104,15 @@ export default function BlogAdmin() {
                                       {new Date(post.published_at).toLocaleDateString('ko-KR')}
                                     </time>
                                   </div>
-                                  <div className="flex space-x-2">
+                                  <div className="flex items-center space-x-2">
+                                    {/* 상태 라벨을 액션 버튼 근처로 이동 */}
+                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                      post.status === 'published' 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-orange-100 text-orange-800'
+                                    }`}>
+                                      {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
+                                    </span>
                                     <button
                                       onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
                                       className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
