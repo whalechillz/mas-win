@@ -95,7 +95,6 @@ export default function BlogAdmin() {
     excerpt: '',
     content: '',
     featured_image: '',
-    original_featured_image: '', // 원본 URL 보존용
     category: '고객 후기',
     tags: [],
     status: 'published',
@@ -381,7 +380,6 @@ export default function BlogAdmin() {
       excerpt: '',
       content: '',
       featured_image: '',
-      original_featured_image: '',
       category: '고객 후기',
       tags: [],
       status: 'published',
@@ -1834,7 +1832,7 @@ export default function BlogAdmin() {
           {/* 탭 네비게이션 */}
           <div className="mb-8">
             <nav className="flex space-x-8">
-              <button
+            <button
                 onClick={() => {
                   setActiveTab('list');
                   setShowForm(false);
@@ -1846,7 +1844,7 @@ export default function BlogAdmin() {
                 }`}
               >
                 📋 블로그 목록
-              </button>
+            </button>
               <button
                 onClick={() => {
                   setActiveTab('create');
@@ -2630,8 +2628,8 @@ export default function BlogAdmin() {
                               src={imageUrl}
                               alt={`AI 생성 이미지 ${index + 1}`}
                               className="w-full h-32 object-cover"
-                            />
-                          </div>
+                  />
+                </div>
                           <div className="p-3">
                             <h5 className="font-medium text-sm text-gray-900 mb-1">AI 생성 이미지 {index + 1}</h5>
                             <div className="flex gap-1 mb-2">
@@ -2707,7 +2705,7 @@ export default function BlogAdmin() {
                                 >
                                   ➕ 내용에 삽입
                                 </button>
-                              </div>
+                </div>
                               <details className="text-xs text-gray-500">
                                 <summary className="cursor-pointer text-purple-600 hover:text-purple-800">
                                   프롬프트 보기
@@ -2738,10 +2736,10 @@ export default function BlogAdmin() {
             <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">최우선</span>
           </h4>
           <div className="space-y-4">
-            <div>
+        <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 대표 이미지 URL
-              </label>
+          </label>
               <div className="flex gap-2">
                 <input
                   type="url"
@@ -2767,78 +2765,53 @@ export default function BlogAdmin() {
                   <p className="text-sm font-semibold text-green-700 flex items-center">
                     ✅ 현재 대표 이미지
                   </p>
-                  <div className="flex gap-2">
-                    {/* 외부 링크인 경우 Supabase에 저장 버튼 */}
-                    {formData.featured_image.includes('unsplash.com') || formData.featured_image.includes('http') ? (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/admin/save-external-image', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ 
-                                imageUrl: formData.featured_image,
-                                fileName: `featured-image-${Date.now()}.jpg`
-                              })
+                  {/* 외부 링크인 경우 Supabase에 저장 버튼 */}
+                  {formData.featured_image.includes('unsplash.com') || formData.featured_image.includes('http') ? (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/admin/save-external-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              imageUrl: formData.featured_image,
+                              fileName: `featured-image-${Date.now()}.jpg`
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const result = await response.json();
+                            setFormData({ ...formData, featured_image: result.supabaseUrl });
+                            
+                            // 이미지 갤러리에 자동 추가 (원본 URL 메타데이터로 보존)
+                            addToImageGallery(result.supabaseUrl, 'featured', {
+                              originalUrl: result.originalUrl,
+                              savedAt: new Date().toISOString(),
+                              fileName: result.fileName,
+                              source: 'external-import'
                             });
                             
-                            if (response.ok) {
-                              const result = await response.json();
-                              
-                              // 원본 URL 보존하면서 Supabase URL로 교체
-                              setFormData({ 
-                                ...formData, 
-                                featured_image: result.supabaseUrl,
-                                original_featured_image: formData.original_featured_image || formData.featured_image // 원본 URL 보존
-                              });
-                              
-                              // 이미지 갤러리에 자동 추가
-                              addToImageGallery(result.supabaseUrl, 'featured', {
-                                originalUrl: result.originalUrl,
-                                savedAt: new Date().toISOString(),
-                                fileName: result.fileName
-                              });
-                              
-                              alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!\n원본 URL은 보존됩니다.');
-                            } else {
-                              alert('❌ 이미지 저장에 실패했습니다.');
-                            }
-                          } catch (error) {
-                            console.error('이미지 저장 오류:', error);
-                            alert('❌ 이미지 저장 중 오류가 발생했습니다.');
+                            alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!');
+                          } else {
+                            alert('❌ 이미지 저장에 실패했습니다.');
                           }
-                        }}
-                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                        title="외부 이미지를 Supabase에 저장하고 최적화"
-                      >
-                        💾 Supabase에 저장
-                      </button>
-                    ) : null}
-                    
-                    {/* 원본 URL로 되돌리기 버튼 */}
-                    {formData.original_featured_image && formData.original_featured_image !== formData.featured_image ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData({ 
-                            ...formData, 
-                            featured_image: formData.original_featured_image 
-                          });
-                          alert('🔄 원본 URL로 되돌렸습니다!');
-                        }}
-                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                        title="원본 URL로 되돌리기"
-                      >
-                        🔄 원본으로
-                      </button>
-                    ) : null}
-                  </div>
+                        } catch (error) {
+                          console.error('이미지 저장 오류:', error);
+                          alert('❌ 이미지 저장 중 오류가 발생했습니다.');
+                        }
+                      }}
+                      className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                      title="외부 이미지를 Supabase에 저장하고 최적화"
+                    >
+                      💾 Supabase에 저장
+                    </button>
+                  ) : null}
                 </div>
                 
                 <div className="relative w-full max-w-lg">
-                  <img
-                    src={formData.featured_image}
+                <img
+                  src={formData.featured_image}
                     alt="대표 이미지 미리보기"
                     className="w-full h-40 object-cover rounded-lg border-2 border-gray-200 shadow-md"
                     onError={(e) => {
@@ -2852,13 +2825,20 @@ export default function BlogAdmin() {
                 </div>
                 
                 <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 break-all">
-                  <div className="space-y-1">
-                    <div><strong>현재 URL:</strong> {formData.featured_image}</div>
-                    {formData.original_featured_image && formData.original_featured_image !== formData.featured_image && (
-                      <div><strong>원본 URL:</strong> {formData.original_featured_image}</div>
-                    )}
-                  </div>
+                  <strong>현재 URL:</strong> {formData.featured_image}
                 </div>
+                
+                {/* 원본 URL 정보 표시 (메타데이터에서) */}
+                {(() => {
+                  const featuredImageInGallery = imageGallery.find(img => 
+                    img.url === formData.featured_image && img.metadata?.originalUrl
+                  );
+                  return featuredImageInGallery?.metadata?.originalUrl ? (
+                    <div className="mt-1 p-2 bg-blue-50 rounded text-xs text-blue-600 break-all">
+                      <strong>원본 출처:</strong> {featuredImageInGallery.metadata.originalUrl}
+                    </div>
+                  ) : null;
+                })()}
                 
                 {/* 이미지 상태 표시 */}
                 <div className="mt-2 flex items-center gap-2">
@@ -2894,8 +2874,8 @@ export default function BlogAdmin() {
           <div className="flex justify-between items-center mb-3">
             <h4 className="text-lg font-semibold text-gray-800">🖼️ 이미지 갤러리</h4>
               <div className="flex gap-2">
-              <button
-                type="button"
+                <button
+                  type="button"
                 onClick={() => setShowImageGallery(!showImageGallery)}
                 className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
               >
@@ -2967,10 +2947,10 @@ export default function BlogAdmin() {
                               <button
                                 onClick={() => deleteImage(image.name)}
                                 className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
-                              >
-                                ×
-                              </button>
-                </div>
+                >
+                  ×
+                </button>
+              </div>
                           </div>
                           <div className="p-3">
                             <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
@@ -3103,7 +3083,7 @@ export default function BlogAdmin() {
               )}
             </div>
           )}
-
+          
           {/* 전체 이미지 갤러리 */}
           {showAllImages && (
             <div className="mt-4">
@@ -3332,9 +3312,9 @@ export default function BlogAdmin() {
                     </h6>
                     <div className="text-xs text-gray-500">
                       💡 첫 번째 이미지는 유지하고 나머지를 삭제하세요
-                    </div>
-                  </div>
-                  
+            </div>
+          </div>
+          
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {duplicateImages.map((group, groupIndex) => (
                       <div key={groupIndex} className="bg-white border border-red-200 rounded-lg p-4">
@@ -3635,17 +3615,17 @@ export default function BlogAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
                     요약
-          </label>
+            </label>
                   <textarea
                     value={formData.excerpt}
                     onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="게시물 요약"
-                  />
-                </div>
+            />
+          </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1">
@@ -3810,7 +3790,7 @@ export default function BlogAdmin() {
                         >
                           📝 마크다운 (코드 보기)
                         </button>
-                      </div>
+        </div>
 
                       {useWysiwyg ? (
                         <div className="wysiwyg-editor">
@@ -4192,7 +4172,7 @@ export default function BlogAdmin() {
                                 </span>
                               )}
                             </div>
-                            </div>
+                          </div>
                           </div>
                           <div className="flex items-center space-x-2">
                             {/* 상태 라벨을 액션 버튼 근처로 이동 */}
