@@ -1708,6 +1708,61 @@ export default function BlogAdmin() {
     }
   };
 
+  // AI 콘텐츠 개선 기능
+  const improveAIContent = async (improvementType = 'all') => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    if (!formData.content || formData.content.trim().length < 50) {
+      alert('개선할 내용이 충분하지 않습니다. 먼저 기본 내용을 작성해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🔧 AI 콘텐츠 개선 시작...', improvementType);
+      
+      const response = await fetch('/api/improve-blog-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          currentContent: formData.content,
+          currentImages: postImages,
+          improvementType: improvementType,
+          keywords: formData.tags.join(', '),
+          contentType: brandStrategy.contentType,
+          audienceTemp: brandStrategy.audienceTemp,
+          brandWeight: brandStrategy.brandWeight,
+          customerChannel: brandStrategy.customerChannel,
+          painPoint: brandStrategy.painPoint || null,
+          customerPersona: brandStrategy.customerPersona
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.improvedContent) {
+          setFormData(prev => ({ ...prev, content: data.improvedContent }));
+          console.log('✅ AI 콘텐츠 개선 완료:', data.originalLength, '→', data.improvedLength, '자');
+          alert(`AI 콘텐츠 개선이 완료되었습니다!\n\n원본: ${data.originalLength}자 → 개선: ${data.improvedLength}자\n\n${improvementType === 'all' ? '내용과 이미지 배치가 모두 개선되었습니다.' : improvementType === 'content' ? '내용이 개선되었습니다.' : '이미지 배치가 개선되었습니다.'}`);
+        } else {
+          console.error('AI 콘텐츠 개선 실패: 응답 데이터 없음');
+          alert('AI 콘텐츠 개선에 실패했습니다.');
+        }
+      } else {
+        const error = await response.json();
+        console.error('AI 콘텐츠 개선 실패:', error);
+        alert('AI 콘텐츠 개선에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('AI 콘텐츠 개선 에러:', error);
+      alert('AI 콘텐츠 개선 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -2237,6 +2292,14 @@ export default function BlogAdmin() {
                       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                     >
                       🤖 AI 본문
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => improveAIContent('all')} 
+                      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
+                      title="기존 내용과 이미지를 AI가 분석하여 교정하고 개선합니다"
+                    >
+                      🔧 AI 개선
                     </button>
                     <button 
                       type="button"
