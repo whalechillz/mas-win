@@ -867,7 +867,10 @@ export default function BlogAdmin() {
         alert(`✅ ${result.totalImages}개의 이미지를 발견했습니다!`);
       } else {
         const error = await response.json();
-        alert(`❌ 이미지 수집 실패: ${error.error}`);
+        const errorMessage = error.details ? 
+          `❌ ${error.error}\n\n상세 정보: ${error.details}` : 
+          `❌ 이미지 수집 실패: ${error.error}`;
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('웹페이지 이미지 수집 오류:', error);
@@ -3796,7 +3799,7 @@ export default function BlogAdmin() {
                     웹페이지 URL
                   </label>
                   <div className="flex gap-2">
-                    <input
+          <input
                       type="url"
                       value={webpageUrl}
                       onChange={(e) => setWebpageUrl(e.target.value)}
@@ -3870,7 +3873,7 @@ export default function BlogAdmin() {
                       />
                       <label htmlFor="excludeExternal" className="text-xs text-gray-600">
                         외부 도메인 제외
-                      </label>
+          </label>
                     </div>
                   </div>
                 </details>
@@ -3895,7 +3898,7 @@ export default function BlogAdmin() {
                           <span className="text-sm font-medium text-gray-700">
                             {selectedScrapedImages.size === scrapedImages.length && scrapedImages.length > 0 ? '전체 해제' : '전체 선택'}
                           </span>
-                        </label>
+            </label>
                         {selectedScrapedImages.size > 0 && (
                           <span className="text-sm text-green-600 font-medium">
                             {selectedScrapedImages.size}개 선택됨
@@ -3936,7 +3939,7 @@ export default function BlogAdmin() {
                           <div className="relative">
                             {/* 체크박스 */}
                             <div className="absolute top-1 left-1 z-10">
-                              <input
+            <input
                                 type="checkbox"
                                 checked={selectedScrapedImages.has(image.src)}
                                 onChange={() => handleScrapedImageSelect(image.src)}
