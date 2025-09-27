@@ -46,7 +46,10 @@ export default async function handler(req, res) {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html);
+    const dom = new JSDOM(html, {
+      url: webpageUrl,
+      resources: 'usable'
+    });
     const document = dom.window.document;
 
     // 2. 모든 이미지 요소 추출
