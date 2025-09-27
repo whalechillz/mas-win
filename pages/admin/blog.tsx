@@ -578,30 +578,12 @@ export default function BlogAdmin() {
     setImageGallery([]);
     
     setShowForm(true);
-    // 게시물 이미지 목록 로드
-    await loadPostImages(post.id);
-    
-    // 대표 이미지가 있으면 이미지 갤러리에 추가 (loadPostImages 후에 실행)
-    if (post.featured_image) {
-      console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
-      console.log('📊 현재 갤러리 상태 (추가 전):', imageGallery.length, '개');
-      
-      const addedImage = addToImageGallery(post.featured_image, 'featured', {
-        isFeatured: true,
-        loadedAt: new Date().toISOString()
-      });
-      
-      console.log('✅ 대표 이미지 추가 완료:', addedImage);
-      
-      // 잠시 후 갤러리 상태 확인
-      setTimeout(() => {
-        console.log('📊 갤러리 상태 (추가 후):', imageGallery.length, '개');
-      }, 1000);
-    }
+    // 게시물 이미지 목록 로드 (대표 이미지 포함)
+    await loadPostImages(post.id, post.featured_image);
   };
 
   // 게시물 이미지 목록 로드
-  const loadPostImages = async (postId) => {
+  const loadPostImages = async (postId, featuredImage = null) => {
     try {
       const response = await fetch(`/api/admin/blog-images?postId=${postId}`);
       const data = await response.json();
@@ -611,30 +593,53 @@ export default function BlogAdmin() {
         console.log('✅ 게시물 이미지 로드 성공:', data.images?.length || 0, '개');
         
         // 편집 모드에서는 imageGallery에도 추가
-        if (editingPost && data.images && data.images.length > 0) {
+        if (editingPost) {
           console.log('🖼️ 편집 모드에서 이미지 갤러리에 추가 중...');
-          console.log('📊 로드된 이미지 개수:', data.images.length);
           
           // imageGallery 상태를 직접 업데이트
           setImageGallery(prevGallery => {
             const newImages = [];
-            data.images.forEach(image => {
-              // 중복 체크
-              const exists = prevGallery.some(img => img.url === image.url);
+            
+            // 1. 대표 이미지 추가 (있는 경우)
+            if (featuredImage) {
+              console.log('🖼️ 대표 이미지를 갤러리에 추가:', featuredImage);
+              const exists = prevGallery.some(img => img.url === featuredImage);
               if (!exists) {
                 newImages.push({
                   id: Date.now() + Math.random(),
-                  url: image.url,
-                  type: 'upload',
+                  url: featuredImage,
+                  type: 'featured',
                   metadata: {
-                    loadedFromDB: true,
-                    postId: postId,
+                    isFeatured: true,
                     loadedAt: new Date().toISOString()
                   },
                   addedAt: new Date().toISOString()
                 });
               }
-            });
+            }
+            
+            // 2. 데이터베이스 이미지들 추가
+            if (data.images && data.images.length > 0) {
+              console.log('📊 로드된 이미지 개수:', data.images.length);
+              data.images.forEach(image => {
+                // 중복 체크
+                const exists = prevGallery.some(img => img.url === image.url) || 
+                              newImages.some(img => img.url === image.url);
+                if (!exists) {
+                  newImages.push({
+                    id: Date.now() + Math.random(),
+                    url: image.url,
+                    type: 'upload',
+                    metadata: {
+                      loadedFromDB: true,
+                      postId: postId,
+                      loadedAt: new Date().toISOString()
+                    },
+                    addedAt: new Date().toISOString()
+                  });
+                }
+              });
+            }
             
             console.log('📊 새로 추가할 이미지 개수:', newImages.length);
             return [...newImages, ...prevGallery];
