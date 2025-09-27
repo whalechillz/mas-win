@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+잗import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { marked } from 'marked';
 import dynamic from 'next/dynamic';
@@ -577,7 +577,11 @@ export default function BlogAdmin() {
     // 이미지 갤러리 초기화
     setImageGallery([]);
     
-    // 대표 이미지가 있으면 이미지 갤러리에 추가
+    setShowForm(true);
+    // 게시물 이미지 목록 로드
+    await loadPostImages(post.id);
+    
+    // 대표 이미지가 있으면 이미지 갤러리에 추가 (loadPostImages 후에 실행)
     if (post.featured_image) {
       console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
       addToImageGallery(post.featured_image, 'featured', {
@@ -585,10 +589,6 @@ export default function BlogAdmin() {
         loadedAt: new Date().toISOString()
       });
     }
-    
-    setShowForm(true);
-    // 게시물 이미지 목록 로드
-    loadPostImages(post.id);
   };
 
   // 게시물 이미지 목록 로드
