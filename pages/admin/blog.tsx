@@ -1821,13 +1821,14 @@ export default function BlogAdmin() {
             <h1 className="text-3xl font-bold text-gray-900">블로그 관리</h1>
             <button
               onClick={() => {
-                console.log('새 게시물 작성 버튼 클릭됨');
+                console.log('빠른 새 게시물 작성 버튼 클릭됨');
                 setActiveTab('create');
                 setShowForm(true);
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer z-10 relative"
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium cursor-pointer z-10 relative"
+              title="빠른 새 게시물 작성 (폼 즉시 표시)"
             >
-              새 게시물 작성
+              ⚡ 빠른 작성
             </button>
           </div>
 
@@ -1835,7 +1836,10 @@ export default function BlogAdmin() {
           <div className="mb-8">
             <nav className="flex space-x-8">
               <button
-                onClick={() => setActiveTab('list')}
+                onClick={() => {
+                  setActiveTab('list');
+                  setShowForm(false);
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'list'
                     ? 'border-blue-500 text-blue-600'
@@ -1855,7 +1859,10 @@ export default function BlogAdmin() {
                 ✍️ 새 게시물 작성
               </button>
               <button
-                onClick={() => setActiveTab('migration')}
+                onClick={() => {
+                  setActiveTab('migration');
+                  setShowForm(false);
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'migration'
                     ? 'border-blue-500 text-blue-600'
