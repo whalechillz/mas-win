@@ -574,8 +574,12 @@ export default function BlogAdmin() {
     const htmlContent = await convertMarkdownToHtml(post.content);
     setHtmlContent(htmlContent);
     
+    // 이미지 갤러리 초기화
+    setImageGallery([]);
+    
     // 대표 이미지가 있으면 이미지 갤러리에 추가
     if (post.featured_image) {
+      console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
       addToImageGallery(post.featured_image, 'featured', {
         isFeatured: true,
         loadedAt: new Date().toISOString()
@@ -2771,6 +2775,9 @@ export default function BlogAdmin() {
                       type="button"
                       onClick={async () => {
                         try {
+                          console.log('💾 Supabase 저장 버튼 클릭됨');
+                          console.log('📤 저장할 이미지 URL:', formData.featured_image);
+                          
                           const response = await fetch('/api/admin/save-external-image', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2780,11 +2787,16 @@ export default function BlogAdmin() {
                             })
                           });
                           
+                          console.log('📡 API 응답 상태:', response.status);
+                          
                           if (response.ok) {
                             const result = await response.json();
+                            console.log('✅ API 응답 성공:', result);
+                            
                             setFormData({ ...formData, featured_image: result.supabaseUrl });
                             
                             // 이미지 갤러리에 자동 추가 (원본 URL 메타데이터로 보존)
+                            console.log('🖼️ 이미지 갤러리에 추가 중...');
                             addToImageGallery(result.supabaseUrl, 'featured', {
                               originalUrl: result.originalUrl,
                               savedAt: new Date().toISOString(),
@@ -2792,13 +2804,16 @@ export default function BlogAdmin() {
                               source: 'external-import'
                             });
                             
+                            console.log('✅ 모든 작업 완료');
                             alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!');
                           } else {
-                            alert('❌ 이미지 저장에 실패했습니다.');
+                            const errorText = await response.text();
+                            console.error('❌ API 응답 실패:', response.status, errorText);
+                            alert('❌ 이미지 저장에 실패했습니다: ' + response.status);
                           }
                         } catch (error) {
-                          console.error('이미지 저장 오류:', error);
-                          alert('❌ 이미지 저장 중 오류가 발생했습니다.');
+                          console.error('❌ 이미지 저장 오류:', error);
+                          alert('❌ 이미지 저장 중 오류가 발생했습니다: ' + error.message);
                         }
                       }}
                       className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
