@@ -95,6 +95,7 @@ export default function BlogAdmin() {
     excerpt: '',
     content: '',
     featured_image: '',
+    original_featured_image: '', // 원본 URL 보존용
     category: '고객 후기',
     tags: [],
     status: 'published',
@@ -380,6 +381,7 @@ export default function BlogAdmin() {
       excerpt: '',
       content: '',
       featured_image: '',
+      original_featured_image: '',
       category: '고객 후기',
       tags: [],
       status: 'published',
@@ -2765,47 +2767,73 @@ export default function BlogAdmin() {
                   <p className="text-sm font-semibold text-green-700 flex items-center">
                     ✅ 현재 대표 이미지
                   </p>
-                  {/* 외부 링크인 경우 Supabase에 저장 버튼 */}
-                  {formData.featured_image.includes('unsplash.com') || formData.featured_image.includes('http') ? (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/admin/save-external-image', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              imageUrl: formData.featured_image,
-                              fileName: `featured-image-${Date.now()}.jpg`
-                            })
-                          });
-                          
-                          if (response.ok) {
-                            const result = await response.json();
-                            setFormData({ ...formData, featured_image: result.supabaseUrl });
-                            
-                            // 이미지 갤러리에 자동 추가
-                            addToImageGallery(result.supabaseUrl, 'featured', {
-                              originalUrl: result.originalUrl,
-                              savedAt: new Date().toISOString(),
-                              fileName: result.fileName
+                  <div className="flex gap-2">
+                    {/* 외부 링크인 경우 Supabase에 저장 버튼 */}
+                    {formData.featured_image.includes('unsplash.com') || formData.featured_image.includes('http') ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/admin/save-external-image', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                imageUrl: formData.featured_image,
+                                fileName: `featured-image-${Date.now()}.jpg`
+                              })
                             });
                             
-                            alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!');
-                          } else {
-                            alert('❌ 이미지 저장에 실패했습니다.');
+                            if (response.ok) {
+                              const result = await response.json();
+                              
+                              // 원본 URL 보존하면서 Supabase URL로 교체
+                              setFormData({ 
+                                ...formData, 
+                                featured_image: result.supabaseUrl,
+                                original_featured_image: formData.original_featured_image || formData.featured_image // 원본 URL 보존
+                              });
+                              
+                              // 이미지 갤러리에 자동 추가
+                              addToImageGallery(result.supabaseUrl, 'featured', {
+                                originalUrl: result.originalUrl,
+                                savedAt: new Date().toISOString(),
+                                fileName: result.fileName
+                              });
+                              
+                              alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!\n원본 URL은 보존됩니다.');
+                            } else {
+                              alert('❌ 이미지 저장에 실패했습니다.');
+                            }
+                          } catch (error) {
+                            console.error('이미지 저장 오류:', error);
+                            alert('❌ 이미지 저장 중 오류가 발생했습니다.');
                           }
-                        } catch (error) {
-                          console.error('이미지 저장 오류:', error);
-                          alert('❌ 이미지 저장 중 오류가 발생했습니다.');
-                        }
-                      }}
-                      className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                      title="외부 이미지를 Supabase에 저장하고 최적화"
-                    >
-                      💾 Supabase에 저장
-                    </button>
-                  ) : null}
+                        }}
+                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        title="외부 이미지를 Supabase에 저장하고 최적화"
+                      >
+                        💾 Supabase에 저장
+                      </button>
+                    ) : null}
+                    
+                    {/* 원본 URL로 되돌리기 버튼 */}
+                    {formData.original_featured_image && formData.original_featured_image !== formData.featured_image ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({ 
+                            ...formData, 
+                            featured_image: formData.original_featured_image 
+                          });
+                          alert('🔄 원본 URL로 되돌렸습니다!');
+                        }}
+                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        title="원본 URL로 되돌리기"
+                      >
+                        🔄 원본으로
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 
                 <div className="relative w-full max-w-lg">
@@ -2824,7 +2852,12 @@ export default function BlogAdmin() {
                 </div>
                 
                 <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 break-all">
-                  <strong>URL:</strong> {formData.featured_image}
+                  <div className="space-y-1">
+                    <div><strong>현재 URL:</strong> {formData.featured_image}</div>
+                    {formData.original_featured_image && formData.original_featured_image !== formData.featured_image && (
+                      <div><strong>원본 URL:</strong> {formData.original_featured_image}</div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* 이미지 상태 표시 */}
