@@ -6,6 +6,28 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// 파일명 추출 함수
+function extractFileName(url) {
+  try {
+    const pathname = new URL(url).pathname;
+    const fileName = pathname.split('/').pop();
+    return fileName || `image-${Date.now()}`;
+  } catch {
+    return `image-${Date.now()}`;
+  }
+}
+
+// 파일 확장자 추출 함수
+function extractFileExtension(url) {
+  try {
+    const fileName = extractFileName(url);
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    return extension || 'jpg';
+  } catch {
+    return 'jpg';
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -190,27 +212,5 @@ export default async function handler(req, res) {
       originalError: error.message,
       url: webpageUrl
     });
-  }
-}
-
-// 파일명 추출 함수
-function extractFileName(url) {
-  try {
-    const pathname = new URL(url).pathname;
-    const fileName = pathname.split('/').pop();
-    return fileName || `image-${Date.now()}`;
-  } catch {
-    return `image-${Date.now()}`;
-  }
-}
-
-// 파일 확장자 추출 함수
-function extractFileExtension(url) {
-  try {
-    const fileName = extractFileName(url);
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    return extension || 'jpg';
-  } catch {
-    return 'jpg';
   }
 }
