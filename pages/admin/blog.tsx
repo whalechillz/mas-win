@@ -584,10 +584,19 @@ export default function BlogAdmin() {
     // 대표 이미지가 있으면 이미지 갤러리에 추가 (loadPostImages 후에 실행)
     if (post.featured_image) {
       console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
-      addToImageGallery(post.featured_image, 'featured', {
+      console.log('📊 현재 갤러리 상태 (추가 전):', imageGallery.length, '개');
+      
+      const addedImage = addToImageGallery(post.featured_image, 'featured', {
         isFeatured: true,
         loadedAt: new Date().toISOString()
       });
+      
+      console.log('✅ 대표 이미지 추가 완료:', addedImage);
+      
+      // 잠시 후 갤러리 상태 확인
+      setTimeout(() => {
+        console.log('📊 갤러리 상태 (추가 후):', imageGallery.length, '개');
+      }, 1000);
     }
   };
 
@@ -1422,6 +1431,8 @@ export default function BlogAdmin() {
 
   // 이미지 갤러리에 이미지 추가
   const addToImageGallery = (imageUrl, type = 'upload', metadata = {}) => {
+    console.log('🔄 addToImageGallery 호출됨:', { imageUrl, type, metadata });
+    
     const newImage = {
       id: Date.now() + Math.random(),
       url: imageUrl,
@@ -1430,7 +1441,16 @@ export default function BlogAdmin() {
       addedAt: new Date().toISOString()
     };
     
-    setImageGallery(prev => [newImage, ...prev]);
+    console.log('📝 새 이미지 객체 생성:', newImage);
+    
+    setImageGallery(prev => {
+      console.log('📊 이전 갤러리 상태:', prev.length, '개');
+      const newGallery = [newImage, ...prev];
+      console.log('📊 새 갤러리 상태:', newGallery.length, '개');
+      return newGallery;
+    });
+    
+    console.log('✅ addToImageGallery 완료');
     return newImage;
   };
 
