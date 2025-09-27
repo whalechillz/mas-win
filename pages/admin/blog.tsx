@@ -4004,7 +4004,11 @@ export default function BlogAdmin() {
                               type="checkbox"
                               checked={selectedPosts.includes(post.id)}
                               onChange={() => handlePostSelect(post.id)}
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePostSelect(post.id);
+                              }}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1 cursor-pointer"
                             />
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -4061,7 +4065,11 @@ export default function BlogAdmin() {
                                 type="checkbox"
                                 checked={selectedPosts.includes(post.id)}
                                 onChange={() => handlePostSelect(post.id)}
-                                className="absolute top-4 left-4 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 z-10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePostSelect(post.id);
+                                }}
+                                className="absolute top-4 left-4 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 z-10 cursor-pointer"
                               />
                               <div className="relative h-64 overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
@@ -4070,9 +4078,19 @@ export default function BlogAdmin() {
                                   alt={post.title}
                                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute top-4 right-4 z-20">
+                                <div className="absolute top-4 right-4 z-30 flex flex-col gap-2">
                                   <span className="px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-xs font-semibold rounded-full shadow-lg">
                                     {post.category}
+                                  </span>
+                                </div>
+                                {/* 발행 상태 라벨을 더 명확하게 표시 */}
+                                <div className="absolute top-4 left-16 z-30">
+                                  <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-lg border-2 ${
+                                    post.status === 'published' 
+                                      ? 'bg-green-500 text-white border-green-600' 
+                                      : 'bg-orange-500 text-white border-orange-600'
+                                  }`}>
+                                    {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
                                   </span>
                                 </div>
                               </div>
