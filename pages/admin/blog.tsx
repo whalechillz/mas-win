@@ -4003,8 +4003,7 @@ export default function BlogAdmin() {
                             <input
                               type="checkbox"
                               checked={selectedPosts.includes(post.id)}
-                              onChange={() => handlePostSelect(post.id)}
-                              onClick={(e) => {
+                              onChange={(e) => {
                                 e.stopPropagation();
                                 handlePostSelect(post.id);
                               }}
@@ -4019,7 +4018,13 @@ export default function BlogAdmin() {
                             </p>
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span>카테고리: {post.category}</span>
-                              <span>상태: {post.status === 'published' ? '발행' : '초안'}</span>
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                post.status === 'published' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
+                              </span>
                               <span>작성자: {post.author}</span>
                               <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
                               <span>조회수: {post.view_count || 0}</span>
@@ -4064,8 +4069,7 @@ export default function BlogAdmin() {
                               <input
                                 type="checkbox"
                                 checked={selectedPosts.includes(post.id)}
-                                onChange={() => handlePostSelect(post.id)}
-                                onClick={(e) => {
+                                onChange={(e) => {
                                   e.stopPropagation();
                                   handlePostSelect(post.id);
                                 }}
