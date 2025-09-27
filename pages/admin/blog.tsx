@@ -3943,10 +3943,10 @@ export default function BlogAdmin() {
                         {selectedPosts.length > 0 && (
                           <button
                             onClick={handleSelectedDelete}
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2"
+                            className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors flex items-center space-x-1 w-auto"
                           >
                             <span>🗑️</span>
-                            <span>선택된 {selectedPosts.length}개 삭제</span>
+                            <span>선택 삭제</span>
                           </button>
                         )}
                         
