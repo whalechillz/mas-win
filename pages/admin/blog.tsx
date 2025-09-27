@@ -600,6 +600,22 @@ export default function BlogAdmin() {
       if (response.ok) {
         setPostImages(data.images || []);
         console.log('✅ 게시물 이미지 로드 성공:', data.images?.length || 0, '개');
+        
+        // 편집 모드에서는 imageGallery에도 추가
+        if (editingPost && data.images && data.images.length > 0) {
+          console.log('🖼️ 편집 모드에서 이미지 갤러리에 추가 중...');
+          data.images.forEach(image => {
+            // 중복 체크
+            const exists = imageGallery.some(img => img.url === image.url);
+            if (!exists) {
+              addToImageGallery(image.url, 'upload', {
+                loadedFromDB: true,
+                postId: postId,
+                loadedAt: new Date().toISOString()
+              });
+            }
+          });
+        }
       } else {
         console.error('❌ 게시물 이미지 로드 실패:', data.error);
         setPostImages([]);
