@@ -574,6 +574,14 @@ export default function BlogAdmin() {
     const htmlContent = await convertMarkdownToHtml(post.content);
     setHtmlContent(htmlContent);
     
+    // 대표 이미지가 있으면 이미지 갤러리에 추가
+    if (post.featured_image) {
+      addToImageGallery(post.featured_image, 'featured', {
+        isFeatured: true,
+        loadedAt: new Date().toISOString()
+      });
+    }
+    
     setShowForm(true);
     // 게시물 이미지 목록 로드
     loadPostImages(post.id);
@@ -2775,7 +2783,15 @@ export default function BlogAdmin() {
                           if (response.ok) {
                             const result = await response.json();
                             setFormData({ ...formData, featured_image: result.supabaseUrl });
-                            alert('✅ 외부 이미지가 Supabase에 저장되었습니다!');
+                            
+                            // 이미지 갤러리에 자동 추가
+                            addToImageGallery(result.supabaseUrl, 'featured', {
+                              originalUrl: result.originalUrl,
+                              savedAt: new Date().toISOString(),
+                              fileName: result.fileName
+                            });
+                            
+                            alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!');
                           } else {
                             alert('❌ 이미지 저장에 실패했습니다.');
                           }
