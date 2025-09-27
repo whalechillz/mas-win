@@ -173,7 +173,59 @@ ${painMessage ? `**고객 페인포인트**: ${painMessage}` : ''}
 
     const improvedContent = completion.choices[0].message.content;
     
+    // API 사용 정보 추출
+    const usage = completion.usage;
+    const model = completion.model;
+    
+    // 비용 계산 (gpt-4o-mini 기준)
+    const inputTokens = usage?.prompt_tokens || 0;
+    const outputTokens = usage?.completion_tokens || 0;
+    const totalTokens = usage?.total_tokens || 0;
+    
+    // gpt-4o-mini 가격 (2024년 기준)
+    const inputCostPer1K = 0.00015; // $0.15 per 1K tokens
+    const outputCostPer1K = 0.0006;  // $0.60 per 1K tokens
+    
+    const inputCost = (inputTokens / 1000) * inputCostPer1K;
+    const outputCost = (outputTokens / 1000) * outputCostPer1K;
+    const totalCost = inputCost + outputCost;
+    
+    const usageInfo = {
+      model: model,
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      totalTokens: totalTokens,
+      cost: totalCost.toFixed(6),
+      timestamp: new Date().toISOString()
+    };
+    
     console.log(`✅ AI 콘텐츠 개선 완료:`, improvedContent ? `${improvedContent.length} 자` : '0 자');
+    console.log(`📊 API 사용 정보:`, usageInfo);
+    
+    // 사용 정보를 Supabase에 저장 (선택사항)
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+      
+      await supabase.from('ai_usage_logs').insert({
+        api_endpoint: 'improve-blog-content',
+        model: model,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        total_tokens: totalTokens,
+        cost: totalCost,
+        improvement_type: improvementType,
+        content_type: contentType,
+        created_at: new Date().toISOString()
+      });
+      
+      console.log('✅ API 사용 정보가 데이터베이스에 저장되었습니다.');
+    } catch (dbError) {
+      console.log('⚠️ API 사용 정보 저장 실패 (데이터베이스 테이블이 없을 수 있음):', dbError.message);
+    }
     
     res.status(200).json({ 
       improvedContent,
@@ -181,7 +233,8 @@ ${painMessage ? `**고객 페인포인트**: ${painMessage}` : ''}
       originalLength: currentContent?.length || 0,
       improvedLength: improvedContent?.length || 0,
       brandWeight: brandWeight,
-      customerPersona: customerPersona
+      customerPersona: customerPersona,
+      usageInfo: usageInfo
     });
 
   } catch (error) {
