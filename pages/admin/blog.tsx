@@ -1122,6 +1122,69 @@ export default function BlogAdmin() {
     }
   };
 
+  // 네이버 포스트 마이그레이션
+  const handleNaverPostMigration = async () => {
+    if (selectedNaverPosts.size === 0) {
+      alert('마이그레이션할 포스트를 선택해주세요.');
+      return;
+    }
+
+    const selectedPosts = Array.from(selectedNaverPosts).map(index => scrapedNaverPosts[index]);
+    
+    try {
+      for (const post of selectedPosts) {
+        // 각 포스트를 블로그 포스트로 변환
+        const blogPost = {
+          title: post.title || '제목 없음',
+          slug: post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled',
+          excerpt: post.excerpt || '',
+          content: post.content || '',
+          featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
+          category: '고객 후기',
+          tags: ['네이버 블로그', '마이그레이션'],
+          status: 'published',
+          meta_title: post.title || '',
+          meta_description: post.excerpt || '',
+          meta_keywords: '네이버 블로그, 마이그레이션',
+          view_count: 0,
+          is_featured: false,
+          is_scheduled: false,
+          scheduled_at: null,
+          author: '마쓰구골프',
+          published_at: post.publishDate || new Date().toISOString()
+        };
+
+        // 블로그 포스트 생성 API 호출
+        const response = await fetch('/api/admin/blog', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(blogPost)
+        });
+
+        if (!response.ok) {
+          throw new Error(`포스트 생성 실패: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('포스트 생성 성공:', result);
+      }
+
+      alert(`✅ ${selectedPosts.length}개 포스트가 성공적으로 마이그레이션되었습니다.`);
+      
+      // 선택 초기화
+      setSelectedNaverPosts(new Set());
+      
+      // 블로그 목록 새로고침
+      fetchPosts();
+
+    } catch (error) {
+      console.error('마이그레이션 오류:', error);
+      alert('❌ 마이그레이션 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
   // 이미지 사용 현황 조회
   const loadImageUsageInfo = async (imageUrl) => {
     setIsLoadingUsageInfo(true);
@@ -2354,7 +2417,10 @@ export default function BlogAdmin() {
                           {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
                         </button>
                         {selectedNaverPosts.size > 0 && (
-                          <button className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                          <button 
+                            onClick={handleNaverPostMigration}
+                            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                          >
                             선택된 {selectedNaverPosts.size}개 마이그레이션
                           </button>
                         )}
