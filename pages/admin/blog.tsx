@@ -1134,9 +1134,13 @@ export default function BlogAdmin() {
     try {
       for (const post of selectedPosts) {
         // 각 포스트를 블로그 포스트로 변환
+        const baseSlug = post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled';
+        const timestamp = Date.now();
+        const uniqueSlug = `${baseSlug}-${timestamp}`;
+        
         const blogPost = {
           title: post.title || '제목 없음',
-          slug: post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled',
+          slug: uniqueSlug,
           excerpt: post.excerpt || '',
           content: post.content || '',
           featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
