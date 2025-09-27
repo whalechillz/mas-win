@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
-import { JSDOM } from 'jsdom';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -46,18 +45,17 @@ export default async function handler(req, res) {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html, {
-      url: webpageUrl,
-      resources: 'usable'
-    });
-    const document = dom.window.document;
-
-    // 2. 모든 이미지 요소 추출
-    const imgElements = document.querySelectorAll('img');
+    
+    // 2. 정규식을 사용한 이미지 URL 추출 (JSDOM 대신)
     const images = [];
-
-    for (const img of imgElements) {
-      let src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
+    const baseUrl = new URL(webpageUrl);
+    
+    // img 태그에서 src 추출
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+    let match;
+    
+    while ((match = imgRegex.exec(html)) !== null) {
+      let src = match[1];
       
       if (!src) continue;
 
@@ -65,81 +63,92 @@ export default async function handler(req, res) {
       if (src.startsWith('//')) {
         src = 'https:' + src;
       } else if (src.startsWith('/')) {
-        const urlObj = new URL(webpageUrl);
-        src = urlObj.origin + src;
+        src = baseUrl.origin + src;
       } else if (!src.startsWith('http')) {
-        const urlObj = new URL(webpageUrl);
-        src = new URL(src, urlObj.origin).href;
+        src = new URL(src, baseUrl.origin).href;
       }
 
-      // 이미지 메타데이터 수집
-      const imageData = {
-        src: src,
-        alt: img.alt || '',
-        title: img.title || '',
-        width: img.width || img.getAttribute('width') || null,
-        height: img.height || img.getAttribute('height') || null,
-        className: img.className || '',
-        id: img.id || '',
-        fileName: extractFileName(src),
-        fileExtension: extractFileExtension(src),
-        fileSize: null, // 나중에 다운로드할 때 확인
-        isExternal: !src.includes(new URL(webpageUrl).hostname)
-      };
+      // 이미지 확장자 확인
+      const extension = src.split('.').pop().toLowerCase().split('?')[0];
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
+        continue;
+      }
 
-      // 필터링 옵션 적용
-      if (options.minWidth && imageData.width && imageData.width < options.minWidth) continue;
-      if (options.minHeight && imageData.height && imageData.height < options.minHeight) continue;
-      if (options.allowedExtensions && !options.allowedExtensions.includes(imageData.fileExtension)) continue;
-      if (options.excludeExternal && imageData.isExternal) continue;
+      // 허용된 확장자 필터링
+      if (options.allowedExtensions && !options.allowedExtensions.includes(extension)) {
+        continue;
+      }
 
-      images.push(imageData);
-    }
-
-    // 3. CSS 배경 이미지도 추출
-    const elementsWithBg = document.querySelectorAll('*');
-    for (const element of elementsWithBg) {
-      const style = element.style.backgroundImage || 
-                   window.getComputedStyle(element).backgroundImage;
-      
-      if (style && style !== 'none') {
-        const urlMatch = style.match(/url\(['"]?([^'"]+)['"]?\)/);
-        if (urlMatch) {
-          let bgSrc = urlMatch[1];
-          
-          // 상대 URL을 절대 URL로 변환
-          if (bgSrc.startsWith('//')) {
-            bgSrc = 'https:' + bgSrc;
-          } else if (bgSrc.startsWith('/')) {
-            const urlObj = new URL(webpageUrl);
-            bgSrc = urlObj.origin + bgSrc;
-          } else if (!bgSrc.startsWith('http')) {
-            const urlObj = new URL(webpageUrl);
-            bgSrc = new URL(bgSrc, urlObj.origin).href;
-          }
-
-          const imageData = {
-            src: bgSrc,
-            alt: 'Background Image',
-            title: '',
-            width: null,
-            height: null,
-            className: element.className || '',
-            id: element.id || '',
-            fileName: extractFileName(bgSrc),
-            fileExtension: extractFileExtension(bgSrc),
-            fileSize: null,
-            isExternal: !bgSrc.includes(new URL(webpageUrl).hostname),
-            isBackground: true
-          };
-
-          // 필터링 옵션 적용
-          if (options.allowedExtensions && !options.allowedExtensions.includes(imageData.fileExtension)) continue;
-          if (options.excludeExternal && imageData.isExternal) continue;
-
-          images.push(imageData);
+      // 외부 도메인 제외 옵션
+      if (options.excludeExternal) {
+        const imgUrl = new URL(src);
+        if (imgUrl.hostname !== baseUrl.hostname) {
+          continue;
         }
       }
+
+      images.push({
+        src: src,
+        alt: '',
+        title: '',
+        width: 0, // 정규식으로는 크기 정보를 얻을 수 없음
+        height: 0,
+        fileName: extractFileName(src),
+        fileExtension: extension,
+        fileSize: null,
+        isExternal: !src.includes(baseUrl.hostname)
+      });
+    }
+
+    // 3. CSS 배경 이미지도 추출 (정규식 사용)
+    const bgImageRegex = /background-image\s*:\s*url\(['"]?([^'"]+)['"]?\)/gi;
+    let bgMatch;
+    
+    while ((bgMatch = bgImageRegex.exec(html)) !== null) {
+      let bgSrc = bgMatch[1];
+      
+      if (!bgSrc) continue;
+
+      // 상대 URL을 절대 URL로 변환
+      if (bgSrc.startsWith('//')) {
+        bgSrc = 'https:' + bgSrc;
+      } else if (bgSrc.startsWith('/')) {
+        bgSrc = baseUrl.origin + bgSrc;
+      } else if (!bgSrc.startsWith('http')) {
+        bgSrc = new URL(bgSrc, baseUrl.origin).href;
+      }
+
+      // 이미지 확장자 확인
+      const extension = bgSrc.split('.').pop().toLowerCase().split('?')[0];
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
+        continue;
+      }
+
+      // 허용된 확장자 필터링
+      if (options.allowedExtensions && !options.allowedExtensions.includes(extension)) {
+        continue;
+      }
+
+      // 외부 도메인 제외 옵션
+      if (options.excludeExternal) {
+        const imgUrl = new URL(bgSrc);
+        if (imgUrl.hostname !== baseUrl.hostname) {
+          continue;
+        }
+      }
+
+      images.push({
+        src: bgSrc,
+        alt: 'Background Image',
+        title: '',
+        width: 0,
+        height: 0,
+        fileName: extractFileName(bgSrc),
+        fileExtension: extension,
+        fileSize: null,
+        isExternal: !bgSrc.includes(baseUrl.hostname),
+        isBackground: true
+      });
     }
 
     // 4. 중복 제거
