@@ -224,6 +224,20 @@ export default function BlogAdmin() {
   const [selectedImages, setSelectedImages] = useState(new Set());
   const [isDeletingImages, setIsDeletingImages] = useState(false);
   
+  // 웹페이지 이미지 수집 상태
+  const [webpageUrl, setWebpageUrl] = useState('');
+  const [scrapedImages, setScrapedImages] = useState([]);
+  const [selectedScrapedImages, setSelectedScrapedImages] = useState(new Set());
+  const [isScrapingImages, setIsScrapingImages] = useState(false);
+  const [isDownloadingImages, setIsDownloadingImages] = useState(false);
+  const [showWebpageScraper, setShowWebpageScraper] = useState(false);
+  const [scraperOptions, setScraperOptions] = useState({
+    minWidth: 100,
+    minHeight: 100,
+    allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    excludeExternal: false
+  });
+  
   // 중복 이미지 관리 상태
   const [duplicateImages, setDuplicateImages] = useState([]);
   const [showDuplicates, setShowDuplicates] = useState(false);
@@ -823,6 +837,116 @@ export default function BlogAdmin() {
       alert('일괄 삭제 중 오류가 발생했습니다.');
     } finally {
       setIsDeletingImages(false);
+    }
+  };
+
+  // 웹페이지 이미지 수집 관련 함수들
+  const handleScrapeWebpageImages = async () => {
+    if (!webpageUrl.trim()) {
+      alert('웹페이지 URL을 입력해주세요.');
+      return;
+    }
+
+    setIsScrapingImages(true);
+    setScrapedImages([]);
+    setSelectedScrapedImages(new Set());
+
+    try {
+      const response = await fetch('/api/admin/scrape-webpage-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          webpageUrl: webpageUrl.trim(),
+          options: scraperOptions
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setScrapedImages(result.images || []);
+        alert(`✅ ${result.totalImages}개의 이미지를 발견했습니다!`);
+      } else {
+        const error = await response.json();
+        alert(`❌ 이미지 수집 실패: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('웹페이지 이미지 수집 오류:', error);
+      alert('웹페이지 이미지 수집 중 오류가 발생했습니다.');
+    } finally {
+      setIsScrapingImages(false);
+    }
+  };
+
+  const handleScrapedImageSelect = (imageSrc) => {
+    setSelectedScrapedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageSrc)) {
+        newSet.delete(imageSrc);
+      } else {
+        newSet.add(imageSrc);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllScrapedImages = () => {
+    if (selectedScrapedImages.size === scrapedImages.length) {
+      setSelectedScrapedImages(new Set());
+    } else {
+      setSelectedScrapedImages(new Set(scrapedImages.map(img => img.src)));
+    }
+  };
+
+  const handleDownloadSelectedImages = async () => {
+    if (selectedScrapedImages.size === 0) {
+      alert('다운로드할 이미지를 선택해주세요.');
+      return;
+    }
+
+    const selectedImagesData = scrapedImages.filter(img => selectedScrapedImages.has(img.src));
+    
+    setIsDownloadingImages(true);
+
+    try {
+      const response = await fetch('/api/admin/batch-download-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          images: selectedImagesData,
+          options: { prefix: 'webpage' }
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // 성공한 이미지들을 갤러리에 추가
+        result.results.success.forEach(image => {
+          addToImageGallery(image.supabaseUrl, 'upload', {
+            originalUrl: image.originalUrl,
+            downloadedAt: image.downloadedAt,
+            fileName: image.fileName,
+            source: 'webpage-scrape'
+          });
+        });
+
+        // 전체 이미지 갤러리 새로고침
+        loadAllImages();
+        
+        alert(`✅ ${result.results.success.length}개 이미지가 성공적으로 저장되었습니다!`);
+        
+        // 선택 상태 초기화
+        setSelectedScrapedImages(new Set());
+        
+      } else {
+        const error = await response.json();
+        alert(`❌ 이미지 다운로드 실패: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('이미지 다운로드 오류:', error);
+      alert('이미지 다운로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsDownloadingImages(false);
     }
   };
 
@@ -3044,6 +3168,13 @@ export default function BlogAdmin() {
               >
                 {showDuplicates ? '중복 관리 닫기' : '중복 이미지 찾기'}
               </button>
+              <button
+                type="button"
+                onClick={() => setShowWebpageScraper(!showWebpageScraper)}
+                className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+              >
+                {showWebpageScraper ? '웹페이지 수집 닫기' : '🌐 웹페이지 이미지 수집'}
+              </button>
               
               
               {postImages.length > 0 && (
@@ -3646,6 +3777,211 @@ export default function BlogAdmin() {
             </div>
           )}
 
+          {/* 웹페이지 이미지 수집 */}
+          {showWebpageScraper && (
+            <div className="mt-4">
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <h5 className="text-md font-medium text-green-800 mb-2">
+                  🌐 웹페이지 이미지 수집
+                </h5>
+                <p className="text-sm text-green-600">
+                  웹페이지 URL을 입력하면 해당 페이지의 모든 이미지를 자동으로 수집하고 Supabase에 저장할 수 있습니다.
+                </p>
+              </div>
+              
+              {/* URL 입력 및 옵션 */}
+              <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    웹페이지 URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={webpageUrl}
+                      onChange={(e) => setWebpageUrl(e.target.value)}
+                      placeholder="https://example.com"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleScrapeWebpageImages}
+                      disabled={isScrapingImages || !webpageUrl.trim()}
+                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isScrapingImages ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          수집 중...
+                        </>
+                      ) : (
+                        <>
+                          🔍 이미지 수집
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* 고급 옵션 */}
+                <details className="mb-4">
+                  <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                    ⚙️ 고급 옵션
+                  </summary>
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">최소 너비 (px)</label>
+                      <input
+                        type="number"
+                        value={scraperOptions.minWidth}
+                        onChange={(e) => setScraperOptions(prev => ({ ...prev, minWidth: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">최소 높이 (px)</label>
+                      <input
+                        type="number"
+                        value={scraperOptions.minHeight}
+                        onChange={(e) => setScraperOptions(prev => ({ ...prev, minHeight: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">허용 확장자</label>
+                      <input
+                        type="text"
+                        value={scraperOptions.allowedExtensions.join(', ')}
+                        onChange={(e) => setScraperOptions(prev => ({ 
+                          ...prev, 
+                          allowedExtensions: e.target.value.split(',').map(ext => ext.trim().toLowerCase()).filter(Boolean)
+                        }))}
+                        placeholder="jpg, png, webp, gif"
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="excludeExternal"
+                        checked={scraperOptions.excludeExternal}
+                        onChange={(e) => setScraperOptions(prev => ({ ...prev, excludeExternal: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <label htmlFor="excludeExternal" className="text-xs text-gray-600">
+                        외부 도메인 제외
+                      </label>
+                    </div>
+                  </div>
+                </details>
+              </div>
+              
+              {/* 수집된 이미지 목록 */}
+              {scrapedImages.length > 0 && (
+                <div className="bg-white border border-gray-200 rounded-lg">
+                  <div className="p-4 border-b">
+                    <div className="flex justify-between items-center">
+                      <h6 className="text-sm font-medium text-gray-700">
+                        수집된 이미지 {scrapedImages.length}개
+                      </h6>
+                      <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedScrapedImages.size === scrapedImages.length && scrapedImages.length > 0}
+                            onChange={handleSelectAllScrapedImages}
+                            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            {selectedScrapedImages.size === scrapedImages.length && scrapedImages.length > 0 ? '전체 해제' : '전체 선택'}
+                          </span>
+                        </label>
+                        {selectedScrapedImages.size > 0 && (
+                          <span className="text-sm text-green-600 font-medium">
+                            {selectedScrapedImages.size}개 선택됨
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {selectedScrapedImages.size > 0 && (
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={handleDownloadSelectedImages}
+                          disabled={isDownloadingImages}
+                          className="px-4 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {isDownloadingImages ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              다운로드 중...
+                            </>
+                          ) : (
+                            <>
+                              📥 선택된 {selectedScrapedImages.size}개 다운로드
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+                      {scrapedImages.map((image, index) => (
+                        <div key={index} className={`bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all ${
+                          selectedScrapedImages.has(image.src) ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                        }`}>
+                          <div className="relative">
+                            {/* 체크박스 */}
+                            <div className="absolute top-1 left-1 z-10">
+                              <input
+                                type="checkbox"
+                                checked={selectedScrapedImages.has(image.src)}
+                                onChange={() => handleScrapedImageSelect(image.src)}
+                                className="w-4 h-4 text-green-600 bg-white border-gray-300 rounded focus:ring-green-500"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            
+                            <img
+                              src={image.src}
+                              alt={image.alt || `Image ${index + 1}`}
+                              className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                              onError={(e) => {
+                                e.target.src = '/placeholder-image.jpg';
+                              }}
+                            />
+                            <div className="absolute top-1 right-1">
+                              <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
+                                {index + 1}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-2">
+                            <div className="text-xs text-gray-600 truncate" title={image.fileName}>
+                              {image.fileName}
+                            </div>
+                            {image.width && image.height && (
+                              <div className="text-xs text-gray-500">
+                                {image.width}×{image.height}
+                              </div>
+                            )}
+                            {image.isBackground && (
+                              <div className="text-xs text-blue-600">
+                                배경 이미지
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 이미지 미리보기 모달 */}
           {showImagePreview && previewImage && (
