@@ -604,16 +604,31 @@ export default function BlogAdmin() {
         // 편집 모드에서는 imageGallery에도 추가
         if (editingPost && data.images && data.images.length > 0) {
           console.log('🖼️ 편집 모드에서 이미지 갤러리에 추가 중...');
-          data.images.forEach(image => {
-            // 중복 체크
-            const exists = imageGallery.some(img => img.url === image.url);
-            if (!exists) {
-              addToImageGallery(image.url, 'upload', {
-                loadedFromDB: true,
-                postId: postId,
-                loadedAt: new Date().toISOString()
-              });
-            }
+          console.log('📊 로드된 이미지 개수:', data.images.length);
+          
+          // imageGallery 상태를 직접 업데이트
+          setImageGallery(prevGallery => {
+            const newImages = [];
+            data.images.forEach(image => {
+              // 중복 체크
+              const exists = prevGallery.some(img => img.url === image.url);
+              if (!exists) {
+                newImages.push({
+                  id: Date.now() + Math.random(),
+                  url: image.url,
+                  type: 'upload',
+                  metadata: {
+                    loadedFromDB: true,
+                    postId: postId,
+                    loadedAt: new Date().toISOString()
+                  },
+                  addedAt: new Date().toISOString()
+                });
+              }
+            });
+            
+            console.log('📊 새로 추가할 이미지 개수:', newImages.length);
+            return [...newImages, ...prevGallery];
           });
         }
       } else {
