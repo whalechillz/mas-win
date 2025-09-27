@@ -577,13 +577,22 @@ export default function BlogAdmin() {
     // 이미지 갤러리 초기화
     setImageGallery([]);
     
+    // 대표 이미지가 있으면 이미지 갤러리에 추가
+    if (post.featured_image) {
+      console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
+      addToImageGallery(post.featured_image, 'featured', {
+        isFeatured: true,
+        loadedAt: new Date().toISOString()
+      });
+    }
+    
     setShowForm(true);
-    // 게시물 이미지 목록 로드 (대표 이미지 포함)
-    await loadPostImages(post.id, post.featured_image);
+    // 게시물 이미지 목록 로드
+    loadPostImages(post.id);
   };
 
   // 게시물 이미지 목록 로드
-  const loadPostImages = async (postId, featuredImage = null) => {
+  const loadPostImages = async (postId) => {
     try {
       const response = await fetch(`/api/admin/blog-images?postId=${postId}`);
       const data = await response.json();
@@ -593,53 +602,30 @@ export default function BlogAdmin() {
         console.log('✅ 게시물 이미지 로드 성공:', data.images?.length || 0, '개');
         
         // 편집 모드에서는 imageGallery에도 추가
-        if (editingPost) {
+        if (editingPost && data.images && data.images.length > 0) {
           console.log('🖼️ 편집 모드에서 이미지 갤러리에 추가 중...');
+          console.log('📊 로드된 이미지 개수:', data.images.length);
           
           // imageGallery 상태를 직접 업데이트
           setImageGallery(prevGallery => {
             const newImages = [];
-            
-            // 1. 대표 이미지 추가 (있는 경우)
-            if (featuredImage) {
-              console.log('🖼️ 대표 이미지를 갤러리에 추가:', featuredImage);
-              const exists = prevGallery.some(img => img.url === featuredImage);
+            data.images.forEach(image => {
+              // 중복 체크
+              const exists = prevGallery.some(img => img.url === image.url);
               if (!exists) {
                 newImages.push({
                   id: Date.now() + Math.random(),
-                  url: featuredImage,
-                  type: 'featured',
+                  url: image.url,
+                  type: 'upload',
                   metadata: {
-                    isFeatured: true,
+                    loadedFromDB: true,
+                    postId: postId,
                     loadedAt: new Date().toISOString()
                   },
                   addedAt: new Date().toISOString()
                 });
               }
-            }
-            
-            // 2. 데이터베이스 이미지들 추가
-            if (data.images && data.images.length > 0) {
-              console.log('📊 로드된 이미지 개수:', data.images.length);
-              data.images.forEach(image => {
-                // 중복 체크
-                const exists = prevGallery.some(img => img.url === image.url) || 
-                              newImages.some(img => img.url === image.url);
-                if (!exists) {
-                  newImages.push({
-                    id: Date.now() + Math.random(),
-                    url: image.url,
-                    type: 'upload',
-                    metadata: {
-                      loadedFromDB: true,
-                      postId: postId,
-                      loadedAt: new Date().toISOString()
-                    },
-                    addedAt: new Date().toISOString()
-                  });
-                }
-              });
-            }
+            });
             
             console.log('📊 새로 추가할 이미지 개수:', newImages.length);
             return [...newImages, ...prevGallery];
@@ -1436,8 +1422,6 @@ export default function BlogAdmin() {
 
   // 이미지 갤러리에 이미지 추가
   const addToImageGallery = (imageUrl, type = 'upload', metadata = {}) => {
-    console.log('🔄 addToImageGallery 호출됨:', { imageUrl, type, metadata });
-    
     const newImage = {
       id: Date.now() + Math.random(),
       url: imageUrl,
@@ -1446,16 +1430,7 @@ export default function BlogAdmin() {
       addedAt: new Date().toISOString()
     };
     
-    console.log('📝 새 이미지 객체 생성:', newImage);
-    
-    setImageGallery(prev => {
-      console.log('📊 이전 갤러리 상태:', prev.length, '개');
-      const newGallery = [newImage, ...prev];
-      console.log('📊 새 갤러리 상태:', newGallery.length, '개');
-      return newGallery;
-    });
-    
-    console.log('✅ addToImageGallery 완료');
+    setImageGallery(prev => [newImage, ...prev]);
     return newImage;
   };
 
