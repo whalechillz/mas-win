@@ -24,9 +24,21 @@ export default async function handler(req, res) {
     // 1. 웹페이지 HTML 가져오기
     const response = await fetch(webpageUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'max-age=0'
       },
-      timeout: 30000 // 30초 타임아웃
+      timeout: 30000, // 30초 타임아웃
+      redirect: 'follow',
+      follow: 5
     });
 
     if (!response.ok) {
@@ -144,9 +156,27 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('웹페이지 이미지 스크래핑 오류:', error);
+    
+    // 더 구체적인 에러 메시지 제공
+    let errorMessage = '웹페이지 이미지 스크래핑 중 오류가 발생했습니다.';
+    let errorDetails = error.message;
+    
+    if (error.message.includes('fetch')) {
+      errorMessage = '웹페이지에 접근할 수 없습니다. URL을 확인해주세요.';
+      errorDetails = '네트워크 오류 또는 잘못된 URL입니다.';
+    } else if (error.message.includes('timeout')) {
+      errorMessage = '웹페이지 로드 시간이 초과되었습니다.';
+      errorDetails = '해당 웹사이트가 응답하지 않거나 너무 느립니다.';
+    } else if (error.message.includes('CORS') || error.message.includes('blocked')) {
+      errorMessage = '웹사이트에서 스크래핑을 차단했습니다.';
+      errorDetails = '일부 웹사이트는 보안 정책으로 인해 스크래핑을 허용하지 않습니다.';
+    }
+    
     res.status(500).json({ 
-      error: '웹페이지 이미지 스크래핑 중 오류가 발생했습니다.',
-      details: error.message 
+      error: errorMessage,
+      details: errorDetails,
+      originalError: error.message,
+      url: webpageUrl
     });
   }
 }
