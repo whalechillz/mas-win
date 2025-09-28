@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Head from 'next/head';
 import { marked } from 'marked';
 import dynamic from 'next/dynamic';
@@ -61,16 +61,43 @@ const convertHtmlToMarkdown = (html) => {
 };
 
 // 마크다운을 HTML로 변환하는 함수
-const convertMarkdownToHtml = (markdown) => {
+const convertMarkdownToHtml = async (markdown) => {
   if (!markdown) return '';
   
-  // marked 설정
-  marked.setOptions({
-    breaks: true, // 줄바꿈을 <br>로 변환
-    gfm: true, // GitHub Flavored Markdown 지원
-  });
+  // 큰 콘텐츠의 경우 비동기 처리로 UI 블로킹 방지
+  if (markdown.length > 10000) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        try {
+          // marked 설정
+          marked.setOptions({
+            breaks: true, // 줄바꿈을 <br>로 변환
+            gfm: true, // GitHub Flavored Markdown 지원
+          });
+          
+          const html = marked(markdown);
+          resolve(html);
+        } catch (error) {
+          console.error('❌ 마크다운 변환 오류:', error);
+          resolve(markdown); // 실패 시 원본 반환
+        }
+      }, 0); // 다음 이벤트 루프에서 실행
+    });
+  }
   
-  return marked(markdown);
+  // 작은 콘텐츠는 즉시 처리
+  try {
+    // marked 설정
+    marked.setOptions({
+      breaks: true, // 줄바꿈을 <br>로 변환
+      gfm: true, // GitHub Flavored Markdown 지원
+    });
+    
+    return marked(markdown);
+  } catch (error) {
+    console.error('❌ 마크다운 변환 오류:', error);
+    return markdown; // 실패 시 원본 반환
+  }
 };
 
 export default function BlogAdmin() {
@@ -85,23 +112,9 @@ export default function BlogAdmin() {
   const [sortOrder, setSortOrder] = useState('desc'); // 정렬 순서
   const [postImages, setPostImages] = useState([]); // 게시물 이미지 목록
   
-  // 디버깅용 useEffect
-  useEffect(() => {
-    console.log('showForm 상태:', showForm);
-  }, [showForm]);
-
-  // URL 파라미터 처리 (편집 모드)
-  useEffect(() => {
-    if (router.isReady && router.query.edit) {
-      const postId = router.query.edit;
-      console.log('편집 모드로 전환:', postId);
-      setEditingPost(postId);
-      setShowForm(true);
-      setActiveTab('create');
-    }
-  }, [router.isReady, router.query.edit]);
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [htmlContent, setHtmlContent] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -120,6 +133,89 @@ export default function BlogAdmin() {
     scheduled_at: null,
     author: '마쓰구골프'
   });
+
+  // 디버깅용 useEffect
+  useEffect(() => {
+    console.log('showForm 상태:', showForm);
+  }, [showForm]);
+
+  // 폼 데이터 디버깅 (무한 루프 방지)
+  useEffect(() => {
+    console.log('formData 변경됨:', formData);
+  }, [formData]);
+  
+  // 콘텐츠 변경 시 HTML 변환 (무한 루프 방지)
+  useEffect(() => {
+    if (formData.content && formData.content !== htmlContent) {
+      console.log('📝 콘텐츠 변경 감지, HTML 변환 시작');
+      
+      // 비동기 변환을 위한 타이머 사용 (성능 최적화)
+      const timer = setTimeout(async () => {
+        try {
+          const convertedHtml = await convertMarkdownToHtml(formData.content);
+          setHtmlContent(convertedHtml);
+          console.log('✅ HTML 변환 완료');
+        } catch (error) {
+          console.error('❌ HTML 변환 실패:', error);
+          setHtmlContent(formData.content); // 실패 시 원본 사용
+        }
+      }, 300); // 300ms 디바운스
+      
+      return () => clearTimeout(timer);
+    }
+  }, [formData.content]);
+
+
+  // 편집 포스트 디버깅
+  useEffect(() => {
+    console.log('editingPost 변경됨:', editingPost);
+  }, [editingPost]);
+
+  // URL 파라미터 처리 (편집 모드)
+  useEffect(() => {
+    if (router.isReady && router.query.edit) {
+      const postId = router.query.edit;
+      console.log('편집 모드로 전환:', postId);
+      
+      // 포스트 데이터 로드
+      const loadPostForEdit = async () => {
+        try {
+          const response = await fetch(`/api/admin/blog/${postId}`);
+          if (response.ok) {
+            const postData = await response.json();
+            console.log('편집할 포스트 데이터:', postData);
+            setEditingPost(postData);
+            setFormData({
+              title: postData.title || '',
+              slug: postData.slug || '',
+              excerpt: postData.excerpt || '',
+              content: postData.content || '',
+              featured_image: postData.featured_image || '',
+              category: postData.category || '고객 후기',
+              tags: postData.tags || [],
+              status: postData.status || 'draft',
+              meta_title: postData.meta_title || '',
+              meta_description: postData.meta_description || '',
+              meta_keywords: postData.meta_keywords || '',
+              view_count: postData.view_count || 0,
+              is_featured: postData.is_featured || false,
+              is_scheduled: postData.is_scheduled || false,
+              scheduled_at: postData.scheduled_at || null,
+              author: postData.author || '마쓰구골프'
+            });
+            setShowForm(true);
+            setActiveTab('create');
+          } else {
+            console.error('포스트 로드 실패:', response.status);
+          }
+        } catch (error) {
+          console.error('포스트 로드 오류:', error);
+        }
+      };
+      
+      loadPostForEdit();
+    }
+  }, [router.isReady, router.query.edit]);
 
   // 마쓰구 브랜드 전략 상태
   const [brandStrategy, setBrandStrategy] = useState({
@@ -272,7 +368,18 @@ export default function BlogAdmin() {
 
   // WYSIWYG 에디터 상태
   const [useWysiwyg, setUseWysiwyg] = useState(true);
-  const [htmlContent, setHtmlContent] = useState('');
+
+  // ReactQuill 에디터 초기화
+  useEffect(() => {
+    if (formData.content && useWysiwyg) {
+      console.log('🎨 ReactQuill 에디터 초기화:', formData.content.substring(0, 100));
+      // 약간의 지연을 두고 htmlContent 업데이트
+      const timer = setTimeout(() => {
+        setHtmlContent(formData.content);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [formData.content, useWysiwyg]);
   
   // 이미지 생성 과정 투명성 상태
   const [imageGenerationStep, setImageGenerationStep] = useState('');
@@ -593,37 +700,76 @@ export default function BlogAdmin() {
     }
   };
 
-  // 게시물 수정 모드로 전환
-  const handleEdit = async (post) => {
+  // 게시물 수정 모드로 전환 (성능 최적화)
+  const handleEdit = useCallback(async (post) => {
+    try {
+      console.log('📝 게시물 수정 모드 시작:', post.id);
+      
     setEditingPost(post);
     setFormData({
       ...post,
       tags: Array.isArray(post.tags) ? post.tags : []
     });
-    
-    // 마크다운을 HTML로 변환하여 WYSIWYG 에디터에 표시
-    const htmlContent = await convertMarkdownToHtml(post.content);
-    setHtmlContent(htmlContent);
-    
-    // 이미지 갤러리 초기화
-    setImageGallery([]);
-    
-    // 대표 이미지가 있으면 이미지 갤러리에 추가
-    if (post.featured_image) {
-      console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
-      addToImageGallery(post.featured_image, 'featured', {
-        isFeatured: true,
-        loadedAt: new Date().toISOString()
-      });
-    }
-    
+      
+      // 이미지 갤러리 초기화
+      setImageGallery([]);
+      
+      // 대표 이미지가 있으면 이미지 갤러리에 추가
+      if (post.featured_image) {
+        console.log('🖼️ 대표 이미지를 갤러리에 추가:', post.featured_image);
+        const newImage = {
+          id: Date.now() + Math.random(),
+          url: post.featured_image,
+          type: 'featured',
+          metadata: {
+            isFeatured: true,
+            loadedAt: new Date().toISOString()
+          },
+          addedAt: new Date().toISOString()
+        };
+        setImageGallery(prev => [newImage, ...prev]);
+      }
+      
     setShowForm(true);
-    // 게시물 이미지 목록 로드
-    loadPostImages(post.id);
-  };
+      
+      // 게시물 이미지 목록 로드 (비동기)
+      try {
+        const response = await fetch(`/api/admin/blog-images?postId=${post.id}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          setPostImages(data.images || []);
+          console.log('✅ 게시물 이미지 로드 성공:', data.images?.length || 0, '개');
+        } else {
+          console.error('❌ 게시물 이미지 로드 실패:', data.error);
+          setPostImages([]);
+        }
+      } catch (error) {
+        console.error('❌ 게시물 이미지 로드 에러:', error);
+        setPostImages([]);
+      }
+      
+      // 마크다운을 HTML로 변환 (비동기, 성능 최적화)
+      if (post.content) {
+        console.log('🔄 마크다운 HTML 변환 시작...');
+        try {
+          const htmlContent = await convertMarkdownToHtml(post.content);
+          setHtmlContent(htmlContent);
+          console.log('✅ 마크다운 HTML 변환 완료');
+        } catch (error) {
+          console.error('❌ 마크다운 HTML 변환 실패:', error);
+          setHtmlContent(post.content); // 실패 시 원본 사용
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ 게시물 수정 모드 오류:', error);
+      alert('게시물 수정 모드 진입 중 오류가 발생했습니다.');
+    }
+  }, [setEditingPost, setFormData, setImageGallery, setShowForm, setHtmlContent, setPostImages]);
 
   // 게시물 이미지 목록 로드
-  const loadPostImages = async (postId) => {
+  const loadPostImages = useCallback(async (postId) => {
     try {
       const response = await fetch(`/api/admin/blog-images?postId=${postId}`);
       const data = await response.json();
@@ -670,7 +816,7 @@ export default function BlogAdmin() {
       console.error('❌ 게시물 이미지 로드 에러:', error);
       setPostImages([]);
     }
-  };
+  }, [editingPost, setPostImages, setImageGallery]);
 
   // 전체 이미지 목록 로드 (페이지네이션 지원)
   const loadAllImages = async (page = 1, limit = 24) => {
@@ -1004,7 +1150,7 @@ export default function BlogAdmin() {
   const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
   const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
   const [isScrapingNaver, setIsScrapingNaver] = useState(false);
-  const [naverScraperMode, setNaverScraperMode] = useState('blogId'); // 'blogId' 또는 'urls'
+  const [naverScraperMode, setNaverScraperMode] = useState('urls'); // 'blogId' 또는 'urls'
 
   const loadBlogAnalytics = async (period = '7d', excludeInternal = false) => {
     setIsLoadingAnalytics(true);
@@ -1168,7 +1314,7 @@ export default function BlogAdmin() {
           is_scheduled: false,
           scheduled_at: null,
           author: '마쓰구골프',
-          published_at: null // 초안이므로 발행일 없음
+          published_at: new Date().toISOString() // 작성일은 현재 시간으로 설정
         };
 
         // 블로그 포스트 생성 API 호출
@@ -1189,8 +1335,50 @@ export default function BlogAdmin() {
         
         // 첫 번째 포스트의 수정 페이지로 이동
         if (selectedPosts.indexOf(post) === 0) {
-          // 수정 페이지로 이동
-          window.location.href = `/admin/blog?edit=${result.id}`;
+          // 편집 모드로 직접 전환
+          console.log('편집 모드로 전환, 포스트 데이터:', result);
+          const postData = result.post || result; // result.post 또는 result 직접 사용
+          setEditingPost(postData);
+          
+          const newFormData = {
+            title: postData.title || '',
+            slug: postData.slug || '',
+            excerpt: postData.excerpt || '',
+            content: postData.content || '',
+            featured_image: postData.featuredImage ? postData.featuredImage.src : (postData.featured_image || ''),
+            category: postData.category || '고객 후기',
+            tags: postData.tags || [],
+            status: postData.status || 'draft',
+            meta_title: postData.meta_title || '',
+            meta_description: postData.meta_description || '',
+            meta_keywords: postData.meta_keywords || '',
+            view_count: postData.view_count || 0,
+            is_featured: postData.is_featured || false,
+            is_scheduled: postData.is_scheduled || false,
+            scheduled_at: postData.scheduled_at || null,
+            author: postData.author || '마쓰구골프'
+          };
+          
+          console.log('새 폼 데이터:', newFormData);
+          setFormData(newFormData);
+          
+          // 네이버 블로그에서 가져온 이미지들을 이미지 갤러리에 추가
+          if (post.images && post.images.length > 0) {
+            console.log('🖼️ 네이버 블로그 이미지들을 갤러리에 추가:', post.images);
+            setPostImages(prevImages => {
+              const newImages = post.images.filter(img => 
+                !prevImages.some(existingImg => existingImg.src === img.src)
+              );
+              return [...prevImages, ...newImages];
+            });
+          }
+          
+          // 네이버 블로그 마이그레이션 시에는 textarea 모드로 강제 전환 (성능 최적화)
+          console.log('📝 네이버 블로그 마이그레이션: textarea 모드로 강제 전환');
+          setUseWysiwyg(false);
+          
+          setShowForm(true);
+          setActiveTab('create');
         }
       }
 
@@ -1799,7 +1987,7 @@ export default function BlogAdmin() {
   };
 
   // 이미지 갤러리에 이미지 추가
-  const addToImageGallery = (imageUrl, type = 'upload', metadata = {}) => {
+  const addToImageGallery = useCallback((imageUrl, type = 'upload', metadata = {}) => {
     const newImage = {
       id: Date.now() + Math.random(),
       url: imageUrl,
@@ -1810,7 +1998,7 @@ export default function BlogAdmin() {
     
     setImageGallery(prev => [newImage, ...prev]);
     return newImage;
-  };
+  }, [setImageGallery]);
 
   // 이미지 갤러리에서 이미지 제거
   const removeFromImageGallery = (imageId) => {
@@ -2297,6 +2485,14 @@ export default function BlogAdmin() {
               >
                 🔵 네이버 블로그 스크래퍼
               </button>
+              <button
+                onClick={() => {
+                  window.open('/admin/ai-dashboard', '_blank');
+                }}
+                className="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm"
+              >
+                🤖 AI 관리
+              </button>
             </nav>
           </div>
 
@@ -2363,17 +2559,7 @@ export default function BlogAdmin() {
                 
                 {/* 모드 선택 */}
                 <div className="mb-6">
-                  <div className="flex justify-center space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="blogId"
-                        checked={naverScraperMode === 'blogId'}
-                        onChange={(e) => setNaverScraperMode(e.target.value)}
-                        className="mr-2"
-                      />
-                      블로그 ID로 수집
-                    </label>
+                  <div className="flex justify-center space-x-6">
                     <label className="flex items-center">
                       <input
                         type="radio"
@@ -2382,7 +2568,19 @@ export default function BlogAdmin() {
                         onChange={(e) => setNaverScraperMode(e.target.value)}
                         className="mr-2"
                       />
-                      URL 직접 입력
+                      <span className="text-sm font-medium">📝 URL 직접 입력</span>
+                      <span className="ml-2 text-xs text-gray-500">(개별 포스트)</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="blogId"
+                        checked={naverScraperMode === 'blogId'}
+                        onChange={(e) => setNaverScraperMode(e.target.value)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium">📚 블로그 ID로 수집</span>
+                      <span className="ml-2 text-xs text-gray-500">(전체 블로그)</span>
                     </label>
                   </div>
                 </div>
@@ -2399,9 +2597,14 @@ export default function BlogAdmin() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         disabled={isScrapingNaver}
                       />
-                      <p className="text-sm text-gray-500 mt-2">
-                        예: https://blog.naver.com/massgoogolf → massgoogolf
-                      </p>
+                      <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800 font-medium mb-1">📚 블로그 ID로 수집 기능</p>
+                        <p className="text-xs text-blue-600">
+                          • RSS 피드에서 최근 10개 포스트를 자동으로 가져옵니다<br/>
+                          • 예: https://blog.naver.com/massgoogolf → massgoogolf<br/>
+                          • 전체 블로그의 모든 포스트를 한 번에 처리합니다
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <div className="max-w-2xl mx-auto">
@@ -2413,6 +2616,14 @@ export default function BlogAdmin() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         disabled={isScrapingNaver}
                       />
+                      <div className="mt-2 p-3 bg-green-50 rounded-lg">
+                        <p className="text-sm text-green-800 font-medium mb-1">📝 URL 직접 입력 기능</p>
+                        <p className="text-xs text-green-600">
+                          • 개별 포스트 URL을 직접 입력하여 정확하게 가져옵니다<br/>
+                          • 여러 포스트를 한 번에 처리할 수 있습니다<br/>
+                          • 우선적으로 이 방법을 사용하세요
+                        </p>
+                      </div>
                     </div>
                   )}
                   
@@ -3300,151 +3511,232 @@ export default function BlogAdmin() {
         {/* 대표 이미지 섹션 - 최우선 위치 (이미지 갤러리 위) */}
         <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 shadow-lg">
           <h4 className="text-xl font-bold text-blue-900 mb-4 flex items-center">
-            🖼️ 대표 이미지 관리
+            🖼️ {postImages.length > 1 && postImages.some(img => img.isNaverImage) ? '스크래핑 이미지 및 대표 이미지 관리' : '대표 이미지 관리'}
             <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">최우선</span>
           </h4>
           <div className="space-y-4">
-        <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                대표 이미지 URL
-          </label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={formData.featured_image}
-                  onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="대표 이미지 URL을 입력하세요"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, featured_image: '' })}
+            {/* 네이버 블로그에서 가져온 이미지들이 여러 개인 경우 */}
+            {postImages.length > 1 && postImages.some(img => img.isNaverImage) ? (
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h5 className="text-sm font-medium text-blue-800 mb-3 flex items-center">
+                    📸 네이버 블로그에서 가져온 이미지들 ({postImages.filter(img => img.isNaverImage).length}개)
+                  </h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {postImages.filter(img => img.isNaverImage).map((image, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
+                        <div 
+                          className="aspect-video bg-gray-100 rounded mb-2 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 transition-colors"
+                          onClick={() => {
+                            // 네이버 이미지의 경우 프록시를 통해 새 탭에서 열기
+                            if (image.src.includes('pstatic.net') || image.src.includes('naver.com')) {
+                              // 프록시 이미지 뷰어 사용
+                              const proxyUrl = `/api/admin/image-proxy?url=${encodeURIComponent(image.src)}`;
+                              const newWindow = window.open('', '_blank');
+                              newWindow.document.write(`
+                                <html>
+                                  <head>
+                                    <title>이미지 미리보기</title>
+                                    <style>
+                                      body { margin: 0; padding: 20px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                                      .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                                      img { max-width: 100%; max-height: 80vh; object-fit: contain; }
+                                      .error { color: #e74c3c; text-align: center; }
+                                      .url { font-size: 12px; color: #666; margin-top: 10px; word-break: break-all; }
+                                      .loading { color: #3498db; text-align: center; }
+                                    </style>
+                                  </head>
+                                  <body>
+                                    <div class="container">
+                                      <div class="loading" id="loading">이미지 로딩 중...</div>
+                                      <img src="${proxyUrl}" 
+                                           alt="이미지 미리보기" 
+                                           style="display: none;"
+                                           onload="document.getElementById('loading').style.display='none'; this.style.display='block';"
+                                           onerror="document.getElementById('loading').style.display='none'; this.nextElementSibling.style.display='block';">
+                                      <div class="error" style="display: none;">
+                                        <p>이미지를 불러올 수 없습니다</p>
+                                        <p>네이버 이미지는 직접 접근이 제한될 수 있습니다</p>
+                                        <div class="url">원본 URL: ${image.src}</div>
+                                        <div class="url">프록시 URL: ${proxyUrl}</div>
+                                      </div>
+                                    </div>
+                                  </body>
+                                </html>
+                              `);
+                              newWindow.document.close();
+                            } else {
+                              // 일반 이미지는 직접 열기
+                              window.open(image.src, '_blank');
+                            }
+                          }}
+                          title="클릭하여 새 탭에서 이미지 보기"
+                        >
+                          <img 
+                            src={image.src} 
+                            alt={image.alt || `이미지 ${index + 1}`}
+                            className="max-w-full max-h-full object-contain rounded"
+                            crossOrigin="anonymous"
+                            onError={(e) => {
+                              console.log('❌ 이미지 로드 실패:', image.src);
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                            onLoad={() => {
+                              console.log('✅ 이미지 로드 성공:', image.src);
+                            }}
+                          />
+                          <div className="hidden text-gray-500 text-sm items-center justify-center">
+                            <div className="text-center p-2">
+                              <p className="mb-2">이미지 로드 실패</p>
+                              <div className="space-y-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(image.src);
+                                    alert('이미지 URL이 클립보드에 복사되었습니다!');
+                                  }}
+                                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                                >
+                                  URL 복사
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // 네이버 이미지의 경우 프록시를 통해 새 탭에서 열기
+                                    if (image.src.includes('pstatic.net') || image.src.includes('naver.com')) {
+                                      const proxyUrl = `/api/admin/image-proxy?url=${encodeURIComponent(image.src)}`;
+                                      const newWindow = window.open('', '_blank');
+                                      newWindow.document.write(`
+                                        <html>
+                                          <head>
+                                            <title>이미지 미리보기</title>
+                                            <style>
+                                              body { margin: 0; padding: 20px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                                              .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                                              img { max-width: 100%; max-height: 80vh; object-fit: contain; }
+                                              .error { color: #e74c3c; text-align: center; }
+                                              .url { font-size: 12px; color: #666; margin-top: 10px; word-break: break-all; }
+                                              .loading { color: #3498db; text-align: center; }
+                                            </style>
+                                          </head>
+                                          <body>
+                                            <div class="container">
+                                              <div class="loading" id="loading">이미지 로딩 중...</div>
+                                              <img src="${proxyUrl}" 
+                                                   alt="이미지 미리보기" 
+                                                   style="display: none;"
+                                                   onload="document.getElementById('loading').style.display='none'; this.style.display='block';"
+                                                   onerror="document.getElementById('loading').style.display='none'; this.nextElementSibling.style.display='block';">
+                                              <div class="error" style="display: none;">
+                                                <p>이미지를 불러올 수 없습니다</p>
+                                                <p>네이버 이미지는 직접 접근이 제한될 수 있습니다</p>
+                                                <div class="url">원본 URL: ${image.src}</div>
+                                                <div class="url">프록시 URL: ${proxyUrl}</div>
+                                              </div>
+                                            </div>
+                                          </body>
+                                        </html>
+                                      `);
+                                      newWindow.document.close();
+                                    } else {
+                                      window.open(image.src, '_blank');
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                                >
+                                  새 탭에서 열기
+                                </button>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-1">이미지 영역 클릭해도 새 탭에서 열림</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-600 mb-2 truncate" title={image.fileName}>
+                          {image.fileName}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              console.log('💾 Supabase 저장 버튼 클릭됨:', image.src);
+                              console.log('📤 저장할 이미지 객체:', image);
+                              
+                              const requestBody = { 
+                                imageUrl: image.src,
+                                fileName: image.fileName || `naver-image-${Date.now()}.${image.fileExtension || 'jpg'}`
+                              };
+                              
+                              console.log('📤 요청 본문:', requestBody);
+                              
+                              const response = await fetch('/api/admin/save-external-image/', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                              });
+                              
+                              console.log('📡 API 응답 상태:', response.status);
+                              console.log('📡 API 응답 헤더:', response.headers);
+                              
+                              if (response.ok) {
+                                const result = await response.json();
+                                console.log('✅ 이미지 저장 성공:', result);
+                                alert('✅ 이미지가 Supabase에 성공적으로 저장되었습니다!');
+                                
+                                // 첫 번째 이미지를 대표 이미지로 자동 설정
+                                if (index === 0) {
+                                  setFormData({...formData, featured_image: result.supabaseUrl});
+                                }
+                              } else {
+                                const errorText = await response.text();
+                                console.error('❌ API 응답 실패:', response.status, errorText);
+                                throw new Error(`저장 실패: ${response.status} - ${errorText}`);
+                              }
+                            } catch (error) {
+                              console.error('❌ 이미지 저장 오류:', error);
+                              console.error('❌ 오류 스택:', error.stack);
+                              alert('❌ 이미지 저장 중 오류가 발생했습니다: ' + error.message);
+                            }
+                          }}
+                          className="w-full px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+                        >
+                          Supabase에 저장
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+              </div>
+            ) : (
+              /* 기존 단일 이미지 관리 */
+                <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  대표 이미지 URL
+                  </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={formData.featured_image}
+                    onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    placeholder="대표 이미지 URL을 입력하세요"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, featured_image: '' })}
                   className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
                   title="대표 이미지 제거"
                 >
                   🗑️ 제거
                 </button>
-              </div>
-            </div>
-            
-            {formData.featured_image ? (
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-green-700 flex items-center">
-                    ✅ 현재 대표 이미지
-                  </p>
-                  {/* 외부 링크인 경우 Supabase에 저장 버튼 */}
-                  {formData.featured_image.includes('unsplash.com') || formData.featured_image.includes('http') ? (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          console.log('💾 Supabase 저장 버튼 클릭됨');
-                          console.log('📤 저장할 이미지 URL:', formData.featured_image);
-                          
-                          const response = await fetch('/api/admin/save-external-image', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              imageUrl: formData.featured_image,
-                              fileName: `featured-image-${Date.now()}.jpg`
-                            })
-                          });
-                          
-                          console.log('📡 API 응답 상태:', response.status);
-                          
-                          if (response.ok) {
-                            const result = await response.json();
-                            console.log('✅ API 응답 성공:', result);
-                            
-                            setFormData({ ...formData, featured_image: result.supabaseUrl });
-                            
-                            // 이미지 갤러리에 자동 추가 (원본 URL 메타데이터로 보존)
-                            console.log('🖼️ 이미지 갤러리에 추가 중...');
-                            addToImageGallery(result.supabaseUrl, 'featured', {
-                              originalUrl: result.originalUrl,
-                              savedAt: new Date().toISOString(),
-                              fileName: result.fileName,
-                              source: 'external-import'
-                            });
-                            
-                            console.log('✅ 모든 작업 완료');
-                            alert('✅ 외부 이미지가 Supabase에 저장되고 이미지 갤러리에 추가되었습니다!');
-                          } else {
-                            const errorText = await response.text();
-                            console.error('❌ API 응답 실패:', response.status, errorText);
-                            alert('❌ 이미지 저장에 실패했습니다: ' + response.status);
-                          }
-                        } catch (error) {
-                          console.error('❌ 이미지 저장 오류:', error);
-                          alert('❌ 이미지 저장 중 오류가 발생했습니다: ' + error.message);
-                        }
-                      }}
-                      className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                      title="외부 이미지를 Supabase에 저장하고 최적화"
-                    >
-                      💾 Supabase에 저장
-                    </button>
-                  ) : null}
                 </div>
-                
-                <div className="relative w-full max-w-lg">
-                <img
-                  src={formData.featured_image}
-                    alt="대표 이미지 미리보기"
-                    className="w-full h-40 object-cover rounded-lg border-2 border-gray-200 shadow-md"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextElementSibling.style.display = 'block';
-                    }}
-                  />
-                  <div className="hidden w-full h-40 bg-gray-100 rounded-lg border-2 border-gray-200 flex items-center justify-center text-gray-500 text-sm">
-                    이미지를 불러올 수 없습니다
-                  </div>
-                </div>
-                
-                <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 break-all">
-                  <strong>현재 URL:</strong> {formData.featured_image}
-                </div>
-                
-                {/* 원본 URL 정보 표시 (메타데이터에서) */}
-                {(() => {
-                  const featuredImageInGallery = imageGallery.find(img => 
-                    img.url === formData.featured_image && img.metadata?.originalUrl
-                  );
-                  return featuredImageInGallery?.metadata?.originalUrl ? (
-                    <div className="mt-1 p-2 bg-blue-50 rounded text-xs text-blue-600 break-all">
-                      <strong>원본 출처:</strong> {featuredImageInGallery.metadata.originalUrl}
-                    </div>
-                  ) : null;
-                })()}
-                
-                {/* 이미지 상태 표시 */}
-                <div className="mt-2 flex items-center gap-2">
-                  {formData.featured_image.includes('supabase.co') ? (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                      ✅ Supabase 최적화됨
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                      ⚠️ 외부 링크 (불안정)
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800 font-medium">
-                  ⚠️ 대표 이미지가 설정되지 않았습니다. 블로그 목록에서 이미지가 표시되지 않을 수 있습니다.
-                </p>
               </div>
             )}
             
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <p className="text-xs text-blue-800">
-                💡 <strong>권장사항:</strong> 외부 URL (Unsplash 등)은 불안정할 수 있으니 "💾 Supabase에 저장" 버튼을 눌러 안정적인 호스팅과 최적화를 받으세요.
-              </p>
-            </div>
+            {/* 현재 대표 이미지 섹션 제거 - 전체 이미지 갤러리에서 대표 설정 가능 */}
           </div>
         </div>
 
@@ -3452,6 +3744,9 @@ export default function BlogAdmin() {
         <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <div className="flex justify-between items-center mb-3">
             <h4 className="text-lg font-semibold text-gray-800">🖼️ 이미지 갤러리</h4>
+            <div className="text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded">
+              💡 이미지를 Supabase에 저장한 후 "◆ 대표" 버튼으로 대표 이미지 설정
+            </div>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -3539,7 +3834,7 @@ export default function BlogAdmin() {
                 >
                   ×
                 </button>
-              </div>
+                </div>
                           </div>
                           <div className="p-3">
                             <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
@@ -3695,7 +3990,7 @@ export default function BlogAdmin() {
                   업로드된 이미지가 없습니다.
                 </p>
               ) : (
-                <div>
+        <div>
                   <div className="flex justify-between items-center mb-3">
                     <h6 className="text-sm font-medium text-gray-700">
                       총 {allImagesPagination.total}개의 이미지 (페이지 {allImagesPagination.currentPage}/{allImagesPagination.totalPages})
@@ -3718,7 +4013,7 @@ export default function BlogAdmin() {
                         <span className="text-sm font-medium text-gray-700">
                           {selectedImages.size === allImages.length && allImages.length > 0 ? '전체 해제' : '전체 선택'}
                         </span>
-                      </label>
+          </label>
                       {selectedImages.size > 0 && (
                         <span className="text-sm text-blue-600 font-medium">
                           {selectedImages.size}개 선택됨
@@ -3787,8 +4082,8 @@ export default function BlogAdmin() {
                             {image.name}
                           </div>
                           <div className="flex gap-1 mt-1 flex-wrap">
-                            <button
-                              type="button"
+                <button
+                  type="button"
                               onClick={() => {
                                 // 현재 게시물에 이미지 삽입
                                 if (useWysiwyg) {
@@ -3862,9 +4157,9 @@ export default function BlogAdmin() {
                                 title="Supabase에서 완전 삭제"
                               >
                                 🗑️ 완전삭제
-                              </button>
-                            </div>
-                          </div>
+                </button>
+              </div>
+            </div>
                         </div>
                       </div>
                     ))}
@@ -4089,9 +4384,9 @@ export default function BlogAdmin() {
                     <p className="text-sm text-yellow-800">
                       ⚠️ <strong>주의:</strong> 중복 이미지 삭제는 되돌릴 수 없습니다. 
                       각 그룹에서 첫 번째 이미지는 유지되고 나머지는 삭제됩니다.
-                    </p>
-                  </div>
-                </div>
+              </p>
+            </div>
+          </div>
               )}
             </div>
           )}
@@ -4641,7 +4936,7 @@ export default function BlogAdmin() {
                         </button>
         </div>
 
-                      {useWysiwyg ? (
+                      {useWysiwyg && !postImages.some(img => img.isNaverImage) ? (
                         <div className="wysiwyg-editor">
                           <style jsx>{`
                             .wysiwyg-editor .ql-editor {
@@ -4670,7 +4965,8 @@ export default function BlogAdmin() {
                             }
                           `}</style>
                           <ReactQuill
-                            value={htmlContent}
+                            key={`quill-${formData.content ? formData.content.length : 0}`}
+                            value={formData.content || htmlContent}
                             onChange={handleQuillChange}
                             modules={quillModules}
                             formats={quillFormats}
@@ -4679,15 +4975,25 @@ export default function BlogAdmin() {
                           />
                         </div>
                       ) : (
-                        <textarea
-                          name="content"
-                          value={formData.content}
-                          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                          rows={10}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
-                          required
+                        <div>
+                          {postImages.some(img => img.isNaverImage) && (
+                            <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <p className="text-sm text-yellow-800 flex items-center">
+                                <span className="mr-2">⚠️</span>
+                                네이버 블로그 이미지가 포함된 포스트는 성능 최적화를 위해 textarea 모드로 표시됩니다.
+                              </p>
+                            </div>
+                          )}
+                          <textarea
+                            name="content"
+                            value={formData.content}
+                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                            rows={10}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="게시물 내용을 입력하세요. 이미지는 마크다운 형식으로 삽입됩니다: ![설명](이미지URL)"
+                            required
             />
+                        </div>
                       )}
           </div>
                   )}
@@ -4766,7 +5072,7 @@ export default function BlogAdmin() {
                   </label>
                   <input
                     type="datetime-local"
-                    value={editingPost ? new Date(editingPost.published_at).toISOString().slice(0, 16) : ''}
+                    value={editingPost && editingPost.published_at ? new Date(editingPost.published_at).toISOString().slice(0, 16) : ''}
                     onChange={(e) => {
                       if (editingPost) {
                         const updatedPost = { ...editingPost, published_at: new Date(e.target.value).toISOString() };
@@ -5109,10 +5415,19 @@ export default function BlogAdmin() {
                                       {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
                                     </span>
                                     <button
-                                      onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
-                                      className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
+                                      onClick={() => {
+                                        // 관리자 권한으로 게시물 보기
+                                        const url = `/blog/${post.slug}?admin=true`;
+                                        window.open(url, '_blank');
+                                      }}
+                                      className={`px-3 py-1 rounded text-sm transition-colors ${
+                                        post.status === 'published'
+                                          ? 'bg-green-500 text-white hover:bg-green-600'
+                                          : 'bg-orange-500 text-white hover:bg-orange-600'
+                                      }`}
+                                      title={post.status === 'published' ? '발행된 게시물 보기' : '초안 게시물 보기 (관리자 전용)'}
                                     >
-                                      보기
+                                      {post.status === 'published' ? '보기' : '미리보기'}
                                     </button>
                                     <button
                                       onClick={() => handleEdit(post)}

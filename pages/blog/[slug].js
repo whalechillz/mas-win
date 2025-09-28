@@ -177,7 +177,19 @@ export default function BlogPost({ post: staticPost }) {
     } else if (slug) {
       const fetchPost = async () => {
         try {
-          const response = await fetch(`/api/blog/${slug}`);
+          // URL 파라미터에서 관리자 권한 확인
+          const urlParams = new URLSearchParams(window.location.search);
+          const isAdmin = urlParams.get('admin') === 'true';
+          
+          // 관리자 권한이 있으면 헤더에 추가
+          const headers = {};
+          if (isAdmin) {
+            headers['x-admin-auth'] = 'true';
+          }
+          
+          const response = await fetch(`/api/blog/${slug}`, {
+            headers: headers
+          });
           const data = await response.json();
           
           if (response.ok) {
@@ -442,16 +454,28 @@ export default function BlogPost({ post: staticPost }) {
 }
 
 // 동적 라우팅을 위한 getServerSideProps
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params, query, req }) {
   try {
     const { slug } = params;
+    
+    // 관리자 권한 확인
+    const isAdmin = query.admin === 'true' || 
+                   req.headers.cookie?.includes('admin-auth=true') ||
+                   req.headers.referer?.includes('/admin/');
     
     // API에서 데이터 가져오기
     const baseUrl = process.env.NODE_ENV === 'production' 
       ? 'https://masgolf.co.kr' 
       : 'http://localhost:3000';
     
-    const response = await fetch(`${baseUrl}/api/blog/${slug}`);
+    const headers = {};
+    if (isAdmin) {
+      headers['x-admin-auth'] = 'true';
+    }
+    
+    const response = await fetch(`${baseUrl}/api/blog/${slug}`, {
+      headers: headers
+    });
     
     if (!response.ok) {
       return {
