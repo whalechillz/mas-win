@@ -137,27 +137,8 @@ export default function BlogAdmin() {
 
   // 디버깅용 useEffect 제거 (무한 루프 방지)
   
-  // 콘텐츠 변경 시 HTML 변환 (무한 루프 방지)
-  useEffect(() => {
-    if (formData.content && formData.content !== prevContentRef.current) {
-      console.log('📝 콘텐츠 변경 감지, HTML 변환 시작');
-      prevContentRef.current = formData.content;
-      
-      // 비동기 변환을 위한 타이머 사용 (성능 최적화)
-      const timer = setTimeout(async () => {
-        try {
-          const convertedHtml = await convertMarkdownToHtml(formData.content);
-          setHtmlContent(convertedHtml);
-          console.log('✅ HTML 변환 완료');
-        } catch (error) {
-          console.error('❌ HTML 변환 실패:', error);
-          setHtmlContent(formData.content); // 실패 시 원본 사용
-        }
-      }, 300); // 300ms 디바운스
-      
-      return () => clearTimeout(timer);
-    }
-  }, [formData.content]);
+  // 콘텐츠 변경 시 HTML 변환 useEffect 제거 (무한 루프 방지)
+  // HTML 변환은 handleEdit 함수에서 처리됨
 
 
   // 편집 포스트 디버깅 제거 (무한 루프 방지)
@@ -515,16 +496,12 @@ export default function BlogAdmin() {
     setShowForm(false);
   };
 
-  // WYSIWYG 에디터 내용 변경 핸들러
-  const handleQuillChange = (content) => {
+  // WYSIWYG 에디터 내용 변경 핸들러 (무한 루프 방지)
+  const handleQuillChange = useCallback((content) => {
+    // HTML 콘텐츠만 업데이트 (formData는 별도로 관리)
     setHtmlContent(content);
-    // HTML을 마크다운으로 변환하여 formData에 저장
-    const markdownContent = convertHtmlToMarkdown(content);
-    setFormData(prev => ({
-      ...prev,
-      content: markdownContent
-    }));
-  };
+    console.log('📝 ReactQuill 콘텐츠 변경됨');
+  }, []);
 
   // 게시물 저장/수정
   const handleSubmit = async (e) => {
@@ -4950,7 +4927,7 @@ export default function BlogAdmin() {
                             }
                           `}</style>
                           <ReactQuill
-                            key={`quill-${formData.content ? formData.content.length : 0}`}
+                            key="quill-editor"
                             value={formData.content || htmlContent}
                             onChange={handleQuillChange}
                             modules={quillModules}
