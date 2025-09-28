@@ -498,13 +498,8 @@ export default function BlogAdmin() {
 
   // WYSIWYG 에디터 내용 변경 핸들러 (무한 루프 방지)
   const handleQuillChange = useCallback((content) => {
+    // HTML 콘텐츠만 업데이트 (formData는 별도로 관리)
     setHtmlContent(content);
-    // HTML을 마크다운으로 변환하여 formData에 저장
-    const markdownContent = convertHtmlToMarkdown(content);
-    setFormData(prev => ({
-      ...prev,
-      content: markdownContent
-    }));
     console.log('📝 ReactQuill 콘텐츠 변경됨');
   }, []);
 
@@ -2350,9 +2345,13 @@ export default function BlogAdmin() {
           
           // WYSIWYG 모드인 경우 HTML 콘텐츠도 업데이트
           if (useWysiwyg) {
-            // 마크다운을 HTML로 변환
-            const htmlContent = convertMarkdownToHtml(data.improvedContent);
-            setHtmlContent(htmlContent);
+            // 마크다운을 HTML로 변환 (비동기 처리)
+            convertMarkdownToHtml(data.improvedContent).then(htmlContent => {
+              setHtmlContent(htmlContent);
+            }).catch(error => {
+              console.error('❌ HTML 변환 실패:', error);
+              setHtmlContent(data.improvedContent); // 실패 시 원본 사용
+            });
           }
           
           console.log('✅ AI 콘텐츠 개선 완료:', data.originalLength, '→', data.improvedLength, '자');
@@ -3546,8 +3545,10 @@ export default function BlogAdmin() {
                             crossOrigin="anonymous"
                             onError={(e) => {
                               console.log('❌ 이미지 로드 실패:', image.src);
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const nextSibling = target.nextSibling as HTMLElement;
+                              if (nextSibling) nextSibling.style.display = 'flex';
                             }}
                             onLoad={() => {
                               console.log('✅ 이미지 로드 성공:', image.src);
@@ -4225,9 +4226,9 @@ export default function BlogAdmin() {
                     {duplicateImages.map((group, groupIndex) => (
                       <div key={groupIndex} className="bg-white border border-red-200 rounded-lg p-4">
                         <div className="flex justify-between items-center mb-3">
-                          <h7 className="text-sm font-medium text-red-700">
+                          <h6 className="text-sm font-medium text-red-700">
                             그룹 {groupIndex + 1}: {group.hash} ({group.count}개 중복)
-                          </h7>
+                          </h6>
                           <button
                             type="button"
                             onClick={() => {
@@ -4531,7 +4532,8 @@ export default function BlogAdmin() {
                               alt={image.alt || `Image ${index + 1}`}
                               className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
                               onError={(e) => {
-                                e.target.src = '/placeholder-image.jpg';
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/placeholder-image.jpg';
                               }}
                             />
                             <div className="absolute top-1 right-1">
@@ -4933,7 +4935,7 @@ export default function BlogAdmin() {
                           `}</style>
                           <ReactQuill
                             key="quill-editor"
-                            value={htmlContent}
+                            value={formData.content || htmlContent}
                             onChange={handleQuillChange}
                             modules={quillModules}
                             formats={quillFormats}
