@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { marked } from 'marked';
 import dynamic from 'next/dynamic';
@@ -115,6 +115,7 @@ export default function BlogAdmin() {
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [htmlContent, setHtmlContent] = useState('');
+  const prevContentRef = useRef('');
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -134,20 +135,13 @@ export default function BlogAdmin() {
     author: '마쓰구골프'
   });
 
-  // 디버깅용 useEffect
-  useEffect(() => {
-    console.log('showForm 상태:', showForm);
-  }, [showForm]);
-
-  // 폼 데이터 디버깅 (무한 루프 방지)
-  useEffect(() => {
-    console.log('formData 변경됨:', formData);
-  }, [formData]);
+  // 디버깅용 useEffect 제거 (무한 루프 방지)
   
   // 콘텐츠 변경 시 HTML 변환 (무한 루프 방지)
   useEffect(() => {
-    if (formData.content && formData.content !== htmlContent) {
+    if (formData.content && formData.content !== prevContentRef.current) {
       console.log('📝 콘텐츠 변경 감지, HTML 변환 시작');
+      prevContentRef.current = formData.content;
       
       // 비동기 변환을 위한 타이머 사용 (성능 최적화)
       const timer = setTimeout(async () => {
@@ -710,6 +704,9 @@ export default function BlogAdmin() {
       ...post,
       tags: Array.isArray(post.tags) ? post.tags : []
     });
+    
+    // 이전 콘텐츠 참조 초기화 (무한 루프 방지)
+    prevContentRef.current = post.content || '';
       
       // 이미지 갤러리 초기화
       setImageGallery([]);
