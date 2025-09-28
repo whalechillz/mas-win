@@ -399,8 +399,8 @@ export default function BlogIndex({ posts: staticPosts, initialPagination }) {
   );
 }
 
-// 정적 생성용 getStaticProps
-export async function getStaticProps() {
+// 서버사이드 렌더링용 getServerSideProps
+export async function getServerSideProps() {
   try {
     // Supabase에서 게시물 데이터 로드
     const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/blog/posts/?page=1&limit=100`);
@@ -423,7 +423,7 @@ export async function getStaticProps() {
           posts: posts,
           initialPagination: data.pagination
         },
-        revalidate: 60 // 60초마다 재생성
+        // getServerSideProps는 revalidate 옵션이 없음
       };
     } else {
       console.error('Failed to fetch posts from API:', data.error);
