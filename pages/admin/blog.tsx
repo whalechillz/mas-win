@@ -160,10 +160,7 @@ export default function BlogAdmin() {
   }, [formData.content]);
 
 
-  // 편집 포스트 디버깅
-  useEffect(() => {
-    console.log('editingPost 변경됨:', editingPost);
-  }, [editingPost]);
+  // 편집 포스트 디버깅 제거 (무한 루프 방지)
 
   // URL 파라미터 처리 (편집 모드)
   useEffect(() => {
@@ -363,17 +360,7 @@ export default function BlogAdmin() {
   // WYSIWYG 에디터 상태
   const [useWysiwyg, setUseWysiwyg] = useState(true);
 
-  // ReactQuill 에디터 초기화
-  useEffect(() => {
-    if (formData.content && useWysiwyg) {
-      console.log('🎨 ReactQuill 에디터 초기화:', formData.content.substring(0, 100));
-      // 약간의 지연을 두고 htmlContent 업데이트
-      const timer = setTimeout(() => {
-        setHtmlContent(formData.content);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [formData.content, useWysiwyg]);
+  // ReactQuill 에디터 초기화 제거 (무한 루프 방지)
   
   // 이미지 생성 과정 투명성 상태
   const [imageGenerationStep, setImageGenerationStep] = useState('');
@@ -707,6 +694,18 @@ export default function BlogAdmin() {
     
     // 이전 콘텐츠 참조 초기화 (무한 루프 방지)
     prevContentRef.current = post.content || '';
+    
+    // HTML 콘텐츠 즉시 설정 (무한 루프 방지)
+    if (post.content) {
+      try {
+        const convertedHtml = await convertMarkdownToHtml(post.content);
+        setHtmlContent(convertedHtml);
+        console.log('✅ HTML 변환 완료');
+      } catch (error) {
+        console.error('❌ HTML 변환 실패:', error);
+        setHtmlContent(post.content); // 실패 시 원본 사용
+      }
+    }
       
       // 이미지 갤러리 초기화
       setImageGallery([]);
@@ -746,18 +745,7 @@ export default function BlogAdmin() {
         setPostImages([]);
       }
       
-      // 마크다운을 HTML로 변환 (비동기, 성능 최적화)
-      if (post.content) {
-        console.log('🔄 마크다운 HTML 변환 시작...');
-        try {
-          const htmlContent = await convertMarkdownToHtml(post.content);
-          setHtmlContent(htmlContent);
-          console.log('✅ 마크다운 HTML 변환 완료');
-        } catch (error) {
-          console.error('❌ 마크다운 HTML 변환 실패:', error);
-          setHtmlContent(post.content); // 실패 시 원본 사용
-        }
-      }
+      // HTML 변환은 이미 위에서 처리됨 (중복 제거)
       
     } catch (error) {
       console.error('❌ 게시물 수정 모드 오류:', error);
