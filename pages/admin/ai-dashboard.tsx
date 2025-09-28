@@ -44,29 +44,20 @@ export default function AIDashboard() {
   const [selectedAction, setSelectedAction] = useState('all');
   const [dateRange, setDateRange] = useState('7');
 
-  // AI 사용량 로그 가져오기
-  const fetchAILogs = async () => {
-    try {
-      const response = await fetch('/api/admin/ai-usage-logs');
-      const data = await response.json();
-      if (response.ok) {
-        setAiLogs(data.logs || []);
-      }
-    } catch (error) {
-      console.error('AI 로그 가져오기 실패:', error);
-    }
-  };
-
-  // AI 통계 가져오기
-  const fetchAIStats = async () => {
+  // AI 사용량 로그 및 통계 가져오기
+  const fetchAIData = async () => {
     try {
       const response = await fetch('/api/admin/ai-stats');
       const data = await response.json();
       if (response.ok) {
         setAiStats(data.stats);
+        setAiLogs(data.logs || []);
+        console.log('AI 데이터 로드 완료:', { stats: data.stats, logsCount: data.logs?.length });
+      } else {
+        console.error('AI 데이터 로드 실패:', data);
       }
     } catch (error) {
-      console.error('AI 통계 가져오기 실패:', error);
+      console.error('AI 데이터 가져오기 실패:', error);
     }
   };
 
@@ -87,8 +78,7 @@ export default function AIDashboard() {
     const loadData = async () => {
       setLoading(true);
       await Promise.all([
-        fetchAILogs(),
-        fetchAIStats(),
+        fetchAIData(),
         fetchBlogStats()
       ]);
       setLoading(false);
@@ -232,13 +222,40 @@ export default function AIDashboard() {
                 </div>
 
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 카테고리별 분포</h3>
-                  {blogStats?.topCategories.map((category, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                      <div className="font-medium text-gray-900">{category.category}</div>
-                      <div className="text-sm font-medium text-blue-600">{category.count}개</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">📊 카테고리별 분포</h3>
+                  <div className="space-y-4">
+                    {blogStats?.topCategories.map((category, index) => {
+                      const maxCount = blogStats.topCategories[0]?.count || 1;
+                      const percentage = (category.count / maxCount) * 100;
+                      
+                      return (
+                        <div key={index} className="group">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-gray-900 text-sm">{category.category}</span>
+                            <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                              {category.count}개
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-out group-hover:from-blue-600 group-hover:to-blue-700"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* 총계 표시 */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">총 게시물</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        {blogStats?.topCategories.reduce((sum, cat) => sum + cat.count, 0)}개
+                      </span>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -304,7 +321,7 @@ export default function AIDashboard() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">시간</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API / 모델</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">토큰</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">비용</th>
@@ -317,7 +334,18 @@ export default function AIDashboard() {
                             {new Date(log.created_at).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {log.api_endpoint}
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{log.api_endpoint}</span>
+                              {log.api_endpoint === 'google-vision-api' && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Google Vision</span>
+                              )}
+                              {log.api_endpoint === 'ai-content-extractor' && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">GPT-4o-mini</span>
+                              )}
+                              {log.api_endpoint === 'naver-blog-scraper' && (
+                                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">AI Parser</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {log.improvement_type}

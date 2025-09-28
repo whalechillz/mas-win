@@ -16,7 +16,8 @@ module.exports = {
       'yyytjudftvpmcnppaymw.supabase.co',
       'masgolf.co.kr',
       'static.wixstatic.com',
-      'img.youtube.com'
+      'img.youtube.com',
+      'images.unsplash.com'
     ],
     remotePatterns: [
       {
@@ -48,6 +49,12 @@ module.exports = {
         hostname: 'img.youtube.com',
         port: '',
         pathname: '/vi/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
       }
     ],
     dangerouslyAllowSVG: true,

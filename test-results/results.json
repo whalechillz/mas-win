@@ -10,9 +10,7 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 2
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "reporter": [
       [
@@ -44,11 +42,9 @@
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "chromium-nightly",
-        "name": "chromium-nightly",
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
         "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
         "testIgnore": [],
         "testMatch": [
@@ -60,25 +56,7 @@
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "chromium-stable",
-        "name": "chromium-stable",
-        "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
-        "timeout": 30000
-      },
-      {
-        "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
@@ -92,9 +70,7 @@
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
@@ -117,170 +93,19 @@
       "timeout": 120000
     }
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "migration-test.spec.ts",
-      "file": "migration-test.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Blog Migration Test with Chromium Nightly",
-          "file": "migration-test.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
-            {
-              "title": "Production Migration Test",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-nightly",
-                  "projectName": "chromium-nightly",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 30418,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/migration-test.spec.ts",
-                            "column": 39,
-                            "line": 45
-                          },
-                          "message": "Error: page.textContent: Target page, context or browser has been closed\n\n\u001b[0m \u001b[90m 43 |\u001b[39m       \n \u001b[90m 44 |\u001b[39m       \u001b[90m// 오류 메시지 확인\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 45 |\u001b[39m       \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mtextContent(\u001b[32m'text=오류:'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 46 |\u001b[39m       \u001b[36mif\u001b[39m (errorMessage) {\n \u001b[90m 47 |\u001b[39m         console\u001b[33m.\u001b[39mlog(\u001b[32m'📊 오류 메시지:'\u001b[39m\u001b[33m,\u001b[39m errorMessage)\u001b[33m;\u001b[39m\n \u001b[90m 48 |\u001b[39m         \u001b[0m\n\u001b[2m    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/migration-test.spec.ts:45:39\u001b[22m"
-                        }
-                      ],
-                      "stdout": [
-                        {
-                          "text": "🎭 Testing with browser: chromium\n"
-                        },
-                        {
-                          "text": "📱 관리자 페이지 접속 중...\n"
-                        },
-                        {
-                          "text": "🔄 블로그 마이그레이션 탭 클릭...\n"
-                        },
-                        {
-                          "text": "📝 URL 입력 중...\n"
-                        },
-                        {
-                          "text": "🚀 마이그레이션 시작 버튼 클릭...\n"
-                        },
-                        {
-                          "text": "⏳ 마이그레이션 결과 대기 중...\n"
-                        },
-                        {
-                          "text": "❌ 마이그레이션 실패 또는 타임아웃\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-10T15:29:52.029Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/migration-test-Blog-Migrat-93a71-y-Production-Migration-Test-chromium-nightly/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "70d87a1c3853275dad17-5d46692514a9be4f508e",
-              "file": "migration-test.spec.ts",
-              "line": 4,
-              "column": 7
-            },
-            {
-              "title": "API Endpoint Test",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-nightly",
-                  "projectName": "chromium-nightly",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 7697,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "🔍 API 엔드포인트 테스트: chromium\n"
-                        },
-                        {
-                          "text": "📊 API 응답 상태: \u001b[33m200\u001b[39m\n"
-                        },
-                        {
-                          "text": "📊 API 응답 헤더: {\n  \u001b[32m'content-type'\u001b[39m: \u001b[32m'application/json; charset=utf-8'\u001b[39m,\n  etag: \u001b[32m'\"i8v0erb3kh26x\"'\u001b[39m,\n  vary: \u001b[32m'Accept-Encoding'\u001b[39m,\n  \u001b[32m'content-encoding'\u001b[39m: \u001b[32m'gzip'\u001b[39m,\n  date: \u001b[32m'Wed, 10 Sep 2025 15:30:00 GMT'\u001b[39m,\n  connection: \u001b[32m'keep-alive'\u001b[39m,\n  \u001b[32m'keep-alive'\u001b[39m: \u001b[32m'timeout=5'\u001b[39m,\n  \u001b[32m'transfer-encoding'\u001b[39m: \u001b[32m'chunked'\u001b[39m\n}\n"
-                        },
-                        {
-                          "text": "✅ API 정상 작동\n"
-                        },
-                        {
-                          "text": "📊 응답 데이터: {\n  success: \u001b[33mtrue\u001b[39m,\n  message: \u001b[32m'완전한 마이그레이션 성공'\u001b[39m,\n  data: {\n    id: \u001b[33m61\u001b[39m,\n    title: \u001b[32m'연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험'\u001b[39m,\n    slug: \u001b[32m'연기경력-33년-골프경력-33년-배우-이경영님의-마쓰구골프-체험'\u001b[39m,\n    content: \u001b[32m'# 연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험\\n'\u001b[39m +\n      \u001b[32m'\\n'\u001b[39m +\n      \u001b[32m'배우 이경영님은 용의눈물, 왕건, 명성황후, 무풍지대, 무인시대, 연개소문, 이산, 자이언트, 무신 등 다양한 작품에 출연하며 33년간 꾸준히 연기활동을 이어오고 있습니다. 그의 연기 경력만큼이나 골프에 대한 사랑도 깊다고 합니다.\\n'\u001b[39m +\n      \u001b[32m'\\n'\u001b[39m +\n      \u001b[32m'## 이경영님의 골프 사랑\\n'\u001b[39m +\n      \u001b[32m'\\n'\u001b[39m +\n      \u001b[32m'이경영님은 골프에 대한 열정을 가지고 있으며, 이는 그의 연기에 대한 사랑과도 맞닿아 있습니다. 강렬한 눈빛과 함께 강렬한 티샷을 보여주신 이경영님은 골프를 통해 또 다른 매력을 발산하고 있습니다. \\n'\u001b[39m +\n      \u001b[32m'\\n'\u001b[39m +\n      \u001b[32m'앞으로도 왕성한 연기활동과 함께 골프에서도 멋진 모습을 보여주시길 기대합니다.\\n'\u001b[39m +\n      \u001b[32m'\\n'\u001b[39m +\n      \u001b[32m'### 태그\\n'\u001b[39m +\n      \u001b[32m'이경영, 골프, 연기'\u001b[39m,\n    featured_image: \u001b[32m'https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757518194120-1.webp'\u001b[39m,\n    images: [ \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m ],\n    tags: [],\n    imageCount: \u001b[33m5\u001b[39m,\n    tagCount: \u001b[33m0\u001b[39m,\n    status: \u001b[32m'complete-migration-success'\u001b[39m\n  }\n}\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-10T15:29:52.028Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "70d87a1c3853275dad17-e85cf3f49d2a948379b3",
-              "file": "migration-test.spec.ts",
-              "line": 65,
-              "column": 7
-            }
-          ]
-        }
-      ]
+      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
+      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2025-09-10T15:29:51.644Z",
-    "duration": 31784.661,
-    "expected": 1,
+    "startTime": "2025-09-28T11:18:58.577Z",
+    "duration": 296.89899999999994,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }

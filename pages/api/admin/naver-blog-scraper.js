@@ -291,6 +291,97 @@ function extractNaverTitle(html) {
   return match ? match[1].trim() : '제목 없음';
 }
 
+// 간단한 콘텐츠 정제 함수
+function cleanNaverContent(text) {
+  console.log('🧹 콘텐츠 정제 시작...');
+  
+  // 1. JSON 메타데이터 제거
+  text = text.replace(/\[\{[^}]*"title"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"source"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"blogName"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"domainIdOrBlogId"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"nicknameOrBlogId"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"logNo"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"smartEditorVersion"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"meDisplay"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"lineDisplay"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"outsideDisplay"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"cafeDisplay"[^}]*\}\]/g, '');
+  text = text.replace(/\[\{[^}]*"blogDisplay"[^}]*\}\]/g, '');
+  
+  // 2. 요구사항 텍스트 제거
+  text = text.replace(/\*\*요구사항:\*\*.*?\*\*결과:\*\*/gs, '');
+  text = text.replace(/1\. 실제 포스트 내용만 추출.*?깔끔하게 정리된 포스트 내용만 반환해주세요\./gs, '');
+  text = text.replace(/다음은 에서 추출한 원본 텍스트입니다\..*?순수한 블로그 포스트 내용만 반환해 주세요\./gs, '');
+  
+  // 3. HTML 태그 잔여물 제거
+  text = text.replace(/span\.u_likeit_button\)/g, '');
+  text = text.replace(/face \d+개 \(전체\)\)/g, '');
+  text = text.replace(/이 글에 한 블로거 열고 닫기/g, '');
+  text = text.replace(/이 글에 단 블로거 열고 닫기/g, '');
+  text = text.replace(/인쇄/g, '');
+  text = text.replace(/쓰기/g, '');
+  text = text.replace(/이전 다음/g, '');
+  text = text.replace(/이 전체 글 전체글 보기/g, '');
+  text = text.replace(/화면 최상단으로 이동/g, '');
+  text = text.replace(/글 RSS 2\.0 RSS 1\.0 ATOM 0\.3/g, '');
+  
+  // 4. 시스템 메시지 제거
+  text = text.replace(/안녕하세요\. 이 포스트는 에서 작성된 게시글입니다\..*?감사합니다\./gs, '');
+  text = text.replace(/글 보내기 서비스 안내.*?더 좋은 서비스로 보답할 수 있도록 노력하겠습니다\./gs, '');
+  text = text.replace(/악성코드가 포함되어 있는 파일입니다\..*?주의하시기 바랍니다\./gs, '');
+  text = text.replace(/작성자 이외의 방문자에게는 이용이 제한되었습니다\..*?이용제한 파일 :/gs, '');
+  text = text.replace(/글보내기 제한 공지.*?건강한 인터넷 환경을 만들어 나갈 수 있도록 고객님의 많은 관심과 협조를 부탁드립니다\./gs, '');
+  text = text.replace(/주제 분류 제한 공지.*?건강한 인터넷 환경을 만들어 나갈 수 있도록 고객님의 많은 관심과 협조를 부탁드립니다\./gs, '');
+  text = text.replace(/작성하신 게시글 에 사용이 제한된 문구가 포함 되어 일시적으로 등록이 제한됩 니다\..*?일시적으로 제한\.\.\./gs, '');
+  
+  // 5. UI 요소 제거
+  text = text.replace(/태그 취소 확인/g, '');
+  text = text.replace(/칭찬 \d+ 감사 \d+ 웃김 \d+ 놀람 \d+ 슬픔 \d+/g, '');
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&#034;/g, '"');
+  text = text.replace(/&#039;/g, "'");
+  
+  // 6. 네이버 블로그 UI 요소 제거
+  text = text.replace(/네이버 블로그/g, '');
+  text = text.replace(/블로그/g, '');
+  text = text.replace(/Naver Blog/gi, '');
+  text = text.replace(/네이버/g, '');
+  text = text.replace(/Naver/gi, '');
+  text = text.replace(/로그인/g, '');
+  text = text.replace(/회원가입/g, '');
+  text = text.replace(/검색/g, '');
+  text = text.replace(/카테고리/g, '');
+  text = text.replace(/이전글/g, '');
+  text = text.replace(/다음글/g, '');
+  text = text.replace(/공감/g, '');
+  text = text.replace(/댓글/g, '');
+  text = text.replace(/공유/g, '');
+  text = text.replace(/신고/g, '');
+  text = text.replace(/스크랩/g, '');
+  text = text.replace(/구독/g, '');
+  text = text.replace(/알림/g, '');
+  text = text.replace(/설정/g, '');
+  text = text.replace(/도움말/g, '');
+  text = text.replace(/이용약관/g, '');
+  text = text.replace(/개인정보처리방침/g, '');
+  text = text.replace(/저작권/g, '');
+  text = text.replace(/광고/g, '');
+  text = text.replace(/배너/g, '');
+  text = text.replace(/팝업/g, '');
+  text = text.replace(/쿠키/g, '');
+  
+  // 7. 공백 정리
+  text = text.replace(/\s+/g, ' ').trim();
+  
+  console.log(`✅ 콘텐츠 정제 완료: ${text.length}자`);
+  return text;
+}
+
 // 네이버 블로그 콘텐츠 추출 (개선된 버전)
 function extractNaverContent(html) {
   console.log('🔍 콘텐츠 추출 시작...');
@@ -330,6 +421,56 @@ function extractNaverContent(html) {
   
   // 4. 네이버 블로그 관련 불필요한 텍스트 제거 (강화된 버전)
   extractedText = extractedText
+    // 먼저 JSON 메타데이터 완전 제거
+    .replace(/\[\{[^}]*"title"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"source"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"blogName"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"domainIdOrBlogId"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"nicknameOrBlogId"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"logNo"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"smartEditorVersion"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"meDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"lineDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"outsideDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"cafeDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"blogDisplay"[^}]*\}\]/g, '')
+    
+    // 요구사항 텍스트 완전 제거
+    .replace(/\*\*요구사항:\*\*.*?\*\*결과:\*\*/gs, '')
+    .replace(/1\. 실제 포스트 내용만 추출.*?깔끔하게 정리된 포스트 내용만 반환해주세요\./gs, '')
+    .replace(/다음은 에서 추출한 원본 텍스트입니다\..*?순수한 블로그 포스트 내용만 반환해 주세요\./gs, '')
+    
+    // HTML 태그 잔여물 제거
+    .replace(/span\.u_likeit_button\)/g, '')
+    .replace(/face \d+개 \(전체\)\)/g, '')
+    .replace(/이 글에 한 블로거 열고 닫기/g, '')
+    .replace(/이 글에 단 블로거 열고 닫기/g, '')
+    .replace(/인쇄/g, '')
+    .replace(/쓰기/g, '')
+    .replace(/이전 다음/g, '')
+    .replace(/이 전체 글 전체글 보기/g, '')
+    .replace(/화면 최상단으로 이동/g, '')
+    .replace(/글 RSS 2\.0 RSS 1\.0 ATOM 0\.3/g, '')
+    
+    // 시스템 메시지 완전 제거
+    .replace(/안녕하세요\. 이 포스트는 에서 작성된 게시글입니다\..*?감사합니다\./gs, '')
+    .replace(/글 보내기 서비스 안내.*?더 좋은 서비스로 보답할 수 있도록 노력하겠습니다\./gs, '')
+    .replace(/악성코드가 포함되어 있는 파일입니다\..*?주의하시기 바랍니다\./gs, '')
+    .replace(/작성자 이외의 방문자에게는 이용이 제한되었습니다\..*?이용제한 파일 :/gs, '')
+    .replace(/글보내기 제한 공지.*?건강한 인터넷 환경을 만들어 나갈 수 있도록 고객님의 많은 관심과 협조를 부탁드립니다\./gs, '')
+    .replace(/주제 분류 제한 공지.*?건강한 인터넷 환경을 만들어 나갈 수 있도록 고객님의 많은 관심과 협조를 부탁드립니다\./gs, '')
+    .replace(/작성하신 게시글 에 사용이 제한된 문구가 포함 되어 일시적으로 등록이 제한됩 니다\..*?일시적으로 제한\.\.\./gs, '')
+    
+    // UI 요소 제거
+    .replace(/태그 취소 확인/g, '')
+    .replace(/칭찬 \d+ 감사 \d+ 웃김 \d+ 놀람 \d+ 슬픔 \d+/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#034;/g, '"')
+    .replace(/&#039;/g, "'")
     // 네이버 블로그 기본 UI 요소들
     .replace(/네이버 블로그/g, '')
     .replace(/블로그/g, '')
@@ -489,6 +630,37 @@ function extractNaverContent(html) {
     
     // JSON 데이터 제거
     .replace(/\[\{&#034;title&#034;:[^}]+\}\]/g, '')
+    .replace(/\[\{[^}]*"title"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"source"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"blogName"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"domainIdOrBlogId"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"nicknameOrBlogId"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"logNo"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"smartEditorVersion"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"meDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"lineDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"outsideDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"cafeDisplay"[^}]*\}\]/g, '')
+    .replace(/\[\{[^}]*"blogDisplay"[^}]*\}\]/g, '')
+    
+    // 요구사항 텍스트 제거
+    .replace(/\*\*요구사항:\*\*/g, '')
+    .replace(/1\. 실제 포스트 내용만 추출/g, '')
+    .replace(/2\. UI 요소 제거 \(, 메뉴, 등\)/g, '')
+    .replace(/3\. 자연스러운 문단 구분/g, '')
+    .replace(/4\. 이모지와 특수문자 유지/g, '')
+    .replace(/5\. 마케팅 콘텐츠의 핵심 메시지 보존/g, '')
+    .replace(/\*\*결과:\*\*/g, '')
+    .replace(/깔끔하게 정리된 포스트 내용만 반환해주세요\./g, '')
+    .replace(/다음은 에서 추출한 원본 텍스트입니다\./g, '')
+    .replace(/실제 블로그 포스트 내용만 추출하여 깔끔하게 정리해주세요\./g, '')
+    .replace(/\*\*블로그 정보:\*\*/g, '')
+    .replace(/\*\*원본 텍스트:\*\*/g, '')
+    .replace(/\*\*정리 요구사항:\*\*/g, '')
+    .replace(/\*\*중요:\*\*/g, '')
+    .replace(/메타 지시사항이나 요구사항 텍스트는 절대 포함하지 마세요\./g, '')
+    .replace(/순수한 블로그 포스트 내용만 반환해 주세요\./g, '')
+    
     .replace(/&nbsp;/g, '')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -558,7 +730,10 @@ function extractNaverContent(html) {
   if (extractedText.length > 200) { // 임계값을 200자로 낮춤
     console.log('✅ 전체 텍스트 추출 성공');
     console.log(`📝 추출된 텍스트 샘플: ${extractedText.substring(0, 300)}...`);
-    return extractedText.substring(0, 10000); // 최대 10000자로 제한
+    
+    // 새로운 정제 함수 적용
+    const cleanedText = cleanNaverContent(extractedText);
+    return cleanedText.substring(0, 10000); // 최대 10000자로 제한
   }
   
   // 2. 네이버 블로그의 다양한 콘텐츠 컨테이너 시도 (더 강력한 선택자들)

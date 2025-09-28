@@ -3,10 +3,14 @@ import Head from 'next/head';
 import { marked } from 'marked';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
+import ImageGroupThumbnail from '../../components/ImageGroupThumbnail';
 // import WysiwygEditor from '../../components/WysiwygEditor';
 
-// React Quill을 동적으로 로드 (SSR 문제 방지)
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// React Quill을 동적으로 로드 (SSR 문제 방지 및 성능 최적화)
+const ReactQuill = dynamic(() => import('react-quill'), { 
+  ssr: false,
+  loading: () => <div className="p-4 text-center text-gray-500">에디터 로딩 중...</div>
+});
 import 'react-quill/dist/quill.snow.css';
 
 // React Quill 설정
@@ -111,6 +115,7 @@ export default function BlogAdmin() {
   const [sortBy, setSortBy] = useState('published_at'); // 정렬 기준
   const [sortOrder, setSortOrder] = useState('desc'); // 정렬 순서
   const [postImages, setPostImages] = useState([]); // 게시물 이미지 목록
+  const [simpleAIRequest, setSimpleAIRequest] = useState(''); // 간단 AI 개선 요청사항
   
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -331,6 +336,10 @@ export default function BlogAdmin() {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [imageUsageInfo, setImageUsageInfo] = useState(null);
   const [isLoadingUsageInfo, setIsLoadingUsageInfo] = useState(false);
+  
+  // 이미지 그룹 모달 상태
+  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
+  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -355,15 +364,15 @@ export default function BlogAdmin() {
   const [selectedImageCount, setSelectedImageCount] = useState(1);
 
   // 게시물 목록 불러오기
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async (currentSortBy = sortBy, currentSortOrder = sortOrder) => {
     try {
       setLoading(true);
       console.log('🔍 게시물 목록 불러오는 중...');
       
       // 정렬 파라미터 추가
       const sortParams = new URLSearchParams({
-        sortBy: sortBy,
-        sortOrder: sortOrder
+        sortBy: currentSortBy,
+        sortOrder: currentSortOrder
       });
       
       const response = await fetch(`/api/admin/blog?${sortParams}`);
@@ -382,7 +391,7 @@ export default function BlogAdmin() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // 의존성 배열을 비워서 함수가 재생성되지 않도록 함
 
   // 이미지 삭제 처리
   const handleImageDelete = async () => {
@@ -875,6 +884,148 @@ export default function BlogAdmin() {
     }
   };
 
+  // 모든 이미지 버전 삭제 함수 (5개 버전 모두 삭제)
+  const deleteAllImageVersions = async (imageName) => {
+    try {
+      console.log('🗑️ 모든 이미지 버전 삭제 시작:', imageName);
+      
+      // 이미지 이름에서 확장자 제거하여 기본 이름 추출
+      const baseName = imageName.replace(/\.[^/.]+$/, '');
+      const extension = imageName.split('.').pop();
+      
+      // 5개 버전의 파일명 생성
+      const versions = [
+        imageName, // 원본
+        `${baseName}_thumb.${extension}`, // 썸네일
+        `${baseName}_medium.${extension}`, // 미디움
+        `${baseName}.webp`, // WebP 버전
+        `${baseName}_thumb.webp` // WebP 썸네일
+      ];
+      
+      console.log('📋 삭제할 버전들:', versions);
+      
+      let successCount = 0;
+      let failCount = 0;
+      
+      // 각 버전을 순차적으로 삭제
+      for (const versionName of versions) {
+        try {
+          const response = await fetch('/api/admin/delete-image', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageName: versionName })
+          });
+          
+          if (response.ok) {
+            successCount++;
+            console.log(`✅ ${versionName} 삭제 성공`);
+          } else {
+            failCount++;
+            console.log(`❌ ${versionName} 삭제 실패`);
+          }
+        } catch (error) {
+          failCount++;
+          console.error(`❌ ${versionName} 삭제 오류:`, error);
+        }
+      }
+      
+      // 결과 알림
+      if (successCount > 0) {
+        alert(`✅ ${successCount}개 버전이 성공적으로 삭제되었습니다!\n${failCount > 0 ? `⚠️ ${failCount}개 버전 삭제 실패` : ''}`);
+        
+        // UI에서 이미지 제거
+        setAllImages(prev => prev.filter(img => !versions.includes(img.name)));
+        setPostImages(prev => prev.filter(img => !versions.includes(img.name)));
+        
+        // 대표 이미지가 삭제된 경우 초기화
+        if (formData.featured_image && versions.some(version => formData.featured_image.includes(version))) {
+          setFormData(prev => ({ ...prev, featured_image: '' }));
+        }
+      } else {
+        alert('❌ 모든 버전 삭제에 실패했습니다.');
+      }
+      
+    } catch (error) {
+      console.error('❌ 모든 이미지 버전 삭제 오류:', error);
+      alert('이미지 버전 삭제 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  // 이미지 버전 정보 가져오기 함수
+  const getImageVersionInfo = (imageName) => {
+    const baseName = imageName.replace(/\.[^/.]+$/, '');
+    const extension = imageName.split('.').pop();
+    
+    if (imageName.includes('_thumb.webp')) {
+      return '🖼️ WebP 썸네일 (300x300)';
+    } else if (imageName.includes('_thumb.')) {
+      return '🖼️ 썸네일 (300x300)';
+    } else if (imageName.includes('_medium.')) {
+      return '🖼️ 미디움 (800x600)';
+    } else if (imageName.endsWith('.webp')) {
+      return '🖼️ WebP 버전';
+    } else {
+      return '🖼️ 원본 이미지';
+    }
+  };
+
+  // 이미지 그룹화 함수 (4개 버전을 하나의 그룹으로 묶기)
+  const groupImagesByBaseName = (images) => {
+    const groups = {};
+    
+    images.forEach(image => {
+      // 파일명에서 기본 이름 추출 (버전 접미사 제거)
+      let baseName = image.name;
+      
+      // 모든 버전 접미사 제거 (더 포괄적으로)
+      baseName = baseName.replace(/_thumb\.(webp|jpg|jpeg|png|gif)$/i, '');
+      baseName = baseName.replace(/_medium\.(webp|jpg|jpeg|png|gif)$/i, '');
+      baseName = baseName.replace(/\.webp$/i, '');
+      
+      // 타임스탬프 제거 (13자리 숫자)
+      baseName = baseName.replace(/-\d{13}$/, '');
+      
+      // 디버깅을 위한 로그
+      console.log(`🔍 그룹화: ${image.name} → ${baseName}`);
+      
+      if (!groups[baseName]) {
+        groups[baseName] = [];
+      }
+      groups[baseName].push(image);
+    });
+    
+    // 그룹화 결과 로그
+    Object.keys(groups).forEach(baseName => {
+      console.log(`📦 그룹 "${baseName}": ${groups[baseName].length}개 버전`);
+    });
+    
+    return groups;
+  };
+
+  // 그룹화된 이미지에서 대표 이미지 선택 (원본 우선)
+  const getRepresentativeImage = (imageGroup) => {
+    // 이미지 그룹이 비어있거나 유효하지 않은 경우
+    if (!imageGroup || !Array.isArray(imageGroup) || imageGroup.length === 0) {
+      return null;
+    }
+    
+    // 원본 이미지 우선
+    const original = imageGroup.find(img => 
+      img && img.name && 
+      !img.name.includes('_thumb') && 
+      !img.name.includes('_medium') && 
+      !img.name.endsWith('.webp')
+    );
+    if (original) return original;
+    
+    // 미디움 버전
+    const medium = imageGroup.find(img => img && img.name && img.name.includes('_medium'));
+    if (medium) return medium;
+    
+    // 첫 번째 이미지
+    return imageGroup[0] || null;
+  };
+
   // 이미지 선택 관련 함수들
   const handleImageSelect = (imageName) => {
     setSelectedImages(prev => {
@@ -914,7 +1065,7 @@ export default function BlogAdmin() {
     let failCount = 0;
 
     try {
-      for (const imageName of selectedImages) {
+      for (const imageName of Array.from(selectedImages)) {
         try {
           const response = await fetch('/api/admin/delete-image', {
             method: 'DELETE',
@@ -929,7 +1080,7 @@ export default function BlogAdmin() {
             setPostImages(prev => prev.filter(img => img.name !== imageName));
             
             // 대표 이미지가 삭제된 경우 초기화
-            if (formData.featured_image && formData.featured_image.includes(imageName)) {
+            if (formData.featured_image && formData.featured_image.includes(imageName as string)) {
               setFormData(prev => ({ ...prev, featured_image: '' }));
             }
           } else {
@@ -1119,7 +1270,7 @@ export default function BlogAdmin() {
 
     setIsScrapingNaver(true);
     try {
-      const requestBody = {
+      const requestBody: any = {
         options: {
           includeImages: true,
           includeContent: true
@@ -1184,7 +1335,7 @@ export default function BlogAdmin() {
       return;
     }
 
-    const selectedPosts = Array.from(selectedNaverPosts).map(index => scrapedNaverPosts[index]);
+    const selectedPosts = Array.from(selectedNaverPosts).map((index: number) => scrapedNaverPosts[index]);
     
     try {
       for (const post of selectedPosts) {
@@ -2307,16 +2458,251 @@ export default function BlogAdmin() {
     }
   };
 
+  // 간단 AI 개선 기능
+  const applySimpleAIImprovement = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    if (!formData.content || formData.content.trim().length < 50) {
+      alert('개선할 내용이 충분하지 않습니다. 먼저 기본 내용을 작성해주세요.');
+      return;
+    }
+
+    if (!simpleAIRequest.trim()) {
+      alert('개선 요청사항을 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('✨ 간단 AI 개선 시작...', simpleAIRequest);
+      
+      const response = await fetch('/api/simple-ai-improvement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          currentContent: formData.content,
+          improvementRequest: simpleAIRequest,
+          keywords: formData.tags.join(', '),
+          category: formData.category
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.improvedContent) {
+          setFormData(prev => ({
+            ...prev,
+            content: data.improvedContent
+          }));
+          
+          // HTML 변환
+          convertMarkdownToHtml(data.improvedContent).then(htmlContent => {
+            setHtmlContent(htmlContent);
+          }).catch(error => {
+            console.error('❌ HTML 변환 실패:', error);
+            setHtmlContent(data.improvedContent);
+          });
+          
+          console.log('✅ 간단 AI 개선 완료:', data.originalLength, '→', data.improvedLength, '자');
+          alert(`간단 AI 개선이 완료되었습니다!\n\n원본: ${data.originalLength}자 → 개선: ${data.improvedLength}자\n\n요청사항: ${simpleAIRequest}`);
+          
+          // 요청사항 초기화
+          setSimpleAIRequest('');
+        } else {
+          console.error('간단 AI 개선 실패: 응답 데이터 없음');
+          alert('간단 AI 개선에 실패했습니다.');
+        }
+      } else {
+        const error = await response.json();
+        console.error('간단 AI 개선 실패:', error);
+        alert('간단 AI 개선에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('간단 AI 개선 에러:', error);
+      alert('간단 AI 개선 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  // 픽사 스토리 생성
+  const generatePixarStory = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🎬 픽사 스토리 생성 시작...');
+      
+      const response = await fetch('/api/generate-pixar-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          currentContent: formData.content || '',
+          category: formData.category,
+          keywords: formData.tags.join(', ')
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.storyContent) {
+          setFormData(prev => ({
+            ...prev,
+            content: data.storyContent
+          }));
+          
+          // HTML 변환
+          convertMarkdownToHtml(data.storyContent).then(htmlContent => {
+            setHtmlContent(htmlContent);
+          }).catch(error => {
+            console.error('❌ HTML 변환 실패:', error);
+            setHtmlContent(data.storyContent);
+          });
+          
+          console.log('✅ 픽사 스토리 생성 완료');
+          alert('픽사 스토리가 생성되었습니다!');
+        } else {
+          console.error('픽사 스토리 생성 실패: 응답 데이터 없음');
+          alert('픽사 스토리 생성에 실패했습니다.');
+        }
+      } else {
+        const error = await response.json();
+        console.error('픽사 스토리 생성 실패:', error);
+        alert('픽사 스토리 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('픽사 스토리 생성 에러:', error);
+      alert('픽사 스토리 생성 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  // 도널드 밀러 StoryBrand "무기가 되는 스토리" 생성
+  const generateStoryBrand = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('⚔️ 무기가 되는 스토리 생성 시작...');
+      
+      const response = await fetch('/api/generate-storybrand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          currentContent: formData.content || '',
+          category: formData.category,
+          keywords: formData.tags.join(', ')
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.storyContent) {
+          setFormData(prev => ({
+            ...prev,
+            content: data.storyContent
+          }));
+          
+          // HTML 변환
+          convertMarkdownToHtml(data.storyContent).then(htmlContent => {
+            setHtmlContent(htmlContent);
+          }).catch(error => {
+            console.error('❌ HTML 변환 실패:', error);
+            setHtmlContent(data.storyContent);
+          });
+          
+          console.log('✅ 무기가 되는 스토리 생성 완료');
+          alert('무기가 되는 스토리가 생성되었습니다!');
+        } else {
+          console.error('무기가 되는 스토리 생성 실패: 응답 데이터 없음');
+          alert('무기가 되는 스토리 생성에 실패했습니다.');
+        }
+      } else {
+        const error = await response.json();
+        console.error('무기가 되는 스토리 생성 실패:', error);
+        alert('무기가 되는 스토리 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('무기가 되는 스토리 생성 에러:', error);
+      alert('무기가 되는 스토리 생성 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  // 고객 여정 스토리 생성
+  const generateCustomerJourney = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🛤️ 고객 여정 스토리 생성 시작...');
+      
+      const response = await fetch('/api/generate-customer-journey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          currentContent: formData.content || '',
+          category: formData.category,
+          keywords: formData.tags.join(', ')
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.storyContent) {
+          setFormData(prev => ({
+            ...prev,
+            content: data.storyContent
+          }));
+          
+          // HTML 변환
+          convertMarkdownToHtml(data.storyContent).then(htmlContent => {
+            setHtmlContent(htmlContent);
+          }).catch(error => {
+            console.error('❌ HTML 변환 실패:', error);
+            setHtmlContent(data.storyContent);
+          });
+          
+          console.log('✅ 고객 여정 스토리 생성 완료');
+          alert('고객 여정 스토리가 생성되었습니다!');
+        } else {
+          console.error('고객 여정 스토리 생성 실패: 응답 데이터 없음');
+          alert('고객 여정 스토리 생성에 실패했습니다.');
+        }
+      } else {
+        const error = await response.json();
+        console.error('고객 여정 스토리 생성 실패:', error);
+        alert('고객 여정 스토리 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('고객 여정 스토리 생성 에러:', error);
+      alert('고객 여정 스토리 생성 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, []); // 초기 로드 시에만 실행
 
-  // 정렬 옵션 변경 시 자동 새로고침
+  // 정렬 옵션 변경 시에만 새로고침 (무한 루프 방지)
   useEffect(() => {
-    if (posts.length > 0) { // 초기 로드가 아닐 때만
-      fetchPosts();
+    // 초기 로드가 아닌 경우에만 정렬 변경 시 새로고침
+    if (posts.length > 0) {
+      fetchPosts(sortBy, sortOrder);
     }
-  }, [sortBy, sortOrder]);
+  }, [sortBy, sortOrder]); // posts.length, loading, fetchPosts 제거
 
   return (
     <>
@@ -2907,7 +3293,7 @@ export default function BlogAdmin() {
                       className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
                       title="기존 내용과 이미지를 AI가 분석하여 교정하고 개선합니다"
                     >
-                      🔧 AI 개선
+                      🔧 AI 개선 (고급)
                     </button>
                     <button 
                       type="button"
@@ -2931,6 +3317,63 @@ export default function BlogAdmin() {
                     >
                       🤖 ChatGPT + FAL AI 프롬프트 미리보기
                     </button>
+                  </div>
+
+                  {/* 간단 AI 개선 기능 */}
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-medium mb-2 text-blue-800">✨ 간단 AI 개선</h4>
+                    <textarea 
+                      placeholder="예: 전문성을 높여주세요, CTA 버튼을 추가해주세요, 관련 링크를 넣어주세요, 스토리텔링을 강화해주세요..."
+                      className="w-full p-3 border border-blue-300 rounded text-sm resize-none"
+                      rows={3}
+                      value={simpleAIRequest}
+                      onChange={(e) => setSimpleAIRequest(e.target.value)}
+                    />
+                    <div className="flex gap-2 mt-2">
+                      <button 
+                        type="button"
+                        onClick={() => applySimpleAIImprovement()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                        disabled={!simpleAIRequest.trim()}
+                      >
+                        ✨ AI 개선 적용
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setSimpleAIRequest('')}
+                        className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                      >
+                        🗑️ 지우기
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 스토리텔링 AI 기능 */}
+                  <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <h4 className="font-medium mb-2 text-purple-800">🎬 스토리텔링 AI</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <button 
+                        type="button"
+                        onClick={() => generatePixarStory()}
+                        className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                      >
+                        🎬 픽사 스토리
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => generateStoryBrand()}
+                        className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                      >
+                        ⚔️ 무기가 되는 스토리
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => generateCustomerJourney()}
+                        className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      >
+                        🛤️ 고객 여정 스토리
+                      </button>
+                    </div>
                   </div>
 
                   {/* 이미지 개수 선택 */}
@@ -3168,18 +3611,23 @@ export default function BlogAdmin() {
         {/* 대표 이미지 섹션 - 최우선 위치 (이미지 갤러리 위) */}
         <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 shadow-lg">
           <h4 className="text-xl font-bold text-blue-900 mb-4 flex items-center">
-            🖼️ {postImages.length > 1 && postImages.some(img => img.isNaverImage) ? '스크래핑 이미지 및 대표 이미지 관리' : '대표 이미지 관리'}
+            🖼️ {postImages.length > 0 && postImages.some(img => img.isNaverImage) ? '스크래핑 이미지 및 대표 이미지 관리' : '대표 이미지 관리'}
             <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">최우선</span>
           </h4>
           <div className="space-y-4">
-            {/* 네이버 블로그에서 가져온 이미지들이 여러 개인 경우 */}
-            {postImages.length > 1 && postImages.some(img => img.isNaverImage) ? (
+            {/* 네이버 블로그에서 가져온 이미지들이 있는 경우 */}
+            {postImages.length > 0 && postImages.some(img => img.isNaverImage) ? (
               <div className="space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <h5 className="text-sm font-medium text-blue-800 mb-3 flex items-center">
                     📸 네이버 블로그에서 가져온 이미지들 ({postImages.filter(img => img.isNaverImage).length}개)
+                    {postImages.filter(img => img.isNaverImage).length === 1 && (
+                      <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                        💡 아래 "갤러리 열기" 버튼으로 Supabase 저장 기능을 사용하세요
+                      </span>
+                    )}
                   </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className={`grid gap-4 ${postImages.filter(img => img.isNaverImage).length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
                     {postImages.filter(img => img.isNaverImage).map((image, index) => (
                       <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                         <div 
@@ -3237,6 +3685,15 @@ export default function BlogAdmin() {
                             onError={(e) => {
                               console.log('❌ 이미지 로드 실패:', image.src);
                               const target = e.target as HTMLImageElement;
+                              
+                              // 네이버 이미지인 경우 프록시 시도
+                              if (image.src.includes('pstatic.net') && !image.src.includes('/api/image-proxy')) {
+                                console.log('🔄 네이버 이미지 프록시 시도:', image.src);
+                                target.src = `/api/image-proxy?url=${encodeURIComponent(image.src)}`;
+                                return;
+                              }
+                              
+                              // 프록시도 실패한 경우 에러 표시
                               target.style.display = 'none';
                               const nextSibling = target.nextSibling as HTMLElement;
                               if (nextSibling) nextSibling.style.display = 'flex';
@@ -3405,6 +3862,11 @@ export default function BlogAdmin() {
             <h4 className="text-lg font-semibold text-gray-800">🖼️ 이미지 갤러리</h4>
             <div className="text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded">
               💡 이미지를 Supabase에 저장한 후 "◆ 대표" 버튼으로 대표 이미지 설정
+              {postImages.length === 1 && postImages.some(img => img.isNaverImage) && (
+                <span className="block mt-1 text-yellow-700">
+                  🔥 네이버 이미지 1개 발견! "갤러리 열기"로 저장하세요
+                </span>
+              )}
             </div>
               <div className="flex gap-2">
                 <button
@@ -3450,11 +3912,18 @@ export default function BlogAdmin() {
               </button>
               
               
-              {postImages.length > 0 && (
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                  {postImages.length}개 이미지
-                </span>
-              )}
+        {postImages.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+              {postImages.length}개 이미지
+            </span>
+            {postImages.length >= 5 && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                📦 {Math.ceil(postImages.length / 5)}개 묶음 (5개씩 그룹)
+              </span>
+            )}
+          </div>
+        )}
             </div>
           </div>
                   
@@ -3472,63 +3941,89 @@ export default function BlogAdmin() {
                     <h5 className="text-md font-medium text-gray-800 mb-3">
                       📁 이 게시물의 이미지 ({postImages.length}개)
                     </h5>
+                    {/* 이미지 그룹 썸네일 표시 (5개씩 그룹) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {postImages.map((image, index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                          <div className="relative">
-                            <img
-                              src={image.url}
-                              alt={image.name || `Image ${index + 1}`}
-                              className="w-full h-32 object-cover"
-                            />
-                            <div className="absolute top-2 right-2 flex gap-1">
-                              {formData.featured_image === image.url && (
-                                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800 font-bold">
-                                  ⭐ 대표
-                                </span>
-                              )}
-                              <button
-                                onClick={() => deleteImage(image.name)}
-                                className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
-                >
-                  ×
-                </button>
+                      {Array.from({ length: Math.ceil(postImages.length / 5) }, (_, groupIndex) => {
+                        const startIndex = groupIndex * 5;
+                        const endIndex = Math.min(startIndex + 5, postImages.length);
+                        const groupImages = postImages.slice(startIndex, endIndex);
+                        
+                        return (
+                          <ImageGroupThumbnail
+                            key={groupIndex}
+                            images={groupImages}
+                            groupIndex={groupIndex}
+                            onImageSelect={(image) => insertImageToContentNew(image.url, image.name || '이미지')}
+                            onSetFeatured={(image) => setFeaturedImage(image.url)}
+                            onCopyImage={(image) => copyImageUrl(image.url)}
+                          />
+                        );
+                      })}
                 </div>
-                          </div>
-                          <div className="p-3">
-                            <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
-                              {image.name}
+
+                    {/* 기존 개별 이미지 표시 (개발/디버깅용) */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="mt-8">
+                        <h6 className="text-sm font-medium text-gray-600 mb-3">🔧 개발용: 개별 이미지 목록</h6>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {postImages.map((image, index) => (
+                            <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                              <div className="relative">
+                                <img
+                                  src={image.url}
+                                  alt={image.name || `Image ${index + 1}`}
+                                  className="w-full h-32 object-cover"
+                                />
+                                <div className="absolute top-2 right-2 flex gap-1">
+                                  {formData.featured_image === image.url && (
+                                    <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800 font-bold">
+                                      ⭐ 대표
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={() => deleteImage(image.name)}
+                                    className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="p-3">
+                                <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
+                                  {image.name}
+                                </div>
+                                <div className="flex gap-1 mb-2">
+                                  <button
+                                    onClick={() => setFeaturedImage(image.url)}
+                                    className={`px-2 py-1 text-xs rounded ${
+                                      formData.featured_image === image.url 
+                                        ? 'bg-yellow-600 text-white' 
+                                        : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                    }`}
+                                  >
+                                    ⭐ 대표
+                                  </button>
+                                  <button
+                                    onClick={() => copyImageUrl(image.url)}
+                                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    📋 복사
+                                  </button>
+                                </div>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => insertImageToContentNew(image.url, image.name || '이미지')}
+                                    className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                  >
+                                    📝 삽입
+                                  </button>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex gap-1 mb-2">
-                              <button
-                                onClick={() => setFeaturedImage(image.url)}
-                                className={`px-2 py-1 text-xs rounded ${
-                                  formData.featured_image === image.url 
-                                    ? 'bg-yellow-600 text-white' 
-                                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                                }`}
-                              >
-                                ⭐ 대표
-                              </button>
-                              <button
-                                onClick={() => copyImageUrl(image.url)}
-                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                              >
-                                📋 복사
-                              </button>
-                            </div>
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => insertImageToContentNew(image.url, image.name || '이미지')}
-                                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                              >
-                                📝 삽입
-                              </button>
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )
               ) : (
@@ -3538,7 +4033,7 @@ export default function BlogAdmin() {
                     아직 이미지가 없습니다. 이미지를 업로드하거나 AI로 생성해보세요.
                   </p>
                 ) : (
-                  <div>
+        <div>
                     <h5 className="text-md font-medium text-gray-800 mb-3">📁 내 이미지 갤러리</h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {imageGallery.map((image) => (
@@ -3702,126 +4197,170 @@ export default function BlogAdmin() {
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
-                    {allImages.map((image, index) => (
-                      <div key={index} className={`bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all ${
-                        selectedImages.has(image.name) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}>
-                        <div className="relative">
-                          {/* 체크박스 */}
-                          <div className="absolute top-1 left-1 z-10">
-                            <input
-                              type="checkbox"
-                              checked={selectedImages.has(image.name)}
-                              onChange={() => handleImageSelect(image.name)}
-                              className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </div>
-                          
-                          <img
-                            src={image.url}
-                            alt={image.name || `Image ${index + 1}`}
-                            className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => {
-                              // 이미지 미리보기 모달 열기
-                              setPreviewImage(image);
-                              setShowImagePreview(true);
-                              // 이미지 사용 현황 자동 로드
-                              loadImageUsageInfo(image.url);
-                            }}
-                          />
-                          <div className="absolute top-1 right-1">
-                            <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
-                              {index + 1}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="p-2">
-                          <div className="text-xs text-gray-600 truncate" title={image.name}>
-                            {image.name}
-                          </div>
-                          <div className="flex gap-1 mt-1 flex-wrap">
+                    {(() => {
+                      // 이미지를 그룹화
+                      const imageGroups = groupImagesByBaseName(allImages);
+                      const groupEntries = Object.entries(imageGroups);
+                      
+                      return groupEntries.map(([baseName, imageGroup], groupIndex) => {
+                        const representativeImage = getRepresentativeImage(imageGroup as any[]);
+                        const versionCount = (imageGroup as any[]).length;
+                        
+                        // representativeImage가 없는 경우 렌더링하지 않음
+                        if (!representativeImage) {
+                          return null;
+                        }
+                        
+                        return (
+                          <div key={groupIndex} className={`bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all ${
+                            (imageGroup as any[]).some((img: any) => selectedImages.has(img.name)) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                          }`}>
+                            <div className="relative">
+                              {/* 체크박스 */}
+                              <div className="absolute top-1 left-1 z-10">
+                                <input
+                                  type="checkbox"
+                                  checked={(imageGroup as any[]).some((img: any) => selectedImages.has(img.name))}
+                                  onChange={() => {
+                                    // 그룹의 모든 이미지 선택/해제
+                                    const allSelected = (imageGroup as any[]).every((img: any) => selectedImages.has(img.name));
+                                    if (allSelected) {
+                                      // 모두 선택된 경우 해제
+                                      (imageGroup as any[]).forEach((img: any) => {
+                                        if (selectedImages.has(img.name)) {
+                                          handleImageSelect(img.name);
+                                        }
+                                      });
+                                    } else {
+                                      // 일부만 선택된 경우 모두 선택
+                                      (imageGroup as any[]).forEach((img: any) => {
+                                        if (!selectedImages.has(img.name)) {
+                                          handleImageSelect(img.name);
+                                        }
+                                      });
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              
+                              <img
+                                src={representativeImage.url || '/placeholder-image.jpg'}
+                                alt={baseName || `Image Group ${groupIndex + 1}`}
+                                className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => {
+                                  // 그룹 버전 모달 열기
+                                  setSelectedImageGroup(imageGroup as any[]);
+                                  setShowImageGroupModal(true);
+                                }}
+                              />
+                              <div className="absolute top-1 right-1">
+                                <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
+                                  {versionCount}개
+                                </span>
+                              </div>
+                              <div className="absolute bottom-1 right-1">
+                                <span className="px-1 py-0.5 text-xs rounded bg-green-500 text-white">
+                                  그룹
+                                </span>
+                              </div>
+                            </div>
+                            <div className="p-2">
+                              <div className="text-xs text-gray-600 truncate" title={baseName}>
+                                {baseName}
+                              </div>
+                              {/* 그룹 정보 표시 */}
+                              <div className="text-xs text-gray-500 mt-1">
+                                📦 {versionCount}개 버전 그룹
+                              </div>
+                              <div className="flex gap-1 mt-1 flex-wrap">
                 <button
                   type="button"
-                              onClick={() => {
-                                // 현재 게시물에 이미지 삽입
-                                if (useWysiwyg) {
-                                  const imageHtml = `<img src="${image.url}" alt="${image.name || '이미지'}" style="max-width: 100%; height: auto;" />`;
-                                  const newHtmlContent = htmlContent + imageHtml;
-                                  setHtmlContent(newHtmlContent);
-                                  const markdownContent = convertHtmlToMarkdown(newHtmlContent);
-                                  setFormData(prev => ({ ...prev, content: markdownContent }));
-                                } else {
-                                  const imageMarkdown = `![${image.name || '이미지'}](${image.url})`;
-                                  setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
-                                }
-                                
-                                // 이미지 갤러리 섹션에 실시간 추가
-                                const newImage = {
-                                  id: `temp-${Date.now()}`,
-                                  name: image.name,
-                                  url: image.url,
-                                  created_at: new Date().toISOString(),
-                                  size: image.size || 0
-                                };
-                                setPostImages(prev => [newImage, ...prev]);
-                                
-                                alert('이미지가 본문과 갤러리에 삽입되었습니다!');
-                              }}
-                              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                            >
-                              📝 삽입
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFormData({ ...formData, featured_image: image.url });
-                                alert('대표 이미지로 설정되었습니다!');
-                              }}
-                              className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
-                            >
-                              ⭐ 대표
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                navigator.clipboard.writeText(image.url);
-                                alert('이미지 URL이 복사되었습니다!');
-                              }}
-                              className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                            >
-                              📋 복사
-                            </button>
-                            <div className="flex gap-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (confirm(`"${image.name}" 이미지를 이 게시물에서만 제거하시겠습니까?\n\n(Supabase에는 유지됩니다)`)) {
-                                    removeImageFromPost(image.name);
-                                  }
-                                }}
-                                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
-                                title="게시물에서만 제거 (Supabase 유지)"
-                              >
-                                🔗 링크제거
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (confirm(`정말로 "${image.name}" 이미지를 Supabase에서 완전히 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`)) {
-                                    deleteImageFromStorage(image.name);
-                                  }
-                                }}
-                                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                                title="Supabase에서 완전 삭제"
-                              >
-                                🗑️ 완전삭제
-                </button>
-              </div>
-            </div>
-                        </div>
-                      </div>
-                    ))}
+                                  onClick={() => {
+                                    // 그룹의 대표 이미지를 현재 게시물에 삽입
+                                    if (useWysiwyg) {
+                                      const imageHtml = `<img src="${representativeImage.url}" alt="${baseName || '이미지'}" style="max-width: 100%; height: auto;" />`;
+                                      const newHtmlContent = htmlContent + imageHtml;
+                                      setHtmlContent(newHtmlContent);
+                                      const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+                                      setFormData(prev => ({ ...prev, content: markdownContent }));
+                                    } else {
+                                      const imageMarkdown = `![${baseName || '이미지'}](${representativeImage.url})`;
+                                      setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
+                                    }
+                                    
+                                    // 이미지 갤러리 섹션에 실시간 추가
+                                    const newImage = {
+                                      id: `temp-${Date.now()}`,
+                                      name: representativeImage.name,
+                                      url: representativeImage.url,
+                                      created_at: new Date().toISOString(),
+                                      size: representativeImage.size || 0
+                                    };
+                                    setPostImages(prev => [newImage, ...prev]);
+                                    
+                                    alert('대표 이미지가 본문과 갤러리에 삽입되었습니다!');
+                                  }}
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                >
+                                  📝 삽입
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ ...formData, featured_image: representativeImage.url });
+                                    alert('대표 이미지로 설정되었습니다!');
+                                  }}
+                                  className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                                >
+                                  ⭐ 대표
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(representativeImage.url);
+                                    alert('대표 이미지 URL이 복사되었습니다!');
+                                  }}
+                                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                >
+                                  📋 복사
+                                </button>
+                                <div className="flex gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(`"${baseName}" 이미지 그룹을 이 게시물에서만 제거하시겠습니까?\n\n(Supabase에는 유지됩니다)`)) {
+                                        (imageGroup as any[]).forEach((img: any) => removeImageFromPost(img.name));
+                                      }
+                                    }}
+                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                    title="게시물에서만 제거 (Supabase 유지)"
+                                  >
+                                    🔗 링크제거
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(`"${baseName}" 이미지 그룹의 모든 버전(${versionCount}개)을 완전히 삭제하시겠습니까?\n\n⚠️ 삭제될 버전들:\n${(imageGroup as any[]).map((img: any) => `• ${getImageVersionInfo(img.name)}`).join('\n')}\n\n이 작업은 되돌릴 수 없습니다!`)) {
+                                        // 그룹의 모든 이미지 삭제
+                                        (imageGroup as any[]).forEach((img: any) => {
+                                          deleteImageFromStorage(img.name);
+                                        });
+                                      }
+                                    }}
+                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                    title={`이미지 그룹의 모든 버전(${versionCount}개)을 Supabase에서 완전 삭제`}
+                                  >
+                                    🗑️ 완전삭제
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                   
                   {/* 페이지네이션 */}
@@ -3829,7 +4368,7 @@ export default function BlogAdmin() {
                     <div className="mt-4 flex justify-center items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => loadAllImages(allImagesPagination.prevPage)}
+                        onClick={() => loadAllImages(allImagesPagination.currentPage - 1)}
                         disabled={!allImagesPagination.hasPrevPage}
                         className={`px-3 py-1 text-sm rounded ${
                           allImagesPagination.hasPrevPage
@@ -3864,7 +4403,7 @@ export default function BlogAdmin() {
                       
                       <button
                         type="button"
-                        onClick={() => loadAllImages(allImagesPagination.nextPage)}
+                        onClick={() => loadAllImages(allImagesPagination.currentPage + 1)}
                         disabled={!allImagesPagination.hasNextPage}
                         className={`px-3 py-1 text-sm rounded ${
                           allImagesPagination.hasNextPage
@@ -3881,16 +4420,37 @@ export default function BlogAdmin() {
             </div>
           )}
 
+
           {/* 중복 이미지 관리 */}
           {showDuplicates && (
             <div className="mt-4">
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <h5 className="text-md font-medium text-red-800 mb-2">
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h5 className="text-lg font-semibold text-red-800 mb-3">
                   🔍 중복 이미지 관리
                 </h5>
-                <p className="text-sm text-red-600">
-                  중복된 이미지를 찾아서 정리하고 저장 공간을 절약하세요.
-                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded border border-red-200">
+                    <h6 className="font-medium text-red-800 mb-2">📊 중복 검사 결과</h6>
+                    <p className="text-sm text-gray-600">
+                      • MD5 해시 기반 중복 감지<br/>
+                      • 자동 중복 이미지 식별<br/>
+                      • 저장 공간 절약 최적화
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-red-200">
+                    <h6 className="font-medium text-red-800 mb-2">⚡ 자동 처리</h6>
+                    <p className="text-sm text-gray-600">
+                      • 중복 이미지 자동 감지<br/>
+                      • 기존 레코드 재사용<br/>
+                      • 불필요한 저장 방지
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="text-sm text-yellow-800">
+                    💡 <strong>팁:</strong> 이미지 저장 시 자동으로 중복을 체크하고 기존 이미지를 재사용합니다.
+                  </p>
+                </div>
               </div>
               
               {isLoadingDuplicates ? (
@@ -4224,6 +4784,15 @@ export default function BlogAdmin() {
                               className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
+                                
+                                // 네이버 이미지인 경우 프록시 시도
+                                if (image.src.includes('pstatic.net') && !image.src.includes('/api/image-proxy')) {
+                                  console.log('🔄 네이버 이미지 프록시 시도:', image.src);
+                                  target.src = `/api/image-proxy?url=${encodeURIComponent(image.src)}`;
+                                  return;
+                                }
+                                
+                                // 프록시도 실패한 경우 플레이스홀더 사용
                                 target.src = '/placeholder-image.jpg';
                               }}
                             />
@@ -5111,6 +5680,111 @@ export default function BlogAdmin() {
           )}
         </div>
       </div>
+
+      {/* 이미지 그룹 모달 */}
+      {showImageGroupModal && selectedImageGroup.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                📦 이미지 그룹 - {selectedImageGroup.length}개 버전
+              </h3>
+              <button
+                onClick={() => setShowImageGroupModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {selectedImageGroup.map((image, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <div className="relative">
+                    <img
+                      src={image.url}
+                      alt={image.name}
+                      className="w-full h-32 object-cover rounded mb-2"
+                    />
+                    <div className="absolute top-1 right-1">
+                      <span className="px-2 py-1 text-xs rounded bg-white bg-opacity-80 text-gray-600">
+                        {getImageVersionInfo(image.name)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
+                    {image.name}
+                  </div>
+                  
+                  <div className="flex gap-1 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // 현재 게시물에 이미지 삽입
+                        if (useWysiwyg) {
+                          const imageHtml = `<img src="${image.url}" alt="${image.name || '이미지'}" style="max-width: 100%; height: auto;" />`;
+                          const newHtmlContent = htmlContent + imageHtml;
+                          setHtmlContent(newHtmlContent);
+                          const markdownContent = convertHtmlToMarkdown(newHtmlContent);
+                          setFormData(prev => ({ ...prev, content: markdownContent }));
+                        } else {
+                          const imageMarkdown = `![${image.name || '이미지'}](${image.url})`;
+                          setFormData(prev => ({ ...prev, content: prev.content + '\n' + imageMarkdown }));
+                        }
+                        
+                        // 이미지 갤러리 섹션에 실시간 추가
+                        const newImage = {
+                          id: `temp-${Date.now()}`,
+                          name: image.name,
+                          url: image.url,
+                          created_at: new Date().toISOString(),
+                          size: image.size || 0
+                        };
+                        setPostImages(prev => [newImage, ...prev]);
+                        
+                        alert('이미지가 본문과 갤러리에 삽입되었습니다!');
+                      }}
+                      className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                    >
+                      📝 삽입
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, featured_image: image.url });
+                        alert('대표 이미지로 설정되었습니다!');
+                      }}
+                      className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                    >
+                      ⭐ 대표
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(image.url);
+                        alert('이미지 URL이 복사되었습니다!');
+                      }}
+                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    >
+                      📋 복사
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setShowImageGroupModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

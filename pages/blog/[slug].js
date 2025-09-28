@@ -24,6 +24,31 @@ const ShareIcon = () => (
   </svg>
 );
 
+// 공유 기능 아이콘들
+const KakaoIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.52 1.44 4.8 3.6 6.24L4.8 20.4l3.6-1.44c.96.24 1.92.48 3.6.48 5.52 0 10-3.48 10-7.8S17.52 3 12 3z"/>
+  </svg>
+);
+
+const CopyIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+);
+
+const EmailIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+
+const PrintIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+  </svg>
+);
+
 const CalendarIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -80,6 +105,69 @@ export default function BlogPost({ post: staticPost }) {
   const [post, setPost] = useState(staticPost || null);
   const [loading, setLoading] = useState(!staticPost);
   const [relatedPosts, setRelatedPosts] = useState([]);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // 공유 기능 함수들
+  const handleKakaoShare = () => {
+    if (typeof window !== 'undefined' && post) {
+      const url = window.location.href;
+      const title = post.title;
+      const description = post.excerpt || post.content.substring(0, 100) + '...';
+      
+      // 카카오톡 공유 (Web Share API 사용)
+      if (navigator.share) {
+        navigator.share({
+          title: title,
+          text: description,
+          url: url
+        }).catch(console.error);
+      } else {
+        // 카카오톡 공유 링크 생성
+        const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+        window.open(kakaoUrl, '_blank');
+      }
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (typeof window !== 'undefined') {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch (err) {
+        console.error('링크 복사 실패:', err);
+        // 폴백: 텍스트 선택 방식
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      }
+    }
+  };
+
+  const handleEmailShare = () => {
+    if (typeof window !== 'undefined' && post) {
+      const url = window.location.href;
+      const title = post.title;
+      const subject = `[마쓰구골프] ${title}`;
+      const body = `안녕하세요!\n\n골프 관련 좋은 정보를 공유합니다:\n\n${title}\n${url}\n\n마쓰구골프에서 더 많은 정보를 확인해보세요!`;
+      
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
+    }
+  };
+
+  const handlePrint = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
 
   // 블로그 페이지 상세 추적
   useEffect(() => {
@@ -258,6 +346,49 @@ export default function BlogPost({ post: staticPost }) {
         {post.featured_image && <meta property="og:image" content={post.featured_image} />}
         <link rel="canonical" href={`https://masgolf.co.kr/blog/${post.slug}`} />
         
+        {/* 인쇄 스타일 */}
+        <style jsx global>{`
+          @media print {
+            .no-print {
+              display: none !important;
+            }
+            .print-only {
+              display: block !important;
+            }
+            body {
+              font-size: 12pt;
+              line-height: 1.4;
+              color: #000;
+              background: #fff;
+            }
+            .container {
+              max-width: none;
+              margin: 0;
+              padding: 0;
+            }
+            .prose {
+              max-width: none;
+            }
+            .prose h1, .prose h2, .prose h3 {
+              color: #000;
+              page-break-after: avoid;
+            }
+            .prose p {
+              margin-bottom: 1em;
+              orphans: 3;
+              widows: 3;
+            }
+            .prose img {
+              max-width: 100%;
+              height: auto;
+              page-break-inside: avoid;
+            }
+          }
+          .print-only {
+            display: none;
+          }
+        `}</style>
+        
         {/* 구조화된 데이터 */}
         <script
           type="application/ld+json"
@@ -292,7 +423,7 @@ export default function BlogPost({ post: staticPost }) {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
         {/* 고급스러운 헤더 */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 no-print">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link href="/blog" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group">
@@ -315,7 +446,10 @@ export default function BlogPost({ post: staticPost }) {
               <div className="relative h-80 md:h-[32rem] overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
                 <Image
-                  src={post.featured_image}
+                  src={post.featured_image.includes('pstatic.net') || post.featured_image.includes('supabase.co')
+                    ? `/api/image-proxy?url=${encodeURIComponent(post.featured_image)}`
+                    : post.featured_image
+                  }
                   alt={post.title}
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-105"
@@ -370,28 +504,54 @@ export default function BlogPost({ post: staticPost }) {
                 dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(post.content) }}
               />
 
-              {/* 절제된 공유 섹션 */}
-              <div className="mt-12 pt-8 border-t border-gray-200">
+              {/* 한국 50대 남성 최적화 공유 섹션 */}
+              <div className="mt-12 pt-8 border-t border-gray-200 no-print">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">이 게시물 공유하기</h3>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                      페이스북
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">🏌️‍♂️ 골프 동호회 친구들과 공유하세요!</h3>
+                  
+                  {/* 공유 버튼들 */}
+                  <div className="flex flex-wrap justify-center gap-3 mb-6">
+                    {/* 카카오톡 공유 */}
+                    <button 
+                      onClick={handleKakaoShare}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                    >
+                      <KakaoIcon />
+                      카카오톡 공유
                     </button>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 transition-colors duration-200 font-medium text-sm">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"/>
-                      </svg>
-                      카카오톡
+                    
+                    {/* 링크 복사 */}
+                    <button 
+                      onClick={handleCopyLink}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 font-medium text-sm shadow-md hover:shadow-lg ${
+                        copySuccess 
+                          ? 'bg-green-500 text-white hover:bg-green-600' 
+                          : 'bg-gray-600 text-white hover:bg-gray-700'
+                      }`}
+                    >
+                      <CopyIcon />
+                      {copySuccess ? '복사 완료!' : '링크 복사'}
                     </button>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-medium text-sm">
-                      <ShareIcon />
-                      링크 복사
+                    
+                    {/* 이메일 공유 */}
+                    <button 
+                      onClick={handleEmailShare}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                    >
+                      <EmailIcon />
+                      이메일 공유
+                    </button>
+                    
+                    {/* 인쇄 */}
+                    <button 
+                      onClick={handlePrint}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                    >
+                      <PrintIcon />
+                      인쇄하기
                     </button>
                   </div>
+                  
                 </div>
               </div>
             </div>
@@ -411,7 +571,10 @@ export default function BlogPost({ post: staticPost }) {
                       <div className="relative h-56 overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
                         <Image
-                          src={relatedPost.featured_image}
+                          src={relatedPost.featured_image.includes('pstatic.net') || relatedPost.featured_image.includes('supabase.co')
+                            ? `/api/image-proxy?url=${encodeURIComponent(relatedPost.featured_image)}`
+                            : relatedPost.featured_image
+                          }
                           alt={relatedPost.title}
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
