@@ -1098,13 +1098,7 @@ export default function BlogAdmin() {
     alert('이미지가 이 게시물에서 제거되었습니다. (Supabase에는 유지됨)');
   };
 
-  // 블로그 분석 데이터 로드
-  const [blogAnalytics, setBlogAnalytics] = useState(null);
-  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
-
-  // AI 사용량 통계 데이터 로드
-  const [aiUsageStats, setAiUsageStats] = useState(null);
-  const [isLoadingAIStats, setIsLoadingAIStats] = useState(false);
+  // 블로그 분석 및 AI 사용량은 통합 대시보드에서 확인
 
   // 네이버 블로그 스크래퍼 상태
   const [naverBlogId, setNaverBlogId] = useState('');
@@ -1114,67 +1108,7 @@ export default function BlogAdmin() {
   const [isScrapingNaver, setIsScrapingNaver] = useState(false);
   const [naverScraperMode, setNaverScraperMode] = useState('urls'); // 'blogId' 또는 'urls'
 
-  const loadBlogAnalytics = async (period = '7d', excludeInternal = false) => {
-    setIsLoadingAnalytics(true);
-    try {
-      const url = `/api/admin/blog-analytics?period=${period}${excludeInternal ? '&excludeInternal=true' : ''}`;
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setBlogAnalytics(data);
-        console.log('✅ 블로그 분석 로드 성공:', data.totalViews, '조회수', excludeInternal ? '(내부 제외)' : '');
-      } else {
-        console.error('❌ 블로그 분석 로드 실패');
-      }
-    } catch (error) {
-      console.error('❌ 블로그 분석 로드 에러:', error);
-    } finally {
-      setIsLoadingAnalytics(false);
-    }
-  };
-
-  const resetBlogAnalytics = async () => {
-    try {
-      const response = await fetch('/api/admin/blog-analytics-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' })
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ 블로그 분석 데이터 리셋 성공');
-        alert('모든 블로그 분석 데이터가 삭제되었습니다.');
-        setBlogAnalytics(null);
-      } else {
-        console.error('❌ 블로그 분석 리셋 실패');
-        alert('데이터 리셋에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('❌ 블로그 분석 리셋 에러:', error);
-      alert('데이터 리셋 중 오류가 발생했습니다.');
-    }
-  };
-
-  // AI 사용량 통계 로드
-  const loadAIUsageStats = async (period = '7d') => {
-    setIsLoadingAIStats(true);
-    try {
-      const url = `/api/admin/ai-usage-stats?period=${period}`;
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setAiUsageStats(data);
-        console.log('✅ AI 사용량 통계 로드 성공:', data.stats.totalRequests, '요청', data.stats.totalCost.toFixed(6), '달러');
-      } else {
-        console.error('❌ AI 사용량 통계 로드 실패');
-      }
-    } catch (error) {
-      console.error('❌ AI 사용량 통계 로드 에러:', error);
-    } finally {
-      setIsLoadingAIStats(false);
-    }
-  };
+  // 블로그 분석 및 AI 사용량 함수들은 통합 대시보드로 이동됨
 
   // 네이버 블로그 스크래핑 함수
   const handleNaverBlogScrape = async () => {
@@ -2678,27 +2612,20 @@ export default function BlogAdmin() {
                 {editingPost ? '게시물 수정' : '새 게시물 작성'}
               </h2>
               
-              {/* 블로그 분석 및 AI 사용량 버튼 - 최상단으로 이동 */}
+              {/* 통합 대시보드로 이동하는 안내 메시지 */}
               {editingPost && (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      loadBlogAnalytics('7d');
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 flex items-center gap-2"
-                  >
-                    📊 블로그 분석
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      loadAIUsageStats('7d');
-                    }}
-                    className="px-4 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 flex items-center gap-2"
-                  >
-                    🤖 AI 사용량
-                  </button>
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    💡 <strong>블로그 분석</strong>과 <strong>AI 사용량</strong>은 
+                    <button
+                      type="button"
+                      onClick={() => window.open('/admin/ai-dashboard', '_blank')}
+                      className="ml-1 text-blue-600 underline hover:text-blue-800"
+                    >
+                      🤖 AI 관리
+                    </button>
+                    메뉴에서 확인하세요.
+                  </p>
                 </div>
               )}
                 <button
@@ -2733,245 +2660,9 @@ export default function BlogAdmin() {
                 </button>
               </div>
 
-              {/* 블로그 분석 대시보드 - 상단으로 이동 */}
-              {blogAnalytics && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-blue-800">
-                      📊 블로그 분석 대시보드
-                    </h3>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm('내부 카운터(테스트, localhost 등)를 제외하시겠습니까?')) {
-                            loadBlogAnalytics('7d', true);
-                          }
-                        }}
-                        className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
-                        title="내부 카운터 제외"
-                      >
-                        🔍 내부 제외
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm('정말로 모든 블로그 분석 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-                            resetBlogAnalytics();
-                          }
-                        }}
-                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                        title="모든 데이터 삭제"
-                      >
-                        🗑️ 리셋
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBlogAnalytics(null)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">총 조회수</h4>
-                      <p className="text-2xl font-bold text-blue-600">{blogAnalytics.totalViews.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">트래픽 소스</h4>
-                      <p className="text-lg font-semibold text-green-600">{blogAnalytics.trafficSources.length}개</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">검색어</h4>
-                      <p className="text-lg font-semibold text-purple-600">{blogAnalytics.searchKeywords.length}개</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">캠페인</h4>
-                      <p className="text-lg font-semibold text-orange-600">{blogAnalytics.utmCampaigns.length}개</p>
-                    </div>
-                  </div>
+              {/* 블로그 분석 대시보드 제거됨 - 통합 대시보드로 이동 */}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* 트래픽 소스 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">🚦 트래픽 소스</h4>
-                      <div className="space-y-2">
-                        {blogAnalytics.trafficSources.slice(0, 5).map((source, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">{source.source}</span>
-                            <span className="text-sm font-medium text-blue-600">{source.count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 검색어 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">🔍 검색어</h4>
-                      <div className="space-y-2">
-                        {blogAnalytics.searchKeywords.slice(0, 5).map((keyword, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 truncate">{keyword.keyword}</span>
-                            <span className="text-sm font-medium text-green-600">{keyword.count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* UTM 캠페인 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">📢 UTM 캠페인</h4>
-                      <div className="space-y-2">
-                        {blogAnalytics.utmCampaigns.slice(0, 5).map((campaign, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 truncate">{campaign.campaign}</span>
-                            <span className="text-sm font-medium text-purple-600">{campaign.count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 블로그별 조회수 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">📝 블로그별 조회수</h4>
-                      <div className="space-y-2">
-                        {blogAnalytics.blogViews.slice(0, 5).map((blog, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-gray-600 truncate">{blog.title}</p>
-                              <p className="text-xs text-gray-400">{blog.category}</p>
-                            </div>
-                            <span className="text-sm font-medium text-orange-600">{blog.count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* AI 사용량 대시보드 */}
-              {aiUsageStats && (
-                <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-purple-800">
-                      🤖 AI 사용량 대시보드
-                    </h3>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm('다른 기간의 AI 사용량을 조회하시겠습니까?')) {
-                            loadAIUsageStats('30d');
-                          }
-                        }}
-                        className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
-                        title="30일간 사용량 조회"
-                      >
-                        📅 30일
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAiUsageStats(null)}
-                        className="text-purple-600 hover:text-purple-800"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">총 요청수</h4>
-                      <p className="text-2xl font-bold text-purple-600">{aiUsageStats.stats.totalRequests.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">총 토큰</h4>
-                      <p className="text-2xl font-bold text-blue-600">{aiUsageStats.stats.totalTokens.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">총 비용</h4>
-                      <p className="text-2xl font-bold text-green-600">${aiUsageStats.stats.totalCost.toFixed(6)}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">평균 비용/요청</h4>
-                      <p className="text-2xl font-bold text-orange-600">${aiUsageStats.stats.avgCostPerRequest.toFixed(6)}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* 엔드포인트별 통계 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">🔗 엔드포인트별 사용량</h4>
-                      <div className="space-y-2">
-                        {aiUsageStats.stats.endpointStats.slice(0, 5).map((endpoint, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">{endpoint.endpoint}</span>
-                            <div className="text-right">
-                              <span className="text-sm font-medium text-purple-600">{endpoint.requests}회</span>
-                              <br />
-                              <span className="text-xs text-gray-500">${endpoint.cost.toFixed(6)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 모델별 통계 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">🤖 모델별 사용량</h4>
-                      <div className="space-y-2">
-                        {aiUsageStats.stats.modelStats.slice(0, 5).map((model, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">{model.model}</span>
-                            <div className="text-right">
-                              <span className="text-sm font-medium text-blue-600">{model.requests}회</span>
-                              <br />
-                              <span className="text-xs text-gray-500">${model.cost.toFixed(6)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 일별 통계 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">📅 일별 사용량</h4>
-                      <div className="space-y-2">
-                        {aiUsageStats.stats.dailyStats.slice(0, 5).map((day, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">{day.date}</span>
-                            <div className="text-right">
-                              <span className="text-sm font-medium text-green-600">{day.requests}회</span>
-                              <br />
-                              <span className="text-xs text-gray-500">${day.cost.toFixed(6)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 최근 사용 로그 */}
-                    <div className="bg-white p-4 rounded-lg border">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">📋 최근 사용 로그</h4>
-                      <div className="space-y-2">
-                        {aiUsageStats.recentLogs.slice(0, 5).map((log, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-gray-600 truncate">{log.api_endpoint}</p>
-                              <p className="text-xs text-gray-400">{new Date(log.created_at).toLocaleString()}</p>
-                            </div>
-                            <span className="text-sm font-medium text-orange-600">${log.cost.toFixed(6)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* AI 사용량 대시보드 제거됨 - 통합 대시보드로 이동 */}
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* 콘텐츠 소스 입력란 */}
