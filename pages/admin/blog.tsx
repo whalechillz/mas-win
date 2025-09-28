@@ -498,8 +498,13 @@ export default function BlogAdmin() {
 
   // WYSIWYG 에디터 내용 변경 핸들러 (무한 루프 방지)
   const handleQuillChange = useCallback((content) => {
-    // HTML 콘텐츠만 업데이트 (formData는 별도로 관리)
     setHtmlContent(content);
+    // HTML을 마크다운으로 변환하여 formData에 저장
+    const markdownContent = convertHtmlToMarkdown(content);
+    setFormData(prev => ({
+      ...prev,
+      content: markdownContent
+    }));
     console.log('📝 ReactQuill 콘텐츠 변경됨');
   }, []);
 
@@ -4928,7 +4933,7 @@ export default function BlogAdmin() {
                           `}</style>
                           <ReactQuill
                             key="quill-editor"
-                            value={formData.content || htmlContent}
+                            value={htmlContent}
                             onChange={handleQuillChange}
                             modules={quillModules}
                             formats={quillFormats}
