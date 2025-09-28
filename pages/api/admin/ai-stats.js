@@ -40,7 +40,10 @@ export default async function handler(req, res) {
       avgTokensPerCall
     };
 
-    res.status(200).json({ stats });
+    res.status(200).json({ 
+      stats,
+      logs: logs.slice(0, 50) // 최근 50개 로그만 반환
+    });
   } catch (error) {
     console.error('AI 통계 조회 오류:', error);
     res.status(500).json({ error: 'AI 통계 조회 실패' });

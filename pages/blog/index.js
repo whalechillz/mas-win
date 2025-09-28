@@ -245,7 +245,15 @@ export default function BlogIndex({ posts: staticPosts, initialPagination }) {
                   <div className="relative h-64 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
                     <img
-                      src={post.featured_image || '/placeholder-image.svg'}
+                      src={post.featured_image 
+                        ? (post.featured_image.includes('pstatic.net') || 
+                           post.featured_image.includes('supabase.co') ||
+                           post.featured_image.includes('unsplash.com') ||
+                           post.featured_image.includes('images.unsplash.com')
+                            ? `/api/image-proxy?url=${encodeURIComponent(post.featured_image)}`
+                            : post.featured_image)
+                        : '/placeholder-image.svg'
+                      }
                       alt={post.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
@@ -404,8 +412,8 @@ export async function getStaticProps() {
         title: post.title,
         slug: post.slug,
         excerpt: post.excerpt,
-        featuredImage: post.featured_image || null,
-        publishedAt: post.published_at,
+        featured_image: post.featured_image || null,
+        published_at: post.published_at,
         category: post.category,
         tags: post.tags || []
       }));
