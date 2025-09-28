@@ -7,13 +7,25 @@ export default async function handler(req, res) {
   try {
     const supabase = createServerSupabase();
     
+    // 관리자 권한 확인 (쿠키에서 확인)
+    const isAdmin = req.headers.cookie?.includes('admin-auth=true') || 
+                   req.headers['x-admin-auth'] === 'true' ||
+                   req.headers.referer?.includes('/admin/');
+    
+    console.log('🔍 게시물 조회 요청:', { slug, isAdmin });
+    
     // Get the specific post
-    const { data: post, error } = await supabase
+    let postQuery = supabase
       .from('blog_posts')
       .select('*')
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .single();
+      .eq('slug', slug);
+    
+    // 관리자가 아닌 경우 발행된 게시물만 조회
+    if (!isAdmin) {
+      postQuery = postQuery.eq('status', 'published');
+    }
+    
+    const { data: post, error } = await postQuery.single();
 
     if (error || !post) {
       return res.status(404).json({ error: "Post not found" });
