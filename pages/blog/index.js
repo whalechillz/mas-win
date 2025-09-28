@@ -402,12 +402,53 @@ export default function BlogIndex({ posts: staticPosts, initialPagination }) {
 // 서버사이드 렌더링용 getServerSideProps
 export async function getServerSideProps() {
   try {
-    // Supabase에서 게시물 데이터 로드
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/blog/posts/?page=1&limit=100`);
-    const data = await response.json();
+    // 직접 Supabase에서 게시물 데이터 로드
+    const { createClient } = await import('@supabase/supabase-js');
     
-    if (response.ok && data.posts) {
-      const posts = data.posts.map(post => ({
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase 환경 변수가 설정되지 않았습니다.');
+      return {
+        props: {
+          posts: []
+        }
+      };
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // 게시물 조회
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(100);
+    
+    if (error) {
+      console.error('Supabase 쿼리 에러:', error);
+      return {
+        props: {
+          posts: []
+        }
+      };
+    }
+    
+    const data = {
+      posts: posts || [],
+      pagination: {
+        currentPage: 1,
+        totalPages: Math.ceil((posts || []).length / 6),
+        totalPosts: (posts || []).length,
+        hasNext: (posts || []).length > 6,
+        hasPrev: false
+      }
+    };
+    
+    if (data.posts && data.posts.length > 0) {
+      const transformedPosts = data.posts.map(post => ({
         id: post.id,
         title: post.title,
         slug: post.slug,
@@ -420,13 +461,12 @@ export async function getServerSideProps() {
 
       return {
         props: {
-          posts: posts,
+          posts: transformedPosts,
           initialPagination: data.pagination
-        },
-        // getServerSideProps는 revalidate 옵션이 없음
+        }
       };
     } else {
-      console.error('Failed to fetch posts from API:', data.error);
+      console.error('게시물을 찾을 수 없습니다.');
       return {
         props: {
           posts: []
