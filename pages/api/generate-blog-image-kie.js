@@ -155,7 +155,7 @@ export default async function handler(req, res) {
       
       // taskId가 있는 경우 비동기 처리
       if (kieResult.data.taskId) {
-      const taskId = kieResult.data.taskId;
+        const taskId = kieResult.data.taskId;
       console.log('📋 Kie AI Task ID:', taskId);
       
       // Task 상태 확인 및 결과 대기
@@ -240,25 +240,29 @@ export default async function handler(req, res) {
         throw new Error('이미지 생성 시간 초과 또는 실패');
       }
       
-      console.log('✅ Kie AI 이미지 생성 완료:', imageUrls.length, '개');
+        console.log('✅ Kie AI 이미지 생성 완료:', imageUrls.length, '개');
+        
+        res.status(200).json({ 
+          success: true,
+          imageUrl: imageUrls[0], // 첫 번째 이미지 (기존 호환성)
+          imageUrls: imageUrls, // 모든 이미지 URL 배열
+          imageCount: imageUrls.length,
+          prompt: smartPrompt,
+          model: 'Kie AI',
+          metadata: {
+            title,
+            contentType,
+            brandStrategy,
+            generatedAt: new Date().toISOString()
+          }
+        });
+        return;
+      } else {
+        throw new Error(`Kie AI API 에러: ${kieResult.msg || 'Unknown error'}`);
+      }
     } else {
       throw new Error(`Kie AI API 에러: ${kieResult.msg || 'Unknown error'}`);
     }
-
-    res.status(200).json({ 
-      success: true,
-      imageUrl: imageUrls[0], // 첫 번째 이미지 (기존 호환성)
-      imageUrls: imageUrls, // 모든 이미지 URL 배열
-      imageCount: imageUrls.length,
-      prompt: smartPrompt,
-      model: 'Kie AI',
-      metadata: {
-        title,
-        contentType,
-        brandStrategy,
-        generatedAt: new Date().toISOString()
-      }
-    });
 
   } catch (error) {
     console.error('❌ Kie AI 이미지 생성 에러:', error);
