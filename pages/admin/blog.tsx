@@ -209,6 +209,8 @@ export default function BlogAdmin() {
   const [generatedImages, setGeneratedImages] = useState([]);
   const [showGeneratedImages, setShowGeneratedImages] = useState(false);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
+  const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
   
   // 단락별 이미지 생성 관련 상태
   const [paragraphImages, setParagraphImages] = useState([]);
@@ -3628,15 +3630,21 @@ export default function BlogAdmin() {
                         <div 
                           key={index}
                           className="cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-orange-500 transition-colors"
-                          onClick={() => selectGeneratedImage(imageUrl)}
                         >
-                          <div className="aspect-w-16 aspect-h-9">
+                          <div 
+                            className="h-48 flex items-center justify-center bg-gray-100"
+                            onClick={() => {
+                              setSelectedGeneratedImage(imageUrl);
+                              setShowGeneratedImageModal(true);
+                            }}
+                            title="클릭하여 이미지 확대 보기"
+                          >
                             <img
                               src={imageUrl}
                               alt={`AI 생성 이미지 ${index + 1}`}
-                              className="w-full h-32 object-cover"
-                  />
-                </div>
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
                           <div className="p-3">
                             <h5 className="font-medium text-sm text-gray-900 mb-1">AI 생성 이미지 {index + 1}</h5>
                             <div className="flex gap-1 mb-2">
@@ -3658,8 +3666,17 @@ export default function BlogAdmin() {
                               >
                                 ➕ 삽입
                               </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  selectGeneratedImage(imageUrl);
+                                }}
+                                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                              >
+                                ⭐ 대표
+                              </button>
                             </div>
-                            <p className="text-xs text-gray-600">클릭하여 대표이미지 선택</p>
+                            <p className="text-xs text-gray-600">클릭하여 이미지 확대 보기</p>
                           </div>
                         </div>
                       ))}
@@ -4318,16 +4335,21 @@ export default function BlogAdmin() {
                                 />
                               </div>
                               
-                              <img
-                                src={representativeImage.url || '/placeholder-image.jpg'}
-                                alt={baseName || `Image Group ${groupIndex + 1}`}
-                                className="w-full h-40 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                              <div 
+                                className="h-40 flex items-center justify-center bg-gray-100 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => {
                                   // 그룹 버전 모달 열기
                                   setSelectedImageGroup(imageGroup as any[]);
                                   setShowImageGroupModal(true);
                                 }}
-                              />
+                                title="클릭하여 이미지 그룹 상세 보기"
+                              >
+                                <img
+                                  src={representativeImage.url || '/placeholder-image.jpg'}
+                                  alt={baseName || `Image Group ${groupIndex + 1}`}
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
                               <div className="absolute top-1 right-1">
                                 <span className="px-1 py-0.5 text-xs rounded bg-white bg-opacity-80 text-gray-600">
                                   {versionCount}개
@@ -5935,6 +5957,104 @@ export default function BlogAdmin() {
               </div>
               <button
                 onClick={() => setShowScrapingImageModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI 생성 이미지 확대 모달 */}
+      {showGeneratedImageModal && selectedGeneratedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden">
+            {/* 모달 헤더 */}
+            <div className="p-4 border-b bg-orange-50">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-orange-800">🎨 AI 생성 이미지 확대 보기</h3>
+                <button
+                  onClick={() => setShowGeneratedImageModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            {/* 이미지 영역 */}
+            <div className="p-6 flex items-center justify-center bg-gray-100 min-h-[400px]">
+              <img
+                src={selectedGeneratedImage}
+                alt="AI 생성 이미지"
+                className="max-w-full max-h-[70vh] object-contain rounded shadow-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-image.jpg';
+                }}
+              />
+            </div>
+            
+            {/* 이미지 정보 */}
+            <div className="p-4 border-t bg-gray-50">
+              <div className="text-sm text-gray-600 space-y-1">
+                <div><strong>이미지 타입:</strong> AI 생성 이미지</div>
+                <div><strong>원본 URL:</strong> 
+                  <a 
+                    href={selectedGeneratedImage} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 ml-1 break-all"
+                  >
+                    {selectedGeneratedImage}
+                  </a>
+                </div>
+                <div className="text-orange-600 font-medium">🤖 AI가 생성한 이미지</div>
+              </div>
+            </div>
+            
+            {/* 액션 버튼들 */}
+            <div className="p-4 border-t flex justify-between items-center">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedGeneratedImage);
+                    alert('이미지 URL이 복사되었습니다!');
+                  }}
+                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                >
+                  📋 URL 복사
+                </button>
+                <button
+                  onClick={() => {
+                    insertImageToContentLegacy(selectedGeneratedImage);
+                    setShowGeneratedImageModal(false);
+                  }}
+                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                >
+                  ➕ 콘텐츠에 삽입
+                </button>
+                <button
+                  onClick={() => {
+                    selectGeneratedImage(selectedGeneratedImage);
+                    setShowGeneratedImageModal(false);
+                  }}
+                  className="px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
+                >
+                  ⭐ 대표 이미지로 설정
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(selectedGeneratedImage, '_blank');
+                  }}
+                  className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+                >
+                  🔗 새 탭에서 열기
+                </button>
+              </div>
+              <button
+                onClick={() => setShowGeneratedImageModal(false)}
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 닫기
