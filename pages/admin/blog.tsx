@@ -3401,18 +3401,17 @@ export default function BlogAdmin() {
                     </button>
                     <button 
                       type="button"
-                      disabled={true}
-                      className="px-3 py-1 bg-gray-400 text-white rounded text-xs cursor-not-allowed"
-                      title="FAL AI 계정 잠금으로 인해 일시적으로 비활성화됨"
+                      onClick={() => previewImagePrompt('fal')} 
+                      className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-xs"
                     >
-                      🚫 ChatGPT + FAL AI (일시 중단)
+                      🤖 ChatGPT + FAL AI 프롬프트 미리보기
                     </button>
         <button 
           type="button"
           onClick={() => previewImagePrompt('kie')} 
           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
         >
-          🎨 Flux Kontext 프롬프트 미리보기
+          🎨 Kie AI GPT-4O 프롬프트 미리보기
         </button>
                   </div>
 
@@ -3508,11 +3507,11 @@ export default function BlogAdmin() {
                     </button>
                     <button 
                       type="button"
-                      disabled={true}
-                      className="px-4 py-2 bg-gray-400 text-white rounded text-sm cursor-not-allowed"
-                      title="FAL AI 계정 잠금으로 인해 일시적으로 비활성화됨"
+                      onClick={() => generateFALAIImages(selectedImageCount)} 
+                      disabled={isGeneratingImages}
+                      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm disabled:opacity-50"
                     >
-                      🚫 ChatGPT + FAL AI (일시 중단)
+                      {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + FAL AI ${selectedImageCount}개`}
                     </button>
         <button 
           type="button"
@@ -3520,7 +3519,7 @@ export default function BlogAdmin() {
           disabled={isGeneratingImages}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
         >
-          {isGeneratingImages ? '🎨 생성 중...' : `🎨 Flux Kontext ${selectedImageCount}개`}
+          {isGeneratingImages ? '🎨 생성 중...' : `🎨 Kie AI GPT-4O ${selectedImageCount}개`}
         </button>
                     
                     {/* 단락별 이미지 생성 버튼 */}
@@ -3541,9 +3540,9 @@ export default function BlogAdmin() {
                     <br />
                     <span className="text-orange-600 font-medium">🤖 ChatGPT + DALL-E 3: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 DALL-E 3로 고품질 실사 이미지를 만듭니다.</span>
                     <br />
-                    <span className="text-red-600 font-medium">🚫 ChatGPT + FAL AI: 계정 잠금으로 인해 일시 중단됨</span>
+                    <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 FAL AI로 고품질 실사 이미지를 만듭니다.</span>
                     <br />
-                    <span className="text-green-600 font-medium">🎨 Flux Kontext: 고품질 컨텍스트 인식 이미지를 직접 생성합니다. ChatGPT 없이 Kie AI의 Flux Kontext 모델을 사용합니다.</span>
+                    <span className="text-green-600 font-medium">🎨 Kie AI GPT-4O: 고품질 이미지를 직접 생성합니다. ChatGPT 없이 Kie AI의 GPT-4O 이미지 모델을 사용합니다.</span>
                     <br />
                     <span className="text-orange-500 font-medium">✨ 여러 이미지 생성: 1개, 2개 또는 4개의 다양한 이미지를 생성하여 선택할 수 있습니다.</span>
                     <br />
