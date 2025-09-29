@@ -4285,7 +4285,7 @@ export default function BlogAdmin() {
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto">
                     {(() => {
                       // 이미지를 그룹화
                       const imageGroups = groupImagesByBaseName(allImages);
@@ -4337,7 +4337,7 @@ export default function BlogAdmin() {
                               <img
                                 src={representativeImage.url || '/placeholder-image.jpg'}
                                 alt={baseName || `Image Group ${groupIndex + 1}`}
-                                className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                className="w-full h-40 object-cover cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => {
                                   // 그룹 버전 모달 열기
                                   setSelectedImageGroup(imageGroup as any[]);
@@ -4355,12 +4355,12 @@ export default function BlogAdmin() {
                                 </span>
                               </div>
                             </div>
-                            <div className="p-2">
-                              <div className="text-xs text-gray-600 truncate" title={baseName}>
+                            <div className="p-3">
+                              <div className="text-sm text-gray-600 truncate font-medium" title={baseName}>
                                 {baseName}
                               </div>
                               {/* 그룹 정보 표시 */}
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-sm text-gray-500 mt-1">
                                 📦 {versionCount}개 버전 그룹
                               </div>
                               <div className="flex gap-1 mt-1 flex-wrap">
@@ -4391,7 +4391,7 @@ export default function BlogAdmin() {
                                     
                                     alert('대표 이미지가 본문과 갤러리에 삽입되었습니다!');
                                   }}
-                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                  className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 font-medium"
                                 >
                                   📝 삽입
                                 </button>
@@ -4401,7 +4401,7 @@ export default function BlogAdmin() {
                                     setFormData({ ...formData, featured_image: representativeImage.url });
                                     alert('대표 이미지로 설정되었습니다!');
                                   }}
-                                  className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                                  className="px-3 py-2 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 font-medium"
                                 >
                                   ⭐ 대표
                                 </button>
@@ -4411,7 +4411,7 @@ export default function BlogAdmin() {
                                     navigator.clipboard.writeText(representativeImage.url);
                                     alert('대표 이미지 URL이 복사되었습니다!');
                                   }}
-                                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 font-medium"
                                 >
                                   📋 복사
                                 </button>
@@ -4423,7 +4423,7 @@ export default function BlogAdmin() {
                                         (imageGroup as any[]).forEach((img: any) => removeImageFromPost(img.name));
                                       }
                                     }}
-                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                    className="px-3 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 font-medium"
                                     title="게시물에서만 제거 (Supabase 유지)"
                                   >
                                     🔗 링크제거
@@ -4438,7 +4438,7 @@ export default function BlogAdmin() {
                                         });
                                       }
                                     }}
-                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                    className="px-3 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 font-medium"
                                     title={`이미지 그룹의 모든 버전(${versionCount}개)을 Supabase에서 완전 삭제`}
                                   >
                                     🗑️ 완전삭제
