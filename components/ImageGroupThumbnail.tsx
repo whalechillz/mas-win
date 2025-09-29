@@ -60,14 +60,14 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
         onClick={handleThumbnailClick}
       >
         {/* 대표 이미지 */}
-        <div className="relative">
+        <div className="relative h-32 flex items-center justify-center bg-gray-100">
           <img
             src={representativeImage.src.includes('pstatic.net') 
               ? `/api/image-proxy?url=${encodeURIComponent(representativeImage.src)}`
               : representativeImage.src
             }
             alt={representativeImage.alt || `Group ${groupIndex + 1}`}
-            className="w-full h-32 object-cover"
+            className="max-w-full max-h-full object-contain"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = '/placeholder-image.jpg';
@@ -197,18 +197,20 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
                 }`}
                 onClick={() => setCurrentImageIndex(index)}
               >
-                <img
-                  src={image?.src?.includes('pstatic.net') 
-                    ? `/api/image-proxy?url=${encodeURIComponent(image.src)}`
-                    : image?.src || '/placeholder-image.jpg'
-                  }
-                  alt={image.alt || `Thumbnail ${index + 1}`}
-                  className="w-full h-20 object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder-image.jpg';
-                  }}
-                />
+                <div className="h-20 flex items-center justify-center bg-gray-100">
+                  <img
+                    src={image?.src?.includes('pstatic.net') 
+                      ? `/api/image-proxy?url=${encodeURIComponent(image.src)}`
+                      : image?.src || '/placeholder-image.jpg'
+                    }
+                    alt={image.alt || `Thumbnail ${index + 1}`}
+                    className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder-image.jpg';
+                    }}
+                  />
+                </div>
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs text-center py-1">
                   {index + 1}
                 </div>
