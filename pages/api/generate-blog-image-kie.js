@@ -55,9 +55,11 @@ export default async function handler(req, res) {
     
     // Kie AI API 호출 - 올바른 엔드포인트 사용
     const possibleEndpoints = [
+      'https://kieai.erweima.ai/api/v1/4o-image/generate',
       'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
+      'https://api.kie.ai/v1/4o-image/generate',
+      'https://api.kie.ai/v1/gpt4o-image/generate',
       'https://api.kie.ai/v1/images/generate',
-      'https://api.kie.ai/images/generate',
       'https://kie.ai/api/v1/images/generate',
       'https://kie.ai/api/images/generate'
     ];
@@ -87,9 +89,10 @@ export default async function handler(req, res) {
               },
               body: JSON.stringify({
                 prompt: smartPrompt,
-                size: "1:1",
-                fileUrl: null, // 이미지 생성이므로 null
-                callBackUrl: null // 콜백 URL이 필요하지 않으면 null
+                size: "1024x1024",
+                quality: "hd",
+                n: 1,
+                model: "gpt-4o"
               })
             });
 
@@ -141,14 +144,14 @@ export default async function handler(req, res) {
       
       console.log('🔍 근본적인 접근 방식 시도...');
       
-      // 방법 1: 다른 API 엔드포인트 시도
+      // 방법 1: Kie AI 4o Image API 올바른 엔드포인트 시도
       const alternativeEndpoints = [
+        'https://kieai.erweima.ai/api/v1/4o-image/generate',
         'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
-        'https://kieai.erweima.ai/api/v1/image/generate',
-        'https://kieai.erweima.ai/api/v1/generate',
+        'https://api.kie.ai/v1/4o-image/generate',
         'https://api.kie.ai/v1/gpt4o-image/generate',
-        'https://api.kie.ai/v1/image/generate',
-        'https://api.kie.ai/v1/generate'
+        'https://kieai.erweima.ai/api/v1/image/generate',
+        'https://api.kie.ai/v1/image/generate'
       ];
       
       for (const endpoint of alternativeEndpoints) {
@@ -164,8 +167,9 @@ export default async function handler(req, res) {
             body: JSON.stringify({
               prompt: smartPrompt,
               size: "1024x1024",
-              quality: "high",
-              num_images: 1
+              quality: "hd",
+              n: 1,
+              model: "gpt-4o"
             })
           });
           
@@ -222,19 +226,21 @@ export default async function handler(req, res) {
       const alternativeFormats = [
         {
           prompt: smartPrompt,
-          width: 1024,
-          height: 1024,
-          quality: "high"
-        },
-        {
-          text: smartPrompt,
           size: "1024x1024",
-          model: "gpt4o-image"
+          quality: "hd",
+          n: 1
         },
         {
-          input: smartPrompt,
-          output_format: "url",
-          resolution: "1024x1024"
+          prompt: smartPrompt,
+          model: "gpt-4o",
+          size: "1024x1024",
+          quality: "standard"
+        },
+        {
+          prompt: smartPrompt,
+          size: "1024x1024",
+          quality: "hd",
+          response_format: "url"
         }
       ];
       
@@ -242,7 +248,7 @@ export default async function handler(req, res) {
         try {
           console.log(`🔄 요청 형식 시도:`, format);
           
-          const formatResponse = await fetch('https://kieai.erweima.ai/api/v1/gpt4o-image/generate', {
+          const formatResponse = await fetch('https://kieai.erweima.ai/api/v1/4o-image/generate', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
