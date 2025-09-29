@@ -289,6 +289,12 @@ export default async function handler(req, res) {
       // 방법 3: 간단한 폴링 방식으로 처리 - 웹훅 대신 폴링 사용
       console.log('🔄 폴링 방식으로 처리 중...');
       
+      // API 키 재정의 (폴링 함수 내부에서 사용)
+      const pollingApiKey = process.env.KIE_AI_API_KEY;
+      if (!pollingApiKey) {
+        throw new Error('Kie AI API 키가 설정되지 않았습니다');
+      }
+      
       // 간단한 폴링으로 상태 확인 (최대 30초)
       let attempts = 0;
       const maxAttempts = 30;
@@ -301,7 +307,7 @@ export default async function handler(req, res) {
           const statusResponse = await fetch(`https://kieai.erweima.ai/api/v1/gpt4o-image/status/${taskId}`, {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${apiKey}`,
+              'Authorization': `Bearer ${pollingApiKey}`,
               'Content-Type': 'application/json'
             }
           });
@@ -315,6 +321,30 @@ export default async function handler(req, res) {
               const imageUrls = statusData.images || statusData.result || [];
               console.log('✅ Kie AI 이미지 생성 완료:', imageUrls);
               
+              // AI 사용량 추적
+              try {
+                await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/admin/ai-stats`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    api: 'kie-ai',
+                    model: 'gpt4o-image',
+                    action: 'image-generation-success',
+                    tokens: 0,
+                    cost: 0.01, // Kie AI 이미지 생성 비용 추정
+                    metadata: {
+                      taskId: taskId,
+                      imageCount: Array.isArray(imageUrls) ? imageUrls.length : 1
+                    }
+                  })
+                });
+                console.log('✅ AI 사용량 추적 완료');
+              } catch (trackingError) {
+                console.log('⚠️ AI 사용량 추적 실패:', trackingError.message);
+              }
+
               res.status(200).json({
                 success: true,
                 imageUrls: Array.isArray(imageUrls) ? imageUrls : [imageUrls],
@@ -324,6 +354,30 @@ export default async function handler(req, res) {
               });
               return;
             } else if (statusData.status === 'failed' || statusData.status === 'error') {
+              // 실패한 경우에도 AI 사용량 추적
+              try {
+                await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/admin/ai-stats`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    api: 'kie-ai',
+                    model: 'gpt4o-image',
+                    action: 'image-generation-failed',
+                    tokens: 0,
+                    cost: 0.01, // 실패해도 비용 발생
+                    metadata: {
+                      taskId: taskId,
+                      error: statusData.error || 'Unknown error'
+                    }
+                  })
+                });
+                console.log('✅ AI 사용량 추적 완료 (실패)');
+              } catch (trackingError) {
+                console.log('⚠️ AI 사용량 추적 실패:', trackingError.message);
+              }
+              
               throw new Error(`Kie AI 이미지 생성 실패: ${statusData.error || 'Unknown error'}`);
             }
           }
@@ -342,7 +396,30 @@ export default async function handler(req, res) {
         }
       }
       
-      // 시간 초과
+      // 시간 초과 - AI 사용량 추적
+      try {
+        await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/admin/ai-stats`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            api: 'kie-ai',
+            model: 'gpt4o-image',
+            action: 'image-generation-timeout',
+            tokens: 0,
+            cost: 0.01, // 시간 초과해도 비용 발생
+            metadata: {
+              taskId: taskId,
+              attempts: maxAttempts
+            }
+          })
+        });
+        console.log('✅ AI 사용량 추적 완료 (시간 초과)');
+      } catch (trackingError) {
+        console.log('⚠️ AI 사용량 추적 실패:', trackingError.message);
+      }
+      
       throw new Error('Kie AI 이미지 생성 시간 초과');
     } else if (kieResult.code === 200 && kieResult.data) {
       // 즉시 이미지 URL이 있는 경우
