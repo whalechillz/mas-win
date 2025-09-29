@@ -2255,25 +2255,43 @@ export default function BlogAdmin() {
       });
 
       if (response.ok) {
-        const { imageUrls, metadata } = await response.json();
-        setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
+        const result = await response.json();
         
-        // 생성된 이미지들을 상태에 추가
-        const newImages = imageUrls.map((url, index) => ({
-          id: `kie-${Date.now()}-${index}`,
-          url: url,
-          alt: `${formData.title} - Kie AI 생성 이미지 ${index + 1}`,
-          fileName: `kie-generated-${Date.now()}-${index}.jpg`,
-          fileExtension: 'jpg',
-          isNaverImage: false,
-          isGenerated: true,
-          generatedBy: 'Kie AI',
-          batchIndex: index,
-          generatedAt: new Date().toISOString()
-        }));
-        
-        console.log('✅ ChatGPT + Kie AI 이미지 생성 완료:', imageUrls.length, '개');
-        alert(`${imageUrls.length}개의 ChatGPT + Kie AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+        if (result.status === 'processing') {
+          // 웹훅 방식으로 처리 중인 경우
+          setImageGenerationStep('3단계: Kie AI 이미지 생성 중... (웹훅 대기)');
+          alert('Kie AI 이미지 생성이 시작되었습니다. 완료되면 자동으로 알림을 받을 수 있습니다.');
+          
+          // 웹훅 결과를 기다리는 동안 폴링 (선택사항)
+          setTimeout(() => {
+            setImageGenerationStep('⏳ 이미지 생성이 완료될 때까지 잠시 기다려주세요...');
+          }, 5000);
+          
+        } else if (result.imageUrls) {
+          // 즉시 이미지가 생성된 경우
+          setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
+          
+          // 생성된 이미지들을 상태에 추가
+          const newImages = result.imageUrls.map((url, index) => ({
+            id: `kie-${Date.now()}-${index}`,
+            url: url,
+            alt: `${formData.title} - Kie AI 생성 이미지 ${index + 1}`,
+            fileName: `kie-generated-${Date.now()}-${index}.jpg`,
+            fileExtension: 'jpg',
+            isNaverImage: false,
+            isGenerated: true,
+            generatedBy: 'Kie AI',
+            batchIndex: index,
+            generatedAt: new Date().toISOString()
+          }));
+          
+          console.log('✅ ChatGPT + Kie AI 이미지 생성 완료:', result.imageUrls.length, '개');
+          alert(`${result.imageUrls.length}개의 ChatGPT + Kie AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+        } else {
+          // 기타 성공 응답
+          setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
+          alert('Kie AI 이미지 생성이 완료되었습니다: ' + result.message);
+        }
       } else {
         const error = await response.json();
         console.error('Kie AI 이미지 생성 실패:', error);
