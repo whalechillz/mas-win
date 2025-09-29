@@ -340,6 +340,10 @@ export default function BlogAdmin() {
   // 이미지 그룹 모달 상태
   const [selectedImageGroup, setSelectedImageGroup] = useState([]);
   const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+  
+  // 스크래핑 이미지 확대 모달 상태
+  const [showScrapingImageModal, setShowScrapingImageModal] = useState(false);
+  const [selectedScrapingImage, setSelectedScrapingImage] = useState(null);
 
   // AI 제목 생성 관련 상태
   const [contentSource, setContentSource] = useState('');
@@ -3737,51 +3741,13 @@ export default function BlogAdmin() {
                     {postImages.filter(img => img.isNaverImage).map((image, index) => (
                       <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
                         <div 
-                          className="aspect-video bg-gray-100 rounded mb-2 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 transition-colors"
+                          className="bg-gray-100 rounded mb-2 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 transition-colors h-48"
                           onClick={() => {
-                            // 네이버 이미지의 경우 프록시를 통해 새 탭에서 열기
-                            if (image.src.includes('pstatic.net') || image.src.includes('naver.com')) {
-                              // 프록시 이미지 뷰어 사용
-                              const proxyUrl = `/api/admin/image-proxy?url=${encodeURIComponent(image.src)}`;
-                              const newWindow = window.open('', '_blank');
-                              newWindow.document.write(`
-                                <html>
-                                  <head>
-                                    <title>이미지 미리보기</title>
-                                    <style>
-                                      body { margin: 0; padding: 20px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                                      .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                                      img { max-width: 100%; max-height: 80vh; object-fit: contain; }
-                                      .error { color: #e74c3c; text-align: center; }
-                                      .url { font-size: 12px; color: #666; margin-top: 10px; word-break: break-all; }
-                                      .loading { color: #3498db; text-align: center; }
-                                    </style>
-                                  </head>
-                                  <body>
-                                    <div class="container">
-                                      <div class="loading" id="loading">이미지 로딩 중...</div>
-                                      <img src="${proxyUrl}" 
-                                           alt="이미지 미리보기" 
-                                           style="display: none;"
-                                           onload="document.getElementById('loading').style.display='none'; this.style.display='block';"
-                                           onerror="document.getElementById('loading').style.display='none'; this.nextElementSibling.style.display='block';">
-                                      <div class="error" style="display: none;">
-                                        <p>이미지를 불러올 수 없습니다</p>
-                                        <p>네이버 이미지는 직접 접근이 제한될 수 있습니다</p>
-                                        <div class="url">원본 URL: ${image.src}</div>
-                                        <div class="url">프록시 URL: ${proxyUrl}</div>
-                                      </div>
-                                    </div>
-                                  </body>
-                                </html>
-                              `);
-                              newWindow.document.close();
-                            } else {
-                              // 일반 이미지는 직접 열기
-                              window.open(image.src, '_blank');
-                            }
+                            // 스크래핑 이미지 확대 모달 열기
+                            setSelectedScrapingImage(image);
+                            setShowScrapingImageModal(true);
                           }}
-                          title="클릭하여 새 탭에서 이미지 보기"
+                          title="클릭하여 이미지 확대 보기"
                         >
                           <img 
                             src={image.src} 
@@ -4391,7 +4357,7 @@ export default function BlogAdmin() {
                                     
                                     alert('대표 이미지가 본문과 갤러리에 삽입되었습니다!');
                                   }}
-                                  className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 font-medium"
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                 >
                                   📝 삽입
                                 </button>
@@ -4401,7 +4367,7 @@ export default function BlogAdmin() {
                                     setFormData({ ...formData, featured_image: representativeImage.url });
                                     alert('대표 이미지로 설정되었습니다!');
                                   }}
-                                  className="px-3 py-2 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 font-medium"
+                                  className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
                                 >
                                   ⭐ 대표
                                 </button>
@@ -4411,7 +4377,7 @@ export default function BlogAdmin() {
                                     navigator.clipboard.writeText(representativeImage.url);
                                     alert('대표 이미지 URL이 복사되었습니다!');
                                   }}
-                                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 font-medium"
+                                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
                                 >
                                   📋 복사
                                 </button>
@@ -4423,7 +4389,7 @@ export default function BlogAdmin() {
                                         (imageGroup as any[]).forEach((img: any) => removeImageFromPost(img.name));
                                       }
                                     }}
-                                    className="px-3 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 font-medium"
+                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
                                     title="게시물에서만 제거 (Supabase 유지)"
                                   >
                                     🔗 링크제거
@@ -4438,7 +4404,7 @@ export default function BlogAdmin() {
                                         });
                                       }
                                     }}
-                                    className="px-3 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 font-medium"
+                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                                     title={`이미지 그룹의 모든 버전(${versionCount}개)을 Supabase에서 완전 삭제`}
                                   >
                                     🗑️ 완전삭제
@@ -5866,6 +5832,91 @@ export default function BlogAdmin() {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setShowImageGroupModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 스크래핑 이미지 확대 모달 */}
+      {showScrapingImageModal && selectedScrapingImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden">
+            {/* 헤더 */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">
+                🖼️ 스크래핑 이미지 확대 보기
+              </h3>
+              <button
+                onClick={() => setShowScrapingImageModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* 이미지 영역 */}
+            <div className="p-4 flex justify-center items-center bg-gray-50 min-h-[400px]">
+              <img
+                src={selectedScrapingImage.src.includes('pstatic.net') 
+                  ? `/api/image-proxy?url=${encodeURIComponent(selectedScrapingImage.src)}`
+                  : selectedScrapingImage.src
+                }
+                alt={selectedScrapingImage.alt || '스크래핑 이미지'}
+                className="max-w-full max-h-[70vh] object-contain rounded shadow-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-image.jpg';
+                }}
+              />
+            </div>
+            
+            {/* 이미지 정보 */}
+            <div className="p-4 border-t bg-gray-50">
+              <div className="text-sm text-gray-600 space-y-1">
+                <div><strong>파일명:</strong> {selectedScrapingImage.name || '알 수 없음'}</div>
+                <div><strong>원본 URL:</strong> 
+                  <a 
+                    href={selectedScrapingImage.src} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 ml-1 break-all"
+                  >
+                    {selectedScrapingImage.src}
+                  </a>
+                </div>
+                {selectedScrapingImage.isNaverImage && (
+                  <div className="text-orange-600 font-medium">📌 네이버 블로그 이미지</div>
+                )}
+              </div>
+            </div>
+            
+            {/* 액션 버튼들 */}
+            <div className="p-4 border-t flex justify-between items-center">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedScrapingImage.src);
+                    alert('이미지 URL이 복사되었습니다!');
+                  }}
+                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                >
+                  📋 URL 복사
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(selectedScrapingImage.src, '_blank');
+                  }}
+                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                >
+                  🔗 새 탭에서 열기
+                </button>
+              </div>
+              <button
+                onClick={() => setShowScrapingImageModal(false)}
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 닫기
