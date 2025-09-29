@@ -55,13 +55,14 @@ export default async function handler(req, res) {
     
     // Kie AI API 호출 - 올바른 엔드포인트 사용
     const possibleEndpoints = [
+      'https://kieai.erweima.ai/api/v1/flux-kontext/generate',
+      'https://kieai.erweima.ai/api/v1/midjourney/generate',
+      'https://api.kie.ai/v1/flux-kontext/generate',
+      'https://api.kie.ai/v1/midjourney/generate',
       'https://kieai.erweima.ai/api/v1/4o-image/generate',
       'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
       'https://api.kie.ai/v1/4o-image/generate',
-      'https://api.kie.ai/v1/gpt4o-image/generate',
-      'https://api.kie.ai/v1/images/generate',
-      'https://kie.ai/api/v1/images/generate',
-      'https://kie.ai/api/images/generate'
+      'https://api.kie.ai/v1/gpt4o-image/generate'
     ];
 
     let kieResponse = null;
@@ -89,10 +90,11 @@ export default async function handler(req, res) {
               },
               body: JSON.stringify({
                 prompt: smartPrompt,
-                size: "1024x1024",
-                quality: "hd",
-                n: 1,
-                model: "gpt-4o"
+                width: 1024,
+                height: 1024,
+                quality: "high",
+                num_images: 1,
+                model: "flux-kontext"
               })
             });
 
@@ -144,14 +146,14 @@ export default async function handler(req, res) {
       
       console.log('🔍 근본적인 접근 방식 시도...');
       
-      // 방법 1: Kie AI 4o Image API 올바른 엔드포인트 시도
+      // 방법 1: Kie AI 고품질 이미지 API 시도 (Flux Kontext, Midjourney 우선)
       const alternativeEndpoints = [
+        'https://kieai.erweima.ai/api/v1/flux-kontext/generate',
+        'https://kieai.erweima.ai/api/v1/midjourney/generate',
+        'https://api.kie.ai/v1/flux-kontext/generate',
+        'https://api.kie.ai/v1/midjourney/generate',
         'https://kieai.erweima.ai/api/v1/4o-image/generate',
-        'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
-        'https://api.kie.ai/v1/4o-image/generate',
-        'https://api.kie.ai/v1/gpt4o-image/generate',
-        'https://kieai.erweima.ai/api/v1/image/generate',
-        'https://api.kie.ai/v1/image/generate'
+        'https://api.kie.ai/v1/4o-image/generate'
       ];
       
       for (const endpoint of alternativeEndpoints) {
@@ -166,10 +168,11 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
               prompt: smartPrompt,
-              size: "1024x1024",
-              quality: "hd",
-              n: 1,
-              model: "gpt-4o"
+              width: 1024,
+              height: 1024,
+              quality: "high",
+              num_images: 1,
+              model: endpoint.includes('flux') ? "flux-kontext" : endpoint.includes('midjourney') ? "midjourney" : "gpt-4o"
             })
           });
           
@@ -226,21 +229,23 @@ export default async function handler(req, res) {
       const alternativeFormats = [
         {
           prompt: smartPrompt,
-          size: "1024x1024",
-          quality: "hd",
-          n: 1
+          width: 1024,
+          height: 1024,
+          quality: "high",
+          model: "flux-kontext"
         },
         {
           prompt: smartPrompt,
-          model: "gpt-4o",
-          size: "1024x1024",
-          quality: "standard"
+          width: 1024,
+          height: 1024,
+          quality: "high",
+          model: "midjourney"
         },
         {
           prompt: smartPrompt,
           size: "1024x1024",
           quality: "hd",
-          response_format: "url"
+          model: "gpt-4o"
         }
       ];
       
@@ -248,7 +253,7 @@ export default async function handler(req, res) {
         try {
           console.log(`🔄 요청 형식 시도:`, format);
           
-          const formatResponse = await fetch('https://kieai.erweima.ai/api/v1/4o-image/generate', {
+          const formatResponse = await fetch('https://kieai.erweima.ai/api/v1/flux-kontext/generate', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
