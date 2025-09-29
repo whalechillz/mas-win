@@ -126,15 +126,60 @@ export default async function handler(req, res) {
     const kieResult = await kieResponse.json();
     console.log('Kie AI 응답:', kieResult);
     
-    // Kie AI 응답 형식에 맞게 이미지 URL 추출
-    let imageUrls = kieResult.images || kieResult.data || kieResult.result || [];
-    
-    // 단일 이미지 URL인 경우 배열로 변환
-    if (typeof imageUrls === 'string') {
-      imageUrls = [imageUrls];
+    // Kie AI는 taskId를 반환하므로 비동기 처리 필요
+    if (kieResult.code === 200 && kieResult.data && kieResult.data.taskId) {
+      const taskId = kieResult.data.taskId;
+      console.log('📋 Kie AI Task ID:', taskId);
+      
+      // Task 상태 확인 및 결과 대기
+      let attempts = 0;
+      const maxAttempts = 30; // 최대 30초 대기
+      let imageUrls = [];
+      
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+        attempts++;
+        
+        try {
+          console.log(`🔄 Task 상태 확인 중... (${attempts}/${maxAttempts})`);
+          
+          const statusResponse = await fetch(`https://kieai.erweima.ai/api/v1/gpt4o-image/status/${taskId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          if (statusResponse.ok) {
+            const statusResult = await statusResponse.json();
+            console.log('Task 상태:', statusResult);
+            
+            if (statusResult.code === 200 && statusResult.data && statusResult.data.status === 'completed') {
+              // 이미지 URL 추출
+              imageUrls = statusResult.data.images || statusResult.data.result || [];
+              if (typeof imageUrls === 'string') {
+                imageUrls = [imageUrls];
+              }
+              console.log('✅ 이미지 생성 완료:', imageUrls);
+              break;
+            } else if (statusResult.data && statusResult.data.status === 'failed') {
+              throw new Error(`이미지 생성 실패: ${statusResult.msg || 'Unknown error'}`);
+            }
+          }
+        } catch (error) {
+          console.log('상태 확인 에러:', error.message);
+        }
+      }
+      
+      if (imageUrls.length === 0) {
+        throw new Error('이미지 생성 시간 초과 또는 실패');
+      }
+      
+      console.log('✅ Kie AI 이미지 생성 완료:', imageUrls.length, '개');
+    } else {
+      throw new Error(`Kie AI API 에러: ${kieResult.msg || 'Unknown error'}`);
     }
-
-    console.log('✅ Kie AI 이미지 생성 완료:', imageUrls.length, '개');
 
     res.status(200).json({ 
       success: true,
