@@ -126,8 +126,35 @@ export default async function handler(req, res) {
     const kieResult = await kieResponse.json();
     console.log('Kie AI 응답:', kieResult);
     
-    // Kie AI는 taskId를 반환하므로 비동기 처리 필요
-    if (kieResult.code === 200 && kieResult.data && kieResult.data.taskId) {
+    // Kie AI 응답 처리 - 즉시 이미지 URL 또는 taskId
+    if (kieResult.code === 200 && kieResult.data) {
+      // 즉시 이미지 URL이 있는 경우
+      if (kieResult.data.url || kieResult.data.image || kieResult.data.images) {
+        let imageUrls = kieResult.data.url || kieResult.data.image || kieResult.data.images || [];
+        if (typeof imageUrls === 'string') {
+          imageUrls = [imageUrls];
+        }
+        console.log('✅ Kie AI 즉시 이미지 생성 완료:', imageUrls.length, '개');
+        
+        res.status(200).json({ 
+          success: true,
+          imageUrl: imageUrls[0],
+          imageUrls: imageUrls,
+          imageCount: imageUrls.length,
+          prompt: smartPrompt,
+          model: 'Kie AI',
+          metadata: {
+            title,
+            contentType,
+            brandStrategy,
+            generatedAt: new Date().toISOString()
+          }
+        });
+        return;
+      }
+      
+      // taskId가 있는 경우 비동기 처리
+      if (kieResult.data.taskId) {
       const taskId = kieResult.data.taskId;
       console.log('📋 Kie AI Task ID:', taskId);
       
@@ -143,28 +170,65 @@ export default async function handler(req, res) {
         try {
           console.log(`🔄 Task 상태 확인 중... (${attempts}/${maxAttempts})`);
           
-          const statusResponse = await fetch(`https://kieai.erweima.ai/api/v1/gpt4o-image/status/${taskId}`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
-              'Content-Type': 'application/json',
-            }
-          });
+          // 여러 가능한 상태 확인 엔드포인트 시도
+          const statusEndpoints = [
+            `https://kieai.erweima.ai/api/v1/gpt4o-image/status/${taskId}`,
+            `https://kieai.erweima.ai/api/v1/gpt4o-image/result/${taskId}`,
+            `https://kieai.erweima.ai/api/v1/task/status/${taskId}`,
+            `https://kieai.erweima.ai/api/v1/task/result/${taskId}`,
+            `https://api.kie.ai/v1/task/status/${taskId}`,
+            `https://api.kie.ai/v1/task/result/${taskId}`
+          ];
           
-          if (statusResponse.ok) {
-            const statusResult = await statusResponse.json();
-            console.log('Task 상태:', statusResult);
-            
-            if (statusResult.code === 200 && statusResult.data && statusResult.data.status === 'completed') {
-              // 이미지 URL 추출
-              imageUrls = statusResult.data.images || statusResult.data.result || [];
-              if (typeof imageUrls === 'string') {
-                imageUrls = [imageUrls];
+          let statusResponse = null;
+          let statusResult = null;
+          
+          for (const endpoint of statusEndpoints) {
+            try {
+              console.log(`🔄 상태 확인 엔드포인트 시도: ${endpoint}`);
+              statusResponse = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
+                  'Content-Type': 'application/json',
+                }
+              });
+              
+              if (statusResponse.ok) {
+                statusResult = await statusResponse.json();
+                console.log(`✅ 성공한 상태 확인 엔드포인트: ${endpoint}`);
+                console.log('상태 응답:', statusResult);
+                break;
+              } else {
+                console.log(`❌ 실패한 상태 확인 엔드포인트: ${endpoint} - ${statusResponse.status}`);
               }
-              console.log('✅ 이미지 생성 완료:', imageUrls);
+            } catch (error) {
+              console.log(`❌ 상태 확인 연결 실패: ${endpoint} - ${error.message}`);
+            }
+          }
+          
+          if (statusResponse && statusResponse.ok && statusResult) {
+            if (statusResult.code === 200 && statusResult.data) {
+              // 다양한 응답 형식 처리
+              if (statusResult.data.status === 'completed' || statusResult.data.status === 'success') {
+                // 이미지 URL 추출
+                imageUrls = statusResult.data.images || statusResult.data.result || statusResult.data.url || [];
+                if (typeof imageUrls === 'string') {
+                  imageUrls = [imageUrls];
+                }
+                console.log('✅ 이미지 생성 완료:', imageUrls);
+                break;
+              } else if (statusResult.data.status === 'failed' || statusResult.data.status === 'error') {
+                throw new Error(`이미지 생성 실패: ${statusResult.msg || statusResult.data.message || 'Unknown error'}`);
+              } else if (statusResult.data.status === 'processing' || statusResult.data.status === 'pending') {
+                console.log('⏳ 이미지 생성 진행 중...');
+                continue;
+              }
+            } else if (statusResult.data && statusResult.data.url) {
+              // 직접 URL이 있는 경우
+              imageUrls = [statusResult.data.url];
+              console.log('✅ 이미지 URL 직접 수신:', imageUrls);
               break;
-            } else if (statusResult.data && statusResult.data.status === 'failed') {
-              throw new Error(`이미지 생성 실패: ${statusResult.msg || 'Unknown error'}`);
             }
           }
         } catch (error) {
