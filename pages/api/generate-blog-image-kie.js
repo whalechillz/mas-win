@@ -208,21 +208,21 @@ export default async function handler(req, res) {
           prompt: simplePrompt,
           size: "1:1",
           fileUrl: null,
-          callBackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`
+            callBackUrl: `https://win.masgolf.co.kr/api/kie-ai-webhook`
         },
         {
           prompt: simplePrompt,
           size: "1024x1024",
           quality: "hd",
           n: 1,
-          callBackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`
+            callBackUrl: `https://win.masgolf.co.kr/api/kie-ai-webhook`
         },
         {
           prompt: simplePrompt,
           width: 1024,
           height: 1024,
           quality: "high",
-          callBackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`
+            callBackUrl: `https://win.masgolf.co.kr/api/kie-ai-webhook`
         }
       ];
       
