@@ -3312,10 +3312,11 @@ export default function BlogAdmin() {
                     </button>
                     <button 
                       type="button"
-                      onClick={() => previewImagePrompt('fal')} 
-                      className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-xs"
+                      disabled={true}
+                      className="px-3 py-1 bg-gray-400 text-white rounded text-xs cursor-not-allowed"
+                      title="FAL AI 계정 잠금으로 인해 일시적으로 비활성화됨"
                     >
-                      🤖 ChatGPT + FAL AI 프롬프트 미리보기
+                      🚫 ChatGPT + FAL AI (일시 중단)
                     </button>
                   </div>
 
@@ -3411,11 +3412,11 @@ export default function BlogAdmin() {
                     </button>
                     <button 
                       type="button"
-                      onClick={() => generateFALAIImages(selectedImageCount)} 
-                      disabled={isGeneratingImages}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm disabled:opacity-50"
+                      disabled={true}
+                      className="px-4 py-2 bg-gray-400 text-white rounded text-sm cursor-not-allowed"
+                      title="FAL AI 계정 잠금으로 인해 일시적으로 비활성화됨"
                     >
-                      {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + FAL AI ${selectedImageCount}개`}
+                      🚫 ChatGPT + FAL AI (일시 중단)
                     </button>
                     
                     {/* 단락별 이미지 생성 버튼 */}
@@ -3608,10 +3609,10 @@ export default function BlogAdmin() {
                   </div>
                 )}
 
-        {/* 대표 이미지 섹션 - 최우선 위치 (이미지 갤러리 위) */}
+        {/* 스크래핑 이미지 및 대표 이미지 관리 섹션 - 최우선 위치 (이미지 갤러리 위) */}
         <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 shadow-lg">
           <h4 className="text-xl font-bold text-blue-900 mb-4 flex items-center">
-            🖼️ {postImages.length > 0 && postImages.some(img => img.isNaverImage) ? '스크래핑 이미지 및 대표 이미지 관리' : '대표 이미지 관리'}
+            🖼️ 스크래핑 이미지 및 대표 이미지 관리
             <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">최우선</span>
           </h4>
           <div className="space-y-4">
@@ -3827,28 +3828,11 @@ export default function BlogAdmin() {
                 
               </div>
             ) : (
-              /* 기존 단일 이미지 관리 */
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  대표 이미지 URL
-                  </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={formData.featured_image}
-                    onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="대표 이미지 URL을 입력하세요"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, featured_image: '' })}
-                  className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                  title="대표 이미지 제거"
-                >
-                  🗑️ 제거
-                </button>
-                </div>
+              /* 스크래핑된 이미지가 없는 경우 안내 메시지 */
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-4">📷</div>
+                <p className="text-lg font-medium mb-2">스크래핑된 이미지가 없습니다</p>
+                <p className="text-sm">네이버 블로그 스크래핑을 통해 이미지를 가져오세요.</p>
               </div>
             )}
             
