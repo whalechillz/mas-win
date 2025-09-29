@@ -2201,6 +2201,95 @@ export default function BlogAdmin() {
     }
   };
 
+  // ChatGPT 프롬프트로 Kie AI 이미지 생성
+  const generateKieAIImages = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('📸 ChatGPT + Kie AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + Kie AI');
+      
+      // 1단계: ChatGPT로 스마트 프롬프트 생성
+      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: brandStrategy.contentType,
+          brandStrategy: brandStrategy,
+          model: 'kie'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
+
+      const { prompt: smartPrompt } = await promptResponse.json();
+      setImageGenerationPrompt(smartPrompt);
+      
+      // 2단계: Kie AI API 호출
+      setImageGenerationStep('2단계: Kie AI 서버에 이미지 생성 요청 중...');
+      const response = await fetch('/api/generate-blog-image-kie', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: brandStrategy.contentType,
+          brandStrategy: brandStrategy,
+          imageCount: count,
+          customPrompt: smartPrompt
+        })
+      });
+
+      if (response.ok) {
+        const { imageUrls, metadata } = await response.json();
+        setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
+        
+        // 생성된 이미지들을 상태에 추가
+        const newImages = imageUrls.map((url, index) => ({
+          id: `kie-${Date.now()}-${index}`,
+          url: url,
+          alt: `${formData.title} - Kie AI 생성 이미지 ${index + 1}`,
+          fileName: `kie-generated-${Date.now()}-${index}.jpg`,
+          fileExtension: 'jpg',
+          isNaverImage: false,
+          isGenerated: true,
+          generatedBy: 'Kie AI',
+          batchIndex: index,
+          generatedAt: new Date().toISOString()
+        }));
+        
+        console.log('✅ ChatGPT + Kie AI 이미지 생성 완료:', imageUrls.length, '개');
+        alert(`${imageUrls.length}개의 ChatGPT + Kie AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+      } else {
+        const error = await response.json();
+        console.error('Kie AI 이미지 생성 실패:', error);
+        setImageGenerationStep('❌ Kie AI 이미지 생성 실패');
+        alert('Kie AI 이미지 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('ChatGPT + Kie AI 이미지 생성 에러:', error);
+      setImageGenerationStep('❌ Kie AI 이미지 생성 에러');
+      alert('Kie AI 이미지 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+        setImageGenerationPrompt('');
+      }, 3000);
+    }
+  };
+
   // ChatGPT 프롬프트로 FAL AI 이미지 생성
   const generateFALAIImages = async (count = 4) => {
     if (!formData.title) {
@@ -3318,6 +3407,13 @@ export default function BlogAdmin() {
                     >
                       🚫 ChatGPT + FAL AI (일시 중단)
                     </button>
+                    <button 
+                      type="button"
+                      onClick={() => previewImagePrompt('kie')} 
+                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+                    >
+                      🤖 ChatGPT + Kie AI 프롬프트 미리보기
+                    </button>
                   </div>
 
                   {/* 간단 AI 개선 기능 */}
@@ -3418,6 +3514,14 @@ export default function BlogAdmin() {
                     >
                       🚫 ChatGPT + FAL AI (일시 중단)
                     </button>
+                    <button 
+                      type="button"
+                      onClick={() => generateKieAIImages(selectedImageCount)} 
+                      disabled={isGeneratingImages}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
+                    >
+                      {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + Kie AI ${selectedImageCount}개`}
+                    </button>
                     
                     {/* 단락별 이미지 생성 버튼 */}
                     <button 
@@ -3437,7 +3541,9 @@ export default function BlogAdmin() {
                     <br />
                     <span className="text-orange-600 font-medium">🤖 ChatGPT + DALL-E 3: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 DALL-E 3로 고품질 실사 이미지를 만듭니다.</span>
                     <br />
-                    <span className="text-red-600 font-medium">🤖 ChatGPT + FAL AI: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 FAL AI로 초고품질 실사 이미지를 만듭니다.</span>
+                    <span className="text-red-600 font-medium">🚫 ChatGPT + FAL AI: 계정 잠금으로 인해 일시 중단됨</span>
+                    <br />
+                    <span className="text-green-600 font-medium">🤖 ChatGPT + Kie AI: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 Kie AI로 고품질 실사 이미지를 만듭니다.</span>
                     <br />
                     <span className="text-orange-500 font-medium">✨ 여러 이미지 생성: 1개, 2개 또는 4개의 다양한 이미지를 생성하여 선택할 수 있습니다.</span>
                     <br />
