@@ -118,36 +118,38 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
 
           {/* 이미지 슬라이더 */}
           <div className="relative mb-4">
-            <img
-              src={images[currentImageIndex]?.src?.includes('pstatic.net') 
-                ? `/api/image-proxy?url=${encodeURIComponent(images[currentImageIndex].src)}`
-                : images[currentImageIndex]?.src || '/placeholder-image.jpg'
-              }
-              alt={images[currentImageIndex].alt || `Image ${currentImageIndex + 1}`}
-              className="w-full h-80 object-cover rounded"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = '/placeholder-image.jpg';
-              }}
-            />
-            
-            {/* 네비게이션 버튼 */}
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={prevImage}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
-                >
-                  ‹
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
-                >
-                  ›
-                </button>
-              </>
-            )}
+            <div className="relative flex items-center justify-center bg-gray-100 min-h-[400px] max-h-[60vh] rounded">
+              <img
+                src={images[currentImageIndex]?.src?.includes('pstatic.net') 
+                  ? `/api/image-proxy?url=${encodeURIComponent(images[currentImageIndex].src)}`
+                  : images[currentImageIndex]?.src || '/placeholder-image.jpg'
+                }
+                alt={images[currentImageIndex].alt || `Image ${currentImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain rounded"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-image.jpg';
+                }}
+              />
+              
+              {/* 네비게이션 버튼 */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+            </div>
             
             {/* 이미지 인디케이터 */}
             <div className="flex justify-center mt-2 space-x-1">
