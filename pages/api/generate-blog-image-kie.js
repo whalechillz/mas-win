@@ -126,36 +126,192 @@ export default async function handler(req, res) {
     const kieResult = await kieResponse.json();
     console.log('Kie AI 응답:', kieResult);
     
-    // Kie AI 응답 처리 - taskId 기반 처리
+    // Kie AI 응답 처리 - 단계별 디버깅
+    console.log('🔍 Kie AI 응답 상세 분석:');
+    console.log('- 응답 코드:', kieResult.code);
+    console.log('- 응답 메시지:', kieResult.msg);
+    console.log('- 응답 데이터:', JSON.stringify(kieResult.data, null, 2));
+    
     if (kieResult.code === 200 && kieResult.data && kieResult.data.taskId) {
       const taskId = kieResult.data.taskId;
       console.log('📋 Kie AI Task ID:', taskId);
       
-      // Kie AI는 taskId를 반환하지만 상태 확인 API가 작동하지 않음
-      // 대신 더 간단한 접근 방식 사용
-      console.log('⚠️ Kie AI 상태 확인 API가 작동하지 않음. 대안 처리 중...');
+      // 단계 1: 다양한 상태 확인 엔드포인트 시도
+      console.log('🔍 단계 1: 상태 확인 엔드포인트 테스트 시작...');
       
-      // 임시로 더미 이미지 URL 반환 (실제 구현에서는 다른 방법 필요)
-      const dummyImageUrls = [
-        'https://via.placeholder.com/1024x1024/4CAF50/FFFFFF?text=Kie+AI+Image+Placeholder',
-        'https://via.placeholder.com/1024x1024/2196F3/FFFFFF?text=Kie+AI+Generated'
+      const statusEndpoints = [
+        `https://kieai.erweima.ai/api/v1/gpt4o-image/status/${taskId}`,
+        `https://kieai.erweima.ai/api/v1/gpt4o-image/result/${taskId}`,
+        `https://kieai.erweima.ai/api/v1/task/status/${taskId}`,
+        `https://kieai.erweima.ai/api/v1/task/result/${taskId}`,
+        `https://api.kie.ai/v1/task/status/${taskId}`,
+        `https://api.kie.ai/v1/task/result/${taskId}`,
+        `https://kieai.erweima.ai/api/v1/gpt4o-image/${taskId}`,
+        `https://kieai.erweima.ai/api/v1/task/${taskId}`,
+        `https://api.kie.ai/v1/gpt4o-image/status/${taskId}`,
+        `https://api.kie.ai/v1/gpt4o-image/result/${taskId}`
       ];
       
-      console.log('✅ Kie AI 대안 처리 완료:', dummyImageUrls.length, '개');
+      let workingEndpoint = null;
+      let workingResponse = null;
       
-      res.status(200).json({ 
-        success: true,
-        imageUrl: dummyImageUrls[0],
-        imageUrls: dummyImageUrls,
-        imageCount: dummyImageUrls.length,
-        prompt: smartPrompt,
-        model: 'Kie AI (Placeholder)',
-        metadata: {
-          title,
-          contentType,
-          brandStrategy,
-          generatedAt: new Date().toISOString(),
-          note: 'Kie AI API 상태 확인 엔드포인트가 작동하지 않아 플레이스홀더 이미지 사용'
+      for (const endpoint of statusEndpoints) {
+        try {
+          console.log(`🔄 테스트 중: ${endpoint}`);
+          
+          const testResponse = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          console.log(`📊 응답 상태: ${testResponse.status}`);
+          
+          if (testResponse.ok) {
+            const testResult = await testResponse.json();
+            console.log(`✅ 작동하는 엔드포인트 발견: ${endpoint}`);
+            console.log('응답 내용:', JSON.stringify(testResult, null, 2));
+            workingEndpoint = endpoint;
+            workingResponse = testResult;
+            break;
+          } else {
+            const errorText = await testResponse.text();
+            console.log(`❌ 실패: ${testResponse.status} - ${errorText}`);
+          }
+        } catch (error) {
+          console.log(`❌ 연결 실패: ${error.message}`);
+        }
+      }
+      
+      if (workingEndpoint && workingResponse) {
+        console.log('🎉 작동하는 엔드포인트를 찾았습니다!');
+        
+        // 이미지 URL 추출 시도
+        let imageUrls = [];
+        if (workingResponse.data) {
+          imageUrls = workingResponse.data.images || workingResponse.data.result || workingResponse.data.url || [];
+        }
+        if (typeof imageUrls === 'string') {
+          imageUrls = [imageUrls];
+        }
+        
+        if (imageUrls.length > 0) {
+          console.log('✅ 이미지 URL 추출 성공:', imageUrls);
+          
+          res.status(200).json({ 
+            success: true,
+            imageUrl: imageUrls[0],
+            imageUrls: imageUrls,
+            imageCount: imageUrls.length,
+            prompt: smartPrompt,
+            model: 'Kie AI',
+            metadata: {
+              title,
+              contentType,
+              brandStrategy,
+              generatedAt: new Date().toISOString(),
+              workingEndpoint: workingEndpoint
+            }
+          });
+          return;
+        }
+      }
+      
+      // 단계 2: 다른 접근 방식 시도
+      console.log('🔍 단계 2: 다른 접근 방식 시도...');
+      
+      // Webhook 방식 시도
+      const webhookEndpoints = [
+        `https://kieai.erweima.ai/api/v1/gpt4o-image/webhook/${taskId}`,
+        `https://kieai.erweima.ai/api/v1/task/webhook/${taskId}`,
+        `https://api.kie.ai/v1/task/webhook/${taskId}`
+      ];
+      
+      for (const endpoint of webhookEndpoints) {
+        try {
+          console.log(`🔄 웹훅 테스트: ${endpoint}`);
+          
+          const webhookResponse = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              taskId: taskId,
+              callback: 'https://win.masgolf.co.kr/api/kie-ai-callback'
+            })
+          });
+          
+          if (webhookResponse.ok) {
+            const webhookResult = await webhookResponse.json();
+            console.log(`✅ 웹훅 성공: ${endpoint}`, webhookResult);
+            
+            // 웹훅이 성공하면 잠시 대기 후 다시 확인
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            // 다시 상태 확인
+            const retryResponse = await fetch(workingEndpoint || statusEndpoints[0], {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
+                'Content-Type': 'application/json',
+              }
+            });
+            
+            if (retryResponse.ok) {
+              const retryResult = await retryResponse.json();
+              console.log('🔄 재시도 응답:', retryResult);
+              
+              let retryImageUrls = [];
+              if (retryResult.data) {
+                retryImageUrls = retryResult.data.images || retryResult.data.result || retryResult.data.url || [];
+              }
+              if (typeof retryImageUrls === 'string') {
+                retryImageUrls = [retryImageUrls];
+              }
+              
+              if (retryImageUrls.length > 0) {
+                console.log('✅ 재시도 후 이미지 URL 추출 성공:', retryImageUrls);
+                
+                res.status(200).json({ 
+                  success: true,
+                  imageUrl: retryImageUrls[0],
+                  imageUrls: retryImageUrls,
+                  imageCount: retryImageUrls.length,
+                  prompt: smartPrompt,
+                  model: 'Kie AI',
+                  metadata: {
+                    title,
+                    contentType,
+                    brandStrategy,
+                    generatedAt: new Date().toISOString(),
+                    method: 'webhook_retry'
+                  }
+                });
+                return;
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`❌ 웹훅 실패: ${error.message}`);
+        }
+      }
+      
+      // 단계 3: 최종 에러 처리
+      console.log('❌ 모든 방법이 실패했습니다. 상세한 에러 정보를 반환합니다.');
+      
+      res.status(500).json({ 
+        success: false,
+        message: 'Kie AI 이미지 생성 실패 - 모든 엔드포인트 테스트 완료',
+        error: 'No working endpoint found',
+        debug: {
+          taskId: taskId,
+          testedEndpoints: statusEndpoints,
+          workingEndpoint: workingEndpoint,
+          workingResponse: workingResponse
         }
       });
       return;
