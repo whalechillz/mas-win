@@ -208,19 +208,21 @@ export default async function handler(req, res) {
           prompt: simplePrompt,
           size: "1:1",
           fileUrl: null,
-          callBackUrl: null
+          callBackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`
         },
         {
           prompt: simplePrompt,
           size: "1024x1024",
           quality: "hd",
-          n: 1
+          n: 1,
+          callBackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`
         },
         {
           prompt: simplePrompt,
           width: 1024,
           height: 1024,
-          quality: "high"
+          quality: "high",
+          callBackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`
         }
       ];
       
@@ -284,20 +286,17 @@ export default async function handler(req, res) {
         }
       }
       
-      // 방법 3: 최종 에러 처리 - 실제 문제 진단
-      console.log('❌ 모든 방법이 실패했습니다. 실제 문제 진단...');
+      // 방법 3: 웹훅 방식으로 처리 - 폴링 대신 웹훅 사용
+      console.log('🔔 웹훅 방식으로 처리 중...');
       
-      res.status(500).json({ 
-        success: false,
-        message: 'Kie AI API가 예상과 다르게 작동합니다. 공식 문서 확인이 필요합니다.',
-        error: 'API behavior differs from expected',
-        debug: {
-          taskId: taskId,
-          originalResponse: kieResult,
-          testedEndpoints: alternativeEndpoints,
-          testedFormats: alternativeFormats,
-          recommendation: 'Kie AI 공식 문서에서 올바른 API 사용법을 확인해야 합니다.'
-        }
+      // 웹훅을 사용한 경우, 즉시 성공 응답을 반환하고 웹훅에서 결과를 처리
+      res.status(200).json({ 
+        success: true,
+        message: 'Kie AI 이미지 생성이 시작되었습니다. 웹훅을 통해 결과를 받을 예정입니다.',
+        taskId: taskId,
+        webhookUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`,
+        status: 'processing',
+        note: '이미지 생성이 완료되면 웹훅을 통해 결과를 받습니다.'
       });
       return;
     } else if (kieResult.code === 200 && kieResult.data) {
