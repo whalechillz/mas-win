@@ -3407,13 +3407,13 @@ export default function BlogAdmin() {
                     >
                       🚫 ChatGPT + FAL AI (일시 중단)
                     </button>
-                    <button 
-                      type="button"
-                      onClick={() => previewImagePrompt('kie')} 
-                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
-                    >
-                      🤖 ChatGPT + Kie AI 프롬프트 미리보기
-                    </button>
+        <button 
+          type="button"
+          onClick={() => previewImagePrompt('kie')} 
+          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+        >
+          🎨 ChatGPT + Flux Kontext 프롬프트 미리보기
+        </button>
                   </div>
 
                   {/* 간단 AI 개선 기능 */}
@@ -3514,14 +3514,14 @@ export default function BlogAdmin() {
                     >
                       🚫 ChatGPT + FAL AI (일시 중단)
                     </button>
-                    <button 
-                      type="button"
-                      onClick={() => generateKieAIImages(selectedImageCount)} 
-                      disabled={isGeneratingImages}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
-                    >
-                      {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + Kie AI ${selectedImageCount}개`}
-                    </button>
+        <button 
+          type="button"
+          onClick={() => generateKieAIImages(selectedImageCount)} 
+          disabled={isGeneratingImages}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
+        >
+          {isGeneratingImages ? '🎨 생성 중...' : `🎨 ChatGPT + Flux Kontext ${selectedImageCount}개`}
+        </button>
                     
                     {/* 단락별 이미지 생성 버튼 */}
                     <button 
@@ -3543,7 +3543,7 @@ export default function BlogAdmin() {
                     <br />
                     <span className="text-red-600 font-medium">🚫 ChatGPT + FAL AI: 계정 잠금으로 인해 일시 중단됨</span>
                     <br />
-                    <span className="text-green-600 font-medium">🤖 ChatGPT + Kie AI: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 Kie AI로 고품질 실사 이미지를 만듭니다.</span>
+                    <span className="text-green-600 font-medium">🎨 ChatGPT + Flux Kontext: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 Flux Kontext로 고품질 컨텍스트 인식 이미지를 만듭니다.</span>
                     <br />
                     <span className="text-orange-500 font-medium">✨ 여러 이미지 생성: 1개, 2개 또는 4개의 다양한 이미지를 생성하여 선택할 수 있습니다.</span>
                     <br />
