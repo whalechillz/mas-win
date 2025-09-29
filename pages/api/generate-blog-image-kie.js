@@ -40,16 +40,12 @@ export default async function handler(req, res) {
     const simplePrompt = `A photorealistic image of a Korean golfer in their 50s to 70s, showcasing a ${contentType} scene. The golfer is using MASSGOO golf equipment on a beautiful golf course. Professional photography style, natural lighting, high quality, no text or watermarks.`;
     console.log('생성된 프롬프트:', simplePrompt);
     
-    // Kie AI API 호출 - 올바른 엔드포인트 사용
+    // Kie AI API 호출 - 실제로 작동하는 엔드포인트만 사용
     const possibleEndpoints = [
-      'https://kieai.erweima.ai/api/v1/flux-kontext/generate',
-      'https://kieai.erweima.ai/api/v1/midjourney/generate',
-      'https://api.kie.ai/v1/flux-kontext/generate',
-      'https://api.kie.ai/v1/midjourney/generate',
+      'https://kieai.erweima.ai/api/v1/gpt4o-image/generate', // 실제로 작동하는 엔드포인트
+      'https://api.kie.ai/v1/gpt4o-image/generate',
       'https://kieai.erweima.ai/api/v1/4o-image/generate',
-      'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
-      'https://api.kie.ai/v1/4o-image/generate',
-      'https://api.kie.ai/v1/gpt4o-image/generate'
+      'https://api.kie.ai/v1/4o-image/generate'
     ];
 
     let kieResponse = null;
@@ -77,11 +73,9 @@ export default async function handler(req, res) {
               },
               body: JSON.stringify({
                 prompt: simplePrompt,
-                width: 1024,
-                height: 1024,
-                quality: "high",
-                num_images: 1,
-                model: "flux-kontext"
+                size: "1:1",
+                fileUrl: null,
+                callBackUrl: null
               })
             });
 
@@ -133,12 +127,10 @@ export default async function handler(req, res) {
       
       console.log('🔍 근본적인 접근 방식 시도...');
       
-      // 방법 1: Kie AI 고품질 이미지 API 시도 (Flux Kontext, Midjourney 우선)
+      // 방법 1: 실제로 작동하는 Kie AI 엔드포인트만 시도
       const alternativeEndpoints = [
-        'https://kieai.erweima.ai/api/v1/flux-kontext/generate',
-        'https://kieai.erweima.ai/api/v1/midjourney/generate',
-        'https://api.kie.ai/v1/flux-kontext/generate',
-        'https://api.kie.ai/v1/midjourney/generate',
+        'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
+        'https://api.kie.ai/v1/gpt4o-image/generate',
         'https://kieai.erweima.ai/api/v1/4o-image/generate',
         'https://api.kie.ai/v1/4o-image/generate'
       ];
@@ -155,11 +147,9 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
               prompt: simplePrompt,
-              width: 1024,
-              height: 1024,
-              quality: "high",
-              num_images: 1,
-              model: endpoint.includes('flux') ? "flux-kontext" : endpoint.includes('midjourney') ? "midjourney" : "gpt-4o"
+              size: "1:1",
+              fileUrl: null,
+              callBackUrl: null
             })
           });
           
@@ -216,23 +206,21 @@ export default async function handler(req, res) {
       const alternativeFormats = [
         {
           prompt: simplePrompt,
-          width: 1024,
-          height: 1024,
-          quality: "high",
-          model: "flux-kontext"
-        },
-        {
-          prompt: simplePrompt,
-          width: 1024,
-          height: 1024,
-          quality: "high",
-          model: "midjourney"
+          size: "1:1",
+          fileUrl: null,
+          callBackUrl: null
         },
         {
           prompt: simplePrompt,
           size: "1024x1024",
           quality: "hd",
-          model: "gpt-4o"
+          n: 1
+        },
+        {
+          prompt: simplePrompt,
+          width: 1024,
+          height: 1024,
+          quality: "high"
         }
       ];
       
@@ -240,7 +228,7 @@ export default async function handler(req, res) {
         try {
           console.log(`🔄 요청 형식 시도:`, format);
           
-          const formatResponse = await fetch('https://kieai.erweima.ai/api/v1/flux-kontext/generate', {
+          const formatResponse = await fetch('https://kieai.erweima.ai/api/v1/gpt4o-image/generate', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${process.env.KIE_AI_API_KEY}`,
