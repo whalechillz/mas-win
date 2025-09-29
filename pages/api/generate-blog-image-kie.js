@@ -33,25 +33,12 @@ export default async function handler(req, res) {
     console.log('API 키 길이:', process.env.KIE_AI_API_KEY ? process.env.KIE_AI_API_KEY.length : 0);
     console.log('API 키 앞 10자리:', process.env.KIE_AI_API_KEY ? process.env.KIE_AI_API_KEY.substring(0, 10) + '...' : '없음');
     
-    // ChatGPT로 프롬프트 생성 (FAL AI와 동일한 로직)
-    const promptResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/generate-smart-prompt`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        title,
-        excerpt,
-        contentType,
-        brandStrategy,
-        model: 'kie' // Kie AI용으로 설정
-      })
-    });
-
-    if (!promptResponse.ok) {
-      throw new Error('ChatGPT 프롬프트 생성 실패');
-    }
-
-    const { prompt: smartPrompt } = await promptResponse.json();
-    console.log('생성된 프롬프트:', smartPrompt);
+    // Kie AI 직접 이미지 생성 (ChatGPT 프롬프트 생성 단계 제거)
+    console.log('🎨 Kie AI 직접 이미지 생성 시작...');
+    
+    // 간단한 프롬프트 생성 (ChatGPT API 호출 없이)
+    const simplePrompt = `A photorealistic image of a Korean golfer in their 50s to 70s, showcasing a ${contentType} scene. The golfer is using MASSGOO golf equipment on a beautiful golf course. Professional photography style, natural lighting, high quality, no text or watermarks.`;
+    console.log('생성된 프롬프트:', simplePrompt);
     
     // Kie AI API 호출 - 올바른 엔드포인트 사용
     const possibleEndpoints = [
@@ -89,7 +76,7 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                prompt: smartPrompt,
+                prompt: simplePrompt,
                 width: 1024,
                 height: 1024,
                 quality: "high",
@@ -167,7 +154,7 @@ export default async function handler(req, res) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              prompt: smartPrompt,
+              prompt: simplePrompt,
               width: 1024,
               height: 1024,
               quality: "high",
@@ -202,7 +189,7 @@ export default async function handler(req, res) {
                 imageUrl: imageUrls[0],
                 imageUrls: imageUrls,
                 imageCount: imageUrls.length,
-                prompt: smartPrompt,
+                prompt: simplePrompt,
                 model: 'Kie AI (Alternative)',
                 metadata: {
                   title,
@@ -228,21 +215,21 @@ export default async function handler(req, res) {
       
       const alternativeFormats = [
         {
-          prompt: smartPrompt,
+          prompt: simplePrompt,
           width: 1024,
           height: 1024,
           quality: "high",
           model: "flux-kontext"
         },
         {
-          prompt: smartPrompt,
+          prompt: simplePrompt,
           width: 1024,
           height: 1024,
           quality: "high",
           model: "midjourney"
         },
         {
-          prompt: smartPrompt,
+          prompt: simplePrompt,
           size: "1024x1024",
           quality: "hd",
           model: "gpt-4o"
@@ -288,7 +275,7 @@ export default async function handler(req, res) {
                 imageUrl: imageUrls[0],
                 imageUrls: imageUrls,
                 imageCount: imageUrls.length,
-                prompt: smartPrompt,
+                prompt: simplePrompt,
                 model: 'Kie AI (Format)',
                 metadata: {
                   title,
