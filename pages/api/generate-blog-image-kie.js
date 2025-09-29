@@ -53,14 +53,13 @@ export default async function handler(req, res) {
     const { prompt: smartPrompt } = await promptResponse.json();
     console.log('생성된 프롬프트:', smartPrompt);
     
-    // Kie AI API 호출 - 여러 가능한 엔드포인트 시도
+    // Kie AI API 호출 - 올바른 엔드포인트 사용
     const possibleEndpoints = [
+      'https://kieai.erweima.ai/api/v1/gpt4o-image/generate',
       'https://api.kie.ai/v1/images/generate',
       'https://api.kie.ai/images/generate',
       'https://kie.ai/api/v1/images/generate',
-      'https://kie.ai/api/images/generate',
-      'https://api.kie.ai/v1/generate',
-      'https://api.kie.ai/generate'
+      'https://kie.ai/api/images/generate'
     ];
 
     let kieResponse = null;
@@ -88,10 +87,9 @@ export default async function handler(req, res) {
               },
               body: JSON.stringify({
                 prompt: smartPrompt,
-                num_images: Math.min(Math.max(imageCount, 1), 4),
-                size: "1024x1024",
-                quality: "high",
-                model: "kie-v1"
+                size: "1:1",
+                fileUrl: null, // 이미지 생성이므로 null
+                callBackUrl: null // 콜백 URL이 필요하지 않으면 null
               })
             });
 
@@ -126,7 +124,15 @@ export default async function handler(req, res) {
     }
 
     const kieResult = await kieResponse.json();
-    const imageUrls = kieResult.images || kieResult.data || [];
+    console.log('Kie AI 응답:', kieResult);
+    
+    // Kie AI 응답 형식에 맞게 이미지 URL 추출
+    let imageUrls = kieResult.images || kieResult.data || kieResult.result || [];
+    
+    // 단일 이미지 URL인 경우 배열로 변환
+    if (typeof imageUrls === 'string') {
+      imageUrls = [imageUrls];
+    }
 
     console.log('✅ Kie AI 이미지 생성 완료:', imageUrls.length, '개');
 
