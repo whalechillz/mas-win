@@ -102,10 +102,10 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
 
       {/* 확장된 이미지 그룹 */}
       {isExpanded && (
-        <div className="absolute top-0 left-0 z-50 bg-white border-2 border-blue-400 rounded-lg shadow-xl p-4 min-w-[400px]">
+        <div className="absolute top-0 left-0 z-50 bg-white border-2 border-blue-400 rounded-lg shadow-xl p-6 min-w-[600px] max-w-[800px]">
           {/* 헤더 */}
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-xl font-bold text-gray-800">
               📦 그룹 {groupIndex + 1} - {groupSize}개 이미지
             </h3>
             <button
@@ -124,7 +124,7 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
                 : images[currentImageIndex]?.src || '/placeholder-image.jpg'
               }
               alt={images[currentImageIndex].alt || `Image ${currentImageIndex + 1}`}
-              className="w-full h-48 object-cover rounded"
+              className="w-full h-80 object-cover rounded"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = '/placeholder-image.jpg';
@@ -164,29 +164,29 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
           </div>
 
           {/* 액션 버튼들 */}
-          <div className="flex space-x-2 mb-4">
+          <div className="flex space-x-3 mb-4">
             <button
               onClick={(e) => handleSetFeatured(images[currentImageIndex], e)}
-              className="flex-1 px-3 py-2 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600"
+              className="flex-1 px-4 py-3 bg-yellow-500 text-white text-base font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
             >
               ◆ 대표
             </button>
             <button
               onClick={(e) => handleCopyImage(images[currentImageIndex], e)}
-              className="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+              className="flex-1 px-4 py-3 bg-blue-500 text-white text-base font-semibold rounded-lg hover:bg-blue-600 transition-colors"
             >
               ■ 복사
             </button>
             <button
               onClick={() => handleImageClick(images[currentImageIndex])}
-              className="flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+              className="flex-1 px-4 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-colors"
             >
               삽입
             </button>
           </div>
 
           {/* 전체 이미지 썸네일 */}
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 gap-3">
             {images.map((image, index) => (
               <div
                 key={index}
@@ -201,7 +201,7 @@ const ImageGroupThumbnail: React.FC<ImageGroupThumbnailProps> = ({
                     : image?.src || '/placeholder-image.jpg'
                   }
                   alt={image.alt || `Thumbnail ${index + 1}`}
-                  className="w-full h-16 object-cover"
+                  className="w-full h-20 object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = '/placeholder-image.jpg';
