@@ -3707,7 +3707,7 @@ export default function BlogAdmin() {
                             <img 
                               src={item.imageUrl} 
                               alt={`Paragraph ${item.paragraphIndex + 1}`}
-                              className="w-32 h-20 object-cover rounded border"
+                              className="w-32 h-20 object-contain rounded border"
                             />
                             <div className="flex-1">
                               <h5 className="text-sm font-medium text-purple-800 mb-2">
@@ -4062,7 +4062,7 @@ export default function BlogAdmin() {
                                 <img
                                   src={image.url}
                                   alt={image.name || `Image ${index + 1}`}
-                                  className="w-full h-32 object-cover"
+                                  className="w-full h-32 object-contain"
                                 />
                                 <div className="absolute top-2 right-2 flex gap-1">
                                   {formData.featured_image === image.url && (
@@ -4132,7 +4132,7 @@ export default function BlogAdmin() {
                             <img
                               src={image.url}
                               alt={`Gallery Image ${image.id}`}
-                              className="w-full h-32 object-cover"
+                              className="w-full h-32 object-contain"
                             />
                             <div className="absolute top-2 right-2 flex gap-1">
                               <span className={`px-2 py-1 text-xs rounded ${
@@ -4631,7 +4631,7 @@ export default function BlogAdmin() {
                                     <img
                                       src={image.url}
                                       alt={image.name}
-                                      className="w-full h-48 object-cover rounded border"
+                                      className="w-full h-48 object-contain rounded border"
                                     />
                                   </div>
                                   
@@ -4663,7 +4663,7 @@ export default function BlogAdmin() {
                                     <img
                                       src={image.url}
                                       alt={image.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
                                   </div>
                                   <div className="flex-1 p-2">
@@ -4876,7 +4876,7 @@ export default function BlogAdmin() {
                             <img
                               src={image.src}
                               alt={image.alt || `Image ${index + 1}`}
-                              className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                              className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 
@@ -5705,7 +5705,7 @@ export default function BlogAdmin() {
                                 <img
                                   src={post.featured_image || '/placeholder-image.jpg'}
                                   alt={post.title}
-                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                  className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
                                 />
                                 <div className="absolute top-4 right-4 z-30 flex flex-col gap-2">
                                   <span className="px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-xs font-semibold rounded-full shadow-lg">
@@ -5799,7 +5799,7 @@ export default function BlogAdmin() {
                     <img
                       src={image.url}
                       alt={image.name}
-                      className="w-full h-32 object-cover rounded mb-2"
+                      className="w-full h-32 object-contain rounded mb-2"
                     />
                     <div className="absolute top-1 right-1">
                       <span className="px-2 py-1 text-xs rounded bg-white bg-opacity-80 text-gray-600">
