@@ -286,19 +286,64 @@ export default async function handler(req, res) {
         }
       }
       
-      // 방법 3: 웹훅 방식으로 처리 - 폴링 대신 웹훅 사용
-      console.log('🔔 웹훅 방식으로 처리 중...');
+      // 방법 3: 간단한 폴링 방식으로 처리 - 웹훅 대신 폴링 사용
+      console.log('🔄 폴링 방식으로 처리 중...');
       
-      // 웹훅을 사용한 경우, 즉시 성공 응답을 반환하고 웹훅에서 결과를 처리
-      res.status(200).json({ 
-        success: true,
-        message: 'Kie AI 이미지 생성이 시작되었습니다. 웹훅을 통해 결과를 받을 예정입니다.',
-        taskId: taskId,
-        webhookUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/kie-ai-webhook`,
-        status: 'processing',
-        note: '이미지 생성이 완료되면 웹훅을 통해 결과를 받습니다.'
-      });
-      return;
+      // 간단한 폴링으로 상태 확인 (최대 30초)
+      let attempts = 0;
+      const maxAttempts = 30;
+      
+      while (attempts < maxAttempts) {
+        try {
+          console.log(`🔄 폴링 시도 ${attempts + 1}/${maxAttempts}...`);
+          
+          // 상태 확인 API 호출
+          const statusResponse = await fetch(`https://kieai.erweima.ai/api/v1/gpt4o-image/status/${taskId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            console.log('📊 상태 응답:', statusData);
+            
+            if (statusData.status === 'completed' || statusData.status === 'success') {
+              // 이미지 생성 완료
+              const imageUrls = statusData.images || statusData.result || [];
+              console.log('✅ Kie AI 이미지 생성 완료:', imageUrls);
+              
+              res.status(200).json({
+                success: true,
+                imageUrls: Array.isArray(imageUrls) ? imageUrls : [imageUrls],
+                message: 'Kie AI 이미지 생성이 완료되었습니다!',
+                generatedBy: 'Kie AI',
+                generatedAt: new Date().toISOString()
+              });
+              return;
+            } else if (statusData.status === 'failed' || statusData.status === 'error') {
+              throw new Error(`Kie AI 이미지 생성 실패: ${statusData.error || 'Unknown error'}`);
+            }
+          }
+          
+          // 1초 대기 후 다시 시도
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          attempts++;
+          
+        } catch (error) {
+          console.log(`❌ 폴링 시도 ${attempts + 1} 실패:`, error.message);
+          attempts++;
+          if (attempts >= maxAttempts) {
+            throw new Error('Kie AI 이미지 생성 시간 초과');
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      // 시간 초과
+      throw new Error('Kie AI 이미지 생성 시간 초과');
     } else if (kieResult.code === 200 && kieResult.data) {
       // 즉시 이미지 URL이 있는 경우
       if (kieResult.data.url || kieResult.data.image || kieResult.data.images) {
