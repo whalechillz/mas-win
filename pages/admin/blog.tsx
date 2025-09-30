@@ -2322,31 +2322,16 @@ export default function BlogAdmin() {
     }
 
     try {
-      console.log('📸 ChatGPT + FAL AI 실사 이미지 생성 시작...', count, '개');
+      console.log('📸 동적 프롬프트 + FAL AI 실사 이미지 생성 시작...', count, '개');
       setIsGeneratingImages(true);
       setShowGenerationProcess(true);
-      setImageGenerationModel('ChatGPT + FAL AI (hidream-i1-dev)');
+      setImageGenerationModel('동적 프롬프트 + FAL AI (hidream-i1-dev)');
       
-      // 1단계: ChatGPT로 스마트 프롬프트 생성
-      setImageGenerationStep('1단계: ChatGPT로 실사 프롬프트 생성 중...');
-      const promptResponse = await fetch('/api/generate-smart-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: brandStrategy.contentType,
-          brandStrategy: brandStrategy,
-          model: 'fal'
-        })
-      });
-
-      if (!promptResponse.ok) {
-        throw new Error('ChatGPT 프롬프트 생성 실패');
-      }
-
-      const { prompt: smartPrompt } = await promptResponse.json();
-      setImageGenerationPrompt(smartPrompt);
+      // 1단계: 동적 프롬프트 사용 (ChatGPT 프롬프트 비활성화)
+      setImageGenerationStep('1단계: 동적 프롬프트로 실사 이미지 생성 중...');
+      // ChatGPT 프롬프트 생성 비활성화 - 동적 프롬프트 사용
+      const smartPrompt = null; // null로 설정하여 동적 프롬프트 사용
+      setImageGenerationPrompt('동적 프롬프트 사용 중...');
       
       // 2단계: FAL AI API 호출
       setImageGenerationStep('2단계: FAL AI 서버에 이미지 생성 요청 중...');
@@ -2355,11 +2340,12 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           title: formData.title,
-          excerpt: formData.excerpt,
+          excerpt: formData.excerpt || formData.content?.substring(0, 500), // 요약이 없으면 본문 500자 사용
+          content: formData.content, // 전체 본문 내용 추가
           contentType: brandStrategy.contentType,
           brandStrategy: brandStrategy,
           imageCount: count,
-          customPrompt: smartPrompt // ChatGPT로 생성한 프롬프트 사용
+          customPrompt: null // 동적 프롬프트 사용 (ChatGPT 프롬프트 비활성화)
         })
       });
 
@@ -3435,7 +3421,7 @@ export default function BlogAdmin() {
           onClick={() => previewImagePrompt('kie')} 
           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
         >
-          🎨 Kie AI GPT-4O 프롬프트 미리보기
+          🤖 ChatGPT + Kie AI 프롬프트 미리보기
         </button>
                   </div>
 
@@ -3543,7 +3529,7 @@ export default function BlogAdmin() {
           disabled={isGeneratingImages}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
         >
-          {isGeneratingImages ? '🎨 생성 중...' : `🎨 Kie AI GPT-4O ${selectedImageCount}개`}
+          {isGeneratingImages ? '🎨 생성 중...' : `🤖 ChatGPT + Kie AI ${selectedImageCount}개`}
         </button>
                     
                     {/* 단락별 이미지 생성 버튼 */}
@@ -3566,7 +3552,7 @@ export default function BlogAdmin() {
                     <br />
                     <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 FAL AI로 고품질 실사 이미지를 만듭니다.</span>
                     <br />
-                    <span className="text-green-600 font-medium">🎨 Kie AI GPT-4O: 고품질 이미지를 직접 생성합니다. ChatGPT 없이 Kie AI의 GPT-4O 이미지 모델을 사용합니다.</span>
+                    <span className="text-green-600 font-medium">🤖 ChatGPT + Kie AI: ChatGPT로 생성된 프롬프트를 사용하여 Kie AI의 GPT-4O 이미지 모델로 고품질 이미지를 생성합니다.</span>
                     <br />
                     <span className="text-orange-500 font-medium">✨ 여러 이미지 생성: 1개, 2개 또는 4개의 다양한 이미지를 생성하여 선택할 수 있습니다.</span>
                     <br />
@@ -4123,7 +4109,7 @@ export default function BlogAdmin() {
                     아직 이미지가 없습니다. 이미지를 업로드하거나 AI로 생성해보세요.
                   </p>
                 ) : (
-        <div>
+                <div>
                     <h5 className="text-md font-medium text-gray-800 mb-3">📁 내 이미지 갤러리</h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {imageGallery.map((image) => (
@@ -4153,7 +4139,7 @@ export default function BlogAdmin() {
                               >
                                 ×
                               </button>
-                            </div>
+                </div>
                           </div>
                           <div className="p-3">
                             <div className="flex gap-1 mb-2">
@@ -4448,9 +4434,9 @@ export default function BlogAdmin() {
                                     title={`이미지 그룹의 모든 버전(${versionCount}개)을 Supabase에서 완전 삭제`}
                                   >
                                     🗑️ 완전삭제
-                                  </button>
-                                </div>
-                              </div>
+                </button>
+              </div>
+            </div>
                             </div>
                           </div>
                         );
