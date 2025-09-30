@@ -117,6 +117,11 @@ export default function BlogAdmin() {
   const [postImages, setPostImages] = useState([]); // 게시물 이미지 목록
   const [simpleAIRequest, setSimpleAIRequest] = useState(''); // 간단 AI 개선 요청사항
   
+  // 이미지 변형 관련 상태
+  const [selectedBaseImage, setSelectedBaseImage] = useState(''); // 변형할 기본 이미지
+  const [variationStrength, setVariationStrength] = useState(0.7); // 변형 강도
+  const [isGeneratingVariation, setIsGeneratingVariation] = useState(false); // 변형 생성 중
+  
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [htmlContent, setHtmlContent] = useState('');
@@ -2314,6 +2319,93 @@ export default function BlogAdmin() {
     }
   };
 
+  // 이미지 변형 함수
+  const generateImageVariation = async (model) => {
+    if (!selectedBaseImage) {
+      alert('변형할 기본 이미지를 먼저 선택해주세요.');
+      return;
+    }
+
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log(`🎨 ${model} 이미지 변형 시작...`);
+      setIsGeneratingVariation(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel(`${model} 이미지 변형`);
+      setImageGenerationStep(`1단계: ${model} 서버에 이미지 변형 요청 중...`);
+
+      let apiEndpoint = '';
+      switch (model) {
+        case 'fal':
+          apiEndpoint = '/api/generate-blog-image-fal-variation';
+          break;
+        case 'replicate':
+          apiEndpoint = '/api/generate-blog-image-replicate-flux';
+          break;
+        case 'stability':
+          apiEndpoint = '/api/generate-blog-image-stability';
+          break;
+        default:
+          throw new Error('지원하지 않는 변형 모델입니다.');
+      }
+
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt || formData.content?.substring(0, 500),
+          content: formData.content,
+          contentType: formData.category,
+          brandStrategy: '마쓰구 골프 드라이버 전문 브랜드',
+          baseImageUrl: selectedBaseImage,
+          variationStrength: variationStrength,
+          variationCount: 1
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`✅ ${model} 이미지 변형 완료:`, result.images.length, '개');
+        setImageGenerationStep(`3단계: ${model} 이미지 변형 완료!`);
+        
+        // 생성된 이미지를 generatedImages에 추가
+        if (result.images && result.images.length > 0) {
+          const newImages = result.images.map(img => ({
+            url: img.publicUrl,
+            type: `${model} 변형`,
+            model: model,
+            variationStrength: variationStrength,
+            baseImage: selectedBaseImage
+          }));
+          setGeneratedImages(prev => [...prev, ...newImages]);
+        }
+        
+        alert(`${model} 이미지 변형이 완료되었습니다: ${result.message}`);
+      } else {
+        const error = await response.json();
+        console.error(`${model} 이미지 변형 실패:`, error);
+        setImageGenerationStep(`❌ ${model} 이미지 변형 실패`);
+        alert(`${model} 이미지 변형에 실패했습니다: ${error.message}`);
+      }
+    } catch (error) {
+      console.error(`${model} 이미지 변형 에러:`, error);
+      setImageGenerationStep(`❌ ${model} 이미지 변형 에러`);
+      alert(`${model} 이미지 변형 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsGeneratingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+        setImageGenerationPrompt('');
+      }, 3000);
+    }
+  };
+
   // ChatGPT 프롬프트로 FAL AI 이미지 생성
   const generateFALAIImages = async (count = 4) => {
     if (!formData.title) {
@@ -3541,6 +3633,84 @@ export default function BlogAdmin() {
                     >
                       {isGeneratingParagraphImages ? '📝 생성 중...' : '📝 단락별 이미지 생성'}
                     </button>
+                  </div>
+
+                  {/* 이미지 변형 섹션 */}
+                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                    <h4 className="font-medium mb-3 text-purple-800 flex items-center">
+                      🎨 이미지 변형 시스템
+                      <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">NEW</span>
+                    </h4>
+                    
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        변형할 기본 이미지 선택:
+                      </label>
+                      <select 
+                        value={selectedBaseImage || ''}
+                        onChange={(e) => setSelectedBaseImage(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                      >
+                        <option value="">기본 이미지 선택...</option>
+                        {generatedImages.map((img, index) => (
+                          <option key={index} value={img.url}>
+                            {img.type} - {img.url.split('/').pop()}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        변형 강도: {variationStrength}
+                      </label>
+                      <input 
+                        type="range"
+                        min="0.1"
+                        max="1.0"
+                        step="0.1"
+                        value={variationStrength}
+                        onChange={(e) => setVariationStrength(parseFloat(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>약함 (0.1)</span>
+                        <span>강함 (1.0)</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => generateImageVariation('fal')}
+                        disabled={!selectedBaseImage || isGeneratingVariation}
+                        className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm disabled:opacity-50"
+                      >
+                        {isGeneratingVariation ? '🎨 변형 중...' : '🎨 FAL AI 변형'}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => generateImageVariation('replicate')}
+                        disabled={!selectedBaseImage || isGeneratingVariation}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm disabled:opacity-50"
+                      >
+                        {isGeneratingVariation ? '🎨 변형 중...' : '🎨 Replicate Flux 변형'}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => generateImageVariation('stability')}
+                        disabled={!selectedBaseImage || isGeneratingVariation}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm disabled:opacity-50"
+                      >
+                        {isGeneratingVariation ? '🎨 변형 중...' : '🎨 Stability AI 변형'}
+                    </button>
+                    </div>
+
+                    <p className="text-xs text-gray-600 mt-2">
+                      <span className="text-orange-600 font-medium">🎨 FAL AI: 실사 스타일 변형 (빠름, 저비용)</span><br/>
+                      <span className="text-blue-600 font-medium">🎨 Replicate Flux: 고품질 변형 (중간 속도, 중간 비용)</span><br/>
+                      <span className="text-green-600 font-medium">🎨 Stability AI: 안정적 변형 (느림, 저비용)</span>
+                    </p>
                   </div>
                   
                   <p className="text-xs text-gray-600 mt-2">

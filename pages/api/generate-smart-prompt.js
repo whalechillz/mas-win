@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       customerChannel: 'local_customers',
       brandWeight: 'medium'
     },
-    model = 'dalle3' // 'dalle3' 또는 'fal'
+    model = 'dalle3' // 'dalle3', 'fal', 'kie', 'fal-variation', 'replicate-flux', 'stability-ai'
   } = req.body;
 
   if (!title) {
@@ -38,6 +38,14 @@ export default async function handler(req, res) {
           
           ${model === 'fal' ? 
             'FAL AI hidream-i1-dev 모델용으로 간단하고 명확한 프롬프트를 생성합니다. 이 모델은 복잡한 프롬프트보다는 간단한 키워드 스타일을 선호합니다.' :
+            model === 'kie' ?
+            'Kie AI GPT-4O 모델용으로 고품질 이미지 프롬프트를 생성합니다.' :
+            model === 'fal-variation' ?
+            'FAL AI Image-to-Image 변형용으로 기존 이미지를 변형할 수 있는 프롬프트를 생성합니다.' :
+            model === 'replicate-flux' ?
+            'Replicate Flux 모델용으로 고품질 변형 프롬프트를 생성합니다.' :
+            model === 'stability-ai' ?
+            'Stability AI 모델용으로 안정적인 변형 프롬프트를 생성합니다.' :
             'DALL-E 3 모델용으로 고품질 마케팅 이미지를 생성합니다.'
           }
           
