@@ -36,13 +36,13 @@ export default async function handler(req, res) {
     console.log('변형 강도:', variationStrength);
     console.log('변형 개수:', variationCount);
 
-    // ChatGPT로 변형 프롬프트 생성
-    console.log('🤖 ChatGPT로 변형 프롬프트 생성 시작...');
-    
-    // 절대 URL 생성
+    // 절대 URL 생성 (전역 스코프)
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
       : 'http://localhost:3000';
+
+    // ChatGPT로 변형 프롬프트 생성
+    console.log('🤖 ChatGPT로 변형 프롬프트 생성 시작...');
     
     const promptResponse = await fetch(`${baseUrl}/api/generate-smart-prompt`, {
       method: 'POST',
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     console.log('생성된 프롬프트:', variationPrompt);
 
     // FAL AI 일반 이미지 생성 API 호출 (Image-to-Image 대신)
-    const falResponse = await fetch('https://queue.fal.run/fal-ai/flux-schnell', {
+    const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
@@ -88,16 +88,46 @@ export default async function handler(req, res) {
     const falResult = await falResponse.json();
     console.log('FAL AI 응답:', falResult);
 
-    if (!falResult.images || falResult.images.length === 0) {
+    // FAL AI 폴링 로직 (IN_QUEUE 상태 처리)
+    let finalResult = falResult;
+    if (falResult.status === 'IN_QUEUE') {
+      console.log('🔄 FAL AI 큐 대기 중...');
+      let attempts = 0;
+      const maxAttempts = 30; // 5분 대기
+      
+      while (finalResult.status === 'IN_QUEUE' || finalResult.status === 'IN_PROGRESS') {
+        if (attempts >= maxAttempts) {
+          throw new Error('FAL AI 이미지 생성 시간 초과');
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 10000)); // 10초 대기
+        
+        const statusResponse = await fetch(falResult.status_url, {
+          headers: {
+            'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
+          }
+        });
+        
+        if (!statusResponse.ok) {
+          throw new Error(`FAL AI 상태 확인 실패: ${statusResponse.status}`);
+        }
+        
+        finalResult = await statusResponse.json();
+        console.log(`🔄 FAL AI 상태 확인 (${attempts + 1}/${maxAttempts}):`, finalResult.status);
+        attempts++;
+      }
+    }
+
+    if (!finalResult.images || finalResult.images.length === 0) {
       throw new Error('FAL AI에서 이미지를 생성하지 못했습니다');
     }
 
-    console.log('✅ FAL AI 이미지 변형 완료:', falResult.images.length, '개');
+    console.log('✅ FAL AI 이미지 변형 완료:', finalResult.images.length, '개');
 
     // 생성된 이미지들을 Supabase에 저장
     const savedImages = [];
-    for (let i = 0; i < falResult.images.length; i++) {
-      const imageUrl = falResult.images[i].url;
+    for (let i = 0; i < finalResult.images.length; i++) {
+      const imageUrl = finalResult.images[i].url;
       
       try {
         // 이미지 다운로드
