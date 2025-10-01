@@ -47,6 +47,74 @@ function detectContentType(title, excerpt) {
   return detectedType;
 }
 
+// 사용자 설정 조회 함수
+async function getUserSettings() {
+  try {
+    const response = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/user-settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get' })
+    });
+    
+    if (!response.ok) {
+      console.warn('사용자 설정 조회 실패, 기본값 사용');
+      return getDefaultSettings();
+    }
+    
+    const result = await response.json();
+    return result.settings || getDefaultSettings();
+    
+  } catch (error) {
+    console.warn('사용자 설정 조회 오류:', error);
+    return getDefaultSettings();
+  }
+}
+
+// 기본 설정 반환
+function getDefaultSettings() {
+  return {
+    autoDetectContentType: true,
+    defaultContentType: 'golf',
+    brandStrategy: {
+      customerPersona: 'competitive_maintainer',
+      customerChannel: 'local_customers',
+      brandWeight: 'medium',
+      audienceTemperature: 'warm'
+    },
+    contentTypeOverrides: {
+      restaurant: {
+        customerPersona: 'food_lover',
+        brandWeight: 'low',
+        audienceTemperature: 'neutral'
+      },
+      travel: {
+        customerPersona: 'leisure_seeker',
+        brandWeight: 'low',
+        audienceTemperature: 'warm'
+      },
+      shopping: {
+        customerPersona: 'value_seeker',
+        brandWeight: 'high',
+        audienceTemperature: 'neutral'
+      }
+    }
+  };
+}
+
+// 브랜드 전략 적용 함수
+function applyBrandStrategy(contentType, originalBrandStrategy, userSettings) {
+  const override = userSettings.contentTypeOverrides?.[contentType];
+  
+  if (override) {
+    return {
+      ...originalBrandStrategy,
+      ...override
+    };
+  }
+  
+  return originalBrandStrategy;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -71,9 +139,24 @@ export default async function handler(req, res) {
   try {
     console.log('🤖 ChatGPT로 스마트 프롬프트 생성 시작...');
     
-    // 콘텐츠 유형 자동 감지
-    const detectedContentType = detectContentType(title, excerpt);
-    console.log(`📝 감지된 콘텐츠 유형: ${detectedContentType}`);
+    // 사용자 설정 조회
+    const userSettings = await getUserSettings();
+    console.log('⚙️ 사용자 설정:', userSettings);
+    
+    // 콘텐츠 유형 결정 (자동 감지 또는 수동 설정)
+    let finalContentType = contentType;
+    if (userSettings.autoDetectContentType) {
+      const detectedContentType = detectContentType(title, excerpt);
+      finalContentType = detectedContentType;
+      console.log(`📝 자동 감지된 콘텐츠 유형: ${detectedContentType}`);
+    } else {
+      finalContentType = userSettings.defaultContentType || contentType;
+      console.log(`📝 사용자 설정 콘텐츠 유형: ${finalContentType}`);
+    }
+    
+    // 브랜드 전략 적용
+    const appliedBrandStrategy = applyBrandStrategy(finalContentType, brandStrategy, userSettings);
+    console.log('🎯 적용된 브랜드 전략:', appliedBrandStrategy);
     
     // ChatGPT에게 프롬프트 생성 요청
     const promptGenerationResponse = await openai.chat.completions.create({
@@ -100,18 +183,18 @@ export default async function handler(req, res) {
           
           프롬프트 작성 규칙:
           1. 요약 내용의 핵심을 시각적으로 표현
-          2. ${detectedContentType === 'restaurant' ? 
+          2. ${finalContentType === 'restaurant' ? 
             '한국인 50-70대가 식당에서 식사하는 모습' :
-            detectedContentType === 'travel' ?
+            finalContentType === 'travel' ?
             '한국인 50-70대가 여행지에서 휴식을 취하는 모습' :
-            detectedContentType === 'shopping' ?
+            finalContentType === 'shopping' ?
             '한국인 50-70대가 제품을 사용하거나 구매하는 모습' :
             '한국인 50-70대 골퍼가 주인공'
           }
-          3. ${detectedContentType === 'golf' ? 'MASSGOO 브랜드 드라이버 포함' : '해당 콘텐츠에 맞는 브랜드 요소 포함'}
-          4. ${detectedContentType === 'restaurant' ? '자연스러운 식당 환경' :
-            detectedContentType === 'travel' ? '자연스러운 여행지 환경' :
-            detectedContentType === 'shopping' ? '자연스러운 사용 환경' :
+          3. ${finalContentType === 'golf' ? 'MASSGOO 브랜드 드라이버 포함' : '해당 콘텐츠에 맞는 브랜드 요소 포함'}
+          4. ${finalContentType === 'restaurant' ? '자연스러운 식당 환경' :
+            finalContentType === 'travel' ? '자연스러운 여행지 환경' :
+            finalContentType === 'shopping' ? '자연스러운 사용 환경' :
             '자연스러운 골프장 환경'
           }
           5. 전문적인 마케팅 이미지 스타일
@@ -119,9 +202,9 @@ export default async function handler(req, res) {
           7. 깔끔하고 전문적인 구성
           8. 다양한 상황과 장면 생성
           9. 다양한 시간대와 환경 활용 (아침, 오후, 실내, 실외 등)
-          10. 다양한 포즈와 행동 (${detectedContentType === 'restaurant' ? '식사, 만족, 후기' :
-            detectedContentType === 'travel' ? '휴식, 관광, 만족' :
-            detectedContentType === 'shopping' ? '사용, 테스트, 만족' :
+          10. 다양한 포즈와 행동 (${finalContentType === 'restaurant' ? '식사, 만족, 후기' :
+            finalContentType === 'travel' ? '휴식, 관광, 만족' :
+            finalContentType === 'shopping' ? '사용, 테스트, 만족' :
             '상담, 테스트, 플레이, 만족'
           })
           
