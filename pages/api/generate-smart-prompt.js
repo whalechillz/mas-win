@@ -2,6 +2,51 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// 콘텐츠 유형 자동 감지 함수
+function detectContentType(title, excerpt) {
+  const content = `${title} ${excerpt || ''}`.toLowerCase();
+  
+  // 식당/음식 관련 키워드
+  const restaurantKeywords = ['식당', '맛집', '음식', '요리', '레스토랑', '카페', '샤브', '뷔페', '한식', '중식', '일식', '양식', '후기', '리뷰'];
+  const restaurantMatches = restaurantKeywords.filter(keyword => content.includes(keyword));
+  
+  // 골프 관련 키워드
+  const golfKeywords = ['골프', '드라이버', '아이언', '퍼터', '골프장', '골프클럽', '비거리', '핸디캡', '골퍼', '라운드'];
+  const golfMatches = golfKeywords.filter(keyword => content.includes(keyword));
+  
+  // 여행/휴양 관련 키워드
+  const travelKeywords = ['여행', '휴양', '관광', '호텔', '펜션', '리조트', '해변', '산', '계곡', '온천'];
+  const travelMatches = travelKeywords.filter(keyword => content.includes(keyword));
+  
+  // 쇼핑/제품 관련 키워드
+  const shoppingKeywords = ['구매', '제품', '상품', '할인', '특가', '리뷰', '사용후기', '성능', '가격'];
+  const shoppingMatches = shoppingKeywords.filter(keyword => content.includes(keyword));
+  
+  // 매칭 점수 계산
+  const scores = {
+    restaurant: restaurantMatches.length,
+    golf: golfMatches.length,
+    travel: travelMatches.length,
+    shopping: shoppingMatches.length
+  };
+  
+  // 가장 높은 점수의 카테고리 반환
+  const maxScore = Math.max(...Object.values(scores));
+  if (maxScore === 0) return 'general'; // 매칭되는 키워드가 없으면 일반
+  
+  const detectedType = Object.keys(scores).find(key => scores[key] === maxScore);
+  
+  console.log(`🔍 콘텐츠 분석 결과:`, {
+    restaurant: restaurantMatches,
+    golf: golfMatches,
+    travel: travelMatches,
+    shopping: shoppingMatches,
+    detectedType
+  });
+  
+  return detectedType;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -25,6 +70,10 @@ export default async function handler(req, res) {
 
   try {
     console.log('🤖 ChatGPT로 스마트 프롬프트 생성 시작...');
+    
+    // 콘텐츠 유형 자동 감지
+    const detectedContentType = detectContentType(title, excerpt);
+    console.log(`📝 감지된 콘텐츠 유형: ${detectedContentType}`);
     
     // ChatGPT에게 프롬프트 생성 요청
     const promptGenerationResponse = await openai.chat.completions.create({
@@ -51,15 +100,30 @@ export default async function handler(req, res) {
           
           프롬프트 작성 규칙:
           1. 요약 내용의 핵심을 시각적으로 표현
-          2. 한국인 50-70대 골퍼가 주인공
-          3. MASSGOO 브랜드 드라이버 포함
-          4. 자연스러운 골프장 환경
+          2. ${detectedContentType === 'restaurant' ? 
+            '한국인 50-70대가 식당에서 식사하는 모습' :
+            detectedContentType === 'travel' ?
+            '한국인 50-70대가 여행지에서 휴식을 취하는 모습' :
+            detectedContentType === 'shopping' ?
+            '한국인 50-70대가 제품을 사용하거나 구매하는 모습' :
+            '한국인 50-70대 골퍼가 주인공'
+          }
+          3. ${detectedContentType === 'golf' ? 'MASSGOO 브랜드 드라이버 포함' : '해당 콘텐츠에 맞는 브랜드 요소 포함'}
+          4. ${detectedContentType === 'restaurant' ? '자연스러운 식당 환경' :
+            detectedContentType === 'travel' ? '자연스러운 여행지 환경' :
+            detectedContentType === 'shopping' ? '자연스러운 사용 환경' :
+            '자연스러운 골프장 환경'
+          }
           5. 전문적인 마케팅 이미지 스타일
           6. 텍스트나 글자는 절대 포함하지 않음
           7. 깔끔하고 전문적인 구성
-          8. 다양한 상황과 장면 생성 (항상 드라이버만 들고 있는 모습 피하기)
+          8. 다양한 상황과 장면 생성
           9. 다양한 시간대와 환경 활용 (아침, 오후, 실내, 실외 등)
-          10. 다양한 포즈와 행동 (상담, 테스트, 플레이, 만족 등)
+          10. 다양한 포즈와 행동 (${detectedContentType === 'restaurant' ? '식사, 만족, 후기' :
+            detectedContentType === 'travel' ? '휴식, 관광, 만족' :
+            detectedContentType === 'shopping' ? '사용, 테스트, 만족' :
+            '상담, 테스트, 플레이, 만족'
+          })
           
           ${model === 'fal' ? 
             `FAL AI용 구체적이고 명확한 프롬프트 규칙:
