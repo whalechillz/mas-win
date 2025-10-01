@@ -3689,35 +3689,126 @@ export default function BlogAdmin() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         변형할 기본 이미지 선택:
                       </label>
-                      <select 
-                        value={selectedBaseImage || ''}
-                        onChange={(e) => setSelectedBaseImage(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                      >
-                        <option value="">기본 이미지 선택...</option>
-                        
+                      
+                      {/* 선택된 이미지 미리보기 */}
+                      {selectedBaseImage && (
+                        <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                          <p className="text-sm font-medium text-gray-700 mb-2">선택된 이미지:</p>
+                          <div className="flex items-center space-x-3">
+                            <img 
+                              src={selectedBaseImage} 
+                              alt="선택된 기본 이미지"
+                              className="w-16 h-16 object-cover rounded border"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                            <div className="hidden w-16 h-16 bg-gray-200 rounded border items-center justify-center">
+                              <span className="text-xs text-gray-500">이미지 로드 실패</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-600 truncate">
+                                {selectedBaseImage.split('/').pop()}
+                              </p>
+                              <button
+                                onClick={() => setSelectedBaseImage('')}
+                                className="text-xs text-red-600 hover:text-red-800 mt-1"
+                              >
+                                선택 해제
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 이미지 썸네일 선택 그리드 */}
+                      <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
                         {/* AI 생성 이미지 */}
                         {generatedImages.length > 0 && (
-                          <optgroup label="🤖 AI 생성 이미지">
-                            {generatedImages.map((img, index) => (
-                              <option key={`ai-${index}`} value={img.url}>
-                                {img.type} - {(img.url || '').split('/').pop()}
-                              </option>
-                            ))}
-                          </optgroup>
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                              🤖 AI 생성 이미지
+                            </h4>
+                            <div className="grid grid-cols-4 gap-2">
+                              {generatedImages.map((img, index) => (
+                                <div
+                                  key={`ai-${index}`}
+                                  onClick={() => setSelectedBaseImage(img.url)}
+                                  className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                                    selectedBaseImage === img.url 
+                                      ? 'border-blue-500 ring-2 ring-blue-200' 
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                >
+                                  <img 
+                                    src={img.url} 
+                                    alt={`AI 생성 이미지 ${index + 1}`}
+                                    className="w-full h-20 object-cover rounded"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
+                                    <span className="text-xs text-gray-500">로드 실패</span>
+                                  </div>
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
+                                    <div className="truncate">{img.type}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
                         
                         {/* 스크래핑 이미지 */}
                         {postImages.length > 0 && (
-                          <optgroup label="📥 스크래핑 이미지">
-                            {postImages.map((img, index) => (
-                              <option key={`scraped-${index}`} value={img.url}>
-                                스크래핑 - {img.filename || (img.url || '').split('/').pop()}
-                              </option>
-                            ))}
-                          </optgroup>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                              📥 스크래핑 이미지
+                            </h4>
+                            <div className="grid grid-cols-4 gap-2">
+                              {postImages.map((img, index) => (
+                                <div
+                                  key={`scraped-${index}`}
+                                  onClick={() => setSelectedBaseImage(img.url)}
+                                  className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                                    selectedBaseImage === img.url 
+                                      ? 'border-blue-500 ring-2 ring-blue-200' 
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                >
+                                  <img 
+                                    src={img.url} 
+                                    alt={`스크래핑 이미지 ${index + 1}`}
+                                    className="w-full h-20 object-cover rounded"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
+                                    <span className="text-xs text-gray-500">로드 실패</span>
+                                  </div>
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
+                                    <div className="truncate">스크래핑</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
-                      </select>
+                        
+                        {/* 이미지가 없는 경우 */}
+                        {generatedImages.length === 0 && postImages.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            <div className="text-4xl mb-2">🖼️</div>
+                            <p className="text-sm">변형할 이미지가 없습니다.</p>
+                            <p className="text-xs mt-1">AI 이미지 생성이나 스크래핑을 먼저 해주세요.</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="mb-3">
