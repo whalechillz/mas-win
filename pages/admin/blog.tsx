@@ -902,7 +902,7 @@ export default function BlogAdmin() {
       
       // 이미지 이름에서 확장자 제거하여 기본 이름 추출
       const baseName = imageName.replace(/\.[^/.]+$/, '');
-      const extension = imageName.split('.').pop();
+      const extension = (imageName || '').split('.').pop() || 'jpg';
       
       // 5개 버전의 파일명 생성
       const versions = [
@@ -964,8 +964,9 @@ export default function BlogAdmin() {
 
   // 이미지 버전 정보 가져오기 함수
   const getImageVersionInfo = (imageName) => {
+    if (!imageName) return '🖼️ 이미지 정보 없음';
     const baseName = imageName.replace(/\.[^/.]+$/, '');
-    const extension = imageName.split('.').pop();
+    const extension = (imageName || '').split('.').pop() || 'jpg';
     
     if (imageName.includes('_thumb.webp')) {
       return '🖼️ WebP 썸네일 (300x300)';
@@ -1291,7 +1292,7 @@ export default function BlogAdmin() {
       if (naverScraperMode === 'blogId' && naverBlogId) {
         requestBody.blogId = naverBlogId;
       } else if (naverScraperMode === 'urls' && naverPostUrls) {
-        const urls = naverPostUrls.split('\n').filter(url => url.trim());
+        const urls = (naverPostUrls || '').split('\n').filter(url => url.trim());
         requestBody.postUrls = urls;
       }
 
@@ -1955,7 +1956,7 @@ export default function BlogAdmin() {
       const base64String = matches[2];
       
       // MIME 타입에서 파일 확장자 추출
-      const extension = mimeType.split('/')[1] || 'jpg';
+      const extension = (mimeType || '').split('/')[1] || 'jpg';
       
       // Base64를 Blob으로 변환
       const byteCharacters = atob(base64String);
@@ -2032,7 +2033,7 @@ export default function BlogAdmin() {
     const imageMarkdown = `\n\n![대표이미지](${formData.featured_image})\n\n`;
     
     const content = formData.content;
-    const lines = content.split('\n');
+    const lines = (content || '').split('\n');
     let insertPosition = 0;
     
     switch (position) {
@@ -2110,7 +2111,7 @@ export default function BlogAdmin() {
       const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
       
       const content = formData.content;
-      const lines = content.split('\n');
+      const lines = (content || '').split('\n');
       let insertPosition = 0;
       
       switch (position) {
@@ -3699,7 +3700,7 @@ export default function BlogAdmin() {
                           <optgroup label="🤖 AI 생성 이미지">
                             {generatedImages.map((img, index) => (
                               <option key={`ai-${index}`} value={img.url}>
-                                {img.type} - {img.url.split('/').pop()}
+                                {img.type} - {(img.url || '').split('/').pop()}
                               </option>
                             ))}
                           </optgroup>
@@ -3710,7 +3711,7 @@ export default function BlogAdmin() {
                           <optgroup label="📥 스크래핑 이미지">
                             {postImages.map((img, index) => (
                               <option key={`scraped-${index}`} value={img.url}>
-                                스크래핑 - {img.filename || img.url.split('/').pop()}
+                                스크래핑 - {img.filename || (img.url || '').split('/').pop()}
                               </option>
                             ))}
                           </optgroup>
@@ -4997,7 +4998,7 @@ export default function BlogAdmin() {
                         value={scraperOptions.allowedExtensions.join(', ')}
                         onChange={(e) => setScraperOptions(prev => ({ 
                           ...prev, 
-                          allowedExtensions: e.target.value.split(',').map(ext => ext.trim().toLowerCase()).filter(Boolean)
+                          allowedExtensions: (e.target.value || '').split(',').map(ext => ext.trim().toLowerCase()).filter(Boolean)
                         }))}
                         placeholder="jpg, png, webp, gif"
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
