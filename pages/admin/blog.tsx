@@ -127,6 +127,11 @@ export default function BlogAdmin() {
     if (!url || typeof url !== 'string') return false;
     return url.startsWith('http') || url.startsWith('/') || url.startsWith('data:');
   };
+
+  // 고급 콘텐츠 분석 관련 상태
+  const [isAnalyzingContent, setIsAnalyzingContent] = useState(false);
+  const [contentAnalysisResult, setContentAnalysisResult] = useState(null);
+  const [showAnalysisResult, setShowAnalysisResult] = useState(false);
   
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -2196,6 +2201,73 @@ export default function BlogAdmin() {
     alert('선택한 제목이 적용되었습니다!');
   };
 
+  // 고급 콘텐츠 분석 함수
+  const analyzeContentAdvanced = async () => {
+    if (!formData.title && !formData.content) {
+      alert('제목이나 내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsAnalyzingContent(true);
+    setContentAnalysisResult(null);
+    setShowAnalysisResult(false);
+
+    try {
+      console.log('🤖 고급 콘텐츠 분석 시작...');
+      
+      // AI 콘텐츠 분석 API 호출
+      const analysisResponse = await fetch('/api/ai-content-analyzer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          excerpt: formData.excerpt,
+          content: formData.content
+        })
+      });
+
+      if (!analysisResponse.ok) {
+        throw new Error('콘텐츠 분석에 실패했습니다.');
+      }
+
+      const analysis = await analysisResponse.json();
+      setContentAnalysisResult(analysis);
+      setShowAnalysisResult(true);
+      
+      console.log('✅ 고급 콘텐츠 분석 완료:', analysis);
+      
+      // 분석 결과에 따라 브랜드 전략 자동 업데이트
+      if (analysis.category && analysis.category !== 'general') {
+        const categoryMap = {
+          'golf': '골프 정보',
+          'restaurant': '식당/음식',
+          'travel': '여행/휴양',
+          'shopping': '쇼핑/제품',
+          'lifestyle': '라이프스타일',
+          'business': '비즈니스',
+          'technology': '기술',
+          'education': '교육',
+          'health': '건강',
+          'entertainment': '엔터테인먼트'
+        };
+        
+        const newContentType = categoryMap[analysis.category] || '일반';
+        setBrandStrategy(prev => ({
+          ...prev,
+          contentType: newContentType
+        }));
+        
+        console.log('🎯 콘텐츠 타입 자동 업데이트:', newContentType);
+      }
+      
+    } catch (error) {
+      console.error('❌ 고급 콘텐츠 분석 오류:', error);
+      alert(`고급 콘텐츠 분석에 실패했습니다: ${error.message}`);
+    } finally {
+      setIsAnalyzingContent(false);
+    }
+  };
+
 
   // ChatGPT로 스마트 프롬프트 미리보기
   const previewImagePrompt = async (model = 'dalle3') => {
@@ -3281,7 +3353,7 @@ export default function BlogAdmin() {
                   </p>
                 </div>
 
-                {/* AI 제목 생성 버튼 */}
+                {/* AI 제목 생성 및 고급 콘텐츠 분석 버튼 */}
                 <div className="flex gap-2 mb-4">
                   <button
                     type="button"
@@ -3297,6 +3369,24 @@ export default function BlogAdmin() {
                     ) : (
                       <>
                         🤖 AI 제목 생성
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={analyzeContentAdvanced}
+                    disabled={isAnalyzingContent}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isAnalyzingContent ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        고급 분석 중...
+                      </>
+                    ) : (
+                      <>
+                        🔍 고급 콘텐츠 분석
                       </>
                     )}
                   </button>
@@ -3335,6 +3425,72 @@ export default function BlogAdmin() {
                         type="button"
                         onClick={() => setShowTitleOptions(false)}
                         className="text-xs text-purple-600 hover:text-purple-800"
+                      >
+                        닫기
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 고급 콘텐츠 분석 결과 */}
+                {showAnalysisResult && contentAnalysisResult && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 mb-3">🔍 고급 콘텐츠 분석 결과</h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <h5 className="text-xs font-medium text-blue-700 mb-2">분류 정보</h5>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-600">카테고리:</span>
+                            <span className="font-medium text-blue-600">{contentAnalysisResult.category}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-600">신뢰도:</span>
+                            <span className="font-medium text-green-600">{(contentAnalysisResult.confidence * 100).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h5 className="text-xs font-medium text-blue-700 mb-2">추출된 키워드</h5>
+                        <div className="flex flex-wrap gap-1">
+                          {contentAnalysisResult.keywords?.map((keyword, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <h5 className="text-xs font-medium text-blue-700 mb-2">분석 추론</h5>
+                      <p className="text-xs text-gray-700 bg-white p-2 rounded border">
+                        {contentAnalysisResult.reasoning}
+                      </p>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <h5 className="text-xs font-medium text-blue-700 mb-2">개선 제안</h5>
+                      <ul className="space-y-1">
+                        {contentAnalysisResult.suggestions?.map((suggestion, index) => (
+                          <li key={index} className="flex items-start text-xs">
+                            <span className="text-green-500 mr-1">•</span>
+                            <span className="text-gray-700">{suggestion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowAnalysisResult(false)}
+                        className="text-xs text-blue-600 hover:text-blue-800"
                       >
                         닫기
                       </button>
