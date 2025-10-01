@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@smithery/mcp-server-filesystem", "/Users/m2/MASLABS/win.masgolf.co.kr"]
+    },
+    "mcp-playwright": {
+      "command": "npx",
+      "args": ["-y", "@smithery/mcp-server-playwright"]
+    }
+  }
+}
