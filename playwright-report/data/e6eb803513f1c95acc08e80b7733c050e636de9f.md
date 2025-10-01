@@ -1,0 +1,311 @@
+# Page snapshot
+
+```yaml
+- text: 🌴 8월 프로모션 선착순 2명만
+- button "×"
+- heading "잠깐! 무료 선물 받고 가세요" [level=2]
+- img "여행용 방수팩"
+- paragraph: 여행용 방수팩
+- paragraph: 전화만 하시면 무료로 보내드려요!
+- link "📞 080-028-8888":
+  - /url: tel:080-028-8888
+- button "괜찮아요"
+- text: 🌴 🌴 🌴 2025 Summer Limited Edition
+- paragraph: 휴가철 골프 휴양지 당신의 완벽한 필수품
+- paragraph: 품격 있는 휴가철 스윙을 완성하세요. 고성능 클럽으로 휴양지에서 빛나는 샷!
+- button "시타 예약하기"
+- button "문의하기"
+- text: 아래로 스크롤 ▼
+- heading "평범했던 그들이 휴가철 영웅이 되다" [level=2]
+- paragraph: MASGOLF와 함께한 기적 같은 변화의 순간들
+- button "김○○님의 변화 스토리 - 클릭하여 뒤집기":
+  - img "김○○님"
+  - heading "김○○님" [level=3]
+  - paragraph: 58세, 서울 · 회사원
+  - img
+  - text: 그때의 나
+  - paragraph:
+    - img
+    - text: "\"동료들과 라운딩 때마다 늘 30m씩 뒤쳐져 창피했어요\""
+  - text: "\"회사 골프 모임에서 항상 비거리 때문에 위축되었죠. 나이 탓이라고 포기하고 있었는데...\" 클릭하세요 뒤집기 4주 후"
+  - heading "\"이제는 제가 팀에서 가장 멀리!\"" [level=3]
+  - text: 180m 이전 비거리 208m 현재 비거리
+  - paragraph: "\"동료들이 다 놀라서 비결을 물어봐요!\""
+- button "이○○님의 변화 스토리 - 클릭하여 뒤집기":
+  - img "이○○님"
+  - heading "이○○님" [level=3]
+  - paragraph: 62세, 부산 · 자영업
+  - text: 그때의 나
+  - paragraph: "\"나이 들수록 비거리가 점점 줄어들어 우울했습니다\""
+  - text: "\"젊은 친구들과 라운딩하면 항상 2-3클럽 더 쓰게 되고, 파4에서도 투온이 힘들었어요...\" 클릭하세요 뒤집기 3주 후"
+  - heading "\"20대 때보다 더 멀리 날아가요!\"" [level=3]
+  - text: +25m 비거리 증가
+  - paragraph: "\"이제 파5 투온도 자신 있습니다!\""
+- button "박○○님의 변화 스토리 - 클릭하여 뒤집기":
+  - img "박○○님"
+  - heading "박○○님" [level=3]
+  - paragraph: 55세, 대전 · 공무원
+  - text: 도전
+  - paragraph: "\"강원도 휴가철 골프 여행에서 인생 베스트 스코어 달성!\""
+  - text: "\"항상 70대 중반에서 머물렀는데, 비거리가 늘어나니 스코어도 자연스럽게...\" 클릭하세요 뒤집기 ⛳ 달성"
+  - heading "파인밸리CC에서 언더파 기록!" [level=3]
+  - text: 72타 이전 스코어 65타 베스트 스코어
+  - paragraph: "\"휴가지에서 동반자들이 제 변화에 깜짝 놀랐어요!\""
+- button "당신도 이들처럼 영웅이 될 수 있습니다 - 클릭하여 뒤집기":
+  - img
+  - heading "당신의 휴가철" [level=3]
+  - paragraph: 새로운 도전의 시작
+  - text: READY
+  - paragraph: "\"당신도 이들처럼 휴가철 골프 영웅이 될 수 있습니다\""
+  - img
+  - text: 지금 이 순간 고민하는 당신 →
+  - img
+  - text: 4주 후 휴가철 영웅
+  - paragraph: "\"이제 결정만 하면 됩니다\""
+  - text: 클릭하세요 뒤집기 당신도 이들처럼
+  - heading "영웅이 될 수 있습니다" [level=3]
+  - text: 92 %
+  - paragraph: 고객 만족도
+  - text: +25 m
+  - paragraph: 평균 비거리 증가
+  - text: 4 주
+  - paragraph: 변화 체감 기간
+  - paragraph:
+    - text: "\"지금 이 순간에도 전국에서"
+    - strong: 3,000명
+    - text: 의 골퍼가 MASGOLF와 함께 새로운 도전을 시작했습니다"
+- button "나도 영웅이 되고 싶다 →":
+  - img
+  - text: 나도 영웅이 되고 싶다 →
+- heading "당신의 휴가철 스윙 스타일은?" [level=2]
+- paragraph: 3가지 질문으로 찾는 나만의 맞춤 클럽
+- heading "Q1. 당신의 스윙 스타일은?" [level=3]
+- text: 
+- heading "안정형" [level=3]
+- paragraph: 일관된 스윙, 정확한 타구
+- text: 
+- heading "파워형" [level=3]
+- paragraph: 강력한 임팩트, 긴 비거리
+- text: 
+- heading "올라운더형" [level=3]
+- paragraph: 균형잡힌 플레이
+- heading "확실한 비거리 증가의 증명" [level=2]
+- paragraph: 당신의 현재 비거리를 입력하세요
+- spinbutton
+- text: 미터
+- button "비교하기"
+- text: SUMMER SPECIAL
+- heading "MASGOLF 블랙 시리즈" [level=2]
+- paragraph: 명품 향수 증정 이벤트
+- img "시크릿웨폰 블랙"
+- heading "시크릿웨폰 블랙" [level=3]
+- paragraph: 최강의 비거리를 위한 프리미엄 드라이버
+- text: 정가 2,200,000원 특가 1,700,000원 할인율 23% OFF
+- list:
+  - listitem: ✓ 일본 JFE & DAIDO 5등급 티타늄 (2.2mm)
+  - listitem: ✓ 초고반발 계수 0.87 달성
+  - listitem: ✓ MASGOLF 독점 NGS 샤프트 (도레이 원사)
+  - listitem: ✓ 평균 비거리 25m 증가 보장
+- text: 🎁 구매 특전
+- img "블루 드 샤넬"
+- heading "블루 드 샤넬" [level=4]
+- paragraph: 오 드 뚜왈렛 100ml
+- paragraph: 무료 증정 (20만원 상당)
+- text: 총 가치 2,383,000원 특별가 1,700,000원 🏆 잔여 2명
+- img "시크릿포스 PRO3"
+- heading "시크릿포스 PRO3" [level=3]
+- paragraph: 정확도와 비거리의 완벽한 조화
+- text: 정가 1,400,000원 특가 1,150,000원 할인율 18% OFF
+- list:
+  - listitem: ✓ 3세대 AI 설계 기술 (2.3mm)
+  - listitem: ✓ 최적화된 무게 배분
+  - listitem: ✓ 안정적인 탄도 구현
+  - listitem: ✓ 중상급 골퍼 최적화
+- text: 🎁 구매 특전
+- img "디올 소바쥬"
+- heading "디올 소바쥬" [level=4]
+- paragraph: 오 드 뚜왈렛 60ml
+- paragraph: 무료 증정 (15만원 상당)
+- text: 총 가치 1,536,000원 특별가 1,150,000원 ⚡
+- img "시크릿포스 V3"
+- heading "시크릿포스 V3" [level=3]
+- paragraph: 40-50대를 위한 올라운드 드라이버
+- text: 정가 1,200,000원 특가 950,000원 할인율 21% OFF
+- list:
+  - listitem: ✓ 크랙 걱정없는 강화 티타늄 페이스
+  - listitem: ✓ 부드러운 임팩트감
+  - listitem: ✓ 안정적인 스윙 밸런스
+  - listitem: ✓ 최적화된 탄도로 비거리 극대화
+- text: 🎁 구매 특전
+- img "디올 소바쥬"
+- heading "디올 소바쥬" [level=4]
+- paragraph: 오 드 뚜왈렛 60ml
+- paragraph: 무료 증정 (15만원 상당)
+- text: 총 가치 1,336,000원 특별가 950,000원 🎯 ⚡
+- heading "초박형 페이스" [level=3]
+- paragraph: 최첨단 기술로 제작된 초박형 페이스로 폭발적인 반발력
+- text: 🎯
+- heading "반발계수 0.87" [level=3]
+- paragraph: 규정 한계치에 근접한 반발계수로 최대 비거리 실현
+- text: 🏆
+- heading "독점 개발 샤프트" [level=3]
+- paragraph: 한국인 체형에 최적화된 독점 개발 샤프트
+- text: 🌐
+- heading "일본 프리미엄 소재" [level=3]
+- paragraph: JFE & DAIDO 5등급 티타늄 사용
+- text: 🔍
+- heading "개인 맞춤 피팅" [level=3]
+- paragraph: 3,000명 이상의 맞춤 피팅 노하우
+- text: 🚚
+- heading "전국 당일 배송" [level=3]
+- paragraph: 24시간 내 발송 평균 1일 이내 배송 완료
+- heading "🔬 비거리 증가의 비밀" [level=2]
+- table:
+  - rowgroup:
+    - row "페이스 두께 반발계수 비거리 증가 추천 대상":
+      - cell "페이스 두께"
+      - cell "반발계수"
+      - cell "비거리 증가"
+      - cell "추천 대상"
+  - rowgroup:
+    - row "2.2mm 0.87 +25m 최강 비거리 희망자":
+      - cell "2.2mm"
+      - cell "0.87"
+      - cell "+25m"
+      - cell "최강 비거리 희망자"
+    - row "2.3mm 0.86 +20m 중상급 골퍼":
+      - cell "2.3mm"
+      - cell "0.86"
+      - cell "+20m"
+      - cell "중상급 골퍼"
+    - row "2.4mm 0.85 +15m 안정성 중시자":
+      - cell "2.4mm"
+      - cell "0.85"
+      - cell "+15m"
+      - cell "안정성 중시자"
+- paragraph: "* 매장 방문 고객 90% 이상 구매율 | 10년 샤프트 교환 옵션 제공"
+- heading "확실한 데이터로 증명하는 MASGOLF의 기술력" [level=2]
+- text: "4.6"
+- heading "고객 만족도" [level=3]
+- paragraph: 실사용 후기 기준
+- text: ★ ★ ★ ★ ★
+- paragraph: 평균 4.6/5.0
+- text: 90%
+- heading "매장 방문 구매율" [level=3]
+- paragraph: 시타 후 구매 비율
+- text: 🏌️‍♂️
+- paragraph: 시타 만족도 최고
+- text: 10K+
+- heading "누적 판매 수량" [level=3]
+- paragraph: 2003년부터 현재까지
+- text: 🏆 2012 대상 수상
+- paragraph: 대한민국 골프산업 대상
+- heading "페이스 두께별 비거리 증가 데이터" [level=3]
+- table:
+  - rowgroup:
+    - row "Face 두께 반발계수 비거리 증가 제품":
+      - cell "Face 두께"
+      - cell "반발계수"
+      - cell "비거리 증가"
+      - cell "제품"
+  - rowgroup:
+    - row "2.2mm 0.87 +25m 시크릿웨폰 블랙":
+      - cell "2.2mm"
+      - cell "0.87"
+      - cell "+25m"
+      - cell "시크릿웨폰 블랙"
+    - row "2.3mm 0.86 +20m 시크릿포스 PRO3":
+      - cell "2.3mm"
+      - cell "0.86"
+      - cell "+20m"
+      - cell "시크릿포스 PRO3"
+    - row "2.4mm 0.85 +15m 시크릿포스 V3":
+      - cell "2.4mm"
+      - cell "0.85"
+      - cell "+15m"
+      - cell "시크릿포스 V3"
+- heading "핵심 기술 사양" [level=3]
+- list:
+  - listitem: ✓ 일본 JFE & DAIDO 5등급(GRADE 5) 티타늄 사용
+  - listitem: ✓ MASGOLF 독점 NGS 샤프트 (도레이 원사, 리테일가 16만엔)
+  - listitem: ✓ 3,000명 이상 맞춤 피팅 상담 데이터 기반 설계
+  - listitem: ✓ 평균 변화 체감 기간 4주 내 효과
+- text: 20명 보는 중 BRAND STORY
+- heading "20년 연속 비거리 1위 MASGOLF의 독보적 기술력" [level=2]
+- paragraph: 💥 "PGA 투어 프로들이 극찬한 '비거리 혁명' 단 4주면 당신도 +25m 보장!"
+- paragraph:
+  - strong: 2003년부터 21년간
+  - text: 3,000명이 증명한 압도적 성능 2003년 마쓰구(MASSGOO)로 시작해 2009년 MASGOLF로 진화한 대한민국 대표 골프 클럽 브랜드
+- text: 🏆
+- heading "2011년 중소기업 브랜드 대상" [level=4]
+- paragraph: 한경닷컴 주관
+- text: 🥇
+- heading "2012년 대한민국 골프산업 대상" [level=4]
+- paragraph: 골프용품(산업) 부문
+- text: ⭐
+- heading "2025년 고객만족도 압도적 1위" [level=4]
+- paragraph: 재구매율 92%
+- text: 10,000+
+- paragraph: 완판 신화
+- text: 3,000+
+- paragraph: 감동 후기
+- text: 20년
+- paragraph: 독점 기술
+- text: 국가 공인 피팅 KGFA / KGA 신속 배송 24시간 내 발송 평균 1일 이내 배송 완료
+- heading "⚠️ 이대로 계속 뒤쳐지시겠습니까?" [level=3]
+- paragraph: 지금 행동하지 않으면, 다음 휴가철에도 같은 고민을 하실 겁니다.
+- paragraph: ⏰ 8월 프로모션 2명만 남았습니다!
+- link "지금 변화 시작하기":
+  - /url: tel:080-028-8888
+- link "무료 시타 예약":
+  - /url: "#"
+- heading "8월 한정 증정품 한눈에 보기" [level=2]
+- heading "전화상담만 해도" [level=3]
+- img "여행용 방수팩"
+- paragraph: 여행용 방수팩 증정
+- paragraph: 휴가철 필수 아이템
+- heading "시크릿포스 V3 / PRO3 구매 시" [level=3]
+- img "디올 소바쥬"
+- paragraph: 디올 소바쥬 60ml
+- paragraph: 15만원 상당
+- text: VIP
+- heading "시크릿웨폰 블랙 구매 시" [level=3]
+- img "블루 드 샤넬"
+- paragraph: 블루 드 샤넬 100ml
+- paragraph: 20만원 상당
+- paragraph:
+  - strong: 선착순 2명만!
+  - text: 서두르세요
+- link "지금 전화하기":
+  - /url: tel:080-028-8888
+- link "시타 예약하기":
+  - /url: "#"
+- text: FAQ
+- heading "자주 묻는 질문" [level=2]
+- paragraph: 궁금하신 점을 빠르게 해결해 드립니다
+- text: Q 휴가 전 시타를 예약하고 싶어요 ▼ Q 여행용 방수팩은 어떻게 받을 수 있나요? ▼ Q 어떻게 비거리가 더 나올 수 있는거죠? ▼ Q 50-60대에게도 효과가 있나요? ▼ Q AS와 품질 보증은 어떻게 되나요? ▼ 🎁 지금 전화하면 무료선물 즉시발송 🛡️
+- heading "2년 무상 AS" [level=3]
+- paragraph: 전국 서비스 네트워크
+- text: 🔄
+- heading "10년 샤프트 교환" [level=3]
+- paragraph: 스윙 변화에 따른 무료 교체
+- text: 🚚
+- heading "당일 배송" [level=3]
+- paragraph: 다마스 퀵서비스 2시간 내
+- text: 🎯
+- heading "맞춤 피팅 보장" [level=3]
+- paragraph: 전문 피팅으로 최적 성능 보장
+- contentinfo:
+  - heading "MASGOLF" [level=3]
+  - paragraph: 20년 전통의 기술력으로 만든 프리미엄 골프 클럽
+  - link "📞 080-028-8888":
+    - /url: tel:080-028-8888
+  - text: "|"
+  - link "💬 카카오톡 채널":
+    - /url: https://pf.kakao.com/_vSVuV
+  - text: "|"
+  - link "🏪 매장 위치":
+    - /url: https://www.mas9golf.com/contact
+  - paragraph: "사업자명: MASGOLF® | 대표자명: 김탁수 사업자등록번호: 877-07-00641 통신판매업신고번호: 제 2017-수원영통-0623호 주소: 수원시 영통구 법조로 149번길 200 상표권 등록일: 2003-07-31 개인정보보호 책임자: 이은정(hello@masgolf.co.kr) 고객센터: 080-028-8888 (무료)"
+  - paragraph: © 2025 MASGOLF. All rights reserved.
+```

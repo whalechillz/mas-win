@@ -64,8 +64,8 @@ export default async function handler(req, res) {
     console.log('✅ ChatGPT 변형 프롬프트 생성 완료');
     console.log('생성된 프롬프트:', variationPrompt);
 
-    // FAL AI 일반 이미지 생성 API 호출 (Image-to-Image 대신)
-    const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
+    // FAL AI Image-to-Image 변형 API 호출
+    const falResponse = await fetch('https://queue.fal.run/fal-ai/flux-schnell', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
@@ -73,8 +73,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         prompt: variationPrompt,
+        image_url: baseImageUrl,
         num_inference_steps: 4,
         guidance_scale: 1,
+        strength: variationStrength,
         num_images: variationCount,
         enable_safety_checker: true
       })
