@@ -11,6 +11,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    // FAL AI API 키 확인
+    if (!process.env.FAL_KEY) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'FAL AI API 키가 설정되지 않았습니다. 환경 변수 FAL_KEY를 확인해주세요.' 
+      });
+    }
+
     const { 
       title, 
       excerpt, 
