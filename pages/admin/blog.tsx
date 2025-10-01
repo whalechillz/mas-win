@@ -1620,30 +1620,43 @@ export default function BlogAdmin() {
 
   // AI 슬러그 생성
   const generateAISlug = async () => {
+    console.log('🔗 AI 슬러그 생성 버튼 클릭됨');
+    
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
       return;
     }
 
+    console.log('📝 제목:', formData.title);
+
     try {
+      console.log('🌐 API 호출 시작...');
       const response = await fetch('/api/generate-slug', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: formData.title })
       });
 
+      console.log('📡 API 응답 상태:', response.status);
+
       if (response.ok) {
-        const { slug } = await response.json();
+        const result = await response.json();
+        console.log('✅ API 응답 데이터:', result);
+        
+        const { slug } = result;
         setFormData({
           ...formData,
           slug
         });
+        console.log('✅ 슬러그 업데이트 완료:', slug);
       } else {
-        console.error('AI 슬러그 생성 실패');
+        const errorText = await response.text();
+        console.error('❌ AI 슬러그 생성 실패:', response.status, errorText);
+        alert(`AI 슬러그 생성 실패: ${response.status}`);
       }
     } catch (error) {
-      console.error('AI 슬러그 생성 에러:', error);
-      alert('AI 슬러그 생성 중 오류가 발생했습니다.');
+      console.error('❌ AI 슬러그 생성 에러:', error);
+      alert(`AI 슬러그 생성 중 오류가 발생했습니다: ${error.message}`);
     }
   };
 
