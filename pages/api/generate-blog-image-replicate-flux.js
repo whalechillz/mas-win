@@ -38,7 +38,13 @@ export default async function handler(req, res) {
 
     // ChatGPT로 변형 프롬프트 생성
     console.log('🤖 ChatGPT로 변형 프롬프트 생성 시작...');
-    const promptResponse = await fetch('/api/generate-smart-prompt', {
+    
+    // 절대 URL 생성
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+    
+    const promptResponse = await fetch(`${baseUrl}/api/generate-smart-prompt`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -173,7 +179,7 @@ export default async function handler(req, res) {
 
     // AI 사용량 추적
     try {
-      await fetch('/api/admin/ai-stats', {
+      await fetch(`${baseUrl}/api/admin/ai-stats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,7 +211,7 @@ export default async function handler(req, res) {
     
     // AI 사용량 추적 (실패)
     try {
-      await fetch('/api/admin/ai-stats', {
+      await fetch(`${baseUrl}/api/admin/ai-stats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
