@@ -156,7 +156,7 @@ export default function BlogAdmin() {
   // URL 파라미터 처리 (편집 모드)
   useEffect(() => {
     if (router.isReady && router.query.edit) {
-      const postId = router.query.edit;
+      const postId = Array.isArray(router.query.edit) ? router.query.edit[0] : router.query.edit;
       console.log('편집 모드로 전환:', postId);
       
       // 포스트 데이터 로드
@@ -617,10 +617,11 @@ export default function BlogAdmin() {
 
   // 체크박스 선택/해제
   const handlePostSelect = (postId) => {
+    const id = Array.isArray(postId) ? postId[0] : postId;
     setSelectedPosts(prev => 
-      prev.includes(postId) 
-        ? prev.filter(id => id !== postId)
-        : [...prev, postId]
+      prev.includes(id) 
+        ? prev.filter(selectedId => selectedId !== id)
+        : [...prev, id]
     );
   };
 
