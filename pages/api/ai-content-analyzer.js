@@ -96,7 +96,12 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      analysis: analysisResult,
+      category: analysisResult.category,
+      confidence: analysisResult.confidence,
+      keywords: analysisResult.keywords,
+      reasoning: analysisResult.reasoning,
+      suggestions: analysisResult.suggestions,
+      message: `콘텐츠가 '${analysisResult.category}' 카테고리로 분류되었습니다.`,
       timestamp: new Date().toISOString()
     });
 
