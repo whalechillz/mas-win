@@ -10,6 +10,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    // OpenAI API 키 확인
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ OpenAI API 키가 설정되지 않았습니다.');
+      return res.status(500).json({ 
+        message: 'OpenAI API 키가 설정되지 않았습니다.',
+        error: 'OPENAI_API_KEY environment variable is missing'
+      });
+    }
+
     const { contentSource, contentType, customerPersona, customerChannel, brandWeight } = req.body;
 
     if (!contentSource || !contentSource.trim()) {
@@ -59,6 +68,9 @@ ${contentSource}
 
 위 정보를 바탕으로 SEO 최적화되고 후킹력 있는 블로그 제목 5개를 생성해주세요.`;
 
+    console.log('🔑 OpenAI API 키 확인:', process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음');
+    console.log('📝 프롬프트 길이:', systemPrompt.length + userPrompt.length);
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -105,10 +117,31 @@ ${contentSource}
     });
 
   } catch (error) {
-    console.error('AI 제목 생성 오류:', error);
+    console.error('❌ AI 제목 생성 오류:', error);
+    console.error('❌ 오류 스택:', error.stack);
+    
+    // OpenAI API 오류인 경우 더 자세한 정보 제공
+    if (error.message.includes('API key') || error.message.includes('authentication')) {
+      return res.status(500).json({ 
+        message: 'OpenAI API 인증 오류입니다. API 키를 확인해주세요.',
+        error: error.message,
+        type: 'authentication_error'
+      });
+    }
+    
+    // 네트워크 오류인 경우
+    if (error.message.includes('fetch') || error.message.includes('network')) {
+      return res.status(500).json({ 
+        message: '네트워크 오류입니다. 잠시 후 다시 시도해주세요.',
+        error: error.message,
+        type: 'network_error'
+      });
+    }
+    
     res.status(500).json({ 
       message: 'AI 제목 생성에 실패했습니다.',
-      error: error.message 
+      error: error.message,
+      type: 'unknown_error'
     });
   }
 }
