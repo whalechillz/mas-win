@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS advanced_presets (
   mood TEXT CHECK (mood IN ('professional', 'casual', 'elegant', 'cozy', 'energetic')),
   lighting TEXT CHECK (lighting IN ('natural', 'warm', 'cool', 'dramatic', 'soft', 'bright')),
   color_scheme TEXT CHECK (color_scheme IN ('warm', 'cool', 'neutral', 'vibrant')),
-  style TEXT CHECK (style IN ('modern', 'classic', 'minimalist', 'luxurious', 'casual')),
+  style TEXT CHECK (style IN ('modern', 'classic', 'minimalist', 'luxurious', 'casual', 'professional')),
   brand_strategy JSONB NOT NULL,
   ai_settings JSONB NOT NULL,
   is_default BOOLEAN DEFAULT false,
