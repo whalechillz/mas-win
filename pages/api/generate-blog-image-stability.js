@@ -11,6 +11,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Stability AI API 키 확인
+    if (!process.env.STABILITY_API_KEY) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Stability AI API 키가 설정되지 않았습니다. 환경 변수 STABILITY_API_KEY를 확인해주세요.' 
+      });
+    }
+
     const { 
       title, 
       excerpt, 

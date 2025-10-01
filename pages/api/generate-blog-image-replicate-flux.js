@@ -11,6 +11,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Replicate API 키 확인
+    if (!process.env.REPLICATE_API_TOKEN) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Replicate API 키가 설정되지 않았습니다. 환경 변수 REPLICATE_API_TOKEN을 확인해주세요.' 
+      });
+    }
+
     const { 
       title, 
       excerpt, 
