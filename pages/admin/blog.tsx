@@ -3218,6 +3218,41 @@ export default function BlogAdmin() {
                   </p>
                 </div>
               )}
+
+              {/* OpenAI 크레딧 부족 알림 */}
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      ⚠️ OpenAI 크레딧 부족
+                    </h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>AI 슬러그 생성 및 이미지 프롬프트 기능을 사용하려면 OpenAI 크레딧이 필요합니다.</p>
+                      <div className="mt-3 flex space-x-3">
+                        <a
+                          href="https://platform.openai.com/account/billing"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          💳 크레딧 충전하기
+                        </a>
+                        <a
+                          href="/admin/ai-dashboard"
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          📊 AI 대시보드
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -3374,10 +3409,13 @@ export default function BlogAdmin() {
                     <button
                       type="button"
                       onClick={generateAISlug}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                      title="AI로 SEO 최적화된 슬러그 생성"
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm relative"
+                      title="AI로 SEO 최적화된 슬러그 생성 (OpenAI 크레딧 필요)"
                     >
                       🤖 AI
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center" title="OpenAI 크레딧 부족">
+                        !
+                      </span>
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
@@ -3510,23 +3548,35 @@ export default function BlogAdmin() {
                     <button 
                       type="button"
                       onClick={() => previewImagePrompt('dalle3')} 
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs relative"
+                      title="OpenAI 크레딧 필요"
                     >
                       🤖 ChatGPT + DALL-E 3 프롬프트 미리보기
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="OpenAI 크레딧 부족">
+                        !
+                      </span>
                     </button>
                     <button 
                       type="button"
                       onClick={() => previewImagePrompt('fal')} 
-                      className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-xs"
+                      className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-xs relative"
+                      title="OpenAI 크레딧 필요"
                     >
                       🤖 ChatGPT + FAL AI 프롬프트 미리보기
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="OpenAI 크레딧 부족">
+                        !
+                      </span>
                     </button>
         <button 
           type="button"
           onClick={() => previewImagePrompt('kie')} 
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs relative"
+          title="OpenAI 크레딧 필요"
         >
           🤖 ChatGPT + Kie AI 프롬프트 미리보기
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="OpenAI 크레딧 부족">
+            !
+          </span>
         </button>
                   </div>
 
