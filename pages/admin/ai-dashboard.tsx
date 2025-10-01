@@ -116,163 +116,159 @@ export default function AIDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">AI & 블로그 대시보드</h1>
             <p className="text-gray-600 mt-2">AI 사용량과 블로그 성과를 한눈에 확인하세요</p>
             
-            {/* AI 서비스 크레딧 알림 */}
-            <div className="mt-6 space-y-4">
+            {/* AI 서비스 크레딧 알림 - 작은 카드 형식 */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* OpenAI 상태 */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-green-800">
-                      ✅ OpenAI 정상 작동
-                    </h3>
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>슬러그 생성, 이미지 프롬프트 생성, DALL-E 3 이미지 생성이 가능합니다.</p>
-                      <div className="mt-3">
-                        <a
-                          href="https://platform.openai.com/account/billing"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
-                          💳 OpenAI 관리
-                        </a>
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">O</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          ✅ OpenAI
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          슬러그, DALL-E 3
+                        </p>
                       </div>
                     </div>
+                    <a
+                      href="https://platform.openai.com/account/billing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                    >
+                      💳 관리
+                    </a>
                   </div>
                 </div>
               </div>
 
               {/* FAL AI 상태 */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-green-800">
-                      ✅ FAL AI 정상 작동
-                    </h3>
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>고품질 실사 이미지 생성 및 이미지 변형이 가능합니다.</p>
-                      <div className="mt-3">
-                        <a
-                          href="https://fal.ai/dashboard"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
-                          💳 FAL AI 관리
-                        </a>
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">F</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          ✅ FAL AI
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          고품질 이미지 생성
+                        </p>
                       </div>
                     </div>
+                    <a
+                      href="https://fal.ai/dashboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-orange-600 hover:bg-orange-700"
+                    >
+                      💳 관리
+                    </a>
                   </div>
                 </div>
               </div>
 
-              {/* Kie AI 크레딧 알림 */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-green-800">
-                      ✅ Kie AI 정상 작동
-                    </h3>
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>GPT-4O, Flux Kontext, Midjourney 이미지 생성이 가능합니다.</p>
-                      <div className="mt-3">
-                        <a
-                          href="https://kie.ai/dashboard"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
-                          💳 Kie AI 관리
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Replicate Flux */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
+              {/* Kie AI 상태 */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">K</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          ✅ Kie AI
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          GPT-4O, Flux, Midjourney
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href="https://kie.ai/dashboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      💳 관리
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Replicate Flux */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
                           <span className="text-white text-sm font-bold">R</span>
                         </div>
                       </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">
-                            🎨 Replicate Flux
-                          </dt>
-                          <dd className="text-lg font-medium text-gray-900">
-                            고품질 이미지 변형
-                          </dd>
-                          <dd className="text-sm text-gray-500">
-                            중간 속도, 중간 비용
-                          </dd>
-                        </dl>
-                      </div>
-                      <div className="ml-5 flex-shrink-0">
-                        <a
-                          href="https://replicate.com/account"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                        >
-                          💳 Replicate 충전하기
-                        </a>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          🎨 Replicate Flux
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          고품질 이미지 변형
+                        </p>
                       </div>
                     </div>
+                    <a
+                      href="https://replicate.com/account"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700"
+                    >
+                      💳 충전하기
+                    </a>
                   </div>
                 </div>
+              </div>
 
-                {/* Stability AI */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
+              {/* Stability AI */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
                           <span className="text-white text-sm font-bold">S</span>
                         </div>
                       </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">
-                            🎨 Stability AI
-                          </dt>
-                          <dd className="text-lg font-medium text-gray-900">
-                            안정적 이미지 변형
-                          </dd>
-                          <dd className="text-sm text-gray-500">
-                            느림, 저비용
-                          </dd>
-                        </dl>
-                      </div>
-                      <div className="ml-5 flex-shrink-0">
-                        <a
-                          href="https://platform.stability.ai/account"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          💳 Stability AI 충전하기
-                        </a>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          🎨 Stability AI
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          안정적 이미지 변형
+                        </p>
                       </div>
                     </div>
+                    <a
+                      href="https://platform.stability.ai/account"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      💳 충전하기
+                    </a>
                   </div>
                 </div>
               </div>
