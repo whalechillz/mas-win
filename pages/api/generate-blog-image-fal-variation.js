@@ -12,10 +12,10 @@ export default async function handler(req, res) {
 
   try {
     // FAL AI API 키 확인
-    if (!process.env.FAL_KEY) {
+    if (!process.env.FAL_KEY && !process.env.FAL_API_KEY) {
       return res.status(400).json({ 
         success: false, 
-        error: 'FAL AI API 키가 설정되지 않았습니다. 환경 변수 FAL_KEY를 확인해주세요.' 
+        error: 'FAL AI API 키가 설정되지 않았습니다. 환경 변수 FAL_KEY 또는 FAL_API_KEY를 확인해주세요.' 
       });
     }
 
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     const falResponse = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${process.env.FAL_KEY}`,
+        'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
