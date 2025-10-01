@@ -3652,11 +3652,28 @@ export default function BlogAdmin() {
                         className="w-full p-2 border border-gray-300 rounded text-sm"
                       >
                         <option value="">기본 이미지 선택...</option>
-                        {generatedImages.map((img, index) => (
-                          <option key={index} value={img.url}>
-                            {img.type} - {img.url.split('/').pop()}
-                          </option>
-                        ))}
+                        
+                        {/* AI 생성 이미지 */}
+                        {generatedImages.length > 0 && (
+                          <optgroup label="🤖 AI 생성 이미지">
+                            {generatedImages.map((img, index) => (
+                              <option key={`ai-${index}`} value={img.url}>
+                                {img.type} - {img.url.split('/').pop()}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        
+                        {/* 스크래핑 이미지 */}
+                        {postImages.length > 0 && (
+                          <optgroup label="📥 스크래핑 이미지">
+                            {postImages.map((img, index) => (
+                              <option key={`scraped-${index}`} value={img.url}>
+                                스크래핑 - {img.filename || img.url.split('/').pop()}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
 
@@ -3707,6 +3724,7 @@ export default function BlogAdmin() {
                     </div>
 
                     <p className="text-xs text-gray-600 mt-2">
+                      <span className="text-purple-600 font-medium">📥 AI 생성 이미지 + 스크래핑 이미지 모두 변형 가능</span><br/>
                       <span className="text-orange-600 font-medium">🎨 FAL AI: 실사 스타일 변형 (빠름, 저비용)</span><br/>
                       <span className="text-blue-600 font-medium">🎨 Replicate Flux: 고품질 변형 (중간 속도, 중간 비용)</span><br/>
                       <span className="text-green-600 font-medium">🎨 Stability AI: 안정적 변형 (느림, 저비용)</span>
