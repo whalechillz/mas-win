@@ -121,6 +121,12 @@ export default function BlogAdmin() {
   const [selectedBaseImage, setSelectedBaseImage] = useState(''); // 변형할 기본 이미지
   const [variationStrength, setVariationStrength] = useState(0.7); // 변형 강도
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false); // 변형 생성 중
+
+  // 이미지 URL 유효성 검사 함수
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    return url.startsWith('http') || url.startsWith('/') || url.startsWith('data:');
+  };
   
   const [editingPost, setEditingPost] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -3725,13 +3731,13 @@ export default function BlogAdmin() {
                       {/* 이미지 썸네일 선택 그리드 */}
                       <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
                         {/* AI 생성 이미지 */}
-                        {generatedImages.length > 0 && (
+                        {generatedImages.filter(img => isValidImageUrl(img.url)).length > 0 && (
                           <div className="mb-4">
                             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              🤖 AI 생성 이미지
+                              🤖 AI 생성 이미지 ({generatedImages.filter(img => isValidImageUrl(img.url)).length}개)
                             </h4>
                             <div className="grid grid-cols-4 gap-2">
-                              {generatedImages.map((img, index) => (
+                              {generatedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
                                 <div
                                   key={`ai-${index}`}
                                   onClick={() => setSelectedBaseImage(img.url)}
@@ -3746,8 +3752,12 @@ export default function BlogAdmin() {
                                     alt={`AI 생성 이미지 ${index + 1}`}
                                     className="w-full h-20 object-cover rounded"
                                     onError={(e) => {
+                                      console.error('이미지 로드 실패:', img.url);
                                       e.target.style.display = 'none';
                                       e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                    onLoad={() => {
+                                      console.log('이미지 로드 성공:', img.url);
                                     }}
                                   />
                                   <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
@@ -3763,13 +3773,13 @@ export default function BlogAdmin() {
                         )}
                         
                         {/* 스크래핑 이미지 */}
-                        {postImages.length > 0 && (
+                        {postImages.filter(img => isValidImageUrl(img.url)).length > 0 && (
                           <div>
                             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              📥 스크래핑 이미지
+                              📥 스크래핑 이미지 ({postImages.filter(img => isValidImageUrl(img.url)).length}개)
                             </h4>
                             <div className="grid grid-cols-4 gap-2">
-                              {postImages.map((img, index) => (
+                              {postImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
                                 <div
                                   key={`scraped-${index}`}
                                   onClick={() => setSelectedBaseImage(img.url)}
@@ -3784,8 +3794,12 @@ export default function BlogAdmin() {
                                     alt={`스크래핑 이미지 ${index + 1}`}
                                     className="w-full h-20 object-cover rounded"
                                     onError={(e) => {
+                                      console.error('스크래핑 이미지 로드 실패:', img.url);
                                       e.target.style.display = 'none';
                                       e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                    onLoad={() => {
+                                      console.log('스크래핑 이미지 로드 성공:', img.url);
                                     }}
                                   />
                                   <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
@@ -3801,7 +3815,7 @@ export default function BlogAdmin() {
                         )}
                         
                         {/* 이미지가 없는 경우 */}
-                        {generatedImages.length === 0 && postImages.length === 0 && (
+                        {generatedImages.filter(img => isValidImageUrl(img.url)).length === 0 && postImages.filter(img => isValidImageUrl(img.url)).length === 0 && (
                           <div className="text-center py-8 text-gray-500">
                             <div className="text-4xl mb-2">🖼️</div>
                             <p className="text-sm">변형할 이미지가 없습니다.</p>
