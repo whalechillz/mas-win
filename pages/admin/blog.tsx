@@ -1572,7 +1572,7 @@ export default function BlogAdmin() {
   };
 
   // 이미지 삭제 (게시물 이미지 갤러리용) - Supabase에서 완전 삭제
-  const deleteImage = async (imageName) => {
+  const deleteImageByName = async (imageName) => {
     if (!confirm(`정말로 "${imageName}" 이미지를 Supabase에서 완전히 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`)) {
       return;
     }
@@ -4921,7 +4921,7 @@ export default function BlogAdmin() {
                                     </span>
                                   )}
                                   <button
-                                    onClick={() => deleteImage(image.name)}
+                                    onClick={() => deleteImageByName(image.name)}
                                     className="w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
                                   >
                                     ×
