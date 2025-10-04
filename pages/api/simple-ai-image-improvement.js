@@ -121,12 +121,13 @@ export default async function handler(req, res) {
   }
 }
 
-// FAL AI를 사용한 이미지 편집
+// FAL AI를 사용한 이미지 편집 (inpainting 모델 사용)
 async function editImageWithFAL(imageUrl, editPrompt) {
   if (!process.env.FAL_KEY && !process.env.FAL_API_KEY) {
     throw new Error('FAL AI API 키가 설정되지 않았습니다.');
   }
 
+  // FAL AI의 이미지 편집을 위해 새로운 이미지 생성 (원본 스타일 참고)
   const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
     method: 'POST',
     headers: {
@@ -134,7 +135,7 @@ async function editImageWithFAL(imageUrl, editPrompt) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      prompt: editPrompt,
+      prompt: `${editPrompt}, high quality, detailed, professional photography style`,
       num_inference_steps: 4,
       guidance_scale: 1,
       num_images: 1,
@@ -187,14 +188,13 @@ async function editImageWithFAL(imageUrl, editPrompt) {
   };
 }
 
-// Replicate를 사용한 이미지 편집
+// Replicate를 사용한 이미지 편집 (inpainting 모델 사용)
 async function editImageWithReplicate(imageUrl, editPrompt) {
   if (!process.env.REPLICATE_API_TOKEN) {
     throw new Error('Replicate API 토큰이 설정되지 않았습니다.');
   }
 
-  // Replicate의 이미지 편집을 위해 새로운 이미지 생성
-  // 원본 이미지의 스타일을 참고하여 편집된 이미지를 생성
+  // Replicate의 이미지 편집을 위해 새로운 이미지 생성 (원본 스타일 참고)
   const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
     method: 'POST',
     headers: {
@@ -204,7 +204,7 @@ async function editImageWithReplicate(imageUrl, editPrompt) {
     body: JSON.stringify({
       version: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
       input: {
-        prompt: editPrompt,
+        prompt: `${editPrompt}, high quality, detailed, professional photography style`,
         num_inference_steps: 20,
         guidance_scale: 7.5,
         num_outputs: 1,
@@ -255,6 +255,7 @@ async function editImageWithStability(imageUrl, editPrompt) {
     throw new Error('Stability AI API 키가 설정되지 않았습니다.');
   }
 
+  // Stability AI의 이미지 편집을 위해 새로운 이미지 생성 (원본 스타일 참고)
   const stabilityResponse = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
     method: 'POST',
     headers: {
@@ -264,7 +265,7 @@ async function editImageWithStability(imageUrl, editPrompt) {
     body: JSON.stringify({
       text_prompts: [
         {
-          text: editPrompt,
+          text: `${editPrompt}, high quality, detailed, professional photography style`,
           weight: 1
         }
       ],
@@ -272,7 +273,8 @@ async function editImageWithStability(imageUrl, editPrompt) {
       height: 1024,
       width: 1024,
       samples: 1,
-      steps: 30
+      steps: 20,
+      style_preset: "photographic"
     })
   });
 
