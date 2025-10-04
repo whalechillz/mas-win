@@ -34,60 +34,57 @@ export default async function handler(req, res) {
       });
     }
 
-    // ChatGPT로 이미지 개선 프롬프트 생성
-    const promptResponse = await openai.chat.completions.create({
+    // ChatGPT로 원본 이미지 분석 및 모델별 최적화된 프롬프트 생성
+    const imageAnalysisResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `당신은 이미지 편집 및 개선 전문가입니다. 사용자의 요청사항을 바탕으로 구체적이고 실행 가능한 이미지 편집 지시사항을 영어로 작성합니다.
+          content: `당신은 이미지 분석 및 AI 모델별 프롬프트 최적화 전문가입니다. 
+          
+각 AI 모델의 특성을 이해하고 최적화된 프롬프트를 생성합니다:
 
-다음과 같은 요청 유형들을 처리할 수 있습니다:
-- 텍스트/글자 제거: "Remove text, letters, or writing from the image"
-- 특정 객체 제거: "Remove [specific object] from the image"
-- 스타일 변경: "Change the style to [desired style]"
-- 색상 조정: "Adjust colors to [desired colors]"
-- 품질 개선: "Improve image quality and sharpness"
-- 배경 변경: "Change background to [desired background]"
+1. **FAL AI (Flux 모델)**: 빠르고 저비용, 실사 스타일, 간결한 프롬프트 선호
+2. **Replicate (Stable Diffusion)**: 안정적, 중간 비용, 상세한 기술적 프롬프트 선호  
+3. **Stability AI (SDXL)**: 고품질, 고해상도, 전문적 용어와 구체적 스펙 선호
 
-항상 구체적이고 명확한 영어 프롬프트를 작성하세요.`
+원본 이미지를 분석하고 사용자 요청을 바탕으로 각 모델에 최적화된 프롬프트를 생성하세요.`
         },
         {
           role: "user",
-          content: `다음 이미지를 개선해주세요.
-
+          content: `원본 이미지 URL: ${imageUrl}
 개선 요청사항: ${improvementRequest}
 
-이미지 URL: ${imageUrl}
+위 이미지와 요청사항을 분석하여 다음 형식으로 각 AI 모델에 최적화된 프롬프트를 생성해주세요:
 
-위 요청사항을 바탕으로 이미지 편집을 위한 구체적인 영어 프롬프트를 작성해주세요. 프롬프트는 다음 형식을 따라주세요:
+{
+  "image_analysis": "이미지 내용 분석 (한국어)",
+  "fal_prompt": "FAL AI용 최적화된 프롬프트 (영어, 간결하고 실사 스타일)",
+  "replicate_prompt": "Replicate용 최적화된 프롬프트 (영어, 상세하고 기술적)",
+  "stability_prompt": "Stability AI용 최적화된 프롬프트 (영어, 전문적이고 고품질)"
+}
 
-"Edit the image to [구체적인 편집 내용]. [추가적인 세부사항]."
-
-예시:
-- "Edit the image to remove all text and writing while keeping the main subject intact."
-- "Edit the image to remove the golf driver from the golfer's hands while maintaining the natural pose."
-- "Edit the image to improve sharpness and contrast for better visual quality."`
+각 프롬프트는 해당 모델의 강점을 최대한 활용하도록 작성해주세요.`
         }
       ],
-      max_tokens: 200,
+      max_tokens: 500,
       temperature: 0.3
     });
 
-    const editPrompt = promptResponse.choices[0].message.content;
-    console.log('✅ ChatGPT 이미지 편집 프롬프트 생성 완료:', editPrompt);
+    const analysisResult = JSON.parse(imageAnalysisResponse.choices[0].message.content);
+    console.log('✅ ChatGPT 이미지 분석 및 모델별 프롬프트 생성 완료:', analysisResult);
 
-    // 선택된 모델에 따라 이미지 편집 API 호출
+    // 선택된 모델에 따라 최적화된 프롬프트로 이미지 편집 API 호출
     let result;
     switch (model) {
       case 'fal':
-        result = await editImageWithFAL(imageUrl, editPrompt);
+        result = await editImageWithFAL(imageUrl, analysisResult.fal_prompt);
         break;
       case 'replicate':
-        result = await editImageWithReplicate(imageUrl, editPrompt);
+        result = await editImageWithReplicate(imageUrl, analysisResult.replicate_prompt);
         break;
       case 'stability':
-        result = await editImageWithStability(imageUrl, editPrompt);
+        result = await editImageWithStability(imageUrl, analysisResult.stability_prompt);
         break;
       default:
         throw new Error('지원하지 않는 모델입니다.');
@@ -135,7 +132,7 @@ async function editImageWithFAL(imageUrl, editPrompt) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      prompt: `${editPrompt}, high quality, detailed, professional photography style`,
+      prompt: editPrompt, // ChatGPT가 최적화한 FAL AI용 프롬프트 사용
       num_inference_steps: 4,
       guidance_scale: 1,
       num_images: 1,
@@ -204,7 +201,7 @@ async function editImageWithReplicate(imageUrl, editPrompt) {
     body: JSON.stringify({
       version: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
       input: {
-        prompt: `${editPrompt}, high quality, detailed, professional photography style`,
+        prompt: editPrompt, // ChatGPT가 최적화한 Replicate용 프롬프트 사용
         num_inference_steps: 20,
         guidance_scale: 7.5,
         num_outputs: 1,
@@ -265,7 +262,7 @@ async function editImageWithStability(imageUrl, editPrompt) {
     body: JSON.stringify({
       text_prompts: [
         {
-          text: `${editPrompt}, high quality, detailed, professional photography style`,
+          text: editPrompt, // ChatGPT가 최적화한 Stability AI용 프롬프트 사용
           weight: 1
         }
       ],
