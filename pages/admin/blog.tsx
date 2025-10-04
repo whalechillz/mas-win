@@ -7578,9 +7578,9 @@ export default function BlogAdmin() {
       {/* AI 생성 이미지 확대 모달 */}
       {showGeneratedImageModal && selectedGeneratedImage && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden flex flex-col">
             {/* 모달 헤더 */}
-            <div className="p-4 border-b bg-orange-50">
+            <div className="p-4 border-b bg-orange-50 flex-shrink-0">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-orange-800">🎨 AI 생성 이미지 확대 보기</h3>
                 <button
@@ -7592,12 +7592,12 @@ export default function BlogAdmin() {
               </div>
             </div>
             
-            {/* 이미지 영역 */}
-            <div className="p-6 flex items-center justify-center bg-gray-100 min-h-[400px]">
+            {/* 이미지 영역 - flex-1로 남은 공간 모두 사용 */}
+            <div className="flex-1 p-6 flex items-center justify-center bg-gray-100 overflow-hidden">
               <img
                 src={selectedGeneratedImage}
                 alt="AI 생성 이미지"
-                className="max-w-full max-h-[70vh] object-contain rounded shadow-lg"
+                className="max-w-full max-h-full object-contain rounded shadow-lg"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = '/placeholder-image.jpg';
@@ -7606,7 +7606,7 @@ export default function BlogAdmin() {
             </div>
             
             {/* 이미지 정보 */}
-            <div className="p-4 border-t bg-gray-50">
+            <div className="p-4 border-t bg-gray-50 flex-shrink-0">
               <div className="text-sm text-gray-600 space-y-1">
                 <div><strong>이미지 타입:</strong> AI 생성 이미지</div>
                 <div><strong>원본 URL:</strong> 
@@ -7624,14 +7624,14 @@ export default function BlogAdmin() {
             </div>
             
             {/* 액션 버튼들 */}
-            <div className="p-4 border-t flex justify-between items-center">
-              <div className="flex gap-2">
+            <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
+              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(selectedGeneratedImage);
                     alert('이미지 URL이 복사되었습니다!');
                   }}
-                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 whitespace-nowrap"
                 >
                   📋 URL 복사
                 </button>
@@ -7640,7 +7640,7 @@ export default function BlogAdmin() {
                     insertImageToContentLegacy(selectedGeneratedImage);
                     setShowGeneratedImageModal(false);
                   }}
-                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
                 >
                   ➕ 콘텐츠에 삽입
                 </button>
@@ -7649,7 +7649,7 @@ export default function BlogAdmin() {
                     selectGeneratedImage(selectedGeneratedImage);
                     setShowGeneratedImageModal(false);
                   }}
-                  className="px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
+                  className="px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 whitespace-nowrap"
                 >
                   ⭐ 대표 이미지로 설정
                 </button>
@@ -7657,14 +7657,14 @@ export default function BlogAdmin() {
                   onClick={() => {
                     window.open(selectedGeneratedImage, '_blank');
                   }}
-                  className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+                  className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 whitespace-nowrap"
                 >
                   🔗 새 탭에서 열기
                 </button>
               </div>
               <button
                 onClick={() => setShowGeneratedImageModal(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 whitespace-nowrap"
               >
                 닫기
               </button>
