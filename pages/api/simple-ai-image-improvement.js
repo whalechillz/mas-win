@@ -221,10 +221,20 @@ ${originalPrompt ?
 async function editImageWithFAL(imageUrl, editPrompt) {
   const falApiKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
   if (!falApiKey) {
+    console.error('❌ FAL AI API 키 누락:', {
+      FAL_KEY: !!process.env.FAL_KEY,
+      FAL_API_KEY: !!process.env.FAL_API_KEY,
+      allEnvKeys: Object.keys(process.env).filter(key => key.includes('FAL'))
+    });
     throw new Error('FAL AI API 키가 설정되지 않았습니다.');
   }
   
-  console.log('🎯 FAL AI API 호출 시작:', { imageUrl, editPrompt });
+  console.log('🎯 FAL AI API 호출 시작:', { 
+    imageUrl, 
+    editPrompt,
+    apiKeyLength: falApiKey.length,
+    apiKeyPrefix: falApiKey.substring(0, 8) + '...'
+  });
 
   // FAL AI는 text-to-image 모델이므로 원본 이미지 스타일을 참고한 새로운 이미지 생성
   // 원본 이미지 URL을 참고 이미지로 사용하여 스타일 일관성 유지
@@ -245,11 +255,17 @@ async function editImageWithFAL(imageUrl, editPrompt) {
 
   if (!falResponse.ok) {
     const errorText = await falResponse.text();
-    console.error('❌ FAL AI API 오류:', { status: falResponse.status, error: errorText });
+    console.error('❌ FAL AI API 오류:', { 
+      status: falResponse.status, 
+      statusText: falResponse.statusText,
+      error: errorText,
+      headers: Object.fromEntries(falResponse.headers.entries())
+    });
     throw new Error(`FAL AI API 오류: ${falResponse.status} - ${errorText}`);
   }
 
   const falResult = await falResponse.json();
+  console.log('🔍 FAL AI 초기 응답:', falResult);
   
   // 폴링 로직
   let finalResult = falResult;
@@ -271,28 +287,71 @@ async function editImageWithFAL(imageUrl, editPrompt) {
       });
       
       if (!statusResponse.ok) {
-        throw new Error(`FAL AI 상태 확인 실패: ${statusResponse.status}`);
+        const statusErrorText = await statusResponse.text();
+        console.error('❌ FAL AI 상태 확인 실패:', { 
+          status: statusResponse.status, 
+          error: statusErrorText 
+        });
+        throw new Error(`FAL AI 상태 확인 실패: ${statusResponse.status} - ${statusErrorText}`);
       }
       
       finalResult = await statusResponse.json();
+      console.log(`🔍 FAL AI 상태 확인 (${attempts + 1}/${maxAttempts}):`, {
+        status: finalResult.status,
+        hasImages: !!finalResult.images,
+        hasOutput: !!finalResult.output
+      });
       attempts++;
     }
   }
 
   console.log('🔍 FAL AI 최종 결과:', finalResult);
+  console.log('🔍 FAL AI 결과 구조 분석:', {
+    hasImages: !!finalResult.images,
+    imagesLength: finalResult.images?.length,
+    hasOutput: !!finalResult.output,
+    outputLength: finalResult.output?.length,
+    status: finalResult.status,
+    keys: Object.keys(finalResult)
+  });
   
   if (finalResult.status === 'failed') {
     console.error('❌ FAL AI 작업 실패:', finalResult);
     throw new Error(`FAL AI 작업 실패: ${finalResult.error || '알 수 없는 오류'}`);
   }
   
-  if (!finalResult.images || finalResult.images.length === 0) {
+  // FAL AI 응답 구조가 다양할 수 있으므로 여러 가능성 확인
+  let imageUrl = null;
+  
+  // Case 1: images 배열
+  if (finalResult.images && finalResult.images.length > 0) {
+    imageUrl = finalResult.images[0].url || finalResult.images[0];
+    console.log('✅ FAL AI 이미지 발견 (images 배열):', imageUrl);
+  }
+  // Case 2: output 배열
+  else if (finalResult.output && finalResult.output.length > 0) {
+    imageUrl = finalResult.output[0].url || finalResult.output[0];
+    console.log('✅ FAL AI 이미지 발견 (output 배열):', imageUrl);
+  }
+  // Case 3: 직접 URL
+  else if (finalResult.url) {
+    imageUrl = finalResult.url;
+    console.log('✅ FAL AI 이미지 발견 (직접 URL):', imageUrl);
+  }
+  // Case 4: data 배열
+  else if (finalResult.data && finalResult.data.length > 0) {
+    imageUrl = finalResult.data[0].url || finalResult.data[0];
+    console.log('✅ FAL AI 이미지 발견 (data 배열):', imageUrl);
+  }
+  
+  if (!imageUrl) {
     console.error('❌ FAL AI 결과에 이미지가 없음:', finalResult);
+    console.error('❌ 사용 가능한 키들:', Object.keys(finalResult));
     throw new Error('FAL AI에서 이미지를 생성하지 못했습니다. 결과에 이미지가 없습니다.');
   }
 
   return {
-    imageUrl: finalResult.images[0].url,
+    imageUrl: imageUrl,
     model: 'FAL AI'
   };
 }
