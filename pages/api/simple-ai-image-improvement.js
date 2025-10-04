@@ -193,6 +193,8 @@ async function editImageWithReplicate(imageUrl, editPrompt) {
     throw new Error('Replicate API 토큰이 설정되지 않았습니다.');
   }
 
+  // Replicate의 이미지 편집을 위해 새로운 이미지 생성
+  // 원본 이미지의 스타일을 참고하여 편집된 이미지를 생성
   const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
     method: 'POST',
     headers: {
@@ -205,7 +207,9 @@ async function editImageWithReplicate(imageUrl, editPrompt) {
         prompt: editPrompt,
         num_inference_steps: 4,
         guidance_scale: 1,
-        num_outputs: 1
+        num_outputs: 1,
+        width: 1024,
+        height: 1024
       }
     })
   });
