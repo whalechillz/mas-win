@@ -4998,6 +4998,14 @@ export default function BlogAdmin() {
                       </button>
                       <button 
                         type="button"
+                        onClick={() => applySimpleAIImageImprovement('vision-enhanced')}
+                        disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
+                        className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 text-sm disabled:opacity-50"
+                      >
+                        {isImprovingImage ? '🔍 분석 중...' : '🔍 Google Vision + FAL AI 개선'}
+                      </button>
+                      <button 
+                        type="button"
                         onClick={() => {
                           setSimpleAIImageRequest('');
                           setSelectedImageForImprovement('');
@@ -5014,7 +5022,8 @@ export default function BlogAdmin() {
                     <span className="text-blue-600 font-medium">🤖 ChatGPT + Replicate: 안정적인 고품질 개선 (중간 비용)</span><br/>
                     <span className="text-green-600 font-medium">🤖 ChatGPT + Stability AI: 전문적 고해상도 개선 (저비용)</span><br/>
                     <span className="text-red-600 font-medium">🤖 ChatGPT + Google AI: 구글 Imagen 기반 고품질 이미지 생성 및 개선</span><br/>
-                      <span className="text-purple-600 font-medium">🤖 ChatGPT + DALL-E 3: 창의적 고품질 개선 (중간 비용)</span>
+                      <span className="text-purple-600 font-medium">🤖 ChatGPT + DALL-E 3: 창의적 고품질 개선 (중간 비용)</span><br/>
+                      <span className="text-indigo-600 font-medium">🔍 Google Vision + FAL AI: 이미지 분석 후 새로운 이미지 생성 (고품질)</span>
                     </p>
                   </div>
 

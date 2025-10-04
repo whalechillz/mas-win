@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const { 
       imageUrl,
       improvementRequest,
-      model = 'fal', // 'fal', 'replicate', 'stability'
+      model = 'fal', // 'fal', 'replicate', 'stability', 'vision-enhanced'
       originalPrompt = null, // 저장된 원본 프롬프트
       originalKoreanPrompt = null // 저장된 원본 한글 프롬프트
     } = req.body;
@@ -171,6 +171,20 @@ ${originalPrompt ?
         editPrompt = analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic, professional photography`;
         console.log('🎯 Google AI 대신 FAL AI 사용 프롬프트:', editPrompt);
         result = await editImageWithFAL(imageUrl, editPrompt);
+        break;
+      case 'vision-enhanced':
+        // Google Vision API로 이미지 분석 후 새로운 이미지 생성
+        console.log('🔍 Google Vision API로 이미지 분석 시작...');
+        const visionAnalysis = await analyzeImageWithGoogleVision(imageUrl);
+        console.log('✅ Google Vision 분석 완료:', visionAnalysis);
+        
+        // Vision 분석 결과와 개선 요청사항을 결합한 프롬프트 생성
+        const combinedPrompt = `${visionAnalysis.prompt} ${improvementRequest}, high quality, realistic photography, professional lighting, detailed, 8K resolution, photorealistic, natural colors, sharp focus`;
+        console.log('🎯 Vision-Enhanced 프롬프트:', combinedPrompt);
+        
+        // FAL AI로 새로운 이미지 생성
+        result = await editImageWithFAL(imageUrl, combinedPrompt);
+        result.visionAnalysis = visionAnalysis.analysis; // 분석 결과도 함께 반환
         break;
       default:
         throw new Error('지원하지 않는 모델입니다.');
@@ -560,5 +574,202 @@ async function saveImageToSupabase(imageUrl, prefix) {
     console.error('이미지 저장 실패:', error);
     throw error;
   }
+}
+
+// Google Vision API를 사용한 이미지 분석
+async function analyzeImageWithGoogleVision(imageUrl) {
+  const googleApiKey = process.env.GOOGLE_API_KEY;
+  if (!googleApiKey) {
+    console.error('❌ Google API 키 누락:', {
+      GOOGLE_API_KEY: !!process.env.GOOGLE_API_KEY,
+      allEnvKeys: Object.keys(process.env).filter(key => key.includes('GOOGLE'))
+    });
+    throw new Error('Google API 키가 설정되지 않았습니다.');
+  }
+
+  console.log('🔍 Google Vision API로 이미지 분석 시작:', imageUrl);
+
+  try {
+    const visionResponse = await fetch(
+      `https://vision.googleapis.com/v1/images:annotate?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requests: [
+            {
+              image: {
+                source: {
+                  imageUri: imageUrl
+                }
+              },
+              features: [
+                {
+                  type: 'LABEL_DETECTION',
+                  maxResults: 20
+                },
+                {
+                  type: 'OBJECT_LOCALIZATION',
+                  maxResults: 20
+                },
+                {
+                  type: 'TEXT_DETECTION',
+                  maxResults: 10
+                },
+                {
+                  type: 'FACE_DETECTION',
+                  maxResults: 10
+                },
+                {
+                  type: 'LANDMARK_DETECTION',
+                  maxResults: 10
+                },
+                {
+                  type: 'LOGO_DETECTION',
+                  maxResults: 10
+                },
+                {
+                  type: 'SAFE_SEARCH_DETECTION'
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
+
+    if (!visionResponse.ok) {
+      const errorText = await visionResponse.text();
+      console.error('❌ Google Vision API 오류:', { 
+        status: visionResponse.status, 
+        error: errorText 
+      });
+      throw new Error(`Google Vision API 오류: ${visionResponse.status} - ${errorText}`);
+    }
+
+    const visionResult = await visionResponse.json();
+    console.log('✅ Google Vision API 분석 완료:', visionResult);
+
+    // 분석 결과를 구조화된 형태로 정리
+    const analysis = {
+      labels: visionResult.responses[0]?.labelAnnotations?.map(label => ({
+        description: label.description,
+        score: label.score
+      })) || [],
+      objects: visionResult.responses[0]?.localizedObjectAnnotations?.map(obj => ({
+        name: obj.name,
+        score: obj.score,
+        boundingPoly: obj.boundingPoly
+      })) || [],
+      text: visionResult.responses[0]?.textAnnotations?.map(text => ({
+        description: text.description,
+        confidence: text.confidence
+      })) || [],
+      faces: visionResult.responses[0]?.faceAnnotations?.length || 0,
+      landmarks: visionResult.responses[0]?.landmarkAnnotations?.map(landmark => ({
+        description: landmark.description,
+        score: landmark.score
+      })) || [],
+      logos: visionResult.responses[0]?.logoAnnotations?.map(logo => ({
+        description: logo.description,
+        score: logo.score
+      })) || [],
+      safeSearch: visionResult.responses[0]?.safeSearchAnnotation || {}
+    };
+
+    // 분석 결과를 프롬프트로 변환
+    const promptFromAnalysis = generatePromptFromVisionAnalysis(analysis);
+    
+    return {
+      analysis,
+      prompt: promptFromAnalysis
+    };
+
+  } catch (error) {
+    console.error('❌ Google Vision API 분석 실패:', error);
+    throw error;
+  }
+}
+
+// Vision 분석 결과를 프롬프트로 변환
+function generatePromptFromVisionAnalysis(analysis) {
+  let prompt = '';
+  
+  // 라벨 정보 추가 (높은 신뢰도만)
+  const highConfidenceLabels = analysis.labels
+    .filter(label => label.score > 0.7)
+    .map(label => label.description)
+    .slice(0, 10);
+  
+  if (highConfidenceLabels.length > 0) {
+    prompt += `Main elements: ${highConfidenceLabels.join(', ')}. `;
+  }
+
+  // 객체 정보 추가
+  if (analysis.objects.length > 0) {
+    const objects = analysis.objects
+      .filter(obj => obj.score > 0.6)
+      .map(obj => obj.name)
+      .slice(0, 5);
+    if (objects.length > 0) {
+      prompt += `Objects: ${objects.join(', ')}. `;
+    }
+  }
+
+  // 텍스트 정보 추가
+  if (analysis.text.length > 0) {
+    const texts = analysis.text
+      .filter(text => text.confidence > 0.7)
+      .map(text => text.description)
+      .slice(0, 3);
+    if (texts.length > 0) {
+      prompt += `Text elements: ${texts.join(', ')}. `;
+    }
+  }
+
+  // 얼굴 정보 추가
+  if (analysis.faces > 0) {
+    prompt += `Contains ${analysis.faces} face(s). `;
+  }
+
+  // 랜드마크 정보 추가
+  if (analysis.landmarks.length > 0) {
+    const landmarks = analysis.landmarks
+      .filter(landmark => landmark.score > 0.6)
+      .map(landmark => landmark.description)
+      .slice(0, 3);
+    if (landmarks.length > 0) {
+      prompt += `Landmarks: ${landmarks.join(', ')}. `;
+    }
+  }
+
+  // 로고 정보 추가
+  if (analysis.logos.length > 0) {
+    const logos = analysis.logos
+      .filter(logo => logo.score > 0.6)
+      .map(logo => logo.description)
+      .slice(0, 3);
+    if (logos.length > 0) {
+      prompt += `Brands/Logos: ${logos.join(', ')}. `;
+    }
+  }
+
+  // 안전 검색 결과 추가
+  if (analysis.safeSearch) {
+    const safeLevels = [];
+    if (analysis.safeSearch.adult === 'LIKELY' || analysis.safeSearch.adult === 'VERY_LIKELY') {
+      safeLevels.push('adult content');
+    }
+    if (analysis.safeSearch.violence === 'LIKELY' || analysis.safeSearch.violence === 'VERY_LIKELY') {
+      safeLevels.push('violent content');
+    }
+    if (safeLevels.length > 0) {
+      prompt += `Content warnings: ${safeLevels.join(', ')}. `;
+    }
+  }
+
+  return prompt.trim();
 }
 
