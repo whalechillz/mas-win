@@ -36,7 +36,19 @@ export default async function handler(req, res) {
       });
     }
 
+    // OpenAI API 키 검증
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ OpenAI API 키 누락:', {
+        OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+        allEnvKeys: Object.keys(process.env).filter(key => key.includes('OPENAI'))
+      });
+      return res.status(400).json({ 
+        error: 'OpenAI API 키가 설정되지 않았습니다.' 
+      });
+    }
+
     // ChatGPT로 원본 이미지 분석 및 모델별 최적화된 프롬프트 생성
+    console.log('🤖 ChatGPT API 호출 시작...');
     const imageAnalysisResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -106,9 +118,21 @@ ${originalPrompt ?
       temperature: 0.3
     });
 
+    console.log('✅ ChatGPT API 호출 완료');
+    console.log('🔍 ChatGPT 응답 구조:', {
+      hasChoices: !!imageAnalysisResponse.choices,
+      choicesLength: imageAnalysisResponse.choices?.length,
+      hasMessage: !!imageAnalysisResponse.choices?.[0]?.message,
+      hasContent: !!imageAnalysisResponse.choices?.[0]?.message?.content
+    });
+
     // ChatGPT 응답 파싱 및 검증
     let analysisResult;
     try {
+      if (!imageAnalysisResponse.choices || !imageAnalysisResponse.choices[0] || !imageAnalysisResponse.choices[0].message) {
+        throw new Error('ChatGPT 응답 구조가 올바르지 않습니다.');
+      }
+      
       const responseContent = imageAnalysisResponse.choices[0].message.content;
       console.log('🔍 ChatGPT 원본 응답:', responseContent);
       
@@ -214,6 +238,14 @@ ${originalPrompt ?
   } catch (error) {
     console.error('❌ 간단 AI 이미지 개선 오류:', error);
     console.error('❌ 에러 스택:', error.stack);
+    console.error('❌ 에러 타입:', typeof error);
+    console.error('❌ 에러 이름:', error.name);
+    console.error('❌ 요청 정보:', {
+      method: req.method,
+      url: req.url,
+      body: req.body,
+      headers: req.headers
+    });
     
     const errorMessage = error?.message || error?.toString() || '알 수 없는 오류가 발생했습니다.';
     
@@ -222,7 +254,8 @@ ${originalPrompt ?
       res.status(500).json({ 
         error: '간단 AI 이미지 개선 중 오류가 발생했습니다.',
         details: errorMessage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        errorType: error.name || 'UnknownError'
       });
     } catch (jsonError) {
       console.error('❌ JSON 응답 생성 실패:', jsonError);
