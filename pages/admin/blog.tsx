@@ -4383,7 +4383,7 @@ export default function BlogAdmin() {
                         disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
                         className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm disabled:opacity-50"
                       >
-                        {isImprovingImage ? '🎨 개선 중...' : '🎨 FAL AI 개선'}
+                        {isImprovingImage ? '🤖 개선 중...' : '🤖 ChatGPT + FAL AI 개선'}
                       </button>
                       <button 
                         type="button"
@@ -4391,7 +4391,7 @@ export default function BlogAdmin() {
                         disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm disabled:opacity-50"
                       >
-                        {isImprovingImage ? '🎨 개선 중...' : '🎨 Replicate 개선'}
+                        {isImprovingImage ? '🤖 개선 중...' : '🤖 ChatGPT + Replicate 개선'}
                       </button>
                       <button 
                         type="button"
@@ -4399,7 +4399,7 @@ export default function BlogAdmin() {
                         disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
                         className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm disabled:opacity-50"
                       >
-                        {isImprovingImage ? '🎨 개선 중...' : '🎨 Stability 개선'}
+                        {isImprovingImage ? '🤖 개선 중...' : '🤖 ChatGPT + Stability 개선'}
                       </button>
                       <button 
                         type="button"
@@ -4414,10 +4414,10 @@ export default function BlogAdmin() {
                     </div>
 
                     <p className="text-xs text-gray-600 mt-2">
-                      <span className="text-green-600 font-medium">🎨 간단 AI 이미지 개선: 텍스트 제거, 객체 제거, 스타일 변경 등</span><br/>
-                      <span className="text-orange-600 font-medium">🎨 FAL AI: 빠른 이미지 편집 (저비용)</span><br/>
-                      <span className="text-blue-600 font-medium">🎨 Replicate: 고품질 이미지 편집 (중간 비용)</span><br/>
-                      <span className="text-green-600 font-medium">🎨 Stability AI: 안정적 이미지 편집 (저비용)</span>
+                      <span className="text-green-600 font-medium">🤖 ChatGPT + AI 이미지 개선: 원본 이미지 분석 후 각 모델 특성에 맞는 최적화된 프롬프트로 개선</span><br/>
+                      <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 빠른 실사 스타일 개선 (저비용)</span><br/>
+                      <span className="text-blue-600 font-medium">🤖 ChatGPT + Replicate: 안정적인 고품질 개선 (중간 비용)</span><br/>
+                      <span className="text-green-600 font-medium">🤖 ChatGPT + Stability AI: 전문적 고해상도 개선 (저비용)</span>
                     </p>
                   </div>
                   
