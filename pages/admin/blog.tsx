@@ -2892,6 +2892,65 @@ export default function BlogAdmin() {
     }
   };
 
+  // 이미지 삭제 함수
+  const deleteImage = async (imageUrl, imageType = 'generated') => {
+    if (!confirm('이 이미지를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ 이미지 삭제 시작...', imageUrl);
+      
+      // Supabase에서 이미지 삭제
+      const response = await fetch('/api/delete-image-supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl: imageUrl
+        })
+      });
+
+      if (response.ok) {
+        // 로컬 상태에서 이미지 제거
+        if (imageType === 'generated') {
+          setGeneratedImages(prev => prev.filter(img => img.url !== imageUrl));
+        } else if (imageType === 'scraped') {
+          setScrapedImages(prev => prev.filter(img => img.url !== imageUrl));
+        }
+        
+        // 선택된 이미지가 삭제된 경우 선택 해제
+        if (selectedBaseImage === imageUrl) {
+          setSelectedBaseImage('');
+        }
+        if (selectedImageForImprovement === imageUrl) {
+          setSelectedImageForImprovement('');
+        }
+        
+        console.log('✅ 이미지 삭제 완료');
+        alert('이미지가 성공적으로 삭제되었습니다.');
+      } else {
+        const error = await response.json();
+        console.error('이미지 삭제 실패:', error);
+        alert('이미지 삭제에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('이미지 삭제 에러:', error);
+      alert('이미지 삭제 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  // 전체 갤러리에서 이미지 선택 함수
+  const selectImageFromGallery = (imageUrl, imageType = 'gallery') => {
+    // 이미지 변형용으로 선택
+    setSelectedBaseImage(imageUrl);
+    
+    // 간단 AI 이미지 개선용으로도 선택
+    setSelectedImageForImprovement(imageUrl);
+    
+    console.log('✅ 갤러리에서 이미지 선택:', imageUrl);
+    alert('갤러리에서 이미지를 선택했습니다!\n\n- 이미지 변형 시스템에서 사용 가능\n- 간단 AI 이미지 개선에서 사용 가능');
+  };
+
   // 픽사 스토리 생성
   const generatePixarStory = async () => {
     if (!formData.title) {
@@ -3978,7 +4037,7 @@ export default function BlogAdmin() {
                                 <div
                                   key={`ai-${index}`}
                                   onClick={() => setSelectedBaseImage(img.url)}
-                                  className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                                  className={`relative cursor-pointer rounded-lg border-2 transition-all group ${
                                     selectedBaseImage === img.url 
                                       ? 'border-blue-500 ring-2 ring-blue-200' 
                                       : 'border-gray-200 hover:border-gray-300'
@@ -4003,6 +4062,17 @@ export default function BlogAdmin() {
                                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
                                     <div className="truncate">{img.type}</div>
                                   </div>
+                                  {/* 삭제 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteImage(img.url, 'generated');
+                                    }}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                    title="이미지 삭제"
+                                  >
+                                    ×
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -4020,7 +4090,7 @@ export default function BlogAdmin() {
                                 <div
                                   key={`scraped-${index}`}
                                   onClick={() => setSelectedBaseImage(img.url)}
-                                  className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                                  className={`relative cursor-pointer rounded-lg border-2 transition-all group ${
                                     selectedBaseImage === img.url 
                                       ? 'border-blue-500 ring-2 ring-blue-200' 
                                       : 'border-gray-200 hover:border-gray-300'
@@ -4045,6 +4115,17 @@ export default function BlogAdmin() {
                                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
                                     <div className="truncate">스크래핑</div>
                                   </div>
+                                  {/* 삭제 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteImage(img.url, 'scraped');
+                                    }}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                    title="이미지 삭제"
+                                  >
+                                    ×
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -4170,7 +4251,7 @@ export default function BlogAdmin() {
                             </h4>
                             <div className="grid grid-cols-4 gap-2">
                               {generatedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
-                                <div key={`ai-${index}`} className="relative">
+                                <div key={`ai-${index}`} className="relative group">
                                   <img
                                     src={img.url}
                                     alt={`AI 생성 이미지 ${index + 1}`}
@@ -4191,6 +4272,17 @@ export default function BlogAdmin() {
                                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
                                     <div className="truncate">AI 생성</div>
                                   </div>
+                                  {/* 삭제 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteImage(img.url, 'generated');
+                                    }}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                    title="이미지 삭제"
+                                  >
+                                    ×
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -4205,7 +4297,7 @@ export default function BlogAdmin() {
                             </h4>
                             <div className="grid grid-cols-4 gap-2">
                               {scrapedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
-                                <div key={`scraped-${index}`} className="relative">
+                                <div key={`scraped-${index}`} className="relative group">
                                   <img
                                     src={img.url}
                                     alt={`스크래핑 이미지 ${index + 1}`}
@@ -4229,6 +4321,17 @@ export default function BlogAdmin() {
                                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
                                     <div className="truncate">스크래핑</div>
                                   </div>
+                                  {/* 삭제 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteImage(img.url, 'scraped');
+                                    }}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                    title="이미지 삭제"
+                                  >
+                                    ×
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -4846,6 +4949,13 @@ export default function BlogAdmin() {
                                   >
                                     📋 복사
                                   </button>
+                                  <button
+                                    onClick={() => selectImageFromGallery(image.url, 'individual')}
+                                    className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                    title="이미지 변형 및 AI 개선용으로 선택"
+                                  >
+                                    🎨 선택
+                                  </button>
                                 </div>
                                 <div className="flex gap-1">
                                   <button
@@ -5117,6 +5227,18 @@ export default function BlogAdmin() {
                                 📦 {versionCount}개 버전 그룹
                               </div>
                               <div className="flex gap-1 mt-1 flex-wrap">
+                                {/* 이미지 변형/개선용 선택 버튼 */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectImageFromGallery(representativeImage.url, 'gallery');
+                                  }}
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                                  title="이미지 변형 및 AI 개선용으로 선택"
+                                >
+                                  🎨 선택
+                                </button>
                 <button
                   type="button"
                                   onClick={() => {
