@@ -96,7 +96,7 @@ const generateDynamicElements = (title, excerpt, contentType, brandStrategy) => 
 };
 
 // FAL AI 이미지 생성 프롬프트 최적화 (hidream-i1-dev 모델용)
-const createFALImagePrompt = (title, excerpt, contentType, brandStrategy) => {
+const createFALImagePrompt = (title, excerpt, contentType, brandStrategy, includeAdCopy = false) => {
   const persona = CUSTOMER_PERSONAS[brandStrategy.customerPersona] || CUSTOMER_PERSONAS.competitive_maintainer;
   const channel = CUSTOMER_CHANNELS[brandStrategy.customerChannel] || CUSTOMER_CHANNELS.local_customers;
   
@@ -135,6 +135,13 @@ const createFALImagePrompt = (title, excerpt, contentType, brandStrategy) => {
     basePrompt += ` Show advanced Korean golfers (50-60 years old, Korean ethnicity) with premium equipment and professional appearance.`;
   }
   
+  // 광고 카피 옵션에 따른 조정
+  if (includeAdCopy) {
+    basePrompt += ` Include subtle marketing text overlay with golf-related Korean phrases like "MASSGOO DRIVER", "골프의 새로운 시작", "프리미엄 골프", or similar promotional text. Make the text look natural and integrated with the image.`;
+  } else {
+    basePrompt += ` ABSOLUTELY NO TEXT: no text, no writing, no letters, no words, no symbols, no Korean text, no English text, no promotional text, no marketing copy, no overlays, no watermarks, no captions, no subtitles, no labels, no brand names, no product names, no slogans, no quotes, no numbers, no dates, no signatures, no logos, no text elements whatsoever. Pure clean image without any textual content. Text-free image only.`;
+  }
+  
   // 동적 다양성을 위한 추가 요소들 (고정 프롬프트 제거됨)
   const dynamicElements = generateDynamicElements(title, excerpt, contentType, brandStrategy);
   basePrompt += ` ${dynamicElements}`;
@@ -158,7 +165,8 @@ export default async function handler(req, res) {
       brandWeight: 'medium'
     },
     imageCount = 1, // 생성할 이미지 개수 (1-4개)
-    customPrompt = null // ChatGPT로 생성한 커스텀 프롬프트
+    customPrompt = null, // ChatGPT로 생성한 커스텀 프롬프트
+    includeAdCopy = false // 광고 카피 포함 여부
   } = req.body;
 
   if (!title) {
@@ -171,7 +179,7 @@ export default async function handler(req, res) {
     console.log('콘텐츠 유형:', contentType);
     
     // 이미지 생성 프롬프트 생성 (ChatGPT 프롬프트 우선 사용)
-    const imagePrompt = customPrompt || createFALImagePrompt(title, excerpt || content, contentType, brandStrategy);
+    const imagePrompt = customPrompt || createFALImagePrompt(title, excerpt || content, contentType, brandStrategy, includeAdCopy);
     console.log('사용된 프롬프트:', customPrompt ? 'ChatGPT 생성 프롬프트' : '동적 프롬프트');
     console.log('프롬프트 내용:', imagePrompt);
     
