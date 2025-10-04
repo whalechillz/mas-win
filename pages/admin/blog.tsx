@@ -126,6 +126,7 @@ export default function BlogAdmin() {
   const [simpleAIImageRequest, setSimpleAIImageRequest] = useState(''); // 간단 AI 이미지 개선 요청사항
   const [selectedImageForImprovement, setSelectedImageForImprovement] = useState(''); // 개선할 이미지
   const [isImprovingImage, setIsImprovingImage] = useState(false); // 이미지 개선 중
+  const [improvementProcess, setImprovementProcess] = useState(''); // 이미지 개선 과정 표시
 
   // 이미지 URL 유효성 검사 함수
   const isValidImageUrl = (url) => {
@@ -2846,8 +2847,11 @@ export default function BlogAdmin() {
       console.log('🎨 간단 AI 이미지 개선 시작...', simpleAIImageRequest);
       setIsImprovingImage(true);
       setShowGenerationProcess(true);
-      setImageGenerationModel(`${model.toUpperCase()} 이미지 개선`);
-      setImageGenerationStep(`1단계: ${model.toUpperCase()} 서버에 이미지 개선 요청 중...`);
+      setImageGenerationModel(`ChatGPT + ${model.toUpperCase()} 이미지 개선`);
+      
+      // 1단계: ChatGPT 이미지 분석
+      setImageGenerationStep(`1단계: ChatGPT가 원본 이미지 분석 중...`);
+      setImprovementProcess('ChatGPT가 원본 이미지를 분석하고 각 모델에 최적화된 프롬프트를 생성합니다.');
       
       const response = await fetch('/api/simple-ai-image-improvement', {
         method: 'POST',
@@ -2863,7 +2867,9 @@ export default function BlogAdmin() {
         const data = await response.json();
         
         if (data.improvedImage) {
-          setImageGenerationStep(`2단계: ${model.toUpperCase()} 이미지 개선 완료!`);
+          // 2단계: AI 모델로 이미지 개선
+          setImageGenerationStep(`2단계: ${model.toUpperCase()}로 이미지 개선 중...`);
+          setImprovementProcess(`${model.toUpperCase()}가 최적화된 프롬프트로 이미지를 개선하고 있습니다.`);
           
           // 개선된 이미지를 generatedImages에 추가
           const newImage = {
@@ -2876,8 +2882,12 @@ export default function BlogAdmin() {
           };
           setGeneratedImages(prev => [...prev, newImage]);
           
+          // 3단계: 완료
+          setImageGenerationStep(`3단계: ChatGPT + ${model.toUpperCase()} 이미지 개선 완료!`);
+          setImprovementProcess('이미지 개선이 성공적으로 완료되었습니다!');
+          
           console.log('✅ 간단 AI 이미지 개선 완료:', data.model);
-          alert(`간단 AI 이미지 개선이 완료되었습니다!\n\n모델: ${data.model}\n요청사항: ${simpleAIImageRequest}`);
+          alert(`ChatGPT + ${model.toUpperCase()} 이미지 개선이 완료되었습니다!\n\n모델: ${data.model}\n요청사항: ${simpleAIImageRequest}`);
           
           // 요청사항 초기화
           setSimpleAIImageRequest('');
@@ -2895,13 +2905,15 @@ export default function BlogAdmin() {
       }
     } catch (error) {
       console.error('간단 AI 이미지 개선 에러:', error);
-      setImageGenerationStep(`❌ ${model.toUpperCase()} 이미지 개선 에러`);
-      alert('간단 AI 이미지 개선 중 오류가 발생했습니다: ' + error.message);
+      setImageGenerationStep(`❌ ChatGPT + ${model.toUpperCase()} 이미지 개선 에러`);
+      setImprovementProcess('이미지 개선 중 오류가 발생했습니다. 다시 시도해주세요.');
+      alert('ChatGPT + ' + model.toUpperCase() + ' 이미지 개선 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsImprovingImage(false);
       setTimeout(() => {
         setShowGenerationProcess(false);
         setImageGenerationStep('');
+        setImprovementProcess('');
       }, 3000);
     }
   };
@@ -4403,6 +4415,14 @@ export default function BlogAdmin() {
                       </button>
                       <button 
                         type="button"
+                        onClick={() => applySimpleAIImageImprovement('dalle')}
+                        disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
+                        className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm disabled:opacity-50"
+                      >
+                        {isImprovingImage ? '🤖 개선 중...' : '🤖 ChatGPT + DALL-E 3 개선'}
+                      </button>
+                      <button 
+                        type="button"
                         onClick={() => {
                           setSimpleAIImageRequest('');
                           setSelectedImageForImprovement('');
@@ -4417,9 +4437,25 @@ export default function BlogAdmin() {
                       <span className="text-green-600 font-medium">🤖 ChatGPT + AI 이미지 개선: 원본 이미지 분석 후 각 모델 특성에 맞는 최적화된 프롬프트로 개선</span><br/>
                       <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 빠른 실사 스타일 개선 (저비용)</span><br/>
                       <span className="text-blue-600 font-medium">🤖 ChatGPT + Replicate: 안정적인 고품질 개선 (중간 비용)</span><br/>
-                      <span className="text-green-600 font-medium">🤖 ChatGPT + Stability AI: 전문적 고해상도 개선 (저비용)</span>
+                      <span className="text-green-600 font-medium">🤖 ChatGPT + Stability AI: 전문적 고해상도 개선 (저비용)</span><br/>
+                      <span className="text-purple-600 font-medium">🤖 ChatGPT + DALL-E 3: 창의적 고품질 개선 (중간 비용)</span>
                     </p>
                   </div>
+
+                  {/* 간단 AI 이미지 개선 과정 표시 */}
+                  {showGenerationProcess && improvementProcess && (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-green-800 mb-2">
+                        🤖 {imageGenerationModel} 이미지 개선 과정
+                      </h4>
+                      <div className="text-sm text-green-700 mb-2">
+                        {imageGenerationStep}
+                      </div>
+                      <div className="text-xs text-green-600">
+                        {improvementProcess}
+                      </div>
+                    </div>
+                  )}
                   
                   <p className="text-xs text-gray-600 mt-2">
                     선택한 전략에 따라 마쓰구 브랜드가 자연스럽게 통합된 콘텐츠를 생성합니다.
