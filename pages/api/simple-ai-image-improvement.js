@@ -19,7 +19,9 @@ export default async function handler(req, res) {
     const { 
       imageUrl,
       improvementRequest,
-      model = 'fal' // 'fal', 'replicate', 'stability'
+      model = 'fal', // 'fal', 'replicate', 'stability'
+      originalPrompt = null, // 저장된 원본 프롬프트
+      originalKoreanPrompt = null // 저장된 원본 한글 프롬프트
     } = req.body;
 
     console.log('🎨 간단 AI 이미지 개선 요청:', { 
@@ -47,6 +49,19 @@ export default async function handler(req, res) {
 1. **FAL AI (Flux 모델)**: 빠르고 저비용, 실사 스타일, 간결한 프롬프트 선호
 2. **Replicate (Stable Diffusion)**: 안정적, 중간 비용, 상세한 기술적 프롬프트 선호  
 3. **Stability AI (SDXL)**: 고품질, 고해상도, 전문적 용어와 구체적 스펙 선호
+4. **DALL-E 3**: 창의적, 고품질, 다양한 스타일, 상세하고 명확한 프롬프트 선호
+
+⚠️ 중요: 
+- FAL AI: text-to-image 모델 (원본 이미지 스타일을 참고한 새로운 이미지 생성)
+- Replicate, Stability AI: image-to-image 모델 (원본 이미지를 기반으로 수정)
+
+사용자가 "텍스트 제거", "글자 제거" 등을 요청한 경우:
+- FAL AI: 원본 이미지의 내용을 정확히 파악하여 텍스트가 없는 버전을 생성하는 프롬프트 작성
+- Replicate/Stability: 전문적인 텍스트 제거 프롬프트 사용:
+  * "clean image without text, remove watermark, remove banner, remove overlay text"
+  * "professional photography, no text overlay, clean background"
+  * "remove all text elements, maintain original composition and lighting"
+  * "inpaint to remove text while preserving image quality"
 
 원본 이미지를 분석하고 사용자 요청을 바탕으로 각 모델에 최적화된 프롬프트를 생성하세요.`
         },
@@ -54,8 +69,13 @@ export default async function handler(req, res) {
           role: "user",
           content: `원본 이미지 URL: ${imageUrl}
 개선 요청사항: ${improvementRequest}
+${originalPrompt ? `저장된 원본 프롬프트: ${originalPrompt}` : ''}
+${originalKoreanPrompt ? `저장된 원본 한글 설명: ${originalKoreanPrompt}` : ''}
 
-위 이미지와 요청사항을 분석하여 다음 형식으로 각 AI 모델에 최적화된 프롬프트를 생성해주세요:
+${originalPrompt ? 
+  '위 이미지, 요청사항, 그리고 저장된 원본 프롬프트를 분석하여 다음 형식으로 각 AI 모델에 최적화된 프롬프트를 생성해주세요:' :
+  '위 이미지와 요청사항을 분석하여 다음 형식으로 각 AI 모델에 최적화된 프롬프트를 생성해주세요:'
+}
 
 {
   "image_analysis": "이미지 내용 분석 (한국어)",
@@ -64,6 +84,20 @@ export default async function handler(req, res) {
   "stability_prompt": "Stability AI용 최적화된 프롬프트 (영어, 전문적이고 고품질)",
   "dalle_prompt": "DALL-E 3용 최적화된 프롬프트 (영어, 창의적이고 고품질)"
 }
+
+⚠️ 중요 지침:
+1. 원본 이미지의 주제, 스타일, 색상, 구성을 정확히 파악하세요
+2. ${originalPrompt ? '저장된 원본 프롬프트의 스타일과 구성을 참고하여 일관성을 유지하세요' : ''}
+3. **인물 및 배경 유지 필수**: 원본 이미지의 인물(얼굴, 체형, 인종, 나이), 배경, 조명, 구도를 절대 변경하지 마세요
+4. 텍스트/글자 제거 요청 시:
+   - FAL AI: "원본 이미지와 동일한 [주제/스타일/인물/배경]이지만 텍스트나 글자가 없는 깨끗한 버전, maintain original person, maintain original background, keep same model, ABSOLUTELY NO TEXT: no text, no writing, no letters, no words, no symbols, no Korean text, no English text, no promotional text, no marketing copy, no overlays, no watermarks, no captions, no subtitles, no labels, no brand names, no product names, no slogans, no quotes, no numbers, no dates, no signatures, no logos, no text elements whatsoever. Pure clean image without any textual content. Text-free image only."
+   - Replicate/Stability: "clean image without text, remove watermark, remove banner, remove overlay text, professional photography, no text overlay, clean background, remove all text elements, maintain original composition and lighting, maintain original person, maintain original background, keep same model, preserve facial features, preserve clothing, preserve setting, inpaint to remove text while preserving image quality, ABSOLUTELY NO TEXT: no text, no writing, no letters, no words, no symbols, no Korean text, no English text, no promotional text, no marketing copy, no overlays, no watermarks, no captions, no subtitles, no labels, no brand names, no product names, no slogans, no quotes, no numbers, no dates, no signatures, no logos, no text elements whatsoever. Pure clean image without any textual content. Text-free image only."
+5. 절대 원본 이미지와 전혀 다른 주제(산, 자동차, 숲 등)의 이미지를 생성하지 마세요
+6. 각 모델의 특성에 맞는 프롬프트를 작성하되, 원본 이미지의 핵심 요소는 반드시 유지하세요
+7. 텍스트 제거 시에는 "remove text", "clean image", "no watermark", "maintain original person", "maintain original background" 등의 키워드를 반드시 포함하세요
+8. ${originalPrompt ? '저장된 프롬프트의 품질과 스타일을 유지하면서 요청사항만 반영하세요' : ''}
+9. **인물 특징 유지**: 얼굴, 체형, 인종, 나이, 표정, 포즈, 의상 등 모든 인물 특징을 정확히 유지하세요
+10. **배경 유지**: 배경의 모든 요소(골프장, 건물, 하늘, 조명 등)를 정확히 유지하세요
 
 각 프롬프트는 해당 모델의 강점을 최대한 활용하도록 작성해주세요.`
         }
@@ -74,6 +108,9 @@ export default async function handler(req, res) {
 
     const analysisResult = JSON.parse(imageAnalysisResponse.choices[0].message.content);
     console.log('✅ ChatGPT 이미지 분석 및 모델별 프롬프트 생성 완료:', analysisResult);
+    console.log('🔍 원본 이미지 URL:', imageUrl);
+    console.log('🔍 사용자 요청사항:', improvementRequest);
+    console.log('🔍 선택된 모델:', model);
 
     // 선택된 모델에 따라 최적화된 프롬프트로 이미지 편집 API 호출
     let result;
@@ -81,20 +118,31 @@ export default async function handler(req, res) {
     
     switch (model) {
       case 'fal':
-        editPrompt = analysisResult.fal_prompt || analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic style`;
+        editPrompt = analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic style`;
+        console.log('🎯 FAL AI 사용 프롬프트:', editPrompt);
         result = await editImageWithFAL(imageUrl, editPrompt);
         break;
       case 'replicate':
-        editPrompt = analysisResult.replicate_prompt || analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
+        editPrompt = analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
+        console.log('🎯 Replicate 사용 프롬프트:', editPrompt);
         result = await editImageWithReplicate(imageUrl, editPrompt);
         break;
       case 'stability':
-        editPrompt = analysisResult.stability_prompt || analysisResult.stability_prompt || `${improvementRequest}, high quality, professional photography, 1024x1024`;
+        editPrompt = analysisResult.stability_prompt || `${improvementRequest}, high quality, professional photography, 1024x1024`;
+        console.log('🎯 Stability AI 사용 프롬프트:', editPrompt);
         result = await editImageWithStability(imageUrl, editPrompt);
         break;
       case 'dalle':
-        editPrompt = analysisResult.dalle_prompt || analysisResult.dalle_prompt || `${improvementRequest}, high quality, realistic, professional photography`;
-        result = await editImageWithDALLE(imageUrl, editPrompt);
+        // DALL-E 3는 image-to-image를 지원하지 않으므로 FAL AI로 대체
+        editPrompt = analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic, professional photography`;
+        console.log('🎯 DALL-E 3 대신 FAL AI 사용 프롬프트:', editPrompt);
+        result = await editImageWithFAL(imageUrl, editPrompt);
+        break;
+      case 'google':
+        // Google AI는 image-to-image를 지원하지 않으므로 FAL AI로 대체
+        editPrompt = analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic, professional photography`;
+        console.log('🎯 Google AI 대신 FAL AI 사용 프롬프트:', editPrompt);
+        result = await editImageWithFAL(imageUrl, editPrompt);
         break;
       default:
         throw new Error('지원하지 않는 모델입니다.');
@@ -112,18 +160,21 @@ export default async function handler(req, res) {
       improvementRequest,
       editPrompt,
       model: model.toUpperCase(),
+      generatedPrompts: analysisResult, // ChatGPT가 생성한 모든 모델별 프롬프트
+      imageAnalysis: analysisResult.image_analysis, // 이미지 분석 결과
       usageInfo: {
         model: 'GPT-4o-mini + ' + model.toUpperCase(),
-        tokens: promptResponse.usage?.total_tokens || 0,
-        cost: promptResponse.usage?.total_tokens ? (promptResponse.usage.total_tokens * 0.00015 / 1000).toFixed(4) : '0.0000'
+        tokens: imageAnalysisResponse.usage?.total_tokens || 0,
+        cost: imageAnalysisResponse.usage?.total_tokens ? (imageAnalysisResponse.usage.total_tokens * 0.00015 / 1000).toFixed(4) : '0.0000'
       }
     });
 
   } catch (error) {
     console.error('❌ 간단 AI 이미지 개선 오류:', error);
+    const errorMessage = error?.message || error?.toString() || '알 수 없는 오류가 발생했습니다.';
     res.status(500).json({ 
       error: '간단 AI 이미지 개선 중 오류가 발생했습니다.',
-      details: error.message 
+      details: errorMessage 
     });
   }
 }
@@ -134,7 +185,7 @@ async function editImageWithFAL(imageUrl, editPrompt) {
     throw new Error('FAL AI API 키가 설정되지 않았습니다.');
   }
 
-  // FAL AI의 이미지 편집을 위해 새로운 이미지 생성 (원본 스타일 참고)
+  // FAL AI는 text-to-image만 지원하므로 원본 이미지 스타일을 참고한 프롬프트 사용
   const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
     method: 'POST',
     headers: {
@@ -201,7 +252,7 @@ async function editImageWithReplicate(imageUrl, editPrompt) {
     throw new Error('Replicate API 토큰이 설정되지 않았습니다.');
   }
 
-  // Replicate의 이미지 편집을 위해 새로운 이미지 생성 (원본 스타일 참고)
+  // Replicate의 image-to-image 편집 (원본 이미지를 기반으로 수정)
   const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
     method: 'POST',
     headers: {
@@ -209,14 +260,17 @@ async function editImageWithReplicate(imageUrl, editPrompt) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      version: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+      version: "black-forest-labs/flux-dev",
       input: {
         prompt: editPrompt, // ChatGPT가 최적화한 Replicate용 프롬프트 사용
+        image: imageUrl, // 원본 이미지 URL 추가
         num_inference_steps: 20,
-        guidance_scale: 7.5,
+        guidance_scale: 3.5,
+        strength: 0.8, // 이미지 변형 강도
         num_outputs: 1,
-        width: 1024,
-        height: 1024
+        aspect_ratio: "1:1",
+        output_format: "png",
+        output_quality: 90
       }
     })
   });
@@ -262,27 +316,32 @@ async function editImageWithStability(imageUrl, editPrompt) {
     throw new Error('Stability AI API 키가 설정되지 않았습니다.');
   }
 
-  // Stability AI의 이미지 편집을 위해 새로운 이미지 생성 (원본 스타일 참고)
-  const stabilityResponse = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
+  // Stability AI의 image-to-image 편집 (원본 이미지를 기반으로 수정)
+  // 이미지를 다운로드하여 FormData로 전송
+  const imageResponse = await fetch(imageUrl);
+  if (!imageResponse.ok) {
+    throw new Error(`이미지 다운로드 실패: ${imageResponse.status}`);
+  }
+  const imageBuffer = await imageResponse.arrayBuffer();
+  
+  const formData = new FormData();
+  formData.append('text_prompts[0][text]', editPrompt);
+  formData.append('text_prompts[0][weight]', '1');
+  formData.append('init_image', new Blob([imageBuffer], { type: 'image/png' }), 'image.png');
+  formData.append('image_strength', '0.8');
+  formData.append('cfg_scale', '7');
+  formData.append('height', '1024');
+  formData.append('width', '1024');
+  formData.append('samples', '1');
+  formData.append('steps', '20');
+  formData.append('style_preset', 'photographic');
+  
+  const stabilityResponse = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.STABILITY_API_KEY}`,
-      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      text_prompts: [
-        {
-          text: editPrompt, // ChatGPT가 최적화한 Stability AI용 프롬프트 사용
-          weight: 1
-        }
-      ],
-      cfg_scale: 7,
-      height: 1024,
-      width: 1024,
-      samples: 1,
-      steps: 20,
-      style_preset: "photographic"
-    })
+    body: formData
   });
 
   if (!stabilityResponse.ok) {
@@ -298,13 +357,13 @@ async function editImageWithStability(imageUrl, editPrompt) {
 
   // Base64 이미지를 URL로 변환
   const base64Image = stabilityResult.artifacts[0].base64;
-  const imageBuffer = Buffer.from(base64Image, 'base64');
+  const stabilityImageBuffer = Buffer.from(base64Image, 'base64');
   
   // 임시로 Supabase에 저장하여 URL 생성
   const fileName = `stability-edit-${Date.now()}.png`;
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('blog-images')
-    .upload(fileName, imageBuffer, {
+    .upload(fileName, stabilityImageBuffer, {
       contentType: 'image/png',
       upsert: false
     });

@@ -104,6 +104,40 @@ const convertMarkdownToHtml = async (markdown) => {
   }
 };
 
+// 마크다운 미리보기 컴포넌트
+const MarkdownPreview = ({ content }) => {
+  const [htmlContent, setHtmlContent] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const convertContent = async () => {
+      try {
+        setIsLoading(true);
+        const html = await convertMarkdownToHtml(content);
+        setHtmlContent(html);
+      } catch (error) {
+        console.error('마크다운 변환 오류:', error);
+        setHtmlContent(content);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (content) {
+      convertContent();
+    } else {
+      setHtmlContent('');
+      setIsLoading(false);
+    }
+  }, [content]);
+
+  if (isLoading) {
+    return <p className="text-gray-500 italic">미리보기 로딩 중...</p>;
+  }
+
+  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+};
+
 export default function BlogAdmin() {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
@@ -386,10 +420,22 @@ export default function BlogAdmin() {
   const [imageGenerationModel, setImageGenerationModel] = useState('');
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
   
+  // 저장된 프롬프트 관리 상태
+  const [savedPrompts, setSavedPrompts] = useState([]);
+  const [expandedPromptId, setExpandedPromptId] = useState(null);
+  const [editingPromptId, setEditingPromptId] = useState(null);
+  const [editingKoreanPrompt, setEditingKoreanPrompt] = useState('');
+  
+  // 자동 저장 방지 상태
+  const [isManualSave, setIsManualSave] = useState(false);
+  
   // 프롬프트 미리보기 상태
   const [previewPrompt, setPreviewPrompt] = useState('');
   const [showPromptPreview, setShowPromptPreview] = useState(false);
   const [selectedImageCount, setSelectedImageCount] = useState(1);
+  
+  // AI 생성 이미지 선택 아코디언 상태
+  const [showAIImageAccordion, setShowAIImageAccordion] = useState(false);
 
   // 게시물 목록 불러오기
   const fetchPosts = useCallback(async (currentSortBy = sortBy, currentSortOrder = sortOrder) => {
@@ -550,10 +596,15 @@ export default function BlogAdmin() {
     console.log('🚨 이벤트 타겟:', e.target);
     console.log('🚨 이벤트 현재 타겟:', e.currentTarget);
     
-    // 의도하지 않은 호출인지 확인 (이벤트 타겟이 submit 버튼이 아닌 경우)
-    // 단, 명시적으로 저장 버튼을 클릭한 경우는 허용
-    if (e.target && e.target.type !== 'submit' && e.target.tagName !== 'BUTTON' && !e.target.textContent?.includes('수정') && !e.target.textContent?.includes('저장')) {
-      console.log('🚨 의도하지 않은 폼 제출 감지, 무시합니다.');
+    // 자동 저장 완전 비활성화 - 수동 저장 상태 확인
+    if (!isManualSave) {
+      console.log('🚨 자동 저장 방지: 수동 저장이 아닙니다.');
+      return;
+    }
+    
+    // 추가 보안: 이벤트가 프로그래밍적으로 트리거된 경우 방지
+    if (e.isTrusted === false) {
+      console.log('🚨 자동 저장 방지: 프로그래밍적으로 트리거된 이벤트입니다.');
       return;
     }
     
@@ -578,9 +629,10 @@ export default function BlogAdmin() {
         });
         
         if (response.ok) {
-          alert('게시물이 수정되었습니다!');
+          // alert('게시물이 수정되었습니다!'); // 화살표 클릭 시 자동 저장으로 인한 알림 제거
           fetchPosts();
           resetForm();
+          setIsManualSave(false); // 수동 저장 상태 리셋
         } else {
           const error = await response.json();
           alert('수정 실패: ' + error.error);
@@ -597,6 +649,7 @@ export default function BlogAdmin() {
           alert('게시물이 생성되었습니다!');
           fetchPosts();
           resetForm();
+          setIsManualSave(false); // 수동 저장 상태 리셋
         } else {
           const error = await response.json();
           alert('생성 실패: ' + error.error);
@@ -2325,113 +2378,6 @@ export default function BlogAdmin() {
     }
   };
 
-  // ChatGPT 프롬프트로 Kie AI 이미지 생성
-  const generateKieAIImages = async (count = 4) => {
-    if (!formData.title) {
-      alert('제목을 먼저 입력해주세요.');
-      return;
-    }
-
-    try {
-      console.log('📸 ChatGPT + Kie AI 이미지 생성 시작...', count, '개');
-      setIsGeneratingImages(true);
-      setShowGenerationProcess(true);
-      setImageGenerationModel('ChatGPT + Kie AI');
-      
-      // 1단계: ChatGPT로 스마트 프롬프트 생성
-      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
-      const promptResponse = await fetch('/api/generate-smart-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: brandStrategy.contentType,
-          brandStrategy: brandStrategy,
-          model: 'kie'
-        })
-      });
-
-      if (!promptResponse.ok) {
-        throw new Error('ChatGPT 프롬프트 생성 실패');
-      }
-
-      const { prompt: smartPrompt } = await promptResponse.json();
-      setImageGenerationPrompt(smartPrompt);
-      
-      // 2단계: Kie AI API 호출
-      setImageGenerationStep('2단계: Kie AI 서버에 이미지 생성 요청 중...');
-      const response = await fetch('/api/generate-blog-image-kie', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: brandStrategy.contentType,
-          brandStrategy: brandStrategy,
-          imageCount: count,
-          customPrompt: smartPrompt
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        if (result.status === 'processing') {
-          // 웹훅 방식으로 처리 중인 경우
-          setImageGenerationStep('3단계: Kie AI 이미지 생성 중... (웹훅 대기)');
-          alert('Kie AI 이미지 생성이 시작되었습니다. 완료되면 자동으로 알림을 받을 수 있습니다.');
-          
-          // 웹훅 결과를 기다리는 동안 폴링 (선택사항)
-          setTimeout(() => {
-            setImageGenerationStep('⏳ 이미지 생성이 완료될 때까지 잠시 기다려주세요...');
-          }, 5000);
-          
-        } else if (result.imageUrls) {
-          // 즉시 이미지가 생성된 경우
-          setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
-          
-          // 생성된 이미지들을 상태에 추가
-          const newImages = result.imageUrls.map((url, index) => ({
-            id: `kie-${Date.now()}-${index}`,
-            url: url,
-            alt: `${formData.title} - Kie AI 생성 이미지 ${index + 1}`,
-            fileName: `kie-generated-${Date.now()}-${index}.jpg`,
-            fileExtension: 'jpg',
-            isNaverImage: false,
-            isGenerated: true,
-            generatedBy: 'Kie AI',
-            batchIndex: index,
-            generatedAt: new Date().toISOString()
-          }));
-          
-          console.log('✅ ChatGPT + Kie AI 이미지 생성 완료:', result.imageUrls.length, '개');
-          alert(`${result.imageUrls.length}개의 ChatGPT + Kie AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
-        } else {
-          // 기타 성공 응답
-          setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
-          alert('Kie AI 이미지 생성이 완료되었습니다: ' + result.message);
-        }
-      } else {
-        const error = await response.json();
-        console.error('Kie AI 이미지 생성 실패:', error);
-        setImageGenerationStep('❌ Kie AI 이미지 생성 실패');
-        alert('Kie AI 이미지 생성에 실패했습니다: ' + error.message);
-      }
-    } catch (error) {
-      console.error('ChatGPT + Kie AI 이미지 생성 에러:', error);
-      setImageGenerationStep('❌ Kie AI 이미지 생성 에러');
-      alert('Kie AI 이미지 생성 중 오류가 발생했습니다: ' + error.message);
-    } finally {
-      setIsGeneratingImages(false);
-      setTimeout(() => {
-        setShowGenerationProcess(false);
-        setImageGenerationStep('');
-        setImageGenerationPrompt('');
-      }, 3000);
-    }
-  };
-
   // 이미지 변형 함수
   const generateImageVariation = async (model) => {
     if (!selectedBaseImage) {
@@ -2519,8 +2465,241 @@ export default function BlogAdmin() {
     }
   };
 
+  // ChatGPT 프롬프트로 Kie AI 이미지 생성
+  const generateKieAIImages = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('📸 ChatGPT + Kie AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + Kie AI');
+      
+      // 1단계: ChatGPT로 스마트 프롬프트 생성
+      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: brandStrategy.contentType,
+          brandStrategy: brandStrategy,
+          model: 'kie'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
+
+      const { prompt: smartPrompt } = await promptResponse.json();
+      setImageGenerationPrompt(smartPrompt);
+      
+      // 2단계: Kie AI API 호출
+      setImageGenerationStep('2단계: Kie AI 서버에 이미지 생성 요청 중...');
+      const response = await fetch('/api/generate-blog-image-kie', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: brandStrategy.contentType,
+          brandStrategy: brandStrategy,
+          imageCount: count,
+          customPrompt: smartPrompt
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.status === 'processing') {
+          // 웹훅 방식으로 처리 중인 경우
+          setImageGenerationStep('3단계: Kie AI 이미지 생성 중... (웹훅 대기)');
+          alert('Kie AI 이미지 생성이 시작되었습니다. 완료되면 자동으로 알림을 받을 수 있습니다.');
+          
+          // 웹훅 결과를 기다리는 동안 폴링 (선택사항)
+          setTimeout(() => {
+            setImageGenerationStep('⏳ 이미지 생성이 완료될 때까지 잠시 기다려주세요...');
+          }, 5000);
+          
+        } else if (result.imageUrls) {
+          // 즉시 이미지가 생성된 경우
+          setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
+          
+          // 생성된 이미지들을 상태에 추가
+          const newImages = result.imageUrls.map((url, index) => ({
+            id: `kie-${Date.now()}-${index}`,
+            url: url,
+            alt: `${formData.title} - Kie AI 생성 이미지 ${index + 1}`,
+            fileName: `kie-generated-${Date.now()}-${index}.jpg`,
+            fileExtension: 'jpg',
+            isNaverImage: false,
+            isGenerated: true,
+            generatedBy: 'Kie AI',
+            batchIndex: index,
+            generatedAt: new Date().toISOString()
+          }));
+          
+          setGeneratedImages(prev => [...prev, ...newImages]);
+          console.log('✅ ChatGPT + Kie AI 이미지 생성 완료:', result.imageUrls.length, '개');
+          alert(`${result.imageUrls.length}개의 ChatGPT + Kie AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+        } else {
+          // 기타 성공 응답
+          setImageGenerationStep('3단계: Kie AI 이미지 생성 완료!');
+          alert('Kie AI 이미지 생성이 완료되었습니다: ' + result.message);
+        }
+      } else {
+        const error = await response.json();
+        console.error('Kie AI 이미지 생성 실패:', error);
+        setImageGenerationStep('❌ Kie AI 이미지 생성 실패');
+        alert('Kie AI 이미지 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('ChatGPT + Kie AI 이미지 생성 에러:', error);
+      setImageGenerationStep('❌ Kie AI 이미지 생성 에러');
+      alert('Kie AI 이미지 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingImages(false);
+    }
+  };
+
+  // ChatGPT 프롬프트로 구글 이미지 생성
+  const generateGoogleImages = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('📸 ChatGPT + Google AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + Google AI');
+      
+      // 1단계: ChatGPT로 스마트 프롬프트 생성
+      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: brandStrategy.contentType,
+          brandStrategy: brandStrategy,
+          model: 'google'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
+
+      const { prompt: smartPrompt } = await promptResponse.json();
+      setImageGenerationPrompt(smartPrompt);
+      
+      // 2단계: 구글 AI API 호출
+      setImageGenerationStep('2단계: Google AI 서버에 이미지 생성 요청 중...');
+      const response = await fetch('/api/generate-blog-image-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: brandStrategy.contentType,
+          brandStrategy: brandStrategy,
+          imageCount: count,
+          customPrompt: smartPrompt
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.imageUrls && result.imageUrls.length > 0) {
+          // 즉시 이미지가 생성된 경우
+          setImageGenerationStep('3단계: Google AI 이미지 생성 완료!');
+          
+          // 생성된 이미지들을 상태에 추가 (FAL AI 방식과 동일하게 문자열 배열로 저장)
+          setGeneratedImages(prev => [...prev, ...result.imageUrls]);
+          
+          // 3단계: 생성된 이미지를 Supabase에 저장
+          setImageGenerationStep('3단계: 이미지를 Supabase에 저장 중...');
+          const savedImages = [];
+          
+          for (let i = 0; i < result.imageUrls.length; i++) {
+            try {
+              const saveResponse = await fetch('/api/save-generated-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageUrl: result.imageUrls[i],
+                  fileName: `google-ai-${Date.now()}-${i + 1}.png`,
+                  blogPostId: editingPost?.id || null
+                })
+              });
+              
+              if (saveResponse.ok) {
+                const saveData = await saveResponse.json();
+                savedImages.push(saveData.publicUrl);
+                console.log(`✅ Google AI 이미지 ${i + 1} Supabase 저장 완료:`, saveData.publicUrl);
+              } else {
+                console.error(`❌ Google AI 이미지 ${i + 1} Supabase 저장 실패`);
+                savedImages.push(result.imageUrls[i]); // 실패 시 원본 URL 사용
+              }
+            } catch (error) {
+              console.error(`❌ Google AI 이미지 ${i + 1} 저장 오류:`, error);
+              savedImages.push(result.imageUrls[i]); // 오류 시 원본 URL 사용
+            }
+          }
+          
+          // 저장된 이미지 URL로 상태 업데이트 (FAL AI 방식과 동일하게 문자열 배열로 저장)
+          if (savedImages.length > 0) {
+            setGeneratedImages(prev => [...prev, ...savedImages]);
+          }
+          
+          // Google AI 프롬프트를 저장된 프롬프트에 추가
+          const promptId = `google-${Date.now()}`;
+          const newPrompt = {
+            id: promptId,
+            model: 'Google AI (imagen-4.0)',
+            prompt: smartPrompt,
+            koreanPrompt: `한국 골프장 실사 이미지: ${formData.title}`,
+            createdAt: new Date().toISOString(),
+            imageCount: count
+          };
+          setSavedPrompts(prev => [newPrompt, ...prev]);
+          setExpandedPromptId(promptId); // 새로 추가된 프롬프트를 자동으로 펼침
+          
+          setImageGenerationStep('3단계: Google AI 이미지 생성 및 저장 완료!');
+          console.log('✅ ChatGPT + Google AI 이미지 생성 및 Supabase 저장 완료:', savedImages.length, '개');
+          alert(`${savedImages.length}개의 ChatGPT + Google AI 이미지가 생성되고 Supabase에 저장되었습니다! 원하는 이미지를 선택하세요.`);
+        } else {
+          // 기타 성공 응답
+          setImageGenerationStep('3단계: Google AI 이미지 생성 완료!');
+          alert('Google AI 이미지 생성이 완료되었습니다: ' + result.message);
+        }
+      } else {
+        const error = await response.json();
+        console.error('Google AI 이미지 생성 실패:', error);
+        setImageGenerationStep('❌ Google AI 이미지 생성 실패');
+        alert('Google AI 이미지 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('ChatGPT + Google AI 이미지 생성 에러:', error);
+      setImageGenerationStep('❌ Google AI 이미지 생성 에러');
+      alert('Google AI 이미지 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingImages(false);
+    }
+  };
+
   // ChatGPT 프롬프트로 FAL AI 이미지 생성
-  const generateFALAIImages = async (count = 4) => {
+  const generateFALAIImages = async (count = 4, includeAdCopy = false) => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
       return;
@@ -2550,12 +2729,31 @@ export default function BlogAdmin() {
           contentType: brandStrategy.contentType,
           brandStrategy: brandStrategy,
           imageCount: count,
-          customPrompt: null // 동적 프롬프트 사용 (ChatGPT 프롬프트 비활성화)
+          customPrompt: null, // 동적 프롬프트 사용 (ChatGPT 프롬프트 비활성화)
+          includeAdCopy: includeAdCopy // 광고 카피 포함 여부
         })
       });
 
       if (response.ok) {
-        const { imageUrls, metadata } = await response.json();
+        const { imageUrls, metadata, prompt } = await response.json();
+        
+        // 실제 프롬프트 표시 및 저장
+        if (prompt) {
+          setImageGenerationPrompt(prompt);
+          
+          // 프롬프트를 저장된 목록에 추가
+          const promptId = `fal-${Date.now()}`;
+          const newPrompt = {
+            id: promptId,
+            model: 'FAL AI (hidream-i1-dev)',
+            prompt: prompt,
+            koreanPrompt: `한국 골프장 실사 이미지: ${formData.title}`,
+            createdAt: new Date().toISOString(),
+            imageCount: count
+          };
+          setSavedPrompts(prev => [newPrompt, ...prev]);
+          setExpandedPromptId(promptId); // 새로 추가된 프롬프트를 자동으로 펼침
+        }
         
         // 3단계: 생성된 이미지를 Supabase에 저장
         setImageGenerationStep('3단계: 이미지를 Supabase에 저장 중...');
@@ -2849,9 +3047,19 @@ export default function BlogAdmin() {
       setShowGenerationProcess(true);
       setImageGenerationModel(`ChatGPT + ${model.toUpperCase()} 이미지 개선`);
       
+      // 저장된 프롬프트 찾기 (선택된 이미지와 관련된 프롬프트)
+      const relatedPrompt = savedPrompts.find(p => 
+        selectedImageForImprovement.includes(p.id.split('-')[1]) || 
+        savedPrompts.length > 0 // 임시로 가장 최근 프롬프트 사용
+      ) || savedPrompts[0];
+      
       // 1단계: ChatGPT 이미지 분석
       setImageGenerationStep(`1단계: ChatGPT가 원본 이미지 분석 중...`);
-      setImprovementProcess('ChatGPT가 원본 이미지를 분석하고 각 모델에 최적화된 프롬프트를 생성합니다.');
+      setImprovementProcess(
+        relatedPrompt 
+          ? `저장된 프롬프트와 새로운 요청사항을 조합하여 최적화된 프롬프트를 생성합니다.`
+          : 'ChatGPT가 원본 이미지를 분석하고 각 모델에 최적화된 프롬프트를 생성합니다.'
+      );
       
       const response = await fetch('/api/simple-ai-image-improvement', {
         method: 'POST',
@@ -2859,7 +3067,9 @@ export default function BlogAdmin() {
         body: JSON.stringify({ 
           imageUrl: selectedImageForImprovement,
           improvementRequest: simpleAIImageRequest,
-          model: model
+          model: model,
+          originalPrompt: relatedPrompt?.prompt || null, // 저장된 프롬프트 전달
+          originalKoreanPrompt: relatedPrompt?.koreanPrompt || null
         })
       });
 
@@ -2871,16 +3081,26 @@ export default function BlogAdmin() {
           setImageGenerationStep(`2단계: ${model.toUpperCase()}로 이미지 개선 중...`);
           setImprovementProcess(`${model.toUpperCase()}가 최적화된 프롬프트로 이미지를 개선하고 있습니다.`);
           
-          // 개선된 이미지를 generatedImages에 추가
-          const newImage = {
-            url: data.improvedImage.publicUrl,
-            fileName: data.improvedImage.fileName,
-            model: data.model,
-            prompt: data.editPrompt,
-            originalImage: selectedImageForImprovement,
-            improvementRequest: simpleAIImageRequest
-          };
-          setGeneratedImages(prev => [...prev, newImage]);
+          // 생성된 프롬프트 저장 (아코디언용)
+          if (data.generatedPrompts) {
+            const promptId = `improvement-${Date.now()}`;
+            const improvementPrompt = {
+              id: promptId,
+              model: `ChatGPT + ${model.toUpperCase()} 이미지 개선`,
+              prompt: data.editPrompt,
+              koreanPrompt: `이미지 개선: ${simpleAIImageRequest}`,
+              imageAnalysis: data.imageAnalysis,
+              allPrompts: data.generatedPrompts,
+              createdAt: new Date().toISOString(),
+              improvementRequest: simpleAIImageRequest,
+              originalImage: selectedImageForImprovement
+            };
+            setSavedPrompts(prev => [improvementPrompt, ...prev]);
+            setExpandedPromptId(promptId); // 새로 추가된 프롬프트를 자동으로 펼침
+          }
+          
+          // 개선된 이미지를 generatedImages에 추가 (FAL AI 방식과 동일하게 문자열로 저장)
+          setGeneratedImages(prev => [...prev, data.improvedImage.publicUrl]);
           
           // 3단계: 완료
           setImageGenerationStep(`3단계: ChatGPT + ${model.toUpperCase()} 이미지 개선 완료!`);
@@ -2901,13 +3121,15 @@ export default function BlogAdmin() {
         const error = await response.json();
         console.error('간단 AI 이미지 개선 실패:', error);
         setImageGenerationStep(`❌ ${model.toUpperCase()} 이미지 개선 실패`);
-        alert('간단 AI 이미지 개선에 실패했습니다: ' + error.message);
+        const errorMessage = error?.details || error?.error || error?.message || '알 수 없는 오류가 발생했습니다.';
+        alert('간단 AI 이미지 개선에 실패했습니다: ' + errorMessage);
       }
     } catch (error) {
       console.error('간단 AI 이미지 개선 에러:', error);
       setImageGenerationStep(`❌ ChatGPT + ${model.toUpperCase()} 이미지 개선 에러`);
       setImprovementProcess('이미지 개선 중 오류가 발생했습니다. 다시 시도해주세요.');
-      alert('ChatGPT + ' + model.toUpperCase() + ' 이미지 개선 중 오류가 발생했습니다: ' + error.message);
+      const errorMessage = error?.message || error?.toString() || '알 수 없는 오류가 발생했습니다.';
+      alert('ChatGPT + ' + model.toUpperCase() + ' 이미지 개선 중 오류가 발생했습니다: ' + errorMessage);
     } finally {
       setIsImprovingImage(false);
       setTimeout(() => {
@@ -2929,7 +3151,7 @@ export default function BlogAdmin() {
       
       // Supabase에서 이미지 삭제
       const response = await fetch('/api/delete-image-supabase', {
-        method: 'POST',
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           imageUrl: imageUrl
@@ -3501,7 +3723,7 @@ export default function BlogAdmin() {
 
               {/* AI 사용량 대시보드 제거됨 - 통합 대시보드로 이동 */}
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" noValidate>
                 {/* 콘텐츠 소스 입력란 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -3840,40 +4062,7 @@ export default function BlogAdmin() {
                     >
                       🤖 AI 메타
                     </button>
-                    {/* ChatGPT 프롬프트 미리보기 버튼들 */}
-                    <button 
-                      type="button"
-                      onClick={() => previewImagePrompt('dalle3')} 
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs relative"
-                      title="OpenAI 크레딧 필요"
-                    >
-                      🤖 ChatGPT + DALL-E 3 프롬프트 미리보기
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="OpenAI 크레딧 부족">
-                        !
-                      </span>
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => previewImagePrompt('fal')} 
-                      className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-xs relative"
-                      title="OpenAI 크레딧 필요"
-                    >
-                      🤖 ChatGPT + FAL AI 프롬프트 미리보기
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="OpenAI 크레딧 부족">
-                        !
-                      </span>
-                    </button>
-        <button 
-          type="button"
-          onClick={() => previewImagePrompt('kie')} 
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs relative"
-          title="OpenAI 크레딧 필요"
-        >
-          🤖 ChatGPT + Kie AI 프롬프트 미리보기
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="OpenAI 크레딧 부족">
-            !
-          </span>
-        </button>
+                    {/* ChatGPT 프롬프트 미리보기 버튼들은 하단의 이미지 생성 버튼으로 통합됨 */}
                   </div>
 
                   {/* 간단 AI 개선 기능 */}
@@ -3956,6 +4145,28 @@ export default function BlogAdmin() {
                     </div>
                   </div>
 
+                  {/* 프롬프트 미리보기 */}
+                  {showPromptPreview && previewPrompt && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h5 className="text-sm font-medium text-blue-800 mb-2">🤖 ChatGPT 생성 프롬프트:</h5>
+                      <p className="text-sm text-blue-700 leading-relaxed">{previewPrompt}</p>
+                      <button 
+                        onClick={() => setShowPromptPreview(false)}
+                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                      >
+                        닫기
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 이미지 생성 진행사항 */}
+                  {showGenerationProcess && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <h5 className="text-sm font-medium text-green-800 mb-2">🔄 {imageGenerationModel} 진행사항:</h5>
+                      <p className="text-sm text-green-700">{imageGenerationStep}</p>
+                    </div>
+                  )}
+
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="flex flex-wrap gap-2">
                     <button 
@@ -3970,30 +4181,60 @@ export default function BlogAdmin() {
                         !
                       </span>
                     </button>
+                    <div className="flex flex-col gap-1">
+                      <button 
+                        type="button"
+                        onClick={() => generateFALAIImages(selectedImageCount, false)} 
+                        disabled={isGeneratingImages}
+                        className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm disabled:opacity-50 relative"
+                        title="FAL AI 크레딧 필요"
+                      >
+                        {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + FAL AI ${selectedImageCount}개 (깔끔한 이미지)`}
+                        <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="FAL AI 크레딧 부족">
+                          !
+                        </span>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => generateFALAIImages(selectedImageCount, true)} 
+                        disabled={isGeneratingImages}
+                        className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm disabled:opacity-50 relative"
+                        title="FAL AI 크레딧 필요 (광고 카피 포함)"
+                      >
+                        {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + FAL AI ${selectedImageCount}개 (광고 카피 포함)`}
+                        <span className="absolute -top-1 -right-1 bg-orange-400 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="FAL AI 크레딧 부족">
+                          !
+                        </span>
+                      </button>
+                    </div>
+                    
+                    {/* Kie AI 버튼 복구 */}
                     <button 
                       type="button"
-                      onClick={() => generateFALAIImages(selectedImageCount)} 
+                      onClick={() => generateKieAIImages(selectedImageCount)} 
                       disabled={isGeneratingImages}
-                      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm disabled:opacity-50 relative"
-                      title="FAL AI 크레딧 필요"
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50 relative"
+                      title="Kie AI 크레딧 필요"
                     >
-                      {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + FAL AI ${selectedImageCount}개`}
-                      <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="FAL AI 크레딧 부족">
+                      {isGeneratingImages ? '🎨 생성 중...' : `🤖 ChatGPT + Kie AI ${selectedImageCount}개`}
+                      <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="Kie AI 크레딧 부족">
                         !
                       </span>
                     </button>
-        <button 
-          type="button"
-          onClick={() => generateKieAIImages(selectedImageCount)} 
-          disabled={isGeneratingImages}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50 relative"
-          title="Kie AI 크레딧 필요"
-        >
-          {isGeneratingImages ? '🎨 생성 중...' : `🤖 ChatGPT + Kie AI ${selectedImageCount}개`}
-          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="Kie AI 크레딧 부족">
-            !
-          </span>
-        </button>
+                    
+                    {/* 구글 이미지 생성 버튼 */}
+                    <button 
+                      type="button"
+                      onClick={() => generateGoogleImages(selectedImageCount)} 
+                      disabled={isGeneratingImages}
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm disabled:opacity-50 relative"
+                      title="Google AI 크레딧 필요"
+                    >
+                      {isGeneratingImages ? '🤖 생성 중...' : `🤖 ChatGPT + Google AI ${selectedImageCount}개`}
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center" title="Google AI 크레딧 부족">
+                        !
+                      </span>
+                    </button>
                     
                     {/* 단락별 이미지 생성 버튼 */}
                     <button 
@@ -4005,6 +4246,274 @@ export default function BlogAdmin() {
                       {isGeneratingParagraphImages ? '📝 생성 중...' : '📝 단락별 이미지 생성'}
                     </button>
                   </div>
+
+                  {/* AI 생성 이미지 선택 아코디언 (상단으로 이동) */}
+                  {generatedImages.length > 0 && (
+                    <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                      <button
+                        onClick={() => setShowAIImageAccordion(!showAIImageAccordion)}
+                        className="w-full text-left flex items-center justify-between p-3 bg-white hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <div>
+                          <h4 className="text-lg font-semibold text-orange-800">
+                            🎨 AI 생성 이미지 선택 ({generatedImages.length}개)
+                          </h4>
+                          <p className="text-sm text-orange-700 mt-1">
+                            AI가 생성한 이미지 중에서 원하는 이미지를 선택하세요
+                          </p>
+                        </div>
+                        <div className="text-orange-600 text-xl">
+                          {showAIImageAccordion ? '▼' : '▶'}
+                        </div>
+                      </button>
+                      
+                      {showAIImageAccordion && (
+                        <div className="mt-4 p-4 bg-white border border-orange-200 rounded-lg">
+                          <p className="text-sm text-orange-700 mb-4">
+                            AI가 생성한 {generatedImages.length}개의 이미지 중에서 원하는 이미지를 선택하세요. 클릭하면 대표 이미지로 설정됩니다.
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {generatedImages.map((imageUrl, index) => (
+                              <div 
+                                key={index}
+                                className="cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-orange-500 transition-colors"
+                              >
+                                <div 
+                                  className="h-48 flex items-center justify-center bg-gray-100"
+                                  onClick={() => {
+                                    setSelectedGeneratedImage(imageUrl);
+                                    setShowGeneratedImageModal(true);
+                                  }}
+                                  title="클릭하여 이미지 확대 보기"
+                                >
+                                  <img
+                                    src={imageUrl}
+                                    alt={`AI 생성 이미지 ${index + 1}`}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
+                                </div>
+                                <div className="p-3">
+                                  <h5 className="font-medium text-sm text-gray-900 mb-1">AI 생성 이미지 {index + 1}</h5>
+                                  <div className="flex gap-1 mb-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        copyImageUrl(imageUrl);
+                                      }}
+                                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                    >
+                                      📋 복사
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        insertImageToContentLegacy(imageUrl);
+                                      }}
+                                      className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                    >
+                                      ➕ 삽입
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        selectGeneratedImage(imageUrl);
+                                      }}
+                                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                    >
+                                      ⭐ 대표
+                                    </button>
+                                  </div>
+                                  <p className="text-xs text-gray-600">클릭하여 이미지 확대 보기</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 저장된 프롬프트 섹션 (이미지 생성 버튼 바로 아래) */}
+                  {savedPrompts.length > 0 && (
+                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-800 mb-3">
+                        📝 저장된 프롬프트 ({savedPrompts.length}개)
+                      </h4>
+                      <div className="space-y-2">
+                        {savedPrompts.map((prompt) => (
+                          <div key={prompt.id} className="border border-gray-200 rounded-lg">
+                            <button
+                              onClick={() => setExpandedPromptId(
+                                expandedPromptId === prompt.id ? null : prompt.id
+                              )}
+                              className="w-full p-3 text-left bg-white hover:bg-gray-50 rounded-lg transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-800">
+                                    {prompt.model} {prompt.imageCount ? `- ${prompt.imageCount}개 이미지` : ''}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {new Date(prompt.createdAt).toLocaleString('ko-KR')}
+                                    {prompt.improvementRequest && (
+                                      <span className="ml-2 text-blue-600">
+                                        요청: {prompt.improvementRequest}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-gray-400">
+                                  {expandedPromptId === prompt.id ? '▼' : '▶'}
+                                </div>
+                              </div>
+                            </button>
+                            {expandedPromptId === prompt.id && (
+                              <div className="p-3 bg-gray-50 border-t border-gray-200">
+                                <div className="mb-2">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h6 className="text-xs font-medium text-gray-700">한글 프롬프트:</h6>
+                                    <button 
+                                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                      onClick={() => {
+                                        setEditingPromptId(prompt.id);
+                                        setEditingKoreanPrompt(prompt.koreanPrompt);
+                                      }}
+                                    >
+                                      ✏️ 수정
+                                    </button>
+                                  </div>
+                                  {editingPromptId === prompt.id ? (
+                                    <div className="space-y-2">
+                                      <textarea
+                                        value={editingKoreanPrompt}
+                                        onChange={(e) => setEditingKoreanPrompt(e.target.value)}
+                                        className="w-full text-xs text-gray-600 bg-yellow-50 p-2 rounded border resize-none"
+                                        rows={3}
+                                        placeholder="한글 프롬프트를 수정하세요..."
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={async () => {
+                                            // 한글 프롬프트 저장 및 영문 번역
+                                            try {
+                                              const translationResponse = await fetch('/api/translate-korean-to-english', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ 
+                                                  koreanPrompt: editingKoreanPrompt,
+                                                  originalEnglishPrompt: prompt.prompt,
+                                                  model: prompt.model.includes('FAL') ? 'fal' : 
+                                                         prompt.model.includes('Replicate') ? 'replicate' :
+                                                         prompt.model.includes('Stability') ? 'stability' : 'fal'
+                                                })
+                                              });
+                                              
+                                              if (translationResponse.ok) {
+                                                const translationData = await translationResponse.json();
+                                                
+                                                const imageResponse = await fetch('/api/regenerate-image-from-prompt', {
+                                                  method: 'POST',
+                                                  headers: { 'Content-Type': 'application/json' },
+                                                  body: JSON.stringify({
+                                                    translatedPrompt: translationData.translatedPrompt,
+                                                    model: prompt.model.includes('FAL') ? 'fal' : 
+                                                           prompt.model.includes('Replicate') ? 'replicate' :
+                                                           prompt.model.includes('Stability') ? 'stability' : 'fal',
+                                                    originalImageUrl: prompt.originalImage || null
+                                                  })
+                                                });
+                                                
+                                                if (imageResponse.ok) {
+                                                  const imageData = await imageResponse.json();
+                                                  
+                                                  setSavedPrompts(prev => prev.map(p => 
+                                                    p.id === prompt.id 
+                                                      ? { 
+                                                          ...p, 
+                                                          koreanPrompt: editingKoreanPrompt,
+                                                          prompt: translationData.translatedPrompt,
+                                                          regeneratedImage: imageData.newImageUrl,
+                                                          regeneratedAt: new Date().toISOString()
+                                                        }
+                                                      : p
+                                                  ));
+                                                  
+                                                  if (imageData.newImageUrl) {
+                                                    const newImage = {
+                                                      url: imageData.newImageUrl,
+                                                      fileName: `regenerated-${Date.now()}.png`,
+                                                      model: prompt.model,
+                                                      prompt: translationData.translatedPrompt,
+                                                      koreanPrompt: editingKoreanPrompt,
+                                                      isRegenerated: true
+                                                    };
+                                                    setGeneratedImages(prev => [...prev, newImage]);
+                                                  }
+                                                  
+                                                  alert('✅ 한글 프롬프트가 수정되고 영문으로 번역되어 새 이미지가 생성되었습니다!');
+                                                } else {
+                                                  throw new Error('이미지 재생성 실패');
+                                                }
+                                              } else {
+                                                throw new Error('번역 실패');
+                                              }
+                                            } catch (error) {
+                                              console.error('프롬프트 수정 및 재생성 오류:', error);
+                                              alert('❌ 프롬프트 수정 중 오류가 발생했습니다: ' + error.message);
+                                            }
+                                            
+                                            setEditingPromptId(null);
+                                            setEditingKoreanPrompt('');
+                                          }}
+                                          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        >
+                                          🔄 번역 & 재생성
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setEditingPromptId(null);
+                                            setEditingKoreanPrompt('');
+                                          }}
+                                          className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                                        >
+                                          ❌ 취소
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
+                                      {prompt.koreanPrompt}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="mb-2">
+                                  <h6 className="text-xs font-medium text-gray-700 mb-1">영문 프롬프트:</h6>
+                                  <p className="text-xs text-gray-700 leading-relaxed bg-white p-2 rounded border">
+                                    {prompt.prompt}
+                                  </p>
+                                </div>
+                                {prompt.regeneratedImage && (
+                                  <div className="mb-2">
+                                    <h6 className="text-xs font-medium text-gray-700 mb-1">🔄 재생성된 이미지:</h6>
+                                    <div className="flex items-center gap-2">
+                                      <img 
+                                        src={prompt.regeneratedImage} 
+                                        alt="재생성된 이미지" 
+                                        className="w-16 h-16 object-cover rounded border"
+                                      />
+                                      <div className="text-xs text-gray-500">
+                                        {prompt.regeneratedAt && new Date(prompt.regeneratedAt).toLocaleString('ko-KR')}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* 이미지 변형 섹션 */}
                   <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
@@ -4028,8 +4537,8 @@ export default function BlogAdmin() {
                               alt="선택된 기본 이미지"
                               className="w-16 h-16 object-cover rounded border"
                               onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
                               }}
                             />
                             <div className="hidden w-16 h-16 bg-gray-200 rounded border items-center justify-center">
@@ -4053,46 +4562,46 @@ export default function BlogAdmin() {
                       {/* 이미지 썸네일 선택 그리드 */}
                       <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
                         {/* AI 생성 이미지 */}
-                        {generatedImages.filter(img => isValidImageUrl(img.url)).length > 0 && (
+                        {generatedImages.filter(img => isValidImageUrl(img)).length > 0 && (
                           <div className="mb-4">
                             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              🤖 AI 생성 이미지 ({generatedImages.filter(img => isValidImageUrl(img.url)).length}개)
+                              🤖 AI 생성 이미지 ({generatedImages.filter(img => isValidImageUrl(img)).length}개)
                             </h4>
                             <div className="grid grid-cols-4 gap-2">
-                              {generatedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
+                              {generatedImages.filter(img => isValidImageUrl(img)).map((imgUrl, index) => (
                                 <div
                                   key={`ai-${index}`}
-                                  onClick={() => setSelectedBaseImage(img.url)}
+                                  onClick={() => setSelectedBaseImage(imgUrl)}
                                   className={`relative cursor-pointer rounded-lg border-2 transition-all group ${
-                                    selectedBaseImage === img.url 
+                                    selectedBaseImage === imgUrl 
                                       ? 'border-blue-500 ring-2 ring-blue-200' 
                                       : 'border-gray-200 hover:border-gray-300'
                                   }`}
                                 >
                                   <img 
-                                    src={img.url} 
+                                    src={imgUrl} 
                                     alt={`AI 생성 이미지 ${index + 1}`}
                                     className="w-full h-20 object-cover rounded"
                                     onError={(e) => {
-                                      console.error('이미지 로드 실패:', img.url);
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
+                                      console.error('이미지 로드 실패:', imgUrl);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
                                     }}
                                     onLoad={() => {
-                                      console.log('이미지 로드 성공:', img.url);
+                                      console.log('이미지 로드 성공:', imgUrl);
                                     }}
                                   />
                                   <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
                                     <span className="text-xs text-gray-500">로드 실패</span>
                                   </div>
                                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
-                                    <div className="truncate">{img.type}</div>
+                                    <div className="truncate">AI 생성</div>
                                   </div>
                                   {/* 삭제 버튼 */}
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      deleteImage(img.url, 'generated');
+                                      deleteImage(imgUrl, 'generated');
                                     }}
                                     className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                                     title="이미지 삭제"
@@ -4128,8 +4637,8 @@ export default function BlogAdmin() {
                                     className="w-full h-20 object-cover rounded"
                                     onError={(e) => {
                                       console.error('스크래핑 이미지 로드 실패:', img.url);
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
                                     }}
                                     onLoad={() => {
                                       console.log('스크래핑 이미지 로드 성공:', img.url);
@@ -4245,8 +4754,8 @@ export default function BlogAdmin() {
                               alt="선택된 개선 이미지"
                               className="w-16 h-16 object-cover rounded border"
                               onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
                               }}
                             />
                             <div className="hidden w-16 h-16 bg-gray-200 rounded border items-center justify-center">
@@ -4270,26 +4779,26 @@ export default function BlogAdmin() {
                       {/* 이미지 썸네일 선택 그리드 */}
                       <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
                         {/* AI 생성 이미지 */}
-                        {generatedImages.filter(img => isValidImageUrl(img.url)).length > 0 && (
+                        {generatedImages.filter(img => isValidImageUrl(img)).length > 0 && (
                           <div className="mb-4">
                             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              🤖 AI 생성 이미지 ({generatedImages.filter(img => isValidImageUrl(img.url)).length}개)
+                              🤖 AI 생성 이미지 ({generatedImages.filter(img => isValidImageUrl(img)).length}개)
                             </h4>
                             <div className="grid grid-cols-4 gap-2">
-                              {generatedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
+                              {generatedImages.filter(img => isValidImageUrl(img)).map((imgUrl, index) => (
                                 <div key={`ai-${index}`} className="relative group">
                                   <img
-                                    src={img.url}
+                                    src={imgUrl}
                                     alt={`AI 생성 이미지 ${index + 1}`}
                                     className={`w-full h-20 object-cover rounded border cursor-pointer transition-all ${
-                                      selectedImageForImprovement === img.url 
+                                      selectedImageForImprovement === imgUrl 
                                         ? 'ring-2 ring-green-500 border-green-500' 
                                         : 'hover:border-green-300'
                                     }`}
-                                    onClick={() => setSelectedImageForImprovement(img.url)}
+                                    onClick={() => setSelectedImageForImprovement(imgUrl)}
                                     onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
                                     }}
                                   />
                                   <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
@@ -4302,7 +4811,7 @@ export default function BlogAdmin() {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      deleteImage(img.url, 'generated');
+                                      deleteImage(imgUrl, 'generated');
                                     }}
                                     className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                                     title="이미지 삭제"
@@ -4334,8 +4843,8 @@ export default function BlogAdmin() {
                                     }`}
                                     onClick={() => setSelectedImageForImprovement(img.url)}
                                     onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
                                     }}
                                     onLoad={() => {
                                       console.log('스크래핑 이미지 로드 성공:', img.url);
@@ -4372,6 +4881,36 @@ export default function BlogAdmin() {
                             <p className="text-xs mt-1">먼저 이미지를 생성하거나 스크래핑해주세요.</p>
                           </div>
                         )}
+                      </div>
+                    </div>
+
+                    {/* 빠른 텍스트 제거 버튼들 */}
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        빠른 텍스트 제거:
+                      </label>
+                      <div className="flex gap-2 mb-2">
+                        <button 
+                          type="button"
+                          onClick={() => setSimpleAIImageRequest('모든 텍스트와 글자를 완전히 제거해주세요. 깔끔한 이미지로 만들어주세요.')}
+                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                        >
+                          🚫 모든 텍스트 제거
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setSimpleAIImageRequest('배너와 오버레이 텍스트만 제거해주세요.')}
+                          className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-xs"
+                        >
+                          🏷️ 배너 제거
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setSimpleAIImageRequest('브랜드명과 로고만 제거해주세요.')}
+                          className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs"
+                        >
+                          🏢 브랜드명 제거
+                        </button>
                       </div>
                     </div>
 
@@ -4423,6 +4962,14 @@ export default function BlogAdmin() {
                       </button>
                       <button 
                         type="button"
+                        onClick={() => applySimpleAIImageImprovement('google')}
+                        disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm disabled:opacity-50"
+                      >
+                        {isImprovingImage ? '🤖 개선 중...' : '🤖 ChatGPT + Google AI 개선'}
+                      </button>
+                      <button 
+                        type="button"
                         onClick={() => {
                           setSimpleAIImageRequest('');
                           setSelectedImageForImprovement('');
@@ -4435,9 +4982,10 @@ export default function BlogAdmin() {
 
                     <p className="text-xs text-gray-600 mt-2">
                       <span className="text-green-600 font-medium">🤖 ChatGPT + AI 이미지 개선: 원본 이미지 분석 후 각 모델 특성에 맞는 최적화된 프롬프트로 개선</span><br/>
-                      <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 빠른 실사 스타일 개선 (저비용)</span><br/>
-                      <span className="text-blue-600 font-medium">🤖 ChatGPT + Replicate: 안정적인 고품질 개선 (중간 비용)</span><br/>
-                      <span className="text-green-600 font-medium">🤖 ChatGPT + Stability AI: 전문적 고해상도 개선 (저비용)</span><br/>
+                    <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 빠른 실사 스타일 개선 (저비용)</span><br/>
+                    <span className="text-blue-600 font-medium">🤖 ChatGPT + Replicate: 안정적인 고품질 개선 (중간 비용)</span><br/>
+                    <span className="text-green-600 font-medium">🤖 ChatGPT + Stability AI: 전문적 고해상도 개선 (저비용)</span><br/>
+                    <span className="text-red-600 font-medium">🤖 ChatGPT + Google AI: 구글 Imagen 기반 고품질 이미지 생성 및 개선</span><br/>
                       <span className="text-purple-600 font-medium">🤖 ChatGPT + DALL-E 3: 창의적 고품질 개선 (중간 비용)</span>
                     </p>
                   </div>
@@ -4457,45 +5005,8 @@ export default function BlogAdmin() {
                     </div>
                   )}
                   
-                  <p className="text-xs text-gray-600 mt-2">
-                    선택한 전략에 따라 마쓰구 브랜드가 자연스럽게 통합된 콘텐츠를 생성합니다.
-                    <br />
-                    <span className="text-blue-600 font-medium">🔍 브랜드 정보 검색 기능이 포함되어 정확한 정보를 반영합니다.</span>
-                    <br />
-                    <span className="text-orange-600 font-medium">🤖 ChatGPT + DALL-E 3: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 DALL-E 3로 고품질 실사 이미지를 만듭니다.</span>
-                    <br />
-                    <span className="text-orange-600 font-medium">🤖 ChatGPT + FAL AI: 요약 기반으로 ChatGPT가 프롬프트를 생성하고 FAL AI로 고품질 실사 이미지를 만듭니다.</span>
-                    <br />
-                    <span className="text-green-600 font-medium">🤖 ChatGPT + Kie AI: ChatGPT로 생성된 프롬프트를 사용하여 Kie AI의 GPT-4O 이미지 모델로 고품질 이미지를 생성합니다.</span>
-                    <br />
-                    <span className="text-orange-500 font-medium">✨ 여러 이미지 생성: 1개, 2개 또는 4개의 다양한 이미지를 생성하여 선택할 수 있습니다.</span>
-                    <br />
-                    <span className="text-purple-600 font-medium">📝 단락별 이미지: 내용의 각 단락에 맞는 다양한 이미지를 생성하여 글을 완성할 수 있습니다.</span>
-                  </p>
+                  {/* 설명 텍스트는 하단의 이미지 생성 섹션에서만 표시 */}
                   
-                  {/* 프롬프트 미리보기 표시 */}
-                  {showPromptPreview && previewPrompt && (
-                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="text-sm font-medium text-green-800">
-                          🤖 ChatGPT 생성 프롬프트 미리보기
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => setShowPromptPreview(false)}
-                          className="text-green-600 hover:text-green-800 text-sm"
-                        >
-                          ✕ 닫기
-                        </button>
-                </div>
-                      <div className="p-3 bg-white border border-green-200 rounded">
-                        <p className="text-xs text-gray-700 leading-relaxed">
-                          {previewPrompt}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
                   {/* 이미지 생성 과정 표시 */}
                   {showGenerationProcess && (
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -4505,93 +5016,237 @@ export default function BlogAdmin() {
                       <div className="text-sm text-blue-700 mb-2">
                         {imageGenerationStep}
                       </div>
-                      {imageGenerationPrompt && (
-                        <div className="mt-3 p-3 bg-white border border-blue-200 rounded">
-                          <h5 className="text-xs font-medium text-blue-800 mb-1">생성된 프롬프트:</h5>
-                          <p className="text-xs text-gray-700 leading-relaxed">
-                            {imageGenerationPrompt}
-                          </p>
-                        </div>
-                      )}
+                    </div>
+                  )}
+
+                  {/* 저장된 프롬프트 아코디언 */}
+                  {savedPrompts.length > 0 && (
+                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-800 mb-3">
+                        📝 저장된 프롬프트 ({savedPrompts.length}개)
+                      </h4>
+                      <div className="space-y-2">
+                        {savedPrompts.map((prompt) => (
+                          <div key={prompt.id} className="border border-gray-200 rounded-lg">
+                            <button
+                              onClick={() => setExpandedPromptId(
+                                expandedPromptId === prompt.id ? null : prompt.id
+                              )}
+                              className="w-full p-3 text-left bg-white hover:bg-gray-50 rounded-lg transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-800">
+                                    {prompt.model} {prompt.imageCount ? `- ${prompt.imageCount}개 이미지` : ''}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {new Date(prompt.createdAt).toLocaleString('ko-KR')}
+                                    {prompt.improvementRequest && (
+                                      <span className="ml-2 text-blue-600">
+                                        요청: {prompt.improvementRequest}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-gray-400">
+                                  {expandedPromptId === prompt.id ? '▼' : '▶'}
+                                </div>
+                              </div>
+                            </button>
+                            {expandedPromptId === prompt.id && (
+                              <div className="p-3 bg-gray-50 border-t border-gray-200">
+                                {prompt.imageAnalysis && (
+                                  <div className="mb-3">
+                                    <h6 className="text-xs font-medium text-gray-700 mb-1">이미지 분석:</h6>
+                                    <p className="text-xs text-gray-600 bg-blue-50 p-2 rounded border">
+                                      {prompt.imageAnalysis}
+                                    </p>
+                                  </div>
+                                )}
+                                <div className="mb-2">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h6 className="text-xs font-medium text-gray-700">한글 프롬프트:</h6>
+                                    <button 
+                                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                      onClick={() => {
+                                        setEditingPromptId(prompt.id);
+                                        setEditingKoreanPrompt(prompt.koreanPrompt);
+                                      }}
+                                    >
+                                      ✏️ 수정
+                                    </button>
+                                  </div>
+                                  {editingPromptId === prompt.id ? (
+                                    <div className="space-y-2">
+                                      <textarea
+                                        value={editingKoreanPrompt}
+                                        onChange={(e) => setEditingKoreanPrompt(e.target.value)}
+                                        className="w-full text-xs text-gray-600 bg-yellow-50 p-2 rounded border resize-none"
+                                        rows={3}
+                                        placeholder="한글 프롬프트를 수정하세요..."
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={async () => {
+                                            // 한글 프롬프트 저장 및 영문 번역
+                                            try {
+                                              // 1단계: 한글 프롬프트를 영문으로 번역
+                                              const translationResponse = await fetch('/api/translate-korean-to-english', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ 
+                                                  koreanPrompt: editingKoreanPrompt,
+                                                  originalEnglishPrompt: prompt.prompt,
+                                                  model: prompt.model.includes('FAL') ? 'fal' : 
+                                                         prompt.model.includes('Replicate') ? 'replicate' :
+                                                         prompt.model.includes('Stability') ? 'stability' : 'fal'
+                                                })
+                                              });
+                                              
+                                              if (translationResponse.ok) {
+                                                const translationData = await translationResponse.json();
+                                                
+                                                // 2단계: 번역된 영문 프롬프트로 이미지 재생성
+                                                const imageResponse = await fetch('/api/regenerate-image-from-prompt', {
+                                                  method: 'POST',
+                                                  headers: { 'Content-Type': 'application/json' },
+                                                  body: JSON.stringify({
+                                                    translatedPrompt: translationData.translatedPrompt,
+                                                    model: prompt.model.includes('FAL') ? 'fal' : 
+                                                           prompt.model.includes('Replicate') ? 'replicate' :
+                                                           prompt.model.includes('Stability') ? 'stability' : 'fal',
+                                                    originalImageUrl: prompt.originalImage || null
+                                                  })
+                                                });
+                                                
+                                                if (imageResponse.ok) {
+                                                  const imageData = await imageResponse.json();
+                                                  
+                                                  // 3단계: 프롬프트 업데이트 및 새 이미지 추가
+                                                  setSavedPrompts(prev => prev.map(p => 
+                                                    p.id === prompt.id 
+                                                      ? { 
+                                                          ...p, 
+                                                          koreanPrompt: editingKoreanPrompt,
+                                                          prompt: translationData.translatedPrompt,
+                                                          regeneratedImage: imageData.newImageUrl,
+                                                          regeneratedAt: new Date().toISOString()
+                                                        }
+                                                      : p
+                                                  ));
+                                                  
+                                                  // 새 이미지를 generatedImages에 추가
+                                                  if (imageData.newImageUrl) {
+                                                    const newImage = {
+                                                      url: imageData.newImageUrl,
+                                                      fileName: `regenerated-${Date.now()}.png`,
+                                                      model: prompt.model,
+                                                      prompt: translationData.translatedPrompt,
+                                                      koreanPrompt: editingKoreanPrompt,
+                                                      isRegenerated: true
+                                                    };
+                                                    setGeneratedImages(prev => [...prev, newImage]);
+                                                  }
+                                                  
+                                                  alert('✅ 한글 프롬프트가 수정되고 영문으로 번역되어 새 이미지가 생성되었습니다!');
+                                                } else {
+                                                  throw new Error('이미지 재생성 실패');
+                                                }
+                                              } else {
+                                                throw new Error('번역 실패');
+                                              }
+                                            } catch (error) {
+                                              console.error('프롬프트 수정 및 재생성 오류:', error);
+                                              alert('❌ 프롬프트 수정 중 오류가 발생했습니다: ' + error.message);
+                                            }
+                                            
+                                            setEditingPromptId(null);
+                                            setEditingKoreanPrompt('');
+                                          }}
+                                          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        >
+                                          🔄 번역 & 재생성
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setEditingPromptId(null);
+                                            setEditingKoreanPrompt('');
+                                          }}
+                                          className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                                        >
+                                          ❌ 취소
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
+                                      {prompt.koreanPrompt}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="mb-2">
+                                  <h6 className="text-xs font-medium text-gray-700 mb-1">영문 프롬프트:</h6>
+                                  <p className="text-xs text-gray-700 leading-relaxed bg-white p-2 rounded border">
+                                    {prompt.prompt}
+                                  </p>
+                                </div>
+                                {prompt.regeneratedImage && (
+                                  <div className="mb-2">
+                                    <h6 className="text-xs font-medium text-gray-700 mb-1">🔄 재생성된 이미지:</h6>
+                                    <div className="flex items-center gap-2">
+                                      <img 
+                                        src={prompt.regeneratedImage} 
+                                        alt="재생성된 이미지" 
+                                        className="w-16 h-16 object-cover rounded border"
+                                      />
+                                      <div className="text-xs text-gray-500">
+                                        {prompt.regeneratedAt && new Date(prompt.regeneratedAt).toLocaleString('ko-KR')}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                {prompt.allPrompts && (
+                                  <div className="mt-3">
+                                    <h6 className="text-xs font-medium text-gray-700 mb-2">모든 모델별 프롬프트:</h6>
+                                    <div className="space-y-2">
+                                      {prompt.allPrompts.fal_prompt && (
+                                        <div>
+                                          <span className="text-xs font-medium text-orange-600">FAL AI:</span>
+                                          <p className="text-xs text-gray-600 bg-orange-50 p-2 rounded border">
+                                            {prompt.allPrompts.fal_prompt}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {prompt.allPrompts.replicate_prompt && (
+                                        <div>
+                                          <span className="text-xs font-medium text-blue-600">Replicate:</span>
+                                          <p className="text-xs text-gray-600 bg-blue-50 p-2 rounded border">
+                                            {prompt.allPrompts.replicate_prompt}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {prompt.allPrompts.stability_prompt && (
+                                        <div>
+                                          <span className="text-xs font-medium text-green-600">Stability AI:</span>
+                                          <p className="text-xs text-gray-600 bg-green-50 p-2 rounded border">
+                                            {prompt.allPrompts.stability_prompt}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
 
 
-                {/* AI 생성 이미지 선택 UI */}
-                {showGeneratedImages && generatedImages.length > 0 && (
-                  <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                    <h4 className="text-lg font-semibold text-orange-800 mb-3">🎨 AI 생성 이미지 선택</h4>
-                    <p className="text-sm text-orange-700 mb-4">
-                      AI가 생성한 {generatedImages.length}개의 이미지 중에서 원하는 이미지를 선택하세요. 클릭하면 대표 이미지로 설정됩니다.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {generatedImages.map((imageUrl, index) => (
-                        <div 
-                          key={index}
-                          className="cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-orange-500 transition-colors"
-                        >
-                          <div 
-                            className="h-48 flex items-center justify-center bg-gray-100"
-                            onClick={() => {
-                              setSelectedGeneratedImage(imageUrl);
-                              setShowGeneratedImageModal(true);
-                            }}
-                            title="클릭하여 이미지 확대 보기"
-                          >
-                            <img
-                              src={imageUrl}
-                              alt={`AI 생성 이미지 ${index + 1}`}
-                              className="max-w-full max-h-full object-contain"
-                            />
-                          </div>
-                          <div className="p-3">
-                            <h5 className="font-medium text-sm text-gray-900 mb-1">AI 생성 이미지 {index + 1}</h5>
-                            <div className="flex gap-1 mb-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  copyImageUrl(imageUrl);
-                                }}
-                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                              >
-                                📋 복사
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  insertImageToContentLegacy(imageUrl);
-                                }}
-                                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                              >
-                                ➕ 삽입
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  selectGeneratedImage(imageUrl);
-                                }}
-                                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
-                              >
-                                ⭐ 대표
-                              </button>
-                            </div>
-                            <p className="text-xs text-gray-600">클릭하여 이미지 확대 보기</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setShowGeneratedImages(false)}
-                        className="text-sm text-gray-500 hover:text-gray-700"
-                      >
-                        닫기
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {/* AI 생성 이미지 선택 UI는 상단 아코디언으로 이동됨 */}
 
                 {/* 단락별 이미지 표시 */}
                 {showParagraphImages && paragraphImages.length > 0 && (
@@ -6145,7 +6800,7 @@ export default function BlogAdmin() {
                     <div className="w-full p-4 border border-gray-300 rounded-lg bg-white min-h-[300px]">
                       <div className="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-a:text-blue-600 prose-a:font-medium prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-li:text-gray-700 prose-li:leading-relaxed">
                         {formData.content ? (
-                          <div dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(formData.content) }} />
+                          <MarkdownPreview content={formData.content} />
                         ) : (
                           <p className="text-gray-500 italic">내용이 없습니다. 편집 모드에서 내용을 입력하세요.</p>
                         )}
@@ -6442,6 +7097,7 @@ export default function BlogAdmin() {
                   <div className="flex space-x-2">
                     <button
                       type="submit"
+                      onClick={() => setIsManualSave(true)}
                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       {editingPost ? '수정' : '저장'}

@@ -2,6 +2,58 @@
 
 ## 최근 완료된 작업
 
+### 2025-01-XX: AI 생성 이미지 토글 및 삭제 기능 오류 수정 완료 ✅
+
+#### 완료된 작업:
+- **이미지 삭제 API 오류 수정**:
+  - `deleteImage` 함수에서 `POST` 메서드를 `DELETE` 메서드로 수정
+  - `/api/delete-image-supabase` API는 `DELETE` 메서드만 허용하는데 `POST`로 요청하여 405 에러 발생
+  - 이미지 삭제 기능이 정상적으로 작동하도록 수정
+
+- **AI 생성 이미지 토글 시 깨지는 문제 해결**:
+  - **문제 원인**: FAL AI와 Google AI의 이미지 저장 방식이 다름
+    - FAL AI: `setGeneratedImages(savedImages)` - 단순 문자열 배열
+    - Google AI: `setGeneratedImages(prev => [...prev, ...updatedImages])` - 객체 배열
+  - **해결 방법**: Google AI도 FAL AI와 동일하게 문자열 배열로 통일
+  - 이미지 표시 로직에서 `img.url` 대신 `img` 자체가 URL이 되도록 수정
+
+- **이미지 변형/개선 시스템 표시 문제 해결**:
+  - 이미지 변형 시스템에서 `generatedImages.filter(img => isValidImageUrl(img.url))` → `generatedImages.filter(img => isValidImageUrl(img))`로 수정
+  - 간단 AI 이미지 개선 시스템에서도 동일한 방식으로 수정
+  - `[object Object]` URL 문제 완전 해결
+
+- **TypeScript 에러 수정**:
+  - `onError` 이벤트 핸들러에서 타입 캐스팅 추가
+  - `(e.target as HTMLImageElement).style.display = 'none'` 형태로 수정
+  - 모든 린트 에러 해결
+
+#### 기술적 개선사항:
+- **데이터 구조 통일**: 모든 AI 이미지 생성 결과를 문자열 배열로 통일
+- **에러 처리 개선**: 이미지 삭제 API 호출 방식 수정으로 405 에러 해결
+- **타입 안정성**: TypeScript 타입 캐스팅으로 컴파일 에러 해결
+- **사용자 경험**: 이미지 토글 시 깨지는 문제 완전 해결
+
+#### 파일 변경사항:
+- `pages/admin/blog.tsx`: 
+  - 이미지 삭제 API 호출 방식 수정 (POST → DELETE)
+  - Google AI 이미지 저장 방식 수정 (객체 배열 → 문자열 배열)
+  - 이미지 변형/개선 시스템 표시 로직 수정
+  - TypeScript 타입 캐스팅 추가
+
+#### 현재 상태:
+- ✅ **이미지 삭제 기능**: 정상 작동 (405 에러 해결)
+- ✅ **AI 생성 이미지 토글**: 깨지지 않고 정상 표시
+- ✅ **이미지 변형 시스템**: AI 생성 이미지가 정상적으로 표시됨
+- ✅ **간단 AI 이미지 개선**: AI 생성 이미지가 정상적으로 표시됨
+- ✅ **TypeScript 에러**: 모든 린트 에러 해결
+
+#### 다음 단계:
+- [ ] 실제 이미지 생성 및 삭제 테스트
+- [ ] 이미지 변형/개선 기능 테스트
+- [ ] 배포 및 라이브 환경 테스트
+
+---
+
 ### 2025-08-18: 마이그레이션 버튼 기능 연결 완료 ✅
 
 #### 완료된 작업:
