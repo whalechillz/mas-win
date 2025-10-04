@@ -165,6 +165,8 @@ export default function BlogAdmin() {
   // 이미지 URL 유효성 검사 함수
   const isValidImageUrl = (url) => {
     if (!url || typeof url !== 'string') return false;
+    // 삭제된 이미지나 잘못된 URL 필터링
+    if (url.includes('undefined') || url.includes('null') || url === '') return false;
     return url.startsWith('http') || url.startsWith('/') || url.startsWith('data:');
   };
 
@@ -3159,12 +3161,18 @@ export default function BlogAdmin() {
       });
 
       if (response.ok) {
-        // 로컬 상태에서 이미지 제거
+        // 로컬 상태에서 이미지 제거 (모든 상태에서 제거)
         if (imageType === 'generated') {
           setGeneratedImages(prev => prev.filter(img => img !== imageUrl));
         } else if (imageType === 'scraped') {
           setScrapedImages(prev => prev.filter(img => img.url !== imageUrl));
         }
+        
+        // postImages에서도 제거 (혹시 모를 경우를 대비)
+        setPostImages(prev => prev.filter(img => img.url !== imageUrl));
+        
+        // allImages에서도 제거
+        setAllImages(prev => prev.filter(img => img.url !== imageUrl));
         
         // 선택된 이미지가 삭제된 경우 선택 해제
         if (selectedBaseImage === imageUrl) {
@@ -3174,7 +3182,15 @@ export default function BlogAdmin() {
           setSelectedImageForImprovement('');
         }
         
-        console.log('✅ 이미지 삭제 완료');
+        // 대표 이미지로 설정되어 있다면 제거
+        if (formData.featured_image === imageUrl) {
+          setFormData(prev => ({
+            ...prev,
+            featured_image: ''
+          }));
+        }
+        
+        console.log('✅ 이미지 삭제 완료:', imageUrl);
         alert('이미지가 성공적으로 삭제되었습니다.');
       } else {
         const error = await response.json();
@@ -4586,6 +4602,12 @@ export default function BlogAdmin() {
                                       console.error('이미지 로드 실패:', imgUrl);
                                       (e.target as HTMLImageElement).style.display = 'none';
                                       ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
+                                      
+                                      // 로드 실패한 이미지를 상태에서 제거
+                                      setTimeout(() => {
+                                        setGeneratedImages(prev => prev.filter(img => img !== imgUrl));
+                                        console.log('로드 실패한 이미지 제거:', imgUrl);
+                                      }, 1000);
                                     }}
                                     onLoad={() => {
                                       console.log('이미지 로드 성공:', imgUrl);
@@ -4799,6 +4821,12 @@ export default function BlogAdmin() {
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).style.display = 'none';
                                       ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
+                                      
+                                      // 로드 실패한 이미지를 상태에서 제거
+                                      setTimeout(() => {
+                                        setGeneratedImages(prev => prev.filter(img => img !== imgUrl));
+                                        console.log('로드 실패한 이미지 제거:', imgUrl);
+                                      }, 1000);
                                     }}
                                   />
                                   <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
