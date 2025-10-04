@@ -128,7 +128,7 @@ ${originalPrompt ?
       // 기본 프롬프트로 폴백
       analysisResult = {
         image_analysis: `이미지 개선 요청: ${improvementRequest}`,
-        fal_prompt: `${improvementRequest}, high quality, realistic photography, professional lighting, detailed, 8K resolution, photorealistic, natural colors, sharp focus`,
+        fal_prompt: `${improvementRequest}, high quality, realistic photography, professional lighting, detailed, photorealistic, natural colors, sharp focus, masterpiece, best quality`,
         replicate_prompt: `${improvementRequest}, high quality, detailed, professional, maintain original composition`,
         stability_prompt: `${improvementRequest}, high quality, professional photography, 1024x1024, maintain original elements`,
         dalle_prompt: `${improvementRequest}, high quality, creative, professional photography`
@@ -260,8 +260,8 @@ async function editImageWithFAL(imageUrl, editPrompt) {
     },
     body: JSON.stringify({
       prompt: editPrompt, // ChatGPT가 최적화한 FAL AI용 프롬프트 사용
-      num_inference_steps: 4,
-      guidance_scale: 1,
+      num_inference_steps: 20,
+      guidance_scale: 3.5,
       num_images: 1,
       enable_safety_checker: true
     })
@@ -285,14 +285,14 @@ async function editImageWithFAL(imageUrl, editPrompt) {
   let finalResult = falResult;
   if (falResult.status === 'IN_QUEUE') {
     let attempts = 0;
-    const maxAttempts = 30;
+    const maxAttempts = 60;
     
     while (finalResult.status === 'IN_QUEUE' || finalResult.status === 'IN_PROGRESS') {
       if (attempts >= maxAttempts) {
         throw new Error('FAL AI 이미지 편집 시간 초과');
       }
       
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       const statusResponse = await fetch(finalResult.status_url, {
         headers: {
@@ -313,7 +313,11 @@ async function editImageWithFAL(imageUrl, editPrompt) {
       console.log(`🔍 FAL AI 상태 확인 (${attempts + 1}/${maxAttempts}):`, {
         status: finalResult.status,
         hasImages: !!finalResult.images,
-        hasOutput: !!finalResult.output
+        hasOutput: !!finalResult.output,
+        hasData: !!finalResult.data,
+        hasResult: !!finalResult.result,
+        hasOutputs: !!finalResult.outputs,
+        allKeys: Object.keys(finalResult)
       });
       attempts++;
     }
@@ -356,6 +360,16 @@ async function editImageWithFAL(imageUrl, editPrompt) {
   else if (finalResult.data && finalResult.data.length > 0) {
     resultImageUrl = finalResult.data[0].url || finalResult.data[0];
     console.log('✅ FAL AI 이미지 발견 (data 배열):', resultImageUrl);
+  }
+  // Case 5: result 배열
+  else if (finalResult.result && finalResult.result.length > 0) {
+    resultImageUrl = finalResult.result[0].url || finalResult.result[0];
+    console.log('✅ FAL AI 이미지 발견 (result 배열):', resultImageUrl);
+  }
+  // Case 6: outputs 배열
+  else if (finalResult.outputs && finalResult.outputs.length > 0) {
+    resultImageUrl = finalResult.outputs[0].url || finalResult.outputs[0];
+    console.log('✅ FAL AI 이미지 발견 (outputs 배열):', resultImageUrl);
   }
   
   if (!resultImageUrl) {
