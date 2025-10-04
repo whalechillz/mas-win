@@ -761,11 +761,25 @@ export default function BlogAdmin() {
       
       // HTML 변환은 이미 위에서 처리됨 (중복 제거)
       
+      // 대표이미지가 있으면 WYSIWYG 에디터에 자동으로 표시
+      if (post.featured_image && useWysiwyg) {
+        console.log('🖼️ 대표이미지를 WYSIWYG 에디터에 자동 표시:', post.featured_image);
+        const featuredImageHtml = `<div class="featured-image-container" style="margin: 20px 0; text-align: center;">
+          <img src="${post.featured_image}" alt="대표이미지" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+          <p style="margin-top: 10px; font-size: 14px; color: #666; font-style: italic;">대표이미지</p>
+        </div>`;
+        
+        // 기존 HTML 콘텐츠에 대표이미지가 없으면 추가
+        if (!htmlContent.includes(post.featured_image)) {
+          setHtmlContent(featuredImageHtml + htmlContent);
+        }
+      }
+      
     } catch (error) {
       console.error('❌ 게시물 수정 모드 오류:', error);
       alert('게시물 수정 모드 진입 중 오류가 발생했습니다.');
     }
-  }, [setEditingPost, setFormData, setImageGallery, setShowForm, setHtmlContent, setPostImages]);
+  }, [setEditingPost, setFormData, setImageGallery, setShowForm, setHtmlContent, setPostImages, useWysiwyg]);
 
   // 게시물 이미지 목록 로드
   const loadPostImages = useCallback(async (postId) => {

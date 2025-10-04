@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         });
       }
 
-      // 먼저 해당 게시물의 정보를 가져와서 본문에서 사용된 이미지 URL들을 추출
+      // 먼저 해당 게시물의 정보를 가져와서 사용된 이미지 URL들을 추출
       const { data: postData, error: postError } = await supabase
         .from('blog_posts')
         .select('content, featured_image')
@@ -66,20 +66,23 @@ export default async function handler(req, res) {
         contentImages.push(match[1]);
       }
 
-      // featured_image도 추가
+      // featured_image도 추가 (대표이미지는 본문에 없어도 표시되어야 함)
       if (postData.featured_image) {
         contentImages.push(postData.featured_image);
       }
 
       console.log('📝 게시물에서 추출된 이미지 URL:', contentImages.length, '개');
+      console.log('📝 추출된 URL들:', contentImages);
 
-      // 추출된 URL들과 매치되는 파일들만 필터링
+      // 모든 파일을 확인하여 게시물과 관련된 이미지들 찾기
       const postImages = files.filter(file => {
         const { data: urlData } = supabase.storage
           .from('blog-images')
           .getPublicUrl(file.name);
         
-        return contentImages.includes(urlData.publicUrl);
+        const isRelated = contentImages.includes(urlData.publicUrl);
+        console.log(`🔍 파일 ${file.name}: ${urlData.publicUrl} - 관련됨: ${isRelated}`);
+        return isRelated;
       });
 
       // 이미지 URL 생성
@@ -88,6 +91,9 @@ export default async function handler(req, res) {
           .from('blog-images')
           .getPublicUrl(file.name);
         
+        // 대표이미지인지 확인
+        const isFeatured = postData.featured_image === urlData.publicUrl;
+        
         return {
           id: file.id,
           name: file.name,
@@ -95,7 +101,7 @@ export default async function handler(req, res) {
           created_at: file.created_at,
           updated_at: file.updated_at,
           url: urlData.publicUrl,
-          is_featured: false // 기본값, 추후 로직으로 판단
+          is_featured: isFeatured
         };
       });
 
