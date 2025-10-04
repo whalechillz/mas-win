@@ -5928,11 +5928,17 @@ export default function BlogAdmin() {
                               <div 
                                 className="h-40 flex items-center justify-center bg-gray-100 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => {
-                                  // 그룹 버전 모달 열기
-                                  setSelectedImageGroup(imageGroup as any[]);
-                                  setShowImageGroupModal(true);
+                                  // AI 생성 이미지인 경우 확대 보기 모달 열기
+                                  if (representativeImage.isGenerated || representativeImage.url?.includes('generated-') || representativeImage.url?.includes('fal-ai') || representativeImage.url?.includes('replicate-') || representativeImage.url?.includes('stability-')) {
+                                    setSelectedGeneratedImage(representativeImage.url);
+                                    setShowGeneratedImageModal(true);
+                                  } else {
+                                    // 일반 이미지인 경우 그룹 버전 모달 열기
+                                    setSelectedImageGroup(imageGroup as any[]);
+                                    setShowImageGroupModal(true);
+                                  }
                                 }}
-                                title="클릭하여 이미지 그룹 상세 보기"
+                                title={representativeImage.isGenerated ? "클릭하여 AI 생성 이미지 확대 보기" : "클릭하여 이미지 그룹 상세 보기"}
                               >
                                 <img
                                   src={representativeImage.url || '/placeholder-image.jpg'}
