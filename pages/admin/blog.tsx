@@ -3161,7 +3161,7 @@ export default function BlogAdmin() {
       if (response.ok) {
         // 로컬 상태에서 이미지 제거
         if (imageType === 'generated') {
-          setGeneratedImages(prev => prev.filter(img => img.url !== imageUrl));
+          setGeneratedImages(prev => prev.filter(img => img !== imageUrl));
         } else if (imageType === 'scraped') {
           setScrapedImages(prev => prev.filter(img => img.url !== imageUrl));
         }
@@ -4668,7 +4668,7 @@ export default function BlogAdmin() {
                         )}
                         
                         {/* 이미지가 없는 경우 */}
-                        {generatedImages.filter(img => isValidImageUrl(img.url)).length === 0 && postImages.filter(img => isValidImageUrl(img.url)).length === 0 && (
+                        {generatedImages.filter(img => isValidImageUrl(img)).length === 0 && postImages.filter(img => isValidImageUrl(img.url)).length === 0 && (
                           <div className="text-center py-8 text-gray-500">
                             <div className="text-4xl mb-2">🖼️</div>
                             <p className="text-sm">변형할 이미지가 없습니다.</p>
@@ -4874,7 +4874,7 @@ export default function BlogAdmin() {
                         )}
                         
                         {/* 이미지가 없는 경우 */}
-                        {generatedImages.filter(img => isValidImageUrl(img.url)).length === 0 && 
+                        {generatedImages.filter(img => isValidImageUrl(img)).length === 0 && 
                          scrapedImages.filter(img => isValidImageUrl(img.url)).length === 0 && (
                           <div className="text-center py-8 text-gray-500">
                             <p className="text-sm">개선할 이미지가 없습니다.</p>
