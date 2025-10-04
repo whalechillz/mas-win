@@ -13,6 +13,10 @@ export default async function handler(req, res) {
   try {
     // Replicate API 키 확인
     if (!process.env.REPLICATE_API_TOKEN) {
+      console.error('❌ Replicate API 키 누락:', {
+        REPLICATE_API_TOKEN: !!process.env.REPLICATE_API_TOKEN,
+        allEnvKeys: Object.keys(process.env).filter(key => key.includes('REPLICATE'))
+      });
       return res.status(400).json({ 
         success: false, 
         error: 'Replicate API 키가 설정되지 않았습니다. 환경 변수 REPLICATE_API_TOKEN을 확인해주세요.' 
@@ -64,7 +68,7 @@ export default async function handler(req, res) {
     console.log('✅ ChatGPT 변형 프롬프트 생성 완료');
     console.log('생성된 프롬프트:', variationPrompt);
 
-    // Replicate Flux API 호출
+    // Replicate Flux API 호출 (text-to-image 모델이므로 image 파라미터 제거)
     const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
       headers: {
@@ -75,10 +79,8 @@ export default async function handler(req, res) {
         version: "black-forest-labs/flux-dev",
         input: {
           prompt: variationPrompt,
-          image: baseImageUrl,
           num_inference_steps: 20,
           guidance_scale: 3.5,
-          strength: variationStrength,
           num_outputs: variationCount,
           aspect_ratio: "1:1",
           output_format: "png",
@@ -89,6 +91,12 @@ export default async function handler(req, res) {
 
     if (!replicateResponse.ok) {
       const errorText = await replicateResponse.text();
+      console.error('❌ Replicate API 오류:', { 
+        status: replicateResponse.status, 
+        statusText: replicateResponse.statusText,
+        error: errorText,
+        headers: Object.fromEntries(replicateResponse.headers.entries())
+      });
       throw new Error(`Replicate API 오류: ${replicateResponse.status} - ${errorText}`);
     }
 
