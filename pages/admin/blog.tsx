@@ -121,6 +121,11 @@ export default function BlogAdmin() {
   const [selectedBaseImage, setSelectedBaseImage] = useState(''); // 변형할 기본 이미지
   const [variationStrength, setVariationStrength] = useState(0.7); // 변형 강도
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false); // 변형 생성 중
+  
+  // 간단 AI 이미지 개선 관련 상태
+  const [simpleAIImageRequest, setSimpleAIImageRequest] = useState(''); // 간단 AI 이미지 개선 요청사항
+  const [selectedImageForImprovement, setSelectedImageForImprovement] = useState(''); // 개선할 이미지
+  const [isImprovingImage, setIsImprovingImage] = useState(false); // 이미지 개선 중
 
   // 이미지 URL 유효성 검사 함수
   const isValidImageUrl = (url) => {
@@ -2811,6 +2816,82 @@ export default function BlogAdmin() {
     }
   };
 
+  // 간단 AI 이미지 개선 기능
+  const applySimpleAIImageImprovement = async (model = 'fal') => {
+    if (!selectedImageForImprovement) {
+      alert('개선할 이미지를 먼저 선택해주세요.');
+      return;
+    }
+
+    if (!simpleAIImageRequest.trim()) {
+      alert('이미지 개선 요청사항을 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🎨 간단 AI 이미지 개선 시작...', simpleAIImageRequest);
+      setIsImprovingImage(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel(`${model.toUpperCase()} 이미지 개선`);
+      setImageGenerationStep(`1단계: ${model.toUpperCase()} 서버에 이미지 개선 요청 중...`);
+      
+      const response = await fetch('/api/simple-ai-image-improvement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl: selectedImageForImprovement,
+          improvementRequest: simpleAIImageRequest,
+          model: model
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.improvedImage) {
+          setImageGenerationStep(`2단계: ${model.toUpperCase()} 이미지 개선 완료!`);
+          
+          // 개선된 이미지를 generatedImages에 추가
+          const newImage = {
+            url: data.improvedImage.publicUrl,
+            fileName: data.improvedImage.fileName,
+            model: data.model,
+            prompt: data.editPrompt,
+            originalImage: selectedImageForImprovement,
+            improvementRequest: simpleAIImageRequest
+          };
+          setGeneratedImages(prev => [...prev, newImage]);
+          
+          console.log('✅ 간단 AI 이미지 개선 완료:', data.model);
+          alert(`간단 AI 이미지 개선이 완료되었습니다!\n\n모델: ${data.model}\n요청사항: ${simpleAIImageRequest}`);
+          
+          // 요청사항 초기화
+          setSimpleAIImageRequest('');
+          setSelectedImageForImprovement('');
+        } else {
+          console.error('간단 AI 이미지 개선 실패: 응답 데이터 없음');
+          setImageGenerationStep(`❌ ${model.toUpperCase()} 이미지 개선 실패`);
+          alert('간단 AI 이미지 개선에 실패했습니다.');
+        }
+      } else {
+        const error = await response.json();
+        console.error('간단 AI 이미지 개선 실패:', error);
+        setImageGenerationStep(`❌ ${model.toUpperCase()} 이미지 개선 실패`);
+        alert('간단 AI 이미지 개선에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('간단 AI 이미지 개선 에러:', error);
+      setImageGenerationStep(`❌ ${model.toUpperCase()} 이미지 개선 에러`);
+      alert('간단 AI 이미지 개선 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsImprovingImage(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 3000);
+    }
+  };
+
   // 픽사 스토리 생성
   const generatePixarStory = async () => {
     if (!formData.title) {
@@ -4032,6 +4113,194 @@ export default function BlogAdmin() {
                       <span className="text-orange-600 font-medium">🎨 FAL AI: 실사 스타일 변형 (빠름, 저비용)</span><br/>
                       <span className="text-blue-600 font-medium">🎨 Replicate Flux: 고품질 변형 (중간 속도, 중간 비용)</span><br/>
                       <span className="text-green-600 font-medium">🎨 Stability AI: 안정적 변형 (느림, 저비용)</span>
+                    </p>
+                  </div>
+
+                  {/* 간단 AI 이미지 개선 섹션 */}
+                  <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                    <h4 className="font-medium mb-3 text-green-800 flex items-center">
+                      🎨 간단 AI 이미지 개선
+                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">NEW</span>
+                    </h4>
+                    
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        개선할 이미지 선택:
+                      </label>
+                      
+                      {/* 선택된 이미지 미리보기 */}
+                      {selectedImageForImprovement && (
+                        <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                          <p className="text-sm font-medium text-gray-700 mb-2">선택된 이미지:</p>
+                          <div className="flex items-center space-x-3">
+                            <img 
+                              src={selectedImageForImprovement} 
+                              alt="선택된 개선 이미지"
+                              className="w-16 h-16 object-cover rounded border"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                            <div className="hidden w-16 h-16 bg-gray-200 rounded border items-center justify-center">
+                              <span className="text-xs text-gray-500">이미지 로드 실패</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-600 truncate">
+                                {selectedImageForImprovement.split('/').pop()}
+                              </p>
+                              <button
+                                onClick={() => setSelectedImageForImprovement('')}
+                                className="text-xs text-red-600 hover:text-red-800 mt-1"
+                              >
+                                선택 해제
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 이미지 썸네일 선택 그리드 */}
+                      <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                        {/* AI 생성 이미지 */}
+                        {generatedImages.filter(img => isValidImageUrl(img.url)).length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                              🤖 AI 생성 이미지 ({generatedImages.filter(img => isValidImageUrl(img.url)).length}개)
+                            </h4>
+                            <div className="grid grid-cols-4 gap-2">
+                              {generatedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
+                                <div key={`ai-${index}`} className="relative">
+                                  <img
+                                    src={img.url}
+                                    alt={`AI 생성 이미지 ${index + 1}`}
+                                    className={`w-full h-20 object-cover rounded border cursor-pointer transition-all ${
+                                      selectedImageForImprovement === img.url 
+                                        ? 'ring-2 ring-green-500 border-green-500' 
+                                        : 'hover:border-green-300'
+                                    }`}
+                                    onClick={() => setSelectedImageForImprovement(img.url)}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
+                                    <span className="text-xs text-gray-500">로드 실패</span>
+                                  </div>
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
+                                    <div className="truncate">AI 생성</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* 스크래핑 이미지 */}
+                        {scrapedImages.filter(img => isValidImageUrl(img.url)).length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                              📥 스크래핑 이미지 ({scrapedImages.filter(img => isValidImageUrl(img.url)).length}개)
+                            </h4>
+                            <div className="grid grid-cols-4 gap-2">
+                              {scrapedImages.filter(img => isValidImageUrl(img.url)).map((img, index) => (
+                                <div key={`scraped-${index}`} className="relative">
+                                  <img
+                                    src={img.url}
+                                    alt={`스크래핑 이미지 ${index + 1}`}
+                                    className={`w-full h-20 object-cover rounded border cursor-pointer transition-all ${
+                                      selectedImageForImprovement === img.url 
+                                        ? 'ring-2 ring-green-500 border-green-500' 
+                                        : 'hover:border-green-300'
+                                    }`}
+                                    onClick={() => setSelectedImageForImprovement(img.url)}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                    onLoad={() => {
+                                      console.log('스크래핑 이미지 로드 성공:', img.url);
+                                    }}
+                                  />
+                                  <div className="hidden w-full h-20 bg-gray-100 rounded items-center justify-center">
+                                    <span className="text-xs text-gray-500">로드 실패</span>
+                                  </div>
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b">
+                                    <div className="truncate">스크래핑</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* 이미지가 없는 경우 */}
+                        {generatedImages.filter(img => isValidImageUrl(img.url)).length === 0 && 
+                         scrapedImages.filter(img => isValidImageUrl(img.url)).length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            <p className="text-sm">개선할 이미지가 없습니다.</p>
+                            <p className="text-xs mt-1">먼저 이미지를 생성하거나 스크래핑해주세요.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        이미지 개선 요청사항:
+                      </label>
+                      <textarea 
+                        placeholder="예: 글자/텍스트를 제거해주세요, 드라이버를 제거해주세요, 배경을 바꿔주세요, 색상을 더 밝게 해주세요..."
+                        className="w-full p-3 border border-green-300 rounded text-sm resize-none"
+                        rows={3}
+                        value={simpleAIImageRequest}
+                        onChange={(e) => setSimpleAIImageRequest(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => applySimpleAIImageImprovement('fal')}
+                        disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
+                        className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm disabled:opacity-50"
+                      >
+                        {isImprovingImage ? '🎨 개선 중...' : '🎨 FAL AI 개선'}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => applySimpleAIImageImprovement('replicate')}
+                        disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm disabled:opacity-50"
+                      >
+                        {isImprovingImage ? '🎨 개선 중...' : '🎨 Replicate 개선'}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => applySimpleAIImageImprovement('stability')}
+                        disabled={!selectedImageForImprovement || !simpleAIImageRequest.trim() || isImprovingImage}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm disabled:opacity-50"
+                      >
+                        {isImprovingImage ? '🎨 개선 중...' : '🎨 Stability 개선'}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setSimpleAIImageRequest('');
+                          setSelectedImageForImprovement('');
+                        }}
+                        className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                      >
+                        🗑️ 지우기
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-gray-600 mt-2">
+                      <span className="text-green-600 font-medium">🎨 간단 AI 이미지 개선: 텍스트 제거, 객체 제거, 스타일 변경 등</span><br/>
+                      <span className="text-orange-600 font-medium">🎨 FAL AI: 빠른 이미지 편집 (저비용)</span><br/>
+                      <span className="text-blue-600 font-medium">🎨 Replicate: 고품질 이미지 편집 (중간 비용)</span><br/>
+                      <span className="text-green-600 font-medium">🎨 Stability AI: 안정적 이미지 편집 (저비용)</span>
                     </p>
                   </div>
                   

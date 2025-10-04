@@ -1,0 +1,399 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================= */
+/* Base Styles */
+/* ============================= */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply font-sans text-gray-900 bg-gray-50;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+
+  /* Focus styles */
+  *:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  /* Selection styles */
+  ::selection {
+    @apply bg-massgoo-gold text-white;
+  }
+}
+
+/* ============================= */
+/* Component Styles */
+/* ============================= */
+@layer components {
+  /* Button Base */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply btn bg-massgoo-navy text-white;
+    @apply hover:bg-blue-800 focus:ring-massgoo-navy;
+  }
+
+  .btn-secondary {
+    @apply btn bg-massgoo-gold text-white;
+    @apply hover:bg-amber-600 focus:ring-massgoo-gold;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-gray-300;
+    @apply hover:border-gray-400 focus:ring-gray-400;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100;
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Form Elements */
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg;
+    @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    @apply placeholder-gray-400;
+  }
+
+  .select {
+    @apply input pr-10 appearance-none bg-white;
+    @apply bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")];
+    @apply bg-[length:20px] bg-[right_0.5rem_center] bg-no-repeat;
+  }
+
+  .textarea {
+    @apply input resize-y min-h-[100px];
+  }
+
+  /* Label */
+  .label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-blue {
+    @apply badge bg-blue-100 text-blue-800;
+  }
+
+  .badge-green {
+    @apply badge bg-green-100 text-green-800;
+  }
+
+  .badge-yellow {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-red {
+    @apply badge bg-red-100 text-red-800;
+  }
+
+  /* Table */
+  .table-responsive {
+    @apply overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8;
+  }
+
+  .table {
+    @apply min-w-full divide-y divide-gray-200;
+  }
+
+  .table-header {
+    @apply bg-gray-50;
+  }
+
+  .table-body {
+    @apply bg-white divide-y divide-gray-200;
+  }
+
+  /* Loading Spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-b-2 border-massgoo-navy;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    @apply absolute z-10 px-2 py-1 text-xs text-white bg-gray-900 rounded;
+    @apply pointer-events-none opacity-0 transition-opacity duration-200;
+  }
+
+  .tooltip-visible {
+    @apply opacity-100;
+  }
+}
+
+/* ============================= */
+/* Utility Styles */
+/* ============================= */
+@layer utilities {
+  /* Text Gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-massgoo-navy to-massgoo-gold;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Scrollbar Styles */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.gray.400') theme('colors.gray.100');
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-lg;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded-lg;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+
+  /* Truncate Lines */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Glass Effect */
+  .glass {
+    @apply backdrop-blur-md bg-white bg-opacity-70 border border-white border-opacity-20;
+  }
+
+  /* Masonry Grid */
+  .masonry {
+    column-count: 3;
+    column-gap: 1rem;
+  }
+
+  .masonry-item {
+    break-inside: avoid;
+    @apply mb-4;
+  }
+
+  @screen md {
+    .masonry {
+      column-count: 2;
+    }
+  }
+
+  @screen lg {
+    .masonry {
+      column-count: 3;
+    }
+  }
+}
+
+/* ============================= */
+/* Custom Animations */
+/* ============================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ============================= */
+/* Calendar Specific Styles */
+/* ============================= */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-day {
+  @apply relative min-h-[100px] p-2 border rounded-lg;
+  @apply hover:shadow-md transition-all duration-200;
+}
+
+.calendar-day-today {
+  @apply bg-blue-50 border-blue-300;
+}
+
+.calendar-day-selected {
+  @apply ring-2 ring-blue-500;
+}
+
+.calendar-event {
+  @apply text-xs p-1 rounded truncate;
+  @apply hover:opacity-80 cursor-pointer transition-opacity;
+}
+
+/* ============================= */
+/* Editor Styles */
+/* ============================= */
+.editor-content {
+  @apply prose prose-sm sm:prose lg:prose-lg xl:prose-xl;
+  @apply max-w-none;
+}
+
+.editor-content h1 {
+  @apply text-3xl font-bold text-gray-900 mb-4;
+}
+
+.editor-content h2 {
+  @apply text-2xl font-bold text-gray-800 mb-3;
+}
+
+.editor-content h3 {
+  @apply text-xl font-semibold text-gray-800 mb-2;
+}
+
+.editor-content p {
+  @apply mb-4 leading-relaxed;
+}
+
+.editor-content ul,
+.editor-content ol {
+  @apply mb-4 pl-6;
+}
+
+.editor-content li {
+  @apply mb-2;
+}
+
+.editor-content blockquote {
+  @apply border-l-4 border-massgoo-gold pl-4 italic text-gray-700;
+}
+
+/* ============================= */
+/* Chart Styles */
+/* ============================= */
+.chart-container {
+  @apply relative w-full h-full;
+  min-height: 250px;
+}
+
+.chart-legend {
+  @apply flex flex-wrap gap-4 mt-4 text-sm;
+}
+
+.chart-legend-item {
+  @apply flex items-center gap-2;
+}
+
+.chart-legend-color {
+  @apply w-3 h-3 rounded-full;
+}
+
+/* ============================= */
+/* Print Styles */
+/* ============================= */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    @apply bg-white;
+  }
+
+  .card {
+    @apply shadow-none border;
+  }
+}
+
+/* ============================= */
+/* Dark Mode Support (Future) */
+/* ============================= */
+@media (prefers-color-scheme: dark) {
+  /* Dark mode styles can be added here */
+}
+
+/* ============================= */
+/* Responsive Utilities */
+/* ============================= */
+@screen sm {
+  .container-responsive {
+    @apply px-4;
+  }
+}
+
+@screen md {
+  .container-responsive {
+    @apply px-6;
+  }
+}
+
+@screen lg {
+  .container-responsive {
+    @apply px-8;
+  }
+}
+
+/* ============================= */
+/* MASSGOO Brand Colors */
+/* ============================= */
+:root {
+  --color-massgoo-navy: #1e3a8a;
+  --color-massgoo-gold: #f59e0b;
+  --color-massgoo-gray: #6b7280;
+}
