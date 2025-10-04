@@ -152,7 +152,7 @@ ${originalPrompt ?
       // 기본 프롬프트로 폴백
       analysisResult = {
         image_analysis: `이미지 개선 요청: ${improvementRequest}`,
-        fal_prompt: `${improvementRequest}, high quality, realistic photography, professional lighting, detailed, photorealistic, natural colors, sharp focus, masterpiece, best quality`,
+        fal_prompt: `${improvementRequest}, high quality, realistic, detailed, professional photography`,
         replicate_prompt: `${improvementRequest}, high quality, detailed, professional, maintain original composition`,
         stability_prompt: `${improvementRequest}, high quality, professional photography, 1024x1024, maintain original elements`,
         dalle_prompt: `${improvementRequest}, high quality, creative, professional photography`
@@ -172,7 +172,16 @@ ${originalPrompt ?
       case 'fal':
         editPrompt = analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic style`;
         console.log('🎯 FAL AI 사용 프롬프트:', editPrompt);
-        result = await editImageWithFAL(imageUrl, editPrompt);
+        try {
+          result = await editImageWithFAL(imageUrl, editPrompt);
+        } catch (falError) {
+          console.error('❌ FAL AI 실패, Replicate로 폴백:', falError.message);
+          // FAL AI 실패 시 Replicate로 자동 폴백
+          editPrompt = analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
+          console.log('🎯 Replicate 폴백 프롬프트:', editPrompt);
+          result = await editImageWithReplicate(imageUrl, editPrompt);
+          result.model = 'FAL AI (Replicate 폴백)';
+        }
         break;
       case 'replicate':
         editPrompt = analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
@@ -293,8 +302,8 @@ async function editImageWithFAL(imageUrl, editPrompt) {
     },
     body: JSON.stringify({
       prompt: editPrompt, // ChatGPT가 최적화한 FAL AI용 프롬프트 사용
-      num_inference_steps: 20,
-      guidance_scale: 3.5,
+      num_inference_steps: 10,
+      guidance_scale: 2.0,
       num_images: 1,
       enable_safety_checker: true
     })
@@ -318,7 +327,7 @@ async function editImageWithFAL(imageUrl, editPrompt) {
   let finalResult = falResult;
   if (falResult.status === 'IN_QUEUE') {
     let attempts = 0;
-    const maxAttempts = 60;
+    const maxAttempts = 120; // 10분 대기 (5초 * 120 = 600초)
     
     while (finalResult.status === 'IN_QUEUE' || finalResult.status === 'IN_PROGRESS') {
       if (attempts >= maxAttempts) {
