@@ -106,8 +106,36 @@ ${originalPrompt ?
       temperature: 0.3
     });
 
-    const analysisResult = JSON.parse(imageAnalysisResponse.choices[0].message.content);
-    console.log('✅ ChatGPT 이미지 분석 및 모델별 프롬프트 생성 완료:', analysisResult);
+    // ChatGPT 응답 파싱 및 검증
+    let analysisResult;
+    try {
+      const responseContent = imageAnalysisResponse.choices[0].message.content;
+      console.log('🔍 ChatGPT 원본 응답:', responseContent);
+      
+      // JSON 파싱 시도
+      analysisResult = JSON.parse(responseContent);
+      
+      // 필수 필드 검증
+      if (!analysisResult.fal_prompt || !analysisResult.replicate_prompt || !analysisResult.stability_prompt) {
+        throw new Error('ChatGPT 응답에 필수 프롬프트가 누락되었습니다.');
+      }
+      
+      console.log('✅ ChatGPT 이미지 분석 및 모델별 프롬프트 생성 완료:', analysisResult);
+    } catch (parseError) {
+      console.error('❌ ChatGPT 응답 파싱 실패:', parseError);
+      console.error('원본 응답:', imageAnalysisResponse.choices[0].message.content);
+      
+      // 기본 프롬프트로 폴백
+      analysisResult = {
+        image_analysis: `이미지 개선 요청: ${improvementRequest}`,
+        fal_prompt: `${improvementRequest}, high quality, realistic style, maintain original person, maintain original background`,
+        replicate_prompt: `${improvementRequest}, high quality, detailed, professional, maintain original composition`,
+        stability_prompt: `${improvementRequest}, high quality, professional photography, 1024x1024, maintain original elements`,
+        dalle_prompt: `${improvementRequest}, high quality, creative, professional photography`
+      };
+      
+      console.log('⚠️ 기본 프롬프트로 폴백:', analysisResult);
+    }
     console.log('🔍 원본 이미지 URL:', imageUrl);
     console.log('🔍 사용자 요청사항:', improvementRequest);
     console.log('🔍 선택된 모델:', model);
@@ -171,25 +199,38 @@ ${originalPrompt ?
 
   } catch (error) {
     console.error('❌ 간단 AI 이미지 개선 오류:', error);
+    console.error('❌ 에러 스택:', error.stack);
+    
     const errorMessage = error?.message || error?.toString() || '알 수 없는 오류가 발생했습니다.';
-    res.status(500).json({ 
-      error: '간단 AI 이미지 개선 중 오류가 발생했습니다.',
-      details: errorMessage 
-    });
+    
+    // JSON 응답 형식 보장
+    try {
+      res.status(500).json({ 
+        error: '간단 AI 이미지 개선 중 오류가 발생했습니다.',
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      });
+    } catch (jsonError) {
+      console.error('❌ JSON 응답 생성 실패:', jsonError);
+      res.status(500).send('Internal Server Error');
+    }
   }
 }
 
 // FAL AI를 사용한 이미지 편집 (inpainting 모델 사용)
 async function editImageWithFAL(imageUrl, editPrompt) {
-  if (!process.env.FAL_KEY && !process.env.FAL_API_KEY) {
+  const falApiKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
+  if (!falApiKey) {
     throw new Error('FAL AI API 키가 설정되지 않았습니다.');
   }
+  
+  console.log('🎯 FAL AI API 호출 시작:', { imageUrl, editPrompt });
 
   // FAL AI는 text-to-image만 지원하므로 원본 이미지 스타일을 참고한 프롬프트 사용
   const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
     method: 'POST',
     headers: {
-      'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
+      'Authorization': `Key ${falApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -203,6 +244,7 @@ async function editImageWithFAL(imageUrl, editPrompt) {
 
   if (!falResponse.ok) {
     const errorText = await falResponse.text();
+    console.error('❌ FAL AI API 오류:', { status: falResponse.status, error: errorText });
     throw new Error(`FAL AI API 오류: ${falResponse.status} - ${errorText}`);
   }
 
@@ -223,7 +265,7 @@ async function editImageWithFAL(imageUrl, editPrompt) {
       
       const statusResponse = await fetch(finalResult.status_url, {
         headers: {
-          'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
+          'Authorization': `Key ${falApiKey}`,
         }
       });
       
