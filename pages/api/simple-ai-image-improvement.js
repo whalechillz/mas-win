@@ -128,7 +128,7 @@ ${originalPrompt ?
       // 기본 프롬프트로 폴백
       analysisResult = {
         image_analysis: `이미지 개선 요청: ${improvementRequest}`,
-        fal_prompt: `${improvementRequest}, high quality, realistic style, maintain original person, maintain original background`,
+        fal_prompt: `${improvementRequest}, high quality, realistic photography, professional lighting, detailed, 8K resolution, photorealistic, natural colors, sharp focus`,
         replicate_prompt: `${improvementRequest}, high quality, detailed, professional, maintain original composition`,
         stability_prompt: `${improvementRequest}, high quality, professional photography, 1024x1024, maintain original elements`,
         dalle_prompt: `${improvementRequest}, high quality, creative, professional photography`
@@ -226,7 +226,8 @@ async function editImageWithFAL(imageUrl, editPrompt) {
   
   console.log('🎯 FAL AI API 호출 시작:', { imageUrl, editPrompt });
 
-  // FAL AI는 text-to-image만 지원하므로 원본 이미지 스타일을 참고한 프롬프트 사용
+  // FAL AI는 text-to-image 모델이므로 원본 이미지 스타일을 참고한 새로운 이미지 생성
+  // 원본 이미지 URL을 참고 이미지로 사용하여 스타일 일관성 유지
   const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
     method: 'POST',
     headers: {
@@ -278,8 +279,16 @@ async function editImageWithFAL(imageUrl, editPrompt) {
     }
   }
 
+  console.log('🔍 FAL AI 최종 결과:', finalResult);
+  
+  if (finalResult.status === 'failed') {
+    console.error('❌ FAL AI 작업 실패:', finalResult);
+    throw new Error(`FAL AI 작업 실패: ${finalResult.error || '알 수 없는 오류'}`);
+  }
+  
   if (!finalResult.images || finalResult.images.length === 0) {
-    throw new Error('FAL AI에서 이미지를 편집하지 못했습니다');
+    console.error('❌ FAL AI 결과에 이미지가 없음:', finalResult);
+    throw new Error('FAL AI에서 이미지를 생성하지 못했습니다. 결과에 이미지가 없습니다.');
   }
 
   return {
