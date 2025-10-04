@@ -2434,16 +2434,26 @@ export default function BlogAdmin() {
         console.log(`✅ ${model} 이미지 변형 완료:`, result.images.length, '개');
         setImageGenerationStep(`3단계: ${model} 이미지 변형 완료!`);
         
-        // 생성된 이미지를 generatedImages에 추가
+        // 생성된 이미지를 generatedImages에 추가 (URL 문자열 배열로 저장)
         if (result.images && result.images.length > 0) {
-          const newImages = result.images.map(img => ({
-            url: img.publicUrl,
-            type: `${model} 변형`,
-            model: model,
-            variationStrength: variationStrength,
-            baseImage: selectedBaseImage
-          }));
-          setGeneratedImages(prev => [...prev, ...newImages]);
+          const newImageUrls = result.images.map(img => img.publicUrl);
+          setGeneratedImages(prev => [...prev, ...newImageUrls]);
+          
+          // 프롬프트 저장 (다른 기능들과 동일한 방식)
+          if (result.prompt) {
+            const promptId = `variation-${Date.now()}`;
+            const newPrompt = {
+              id: promptId,
+              type: `${model} 이미지 변형`,
+              prompt: result.prompt,
+              timestamp: new Date().toISOString(),
+              imageCount: result.images.length,
+              variationStrength: variationStrength,
+              baseImage: selectedBaseImage
+            };
+            setSavedPrompts(prev => [newPrompt, ...prev]);
+            console.log('✅ 이미지 변형 프롬프트 저장 완료:', newPrompt);
+          }
         }
         
         alert(`${model} 이미지 변형이 완료되었습니다: ${result.message}`);
