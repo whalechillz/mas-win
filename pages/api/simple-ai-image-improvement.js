@@ -335,37 +335,37 @@ async function editImageWithFAL(imageUrl, editPrompt) {
   }
   
   // FAL AI 응답 구조가 다양할 수 있으므로 여러 가능성 확인
-  let imageUrl = null;
+  let resultImageUrl = null;
   
   // Case 1: images 배열
   if (finalResult.images && finalResult.images.length > 0) {
-    imageUrl = finalResult.images[0].url || finalResult.images[0];
-    console.log('✅ FAL AI 이미지 발견 (images 배열):', imageUrl);
+    resultImageUrl = finalResult.images[0].url || finalResult.images[0];
+    console.log('✅ FAL AI 이미지 발견 (images 배열):', resultImageUrl);
   }
   // Case 2: output 배열
   else if (finalResult.output && finalResult.output.length > 0) {
-    imageUrl = finalResult.output[0].url || finalResult.output[0];
-    console.log('✅ FAL AI 이미지 발견 (output 배열):', imageUrl);
+    resultImageUrl = finalResult.output[0].url || finalResult.output[0];
+    console.log('✅ FAL AI 이미지 발견 (output 배열):', resultImageUrl);
   }
   // Case 3: 직접 URL
   else if (finalResult.url) {
-    imageUrl = finalResult.url;
-    console.log('✅ FAL AI 이미지 발견 (직접 URL):', imageUrl);
+    resultImageUrl = finalResult.url;
+    console.log('✅ FAL AI 이미지 발견 (직접 URL):', resultImageUrl);
   }
   // Case 4: data 배열
   else if (finalResult.data && finalResult.data.length > 0) {
-    imageUrl = finalResult.data[0].url || finalResult.data[0];
-    console.log('✅ FAL AI 이미지 발견 (data 배열):', imageUrl);
+    resultImageUrl = finalResult.data[0].url || finalResult.data[0];
+    console.log('✅ FAL AI 이미지 발견 (data 배열):', resultImageUrl);
   }
   
-  if (!imageUrl) {
+  if (!resultImageUrl) {
     console.error('❌ FAL AI 결과에 이미지가 없음:', finalResult);
     console.error('❌ 사용 가능한 키들:', Object.keys(finalResult));
     throw new Error('FAL AI에서 이미지를 생성하지 못했습니다. 결과에 이미지가 없습니다.');
   }
 
   return {
-    imageUrl: imageUrl,
+    imageUrl: resultImageUrl,
     model: 'FAL AI'
   };
 }
