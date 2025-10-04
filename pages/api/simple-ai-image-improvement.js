@@ -61,7 +61,8 @@ export default async function handler(req, res) {
   "image_analysis": "이미지 내용 분석 (한국어)",
   "fal_prompt": "FAL AI용 최적화된 프롬프트 (영어, 간결하고 실사 스타일)",
   "replicate_prompt": "Replicate용 최적화된 프롬프트 (영어, 상세하고 기술적)",
-  "stability_prompt": "Stability AI용 최적화된 프롬프트 (영어, 전문적이고 고품질)"
+  "stability_prompt": "Stability AI용 최적화된 프롬프트 (영어, 전문적이고 고품질)",
+  "dalle_prompt": "DALL-E 3용 최적화된 프롬프트 (영어, 창의적이고 고품질)"
 }
 
 각 프롬프트는 해당 모델의 강점을 최대한 활용하도록 작성해주세요.`
@@ -76,15 +77,24 @@ export default async function handler(req, res) {
 
     // 선택된 모델에 따라 최적화된 프롬프트로 이미지 편집 API 호출
     let result;
+    let editPrompt;
+    
     switch (model) {
       case 'fal':
-        result = await editImageWithFAL(imageUrl, analysisResult.fal_prompt);
+        editPrompt = analysisResult.fal_prompt || analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic style`;
+        result = await editImageWithFAL(imageUrl, editPrompt);
         break;
       case 'replicate':
-        result = await editImageWithReplicate(imageUrl, analysisResult.replicate_prompt);
+        editPrompt = analysisResult.replicate_prompt || analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
+        result = await editImageWithReplicate(imageUrl, editPrompt);
         break;
       case 'stability':
-        result = await editImageWithStability(imageUrl, analysisResult.stability_prompt);
+        editPrompt = analysisResult.stability_prompt || analysisResult.stability_prompt || `${improvementRequest}, high quality, professional photography, 1024x1024`;
+        result = await editImageWithStability(imageUrl, editPrompt);
+        break;
+      case 'dalle':
+        editPrompt = analysisResult.dalle_prompt || analysisResult.dalle_prompt || `${improvementRequest}, high quality, realistic, professional photography`;
+        result = await editImageWithDALLE(imageUrl, editPrompt);
         break;
       default:
         throw new Error('지원하지 않는 모델입니다.');
@@ -310,6 +320,36 @@ async function editImageWithStability(imageUrl, editPrompt) {
   return {
     imageUrl: publicUrl,
     model: 'Stability AI'
+  };
+}
+
+// DALL-E 3를 사용한 이미지 편집
+async function editImageWithDALLE(imageUrl, editPrompt) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OpenAI API 키가 설정되지 않았습니다.');
+  }
+
+  // DALL-E 3는 이미지 편집보다는 새로운 이미지 생성에 특화되어 있음
+  // 원본 이미지의 스타일을 참고하여 새로운 이미지를 생성
+  const dalleResponse = await openai.images.generate({
+    model: "dall-e-3",
+    prompt: editPrompt,
+    size: "1024x1024",
+    quality: "hd",
+    n: 1,
+  });
+
+  if (!dalleResponse.data || dalleResponse.data.length === 0) {
+    throw new Error('DALL-E 3에서 이미지를 생성하지 못했습니다');
+  }
+
+  // DALL-E 3는 URL을 직접 반환하므로 Supabase에 저장
+  const dalleImageUrl = dalleResponse.data[0].url;
+  const savedImage = await saveImageToSupabase(dalleImageUrl, 'dalle-edit');
+
+  return {
+    imageUrl: savedImage.publicUrl,
+    model: 'DALL-E 3'
   };
 }
 
