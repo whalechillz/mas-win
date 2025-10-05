@@ -4642,7 +4642,10 @@ export default function BlogAdmin() {
                             <img 
                               src={selectedBaseImage} 
                               alt="선택된 기본 이미지"
-                              className="w-16 h-16 object-cover rounded border"
+                              className="w-16 h-16 object-contain rounded border bg-white"
+                              style={{
+                                objectFit: 'contain'
+                              }}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                                 ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
@@ -4688,7 +4691,10 @@ export default function BlogAdmin() {
                                   <img 
                                     src={imgUrl} 
                                     alt={`AI 생성 이미지 ${index + 1}`}
-                                    className="w-full h-20 object-cover rounded"
+                                    className="w-full h-20 object-contain rounded bg-white"
+                                    style={{
+                                      objectFit: 'contain'
+                                    }}
                                     onError={(e) => {
                                       console.error('이미지 로드 실패:', imgUrl);
                                       (e.target as HTMLImageElement).style.display = 'none';
@@ -4865,7 +4871,10 @@ export default function BlogAdmin() {
                             <img 
                               src={selectedImageForImprovement} 
                               alt="선택된 개선 이미지"
-                              className="w-16 h-16 object-cover rounded border"
+                              className="w-16 h-16 object-contain rounded border bg-white"
+                              style={{
+                                objectFit: 'contain'
+                              }}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                                 ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
@@ -4903,11 +4912,14 @@ export default function BlogAdmin() {
                                   <img
                                     src={imgUrl}
                                     alt={`AI 생성 이미지 ${index + 1}`}
-                                    className={`w-full h-20 object-cover rounded border cursor-pointer transition-all ${
+                                    className={`w-full h-20 object-contain rounded border cursor-pointer transition-all bg-white ${
                                       selectedImageForImprovement === imgUrl 
                                         ? 'ring-2 ring-green-500 border-green-500' 
                                         : 'hover:border-green-300'
                                     }`}
+                                    style={{
+                                      objectFit: 'contain'
+                                    }}
                                     onClick={() => setSelectedImageForImprovement(imgUrl)}
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).style.display = 'none';
@@ -7499,29 +7511,36 @@ export default function BlogAdmin() {
 
       {/* 이미지 그룹 모달 */}
       {showImageGroupModal && selectedImageGroup.length > 0 && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                📦 이미지 그룹 - {selectedImageGroup.length}개 버전
-              </h3>
-              <button
-                onClick={() => setShowImageGroupModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-6xl max-h-[95vh] w-full overflow-hidden flex flex-col">
+            <div className="p-4 border-b bg-blue-50 flex-shrink-0">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-blue-800">
+                  📦 이미지 그룹 - {selectedImageGroup.length}개 버전
+                </h3>
+                <button
+                  onClick={() => setShowImageGroupModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ×
+                </button>
+              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {selectedImageGroup.map((image, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                  <div className="relative">
-                    <img
-                      src={image.url}
-                      alt={image.name}
-                      className="w-full h-32 object-contain rounded mb-2"
-                    />
+            <div className="flex-1 p-4 overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {selectedImageGroup.map((image, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <div className="relative">
+                      <img
+                        src={image.url}
+                        alt={image.name}
+                        className="w-full h-40 object-contain rounded mb-2"
+                        style={{
+                          maxHeight: '200px',
+                          objectFit: 'contain'
+                        }}
+                      />
                     <div className="absolute top-1 right-1">
                       <span className="px-2 py-1 text-xs rounded bg-white bg-opacity-80 text-gray-600">
                         {getImageVersionInfo(image.name)}
@@ -7690,7 +7709,7 @@ export default function BlogAdmin() {
       {/* AI 생성 이미지 확대 모달 */}
       {showGeneratedImageModal && selectedGeneratedImage && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden flex flex-col">
+          <div className="bg-white rounded-lg max-w-6xl max-h-[95vh] w-full overflow-hidden flex flex-col">
             {/* 모달 헤더 */}
             <div className="p-4 border-b bg-orange-50 flex-shrink-0">
               <div className="flex justify-between items-center">
@@ -7704,17 +7723,26 @@ export default function BlogAdmin() {
               </div>
             </div>
             
-            {/* 이미지 영역 - flex-1로 남은 공간 모두 사용 */}
-            <div className="flex-1 p-6 flex items-center justify-center bg-gray-100 overflow-hidden">
-              <img
-                src={selectedGeneratedImage}
-                alt="AI 생성 이미지"
-                className="max-w-full max-h-full object-contain rounded shadow-lg"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/placeholder-image.jpg';
-                }}
-              />
+            {/* 이미지 영역 - 원본 비율 유지하며 위아래 잘림 방지 */}
+            <div className="flex-1 p-4 flex items-center justify-center bg-gray-100 overflow-auto">
+              <div className="relative max-w-full max-h-full">
+                <img
+                  src={selectedGeneratedImage}
+                  alt="AI 생성 이미지"
+                  className="max-w-full max-h-full object-contain rounded shadow-lg"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: 'calc(95vh - 200px)', // 헤더와 버튼 영역 제외
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain'
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-image.jpg';
+                  }}
+                />
+              </div>
             </div>
             
             {/* 이미지 정보 */}
