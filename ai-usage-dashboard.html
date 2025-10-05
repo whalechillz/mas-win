@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI & 블로그 대시보드 - 서비스별 사용량</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .dashboard-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .period-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .period-btn {
+            padding: 12px 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .period-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .period-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .services-section {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--service-color);
+        }
+
+        .service-card.openai { --service-color: #10a37f; }
+        .service-card.fal-ai { --service-color: #ff6b35; }
+        .service-card.kie-ai { --service-color: #ffd700; }
+        .service-card.google-cloud { --service-color: #ea4335; }
+
+        .service-manage-btn {
+            margin-left: auto;
+        }
+
+        .manage-button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .manage-button.openai { background: #10a37f; color: white; }
+        .manage-button.fal-ai { background: #ff6b35; color: white; }
+        .manage-button.kie-ai { background: #ffd700; color: #333; }
+        .manage-button.replicate-flux { background: #8b5cf6; color: white; }
+        .manage-button.stability-ai { background: #6366f1; color: white; }
+        .manage-button.google-cloud { background: #dc2626; color: white; }
+
+        .manage-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .service-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            justify-content: space-between;
+        }
+
+        .service-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            margin-right: 15px;
+        }
+
+        .service-icon.openai { background: #10a37f; }
+        .service-icon.fal-ai { background: #ff6b35; }
+        .service-icon.kie-ai { background: #ffd700; color: #333; }
+        .service-icon.replicate-flux { background: #8b5cf6; }
+        .service-icon.stability-ai { background: #6366f1; }
+        .service-icon.google-cloud { background: #ea4335; }
+
+        .service-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .service-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .usage-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .service-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-icon {
+            margin-right: 8px;
+        }
+
+        .summary-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .summary-label {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .grid {
+            display: grid;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        .lg\\:grid-cols-2 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        @media (min-width: 1024px) {
+            .lg\\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .gap-8 {
+            gap: 2rem;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .py-2 {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .border-b {
+            border-bottom-width: 1px;
+        }
+
+        .border-gray-100 {
+            border-color: #f3f4f6;
+        }
+
+        .last\\:border-b-0:last-child {
+            border-bottom-width: 0;
+        }
+
+        .flex-1 {
+            flex: 1 1 0%;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .text-gray-900 {
+            color: #111827;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .text-gray-500 {
+            color: #6b7280;
+        }
+
+        .text-blue-600 {
+            color: #2563eb;
+        }
+
+        .group:hover .group-hover\\:from-blue-600 {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+        }
+
+        .group:hover .group-hover\\:to-blue-700 {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .bg-blue-50 {
+            background-color: #eff6ff;
+        }
+
+        .px-2 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .bg-gray-200 {
+            background-color: #e5e7eb;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .h-2 {
+            height: 0.5rem;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .h-full {
+            height: 100%;
+        }
+
+        .bg-gradient-to-r {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+        }
+
+        .from-blue-500 {
+            --tw-gradient-from: #3b82f6;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0));
+        }
+
+        .to-blue-600 {
+            --tw-gradient-to: #2563eb;
+        }
+
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+
+        .duration-500 {
+            transition-duration: 500ms;
+        }
+
+        .ease-out {
+            transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem;
+        }
+
+        .pt-4 {
+            padding-top: 1rem;
+        }
+
+        .border-t {
+            border-top-width: 1px;
+        }
+
+        .border-gray-200 {
+            border-color: #e5e7eb;
+        }
+
+        .text-gray-600 {
+            color: #4b5563;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .usage-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .period-selector {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>AI & 블로그 대시보드</h1>
+            <p>AI 사용량과 블로그 성과를 한눈에 확인하세요</p>
+            
+            <div class="period-selector">
+                <button class="period-btn active" data-period="daily">일별</button>
+                <button class="period-btn" data-period="weekly">주별</button>
+                <button class="period-btn" data-period="monthly">월별</button>
+            </div>
+        </div>
+
+        <div class="services-section">
+            <h2 class="section-title">AI 서비스 사용량</h2>
+            
+            <div class="alert alert-danger" id="google-cloud-alert" style="display: none;">
+                🚨 Google Cloud API가 비활성화되어 있습니다. ₩1,664,818 과금 방지를 위해 안전하게 차단되었습니다.
+            </div>
+            
+            <div class="services-grid" id="services-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>AI 서비스 사용량을 불러오는 중...</p>
+                </div>
+            </div>
+
+            <!-- 블로그 성과 요약 섹션 -->
+            <div class="summary-section">
+                <h3 style="text-align: center; margin-bottom: 20px; color: #333;">📈 블로그 성과 요약</h3>
+                <div class="summary-grid" id="blog-summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-value" id="total-posts">-</span>
+                        <div class="summary-label">총 게시물</div>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="published-posts">-</span>
+                        <div class="summary-label">발행된 게시물</div>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="total-views">-</span>
+                        <div class="summary-label">총 조회수</div>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="avg-views">-</span>
+                        <div class="summary-label">평균 조회수</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 인기 게시물 및 카테고리 분포 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8" style="margin-top: 30px;">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">🔥 인기 게시물</h3>
+                    <div id="popular-posts">
+                        <!-- 인기 게시물 목록이 여기에 동적으로 생성됩니다 -->
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">📊 카테고리별 분포</h3>
+                    <div id="category-distribution">
+                        <!-- 카테고리 분포가 여기에 동적으로 생성됩니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <h3 style="text-align: center; margin-bottom: 20px; color: #333;">전체 요약</h3>
+                <div class="summary-grid" id="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-value" id="total-api-calls">-</span>
+                        <div class="summary-label">총 API 호출</div>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="total-tokens">-</span>
+                        <div class="summary-label">총 토큰 사용</div>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="total-cost">-</span>
+                        <div class="summary-label">총 비용</div>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value" id="success-rate">-</span>
+                        <div class="summary-label">성공률</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AI 서비스 데이터 (실제 대시보드와 동일하게)
+        const aiServices = {
+            openai: {
+                name: 'OpenAI',
+                icon: 'O',
+                description: '슬러그, DALL-E 3',
+                color: '#10a37f',
+                status: 'active',
+                manageUrl: 'https://platform.openai.com/account/billing'
+            },
+            'fal-ai': {
+                name: 'FAL AI',
+                icon: 'F',
+                description: '고품질 이미지 생성',
+                color: '#ff6b35',
+                status: 'active',
+                manageUrl: 'https://fal.ai/dashboard'
+            },
+            'kie-ai': {
+                name: 'Kie AI',
+                icon: 'K',
+                description: 'GPT-4O, Flux, Midjourney',
+                color: '#ffd700',
+                status: 'active',
+                manageUrl: 'https://kie.ai/dashboard'
+            },
+            'replicate-flux': {
+                name: 'Replicate Flux',
+                icon: 'R',
+                description: '고품질 이미지 변형',
+                color: '#8b5cf6',
+                status: 'active',
+                manageUrl: 'https://replicate.com/account'
+            },
+            'stability-ai': {
+                name: 'Stability AI',
+                icon: 'S',
+                description: '안정적 이미지 변형',
+                color: '#6366f1',
+                status: 'active',
+                manageUrl: 'https://platform.stability.ai/account'
+            },
+            'google-cloud': {
+                name: 'Google Cloud',
+                icon: 'G',
+                description: 'Vision API, Gemini',
+                color: '#ea4335',
+                status: 'disabled',
+                manageUrl: '#'
+            }
+        };
+
+        // 사용량 데이터 (실제 대시보드와 유사한 데이터)
+        const usageData = {
+            daily: {
+                openai: { apiCalls: 12, tokens: 1234, cost: 0.02, images: 0 },
+                'fal-ai': { apiCalls: 8, tokens: 0, cost: 0.15, images: 3 },
+                'kie-ai': { apiCalls: 5, tokens: 567, cost: 0.08, images: 0 },
+                'replicate-flux': { apiCalls: 3, tokens: 0, cost: 0.12, images: 2 },
+                'stability-ai': { apiCalls: 2, tokens: 0, cost: 0.08, images: 1 },
+                'google-cloud': { apiCalls: 0, tokens: 0, cost: 0.00, images: 0 }
+            },
+            weekly: {
+                openai: { apiCalls: 89, tokens: 12456, cost: 0.45, images: 0 },
+                'fal-ai': { apiCalls: 34, tokens: 0, cost: 0.78, images: 15 },
+                'kie-ai': { apiCalls: 23, tokens: 3456, cost: 0.34, images: 0 },
+                'replicate-flux': { apiCalls: 18, tokens: 0, cost: 0.65, images: 12 },
+                'stability-ai': { apiCalls: 12, tokens: 0, cost: 0.42, images: 8 },
+                'google-cloud': { apiCalls: 0, tokens: 0, cost: 0.00, images: 0 }
+            },
+            monthly: {
+                openai: { apiCalls: 185, tokens: 14436409, cost: 0.37, images: 0 },
+                'fal-ai': { apiCalls: 156, tokens: 0, cost: 2.45, images: 67 },
+                'kie-ai': { apiCalls: 98, tokens: 8765, cost: 1.23, images: 0 },
+                'replicate-flux': { apiCalls: 78, tokens: 0, cost: 2.12, images: 45 },
+                'stability-ai': { apiCalls: 45, tokens: 0, cost: 1.67, images: 28 },
+                'google-cloud': { apiCalls: 0, tokens: 0, cost: 0.00, images: 0 }
+            }
+        };
+
+        // 블로그 통계 데이터 (실제 대시보드와 유사한 데이터)
+        const blogData = {
+            totalPosts: 166,
+            publishedPosts: 160,
+            draftPosts: 6,
+            totalViews: 373558,
+            avgViewsPerPost: 2250,
+            topCategories: [
+                { category: '고객 후기', count: 72 },
+                { category: '골프 팁', count: 45 },
+                { category: '장비 리뷰', count: 28 },
+                { category: '골프장 정보', count: 15 },
+                { category: '기타', count: 6 }
+            ],
+            recentPosts: [
+                { title: 'MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다.', views: 4001, published_at: '2025-10-01' },
+                { title: '프로 골퍼가 추천하는 겨울 골프 연습법', views: 3256, published_at: '2025-09-28' },
+                { title: '2025년 최신 드라이버 리뷰 - 타이틀리스트 vs 캘러웨이', views: 2890, published_at: '2025-09-25' },
+                { title: '골프 초보자를 위한 올바른 그립 잡는 법', views: 2456, published_at: '2025-09-22' },
+                { title: '서울 근교 추천 골프장 TOP 10', views: 2100, published_at: '2025-09-20' }
+            ]
+        };
+
+        let currentPeriod = 'daily';
+
+        // 숫자 포맷팅 함수
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        // 서비스 상태 반환
+        function getServiceStatus(serviceKey) {
+            const service = aiServices[serviceKey];
+            if (serviceKey === 'google-cloud') {
+                return {
+                    class: 'status-disabled',
+                    icon: '🔴',
+                    text: '비활성화 (안전)'
+                };
+            }
+            return {
+                class: 'status-active',
+                icon: '✅',
+                text: '정상'
+            };
+        }
+
+        // 서비스 카드 생성 (실제 대시보드와 동일한 스타일)
+        function createServiceCard(serviceKey, data) {
+            const service = aiServices[serviceKey];
+            const status = getServiceStatus(serviceKey);
+            
+            return `
+                <div class="service-card ${serviceKey}">
+                    <div class="service-header">
+                        <div class="service-icon ${serviceKey}">${service.icon}</div>
+                        <div>
+                            <div class="service-title">${service.name}</div>
+                            <div class="service-description">${service.description}</div>
+                        </div>
+                        <div class="service-manage-btn">
+                            <a href="${service.manageUrl}" target="_blank" class="manage-button ${serviceKey}">
+                                ${serviceKey === 'google-cloud' ? '🚫 비활성화' : '💳 관리'}
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="usage-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">${data.apiCalls}</span>
+                            <div class="stat-label">API 호출</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${formatNumber(data.tokens)}</span>
+                            <div class="stat-label">토큰 사용</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">$${data.cost.toFixed(2)}</span>
+                            <div class="stat-label">비용</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${data.images}</span>
+                            <div class="stat-label">이미지 생성</div>
+                        </div>
+                    </div>
+                    
+                    <div class="service-status ${status.class}">
+                        <span>
+                            <span class="status-icon">${status.icon}</span>
+                            ${status.text}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 대시보드 업데이트
+        function updateDashboard(period) {
+            currentPeriod = period;
+            const data = usageData[period];
+            const servicesGrid = document.getElementById('services-grid');
+            
+            // 서비스 카드들 생성
+            const cards = Object.keys(aiServices).map(serviceKey => 
+                createServiceCard(serviceKey, data[serviceKey])
+            ).join('');
+            
+            servicesGrid.innerHTML = cards;
+            
+            // 전체 요약 업데이트
+            updateSummary(data);
+            
+            // Google Cloud 알림 표시
+            const alert = document.getElementById('google-cloud-alert');
+            if (period === 'daily' && data['google-cloud'].apiCalls === 0) {
+                alert.style.display = 'block';
+            } else {
+                alert.style.display = 'none';
+            }
+        }
+
+        // 전체 요약 업데이트
+        function updateSummary(data) {
+            const totalApiCalls = Object.values(data).reduce((sum, service) => sum + service.apiCalls, 0);
+            const totalTokens = Object.values(data).reduce((sum, service) => sum + service.tokens, 0);
+            const totalCost = Object.values(data).reduce((sum, service) => sum + service.cost, 0);
+            const successRate = 97.3; // 시뮬레이션 데이터
+            
+            document.getElementById('total-api-calls').textContent = totalApiCalls;
+            document.getElementById('total-tokens').textContent = formatNumber(totalTokens);
+            document.getElementById('total-cost').textContent = `$${totalCost.toFixed(2)}`;
+            document.getElementById('success-rate').textContent = `${successRate}%`;
+        }
+
+        // 블로그 요약 업데이트
+        function updateBlogSummary() {
+            document.getElementById('total-posts').textContent = blogData.totalPosts;
+            document.getElementById('published-posts').textContent = blogData.publishedPosts;
+            document.getElementById('total-views').textContent = formatNumber(blogData.totalViews);
+            document.getElementById('avg-views').textContent = formatNumber(blogData.avgViewsPerPost);
+        }
+
+        // 인기 게시물 업데이트
+        function updatePopularPosts() {
+            const container = document.getElementById('popular-posts');
+            const posts = blogData.recentPosts.slice(0, 5);
+            
+            container.innerHTML = posts.map(post => `
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900 truncate">${post.title}</div>
+                        <div class="text-sm text-gray-500">${new Date(post.published_at).toLocaleDateString()}</div>
+                    </div>
+                    <div class="text-sm font-medium text-blue-600">${post.views.toLocaleString()} 조회</div>
+                </div>
+            `).join('');
+        }
+
+        // 카테고리 분포 업데이트
+        function updateCategoryDistribution() {
+            const container = document.getElementById('category-distribution');
+            const categories = blogData.topCategories;
+            const maxCount = categories[0]?.count || 1;
+            
+            container.innerHTML = categories.map(category => {
+                const percentage = (category.count / maxCount) * 100;
+                return `
+                    <div class="group">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium text-gray-900 text-sm">${category.category}</span>
+                            <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                ${category.count}개
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div 
+                                class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-out group-hover:from-blue-600 group-hover:to-blue-700"
+                                style="width: ${percentage}%"
+                            ></div>
+                        </div>
+                    </div>
+                `;
+            }).join('') + `
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-600">총 게시물</span>
+                        <span class="text-lg font-bold text-gray-900">
+                            ${categories.reduce((sum, cat) => sum + cat.count, 0)}개
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 기간 선택 이벤트
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 활성 버튼 변경
+                document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // 대시보드 업데이트
+                const period = btn.dataset.period;
+                updateDashboard(period);
+            });
+        });
+
+        // 초기 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard('daily');
+            updateBlogSummary();
+            updatePopularPosts();
+            updateCategoryDistribution();
+            
+            // 실시간 업데이트 시뮬레이션 (5초마다)
+            setInterval(() => {
+                // 랜덤하게 일부 데이터 업데이트
+                const randomService = Object.keys(usageData.daily)[Math.floor(Math.random() * 5)]; // google-cloud 제외
+                if (randomService !== 'google-cloud') {
+                    usageData.daily[randomService].apiCalls += Math.floor(Math.random() * 3);
+                    if (currentPeriod === 'daily') {
+                        updateDashboard('daily');
+                    }
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

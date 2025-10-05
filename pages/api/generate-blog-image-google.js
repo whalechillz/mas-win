@@ -118,8 +118,9 @@ async function saveImageToSupabase(imageUrl, folder = 'blog-images') {
 
 // 구글 AI 이미지 생성 (올바른 Imagen API 사용)
 async function generateImageWithGoogle(prompt, count = 1) {
-  if (!process.env.GOOGLE_AI_API_KEY) {
-    throw new Error('Google AI API 키가 설정되지 않았습니다.');
+  if (!process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY === 'disabled') {
+    console.error('❌ Google AI API 키 비활성화됨 - 비용 절약을 위해 사용 중단');
+    throw new Error('Google AI API가 비용 절약을 위해 비활성화되었습니다. DALL-E 3를 사용하세요.');
   }
 
   try {
@@ -255,6 +256,15 @@ async function generateImageWithDALLE3(prompt, count = 1) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
+  }
+
+  // Google AI API 키 확인
+  if (!process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY === 'disabled') {
+    console.log('⚠️ Google AI API 키 비활성화됨 - 비용 절약을 위해 사용 중단');
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Google AI API가 비용 절약을 위해 비활성화되었습니다. FAL AI나 Replicate를 사용하세요.' 
+    });
   }
 
   const { 

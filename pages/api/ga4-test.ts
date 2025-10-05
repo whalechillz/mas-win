@@ -7,6 +7,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Google Analytics API 비활성화 확인
+  if (process.env.GOOGLE_ANALYTICS_DISABLED === 'true' || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+    console.log('⚠️ Google Analytics API 비활성화됨 - 비용 절약을 위해 사용 중단');
+    return res.status(200).json({
+      status: 'Google Analytics API 비활성화됨',
+      message: '비용 절약을 위해 Google Analytics API가 비활성화되었습니다.',
+      availableData: null
+    });
+  }
+
   try {
     // 환경변수 체크
     const hasEmail = !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
