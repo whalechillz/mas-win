@@ -118,6 +118,9 @@ export default function BlogAdmin() {
   const [improvedContent, setImprovedContent] = useState('');
   const [showImprovedContent, setShowImprovedContent] = useState(false);
 
+  // 폼 제출 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // 게시물 데이터 로드
   const fetchPosts = useCallback(async () => {
     try {
@@ -194,6 +197,7 @@ export default function BlogAdmin() {
   // 게시물 저장
   const handleSave = useCallback(async () => {
     try {
+      setIsSubmitting(true);
       const url = editingPost ? `/api/blog/posts/${editingPost.id}` : '/api/blog/posts';
       const method = editingPost ? 'PUT' : 'POST';
       
@@ -209,11 +213,26 @@ export default function BlogAdmin() {
         await fetchPosts();
         setIsEditing(false);
         setEditingPost(null);
+        setFormData({
+          title: '',
+          content: '',
+          excerpt: '',
+          category: '',
+          author: '',
+          status: 'draft',
+          featured_image: '',
+          tags: [],
+          meta_description: ''
+        });
       } else {
         console.error('게시물 저장 실패');
+        alert('게시물 저장에 실패했습니다.');
       }
     } catch (error) {
       console.error('게시물 저장 오류:', error);
+      alert('게시물 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   }, [editingPost, formData, fetchPosts]);
 
@@ -677,125 +696,148 @@ export default function BlogAdmin() {
           {/* 편집 모드 */}
           {isEditing ? (
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">
-                  {editingPost ? '게시물 편집' : '새 게시물 작성'}
-                </h2>
-                <div className="flex space-x-2">
-            <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    취소
-            </button>
-              <button
-                    onClick={handleSave}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    저장
-              </button>
-          </div>
+              {/* 헤더 */}
+              <div className="border-b border-gray-200 pb-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {editingPost ? '게시물 편집' : '새 게시물 작성'}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {editingPost ? '기존 게시물을 수정합니다' : '새로운 게시물을 작성합니다'}
+                    </p>
                   </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setIsEditing(false)}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>저장 중...</span>
+                        </>
+                      ) : (
+                        <span>저장</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-              <div className="space-y-6">
-                {/* 제목 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    제목
+              {/* 기본 정보 섹션 - 2열 그리드 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="space-y-6">
+                  {/* 제목 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      제목 *
                     </label>
-                      <input
-                        type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="게시물 제목을 입력하세요"
-                  />
-                      </div>
-
-                {/* 요약 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    요약
-                  </label>
-                  <textarea
-                    value={formData.excerpt}
-                    onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                    placeholder="게시물 요약을 입력하세요"
-                  />
-                </div>
-
-                {/* 카테고리 */}
-                      <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    카테고리
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="카테고리를 입력하세요"
-                  />
-                </div>
-
-                {/* 작성자 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    작성자
-                  </label>
                     <input
                       type="text"
-                    value={formData.author}
-                    onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="작성자명을 입력하세요"
-                  />
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="게시물 제목을 입력하세요"
+                      required
+                    />
+                  </div>
+
+                  {/* 카테고리 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      카테고리
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="카테고리를 입력하세요"
+                    />
+                  </div>
+
+                  {/* 작성자 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      작성자
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.author}
+                      onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="작성자명을 입력하세요"
+                    />
+                  </div>
+
+                  {/* 상태 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      상태
+                    </label>
+                    <select 
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'published' | 'draft' }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="draft">초안</option>
+                      <option value="published">발행</option>
+                    </select>
+                  </div>
                 </div>
 
-                {/* 상태 */}
-                    <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    상태
-                  </label>
-                      <select 
-                    value={formData.status}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'published' | 'draft' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="draft">초안</option>
-                    <option value="published">발행</option>
-                      </select>
-                    </div>
-
-                {/* 대표 이미지 */}
-                    <div>
+                <div className="space-y-6">
+                  {/* 요약 */}
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                    대표 이미지 URL
+                      요약
                     </label>
-                  <input
-                    type="url"
-                    value={formData.featured_image}
-                    onChange={(e) => setFormData(prev => ({ ...prev, featured_image: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="이미지 URL을 입력하세요"
-                                  />
-                                </div>
+                    <textarea
+                      value={formData.excerpt}
+                      onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={4}
+                      placeholder="게시물 요약을 입력하세요"
+                    />
+                  </div>
 
-                {/* 메타 설명 */}
-                                <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                    메타 설명
-                      </label>
-                  <textarea
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={2}
-                    placeholder="SEO를 위한 메타 설명을 입력하세요"
-                  />
-                            </div>
+                  {/* 대표 이미지 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      대표 이미지 URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.featured_image}
+                      onChange={(e) => setFormData(prev => ({ ...prev, featured_image: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="이미지 URL을 입력하세요"
+                    />
+                  </div>
+
+                  {/* 메타 설명 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      메타 설명 (SEO)
+                    </label>
+                    <textarea
+                      value={formData.meta_description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                      placeholder="SEO를 위한 메타 설명을 입력하세요"
+                    />
+                  </div>
+                </div>
+              </div>
 
                 {/* 내용 */}
                 <div>
@@ -833,9 +875,12 @@ export default function BlogAdmin() {
                   />
                 </div>
 
-                {/* 간단 AI 개선 섹션 */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">⚡ 간단 AI 개선</h3>
+                {/* AI 콘텐츠 개선 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <span className="text-2xl">⚡</span>
+                    <h3 className="text-xl font-semibold text-gray-900">AI 콘텐츠 개선</h3>
+                  </div>
                   
                   <div className="space-y-4">
                     <div>
@@ -914,8 +959,11 @@ export default function BlogAdmin() {
                 </div>
 
                 {/* AI 이미지 생성 섹션 */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🎨 AI 이미지 생성</h3>
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <span className="text-2xl">🎨</span>
+                    <h3 className="text-xl font-semibold text-gray-900">AI 이미지 생성</h3>
+                  </div>
                   
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -1015,9 +1063,12 @@ export default function BlogAdmin() {
                 </div>
 
                 {/* 이미지 갤러리 섹션 */}
-                <div className="border-t pt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl">🖼️</span>
+                      <h3 className="text-xl font-semibold text-gray-900">이미지 갤러리</h3>
+                    </div>
                     <div className="flex space-x-2">
                                 <button
                         onClick={fetchImageGallery}
@@ -1132,8 +1183,6 @@ export default function BlogAdmin() {
                 </div>
               )}
             </div>
-                  </div>
-                  </div>
           ) : (
             /* 목록 모드 */
             <div className="space-y-6">
@@ -1275,12 +1324,7 @@ export default function BlogAdmin() {
                       />
                     )}
             </div>
-                )}
-              </div>
-            </div>
           )}
-              </div>
-            </div>
 
       {/* AI 생성 이미지 확대 보기 모달 */}
       {showGeneratedImageModal && selectedGeneratedImage && (
