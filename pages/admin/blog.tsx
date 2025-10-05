@@ -3007,6 +3007,53 @@ export default function BlogAdmin() {
           </div>
         </div>
       )}
+
+      {/* 확대 보기 모달 */}
+      {showLargeImageModal && largeImageUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60] p-4" onClick={() => setShowLargeImageModal(false)}>
+          <div className="relative max-w-[95vw] max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
+            <img src={largeImageUrl} alt="확대 이미지" className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl bg-white" />
+            <button onClick={() => setShowLargeImageModal(false)} className="absolute -top-3 -right-3 bg-white text-gray-800 rounded-full w-8 h-8 shadow flex items-center justify-center">✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* 에디터용 갤러리 선택 모달 */}
+      {showSelectFromGalleryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">이미지 선택하여 본문에 삽입</h3>
+              <button onClick={() => setShowSelectFromGalleryModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div className="p-4 overflow-auto" style={{ maxHeight: '75vh' }}>
+              {allImages.length === 0 ? (
+                <div className="text-center text-gray-500 py-16">불러올 이미지가 없습니다.</div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {allImages.map((img: any, idx: number) => (
+                    <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={() => {
+                      if (pendingEditorImageInsert) pendingEditorImageInsert(img.url);
+                      setShowSelectFromGalleryModal(false);
+                      setPendingEditorImageInsert(null);
+                    }}>
+                      <img src={img.url} alt={img.name} className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-image.jpg'; }} />
+                      <div className="p-2 text-xs text-gray-700 truncate" title={img.name}>{img.name}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-between items-center p-4 border-t text-sm text-gray-600">
+              <div>총 {totalImagesCount || allImages.length}개 중 {allImages.length}개 표시</div>
+              <div className="space-x-2">
+                <button onClick={() => fetchImageGallery()} className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded">새로고침</button>
+                <button onClick={() => setShowSelectFromGalleryModal(false)} className="px-3 py-2 bg-blue-500 text-white rounded">닫기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
