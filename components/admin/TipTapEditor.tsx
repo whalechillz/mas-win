@@ -1,13 +1,8 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Table } from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
 // @ts-ignore - tiptap-markdown has no types
 import { Markdown } from 'tiptap-markdown';
 
@@ -28,18 +23,18 @@ const ToolbarButton: React.FC<{ onClick: () => void; active?: boolean; label: st
 );
 
 export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onChangeMarkdown, onRequestImageFromGallery }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (typeof window === 'undefined') return null;
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4] },
       }),
-      Link.configure({ openOnClick: true }),
       Image.configure({ inline: false, allowBase64: true }),
       Placeholder.configure({ placeholder: '여기에 글을 작성하세요...' }),
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
       Markdown.configure({ html: false })
     ],
     content: valueMarkdown || '',
@@ -102,7 +97,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
     });
   }, [editor, onRequestImageFromGallery, handleUploadImage]);
 
-  if (!editor) return null;
+  if (!mounted || !editor) return null;
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -110,13 +105,9 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         <ToolbarButton label="B" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
         <ToolbarButton label="I" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
         <ToolbarButton label="H2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
-        <ToolbarButton label="링크" onClick={() => {
-          const url = prompt('링크 URL을 입력하세요');
-          if (url) editor.chain().focus().setLink({ href: url }).run();
-        }} />
+        {/* 안정화 단계: 링크/테이블 등은 후속 브랜치에서 재도입 */}
         <ToolbarButton label="이미지 업로드" onClick={handleUploadImage} />
         <ToolbarButton label="갤러리" onClick={handleInsertFromGallery} />
-        <ToolbarButton label="테이블" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
       </div>
       <div className="p-3">
         <EditorContent editor={editor} />
