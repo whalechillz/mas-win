@@ -108,6 +108,23 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         {/* 안정화 단계: 링크/테이블 등은 후속 브랜치에서 재도입 */}
         <ToolbarButton label="이미지 업로드" onClick={handleUploadImage} />
         <ToolbarButton label="갤러리" onClick={handleInsertFromGallery} />
+        <ToolbarButton
+          label="대표로"
+          active={editor.isActive('image')}
+          onClick={() => {
+            if (!editor.isActive('image')) {
+              alert('이미지를 선택한 후 사용하세요.');
+              return;
+            }
+            try {
+              const attrs: any = editor.getAttributes('image') || {};
+              const url = attrs?.src;
+              if (url && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('tiptap:set-featured-image', { detail: { url } }));
+              }
+            } catch {}
+          }}
+        />
       </div>
       <div className="p-3">
         <EditorContent editor={editor} />
