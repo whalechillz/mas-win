@@ -45,6 +45,8 @@ export default function BlogAdmin() {
   const [largeImageUrl, setLargeImageUrl] = useState('');
   const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
   const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
+  const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
+  const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
 
   // AI 콘텐츠 개선 관련 상태
   const [simpleAIRequest, setSimpleAIRequest] = useState('');
@@ -3034,6 +3036,10 @@ export default function BlogAdmin() {
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='webp'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('webp')}>WebP</button>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='medium'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('medium')}>Medium</button>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='thumb'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('thumb')}>Thumb</button>
+                <div className="ml-auto flex items-center gap-2">
+                  <input value={galleryPickerAlt} onChange={(e)=>setGalleryPickerAlt(e.target.value)} placeholder="ALT" className="px-2 py-1 border rounded text-sm" />
+                  <input value={galleryPickerTitle} onChange={(e)=>setGalleryPickerTitle(e.target.value)} placeholder="캡션/타이틀" className="px-2 py-1 border rounded text-sm" />
+                </div>
               </div>
             </div>
             <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
@@ -3048,9 +3054,11 @@ export default function BlogAdmin() {
                     return true;
                   }).map((img: any, idx: number) => (
                     <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={() => {
-                      if (pendingEditorImageInsert) pendingEditorImageInsert(img.url);
+                      if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(img.url, { alt: galleryPickerAlt || img.name, title: galleryPickerTitle });
                       setShowSelectFromGalleryModal(false);
                       setPendingEditorImageInsert(null);
+                      setGalleryPickerAlt('');
+                      setGalleryPickerTitle('');
                     }}>
                       <img src={img.url} alt={img.name} className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-image.jpg'; }} />
                       <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between" title={img.name}>
