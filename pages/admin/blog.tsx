@@ -68,6 +68,14 @@ export default function BlogAdmin() {
   const [migrationProgress, setMigrationProgress] = useState('');
   const [migratedPosts, setMigratedPosts] = useState([]);
 
+  // 고급 기능 관련 상태
+  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [imageAnalysisResult, setImageAnalysisResult] = useState('');
+  const [isOptimizingSEO, setIsOptimizingSEO] = useState(false);
+  const [seoOptimizationResult, setSeoOptimizationResult] = useState('');
+  const [selectedImageForAnalysis, setSelectedImageForAnalysis] = useState('');
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
     title: '',
@@ -1297,6 +1305,94 @@ export default function BlogAdmin() {
     }
   };
 
+  // 고급 기능 함수들
+  const analyzeImage = async (imageUrl) => {
+    if (!imageUrl) {
+      alert('분석할 이미지를 선택해주세요.');
+      return;
+    }
+
+    setIsAnalyzingImage(true);
+    setImageAnalysisResult('이미지를 분석하는 중...');
+
+    try {
+      const response = await fetch('/api/analyze-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageUrl
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setImageAnalysisResult(data.analysis || '이미지 분석 결과가 없습니다.');
+        alert('이미지 분석이 완료되었습니다!');
+      } else {
+        throw new Error('이미지 분석에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('이미지 분석 오류:', error);
+      setImageAnalysisResult('이미지 분석 중 오류가 발생했습니다: ' + error.message);
+      alert('이미지 분석 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
+
+  const optimizeSEO = async () => {
+    if (!formData.title || !formData.content) {
+      alert('제목과 내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsOptimizingSEO(true);
+    setSeoOptimizationResult('SEO를 최적화하는 중...');
+
+    try {
+      const response = await fetch('/api/optimize-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          category: formData.category,
+          excerpt: formData.excerpt
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSeoOptimizationResult(data.optimization || 'SEO 최적화 결과가 없습니다.');
+        
+        // SEO 최적화 결과를 폼에 적용
+        if (data.suggestions) {
+          setFormData(prev => ({
+            ...prev,
+            meta_title: data.suggestions.meta_title || prev.meta_title,
+            meta_description: data.suggestions.meta_description || prev.meta_description,
+            slug: data.suggestions.slug || prev.slug
+          }));
+        }
+        
+        alert('SEO 최적화가 완료되었습니다!');
+      } else {
+        throw new Error('SEO 최적화에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('SEO 최적화 오류:', error);
+      setSeoOptimizationResult('SEO 최적화 중 오류가 발생했습니다: ' + error.message);
+      alert('SEO 최적화 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsOptimizingSEO(false);
+    }
+  };
+
+  const selectImageForAnalysis = (imageUrl) => {
+    setSelectedImageForAnalysis(imageUrl);
+    alert('분석할 이미지가 선택되었습니다!');
+  };
+
   // 필터링된 게시물 목록
   const filteredPosts = posts.filter(post => {
     const matchesSearch = !searchTerm || 
@@ -2251,6 +2347,159 @@ export default function BlogAdmin() {
                   )}
                 </div>
 
+                {/* 고급 기능 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
+                      <span className="text-sm text-gray-500">이미지 분석, SEO 최적화 등 고급 기능을 제공합니다</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm"
+                    >
+                      {showAdvancedFeatures ? '숨기기' : '고급 기능 열기'}
+                    </button>
+                  </div>
+
+                  {showAdvancedFeatures && (
+                    <div className="space-y-8">
+                      {/* 이미지 분석 기능 */}
+                      <div className="border border-gray-200 rounded-lg p-6">
+                        <h4 className="text-md font-semibold text-gray-900 mb-4">🔍 이미지 분석</h4>
+                        
+                        <div className="space-y-4">
+                          {/* 분석할 이미지 선택 */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              분석할 이미지 선택
+                            </label>
+                            {selectedImageForAnalysis ? (
+                              <div className="flex items-center space-x-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <img
+                                  src={selectedImageForAnalysis}
+                                  alt="선택된 분석 이미지"
+                                  className="w-20 h-20 object-cover rounded-lg"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/placeholder-image.jpg';
+                                  }}
+                                />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-purple-800">분석할 이미지가 선택되었습니다</p>
+                                  <p className="text-xs text-purple-600 truncate">{selectedImageForAnalysis}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedImageForAnalysis('')}
+                                  className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                                >
+                                  선택 해제
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                                <p className="text-gray-500 mb-2">아래 이미지 갤러리에서 분석할 이미지를 선택하세요</p>
+                                <p className="text-xs text-gray-400">이미지에 마우스를 올리고 "🔍 분석" 버튼을 클릭하세요</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 이미지 분석 버튼 */}
+                          {selectedImageForAnalysis && (
+                            <button
+                              type="button"
+                              onClick={() => analyzeImage(selectedImageForAnalysis)}
+                              disabled={isAnalyzingImage}
+                              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                            >
+                              {isAnalyzingImage ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  <span>분석 중...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>🔍</span>
+                                  <span>이미지 분석 시작</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          {/* 이미지 분석 결과 */}
+                          {imageAnalysisResult && (
+                            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                              <h5 className="text-sm font-medium text-purple-800 mb-2">🔍 이미지 분석 결과</h5>
+                              <div className="text-sm text-purple-700 whitespace-pre-wrap">
+                                {imageAnalysisResult}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* SEO 최적화 기능 */}
+                      <div className="border border-gray-200 rounded-lg p-6">
+                        <h4 className="text-md font-semibold text-gray-900 mb-4">📈 SEO 최적화</h4>
+                        
+                        <div className="space-y-4">
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h5 className="text-sm font-medium text-blue-800 mb-2">📋 SEO 최적화 안내</h5>
+                            <ul className="text-sm text-blue-700 space-y-1">
+                              <li>• 제목과 내용을 기반으로 SEO 최적화 제안</li>
+                              <li>• 메타 제목, 메타 설명, 슬러그 자동 생성</li>
+                              <li>• 검색 엔진 최적화를 위한 키워드 제안</li>
+                              <li>• 최적화된 내용을 자동으로 폼에 적용</li>
+                            </ul>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={optimizeSEO}
+                            disabled={isOptimizingSEO || !formData.title || !formData.content}
+                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                          >
+                            {isOptimizingSEO ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>SEO 최적화 중...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📈</span>
+                                <span>SEO 최적화 시작</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* SEO 최적화 결과 */}
+                          {seoOptimizationResult && (
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <h5 className="text-sm font-medium text-blue-800 mb-2">📈 SEO 최적화 결과</h5>
+                              <div className="text-sm text-blue-700 whitespace-pre-wrap">
+                                {seoOptimizationResult}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 고급 기능 안내 */}
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-800 mb-2">💡 고급 기능 안내</h4>
+                        <ul className="text-sm text-gray-700 space-y-1">
+                          <li>• <strong>이미지 분석:</strong> AI를 사용하여 이미지의 내용, 색상, 구성 등을 분석합니다</li>
+                          <li>• <strong>SEO 최적화:</strong> 검색 엔진 최적화를 위한 메타데이터와 키워드를 자동 생성합니다</li>
+                          <li>• <strong>자동 적용:</strong> 최적화된 결과를 자동으로 폼에 적용하여 편리하게 사용할 수 있습니다</li>
+                          <li>• <strong>실시간 피드백:</strong> 분석과 최적화 과정을 실시간으로 확인할 수 있습니다</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* 이미지 갤러리 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center justify-between mb-6">
@@ -2403,6 +2652,15 @@ export default function BlogAdmin() {
                                   className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
                                 >
                                   ✨ 개선
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectImageForAnalysis(representativeImage.url);
+                                  }}
+                                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                                >
+                                  🔍 분석
                                 </button>
                               </div>
                             </div>
