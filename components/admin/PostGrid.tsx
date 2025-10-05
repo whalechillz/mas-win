@@ -19,14 +19,18 @@ interface PostGridProps {
   posts: Post[];
   selectedPosts: string[];
   onPostSelect: (postId: string) => void;
+  onSelectAll: () => void;
   onEdit: (post: Post) => void;
+  onDelete: (id: string) => void;
 }
 
 const PostGrid: React.FC<PostGridProps> = ({
   posts,
   selectedPosts,
   onPostSelect,
-  onEdit
+  onSelectAll,
+  onEdit,
+  onDelete,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -37,6 +41,7 @@ const PostGrid: React.FC<PostGridProps> = ({
           isSelected={selectedPosts.includes(post.id)}
           onSelect={onPostSelect}
           onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </div>

@@ -19,13 +19,15 @@ interface PostCardProps {
   isSelected: boolean;
   onSelect: (postId: string) => void;
   onEdit: (post: Post) => void;
+  onDelete: (id: string) => void;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
   post,
   isSelected,
   onSelect,
-  onEdit
+  onEdit,
+  onDelete,
 }) => {
   return (
     <div className={`group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-900/5 border overflow-hidden hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-500 hover:-translate-y-2 ${

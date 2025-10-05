@@ -18,14 +18,18 @@ interface PostListProps {
   posts: Post[];
   selectedPosts: string[];
   onPostSelect: (postId: string) => void;
+  onSelectAll: () => void;
   onEdit: (post: Post) => void;
+  onDelete: (id: string) => void;
 }
 
 const PostList: React.FC<PostListProps> = ({
   posts,
   selectedPosts,
   onPostSelect,
-  onEdit
+  onSelectAll,
+  onEdit,
+  onDelete,
 }) => {
   return (
     <div className="space-y-4">
