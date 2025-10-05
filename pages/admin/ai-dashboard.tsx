@@ -43,6 +43,7 @@ export default function AIDashboard() {
   const [selectedSource, setSelectedSource] = useState('all');
   const [selectedAction, setSelectedAction] = useState('all');
   const [dateRange, setDateRange] = useState('7');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // AI 사용량 로그 및 통계 가져오기
   const fetchAIData = async () => {
@@ -82,8 +83,16 @@ export default function AIDashboard() {
         fetchBlogStats()
       ]);
       setLoading(false);
+      setLastUpdated(new Date());
     };
     loadData();
+
+    // 실시간 업데이트 (30초마다)
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // 필터링된 AI 로그
@@ -116,6 +125,26 @@ export default function AIDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">AI & 블로그 대시보드</h1>
             <p className="text-gray-600 mt-2">AI 사용량과 블로그 성과를 한눈에 확인하세요</p>
             
+            {/* Google Cloud 비활성화 알림 */}
+            <div className="mt-6 mb-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-red-400 text-xl">🚨</span>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      Google Cloud API 비활성화됨
+                    </h3>
+                    <p className="text-sm text-red-700 mt-1">
+                      ₩1,664,818 과금 방지를 위해 안전하게 차단되었습니다. 
+                      <span className="font-semibold">비용 절약 모드</span>가 활성화되어 있습니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* AI 서비스 크레딧 알림 - 작은 카드 형식 */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* OpenAI 상태 */}
@@ -273,6 +302,81 @@ export default function AIDashboard() {
                 </div>
               </div>
 
+              {/* Google Cloud (비활성화 상태) */}
+              <div className="bg-white overflow-hidden shadow rounded-lg border-2 border-red-200">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">G</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          🚫 Google Cloud
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Vision API, Gemini (비활성화)
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href="https://console.cloud.google.com/billing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
+                    >
+                      💳 관리
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Google AI Studio (추가 링크) */}
+              <div className="bg-white overflow-hidden shadow rounded-lg border-2 border-blue-200">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">AI</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          🤖 Google AI Studio
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Gemini, Imagen (비활성화)
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href="https://aistudio.google.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      🔗 확인
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* 실시간 업데이트 상태 */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-600">실시간 업데이트 중</span>
+              </div>
+              <div className="text-sm text-gray-500">
+                마지막 업데이트: {lastUpdated.toLocaleTimeString()}
+              </div>
             </div>
           </div>
 
@@ -308,6 +412,16 @@ export default function AIDashboard() {
                 }`}
               >
                 📈 블로그 분석
+              </button>
+              <button
+                onClick={() => setActiveTab('google-services')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'google-services'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                🔍 Google 서비스
               </button>
             </nav>
           </div>
@@ -530,6 +644,113 @@ export default function AIDashboard() {
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">📈 블로그 분석</h2>
                 <p className="text-gray-600">상세한 블로그 분석 기능은 추후 구현 예정입니다.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Google 서비스 탭 */}
+          {activeTab === 'google-services' && (
+            <div className="space-y-8">
+              {/* Google Analytics 4 */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">📊 Google Analytics 4</h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">-</div>
+                    <div className="text-sm text-gray-600">실시간 방문자</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">-</div>
+                    <div className="text-sm text-gray-600">페이지뷰</div>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">-</div>
+                    <div className="text-sm text-gray-600">세션</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">-</div>
+                    <div className="text-sm text-gray-600">이탈률</div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    💡 Google Analytics 4 API 연동을 통해 실시간 데이터를 표시할 예정입니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* Google Search Console */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">🔍 Google Search Console</h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">-</div>
+                    <div className="text-sm text-gray-600">검색 노출수</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">-</div>
+                    <div className="text-sm text-gray-600">클릭수</div>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">-</div>
+                    <div className="text-sm text-gray-600">평균 CTR</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">-</div>
+                    <div className="text-sm text-gray-600">평균 순위</div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                  <p className="text-sm text-green-700">
+                    💡 Google Search Console API 연동을 통해 SEO 성과를 모니터링할 예정입니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* Google Ads */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">📢 Google Ads</h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">-</div>
+                    <div className="text-sm text-gray-600">일일 지출</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">-</div>
+                    <div className="text-sm text-gray-600">클릭수</div>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">-</div>
+                    <div className="text-sm text-gray-600">전환수</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">-</div>
+                    <div className="text-sm text-gray-600">ROAS</div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                  <p className="text-sm text-yellow-700">
+                    💡 Google Ads API 연동을 통해 광고 성과를 실시간으로 추적할 예정입니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* Google Cloud 상태 */}
+              <div className="bg-white rounded-lg shadow p-6 border-2 border-red-200">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">☁️ Google Cloud</h2>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <div className="flex items-center">
+                    <span className="text-red-500 text-xl mr-3">🚫</span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-800">비활성화됨</h3>
+                      <p className="text-red-700">
+                        ₩1,664,818 과금 방지를 위해 안전하게 차단되었습니다.
+                        <br />
+                        <span className="font-semibold">비용 절약 모드</span>가 활성화되어 있습니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
