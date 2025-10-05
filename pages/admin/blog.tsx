@@ -19,6 +19,48 @@ export default function BlogAdmin() {
   const [filterCategory, setFilterCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // AI 이미지 생성 관련 상태
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [showGeneratedImages, setShowGeneratedImages] = useState(false);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
+  const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
+  const [imageGenerationStep, setImageGenerationStep] = useState('');
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
+  const [imageGenerationModel, setImageGenerationModel] = useState('');
+  const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+
+  // 이미지 관리 관련 상태
+  const [postImages, setPostImages] = useState([]);
+  const [allImages, setAllImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
+
+  // AI 콘텐츠 개선 관련 상태
+  const [simpleAIRequest, setSimpleAIRequest] = useState('');
+  const [isImprovingContent, setIsImprovingContent] = useState(false);
+  const [improvementProcess, setImprovementProcess] = useState('');
+  const [improvedContent, setImprovedContent] = useState('');
+  const [showImprovedContent, setShowImprovedContent] = useState(false);
+
+  // 이미지 변형 관련 상태
+  const [selectedBaseImage, setSelectedBaseImage] = useState('');
+  const [variationStrength, setVariationStrength] = useState(0.7);
+  const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
+
+  // 간단 AI 이미지 개선 관련 상태
+  const [simpleAIImageRequest, setSimpleAIImageRequest] = useState('');
+  const [selectedImageForImprovement, setSelectedImageForImprovement] = useState('');
+  const [isImprovingImage, setIsImprovingImage] = useState(false);
+
+  // 저장된 프롬프트 관리 상태
+  const [savedPrompts, setSavedPrompts] = useState([]);
+  const [expandedPromptId, setExpandedPromptId] = useState(null);
+  const [editingPromptId, setEditingPromptId] = useState(null);
+  const [editingKoreanPrompt, setEditingKoreanPrompt] = useState('');
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
     title: '',
@@ -272,6 +314,326 @@ export default function BlogAdmin() {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  };
+
+  // AI 이미지 생성 함수들
+  const generateAIImage = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🎨 AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + DALL-E 3');
+      
+      // 1단계: ChatGPT로 스마트 프롬프트 생성
+      setImageGenerationStep('1단계: ChatGPT로 스마트 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: {
+            contentType: formData.category,
+            customerPersona: 'competitive_maintainer',
+            customerChannel: '',
+            brandWeight: 'none'
+          },
+          model: 'dalle3'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
+
+      const { prompt: smartPrompt } = await promptResponse.json();
+      setImageGenerationPrompt(smartPrompt);
+      
+      // 2단계: DALL-E 3로 이미지 생성
+      setImageGenerationStep('2단계: DALL-E 3로 이미지 생성 중...');
+      const response = await fetch('/api/generate-blog-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: {
+            contentType: formData.category,
+            customerPersona: 'competitive_maintainer',
+            customerChannel: '',
+            brandWeight: 'none'
+          },
+          imageCount: count,
+          customPrompt: smartPrompt
+        })
+      });
+
+      if (response.ok) {
+        const { imageUrls, metadata } = await response.json();
+        
+        // 3단계: 생성된 이미지를 Supabase에 저장
+        setImageGenerationStep('3단계: 이미지를 Supabase에 저장 중...');
+        const savedImages = [];
+        
+        for (let i = 0; i < imageUrls.length; i++) {
+          try {
+            const saveResponse = await fetch('/api/save-generated-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: imageUrls[i],
+                fileName: `dalle3-${Date.now()}-${i + 1}.png`,
+                blogPostId: editingPost?.id || null
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const { storedUrl } = await saveResponse.json();
+              savedImages.push(storedUrl);
+              console.log(`✅ 이미지 ${i + 1} 저장 완료:`, storedUrl);
+            } else {
+              console.warn(`⚠️ 이미지 ${i + 1} 저장 실패, 원본 URL 사용:`, imageUrls[i]);
+              savedImages.push(imageUrls[i]);
+            }
+          } catch (error) {
+            console.warn(`⚠️ 이미지 ${i + 1} 저장 중 오류:`, error);
+            savedImages.push(imageUrls[i]);
+          }
+        }
+        
+        // 4단계: 이미지 생성 완료
+        setImageGenerationStep('4단계: 이미지 생성 및 저장 완료!');
+        
+        // 저장된 이미지들을 상태에 저장
+        setGeneratedImages(savedImages);
+        setShowGeneratedImages(true);
+        
+        console.log('✅ ChatGPT + DALL-E 3 이미지 생성 완료:', imageUrls.length, '개');
+        alert(`${imageUrls.length}개의 ChatGPT + DALL-E 3 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+      } else {
+        const error = await response.json();
+        console.error('DALL-E 3 이미지 생성 실패:', error);
+        setImageGenerationStep('❌ 이미지 생성 실패');
+        alert('DALL-E 3 이미지 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('ChatGPT + DALL-E 3 이미지 생성 에러:', error);
+      setImageGenerationStep('❌ 이미지 생성 에러');
+      alert('이미지 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // FAL AI 이미지 생성
+  const generateFALAIImage = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🎨 FAL AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + FAL AI');
+      
+      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: {
+            contentType: formData.category,
+            customerPersona: 'competitive_maintainer',
+            customerChannel: '',
+            brandWeight: 'none'
+          },
+          model: 'fal'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
+
+      const { prompt: smartPrompt } = await promptResponse.json();
+      setImageGenerationPrompt(smartPrompt);
+      
+      setImageGenerationStep('2단계: FAL AI로 이미지 생성 중...');
+      const response = await fetch('/api/generate-blog-image-fal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: {
+            contentType: formData.category,
+            customerPersona: 'competitive_maintainer',
+            customerChannel: '',
+            brandWeight: 'none'
+          },
+          imageCount: count,
+          customPrompt: smartPrompt
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ FAL AI 이미지 생성 완료:', result.imageUrls.length, '개');
+        setImageGenerationStep('3단계: FAL AI 이미지 생성 완료!');
+        
+        // 생성된 이미지들을 상태에 추가
+        setGeneratedImages(prev => [...prev, ...result.imageUrls]);
+        setShowGeneratedImages(true);
+        
+        alert(`${result.imageUrls.length}개의 FAL AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+      } else {
+        const error = await response.json();
+        console.error('FAL AI 이미지 생성 실패:', error);
+        setImageGenerationStep('❌ FAL AI 이미지 생성 실패');
+        alert('FAL AI 이미지 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('FAL AI 이미지 생성 에러:', error);
+      setImageGenerationStep('❌ FAL AI 이미지 생성 에러');
+      alert('FAL AI 이미지 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // Google AI 이미지 생성
+  const generateGoogleAIImage = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🎨 Google AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + Google AI');
+      
+      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: {
+            contentType: formData.category,
+            customerPersona: 'competitive_maintainer',
+            customerChannel: '',
+            brandWeight: 'none'
+          },
+          model: 'google'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
+
+      const { prompt: smartPrompt } = await promptResponse.json();
+      setImageGenerationPrompt(smartPrompt);
+      
+      setImageGenerationStep('2단계: Google AI로 이미지 생성 중...');
+      const response = await fetch('/api/generate-blog-image-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: {
+            contentType: formData.category,
+            customerPersona: 'competitive_maintainer',
+            customerChannel: '',
+            brandWeight: 'none'
+          },
+          imageCount: count,
+          customPrompt: smartPrompt
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Google AI 이미지 생성 완료:', result.imageUrls.length, '개');
+        setImageGenerationStep('3단계: Google AI 이미지 생성 완료!');
+        
+        // 생성된 이미지들을 상태에 추가
+        setGeneratedImages(prev => [...prev, ...result.imageUrls]);
+        setShowGeneratedImages(true);
+        
+        alert(`${result.imageUrls.length}개의 Google AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+      } else {
+        const error = await response.json();
+        console.error('Google AI 이미지 생성 실패:', error);
+        setImageGenerationStep('❌ Google AI 이미지 생성 실패');
+        alert('Google AI 이미지 생성에 실패했습니다: ' + error.message);
+      }
+    } catch (error) {
+      console.error('Google AI 이미지 생성 에러:', error);
+      setImageGenerationStep('❌ Google AI 이미지 생성 에러');
+      alert('Google AI 이미지 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // 생성된 이미지 선택
+  const selectGeneratedImage = (imageUrl) => {
+    setFormData({ ...formData, featured_image: imageUrl });
+    setShowGeneratedImages(false);
+    alert('선택한 이미지가 대표 이미지로 설정되었습니다!');
+  };
+
+  // 이미지 URL 복사
+  const copyImageUrl = async (imageUrl) => {
+    try {
+      await navigator.clipboard.writeText(imageUrl);
+      alert('이미지 URL이 클립보드에 복사되었습니다!');
+    } catch (error) {
+      console.error('복사 실패:', error);
+      alert('복사에 실패했습니다. 수동으로 복사해주세요.');
+    }
+  };
+
+  // 이미지를 내용에 삽입
+  const insertImageToContent = (imageUrl) => {
+    const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
+    setFormData({ 
+      ...formData, 
+      content: formData.content + imageMarkdown 
+    });
+    alert('이미지가 내용에 삽입되었습니다!');
   };
 
   // 필터링된 게시물 목록
@@ -545,16 +907,138 @@ export default function BlogAdmin() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     내용 *
-            </label>
-                          <textarea
-                            value={formData.content}
-                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                            rows={10}
+                  </label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    rows={10}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="게시물 내용을 입력하세요"
-                            required
-            />
-        </div>
+                    required
+                  />
+                </div>
+
+                {/* AI 이미지 생성 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">🎨 AI 이미지 생성</h3>
+                    <span className="text-sm text-gray-500">제목과 내용을 바탕으로 AI가 이미지를 생성합니다</span>
+                  </div>
+
+                  {/* AI 이미지 생성 버튼들 */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button
+                      type="button"
+                      onClick={() => generateAIImage(4)}
+                      disabled={isGeneratingImages}
+                      className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingImages && imageGenerationModel === 'ChatGPT + DALL-E 3' ? (
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <span>🎨</span>
+                      )}
+                      ChatGPT + DALL-E 3
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => generateFALAIImage(4)}
+                      disabled={isGeneratingImages}
+                      className="px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingImages && imageGenerationModel === 'ChatGPT + FAL AI' ? (
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <span>🎨</span>
+                      )}
+                      ChatGPT + FAL AI
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => generateGoogleAIImage(4)}
+                      disabled={isGeneratingImages}
+                      className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingImages && imageGenerationModel === 'ChatGPT + Google AI' ? (
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <span>🎨</span>
+                      )}
+                      ChatGPT + Google AI
+                    </button>
+                  </div>
+
+                  {/* 이미지 생성 과정 표시 */}
+                  {showGenerationProcess && imageGenerationStep && (
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">
+                        🤖 {imageGenerationModel} 이미지 생성 과정
+                      </h4>
+                      <div className="text-sm text-blue-700">
+                        {imageGenerationStep}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 생성된 이미지 갤러리 */}
+                  {showGeneratedImages && generatedImages.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">생성된 이미지</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {generatedImages.map((imageUrl, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={imageUrl}
+                              alt={`생성된 이미지 ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
+                              onClick={() => {
+                                setSelectedGeneratedImage(imageUrl);
+                                setShowGeneratedImageModal(true);
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/placeholder-image.jpg';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectGeneratedImage(imageUrl);
+                                  }}
+                                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                >
+                                  ⭐ 대표
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    insertImageToContent(imageUrl);
+                                  }}
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                >
+                                  ➕ 삽입
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyImageUrl(imageUrl);
+                                  }}
+                                  className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                                >
+                                  📋 복사
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* 카테고리 */}
                   <div>
@@ -613,8 +1097,115 @@ export default function BlogAdmin() {
               </form>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* AI 생성 이미지 확대 보기 모달 */}
+      {showGeneratedImageModal && selectedGeneratedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-6xl max-h-[95vh] w-full overflow-hidden flex flex-col">
+            {/* 모달 헤더 */}
+            <div className="p-4 border-b bg-orange-50 flex-shrink-0">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-orange-800">🎨 AI 생성 이미지 확대 보기</h3>
+                <button
+                  onClick={() => setShowGeneratedImageModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                >
+                  ×
+                </button>
               </div>
-                  </div>
+            </div>
+            
+            {/* 이미지 영역 - 원본 비율 유지하며 위아래 잘림 방지 */}
+            <div className="flex-1 p-4 flex items-center justify-center bg-gray-100 overflow-auto">
+              <div className="relative max-w-full max-h-full">
+                <img
+                  src={selectedGeneratedImage}
+                  alt="AI 생성 이미지"
+                  className="max-w-full max-h-full object-contain rounded shadow-lg"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: 'calc(95vh - 200px)', // 헤더와 버튼 영역 제외
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain'
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-image.jpg';
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* 이미지 정보 */}
+            <div className="p-4 border-t bg-gray-50 flex-shrink-0">
+              <div className="text-sm text-gray-600 space-y-1">
+                <div><strong>이미지 타입:</strong> AI 생성 이미지</div>
+                <div><strong>원본 URL:</strong> 
+                  <a 
+                    href={selectedGeneratedImage} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 ml-1 break-all"
+                  >
+                    {selectedGeneratedImage}
+                  </a>
+                </div>
+                <div className="text-orange-600 font-medium">🤖 AI가 생성한 이미지</div>
+              </div>
+            </div>
+            
+            {/* 액션 버튼들 */}
+            <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
+              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedGeneratedImage);
+                    alert('이미지 URL이 복사되었습니다!');
+                  }}
+                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 whitespace-nowrap"
+                >
+                  📋 URL 복사
+                </button>
+                <button
+                  onClick={() => {
+                    insertImageToContent(selectedGeneratedImage);
+                    setShowGeneratedImageModal(false);
+                  }}
+                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
+                >
+                  ➕ 콘텐츠에 삽입
+                </button>
+                <button
+                  onClick={() => {
+                    selectGeneratedImage(selectedGeneratedImage);
+                    setShowGeneratedImageModal(false);
+                  }}
+                  className="px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 whitespace-nowrap"
+                >
+                  ⭐ 대표 이미지로 설정
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(selectedGeneratedImage, '_blank');
+                  }}
+                  className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 whitespace-nowrap"
+                >
+                  🔗 새 탭에서 열기
+                </button>
+              </div>
+              <button
+                onClick={() => setShowGeneratedImageModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 whitespace-nowrap"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
