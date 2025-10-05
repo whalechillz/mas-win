@@ -452,6 +452,19 @@ export default function BlogAdmin() {
     }
   };
   
+  // 기존 프롬프트 데이터 정리 함수
+  const normalizePrompts = (prompts) => {
+    return prompts.map(prompt => ({
+      ...prompt,
+      // createdAt이 없으면 timestamp를 사용, 둘 다 없으면 현재 시간 사용
+      createdAt: prompt.createdAt || prompt.timestamp || new Date().toISOString(),
+      // model이 없으면 type을 사용
+      model: prompt.model || prompt.type || '알 수 없는 모델',
+      // koreanPrompt가 없으면 기본값 제공
+      koreanPrompt: prompt.koreanPrompt || `프롬프트: ${prompt.model || prompt.type || '알 수 없는 모델'}`
+    }));
+  };
+  
   // 자동 저장 방지 상태
   const [isManualSave, setIsManualSave] = useState(false);
   
@@ -2468,9 +2481,10 @@ export default function BlogAdmin() {
             const promptId = `variation-${Date.now()}`;
             const newPrompt = {
               id: promptId,
-              type: `${model} 이미지 변형`,
+              model: `${model} 이미지 변형`,
               prompt: result.prompt,
-              timestamp: new Date().toISOString(),
+              koreanPrompt: `이미지 변형: ${model} 모델로 변형 강도 ${variationStrength}`,
+              createdAt: new Date().toISOString(),
               imageCount: result.images.length,
               variationStrength: variationStrength,
               baseImage: selectedBaseImage
@@ -4421,7 +4435,7 @@ export default function BlogAdmin() {
                         </button>
                       </div>
                       <div className="space-y-2">
-                        {savedPrompts.map((prompt) => (
+                        {normalizePrompts(savedPrompts).map((prompt) => (
                           <div key={prompt.id} className="border border-gray-200 rounded-lg">
                             <button
                               onClick={() => setExpandedPromptId(
@@ -4435,7 +4449,7 @@ export default function BlogAdmin() {
                                     {prompt.model} {prompt.imageCount ? `- ${prompt.imageCount}개 이미지` : ''}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    {new Date(prompt.createdAt).toLocaleString('ko-KR')}
+                                    {new Date(prompt.createdAt || prompt.timestamp || Date.now()).toLocaleString('ko-KR')}
                                     {prompt.improvementRequest && (
                                       <span className="ml-2 text-blue-600">
                                         요청: {prompt.improvementRequest}
@@ -4575,7 +4589,7 @@ export default function BlogAdmin() {
                                     </div>
                                   ) : (
                                     <p className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
-                                      {prompt.koreanPrompt}
+                                      {prompt.koreanPrompt || '한글 프롬프트가 없습니다.'}
                                     </p>
                                   )}
                                 </div>
@@ -5140,7 +5154,7 @@ export default function BlogAdmin() {
                         📝 저장된 프롬프트 ({savedPrompts.length}개)
                       </h4>
                       <div className="space-y-2">
-                        {savedPrompts.map((prompt) => (
+                        {normalizePrompts(savedPrompts).map((prompt) => (
                           <div key={prompt.id} className="border border-gray-200 rounded-lg">
                             <button
                               onClick={() => setExpandedPromptId(
@@ -5154,7 +5168,7 @@ export default function BlogAdmin() {
                                     {prompt.model} {prompt.imageCount ? `- ${prompt.imageCount}개 이미지` : ''}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    {new Date(prompt.createdAt).toLocaleString('ko-KR')}
+                                    {new Date(prompt.createdAt || prompt.timestamp || Date.now()).toLocaleString('ko-KR')}
                                     {prompt.improvementRequest && (
                                       <span className="ml-2 text-blue-600">
                                         요청: {prompt.improvementRequest}
@@ -5306,7 +5320,7 @@ export default function BlogAdmin() {
                                     </div>
                                   ) : (
                                     <p className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
-                                      {prompt.koreanPrompt}
+                                      {prompt.koreanPrompt || '한글 프롬프트가 없습니다.'}
                                     </p>
                                   )}
                                 </div>
