@@ -172,16 +172,7 @@ ${originalPrompt ?
       case 'fal':
         editPrompt = analysisResult.fal_prompt || `${improvementRequest}, high quality, realistic style`;
         console.log('🎯 FAL AI 사용 프롬프트:', editPrompt);
-        try {
-          result = await editImageWithFAL(imageUrl, editPrompt);
-        } catch (falError) {
-          console.error('❌ FAL AI 실패, Replicate로 폴백:', falError.message);
-          // FAL AI 실패 시 Replicate로 자동 폴백
-          editPrompt = analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
-          console.log('🎯 Replicate 폴백 프롬프트:', editPrompt);
-          result = await editImageWithReplicate(imageUrl, editPrompt);
-          result.model = 'FAL AI (Replicate 폴백)';
-        }
+        result = await editImageWithFAL(imageUrl, editPrompt);
         break;
       case 'replicate':
         editPrompt = analysisResult.replicate_prompt || `${improvementRequest}, high quality, detailed, professional`;
@@ -635,12 +626,9 @@ async function saveImageToSupabase(imageUrl, prefix) {
 // Google Vision API를 사용한 이미지 분석
 async function analyzeImageWithGoogleVision(imageUrl) {
   const googleApiKey = process.env.GOOGLE_API_KEY;
-  if (!googleApiKey) {
-    console.error('❌ Google API 키 누락:', {
-      GOOGLE_API_KEY: !!process.env.GOOGLE_API_KEY,
-      allEnvKeys: Object.keys(process.env).filter(key => key.includes('GOOGLE'))
-    });
-    throw new Error('Google API 키가 설정되지 않았습니다.');
+  if (!googleApiKey || googleApiKey === 'disabled') {
+    console.error('❌ Google API 키 비활성화됨 - 비용 절약을 위해 사용 중단');
+    throw new Error('Google Vision API가 비용 절약을 위해 비활성화되었습니다. FAL AI를 사용하세요.');
   }
 
   console.log('🔍 Google Vision API로 이미지 분석 시작:', imageUrl);
