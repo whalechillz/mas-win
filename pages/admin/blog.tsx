@@ -39,6 +39,10 @@ export default function BlogAdmin() {
   const [showImageGallery, setShowImageGallery] = useState(false);
   const [showImageGroupModal, setShowImageGroupModal] = useState(false);
   const [selectedImageGroup, setSelectedImageGroup] = useState([]);
+  const [totalImagesCount, setTotalImagesCount] = useState(0);
+  const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
+  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
+  const [largeImageUrl, setLargeImageUrl] = useState('');
 
   // AI 콘텐츠 개선 관련 상태
   const [simpleAIRequest, setSimpleAIRequest] = useState('');
@@ -662,6 +666,7 @@ export default function BlogAdmin() {
       
       if (response.ok) {
         setAllImages(data.images || []);
+        setTotalImagesCount(data.total || (data.images ? data.images.length : 0));
         console.log('✅ 이미지 갤러리 로드 성공:', data.images?.length || 0, '개');
       } else {
         console.error('❌ 이미지 갤러리 로드 실패:', data.error);
@@ -2527,18 +2532,18 @@ export default function BlogAdmin() {
                 
                   {/* 이미지 갤러리 컨트롤 */}
                   {allImages.length > 0 && (
-                    <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <label className="flex items-center space-x-2">
                             <input
                               type="checkbox"
-                              checked={selectedImages.size === allImages.length && allImages.length > 0}
+                                  checked={allImages.length > 0 && selectedImages.size === allImages.length}
                               onChange={handleSelectAllImages}
                               className="rounded border-gray-300"
                             />
                             <span className="text-sm text-gray-700">
-                              전체 선택 ({selectedImages.size}/{allImages.length})
+                                  전체 선택 ({selectedImages.size}/{totalImagesCount || allImages.length})
                             </span>
                           </label>
             </div>
@@ -2877,7 +2882,11 @@ export default function BlogAdmin() {
                     <img
                       src={image.url}
                       alt={image.name}
-                        className="w-full h-40 object-cover"
+                        className="w-full h-40 object-cover cursor-zoom-in"
+                        onClick={() => {
+                          setLargeImageUrl(image.url);
+                          setShowLargeImageModal(true);
+                        }}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = '/placeholder-image.jpg';
@@ -3001,3 +3010,6 @@ export default function BlogAdmin() {
     </>
   );
 }
+
+// 확대 이미지 모달 (공통)
+// 파일 하단에 렌더링되는 기존 모달들 직후에 추가됨
