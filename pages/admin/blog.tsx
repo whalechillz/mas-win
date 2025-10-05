@@ -3125,6 +3125,9 @@ export default function BlogAdmin() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 간단 AI 이미지 개선 응답 데이터:', data);
+        console.log('🔍 editPrompt 값:', data.editPrompt);
+        console.log('🔍 editPrompt 타입:', typeof data.editPrompt);
         
         if (data.improvedImage) {
           // 2단계: AI 모델로 이미지 개선
@@ -3137,7 +3140,7 @@ export default function BlogAdmin() {
             const improvementPrompt = {
               id: promptId,
               model: `ChatGPT + ${model.toUpperCase()} 이미지 개선`,
-              prompt: data.editPrompt,
+              prompt: data.editPrompt || '영문 프롬프트가 없습니다.',
               koreanPrompt: `이미지 개선: ${simpleAIImageRequest}`,
               imageAnalysis: data.imageAnalysis,
               allPrompts: data.generatedPrompts,
@@ -3145,6 +3148,7 @@ export default function BlogAdmin() {
               improvementRequest: simpleAIImageRequest,
               originalImage: selectedImageForImprovement
             };
+            console.log('🔍 저장할 프롬프트 객체:', improvementPrompt);
             setSavedPrompts(prev => [improvementPrompt, ...prev]);
             setExpandedPromptId(promptId); // 새로 추가된 프롬프트를 자동으로 펼침
           }
@@ -7500,7 +7504,6 @@ export default function BlogAdmin() {
                     ))}
                   </div>
                     )}
-                  </>
                 )}
               </div>
             )}
