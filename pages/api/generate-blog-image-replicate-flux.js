@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     console.log('✅ ChatGPT 변형 프롬프트 생성 완료');
     console.log('생성된 프롬프트:', variationPrompt);
 
-    // Replicate Flux API 호출 (text-to-image 모델이므로 image 파라미터 제거)
+    // Replicate API 호출 (이미지 변형을 위해 SDXL 모델 사용)
     const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
       headers: {
@@ -76,15 +76,16 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "black-forest-labs/flux-dev",
+        version: "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
         input: {
           prompt: variationPrompt,
+          image: baseImageUrl, // 원본 이미지 추가
           num_inference_steps: 20,
-          guidance_scale: 3.5,
+          guidance_scale: 7.5,
+          strength: variationStrength, // 변형 강도 적용
           num_outputs: variationCount,
-          aspect_ratio: "1:1",
-          output_format: "png",
-          output_quality: 90
+          scheduler: "K_EULER",
+          output_format: "png"
         }
       })
     });
