@@ -44,6 +44,7 @@ export default function BlogAdmin() {
   const [showLargeImageModal, setShowLargeImageModal] = useState(false);
   const [largeImageUrl, setLargeImageUrl] = useState('');
   const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
+  const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
 
   // AI 콘텐츠 개선 관련 상태
   const [simpleAIRequest, setSimpleAIRequest] = useState('');
@@ -3026,19 +3027,36 @@ export default function BlogAdmin() {
               <h3 className="text-lg font-semibold text-gray-800">이미지 선택하여 본문에 삽입</h3>
               <button onClick={() => setShowSelectFromGalleryModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
-            <div className="p-4 overflow-auto" style={{ maxHeight: '75vh' }}>
+            <div className="p-4 border-b">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600">필터:</span>
+                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='all'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('all')}>전체</button>
+                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='webp'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('webp')}>WebP</button>
+                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='medium'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('medium')}>Medium</button>
+                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='thumb'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('thumb')}>Thumb</button>
+              </div>
+            </div>
+            <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
               {allImages.length === 0 ? (
                 <div className="text-center text-gray-500 py-16">불러올 이미지가 없습니다.</div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {allImages.map((img: any, idx: number) => (
+                  {allImages.filter((img:any)=>{
+                    if (galleryPickerFilter==='webp') return /\.webp$/i.test(img.name);
+                    if (galleryPickerFilter==='medium') return /_medium\./i.test(img.name);
+                    if (galleryPickerFilter==='thumb') return /_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name);
+                    return true;
+                  }).map((img: any, idx: number) => (
                     <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={() => {
                       if (pendingEditorImageInsert) pendingEditorImageInsert(img.url);
                       setShowSelectFromGalleryModal(false);
                       setPendingEditorImageInsert(null);
                     }}>
                       <img src={img.url} alt={img.name} className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-image.jpg'; }} />
-                      <div className="p-2 text-xs text-gray-700 truncate" title={img.name}>{img.name}</div>
+                      <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between" title={img.name}>
+                        <span className="truncate mr-2">{img.name}</span>
+                        {/_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-gray-200 text-gray-700 rounded">thumb</span>) : /_medium\./i.test(img.name) ? (<span className="px-1 py-0.5 bg-indigo-200 text-indigo-800 rounded">medium</span>) : /\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-green-200 text-green-800 rounded">webp</span>) : (<span className="px-1 py-0.5 bg-blue-200 text-blue-800 rounded">original</span>)}
+                      </div>
                     </div>
                   ))}
                 </div>
