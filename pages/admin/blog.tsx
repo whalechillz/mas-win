@@ -49,6 +49,7 @@ export default function BlogAdmin() {
   const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
   const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
   const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
+  const galleryRecommendedTags = ['golf', 'driver', 'club', 'swing', 'masgolf', 'green', 'fairway'];
 
   // 이미지 버전 우선 삽입 URL 계산
   const getPreferredVersionUrl = (img: any): string => {
@@ -3104,7 +3105,7 @@ export default function BlogAdmin() {
               <h3 className="text-lg font-semibold text-gray-800">이미지 선택하여 본문에 삽입</h3>
               <button onClick={() => setShowSelectFromGalleryModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-2">
               <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="text-gray-600">필터:</span>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='all'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('all')}>전체</button>
@@ -3123,6 +3124,12 @@ export default function BlogAdmin() {
                   <input value={galleryPickerAlt} onChange={(e)=>setGalleryPickerAlt(e.target.value)} placeholder="ALT" className="px-2 py-1 border rounded text-sm" />
                   <input value={galleryPickerTitle} onChange={(e)=>setGalleryPickerTitle(e.target.value)} placeholder="캡션/타이틀" className="px-2 py-1 border rounded text-sm" />
                 </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
+                <span>추천:</span>
+                {galleryRecommendedTags.map((tag) => (
+                  <button key={tag} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={()=>setGalleryPickerQuery(tag)}>{tag}</button>
+                ))}
               </div>
             </div>
             <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
