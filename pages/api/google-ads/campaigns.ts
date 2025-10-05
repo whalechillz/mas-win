@@ -6,6 +6,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Google Ads API 비활성화 확인
+  if (process.env.GOOGLE_ADS_DISABLED === 'true' || !process.env.GOOGLE_ADS_CLIENT_ID) {
+    console.log('⚠️ Google Ads API 비활성화됨 - 비용 절약을 위해 사용 중단');
+    return res.status(200).json({
+      status: 'Google Ads API 비활성화됨',
+      message: '비용 절약을 위해 Google Ads API가 비활성화되었습니다.',
+      campaigns: []
+    });
+  }
+
   try {
     // 환경 변수 확인
     const requiredEnvVars = {

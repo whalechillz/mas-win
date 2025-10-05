@@ -4,6 +4,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Google AI API 키 확인
+  if (!process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY === 'disabled') {
+    console.log('⚠️ Google AI API 키 비활성화됨 - 비용 절약을 위해 사용 중단');
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Google AI API가 비용 절약을 위해 비활성화되었습니다.' 
+    });
+  }
+
   try {
     const { imageUrl } = req.body;
 
