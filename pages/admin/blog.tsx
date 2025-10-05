@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import TipTapEditor from '../../components/admin/TipTapEditor';
+import dynamic from 'next/dynamic';
+const TipTapEditor = dynamic(() => import('../../components/admin/TipTapEditor'), { ssr: false });
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import PostList from '../../components/admin/PostList';
@@ -1681,14 +1682,14 @@ export default function BlogAdmin() {
                       alert('삽입할 이미지가 없습니다. 갤러리에서 선택해주세요.');
                     }}
                   />
-                </div>
+                  </div>
 
                 {/* AI 이미지 생성 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
                     <h3 className="text-lg font-semibold text-gray-900">🎨 AI 이미지 생성</h3>
                     <span className="text-sm text-gray-500">제목과 내용을 바탕으로 AI가 이미지를 생성합니다</span>
-                    </div>
+                  </div>
 
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -2933,7 +2934,7 @@ export default function BlogAdmin() {
                           className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                         >
                           🗑️ 삭제
-                        </button>
+                    </button>
                       </div>
                   </div>
                 </div>
