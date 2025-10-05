@@ -14,7 +14,7 @@ import { Markdown } from 'tiptap-markdown';
 type TipTapEditorProps = {
   valueMarkdown: string;
   onChangeMarkdown: (markdown: string) => void;
-  onRequestImageFromGallery?: (insert: (url: string) => void) => void;
+  onRequestImageFromGallery?: (insert: (url: string, options?: { alt?: string; title?: string }) => void) => void;
 };
 
 const ToolbarButton: React.FC<{ onClick: () => void; active?: boolean; label: string }> = ({ onClick, active, label }) => (
@@ -97,8 +97,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
   const handleInsertFromGallery = useCallback(() => {
     if (!editor) return;
     if (!onRequestImageFromGallery) return handleUploadImage();
-    onRequestImageFromGallery((url: string) => {
-      editor.chain().focus().setImage({ src: url }).run();
+    onRequestImageFromGallery((url: string, options?: { alt?: string; title?: string }) => {
+      editor.chain().focus().setImage({ src: url, alt: options?.alt }).run();
     });
   }, [editor, onRequestImageFromGallery, handleUploadImage]);
 
