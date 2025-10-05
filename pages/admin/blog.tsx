@@ -61,6 +61,13 @@ export default function BlogAdmin() {
   const [editingPromptId, setEditingPromptId] = useState(null);
   const [editingKoreanPrompt, setEditingKoreanPrompt] = useState('');
 
+  // 네이버 블로그 마이그레이션 관련 상태
+  const [showNaverMigration, setShowNaverMigration] = useState(false);
+  const [naverBlogUrl, setNaverBlogUrl] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState('');
+  const [migratedPosts, setMigratedPosts] = useState([]);
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
     title: '',
@@ -1135,6 +1142,161 @@ export default function BlogAdmin() {
     alert('개선할 이미지가 선택되었습니다!');
   };
 
+  // 네이버 블로그 마이그레이션 함수들
+  const migrateNaverBlog = async () => {
+    if (!naverBlogUrl.trim()) {
+      alert('네이버 블로그 URL을 입력해주세요.');
+      return;
+    }
+
+    // 네이버 블로그 URL 형식 검증
+    if (!naverBlogUrl.includes('blog.naver.com')) {
+      alert('올바른 네이버 블로그 URL을 입력해주세요. (예: https://blog.naver.com/username)');
+      return;
+    }
+
+    setIsMigrating(true);
+    setMigrationProgress('네이버 블로그를 분석하고 포스트를 가져오는 중...');
+    setMigratedPosts([]);
+
+    try {
+      const response = await fetch('/api/migrate-naver-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blogUrl: naverBlogUrl
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.posts && data.posts.length > 0) {
+          setMigratedPosts(data.posts);
+          setMigrationProgress(`✅ ${data.posts.length}개의 포스트를 성공적으로 가져왔습니다!`);
+          alert(`${data.posts.length}개의 네이버 블로그 포스트를 가져왔습니다. 아래에서 확인하고 저장하세요.`);
+        } else {
+          setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
+          alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '네이버 블로그 마이그레이션에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('네이버 블로그 마이그레이션 오류:', error);
+      setMigrationProgress('❌ 마이그레이션 중 오류가 발생했습니다.');
+      alert('네이버 블로그 마이그레이션 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  const saveMigratedPost = async (post) => {
+    try {
+      const response = await fetch('/api/admin/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          slug: post.slug,
+          content: post.content,
+          excerpt: post.excerpt,
+          featured_image: post.featured_image,
+          category: post.category || 'migrated',
+          tags: post.tags || [],
+          status: 'draft',
+          meta_title: post.meta_title,
+          meta_description: post.meta_description,
+          published_at: null
+        })
+      });
+
+      if (response.ok) {
+        const savedPost = await response.json();
+        alert(`"${post.title}" 포스트가 성공적으로 저장되었습니다!`);
+        
+        // 저장된 포스트를 목록에서 제거
+        setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+        
+        // 포스트 목록 새로고침
+        fetchPosts();
+      } else {
+        throw new Error('포스트 저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('포스트 저장 오류:', error);
+      alert('포스트 저장 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  const saveAllMigratedPosts = async () => {
+    if (migratedPosts.length === 0) {
+      alert('저장할 포스트가 없습니다.');
+      return;
+    }
+
+    if (!confirm(`${migratedPosts.length}개의 포스트를 모두 저장하시겠습니까?`)) {
+      return;
+    }
+
+    setIsMigrating(true);
+    setMigrationProgress('모든 포스트를 저장하는 중...');
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const post of migratedPosts) {
+        try {
+          const response = await fetch('/api/admin/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: post.title,
+              slug: post.slug,
+              content: post.content,
+              excerpt: post.excerpt,
+              featured_image: post.featured_image,
+              category: post.category || 'migrated',
+              tags: post.tags || [],
+              status: 'draft',
+              meta_title: post.meta_title,
+              meta_description: post.meta_description,
+              published_at: null
+            })
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error(`포스트 "${post.title}" 저장 오류:`, error);
+          failCount++;
+        }
+      }
+
+      setMigrationProgress(`✅ ${successCount}개 성공, ${failCount}개 실패`);
+      setMigratedPosts([]);
+      
+      if (successCount > 0) {
+        alert(`${successCount}개의 포스트가 성공적으로 저장되었습니다!`);
+        fetchPosts(); // 포스트 목록 새로고침
+      }
+      
+      if (failCount > 0) {
+        alert(`${failCount}개의 포스트 저장에 실패했습니다.`);
+      }
+    } catch (error) {
+      console.error('일괄 저장 오류:', error);
+      alert('일괄 저장 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   // 필터링된 게시물 목록
   const filteredPosts = posts.filter(post => {
     const matchesSearch = !searchTerm || 
@@ -1945,6 +2107,146 @@ export default function BlogAdmin() {
                     <div className="text-center py-8 text-gray-500">
                       <p>저장된 프롬프트가 없습니다.</p>
                       <p className="text-sm mt-1">AI 이미지 생성이나 개선을 사용하면 프롬프트가 자동으로 저장됩니다.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 네이버 블로그 마이그레이션 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">📦 네이버 블로그 마이그레이션</h3>
+                      <span className="text-sm text-gray-500">기존 네이버 블로그 포스트를 이 시스템으로 가져올 수 있습니다</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowNaverMigration(!showNaverMigration)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                    >
+                      {showNaverMigration ? '숨기기' : '마이그레이션 시작'}
+                    </button>
+                  </div>
+
+                  {showNaverMigration && (
+                    <div className="space-y-6">
+                      {/* 네이버 블로그 URL 입력 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          네이버 블로그 URL
+                        </label>
+                        <div className="flex space-x-3">
+                          <input
+                            type="url"
+                            value={naverBlogUrl}
+                            onChange={(e) => setNaverBlogUrl(e.target.value)}
+                            placeholder="https://blog.naver.com/username"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={migrateNaverBlog}
+                            disabled={isMigrating || !naverBlogUrl.trim()}
+                            className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                          >
+                            {isMigrating ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>마이그레이션 중...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📦</span>
+                                <span>가져오기</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예: https://blog.naver.com/username 또는 https://blog.naver.com/username/PostList.nhn
+                        </p>
+                      </div>
+
+                      {/* 마이그레이션 진행 상태 */}
+                      {migrationProgress && (
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="text-sm text-blue-700">
+                            {migrationProgress}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 마이그레이션된 포스트 목록 */}
+                      {migratedPosts.length > 0 && (
+                        <div>
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-md font-medium text-gray-900">
+                              가져온 포스트 ({migratedPosts.length}개)
+                            </h4>
+                            <button
+                              type="button"
+                              onClick={saveAllMigratedPosts}
+                              disabled={isMigrating}
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            >
+                              {isMigrating ? '저장 중...' : '모두 저장'}
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {migratedPosts.map((post) => (
+                              <div key={post.id} className="border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h5 className="font-medium text-gray-900 mb-2">{post.title}</h5>
+                                    <div className="text-sm text-gray-600 mb-2">
+                                      <p className="line-clamp-2">{post.excerpt || '요약이 없습니다.'}</p>
+                                    </div>
+                                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                      <span>카테고리: {post.category || 'migrated'}</span>
+                                      <span>태그: {post.tags ? post.tags.join(', ') : '없음'}</span>
+                                      {post.featured_image && (
+                                        <span className="text-green-600">이미지 포함</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-col space-y-2 ml-4">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveMigratedPost(post)}
+                                      className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                                    >
+                                      💾 저장
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (confirm('이 포스트를 제거하시겠습니까?')) {
+                                          setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+                                        }
+                                      }}
+                                      className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                                    >
+                                      🗑️ 제거
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 사용 안내 */}
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-yellow-800 mb-2">📋 사용 안내</h4>
+                        <ul className="text-sm text-yellow-700 space-y-1">
+                          <li>• 네이버 블로그의 공개된 포스트만 가져올 수 있습니다</li>
+                          <li>• 가져온 포스트는 초안 상태로 저장됩니다</li>
+                          <li>• 이미지가 포함된 포스트는 이미지 URL이 함께 저장됩니다</li>
+                          <li>• 개별 포스트를 선택하여 저장하거나 모두 저장할 수 있습니다</li>
+                        </ul>
+                      </div>
                     </div>
                   )}
                 </div>
