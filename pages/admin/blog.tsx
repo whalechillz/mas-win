@@ -922,6 +922,118 @@ export default function BlogAdmin() {
     alert('개선된 콘텐츠가 적용되었습니다!');
   };
 
+  // 이미지 변형 관련 함수들
+  const generateImageVariation = async (model) => {
+    if (!selectedBaseImage) {
+      alert('변형할 기본 이미지를 선택해주세요.');
+      return;
+    }
+
+    setIsGeneratingVariation(true);
+    setImageGenerationStep(`${model}로 이미지 변형 중...`);
+    setImageGenerationModel(model);
+    setShowGenerationProcess(true);
+
+    try {
+      let apiEndpoint = '';
+      let requestBody = {
+        baseImageUrl: selectedBaseImage,
+        strength: variationStrength
+      };
+
+      switch (model) {
+        case 'FAL AI':
+          apiEndpoint = '/api/generate-blog-image-fal-variation';
+          break;
+        case 'Replicate Flux':
+          apiEndpoint = '/api/generate-blog-image-replicate-flux';
+          break;
+        case 'Stability AI':
+          apiEndpoint = '/api/generate-blog-image-stability';
+          break;
+        default:
+          throw new Error('지원하지 않는 모델입니다.');
+      }
+
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.images && result.images.length > 0) {
+          // 변형된 이미지들을 Supabase에 저장
+          const savedImages = [];
+          for (let i = 0; i < result.images.length; i++) {
+            try {
+              const saveResponse = await fetch('/api/save-generated-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageUrl: result.images[i].publicUrl || result.images[i],
+                  fileName: `${model.toLowerCase().replace(' ', '-')}-variation-${Date.now()}-${i + 1}.png`,
+                  blogPostId: editingPost?.id || null
+                })
+              });
+              
+              if (saveResponse.ok) {
+                const { storedUrl } = await saveResponse.json();
+                savedImages.push(storedUrl);
+              } else {
+                savedImages.push(result.images[i].publicUrl || result.images[i]);
+              }
+            } catch (error) {
+              console.warn(`이미지 ${i + 1} 저장 실패:`, error);
+              savedImages.push(result.images[i].publicUrl || result.images[i]);
+            }
+          }
+          
+          setGeneratedImages(savedImages);
+          setShowGeneratedImages(true);
+          
+          // 프롬프트 저장
+          if (result.prompt) {
+            const newPrompt = {
+              id: Date.now().toString(),
+              prompt: result.prompt,
+              koreanPrompt: result.koreanPrompt || '한글 프롬프트가 없습니다.',
+              model: model,
+              createdAt: new Date().toISOString(),
+              originalImage: selectedBaseImage,
+              baseImage: selectedBaseImage,
+              imageUrls: savedImages
+            };
+            setSavedPrompts(prev => [newPrompt, ...prev]);
+          }
+          
+          alert(`${model} 변형이 완료되었습니다! ${savedImages.length}개의 이미지가 생성되었습니다.`);
+        } else {
+          throw new Error('변형된 이미지가 생성되지 않았습니다.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 변형에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error(`${model} 이미지 변형 오류:`, error);
+      alert(`${model} 이미지 변형 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsGeneratingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  const selectBaseImage = (imageUrl) => {
+    setSelectedBaseImage(imageUrl);
+    alert('기본 이미지가 선택되었습니다!');
+  };
+
   // 필터링된 게시물 목록
   const filteredPosts = posts.filter(post => {
     const matchesSearch = !searchTerm || 
@@ -1403,6 +1515,135 @@ export default function BlogAdmin() {
                   </div>
                 </div>
 
+                {/* 이미지 변형 시스템 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">🎨 이미지 변형 시스템</h3>
+                    <span className="text-sm text-gray-500">기존 이미지를 AI로 변형하고 개선할 수 있습니다</span>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* 기본 이미지 선택 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        변형할 기본 이미지 선택
+                      </label>
+                      {selectedBaseImage ? (
+                        <div className="flex items-center space-x-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <img
+                            src={selectedBaseImage}
+                            alt="선택된 기본 이미지"
+                            className="w-20 h-20 object-cover rounded-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/placeholder-image.jpg';
+                            }}
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-800">기본 이미지가 선택되었습니다</p>
+                            <p className="text-xs text-green-600 truncate">{selectedBaseImage}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBaseImage('')}
+                            className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                          >
+                            선택 해제
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <p className="text-gray-500 mb-2">아래 이미지 갤러리에서 변형할 이미지를 선택하세요</p>
+                          <p className="text-xs text-gray-400">이미지에 마우스를 올리고 "🎨 변형" 버튼을 클릭하세요</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 변형 강도 설정 */}
+                    {selectedBaseImage && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          변형 강도: {Math.round(variationStrength * 100)}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1.0"
+                          step="0.1"
+                          value={variationStrength}
+                          onChange={(e) => setVariationStrength(parseFloat(e.target.value))}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>약간 변형 (10%)</span>
+                          <span>강하게 변형 (100%)</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI 모델 선택 및 변형 버튼 */}
+                    {selectedBaseImage && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          AI 변형 모델 선택
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => generateImageVariation('FAL AI')}
+                            disabled={isGeneratingVariation}
+                            className="p-4 border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-2">🎨</div>
+                              <div className="font-medium text-gray-900">FAL AI</div>
+                              <div className="text-xs text-gray-500 mt-1">고품질 이미지 변형</div>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => generateImageVariation('Replicate Flux')}
+                            disabled={isGeneratingVariation}
+                            className="p-4 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-2">⚡</div>
+                              <div className="font-medium text-gray-900">Replicate Flux</div>
+                              <div className="text-xs text-gray-500 mt-1">빠른 이미지 변형</div>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => generateImageVariation('Stability AI')}
+                            disabled={isGeneratingVariation}
+                            className="p-4 border border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-2">🌟</div>
+                              <div className="font-medium text-gray-900">Stability AI</div>
+                              <div className="text-xs text-gray-500 mt-1">안정적인 변형</div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 변형 과정 표시 */}
+                    {isGeneratingVariation && showGenerationProcess && imageGenerationStep && (
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-blue-800 mb-2">
+                          🎨 {imageGenerationModel} 이미지 변형 과정
+                        </h4>
+                        <div className="text-sm text-blue-700">
+                          {imageGenerationStep}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* 이미지 갤러리 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center justify-between mb-6">
@@ -1509,7 +1750,7 @@ export default function BlogAdmin() {
 
                             {/* 호버 액션 */}
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1537,6 +1778,15 @@ export default function BlogAdmin() {
                                   className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                                 >
                                   📋 복사
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectBaseImage(representativeImage.url);
+                                  }}
+                                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                                >
+                                  🎨 변형
                                 </button>
                               </div>
                             </div>
