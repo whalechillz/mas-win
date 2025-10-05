@@ -1034,6 +1034,107 @@ export default function BlogAdmin() {
     alert('기본 이미지가 선택되었습니다!');
   };
 
+  // 간단 AI 이미지 개선 함수들
+  const applySimpleAIImageImprovement = async (model) => {
+    if (!selectedImageForImprovement) {
+      alert('개선할 이미지를 선택해주세요.');
+      return;
+    }
+
+    if (!simpleAIImageRequest.trim()) {
+      alert('개선 요청사항을 입력해주세요.');
+      return;
+    }
+
+    setIsImprovingImage(true);
+    setImageGenerationStep(`${model}로 이미지 개선 중...`);
+    setImageGenerationModel(model);
+    setShowGenerationProcess(true);
+
+    try {
+      const response = await fetch('/api/simple-ai-image-improvement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedImageForImprovement,
+          request: simpleAIImageRequest,
+          model: model
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.images && data.images.length > 0) {
+          // 개선된 이미지들을 Supabase에 저장
+          const savedImages = [];
+          for (let i = 0; i < data.images.length; i++) {
+            try {
+              const saveResponse = await fetch('/api/save-generated-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageUrl: data.images[i],
+                  fileName: `${model.toLowerCase().replace(' ', '-')}-improved-${Date.now()}-${i + 1}.png`,
+                  blogPostId: editingPost?.id || null
+                })
+              });
+              
+              if (saveResponse.ok) {
+                const { storedUrl } = await saveResponse.json();
+                savedImages.push(storedUrl);
+              } else {
+                savedImages.push(data.images[i]);
+              }
+            } catch (error) {
+              console.warn(`이미지 ${i + 1} 저장 실패:`, error);
+              savedImages.push(data.images[i]);
+            }
+          }
+          
+          setGeneratedImages(savedImages);
+          setShowGeneratedImages(true);
+          
+          // 프롬프트 저장
+          if (data.prompt || data.editPrompt) {
+            const newPrompt = {
+              id: Date.now().toString(),
+              prompt: data.prompt || data.editPrompt || '프롬프트가 없습니다.',
+              koreanPrompt: data.koreanPrompt || simpleAIImageRequest,
+              model: model,
+              createdAt: new Date().toISOString(),
+              originalImage: selectedImageForImprovement,
+              baseImage: selectedImageForImprovement,
+              imageUrls: savedImages
+            };
+            setSavedPrompts(prev => [newPrompt, ...prev]);
+          }
+          
+          alert(`${model} 이미지 개선이 완료되었습니다! ${savedImages.length}개의 이미지가 생성되었습니다.`);
+        } else {
+          throw new Error('개선된 이미지가 생성되지 않았습니다.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 개선에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error(`${model} 이미지 개선 오류:`, error);
+      alert(`${model} 이미지 개선 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsImprovingImage(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  const selectImageForImprovement = (imageUrl) => {
+    setSelectedImageForImprovement(imageUrl);
+    alert('개선할 이미지가 선택되었습니다!');
+  };
+
   // 필터링된 게시물 목록
   const filteredPosts = posts.filter(post => {
     const matchesSearch = !searchTerm || 
@@ -1644,6 +1745,210 @@ export default function BlogAdmin() {
                   </div>
                 </div>
 
+                {/* 간단 AI 이미지 개선 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">✨ 간단 AI 이미지 개선</h3>
+                    <span className="text-sm text-gray-500">기존 이미지를 AI로 빠르게 개선할 수 있습니다</span>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* 개선할 이미지 선택 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        개선할 이미지 선택
+                      </label>
+                      {selectedImageForImprovement ? (
+                        <div className="flex items-center space-x-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <img
+                            src={selectedImageForImprovement}
+                            alt="선택된 개선 이미지"
+                            className="w-20 h-20 object-cover rounded-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/placeholder-image.jpg';
+                            }}
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-blue-800">개선할 이미지가 선택되었습니다</p>
+                            <p className="text-xs text-blue-600 truncate">{selectedImageForImprovement}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedImageForImprovement('')}
+                            className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                          >
+                            선택 해제
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <p className="text-gray-500 mb-2">아래 이미지 갤러리에서 개선할 이미지를 선택하세요</p>
+                          <p className="text-xs text-gray-400">이미지에 마우스를 올리고 "✨ 개선" 버튼을 클릭하세요</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 개선 요청 입력 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        개선 요청사항
+                      </label>
+                      <textarea
+                        value={simpleAIImageRequest}
+                        onChange={(e) => setSimpleAIImageRequest(e.target.value)}
+                        placeholder="예: 더 선명하게 만들어주세요, 색감을 더 밝게 해주세요, 배경을 흐리게 해주세요, 해상도를 높여주세요..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* AI 모델 선택 및 개선 버튼 */}
+                    {selectedImageForImprovement && simpleAIImageRequest.trim() && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          AI 개선 모델 선택
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => applySimpleAIImageImprovement('ChatGPT + FAL AI')}
+                            disabled={isImprovingImage}
+                            className="p-4 border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-2">🤖</div>
+                              <div className="font-medium text-gray-900">ChatGPT + FAL AI</div>
+                              <div className="text-xs text-gray-500 mt-1">고품질 이미지 개선</div>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => applySimpleAIImageImprovement('ChatGPT + Replicate')}
+                            disabled={isImprovingImage}
+                            className="p-4 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-2">⚡</div>
+                              <div className="font-medium text-gray-900">ChatGPT + Replicate</div>
+                              <div className="text-xs text-gray-500 mt-1">빠른 이미지 개선</div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 개선 과정 표시 */}
+                    {isImprovingImage && showGenerationProcess && imageGenerationStep && (
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-green-800 mb-2">
+                          ✨ {imageGenerationModel} 이미지 개선 과정
+                        </h4>
+                        <div className="text-sm text-green-700">
+                          {imageGenerationStep}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 저장된 프롬프트 관리 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">💾 저장된 프롬프트</h3>
+                      <span className="text-sm text-gray-500">이전에 사용한 프롬프트를 관리하고 재사용할 수 있습니다</span>
+                    </div>
+                    {savedPrompts.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('모든 저장된 프롬프트를 삭제하시겠습니까?')) {
+                            setSavedPrompts([]);
+                            alert('모든 프롬프트가 삭제되었습니다.');
+                          }
+                        }}
+                        className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                      >
+                        🗑️ 모두 삭제
+                      </button>
+                    )}
+                  </div>
+
+                  {savedPrompts.length > 0 ? (
+                    <div className="space-y-3">
+                      {savedPrompts.map((prompt) => (
+                        <div key={prompt.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  {prompt.model}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(prompt.createdAt || prompt.timestamp || Date.now()).toLocaleString()}
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="text-xs font-medium text-gray-600">영문 프롬프트:</label>
+                                  <p className="text-sm text-gray-800 bg-gray-50 p-2 rounded">
+                                    {prompt.prompt || '프롬프트가 없습니다.'}
+                                  </p>
+                                </div>
+                                
+                                <div>
+                                  <label className="text-xs font-medium text-gray-600">한글 프롬프트:</label>
+                                  <p className="text-sm text-gray-800 bg-gray-50 p-2 rounded">
+                                    {prompt.koreanPrompt || '한글 프롬프트가 없습니다.'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col space-y-1 ml-4">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (prompt.imageUrls && prompt.imageUrls.length > 0) {
+                                    setGeneratedImages(prompt.imageUrls);
+                                    setShowGeneratedImages(true);
+                                    alert('프롬프트의 이미지들이 로드되었습니다!');
+                                  } else {
+                                    alert('이 프롬프트에는 저장된 이미지가 없습니다.');
+                                  }
+                                }}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                              >
+                                📷 이미지 로드
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm('이 프롬프트를 삭제하시겠습니까?')) {
+                                    setSavedPrompts(prev => prev.filter(p => p.id !== prompt.id));
+                                    alert('프롬프트가 삭제되었습니다.');
+                                  }
+                                }}
+                                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                              >
+                                🗑️ 삭제
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>저장된 프롬프트가 없습니다.</p>
+                      <p className="text-sm mt-1">AI 이미지 생성이나 개선을 사용하면 프롬프트가 자동으로 저장됩니다.</p>
+                    </div>
+                  )}
+                </div>
+
                 {/* 이미지 갤러리 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center justify-between mb-6">
@@ -1787,6 +2092,15 @@ export default function BlogAdmin() {
                                   className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
                                 >
                                   🎨 변형
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectImageForImprovement(representativeImage.url);
+                                  }}
+                                  className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                >
+                                  ✨ 개선
                                 </button>
                               </div>
                             </div>
