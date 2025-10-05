@@ -7357,21 +7357,13 @@ export default function BlogAdmin() {
                       </span>
                     </div>
                     
-                    {viewMode === 'list' ? (
-                      <PostList
-                        posts={posts}
-                        selectedPosts={selectedPosts}
-                        onPostSelect={handlePostSelect}
-                        onEdit={handleEdit}
-                      />
-                    ) : (
-                      <PostGrid
-                        posts={posts}
-                        selectedPosts={selectedPosts}
-                        onPostSelect={handlePostSelect}
-                        onEdit={handleEdit}
-                      />
-                    )}
+                    {/* 게시물 목록 표시 */}
+                    <PostList
+                      posts={posts}
+                      selectedPosts={selectedPosts}
+                      onPostSelect={handlePostSelect}
+                      onEdit={handleEdit}
+                    />
                       <div className="space-y-4">
                         {posts.map((post) => (
                           <div key={post.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${selectedPosts.includes(post.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
