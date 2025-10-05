@@ -92,7 +92,7 @@ export default function BlogAdmin() {
   const [statusFilter, setStatusFilter] = useState('');
   const [sortBy, setSortBy] = useState<'title' | 'published_at' | 'view_count'>('published_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
+  
   // AI 이미지 생성 관련 상태
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [showGeneratedImages, setShowGeneratedImages] = useState(false);
@@ -100,6 +100,16 @@ export default function BlogAdmin() {
   const [imageGenerationStep, setImageGenerationStep] = useState('');
   const [selectedGeneratedImage, setSelectedGeneratedImage] = useState<string | null>(null);
   const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
+
+  // 이미지 관리 관련 상태
+  const [postImages, setPostImages] = useState<any[]>([]);
+  const [allImages, setAllImages] = useState<any[]>([]);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+  const [selectedImageGroup, setSelectedImageGroup] = useState<any[]>([]);
+  const [imageUsageInfo, setImageUsageInfo] = useState<any>(null);
+  const [showImageUsageModal, setShowImageUsageModal] = useState(false);
 
   // 게시물 데이터 로드
   const fetchPosts = useCallback(async () => {
@@ -119,7 +129,7 @@ export default function BlogAdmin() {
 
   // 컴포넌트 마운트 시 게시물 로드
   useEffect(() => {
-    fetchPosts();
+          fetchPosts();
   }, [fetchPosts]);
 
   // 게시물 선택/해제
@@ -187,7 +197,7 @@ export default function BlogAdmin() {
         },
         body: JSON.stringify(formData),
       });
-
+      
       if (response.ok) {
         await fetchPosts();
         setIsEditing(false);
@@ -211,7 +221,7 @@ export default function BlogAdmin() {
 
       if (response.ok) {
         await fetchPosts();
-      } else {
+        } else {
         console.error('게시물 삭제 실패');
       }
     } catch (error) {
@@ -304,13 +314,13 @@ export default function BlogAdmin() {
       setIsGeneratingImages(true);
       setImageGenerationStep(`${model.toUpperCase()}로 이미지 생성 중...`);
       setShowGeneratedImages(true);
-
+      
       const response = await fetch('/api/generate-blog-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
           content: formData.content,
           model: model
@@ -322,7 +332,7 @@ export default function BlogAdmin() {
         if (data.imageUrls && data.imageUrls.length > 0) {
           setGeneratedImages(prev => [...prev, ...data.imageUrls]);
           setImageGenerationStep('이미지 생성 완료!');
-        } else {
+      } else {
           setImageGenerationStep('이미지 생성에 실패했습니다.');
         }
       } else {
@@ -347,13 +357,13 @@ export default function BlogAdmin() {
       setIsGeneratingImages(true);
       setImageGenerationStep('FAL AI로 이미지 생성 중...');
       setShowGeneratedImages(true);
-
+      
       const response = await fetch('/api/generate-blog-image-fal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
           content: formData.content
         }),
@@ -395,7 +405,7 @@ export default function BlogAdmin() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
           content: formData.content
         }),
@@ -406,10 +416,10 @@ export default function BlogAdmin() {
         if (data.imageUrls && data.imageUrls.length > 0) {
           setGeneratedImages(prev => [...prev, ...data.imageUrls]);
           setImageGenerationStep('Google AI 이미지 생성 완료!');
-        } else {
+              } else {
           setImageGenerationStep('Google AI 이미지 생성에 실패했습니다.');
         }
-      } else {
+        } else {
         setImageGenerationStep('Google AI 이미지 생성 중 오류가 발생했습니다.');
       }
     } catch (error) {
@@ -419,6 +429,129 @@ export default function BlogAdmin() {
       setIsGeneratingImages(false);
     }
   }, [formData.title, formData.content]);
+
+  // 이미지 갤러리 로드
+  const fetchImageGallery = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/all-images');
+      if (response.ok) {
+        const data = await response.json();
+        setAllImages(data.images || []);
+      }
+    } catch (error) {
+      console.error('이미지 갤러리 로드 실패:', error);
+    }
+  }, []);
+
+  // 이미지 선택/해제
+  const handleImageSelect = useCallback((imageName: string) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageName)) {
+        newSet.delete(imageName);
+        } else {
+        newSet.add(imageName);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // 모든 이미지 선택/해제
+  const handleSelectAllImages = useCallback(() => {
+    if (selectedImages.size === allImages.length) {
+      setSelectedImages(new Set());
+        } else {
+      setSelectedImages(new Set(allImages.map(img => img.name)));
+    }
+  }, [selectedImages.size, allImages]);
+
+  // 이미지 삭제
+  const deleteImage = useCallback(async (imageName: string) => {
+    if (!confirm('정말로 이 이미지를 삭제하시겠습니까?')) return;
+    
+    try {
+      const response = await fetch('/api/delete-image-supabase', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageName }),
+      });
+
+      if (response.ok) {
+        // 이미지 목록에서 제거
+        setAllImages(prev => prev.filter(img => img.name !== imageName));
+        setPostImages(prev => prev.filter(img => img.name !== imageName));
+        setSelectedImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imageName);
+          return newSet;
+        });
+        
+        // 대표 이미지가 삭제된 경우 초기화
+        if (formData.featured_image && formData.featured_image.includes(imageName)) {
+          setFormData(prev => ({ ...prev, featured_image: '' }));
+        }
+      } else {
+        console.error('이미지 삭제 실패');
+      }
+    } catch (error) {
+      console.error('이미지 삭제 오류:', error);
+    }
+  }, [formData.featured_image]);
+
+  // 선택된 이미지들 삭제
+  const deleteSelectedImages = useCallback(async () => {
+    if (selectedImages.size === 0) return;
+    if (!confirm(`선택된 ${selectedImages.size}개 이미지를 삭제하시겠습니까?`)) return;
+    
+    try {
+      const response = await fetch('/api/admin/batch-delete-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageNames: Array.from(selectedImages) }),
+      });
+
+      if (response.ok) {
+        // 삭제된 이미지들을 목록에서 제거
+        setAllImages(prev => prev.filter(img => !selectedImages.has(img.name)));
+        setPostImages(prev => prev.filter(img => !selectedImages.has(img.name)));
+        setSelectedImages(new Set());
+        
+        // 대표 이미지가 삭제된 경우 초기화
+        const deletedImageNames = Array.from(selectedImages);
+        if (formData.featured_image && deletedImageNames.some(name => formData.featured_image.includes(name))) {
+          setFormData(prev => ({ ...prev, featured_image: '' }));
+        }
+      } else {
+        console.error('이미지 일괄 삭제 실패');
+      }
+    } catch (error) {
+      console.error('이미지 일괄 삭제 오류:', error);
+    }
+  }, [selectedImages, formData.featured_image]);
+
+  // 이미지 그룹 클릭 핸들러
+  const handleImageGroupClick = useCallback((imageGroup: any[]) => {
+    setSelectedImageGroup(imageGroup);
+    setShowImageGroupModal(true);
+  }, []);
+
+  // 이미지 사용 현황 조회
+  const fetchImageUsage = useCallback(async (imageName: string) => {
+    try {
+      const response = await fetch(`/api/admin/image-usage-tracker?imageName=${encodeURIComponent(imageName)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setImageUsageInfo(data);
+        setShowImageUsageModal(true);
+      }
+    } catch (error) {
+      console.error('이미지 사용 현황 조회 실패:', error);
+    }
+  }, []);
 
   return (
     <>
@@ -441,35 +574,35 @@ export default function BlogAdmin() {
                   {editingPost ? '게시물 편집' : '새 게시물 작성'}
                 </h2>
                 <div className="flex space-x-2">
-                  <button
+            <button
                     onClick={() => setIsEditing(false)}
                     className="px-4 py-2 text-gray-600 hover:text-gray-800"
                   >
                     취소
-                  </button>
-                  <button
+            </button>
+              <button
                     onClick={handleSave}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
                     저장
-                  </button>
-                </div>
-              </div>
+              </button>
+          </div>
+                  </div>
 
               <div className="space-y-6">
                 {/* 제목 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     제목
-                  </label>
-                  <input
-                    type="text"
+                    </label>
+                      <input
+                        type="text"
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="게시물 제목을 입력하세요"
                   />
-                </div>
+                      </div>
 
                 {/* 요약 */}
                 <div>
@@ -486,7 +619,7 @@ export default function BlogAdmin() {
                 </div>
 
                 {/* 카테고리 */}
-                <div>
+                      <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     카테고리
                   </label>
@@ -504,8 +637,8 @@ export default function BlogAdmin() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     작성자
                   </label>
-                  <input
-                    type="text"
+                    <input
+                      type="text"
                     value={formData.author}
                     onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -514,39 +647,39 @@ export default function BlogAdmin() {
                 </div>
 
                 {/* 상태 */}
-                <div>
+                    <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     상태
                   </label>
-                  <select
+                      <select 
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'published' | 'draft' }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="draft">초안</option>
                     <option value="published">발행</option>
-                  </select>
-                </div>
+                      </select>
+                    </div>
 
                 {/* 대표 이미지 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                     대표 이미지 URL
-                  </label>
+                    </label>
                   <input
                     type="url"
                     value={formData.featured_image}
                     onChange={(e) => setFormData(prev => ({ ...prev, featured_image: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="이미지 URL을 입력하세요"
-                  />
-                </div>
+                                  />
+                                </div>
 
                 {/* 메타 설명 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                     메타 설명
-                  </label>
+                      </label>
                   <textarea
                     value={formData.meta_description}
                     onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
@@ -554,13 +687,13 @@ export default function BlogAdmin() {
                     rows={2}
                     placeholder="SEO를 위한 메타 설명을 입력하세요"
                   />
-                </div>
+                            </div>
 
                 {/* 내용 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                     내용
-                  </label>
+                      </label>
                   <ReactQuill
                     theme="snow"
                     value={formData.content}
@@ -569,7 +702,7 @@ export default function BlogAdmin() {
                     formats={quillFormats}
                     className="bg-white"
                   />
-                </div>
+                    </div>
 
                 {/* AI 이미지 생성 섹션 */}
                 <div className="border-t pt-6">
@@ -577,7 +710,7 @@ export default function BlogAdmin() {
                   
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <button
+                              <button
                       onClick={() => generateAIImage('chatgpt')}
                       disabled={isGeneratingImages}
                       className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
@@ -593,9 +726,9 @@ export default function BlogAdmin() {
                           <span>ChatGPT + DALL-E</span>
                         </>
                       )}
-                    </button>
+                                  </button>
                     
-                    <button
+                                  <button
                       onClick={generateFALAIImage}
                       disabled={isGeneratingImages}
                       className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
@@ -611,9 +744,9 @@ export default function BlogAdmin() {
                           <span>FAL AI</span>
                         </>
                       )}
-                    </button>
+                        </button>
                     
-                    <button
+                      <button 
                       onClick={generateGoogleAIImage}
                       disabled={isGeneratingImages}
                       className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
@@ -629,8 +762,8 @@ export default function BlogAdmin() {
                           <span>Google AI</span>
                         </>
                       )}
-                    </button>
-                  </div>
+                      </button>
+                    </div>
 
                   {/* 이미지 생성 상태 */}
                   {imageGenerationStep && (
@@ -638,7 +771,7 @@ export default function BlogAdmin() {
                       <p className="text-blue-800 text-sm">{imageGenerationStep}</p>
                     </div>
                   )}
-
+                  
                   {/* 생성된 이미지 갤러리 */}
                   {generatedImages.length > 0 && (
                     <div className="mt-4">
@@ -650,29 +783,148 @@ export default function BlogAdmin() {
                               src={imageUrl}
                               alt={`생성된 이미지 ${index + 1}`}
                               className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
-                              onClick={() => {
+                                      onClick={() => {
                                 setSelectedGeneratedImage(imageUrl);
                                 setShowGeneratedImageModal(true);
                               }}
                             />
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                              <button
-                                onClick={() => {
+                                        <button
+                                          onClick={() => {
                                   setFormData(prev => ({ ...prev, featured_image: imageUrl }));
-                                }}
+                                          }}
                                 className="opacity-0 group-hover:opacity-100 bg-blue-500 text-white px-3 py-1 rounded text-sm transition-opacity"
-                              >
+                                        >
                                 대표 이미지로 설정
-                              </button>
-                            </div>
+                                        </button>
+                                      </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
+
+                {/* 이미지 갤러리 섹션 */}
+                <div className="border-t pt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
+                    <div className="flex space-x-2">
+                                <button
+                        onClick={fetchImageGallery}
+                        className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                                >
+                        🔄 갤러리 새로고침
+                                </button>
+                                <button
+                onClick={() => setShowImageGallery(!showImageGallery)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+              >
+                {showImageGallery ? '갤러리 닫기' : '갤러리 열기'}
+              </button>
+            </div>
+          </div>
+                  
+                  {/* 이미지 갤러리 */}
+            {showImageGallery && (
+                    <div className="space-y-4">
+                      {/* 갤러리 컨트롤 */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm text-gray-600">
+                            총 {allImages.length}개 이미지
+                          </span>
+                          {selectedImages.size > 0 && (
+                            <span className="text-sm text-blue-600">
+                              {selectedImages.size}개 선택됨
+                                    </span>
+                                  )}
+                                </div>
+                        <div className="flex space-x-2">
+                                  <button
+                            onClick={handleSelectAllImages}
+                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                          >
+                            {selectedImages.size === allImages.length ? '전체 해제' : '전체 선택'}
+                                  </button>
+                          {selectedImages.size > 0 && (
+                                  <button
+                              onClick={deleteSelectedImages}
+                              className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                                  >
+                              🗑️ 선택 삭제 ({selectedImages.size})
+                                  </button>
+                    )}
+                  </div>
+                </div>
+
+                      {/* 이미지 그리드 */}
+                      {allImages.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <p>이미지가 없습니다.</p>
+                          <p className="text-sm mt-1">AI 이미지 생성이나 업로드를 먼저 해주세요.</p>
+              </div>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                          {allImages.map((image, index) => (
+                            <div key={index} className="relative group">
+                        <input
+                          type="checkbox"
+                                checked={selectedImages.has(image.name)}
+                                onChange={() => handleImageSelect(image.name)}
+                                className="absolute top-2 left-2 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 z-10"
+                              />
+                              <img
+                                src={image.url}
+                                alt={image.name}
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, featured_image: image.url }));
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                      setFormData(prev => ({ ...prev, featured_image: image.url }));
+                                  }}
+                                    className="bg-blue-500 text-white px-2 py-1 rounded text-xs"
+                                    title="대표 이미지로 설정"
+                                >
+                                    ⭐
+                                </button>
+                <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteImage(image.name);
+                                    }}
+                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs"
+                                    title="삭제"
+                                  >
+                                    🗑️
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      fetchImageUsage(image.name);
+                                    }}
+                                    className="bg-green-500 text-white px-2 py-1 rounded text-xs"
+                                    title="사용 현황"
+                                  >
+                                    📊
+                </button>
               </div>
             </div>
+                            </div>
+                          ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+                  </div>
+                  </div>
           ) : (
             /* 목록 모드 */
             <div className="space-y-6">
@@ -681,8 +933,8 @@ export default function BlogAdmin() {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   {/* 검색 및 필터 */}
                   <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                    <input
-                      type="text"
+                      <input
+                        type="text"
                       placeholder="게시물 검색..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -699,7 +951,7 @@ export default function BlogAdmin() {
                         <option key={category} value={category}>{category}</option>
                       ))}
                     </select>
-                    
+
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
@@ -709,56 +961,56 @@ export default function BlogAdmin() {
                       <option value="published">발행됨</option>
                       <option value="draft">초안</option>
                     </select>
-                  </div>
+                </div>
 
                   {/* 액션 버튼 */}
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setViewMode('list')}
-                        className={`px-3 py-1 rounded text-sm ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                      >
-                        📋 목록
-                      </button>
-                      <button
-                        onClick={() => setViewMode('card')}
-                        className={`px-3 py-1 rounded text-sm ${viewMode === 'card' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                      >
-                        🎴 카드
-                      </button>
-                    </div>
-                    
-                    <button
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-3 py-1 rounded text-sm ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                          >
+                            📋 목록
+                          </button>
+                          <button
+                            onClick={() => setViewMode('card')}
+                            className={`px-3 py-1 rounded text-sm ${viewMode === 'card' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                          >
+                            🎴 카드
+                          </button>
+                        </div>
+                        
+                          <button
                       onClick={handleNewPost}
                       className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                    >
+                          >
                       ✏️ 새 게시물
-                    </button>
+                          </button>
                     
                     {selectedPosts.length > 0 && (
-                      <button
+                            <button
                         onClick={handleSelectedDelete}
                         className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                      >
+                            >
                         🗑️ 선택 삭제 ({selectedPosts.length})
-                      </button>
+                            </button>
                     )}
-                  </div>
-                </div>
+                          </div>
+                        </div>
 
                 {/* 정렬 및 통계 */}
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-500">
                       총 {filteredPosts.length}개 게시물
-                    </span>
+                                  </span>
                     {selectedPosts.length > 0 && (
                       <span className="text-sm text-blue-600">
                         {selectedPosts.length}개 선택됨
-                      </span>
+                                    </span>
                     )}
-                  </div>
-                  
+      </div>
+
                   <div className="flex items-center space-x-2">
                     <select
                       value={sortBy}
@@ -777,25 +1029,25 @@ export default function BlogAdmin() {
                     </button>
                   </div>
                 </div>
-              </div>
-
+            </div>
+            
               {/* 게시물 목록 */}
               <div className="bg-white rounded-lg shadow">
                 {loading ? (
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
                     <p className="mt-2 text-gray-500">게시물을 불러오는 중...</p>
-                  </div>
+            </div>
                 ) : filteredPosts.length === 0 ? (
                   <div className="p-8 text-center">
                     <p className="text-gray-500">게시물이 없습니다.</p>
-                    <button
+              <button
                       onClick={handleNewPost}
                       className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
+              >
                       첫 번째 게시물 작성하기
-                    </button>
-                  </div>
+              </button>
+            </div>
                 ) : (
                   <div className="p-6">
                     {viewMode === 'list' ? (
@@ -813,13 +1065,13 @@ export default function BlogAdmin() {
                         onEdit={handleEdit}
                       />
                     )}
-                  </div>
+            </div>
                 )}
               </div>
             </div>
           )}
-        </div>
-      </div>
+              </div>
+            </div>
 
       {/* AI 생성 이미지 확대 보기 모달 */}
       {showGeneratedImageModal && selectedGeneratedImage && (
@@ -839,9 +1091,9 @@ export default function BlogAdmin() {
             
             <div className="flex-1 overflow-auto p-4">
               <div className="flex justify-center">
-                <img
-                  src={selectedGeneratedImage}
-                  alt="AI 생성 이미지"
+              <img
+                src={selectedGeneratedImage}
+                alt="AI 생성 이미지"
                   className="max-w-full max-h-full object-contain"
                   style={{ maxHeight: 'calc(95vh - 200px)' }}
                 />
@@ -889,6 +1141,69 @@ export default function BlogAdmin() {
                 >
                   📄 이미지 복사
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 이미지 사용 현황 모달 */}
+      {showImageUsageModal && imageUsageInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] w-full overflow-hidden">
+            <div className="p-4 border-b bg-green-50">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-green-800">📊 이미지 사용 현황</h3>
+                <button
+                  onClick={() => setShowImageUsageModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-auto max-h-[60vh]">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-2">📰 블로그 게시물</h4>
+                    <p className="text-2xl font-bold text-blue-600">{imageUsageInfo.summary?.blogPosts || 0}개</p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-purple-800 mb-2">🎯 퍼널 페이지</h4>
+                    <p className="text-2xl font-bold text-purple-600">{imageUsageInfo.summary?.funnelPages || 0}개</p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-800 mb-2">📄 정적 페이지</h4>
+                    <p className="text-2xl font-bold text-green-600">{imageUsageInfo.summary?.staticPages || 0}개</p>
+                  </div>
+                </div>
+
+                {imageUsageInfo.details && imageUsageInfo.details.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">상세 사용 내역</h4>
+                    <div className="space-y-2">
+                      {imageUsageInfo.details.map((detail: any, index: number) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-gray-800">{detail.pageTitle}</p>
+                              <p className="text-sm text-gray-600">{detail.pageUrl}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {detail.pageType === 'blog' ? '📰 블로그' : 
+                                 detail.pageType === 'funnel' ? '🎯 퍼널' : '📄 정적 페이지'}
+                              </p>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {new Date(detail.lastUsed).toLocaleDateString('ko-KR')}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
