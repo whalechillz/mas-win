@@ -89,6 +89,21 @@ export default function BlogAdmin() {
     }
   };
 
+  const updateImageMetadata = async (imageName: string, data: { altText?: string; keywords?: string[]; seoTitle?: string; description?: string }) => {
+    try {
+      const res = await fetch('/api/admin/image-metadata', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageName, ...data })
+      });
+      if (!res.ok) throw new Error('메타데이터 업데이트 실패');
+      return true;
+    } catch (e) {
+      console.warn('메타데이터 업데이트 실패:', e);
+      return false;
+    }
+  };
+
   // AI 콘텐츠 개선 관련 상태
   const [simpleAIRequest, setSimpleAIRequest] = useState('');
   const [isImprovingContent, setIsImprovingContent] = useState(false);
@@ -2946,8 +2961,27 @@ export default function BlogAdmin() {
                       <div className="text-sm font-medium text-gray-900 truncate" title={image.name}>
                     {image.name}
                   </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        크기: {image.size ? `${(image.size / 1024).toFixed(1)}KB` : '알 수 없음'}
+                      <div className="text-xs text-gray-500 mt-1">크기: {image.size ? `${(image.size / 1024).toFixed(1)}KB` : '알 수 없음'}</div>
+                      {/* ALT/태그 간단 편집 */}
+                      <div className="mt-2 space-y-2">
+                        <input
+                          placeholder="ALT 텍스트(SEO)"
+                          defaultValue={image.altText || ''}
+                          className="w-full px-2 py-1 border rounded text-xs"
+                          onBlur={async (e) => {
+                            const ok = await updateImageMetadata(image.name, { altText: e.target.value });
+                            if (ok) e.currentTarget.classList.add('border-green-400');
+                          }}
+                        />
+                        <input
+                          placeholder="키워드(쉼표로 구분)"
+                          defaultValue={(image.keywords || []).join(', ')}
+                          className="w-full px-2 py-1 border rounded text-xs"
+                          onBlur={async (e) => {
+                            const keywords = e.target.value.split(',').map(s=>s.trim()).filter(Boolean);
+                            await updateImageMetadata(image.name, { keywords });
+                          }}
+                        />
                       </div>
                       <div className="flex gap-1 flex-wrap mt-2">
                     <button
@@ -3040,7 +3074,7 @@ export default function BlogAdmin() {
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 취소
-              </button>
+                </button>
                 <button
                 onClick={applyImprovedContent}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -3058,8 +3092,8 @@ export default function BlogAdmin() {
           <div className="relative max-w-[95vw] max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
             <img src={largeImageUrl} alt="확대 이미지" className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl bg-white" />
             <button onClick={() => setShowLargeImageModal(false)} className="absolute -top-3 -right-3 bg-white text-gray-800 rounded-full w-8 h-8 shadow flex items-center justify-center">✕</button>
-          </div>
-        </div>
+              </div>
+            </div>
       )}
 
       {/* 에디터용 갤러리 선택 모달 */}
@@ -3120,8 +3154,8 @@ export default function BlogAdmin() {
                       <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between" title={img.name}>
                         <span className="truncate mr-2">{img.name}</span>
                         {/_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-gray-200 text-gray-700 rounded">thumb</span>) : /_medium\./i.test(img.name) ? (<span className="px-1 py-0.5 bg-indigo-200 text-indigo-800 rounded">medium</span>) : /\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-green-200 text-green-800 rounded">webp</span>) : (<span className="px-1 py-0.5 bg-blue-200 text-blue-800 rounded">original</span>)}
-                      </div>
-                    </div>
+              </div>
+            </div>
                   ))}
                 </div>
               )}
