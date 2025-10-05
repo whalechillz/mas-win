@@ -17,6 +17,16 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
     };
     window.addEventListener('keydown', handleEsc);
 
+    // YouTube postMessage 오류 방지를 위한 이벤트 리스너
+    const handleMessage = (event: MessageEvent) => {
+      // YouTube에서 오는 메시지인 경우 무시 (CORS 오류 방지)
+      if (event.origin.includes('youtube.com') || event.origin.includes('google.com')) {
+        // YouTube postMessage 오류를 조용히 무시
+        return;
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
     // 닫기 버튼 지연 표시
     let timer: NodeJS.Timeout;
     if (showCloseAfter > 0) {
@@ -27,6 +37,7 @@ export const YouTubePopup = ({ videoId, onClose, showCloseAfter = 0 }: YouTubePo
 
     return () => {
       window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener('message', handleMessage);
       if (timer) clearTimeout(timer);
     };
   }, [onClose, showCloseButton, showCloseAfter]);
