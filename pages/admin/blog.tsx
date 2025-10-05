@@ -842,6 +842,86 @@ export default function BlogAdmin() {
     }
   };
 
+  // AI 콘텐츠 개선 함수들
+  const improveAIContent = async (type) => {
+    if (!simpleAIRequest.trim()) {
+      alert('개선 요청사항을 입력해주세요.');
+      return;
+    }
+    
+    setIsImprovingContent(true);
+    setImprovementProcess('AI가 콘텐츠를 분석하고 개선 중입니다...');
+    
+    try {
+      const response = await fetch('/api/improve-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          request: simpleAIRequest,
+          type: type
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setImprovedContent(data.improvedContent);
+        setShowImprovedContent(true);
+        setImprovementProcess('콘텐츠 개선이 완료되었습니다!');
+      } else {
+        throw new Error('콘텐츠 개선에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('콘텐츠 개선 오류:', error);
+      alert('콘텐츠 개선 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsImprovingContent(false);
+    }
+  };
+
+  const applySimpleAIImprovement = async () => {
+    if (!simpleAIRequest.trim()) {
+      alert('개선 요청사항을 입력해주세요.');
+      return;
+    }
+    
+    setIsImprovingContent(true);
+    setImprovementProcess('간단 AI 개선을 적용 중입니다...');
+    
+    try {
+      const response = await fetch('/api/simple-ai-improvement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          request: simpleAIRequest
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setImprovedContent(data.improvedContent);
+        setShowImprovedContent(true);
+        setImprovementProcess('간단 AI 개선이 완료되었습니다!');
+      } else {
+        throw new Error('간단 AI 개선에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('간단 AI 개선 오류:', error);
+      alert('간단 AI 개선 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsImprovingContent(false);
+    }
+  };
+
+  const applyImprovedContent = () => {
+    setFormData({ ...formData, content: improvedContent });
+    setShowImprovedContent(false);
+    setImprovedContent('');
+    setSimpleAIRequest('');
+    alert('개선된 콘텐츠가 적용되었습니다!');
+  };
+
   // 필터링된 게시물 목록
   const filteredPosts = posts.filter(post => {
     const matchesSearch = !searchTerm || 
@@ -1244,6 +1324,83 @@ export default function BlogAdmin() {
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* AI 콘텐츠 개선 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">🤖 AI 콘텐츠 개선</h3>
+                    <span className="text-sm text-gray-500">AI로 콘텐츠를 분석하고 개선할 수 있습니다</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* 개선 요청 입력 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        개선 요청사항
+                      </label>
+                      <textarea
+                        value={simpleAIRequest}
+                        onChange={(e) => setSimpleAIRequest(e.target.value)}
+                        placeholder="예: 더 매력적인 제목으로 바꿔주세요, SEO를 고려한 내용으로 개선해주세요, 더 읽기 쉽게 만들어주세요..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* AI 개선 버튼들 */}
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => improveAIContent('comprehensive')}
+                        disabled={isImprovingContent || !simpleAIRequest.trim()}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        {isImprovingContent ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>AI 콘텐츠 개선 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🤖</span>
+                            <span>AI 콘텐츠 개선</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={applySimpleAIImprovement}
+                        disabled={isImprovingContent || !simpleAIRequest.trim()}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        {isImprovingContent ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>간단 AI 개선 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>⚡</span>
+                            <span>간단 AI 개선</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* 개선 과정 표시 */}
+                    {isImprovingContent && improvementProcess && (
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-blue-800 mb-2">
+                          🤖 AI 콘텐츠 개선 과정
+                        </h4>
+                        <div className="text-sm text-blue-700">
+                          {improvementProcess}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 이미지 갤러리 섹션 */}
@@ -1658,6 +1815,51 @@ export default function BlogAdmin() {
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 개선된 콘텐츠 미리보기 모달 */}
+      {showImprovedContent && improvedContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full overflow-hidden">
+            {/* 헤더 */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">
+                🤖 AI 개선된 콘텐츠 미리보기
+              </h3>
+              <button
+                onClick={() => setShowImprovedContent(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* 개선된 콘텐츠 내용 */}
+            <div className="p-4 max-h-[60vh] overflow-auto">
+              <div className="prose max-w-none">
+                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                  {improvedContent}
+                </div>
+              </div>
+            </div>
+            
+            {/* 액션 버튼들 */}
+            <div className="flex justify-end gap-3 p-4 border-t">
+              <button
+                onClick={() => setShowImprovedContent(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={applyImprovedContent}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                ✅ 개선된 콘텐츠 적용
               </button>
             </div>
           </div>
