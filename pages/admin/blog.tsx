@@ -43,6 +43,7 @@ export default function BlogAdmin() {
   const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
   const [showLargeImageModal, setShowLargeImageModal] = useState(false);
   const [largeImageUrl, setLargeImageUrl] = useState('');
+  const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
 
   // AI 콘텐츠 개선 관련 상태
   const [simpleAIRequest, setSimpleAIRequest] = useState('');
@@ -798,6 +799,15 @@ export default function BlogAdmin() {
   const handleImageGroupClick = (imageGroup) => {
     setSelectedImageGroup(imageGroup);
     setShowImageGroupModal(true);
+  };
+
+  // TipTap 갤러리 선택 모달 열기
+  const openGalleryPicker = (insertCb: (url: string) => void) => {
+    setPendingEditorImageInsert(() => insertCb);
+    setShowSelectFromGalleryModal(true);
+    if (!allImages || allImages.length === 0) {
+      fetchImageGallery();
+    }
   };
 
   // 이미지 그룹화 함수 (4개 버전을 하나의 그룹으로 묶기)
@@ -1675,17 +1685,7 @@ export default function BlogAdmin() {
                   <TipTapEditor
                     valueMarkdown={formData.content}
                     onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
-                    onRequestImageFromGallery={(insert) => {
-                      if (generatedImages && generatedImages.length > 0) {
-                        insert(generatedImages[0]);
-                        return;
-                      }
-                      if (postImages && postImages.length > 0) {
-                        insert(postImages[0].url || postImages[0]);
-                        return;
-                      }
-                      alert('삽입할 이미지가 없습니다. 갤러리에서 선택해주세요.');
-                    }}
+                    onRequestImageFromGallery={(insert) => openGalleryPicker(insert)}
                   />
                   </div>
 
@@ -3013,3 +3013,6 @@ export default function BlogAdmin() {
 
 // 확대 이미지 모달 (공통)
 // 파일 하단에 렌더링되는 기존 모달들 직후에 추가됨
+// 실제 모달 렌더링
+// eslint-disable-next-line @next/next/no-sync-scripts
+// 아래는 페이지 컴포넌트 내부 JSX에 이미 모달들이 있으므로 동일 패턴으로 추가
