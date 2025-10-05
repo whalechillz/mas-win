@@ -2646,11 +2646,18 @@ export default function BlogAdmin() {
                               <div className="p-2 bg-white">
                                 <div className="text-xs text-gray-600 truncate" title={baseName}>
                                   {baseName}
-                            </div>
-                                <div className="text-xs text-gray-500">
-                                  {group.length}개 버전
-                                  </div>
                                 </div>
+                                <div className="text-[11px] text-gray-500 flex items-center justify-between gap-2">
+                                  <span className="truncate">ALT: {representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
+                                  <button
+                                    type="button"
+                                    title="빠른 수정"
+                                    onClick={(e) => { e.stopPropagation(); const newAlt = window.prompt('ALT 텍스트를 입력하세요', representativeImage.altText || representativeImage.name); if (newAlt !== null) updateImageMetadata(representativeImage.name, { altText: newAlt }); }}
+                                    className="px-1 py-0.5 text-[11px] bg-gray-100 hover:bg-gray-200 rounded"
+                                  >✎ 수정</button>
+                                </div>
+                                <div className="text-[11px] text-gray-400">버전 {group.length}</div>
+                              </div>
                   </div>
                   
                             {/* 개별 이미지 선택 체크박스 */}
