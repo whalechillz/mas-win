@@ -7502,13 +7502,13 @@ export default function BlogAdmin() {
                         </div>
                       </div>
                     ))}
-                  </div>
+                      </div>
                     )}
+                  </div>
                 )}
               </div>
             )}
           </div>
-          )}
         </div>
       </div>
 
