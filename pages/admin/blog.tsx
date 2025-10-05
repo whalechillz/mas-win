@@ -4,6 +4,8 @@ import { marked } from 'marked';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import ImageGroupThumbnail from '../../components/ImageGroupThumbnail';
+import PostList from '../../components/admin/PostList';
+import PostGrid from '../../components/admin/PostGrid';
 // import WysiwygEditor from '../../components/WysiwygEditor';
 
 // React Quill을 동적으로 로드 (SSR 문제 방지 및 성능 최적화)
@@ -7356,6 +7358,20 @@ export default function BlogAdmin() {
                     </div>
                     
                     {viewMode === 'list' ? (
+                      <PostList
+                        posts={posts}
+                        selectedPosts={selectedPosts}
+                        onPostSelect={handlePostSelect}
+                        onEdit={handleEdit}
+                      />
+                    ) : (
+                      <PostGrid
+                        posts={posts}
+                        selectedPosts={selectedPosts}
+                        onPostSelect={handlePostSelect}
+                        onEdit={handleEdit}
+                      />
+                    )}
                       <div className="space-y-4">
                         {posts.map((post) => (
                           <div key={post.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${selectedPosts.includes(post.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
