@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      const { limit = 50, offset = 0, page = 1 } = req.query;
+      const { limit = 1000, offset = 0, page = 1 } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
