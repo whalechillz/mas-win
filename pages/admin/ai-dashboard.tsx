@@ -44,6 +44,7 @@ export default function AIDashboard() {
   const [selectedAction, setSelectedAction] = useState('all');
   const [dateRange, setDateRange] = useState('7');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // AI 사용량 로그 및 통계 가져오기
   const fetchAIData = async () => {
@@ -87,13 +88,29 @@ export default function AIDashboard() {
     };
     loadData();
 
-    // 실시간 업데이트 (30초마다)
-    const interval = setInterval(() => {
-      loadData();
-    }, 30000);
+    // 자동 업데이트 비활성화 (수동 새로고침으로 변경)
+    // const interval = setInterval(() => {
+    //   loadData();
+    // }, 30000);
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, []);
+
+  // 수동 새로고침 함수
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        fetchAIData(),
+        fetchBlogStats()
+      ]);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('새로고침 실패:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // 필터링된 AI 로그
   const filteredLogs = aiLogs.filter(log => {
@@ -367,15 +384,39 @@ export default function AIDashboard() {
             </div>
           </div>
 
-          {/* 실시간 업데이트 상태 */}
+          {/* 수동 새로고침 상태 */}
           <div className="mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600">실시간 업데이트 중</span>
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-sm text-gray-600">수동 새로고침 모드</span>
               </div>
-              <div className="text-sm text-gray-500">
-                마지막 업데이트: {lastUpdated.toLocaleTimeString()}
+              <div className="flex items-center space-x-3">
+                <div className="text-sm text-gray-500">
+                  마지막 업데이트: {lastUpdated.toLocaleTimeString()}
+                </div>
+                <button
+                  onClick={handleManualRefresh}
+                  disabled={isRefreshing}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRefreshing ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      새로고침 중...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      새로고침
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
