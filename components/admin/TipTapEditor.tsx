@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
+// @ts-ignore - BubbleMenu type may cause warnings; safe to import
+import { BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -110,6 +112,26 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         <ToolbarButton label="갤러리" onClick={handleInsertFromGallery} />
       </div>
       <div className="p-3">
+        {editor && (
+          <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} pluginKey="image-bubble">
+            {editor.isActive('image') && (
+              <div className="flex items-center gap-2 bg-white border rounded shadow px-2 py-1">
+                <button
+                  className="text-xs px-2 py-1 bg-blue-500 text-white rounded"
+                  onClick={() => {
+                    try {
+                      const attrs: any = editor.getAttributes('image') || {};
+                      const url = attrs?.src;
+                      if (url && typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('tiptap:set-featured-image', { detail: { url } }));
+                      }
+                    } catch {}
+                  }}
+                >대표로 설정</button>
+              </div>
+            )}
+          </BubbleMenu>
+        )}
         <EditorContent editor={editor} />
       </div>
     </div>
