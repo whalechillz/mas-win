@@ -47,6 +47,47 @@ export default function BlogAdmin() {
   const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
   const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
   const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
+  const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
+  const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
+
+  // 이미지 버전 우선 삽입 URL 계산
+  const getPreferredVersionUrl = (img: any): string => {
+    const name: string = img?.name || '';
+    const url: string = img?.url || '';
+    const base = name
+      .replace(/_thumb\.(webp|jpg|jpeg|png|gif)$/i, '.')
+      .replace(/_medium\.(webp|jpg|jpeg|png|gif)$/i, '.')
+      .replace(/\.webp$/i, '.');
+    const matchBase = (candidate: any) => candidate && typeof candidate.name === 'string' && candidate.name.startsWith(base.split('.')[0]);
+    const findBy = (predicate: (n: string) => boolean) => {
+      const found = allImages.find((it: any) => matchBase(it) && predicate(it.name));
+      return found?.url;
+    };
+    const pref = galleryInsertPreference;
+    if (pref === 'original') return url;
+    if (pref === 'webp') return findBy(n => /\.webp$/i.test(n)) || url;
+    if (pref === 'medium') return findBy(n => /_medium\./i.test(n)) || url;
+    if (pref === 'thumb') return findBy(n => /_thumb\./i.test(n) || /_thumb\.webp$/i.test(n)) || url;
+    // auto: 선호 순서 webp -> medium -> original
+    return findBy(n => /\.webp$/i.test(n)) || findBy(n => /_medium\./i.test(n)) || url;
+  };
+
+  // 갤러리 삽입 시 메타데이터 저장
+  const saveImageMetadata = async (img: any, altText: string) => {
+    try {
+      await fetch('/api/admin/image-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageName: img?.name,
+          imageUrl: img?.url,
+          customAltText: altText,
+        })
+      });
+    } catch (e) {
+      console.warn('메타데이터 저장 실패:', e);
+    }
+  };
 
   // AI 콘텐츠 개선 관련 상태
   const [simpleAIRequest, setSimpleAIRequest] = useState('');
@@ -3030,13 +3071,21 @@ export default function BlogAdmin() {
               <button onClick={() => setShowSelectFromGalleryModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
             <div className="p-4 border-b">
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="text-gray-600">필터:</span>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='all'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('all')}>전체</button>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='webp'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('webp')}>WebP</button>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='medium'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('medium')}>Medium</button>
                 <button className={`px-2 py-1 rounded ${galleryPickerFilter==='thumb'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('thumb')}>Thumb</button>
                 <div className="ml-auto flex items-center gap-2">
+                  <input value={galleryPickerQuery} onChange={(e)=>setGalleryPickerQuery(e.target.value)} placeholder="검색(파일명/확장)" className="px-2 py-1 border rounded text-sm" />
+                  <select value={galleryInsertPreference} onChange={(e)=>setGalleryInsertPreference(e.target.value as any)} className="px-2 py-1 border rounded text-sm">
+                    <option value="auto">삽입 우선: 자동(webp→medium→원본)</option>
+                    <option value="original">원본</option>
+                    <option value="webp">WebP</option>
+                    <option value="medium">Medium</option>
+                    <option value="thumb">Thumb</option>
+                  </select>
                   <input value={galleryPickerAlt} onChange={(e)=>setGalleryPickerAlt(e.target.value)} placeholder="ALT" className="px-2 py-1 border rounded text-sm" />
                   <input value={galleryPickerTitle} onChange={(e)=>setGalleryPickerTitle(e.target.value)} placeholder="캡션/타이틀" className="px-2 py-1 border rounded text-sm" />
                 </div>
@@ -3052,9 +3101,16 @@ export default function BlogAdmin() {
                     if (galleryPickerFilter==='medium') return /_medium\./i.test(img.name);
                     if (galleryPickerFilter==='thumb') return /_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name);
                     return true;
+                  }).filter((img:any)=>{
+                    const q = galleryPickerQuery.trim().toLowerCase();
+                    if (!q) return true;
+                    return (img.name || '').toLowerCase().includes(q) || (img.url || '').toLowerCase().includes(q);
                   }).map((img: any, idx: number) => (
-                    <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={() => {
-                      if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(img.url, { alt: galleryPickerAlt || img.name, title: galleryPickerTitle });
+                    <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={async () => {
+                      const preferredUrl = getPreferredVersionUrl(img) || img.url;
+                      const alt = galleryPickerAlt || img.name;
+                      if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, { alt, title: galleryPickerTitle });
+                      saveImageMetadata(img, alt);
                       setShowSelectFromGalleryModal(false);
                       setPendingEditorImageInsert(null);
                       setGalleryPickerAlt('');
