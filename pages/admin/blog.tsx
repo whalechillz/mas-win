@@ -654,7 +654,8 @@ export default function BlogAdmin() {
   // 이미지 관리 관련 함수들
   const fetchImageGallery = async () => {
     try {
-      const response = await fetch('/api/admin/all-images?page=1&limit=50');
+      // 모든 이미지를 불러오기 위해 limit 파라미터를 제거하거나 매우 크게 설정
+      const response = await fetch('/api/admin/all-images');
       const data = await response.json();
       
       if (response.ok) {
