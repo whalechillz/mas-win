@@ -428,6 +428,30 @@ export default function BlogAdmin() {
   const [editingPromptId, setEditingPromptId] = useState(null);
   const [editingKoreanPrompt, setEditingKoreanPrompt] = useState('');
   
+  // 프롬프트 삭제 함수
+  const deletePrompt = (promptId) => {
+    if (confirm('이 프롬프트를 삭제하시겠습니까?')) {
+      setSavedPrompts(prev => prev.filter(p => p.id !== promptId));
+      if (expandedPromptId === promptId) {
+        setExpandedPromptId(null);
+      }
+      if (editingPromptId === promptId) {
+        setEditingPromptId(null);
+        setEditingKoreanPrompt('');
+      }
+    }
+  };
+  
+  // 모든 프롬프트 삭제 함수
+  const deleteAllPrompts = () => {
+    if (confirm(`저장된 프롬프트 ${savedPrompts.length}개를 모두 삭제하시겠습니까?`)) {
+      setSavedPrompts([]);
+      setExpandedPromptId(null);
+      setEditingPromptId(null);
+      setEditingKoreanPrompt('');
+    }
+  };
+  
   // 자동 저장 방지 상태
   const [isManualSave, setIsManualSave] = useState(false);
   
@@ -3200,8 +3224,31 @@ export default function BlogAdmin() {
           }));
         }
         
+        // 관련 프롬프트도 함께 삭제 (이미지 URL이 포함된 프롬프트)
+        const relatedPrompts = savedPrompts.filter(prompt => 
+          prompt.originalImage === imageUrl || 
+          prompt.baseImage === imageUrl ||
+          (prompt.imageUrls && prompt.imageUrls.includes(imageUrl))
+        );
+        
+        if (relatedPrompts.length > 0) {
+          console.log('🗑️ 관련 프롬프트 삭제:', relatedPrompts.length, '개');
+          setSavedPrompts(prev => prev.filter(prompt => 
+            !relatedPrompts.some(related => related.id === prompt.id)
+          ));
+          
+          // 확장된 프롬프트가 삭제된 경우 상태 초기화
+          if (expandedPromptId && relatedPrompts.some(p => p.id === expandedPromptId)) {
+            setExpandedPromptId(null);
+          }
+          if (editingPromptId && relatedPrompts.some(p => p.id === editingPromptId)) {
+            setEditingPromptId(null);
+            setEditingKoreanPrompt('');
+          }
+        }
+        
         console.log('✅ 이미지 삭제 완료:', imageUrl);
-        alert('이미지가 성공적으로 삭제되었습니다.');
+        alert(`이미지가 성공적으로 삭제되었습니다.${relatedPrompts.length > 0 ? `\n관련 프롬프트 ${relatedPrompts.length}개도 함께 삭제되었습니다.` : ''}`);
       } else {
         const error = await response.json();
         console.error('이미지 삭제 실패:', error);
@@ -4362,9 +4409,17 @@ export default function BlogAdmin() {
                   {/* 저장된 프롬프트 섹션 (이미지 생성 버튼 바로 아래) */}
                   {savedPrompts.length > 0 && (
                     <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-800 mb-3">
-                        📝 저장된 프롬프트 ({savedPrompts.length}개)
-                      </h4>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-medium text-gray-800">
+                          📝 저장된 프롬프트 ({savedPrompts.length}개)
+                        </h4>
+                        <button
+                          onClick={deleteAllPrompts}
+                          className="text-xs text-red-600 hover:text-red-800 underline"
+                        >
+                          🗑️ 모두 삭제
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         {savedPrompts.map((prompt) => (
                           <div key={prompt.id} className="border border-gray-200 rounded-lg">
@@ -4388,8 +4443,20 @@ export default function BlogAdmin() {
                                     )}
                                   </div>
                                 </div>
-                                <div className="text-gray-400">
-                                  {expandedPromptId === prompt.id ? '▼' : '▶'}
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deletePrompt(prompt.id);
+                                    }}
+                                    className="text-xs text-red-600 hover:text-red-800 underline"
+                                    title="프롬프트 삭제"
+                                  >
+                                    🗑️
+                                  </button>
+                                  <div className="text-gray-400">
+                                    {expandedPromptId === prompt.id ? '▼' : '▶'}
+                                  </div>
                                 </div>
                               </div>
                             </button>
@@ -5095,8 +5162,20 @@ export default function BlogAdmin() {
                                     )}
                                   </div>
                                 </div>
-                                <div className="text-gray-400">
-                                  {expandedPromptId === prompt.id ? '▼' : '▶'}
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deletePrompt(prompt.id);
+                                    }}
+                                    className="text-xs text-red-600 hover:text-red-800 underline"
+                                    title="프롬프트 삭제"
+                                  >
+                                    🗑️
+                                  </button>
+                                  <div className="text-gray-400">
+                                    {expandedPromptId === prompt.id ? '▼' : '▶'}
+                                  </div>
                                 </div>
                               </div>
                             </button>
