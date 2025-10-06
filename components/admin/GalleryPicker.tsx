@@ -63,15 +63,26 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
 
   const isFeatured = (img: ImageItem) => {
     if (!currentFeatured) return false;
-    const normalize = (u: string) => u.replace(/^http:\/\//, 'https://');
-    const a = normalize(currentFeatured);
-    const b = normalize(img.url);
-    if (a === b) return true;
-    // fallback: compare filename
-    const fname = (u: string) => {
+    const normalizeUrl = (u: string) => u.replace(/^http:\/\//, 'https://');
+    const getFile = (u: string) => {
       try { return new URL(u).pathname.split('/').pop() || u; } catch { return u; }
     };
-    return fname(a) === fname(b);
+    const stripVariant = (name: string) => {
+      // remove known variants like _thumb, _thumb.webp, _medium before extension
+      const lower = name.toLowerCase();
+      const match = lower.match(/^(.*?)(?:_(thumb|medium))(\.[a-z0-9]+)$/i);
+      if (match) return match[1] + match[3];
+      return name;
+    };
+    const aUrl = normalizeUrl(currentFeatured);
+    const bUrl = normalizeUrl(img.url);
+    if (aUrl === bUrl) return true;
+    const aFile = stripVariant(getFile(aUrl));
+    const bFile = stripVariant(getFile(bUrl));
+    if (aFile === bFile) return true;
+    // also compare basename without extension
+    const base = (n: string) => n.replace(/\.[^.]+$/, '');
+    return base(aFile) === base(bFile);
   };
 
   const toggleSelect = (name: string) => {
