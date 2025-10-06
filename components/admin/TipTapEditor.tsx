@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
+import dynamic from 'next/dynamic';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
