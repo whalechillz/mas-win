@@ -45,6 +45,11 @@ export default function BlogAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [imagesPerPage] = useState(20); // 페이지당 20개 이미지
   const [isLoadingImages, setIsLoadingImages] = useState(false);
+  
+  // 갤러리 아코디언 상태
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState('all'); // 'all', 'featured', 'search'
+  const [gallerySearchQuery, setGallerySearchQuery] = useState('');
   const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
   const [showLargeImageModal, setShowLargeImageModal] = useState(false);
   const [largeImageUrl, setLargeImageUrl] = useState('');
@@ -772,6 +777,32 @@ export default function BlogAdmin() {
     } finally {
       setIsLoadingImages(false);
     }
+  };
+
+  // 갤러리 토글 함수
+  const toggleGallery = () => {
+    if (!isGalleryOpen) {
+      // 갤러리를 열 때만 이미지 로드
+      fetchImageGallery(1, true);
+    }
+    setIsGalleryOpen(!isGalleryOpen);
+  };
+
+  // 필터링된 이미지 목록
+  const getFilteredImages = () => {
+    let filtered = allImages;
+    
+    if (galleryFilter === 'featured') {
+      filtered = allImages.filter(img => isFeaturedImage(img.url));
+    } else if (galleryFilter === 'search' && gallerySearchQuery.trim()) {
+      const query = gallerySearchQuery.trim().toLowerCase();
+      filtered = allImages.filter(img => 
+        img.name.toLowerCase().includes(query) || 
+        img.url.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
   };
 
   const handleImageSelect = (imageName) => {
@@ -2646,63 +2677,130 @@ export default function BlogAdmin() {
               )}
             </div>
 
-                {/* 이미지 갤러리 섹션 */}
+                {/* 이미지 갤러리 섹션 - 아코디언 */}
                 <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
                       <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
                     </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => fetchImageGallery(1, true)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
-                  >
-                    🔄 새로고침
-                  </button>
-                  {totalImagesCount > 0 && (
-                    <span className="text-sm text-gray-600">
-                      총 {totalImagesCount}개 (페이지 {currentPage}/{totalPages})
-                    </span>
-                  )}
-                </div>
-              </div>
-                
-                  {/* 이미지 갤러리 컨트롤 */}
-                  {allImages.length > 0 && (
-                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                                  checked={allImages.length > 0 && selectedImages.size === allImages.length}
-                              onChange={handleSelectAllImages}
-                              className="rounded border-gray-300"
-                            />
-                            <span className="text-sm text-gray-700">
-                                  전체 선택 ({selectedImages.size}/{totalImagesCount || allImages.length})
-                            </span>
-                          </label>
-            </div>
-                        {selectedImages.size > 0 && (
-                          <button
-                            type="button"
-                            onClick={deleteSelectedImages}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
-                          >
-                            🗑️ 선택된 이미지 삭제 ({selectedImages.size}개)
-                          </button>
-                        )}
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={toggleGallery}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                      >
+                        {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
+                      </button>
+                      {totalImagesCount > 0 && (
+                        <span className="text-sm text-gray-600">
+                          총 {totalImagesCount}개
+                        </span>
+                      )}
                     </div>
                   </div>
-                  )}
 
-                  {/* 이미지 그룹 갤러리 */}
-                  {allImages.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                      {Object.entries(groupImagesByBaseName(allImages)).map(([baseName, imageGroup]) => {
+                  {/* 갤러리 내용 - 아코디언 */}
+                  {isGalleryOpen && (
+                    <div className="space-y-4">
+                      {/* 갤러리 필터 및 검색 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-700">필터:</span>
+                            <button
+                              className={`px-3 py-1 rounded text-sm ${
+                                galleryFilter === 'all' 
+                                  ? 'bg-blue-500 text-white' 
+                                  : 'bg-white text-gray-700 border'
+                              }`}
+                              onClick={() => setGalleryFilter('all')}
+                            >
+                              전체
+                            </button>
+                            <button
+                              className={`px-3 py-1 rounded text-sm ${
+                                galleryFilter === 'featured' 
+                                  ? 'bg-yellow-500 text-white' 
+                                  : 'bg-white text-gray-700 border'
+                              }`}
+                              onClick={() => setGalleryFilter('featured')}
+                            >
+                              ⭐ 대표 이미지만
+                            </button>
+                            <button
+                              className={`px-3 py-1 rounded text-sm ${
+                                galleryFilter === 'search' 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-white text-gray-700 border'
+                              }`}
+                              onClick={() => setGalleryFilter('search')}
+                            >
+                              🔍 검색
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => fetchImageGallery(1, true)}
+                            className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                          >
+                            🔄 새로고침
+                          </button>
+                        </div>
+                        
+                        {galleryFilter === 'search' && (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={gallerySearchQuery}
+                              onChange={(e) => setGallerySearchQuery(e.target.value)}
+                              placeholder="이미지 이름으로 검색..."
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                            />
+                            <button
+                              onClick={() => setGallerySearchQuery('')}
+                              className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                            >
+                              지우기
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                
+                      {/* 이미지 갤러리 컨트롤 */}
+                      {getFilteredImages().length > 0 && (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <label className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={getFilteredImages().length > 0 && selectedImages.size === getFilteredImages().length}
+                                  onChange={handleSelectAllImages}
+                                  className="rounded border-gray-300"
+                                />
+                                <span className="text-sm text-gray-700">
+                                  전체 선택 ({selectedImages.size}/{getFilteredImages().length}개 표시)
+                                </span>
+                              </label>
+                            </div>
+                            {selectedImages.size > 0 && (
+                              <button
+                                type="button"
+                                onClick={deleteSelectedImages}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+                              >
+                                🗑️ 선택된 이미지 삭제 ({selectedImages.size}개)
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 이미지 그룹 갤러리 */}
+                      {getFilteredImages().length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                          {Object.entries(groupImagesByBaseName(getFilteredImages())).map(([baseName, imageGroup]) => {
                         const group = imageGroup as any[];
                         const representativeImage = getRepresentativeImage(group);
                         if (!representativeImage) return null;
@@ -2848,14 +2946,24 @@ export default function BlogAdmin() {
                         );
                       })}
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>이미지가 없습니다. 위의 AI 이미지 생성 기능을 사용하거나 이미지를 업로드하세요.</p>
-                    </div>
-                  )}
+                        ) : (
+                          <div className="text-center py-12 text-gray-500">
+                            <div className="text-4xl mb-4">🖼️</div>
+                            <p className="text-lg mb-2">
+                              {galleryFilter === 'featured' ? '대표 이미지가 없습니다' : 
+                               galleryFilter === 'search' ? '검색 결과가 없습니다' : 
+                               '이미지가 없습니다'}
+                            </p>
+                            <p className="text-sm">
+                              {galleryFilter === 'featured' ? '다른 이미지를 대표 이미지로 설정하세요' :
+                               galleryFilter === 'search' ? '다른 검색어를 시도해보세요' :
+                               '위의 AI 이미지 생성 기능을 사용하거나 이미지를 업로드하세요'}
+                            </p>
+                          </div>
+                        )}
 
-                  {/* 페이지네이션 컨트롤 */}
-                  {allImages.length > 0 && (
+                      {/* 페이지네이션 컨트롤 */}
+                      {getFilteredImages().length > 0 && galleryFilter === 'all' && (
                     <div className="mt-6 flex items-center justify-center space-x-4">
                       <button
                         type="button"
@@ -2914,16 +3022,18 @@ export default function BlogAdmin() {
                     </div>
                   )}
 
-                  {/* 로딩 상태 표시 */}
-                  {isLoadingImages && (
-                    <div className="text-center py-4">
-                      <div className="inline-flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                        <span className="text-sm text-gray-600">이미지 로딩 중...</span>
-                      </div>
+                      {/* 로딩 상태 표시 */}
+                      {isLoadingImages && (
+                        <div className="text-center py-4">
+                          <div className="inline-flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                            <span className="text-sm text-gray-600">이미지 로딩 중...</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-        </div>
+                </div>
 
                 {/* 카테고리 */}
                   <div>
