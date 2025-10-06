@@ -152,7 +152,11 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                 <div
                   key={img.name}
                   data-featured={isFeatured(img) ? 'true' : 'false'}
-                  className={`border rounded-lg overflow-hidden text-left group relative ${isFeatured(img) ? 'outline outline-2 outline-yellow-500 outline-offset-2' : ''}`}
+                  className={`border rounded-lg overflow-hidden text-left group relative ${
+                    isFeatured(img)
+                      ? 'outline outline-2 outline-yellow-500 outline-offset-2 after:content-[""] after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-amber-500 after:pointer-events-none after:z-10'
+                      : ''
+                  }`}
                 >
                   {isFeatured(img) && (
                     <span className="absolute top-1 left-1 z-10 px-1.5 py-0.5 text-[11px] font-semibold rounded bg-yellow-500 text-white shadow">대표</span>
