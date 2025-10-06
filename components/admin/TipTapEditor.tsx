@@ -54,6 +54,19 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
     },
   });
 
+  // 외부 갤러리로부터 커스텀 이벤트로 삽입을 지원
+  useEffect(() => {
+    if (!editor) return;
+    const handler = (e: Event) => {
+      const ev = e as CustomEvent<{ url: string; alt?: string; title?: string }>;
+      const url = ev.detail?.url;
+      if (!url) return;
+      editor.chain().focus().setImage({ src: url, alt: ev.detail?.alt }).run();
+    };
+    window.addEventListener('tiptap:insert-image', handler as EventListener);
+    return () => window.removeEventListener('tiptap:insert-image', handler as EventListener);
+  }, [editor]);
+
   useEffect(() => {
     if (!editor) return;
     // 외부에서 값이 바뀐 경우 동기화
