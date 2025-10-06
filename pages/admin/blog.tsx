@@ -506,6 +506,75 @@ export default function BlogAdmin() {
     setShowTitleOptions(false);
   };
 
+  // 제목 추천 모달
+  const TitleSelectModal = () => {
+    if (!showTitleOptions) return null;
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-xl">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">추천 제목 선택</h3>
+            <button type="button" className="text-gray-500" onClick={() => setShowTitleOptions(false)}>✕</button>
+          </div>
+          <div className="p-4 space-y-2 max-h-[60vh] overflow-auto">
+            {generatedTitles.length === 0 && (
+              <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
+            )}
+            {generatedTitles.map((t, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => selectGeneratedTitle(t)}
+                className="w-full text-left p-3 border rounded hover:bg-gray-50"
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="p-4 border-t flex justify-end">
+            <button type="button" onClick={() => setShowTitleOptions(false)} className="px-4 py-2 bg-gray-600 text-white rounded">닫기</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
+  const handleGenerateParagraphImages = async () => {
+    if (!formData.content || formData.content.trim().length < 30) {
+      alert('본문을 먼저 작성해주세요. (최소 30자)');
+      return;
+    }
+    try {
+      const res = await fetch('/api/generate-paragraph-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: { customerPersona: 'competitive_maintainer', customerChannel: 'local_customers', brandWeight: 'medium' }
+        })
+      });
+      if (!res.ok) throw new Error('이미지 생성 실패');
+      const data = await res.json();
+      const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+      if (!urls.length) {
+        alert('생성된 이미지가 없습니다.');
+        return;
+      }
+      urls.forEach((url) => {
+        const ev = new CustomEvent('tiptap:insert-image', { detail: { url } });
+        window.dispatchEvent(ev);
+      });
+      alert(`${urls.length}개의 이미지가 본문에 삽입되었습니다.`);
+    } catch (e: any) {
+      console.error('단락 이미지 생성 오류:', e);
+      alert('단락 이미지 생성 중 오류가 발생했습니다: ' + e.message);
+    }
+  };
+
   // AI 이미지 생성 함수들
   const generateAIImage = async (count = 4) => {
     if (!formData.title) {
@@ -1908,6 +1977,18 @@ export default function BlogAdmin() {
                       🤖 AI
                     </button>
                   </div>
+                </div>
+
+                {/* 본문 도구들 */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleGenerateParagraphImages}
+                    className="px-3 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700"
+                    title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
+                  >
+                    📷 단락별 이미지 일괄 생성
+                  </button>
                 </div>
 
                 {/* 요약 */}
