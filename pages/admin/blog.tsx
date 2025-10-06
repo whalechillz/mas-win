@@ -82,6 +82,19 @@ export default function BlogAdmin() {
     return url;
   };
 
+  // 대표 이미지인지 확인하는 함수
+  const isFeaturedImage = (imageUrl: string): boolean => {
+    return formData.featured_image === forceHttps(imageUrl);
+  };
+
+  // 대표 이미지 상태 표시 함수
+  const getFeaturedImageStatus = (imageUrl: string): string => {
+    if (isFeaturedImage(imageUrl)) {
+      return '⭐ 대표 이미지';
+    }
+    return '';
+  };
+
   // 갤러리 삽입 시 메타데이터 저장
   const saveImageMetadata = async (img: any, altText: string) => {
     try {
@@ -1502,6 +1515,28 @@ export default function BlogAdmin() {
     fetchPosts();
   }, []);
 
+  // TipTap 에디터에서 대표 이미지 설정 이벤트 리스너
+  useEffect(() => {
+    const handleSetFeaturedImage = (event: CustomEvent) => {
+      const { url } = event.detail;
+      if (url) {
+        const httpsUrl = forceHttps(url);
+        if (isFeaturedImage(httpsUrl)) {
+          setFormData({ ...formData, featured_image: '' });
+          alert('대표 이미지가 해제되었습니다!');
+        } else {
+          setFormData({ ...formData, featured_image: httpsUrl });
+          alert('대표 이미지로 설정되었습니다!');
+        }
+      }
+    };
+
+    window.addEventListener('tiptap:set-featured-image', handleSetFeaturedImage as EventListener);
+    return () => {
+      window.removeEventListener('tiptap:set-featured-image', handleSetFeaturedImage as EventListener);
+    };
+  }, [formData]);
+
   // 정렬 옵션 변경 시 새로고침
   useEffect(() => {
     if (posts.length > 0) {
@@ -2642,7 +2677,11 @@ export default function BlogAdmin() {
                         return (
                           <div key={baseName} className="relative group">
                             <div
-                              className="cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-500 transition-colors"
+                              className={`cursor-pointer border-2 rounded-lg overflow-hidden transition-colors ${
+                                isFeaturedImage(representativeImage.url) 
+                                  ? 'border-yellow-400 bg-yellow-50' 
+                                  : 'border-gray-200 hover:border-blue-500'
+                              }`}
                               onClick={() => handleImageGroupClick(group)}
                             >
                               <img
@@ -2667,7 +2706,14 @@ export default function BlogAdmin() {
                                     className="px-1 py-0.5 text-[11px] bg-gray-100 hover:bg-gray-200 rounded"
                                   >✎ 수정</button>
                                 </div>
-                                <div className="text-[11px] text-gray-400">버전 {group.length}</div>
+                                <div className="text-[11px] text-gray-400 flex items-center justify-between">
+                                  <span>버전 {group.length}</span>
+                                  {isFeaturedImage(representativeImage.url) && (
+                                    <span className="px-1 py-0.5 bg-yellow-500 text-white text-[10px] rounded">
+                                      ⭐ 대표
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                   </div>
                   
@@ -2702,12 +2748,21 @@ export default function BlogAdmin() {
                     <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setFormData({ ...formData, featured_image: forceHttps(representativeImage.url) });
-                        alert('대표 이미지로 설정되었습니다!');
+                                    if (isFeaturedImage(representativeImage.url)) {
+                                      setFormData({ ...formData, featured_image: '' });
+                                      alert('대표 이미지가 해제되었습니다!');
+                                    } else {
+                                      setFormData({ ...formData, featured_image: forceHttps(representativeImage.url) });
+                                      alert('대표 이미지로 설정되었습니다!');
+                                    }
                       }}
-                                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  className={`px-2 py-1 text-white text-xs rounded ${
+                                    isFeaturedImage(representativeImage.url) 
+                                      ? 'bg-yellow-500 hover:bg-yellow-600' 
+                                      : 'bg-blue-500 hover:bg-blue-600'
+                                  }`}
                     >
-                                  ⭐ 대표
+                                  {isFeaturedImage(representativeImage.url) ? '⭐ 해제' : '⭐ 대표'}
                     </button>
                     <button
                                   onClick={(e) => {
@@ -3006,12 +3061,21 @@ export default function BlogAdmin() {
                     <button
                       type="button"
                       onClick={() => {
-                            setFormData({ ...formData, featured_image: forceHttps(image.url) });
-                            alert('대표 이미지로 설정되었습니다!');
+                            if (isFeaturedImage(image.url)) {
+                              setFormData({ ...formData, featured_image: '' });
+                              alert('대표 이미지가 해제되었습니다!');
+                            } else {
+                              setFormData({ ...formData, featured_image: forceHttps(image.url) });
+                              alert('대표 이미지로 설정되었습니다!');
+                            }
                           }}
-                          className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                          className={`px-2 py-1 text-white text-xs rounded ${
+                            isFeaturedImage(image.url) 
+                              ? 'bg-yellow-500 hover:bg-yellow-600' 
+                              : 'bg-blue-500 hover:bg-blue-600'
+                          }`}
                         >
-                          ⭐ 대표
+                          {isFeaturedImage(image.url) ? '⭐ 해제' : '⭐ 대표'}
                     </button>
                     <button
                       type="button"
