@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 const TipTapEditor = dynamic(() => import('../../components/admin/TipTapEditor'), { ssr: false });
+const GalleryPicker = dynamic(() => import('../../components/admin/GalleryPicker'), { ssr: false });
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
@@ -56,6 +57,7 @@ export default function BlogAdmin() {
   const [showLargeImageModal, setShowLargeImageModal] = useState(false);
   const [largeImageUrl, setLargeImageUrl] = useState('');
   const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
+  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
   const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
   const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
   const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
@@ -947,10 +949,7 @@ export default function BlogAdmin() {
   // TipTap 갤러리 선택 모달 열기
   const openGalleryPicker = (insertCb: (url: string) => void) => {
     setPendingEditorImageInsert(() => insertCb);
-    setShowSelectFromGalleryModal(true);
-    if (!allImages || allImages.length === 0) {
-      fetchImageGallery();
-    }
+    setShowUnifiedPicker(true);
   };
 
   // 이미지 그룹화 함수 (4개 버전을 하나의 그룹으로 묶기)
@@ -3415,85 +3414,18 @@ export default function BlogAdmin() {
             </div>
       )}
 
-      {/* 에디터용 갤러리 선택 모달 */}
-      {showSelectFromGalleryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">이미지 선택하여 본문에 삽입</h3>
-              <button onClick={() => setShowSelectFromGalleryModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
-            </div>
-            <div className="p-4 border-b space-y-2">
-              <div className="flex items-center gap-2 text-sm flex-wrap">
-                <span className="text-gray-600">필터:</span>
-                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='all'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('all')}>전체</button>
-                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='webp'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('webp')}>WebP</button>
-                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='medium'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('medium')}>Medium</button>
-                <button className={`px-2 py-1 rounded ${galleryPickerFilter==='thumb'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setGalleryPickerFilter('thumb')}>Thumb</button>
-                <div className="ml-auto flex items-center gap-2">
-                  <input value={galleryPickerQuery} onChange={(e)=>setGalleryPickerQuery(e.target.value)} placeholder="검색(파일명/확장)" className="px-2 py-1 border rounded text-sm" />
-                  <select value={galleryInsertPreference} onChange={(e)=>setGalleryInsertPreference(e.target.value as any)} className="px-2 py-1 border rounded text-sm">
-                    <option value="auto">삽입 우선: 자동(webp→medium→원본)</option>
-                    <option value="original">원본</option>
-                    <option value="webp">WebP</option>
-                    <option value="medium">Medium</option>
-                    <option value="thumb">Thumb</option>
-                  </select>
-                  <input value={galleryPickerAlt} onChange={(e)=>setGalleryPickerAlt(e.target.value)} placeholder="ALT" className="px-2 py-1 border rounded text-sm" />
-                  <input value={galleryPickerTitle} onChange={(e)=>setGalleryPickerTitle(e.target.value)} placeholder="캡션/타이틀" className="px-2 py-1 border rounded text-sm" />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
-                <span>추천:</span>
-                {galleryRecommendedTags.map((tag) => (
-                  <button key={tag} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={()=>setGalleryPickerQuery(tag)}>{tag}</button>
-                ))}
-            </div>
-              </div>
-            <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
-              {allImages.length === 0 ? (
-                <div className="text-center text-gray-500 py-16">불러올 이미지가 없습니다.</div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {allImages.filter((img:any)=>{
-                    if (galleryPickerFilter==='webp') return /\.webp$/i.test(img.name);
-                    if (galleryPickerFilter==='medium') return /_medium\./i.test(img.name);
-                    if (galleryPickerFilter==='thumb') return /_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name);
-                    return true;
-                  }).filter((img:any)=>{
-                    const q = galleryPickerQuery.trim().toLowerCase();
-                    if (!q) return true;
-                    return (img.name || '').toLowerCase().includes(q) || (img.url || '').toLowerCase().includes(q);
-                  }).map((img: any, idx: number) => (
-                    <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={async () => {
-                      const preferredUrl = forceHttps(getPreferredVersionUrl(img) || img.url);
-                      const alt = galleryPickerAlt || img.name;
-                      if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, { alt, title: galleryPickerTitle });
-                      saveImageMetadata(img, alt);
-                      setShowSelectFromGalleryModal(false);
-                      setPendingEditorImageInsert(null);
-                      setGalleryPickerAlt('');
-                      setGalleryPickerTitle('');
-                    }}>
-                      <img src={forceHttps(img.url)} alt={img.name} className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-image.jpg'; }} />
-                      <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between" title={img.name}>
-                        <span className="truncate mr-2">{img.name}</span>
-                        {/_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-gray-200 text-gray-700 rounded">thumb</span>) : /_medium\./i.test(img.name) ? (<span className="px-1 py-0.5 bg-indigo-200 text-indigo-800 rounded">medium</span>) : /\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-green-200 text-green-800 rounded">webp</span>) : (<span className="px-1 py-0.5 bg-blue-200 text-blue-800 rounded">original</span>)}
-              </div>
-            </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex justify-between items-center p-4 border-t text-sm text-gray-600">
-              <div>총 {totalImagesCount || allImages.length}개 중 {allImages.length}개 표시</div>
-              <div className="space-x-2">
-                <button onClick={() => fetchImageGallery()} className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded">새로고침</button>
-                <button onClick={() => setShowSelectFromGalleryModal(false)} className="px-3 py-2 bg-blue-500 text-white rounded">닫기</button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* 통합 GalleryPicker 모달 */}
+      {showUnifiedPicker && (
+        <GalleryPicker
+          isOpen={showUnifiedPicker}
+          onClose={() => setShowUnifiedPicker(false)}
+          onSelect={(url) => {
+            const preferredUrl = forceHttps(url);
+            if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, {});
+            setShowUnifiedPicker(false);
+            setPendingEditorImageInsert(null);
+          }}
+        />
       )}
     </>
   );
