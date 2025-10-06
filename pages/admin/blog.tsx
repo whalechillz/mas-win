@@ -65,12 +65,21 @@ export default function BlogAdmin() {
       return found?.url;
     };
     const pref = galleryInsertPreference;
-    if (pref === 'original') return url;
-    if (pref === 'webp') return findBy(n => /\.webp$/i.test(n)) || url;
-    if (pref === 'medium') return findBy(n => /_medium\./i.test(n)) || url;
-    if (pref === 'thumb') return findBy(n => /_thumb\./i.test(n) || /_thumb\.webp$/i.test(n)) || url;
+    if (pref === 'original') return forceHttps(url);
+    if (pref === 'webp') return forceHttps(findBy(n => /\.webp$/i.test(n)) || url);
+    if (pref === 'medium') return forceHttps(findBy(n => /_medium\./i.test(n)) || url);
+    if (pref === 'thumb') return forceHttps(findBy(n => /_thumb\./i.test(n) || /_thumb\.webp$/i.test(n)) || url);
     // auto: 선호 순서 webp -> medium -> original
-    return findBy(n => /\.webp$/i.test(n)) || findBy(n => /_medium\./i.test(n)) || url;
+    return forceHttps(findBy(n => /\.webp$/i.test(n)) || findBy(n => /_medium\./i.test(n)) || url);
+  };
+
+  // HTTP URL을 HTTPS로 강제 변환
+  const forceHttps = (url: string): string => {
+    if (!url) return url;
+    if (url.startsWith('http://')) {
+      return url.replace('http://', 'https://');
+    }
+    return url;
   };
 
   // 갤러리 삽입 시 메타데이터 저장
@@ -692,7 +701,7 @@ export default function BlogAdmin() {
 
   // 생성된 이미지 선택
   const selectGeneratedImage = (imageUrl) => {
-    setFormData({ ...formData, featured_image: imageUrl });
+    setFormData({ ...formData, featured_image: forceHttps(imageUrl) });
     setShowGeneratedImages(false);
     alert('선택한 이미지가 대표 이미지로 설정되었습니다!');
   };
@@ -700,7 +709,8 @@ export default function BlogAdmin() {
   // 이미지 URL 복사
   const copyImageUrl = async (imageUrl) => {
     try {
-      await navigator.clipboard.writeText(imageUrl);
+      const httpsUrl = forceHttps(imageUrl);
+      await navigator.clipboard.writeText(httpsUrl);
       alert('이미지 URL이 클립보드에 복사되었습니다!');
     } catch (error) {
       console.error('복사 실패:', error);
@@ -710,7 +720,8 @@ export default function BlogAdmin() {
 
   // 이미지를 내용에 삽입
   const insertImageToContent = (imageUrl) => {
-      const imageMarkdown = `\n\n![이미지](${imageUrl})\n\n`;
+      const httpsUrl = forceHttps(imageUrl);
+      const imageMarkdown = `\n\n![이미지](${httpsUrl})\n\n`;
       setFormData({ 
         ...formData, 
         content: formData.content + imageMarkdown 
@@ -1821,7 +1832,7 @@ export default function BlogAdmin() {
                             {generatedImages.map((imageUrl, index) => (
                           <div key={index} className="relative group">
                             <img
-                              src={imageUrl}
+                              src={forceHttps(imageUrl)}
                               alt={`생성된 이미지 ${index + 1}`}
                               className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
                                   onClick={() => {
@@ -1847,7 +1858,7 @@ export default function BlogAdmin() {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                    insertImageToContent(imageUrl);
+                                    insertImageToContent(forceHttps(imageUrl));
                                       }}
                                       className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                     >
@@ -1856,7 +1867,7 @@ export default function BlogAdmin() {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                    copyImageUrl(imageUrl);
+                                    copyImageUrl(forceHttps(imageUrl));
                                       }}
                                   className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                                     >
@@ -2635,7 +2646,7 @@ export default function BlogAdmin() {
                               onClick={() => handleImageGroupClick(group)}
                             >
                               <img
-                                src={representativeImage.url}
+                                src={forceHttps(representativeImage.url)}
                                 alt={representativeImage.name}
                                 className="w-full h-32 object-cover"
                                 onError={(e) => {
@@ -2691,7 +2702,7 @@ export default function BlogAdmin() {
                     <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setFormData({ ...formData, featured_image: representativeImage.url });
+                                    setFormData({ ...formData, featured_image: forceHttps(representativeImage.url) });
                         alert('대표 이미지로 설정되었습니다!');
                       }}
                                   className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
@@ -2701,7 +2712,7 @@ export default function BlogAdmin() {
                     <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    insertImageToContent(representativeImage.url);
+                                    insertImageToContent(forceHttps(representativeImage.url));
                                   }}
                                   className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                 >
@@ -2710,7 +2721,7 @@ export default function BlogAdmin() {
                       <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    copyImageUrl(representativeImage.url);
+                                    copyImageUrl(forceHttps(representativeImage.url));
                                   }}
                                   className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                                 >
@@ -2719,7 +2730,7 @@ export default function BlogAdmin() {
                       <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    selectBaseImage(representativeImage.url);
+                                    selectBaseImage(forceHttps(representativeImage.url));
                                   }}
                                   className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
                                 >
@@ -2728,7 +2739,7 @@ export default function BlogAdmin() {
                       <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    selectImageForImprovement(representativeImage.url);
+                                    selectImageForImprovement(forceHttps(representativeImage.url));
                                   }}
                                   className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
                                 >
@@ -2737,7 +2748,7 @@ export default function BlogAdmin() {
                       <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    selectImageForAnalysis(representativeImage.url);
+                                    selectImageForAnalysis(forceHttps(representativeImage.url));
                                   }}
                                   className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
                                 >
@@ -2887,7 +2898,7 @@ export default function BlogAdmin() {
                             </button>
                             <button
                   onClick={() => {
-                    insertImageToContent(selectedGeneratedImage);
+                    insertImageToContent(forceHttps(selectedGeneratedImage));
                     setShowGeneratedImageModal(false);
                   }}
                   className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
@@ -2947,11 +2958,11 @@ export default function BlogAdmin() {
                   <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
                   <div className="relative">
                     <img
-                      src={image.url}
+                      src={forceHttps(image.url)}
                       alt={image.name}
                         className="w-full h-40 object-cover cursor-zoom-in"
                         onClick={() => {
-                          setLargeImageUrl(image.url);
+                          setLargeImageUrl(forceHttps(image.url));
                           setShowLargeImageModal(true);
                         }}
                         onError={(e) => {
@@ -2995,7 +3006,7 @@ export default function BlogAdmin() {
                     <button
                       type="button"
                       onClick={() => {
-                            setFormData({ ...formData, featured_image: image.url });
+                            setFormData({ ...formData, featured_image: forceHttps(image.url) });
                             alert('대표 이미지로 설정되었습니다!');
                           }}
                           className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
@@ -3005,7 +3016,7 @@ export default function BlogAdmin() {
                     <button
                       type="button"
                       onClick={() => {
-                            insertImageToContent(image.url);
+                            insertImageToContent(forceHttps(image.url));
                       }}
                           className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                     >
@@ -3014,7 +3025,7 @@ export default function BlogAdmin() {
                     <button
                       type="button"
                       onClick={() => {
-                            copyImageUrl(image.url);
+                            copyImageUrl(forceHttps(image.url));
                       }}
                           className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                     >
@@ -3155,7 +3166,7 @@ export default function BlogAdmin() {
                     return (img.name || '').toLowerCase().includes(q) || (img.url || '').toLowerCase().includes(q);
                   }).map((img: any, idx: number) => (
                     <div key={idx} className="border rounded-lg overflow-hidden group cursor-pointer" onClick={async () => {
-                      const preferredUrl = getPreferredVersionUrl(img) || img.url;
+                      const preferredUrl = forceHttps(getPreferredVersionUrl(img) || img.url);
                       const alt = galleryPickerAlt || img.name;
                       if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, { alt, title: galleryPickerTitle });
                       saveImageMetadata(img, alt);
@@ -3164,7 +3175,7 @@ export default function BlogAdmin() {
                       setGalleryPickerAlt('');
                       setGalleryPickerTitle('');
                     }}>
-                      <img src={img.url} alt={img.name} className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-image.jpg'; }} />
+                      <img src={forceHttps(img.url)} alt={img.name} className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-image.jpg'; }} />
                       <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between" title={img.name}>
                         <span className="truncate mr-2">{img.name}</span>
                         {/_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-gray-200 text-gray-700 rounded">thumb</span>) : /_medium\./i.test(img.name) ? (<span className="px-1 py-0.5 bg-indigo-200 text-indigo-800 rounded">medium</span>) : /\.webp$/i.test(img.name) ? (<span className="px-1 py-0.5 bg-green-200 text-green-800 rounded">webp</span>) : (<span className="px-1 py-0.5 bg-blue-200 text-blue-800 rounded">original</span>)}
