@@ -163,6 +163,9 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                   </label>
                   <button type="button" className="w-full" onClick={() => onSelect(img.url, { alt: altText || img.name })}>
                     <img src={img.url} alt={img.name} className="w-full h-32 object-contain bg-gray-50" />
+                    {isFeatured(img) && (
+                      <div className="pointer-events-none absolute inset-0 rounded-lg border-2 border-amber-500 shadow-[0_0_0_2px_rgba(255,193,7,0.6)_inset]"></div>
+                    )}
                     <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between">
                       <span className="truncate mr-2">{img.name}</span>
                       {/* 버전 배지 */}
