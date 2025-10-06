@@ -40,6 +40,11 @@ export default function BlogAdmin() {
   const [showImageGroupModal, setShowImageGroupModal] = useState(false);
   const [selectedImageGroup, setSelectedImageGroup] = useState([]);
   const [totalImagesCount, setTotalImagesCount] = useState(0);
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [imagesPerPage] = useState(20); // 페이지당 20개 이미지
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
   const [showLargeImageModal, setShowLargeImageModal] = useState(false);
   const [largeImageUrl, setLargeImageUrl] = useState('');
@@ -743,21 +748,29 @@ export default function BlogAdmin() {
   };
 
   // 이미지 관리 관련 함수들
-  const fetchImageGallery = async () => {
+  const fetchImageGallery = async (page = 1, reset = false) => {
     try {
-      // 모든 이미지를 불러오기 위해 limit 파라미터를 제거하거나 매우 크게 설정
-      const response = await fetch('/api/admin/all-images');
+      setIsLoadingImages(true);
+      const offset = (page - 1) * imagesPerPage;
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}`);
       const data = await response.json();
       
       if (response.ok) {
-        setAllImages(data.images || []);
-        setTotalImagesCount(data.total || (data.images ? data.images.length : 0));
-        console.log('✅ 이미지 갤러리 로드 성공:', data.images?.length || 0, '개');
+        if (reset || page === 1) {
+          setAllImages(data.images || []);
+        } else {
+          setAllImages(prev => [...prev, ...(data.images || [])]);
+        }
+        setTotalImagesCount(data.total || 0);
+        setCurrentPage(page);
+        console.log('✅ 이미지 갤러리 로드 성공:', data.images?.length || 0, '개 (페이지', page, ')');
       } else {
         console.error('❌ 이미지 갤러리 로드 실패:', data.error);
       }
     } catch (error) {
       console.error('❌ 이미지 갤러리 로드 에러:', error);
+    } finally {
+      setIsLoadingImages(false);
     }
   };
 
@@ -772,6 +785,19 @@ export default function BlogAdmin() {
       return newSet;
     });
   };
+
+  // 페이지네이션 관련 함수들
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchImageGallery(newPage, true);
+  };
+
+  const handleLoadMore = () => {
+    fetchImageGallery(currentPage + 1, false);
+  };
+
+  const totalPages = Math.ceil(totalImagesCount / imagesPerPage);
+  const hasMorePages = currentPage < totalPages;
 
   const handleSelectAllImages = () => {
     if (selectedImages.size === allImages.length) {
@@ -2627,13 +2653,20 @@ export default function BlogAdmin() {
                       <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
                       <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
                     </div>
-                <button
-                      type="button"
-                      onClick={fetchImageGallery}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
-                >
-                      🔄 새로고침
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => fetchImageGallery(1, true)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+                  >
+                    🔄 새로고침
+                  </button>
+                  {totalImagesCount > 0 && (
+                    <span className="text-sm text-gray-600">
+                      총 {totalImagesCount}개 (페이지 {currentPage}/{totalPages})
+                    </span>
+                  )}
+                </div>
               </div>
                 
                   {/* 이미지 갤러리 컨트롤 */}
@@ -2818,8 +2851,78 @@ export default function BlogAdmin() {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <p>이미지가 없습니다. 위의 AI 이미지 생성 기능을 사용하거나 이미지를 업로드하세요.</p>
-                            </div>
-                          )}
+                    </div>
+                  )}
+
+                  {/* 페이지네이션 컨트롤 */}
+                  {allImages.length > 0 && (
+                    <div className="mt-6 flex items-center justify-center space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        첫 페이지
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        이전
+                      </button>
+                      
+                      <div className="flex items-center space-x-2">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                          if (pageNum > totalPages) return null;
+                          return (
+                            <button
+                              key={pageNum}
+                              type="button"
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`px-3 py-2 text-sm border rounded-lg ${
+                                currentPage === pageNum
+                                  ? 'bg-blue-500 text-white border-blue-500'
+                                  : 'border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        다음
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        마지막 페이지
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 로딩 상태 표시 */}
+                  {isLoadingImages && (
+                    <div className="text-center py-4">
+                      <div className="inline-flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                        <span className="text-sm text-gray-600">이미지 로딩 중...</span>
+                      </div>
+                    </div>
+                  )}
         </div>
 
                 {/* 카테고리 */}
