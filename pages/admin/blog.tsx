@@ -6,6 +6,7 @@ const GalleryPicker = dynamic(() => import('../../components/admin/GalleryPicker
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
+import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import PostList from '../../components/admin/PostList';
 import PostGrid from '../../components/admin/PostGrid';
 
@@ -34,6 +35,14 @@ export default function BlogAdmin() {
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
   const [imageGenerationModel, setImageGenerationModel] = useState('');
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+
+  // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
+  const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
+  const [brandContentType, setBrandContentType] = useState<'골프 정보' | '튜토리얼' | '고객 후기' | '고객 스토리' | '이벤트'>('골프 정보');
+  const getBrandWeight = (ct: typeof brandContentType): 'low' | 'medium' | 'high' => {
+    const strategy = (CONTENT_STRATEGY as any)[ct];
+    return (strategy?.brandWeight as 'low' | 'medium' | 'high') || 'medium';
+  };
 
   // 이미지 관리 관련 상태
   const [postImages, setPostImages] = useState([]);
@@ -479,9 +488,9 @@ export default function BlogAdmin() {
         body: JSON.stringify({
           contentSource,
           contentType: formData.category,
-          customerPersona: 'competitive_maintainer',
+          customerPersona: brandPersona,
           customerChannel: 'local_customers',
-          brandWeight: 'medium'
+          brandWeight: getBrandWeight(brandContentType)
         })
       });
       if (!response.ok) throw new Error('제목 생성 실패');
@@ -554,7 +563,7 @@ export default function BlogAdmin() {
           title: formData.title,
           excerpt: formData.excerpt,
           contentType: formData.category,
-          brandStrategy: { customerPersona: 'competitive_maintainer', customerChannel: 'local_customers', brandWeight: 'medium' }
+          brandStrategy: { customerPersona: brandPersona, customerChannel: 'local_customers', brandWeight: getBrandWeight(brandContentType) }
         })
       });
       if (!res.ok) throw new Error('이미지 생성 실패');
@@ -599,9 +608,9 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: 'competitive_maintainer',
+            customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: 'none'
+            brandWeight: getBrandWeight(brandContentType)
           },
           model: 'dalle3'
         })
@@ -625,9 +634,9 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: 'competitive_maintainer',
+            customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: 'none'
+            brandWeight: getBrandWeight(brandContentType)
           },
           imageCount: count,
           customPrompt: smartPrompt
@@ -718,9 +727,9 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: 'competitive_maintainer',
+            customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: 'none'
+            brandWeight: getBrandWeight(brandContentType)
           },
           model: 'fal'
         })
@@ -743,9 +752,9 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: 'competitive_maintainer',
+            customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: 'none'
+            brandWeight: getBrandWeight(brandContentType)
           },
           imageCount: count,
           customPrompt: smartPrompt
@@ -804,9 +813,9 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: 'competitive_maintainer',
+            customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: 'none'
+            brandWeight: getBrandWeight(brandContentType)
           },
           model: 'google'
         })
@@ -829,9 +838,9 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: 'competitive_maintainer',
+            customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: 'none'
+            brandWeight: getBrandWeight(brandContentType)
           },
           imageCount: count,
           customPrompt: smartPrompt
