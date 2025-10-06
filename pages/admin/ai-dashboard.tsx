@@ -1,6 +1,25 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
+import dynamic from 'next/dynamic';
+
+// 실시간 모니터링 컴포넌트를 동적으로 로드 (Chart.js 의존성)
+const RealtimeAIMonitor = dynamic(() => import('../../components/admin/RealtimeAIMonitor'), { 
+  ssr: false,
+  loading: () => <div className="text-center py-8">실시간 모니터링 로딩 중...</div>
+});
+
+// Google Analytics 위젯을 동적으로 로드
+const GoogleAnalyticsWidget = dynamic(() => import('../../components/admin/GoogleAnalyticsWidget'), { 
+  ssr: false,
+  loading: () => <div className="text-center py-8">Google Analytics 로딩 중...</div>
+});
+
+// 블로그 분석 위젯을 동적으로 로드
+const BlogAnalyticsWidget = dynamic(() => import('../../components/admin/BlogAnalyticsWidget'), { 
+  ssr: false,
+  loading: () => <div className="text-center py-8">블로그 분석 로딩 중...</div>
+});
 
 interface AIUsageLog {
   id: string;
@@ -208,6 +227,16 @@ export default function AIDashboard() {
                 }`}
               >
                 🤖 AI 사용량
+              </button>
+              <button
+                onClick={() => setActiveTab('realtime')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'realtime'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📊 실시간 모니터링
               </button>
               <button
                 onClick={() => setActiveTab('providers')}
@@ -428,6 +457,13 @@ export default function AIDashboard() {
             </div>
           )}
 
+          {/* 실시간 모니터링 탭 */}
+          {activeTab === 'realtime' && (
+            <div className="space-y-8">
+              <RealtimeAIMonitor refreshInterval={30000} />
+            </div>
+          )}
+
           {/* 설정 탭: 공급자 카드 이동 */}
           {activeTab === 'providers' && (
             <div className="space-y-8">
@@ -554,7 +590,7 @@ export default function AIDashboard() {
             <div className="space-y-8">
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">📈 블로그 분석</h2>
-                <p className="text-gray-600">상세한 블로그 분석 기능은 추후 구현 예정입니다.</p>
+                <BlogAnalyticsWidget period="7d" />
               </div>
             </div>
           )}
@@ -562,32 +598,10 @@ export default function AIDashboard() {
           {/* Google 서비스 탭 */}
           {activeTab === 'google-services' && (
             <div className="space-y-8">
-              {/* Google Analytics 4 */}
+              {/* Google Analytics 4 - 실제 위젯 */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">📊 Google Analytics 4</h2>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">-</div>
-                    <div className="text-sm text-gray-600">실시간 방문자</div>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">-</div>
-                    <div className="text-sm text-gray-600">페이지뷰</div>
-                  </div>
-                  <div className="bg-yellow-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">-</div>
-                    <div className="text-sm text-gray-600">세션</div>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">-</div>
-                    <div className="text-sm text-gray-600">이탈률</div>
-                  </div>
-                </div>
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    💡 Google Analytics 4 API 연동을 통해 실시간 데이터를 표시할 예정입니다.
-                  </p>
-                </div>
+                <GoogleAnalyticsWidget period="7d" />
               </div>
 
               {/* Google Search Console */}
