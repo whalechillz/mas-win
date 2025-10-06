@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import AdminNav from '../../components/admin/AdminNav';
 
 interface AIUsageLog {
   id: string;
@@ -136,31 +137,14 @@ export default function AIDashboard() {
         <title>AI & 블로그 대시보드 - MAS Golf</title>
       </Head>
       
+      <AdminNav />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">AI & 블로그 대시보드</h1>
             <p className="text-gray-600 mt-2">AI 사용량과 블로그 성과를 한눈에 확인하세요</p>
             
-            {/* Google Cloud 비활성화 알림 */}
-            <div className="mt-6 mb-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <span className="text-red-400 text-xl">🚨</span>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
-                      Google Cloud API 비활성화됨
-                    </h3>
-                    <p className="text-sm text-red-700 mt-1">
-                      ₩1,664,818 과금 방지를 위해 안전하게 차단되었습니다. 
-                      <span className="font-semibold">비용 절약 모드</span>가 활성화되어 있습니다.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* 경고 배너 제거 요청 반영: 상단 경고 제거 */}
 
             {/* 공급자 카드는 "설정" 탭에서만 노출됩니다. */}
           </div>
