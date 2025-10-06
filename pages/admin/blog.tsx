@@ -35,6 +35,8 @@ export default function BlogAdmin() {
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
   const [imageGenerationModel, setImageGenerationModel] = useState('');
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState('');
 
   // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
   const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
@@ -624,7 +626,7 @@ export default function BlogAdmin() {
   };
 
   // AI 이미지 생성 함수들
-  const generateAIImage = async (count = 4) => {
+  const generateAIImage = async (count = 4, customPromptOverride?: string) => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
       return;
@@ -636,33 +638,37 @@ export default function BlogAdmin() {
       setShowGenerationProcess(true);
       setImageGenerationModel('ChatGPT + DALL-E 3');
       
-      // 1단계: ChatGPT로 스마트 프롬프트 생성
-      setImageGenerationStep('1단계: ChatGPT로 스마트 프롬프트 생성 중...');
-      const promptResponse = await fetch('/api/generate-smart-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: formData.category,
-          brandStrategy: {
+      // 1단계: 프롬프트 준비 (수정본 우선)
+      let smartPrompt = customPromptOverride || imageGenerationPrompt;
+      if (!smartPrompt) {
+        setImageGenerationStep('1단계: ChatGPT로 스마트 프롬프트 생성 중...');
+        const promptResponse = await fetch('/api/generate-smart-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            title: formData.title,
+            excerpt: formData.excerpt,
             contentType: formData.category,
-            customerPersona: brandPersona,
-            customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType),
-            audienceTemperature,
-            audienceWeight: getAudienceWeight(audienceTemperature)
-          },
-          model: 'dalle3'
-        })
-      });
+            brandStrategy: {
+              contentType: formData.category,
+              customerPersona: brandPersona,
+              customerChannel: '',
+              brandWeight: getBrandWeight(brandContentType),
+              audienceTemperature,
+              audienceWeight: getAudienceWeight(audienceTemperature)
+            },
+            model: 'dalle3'
+          })
+        });
 
-      if (!promptResponse.ok) {
-        throw new Error('ChatGPT 프롬프트 생성 실패');
+        if (!promptResponse.ok) {
+          throw new Error('ChatGPT 프롬프트 생성 실패');
+        }
+
+        const resp = await promptResponse.json();
+        smartPrompt = resp.prompt;
+        setImageGenerationPrompt(smartPrompt);
       }
-
-      const { prompt: smartPrompt } = await promptResponse.json();
-      setImageGenerationPrompt(smartPrompt);
       
       // 2단계: DALL-E 3로 이미지 생성
       setImageGenerationStep('2단계: DALL-E 3로 이미지 생성 중...');
@@ -748,7 +754,7 @@ export default function BlogAdmin() {
   };
 
   // FAL AI 이미지 생성
-  const generateFALAIImage = async (count = 4) => {
+  const generateFALAIImage = async (count = 4, customPromptOverride?: string) => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
       return;
@@ -760,32 +766,37 @@ export default function BlogAdmin() {
     setShowGenerationProcess(true);
       setImageGenerationModel('ChatGPT + FAL AI');
 
-      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
-      const promptResponse = await fetch('/api/generate-smart-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: formData.category,
-          brandStrategy: {
+      // 1단계: 프롬프트 준비 (수정본 우선)
+      let smartPrompt = customPromptOverride || imageGenerationPrompt;
+      if (!smartPrompt) {
+        setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+        const promptResponse = await fetch('/api/generate-smart-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formData.title,
+            excerpt: formData.excerpt,
             contentType: formData.category,
-            customerPersona: brandPersona,
-            customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType),
-            audienceTemperature,
-            audienceWeight: getAudienceWeight(audienceTemperature)
-          },
-          model: 'fal'
-        })
-      });
+            brandStrategy: {
+              contentType: formData.category,
+              customerPersona: brandPersona,
+              customerChannel: '',
+              brandWeight: getBrandWeight(brandContentType),
+              audienceTemperature,
+              audienceWeight: getAudienceWeight(audienceTemperature)
+            },
+            model: 'fal'
+          })
+        });
 
-      if (!promptResponse.ok) {
-        throw new Error('ChatGPT 프롬프트 생성 실패');
+        if (!promptResponse.ok) {
+          throw new Error('ChatGPT 프롬프트 생성 실패');
+        }
+
+        const resp = await promptResponse.json();
+        smartPrompt = resp.prompt;
+        setImageGenerationPrompt(smartPrompt);
       }
-
-      const { prompt: smartPrompt } = await promptResponse.json();
-      setImageGenerationPrompt(smartPrompt);
       
       setImageGenerationStep('2단계: FAL AI로 이미지 생성 중...');
       const response = await fetch('/api/generate-blog-image-fal', {
@@ -838,7 +849,7 @@ export default function BlogAdmin() {
   };
 
   // Google AI 이미지 생성
-  const generateGoogleAIImage = async (count = 4) => {
+  const generateGoogleAIImage = async (count = 4, customPromptOverride?: string) => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
       return;
@@ -850,32 +861,37 @@ export default function BlogAdmin() {
       setShowGenerationProcess(true);
       setImageGenerationModel('ChatGPT + Google AI');
       
-      setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
-      const promptResponse = await fetch('/api/generate-smart-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: formData.category,
-          brandStrategy: {
+      // 1단계: 프롬프트 준비 (수정본 우선)
+      let smartPrompt = customPromptOverride || imageGenerationPrompt;
+      if (!smartPrompt) {
+        setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
+        const promptResponse = await fetch('/api/generate-smart-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formData.title,
+            excerpt: formData.excerpt,
             contentType: formData.category,
-            customerPersona: brandPersona,
-            customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType),
-            audienceTemperature,
-            audienceWeight: getAudienceWeight(audienceTemperature)
-          },
-          model: 'google'
-        })
-      });
+            brandStrategy: {
+              contentType: formData.category,
+              customerPersona: brandPersona,
+              customerChannel: '',
+              brandWeight: getBrandWeight(brandContentType),
+              audienceTemperature,
+              audienceWeight: getAudienceWeight(audienceTemperature)
+            },
+            model: 'google'
+          })
+        });
 
-      if (!promptResponse.ok) {
-        throw new Error('ChatGPT 프롬프트 생성 실패');
+        if (!promptResponse.ok) {
+          throw new Error('ChatGPT 프롬프트 생성 실패');
+        }
+
+        const resp = await promptResponse.json();
+        smartPrompt = resp.prompt;
+        setImageGenerationPrompt(smartPrompt);
       }
-
-      const { prompt: smartPrompt } = await promptResponse.json();
-      setImageGenerationPrompt(smartPrompt);
       
       setImageGenerationStep('2단계: Google AI로 이미지 생성 중...');
       const response = await fetch('/api/generate-blog-image-google', {
@@ -2201,6 +2217,48 @@ export default function BlogAdmin() {
                     <h3 className="text-lg font-semibold text-gray-900">🎨 AI 이미지 생성</h3>
                     <span className="text-sm text-gray-500">제목과 내용을 바탕으로 AI가 이미지를 생성합니다</span>
                     </div>
+
+                  {/* 프롬프트 편집기 */}
+                  <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">프롬프트 미리보기 및 수정</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
+                          onClick={() => {
+                            setEditedPrompt(imageGenerationPrompt);
+                            setShowPromptEditor((v) => !v);
+                          }}
+                        >{showPromptEditor ? '닫기' : '열기'}</button>
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                          onClick={() => {
+                            if (!editedPrompt?.trim()) {
+                              alert('수정할 프롬프트를 입력하세요.');
+                              return;
+                            }
+                            setImageGenerationPrompt(editedPrompt);
+                            alert('프롬프트가 업데이트되었습니다. 원하는 모델로 재생성하세요.');
+                          }}
+                        >프롬프트 저장</button>
+                      </div>
+                    </div>
+                    {showPromptEditor && (
+                      <textarea
+                        className="w-full h-28 text-sm px-3 py-2 border rounded"
+                        value={editedPrompt}
+                        onChange={(e) => setEditedPrompt(e.target.value)}
+                        placeholder="프롬프트를 입력하거나 자동 생성 후 수정하세요."
+                      />
+                    )}
+                    {!showPromptEditor && (
+                      <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
+                        {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
+                      </div>
+                    )}
+                  </div>
 
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
