@@ -2915,7 +2915,12 @@ export default function BlogAdmin() {
                       type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    insertImageToContent(forceHttps(representativeImage.url));
+                                    const preferredUrl = forceHttps(representativeImage.url);
+                                    if (typeof window !== 'undefined') {
+                                      window.dispatchEvent(new CustomEvent('tiptap:insert-image', { detail: { url: preferredUrl, alt: representativeImage.name } }));
+                                    } else {
+                                      insertImageToContent(preferredUrl);
+                                    }
                                   }}
                                   className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                 >
