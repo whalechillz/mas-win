@@ -1,0 +1,557 @@
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+
+interface ImageMetadata {
+  id?: string;
+  name: string;
+  url: string;
+  size: number;
+  created_at: string;
+  updated_at: string;
+  alt_text?: string;
+  keywords?: string[];
+  title?: string;
+  description?: string;
+  category?: string;
+  is_featured?: boolean;
+  usage_count?: number;
+  used_in_posts?: string[];
+}
+
+export default function GalleryAdmin() {
+  const [images, setImages] = useState<ImageMetadata[]>([]);
+  const [filteredImages, setFilteredImages] = useState<ImageMetadata[]>([]);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [imagesPerPage] = useState(24);
+  
+  // 검색 및 필터 상태
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates'>('all');
+  const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // 편집 상태
+  const [editingImage, setEditingImage] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    alt_text: '',
+    keywords: '',
+    title: '',
+    description: '',
+    category: ''
+  });
+
+  // 이미지 로드
+  const fetchImages = async (page = 1, reset = false) => {
+    try {
+      setIsLoading(true);
+      const offset = (page - 1) * imagesPerPage;
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        const imagesWithMetadata = await Promise.all(
+          (data.images || []).map(async (img: any) => {
+            // 메타데이터 조회
+            const metadataResponse = await fetch(`/api/admin/image-metadata?imageName=${encodeURIComponent(img.name)}`);
+            const metadata = metadataResponse.ok ? await metadataResponse.json() : {};
+            
+            return {
+              ...img,
+              alt_text: metadata.alt_text || '',
+              keywords: metadata.keywords || [],
+              title: metadata.title || '',
+              description: metadata.description || '',
+              category: metadata.category || '',
+              is_featured: false, // TODO: 실제 대표 이미지 여부 확인
+              usage_count: 0, // TODO: 사용 현황 조회
+              used_in_posts: [] // TODO: 사용된 포스트 목록
+            };
+          })
+        );
+        
+        if (reset || page === 1) {
+          setImages(imagesWithMetadata);
+        } else {
+          setImages(prev => [...prev, ...imagesWithMetadata]);
+        }
+        setTotalCount(data.total || 0);
+        setCurrentPage(page);
+      }
+    } catch (error) {
+      console.error('❌ 이미지 로드 에러:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 필터링 및 검색
+  useEffect(() => {
+    let filtered = [...images];
+    
+    // 검색어 필터
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(img => 
+        img.name.toLowerCase().includes(query) ||
+        img.alt_text?.toLowerCase().includes(query) ||
+        img.keywords?.some(keyword => keyword.toLowerCase().includes(query)) ||
+        img.title?.toLowerCase().includes(query)
+      );
+    }
+    
+    // 타입 필터
+    switch (filterType) {
+      case 'featured':
+        filtered = filtered.filter(img => img.is_featured);
+        break;
+      case 'unused':
+        filtered = filtered.filter(img => img.usage_count === 0);
+        break;
+      case 'duplicates':
+        // TODO: 중복 이미지 로직 구현
+        break;
+    }
+    
+    // 정렬
+    filtered.sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      if (sortBy === 'keywords') {
+        aValue = a.keywords?.join(', ') || '';
+        bValue = b.keywords?.join(', ') || '';
+      }
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+      
+      return 0;
+    });
+    
+    setFilteredImages(filtered);
+  }, [images, searchQuery, filterType, sortBy, sortOrder]);
+
+  // 초기 로드
+  useEffect(() => {
+    fetchImages(1, true);
+  }, []);
+
+  // 이미지 선택/해제
+  const toggleImageSelection = (imageName: string) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageName)) {
+        newSet.delete(imageName);
+      } else {
+        newSet.add(imageName);
+      }
+      return newSet;
+    });
+  };
+
+  // 전체 선택/해제
+  const toggleSelectAll = () => {
+    if (selectedImages.size === filteredImages.length) {
+      setSelectedImages(new Set());
+    } else {
+      setSelectedImages(new Set(filteredImages.map(img => img.name)));
+    }
+  };
+
+  // 편집 시작
+  const startEditing = (image: ImageMetadata) => {
+    setEditingImage(image.name);
+    setEditForm({
+      alt_text: image.alt_text || '',
+      keywords: image.keywords?.join(', ') || '',
+      title: image.title || '',
+      description: image.description || '',
+      category: image.category || ''
+    });
+  };
+
+  // 편집 저장
+  const saveEdit = async () => {
+    if (!editingImage) return;
+    
+    try {
+      const keywords = editForm.keywords.split(',').map(k => k.trim()).filter(k => k);
+      
+      const response = await fetch('/api/admin/image-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageName: editingImage,
+          alt_text: editForm.alt_text,
+          keywords: keywords,
+          title: editForm.title,
+          description: editForm.description,
+          category: editForm.category
+        })
+      });
+      
+      if (response.ok) {
+        // 로컬 상태 업데이트
+        setImages(prev => prev.map(img => 
+          img.name === editingImage 
+            ? { ...img, ...editForm, keywords }
+            : img
+        ));
+        setEditingImage(null);
+        alert('메타데이터가 저장되었습니다!');
+      }
+    } catch (error) {
+      console.error('❌ 메타데이터 저장 에러:', error);
+      alert('저장에 실패했습니다.');
+    }
+  };
+
+  // 편집 취소
+  const cancelEdit = () => {
+    setEditingImage(null);
+    setEditForm({
+      alt_text: '',
+      keywords: '',
+      title: '',
+      description: '',
+      category: ''
+    });
+  };
+
+  return (
+    <>
+      <Head>
+        <title>이미지 갤러리 관리 - MAS Golf</title>
+      </Head>
+      
+      <div className="min-h-screen bg-gray-50">
+        {/* 헤더 */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">🖼️ 이미지 갤러리 관리</h1>
+                <p className="text-sm text-gray-600 mt-1">이미지 메타데이터 관리 및 최적화</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/admin/blog"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                >
+                  📝 블로그 관리로 돌아가기
+                </Link>
+                <button
+                  onClick={() => fetchImages(1, true)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+                >
+                  🔄 새로고침
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* 검색 및 필터 */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* 검색 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">검색</label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="파일명, ALT 텍스트, 키워드로 검색..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              {/* 필터 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">필터</label>
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value as any)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">전체</option>
+                  <option value="featured">⭐ 대표 이미지</option>
+                  <option value="unused">사용되지 않음</option>
+                  <option value="duplicates">중복 이미지</option>
+                </select>
+              </div>
+              
+              {/* 정렬 기준 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">정렬 기준</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="created_at">생성일</option>
+                  <option value="name">파일명</option>
+                  <option value="size">파일 크기</option>
+                  <option value="usage_count">사용 횟수</option>
+                </select>
+              </div>
+              
+              {/* 정렬 순서 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="desc">내림차순</option>
+                  <option value="asc">오름차순</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* 선택된 이미지 액션 */}
+          {selectedImages.size > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-700">
+                  {selectedImages.size}개 이미지 선택됨
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                    📝 일괄 편집
+                  </button>
+                  <button className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">
+                    🗑️ 일괄 삭제
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 이미지 그리드 */}
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={filteredImages.length > 0 && selectedImages.size === filteredImages.length}
+                      onChange={toggleSelectAll}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm text-gray-700">전체 선택</span>
+                  </label>
+                  <span className="text-sm text-gray-600">
+                    {filteredImages.length}개 표시 (총 {totalCount}개)
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    <span className="text-gray-600">이미지 로딩 중...</span>
+                  </div>
+                </div>
+              ) : filteredImages.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-4">🖼️</div>
+                  <p className="text-lg mb-2">이미지가 없습니다</p>
+                  <p className="text-sm">검색 조건을 변경해보세요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {filteredImages.map((image) => (
+                    <div key={image.name} className="relative group border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                      {/* 선택 체크박스 */}
+                      <div className="absolute top-2 left-2 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedImages.has(image.name)}
+                          onChange={() => toggleImageSelection(image.name)}
+                          className="rounded border-gray-300"
+                        />
+                      </div>
+                      
+                      {/* 이미지 */}
+                      <div className="aspect-square bg-gray-100">
+                        <img
+                          src={image.url}
+                          alt={image.alt_text || image.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                          }}
+                        />
+                      </div>
+                      
+                      {/* 이미지 정보 */}
+                      <div className="p-3">
+                        <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
+                          {image.name}
+                        </div>
+                        
+                        {/* 메타데이터 미리보기 */}
+                        {image.alt_text && (
+                          <div className="text-xs text-gray-500 mb-1 truncate" title={image.alt_text}>
+                            ALT: {image.alt_text}
+                          </div>
+                        )}
+                        
+                        {image.keywords && image.keywords.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {image.keywords.slice(0, 2).map((keyword, idx) => (
+                              <span key={idx} className="px-1 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
+                                {keyword}
+                              </span>
+                            ))}
+                            {image.keywords.length > 2 && (
+                              <span className="text-xs text-gray-500">+{image.keywords.length - 2}</span>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* 사용 현황 */}
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>{image.usage_count || 0}회 사용</span>
+                          {image.is_featured && (
+                            <span className="px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs">
+                              ⭐ 대표
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* 편집 버튼 */}
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => startEditing(image)}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                          title="편집"
+                        >
+                          ✏️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 편집 모달 */}
+      {editingImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">이미지 메타데이터 편집</h3>
+              <button
+                onClick={cancelEdit}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ALT 텍스트</label>
+                <input
+                  type="text"
+                  value={editForm.alt_text}
+                  onChange={(e) => setEditForm({ ...editForm, alt_text: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="이미지 설명을 입력하세요"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">키워드</label>
+                <input
+                  type="text"
+                  value={editForm.keywords}
+                  onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="키워드를 쉼표로 구분하여 입력하세요"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="이미지 제목을 입력하세요"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">설명</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="이미지에 대한 자세한 설명을 입력하세요"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">카테고리 선택</option>
+                  <option value="golf">골프</option>
+                  <option value="equipment">장비</option>
+                  <option value="course">코스</option>
+                  <option value="event">이벤트</option>
+                  <option value="other">기타</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 p-4 border-t">
+              <button
+                onClick={cancelEdit}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
