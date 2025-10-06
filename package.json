@@ -6,6 +6,7 @@
     "node": "20.x"
   },
   "scripts": {
+    "postbuild": "next-sitemap",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -45,6 +46,8 @@
     "lucide-react": "^0.539.0",
     "marked": "^16.2.1",
     "next": "14.0.3",
+    "next-seo": "^6.8.0",
+    "next-sitemap": "^4.2.3",
     "node-fetch": "^3.3.2",
     "openai": "^5.19.1",
     "puppeteer": "^24.21.0",
