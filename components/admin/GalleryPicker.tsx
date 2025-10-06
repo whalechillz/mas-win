@@ -149,9 +149,13 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {filtered.map((img) => (
-                <div key={img.name} className={`border rounded-lg overflow-hidden text-left group relative ${isFeatured(img) ? 'ring-1 ring-yellow-500 ring-offset-2 ring-offset-white' : ''}`}>
+                <div
+                  key={img.name}
+                  data-featured={isFeatured(img) ? 'true' : 'false'}
+                  className={`border rounded-lg overflow-hidden text-left group relative ${isFeatured(img) ? 'outline outline-2 outline-yellow-500 outline-offset-2' : ''}`}
+                >
                   {isFeatured(img) && (
-                    <span className="absolute top-1 left-1 z-10 px-1 py-0.5 text-[10px] rounded bg-yellow-600 text-white shadow-sm">대표</span>
+                    <span className="absolute top-1 left-1 z-10 px-1.5 py-0.5 text-[11px] font-semibold rounded bg-yellow-500 text-white shadow">대표</span>
                   )}
                   {/* 선택 체크박스 */}
                   <label className="absolute top-2 left-2 z-10 bg-white/80 rounded px-1 py-0.5">
