@@ -20,26 +20,26 @@ export default async function handler(req, res) {
     const paragraphs = content.split('\n\n').filter(p => p.trim().length > 0);
     const paragraphImages = [];
 
-    // 각 단락에 대해 이미지 생성
-    for (let i = 0; i < Math.min(paragraphs.length, 3); i++) { // 최대 3개 단락
+    // 각 단락에 대해 이미지 생성 (최대 4개 단락)
+    for (let i = 0; i < Math.min(paragraphs.length, 4); i++) { // 최대 4개 단락
       const paragraph = paragraphs[i].trim();
       
       // 단락 내용을 기반으로 이미지 프롬프트 생성
       const imagePrompt = await generateParagraphImagePrompt(paragraph, title, excerpt, contentType, brandStrategy, i);
       
-      // FAL AI로 이미지 생성 (실사 스타일)
-      const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
+      // FAL AI hidream-i1-dev로 이미지 생성 (고품질)
+      const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
         method: 'POST',
         headers: {
-          'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
+          'Authorization': `Key ${process.env.FAL_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           prompt: imagePrompt,
-          num_inference_steps: 4,
-          guidance_scale: 1,
           num_images: 1,
-          enable_safety_checker: true
+          image_size: "square",
+          num_inference_steps: 28,
+          seed: null
         })
       });
 
@@ -49,43 +49,14 @@ export default async function handler(req, res) {
       }
 
       const falResult = await falResponse.json();
-      console.log('FAL AI 응답:', falResult);
+      console.log('✅ FAL AI hidream-i1-dev 응답:', falResult);
 
-      // FAL AI 폴링 로직
-      let finalResult = falResult;
-      if (falResult.status === 'IN_QUEUE') {
-        console.log('🔄 FAL AI 큐 대기 중...');
-        let attempts = 0;
-        const maxAttempts = 30;
-        
-        while (finalResult.status === 'IN_QUEUE' || finalResult.status === 'IN_PROGRESS') {
-          if (attempts >= maxAttempts) {
-            throw new Error('FAL AI 이미지 생성 시간 초과');
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 10000));
-          
-          const statusResponse = await fetch(finalResult.status_url, {
-            headers: {
-              'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
-            }
-          });
-          
-          if (!statusResponse.ok) {
-            throw new Error(`FAL AI 상태 확인 실패: ${statusResponse.status}`);
-          }
-          
-          finalResult = await statusResponse.json();
-          console.log(`🔄 FAL AI 상태 확인 (${attempts + 1}/${maxAttempts}):`, finalResult.status);
-          attempts++;
-        }
-      }
-
-      if (!finalResult.images || finalResult.images.length === 0) {
+      // hidream-i1-dev는 동기식 응답
+      if (!falResult.images || falResult.images.length === 0) {
         throw new Error('FAL AI에서 이미지를 생성하지 못했습니다.');
       }
 
-      const imageResponse = { data: [{ url: finalResult.images[0].url }] };
+      const imageResponse = { data: [{ url: falResult.images[0].url }] };
 
       paragraphImages.push({
         paragraphIndex: i,
@@ -97,6 +68,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       success: true,
+      imageUrls: paragraphImages.map(img => img.imageUrl),
       paragraphImages: paragraphImages,
       totalParagraphs: paragraphs.length
     });
