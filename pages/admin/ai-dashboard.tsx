@@ -486,6 +486,21 @@ export default function AIDashboard() {
                   </div>
                 </div>
                 {/* Replicate, Stability, Google Cloud, Google AI Studio ... 기존 카드 반복 */}
+              {/* Kie AI 상태 */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center"><span className="text-white text-sm font-bold">K</span></div>
+                      <div className="ml-4">
+                        <h3 className="text-sm font-medium text-gray-900">✅ Kie AI</h3>
+                        <p className="text-xs text-gray-500 mt-1">GPT-4O, Flux, Midjourney</p>
+                      </div>
+                    </div>
+                    <a href="https://kie.ai/dashboard" target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700">💳 관리</a>
+                  </div>
+                </div>
+              </div>
                 {/* Replicate Flux */}
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                   <div className="px-4 py-5 sm:p-6">
