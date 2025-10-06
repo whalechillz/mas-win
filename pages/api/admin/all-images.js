@@ -10,6 +10,11 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// 전체 개수 캐싱 (5분간 유효)
+let totalCountCache = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
@@ -22,24 +27,53 @@ export default async function handler(req, res) {
       
       console.log('📝 전체 이미지 목록 조회 중...', { limit: pageSize, offset: currentOffset, page: currentPage });
       
-      // 먼저 전체 개수를 조회
-      const { data: allFiles, error: countError } = await supabase.storage
-        .from('blog-images')
-        .list('', {
-          limit: 1000, // 전체 개수 조회를 위한 큰 값
-          offset: 0,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
+      // 전체 개수 조회 (캐싱 적용)
+      let totalCount = totalCountCache;
+      const now = Date.now();
+      
+      if (!totalCountCache || (now - cacheTimestamp) > CACHE_DURATION) {
+        console.log('📊 전체 이미지 개수 조회 중...');
+        let allFiles = [];
+        let offset = 0;
+        const batchSize = 1000;
+        
+        while (true) {
+          const { data: batchFiles, error: batchError } = await supabase.storage
+            .from('blog-images')
+            .list('', {
+              limit: batchSize,
+              offset: offset,
+              sortBy: { column: 'created_at', order: 'desc' }
+            });
 
-      if (countError) {
-        console.error('❌ 전체 개수 조회 에러:', countError);
-        return res.status(500).json({
-          error: '이미지 목록을 불러올 수 없습니다.',
-          details: countError.message
-        });
+          if (batchError) {
+            console.error('❌ 배치 조회 에러:', batchError);
+            return res.status(500).json({
+              error: '이미지 목록을 불러올 수 없습니다.',
+              details: batchError.message
+            });
+          }
+
+          if (!batchFiles || batchFiles.length === 0) {
+            break; // 더 이상 파일이 없음
+          }
+
+          allFiles = allFiles.concat(batchFiles);
+          offset += batchSize;
+
+          // 배치 크기보다 적게 반환되면 마지막 배치
+          if (batchFiles.length < batchSize) {
+            break;
+          }
+        }
+        
+        totalCount = allFiles.length;
+        totalCountCache = totalCount;
+        cacheTimestamp = now;
+        console.log('✅ 전체 이미지 개수 조회 완료:', totalCount, '개');
+      } else {
+        console.log('📊 캐시된 전체 이미지 개수 사용:', totalCount, '개');
       }
-
-      const totalCount = allFiles.length;
       const totalPages = Math.ceil(totalCount / pageSize);
       
       // 페이지네이션된 이미지 조회
@@ -76,7 +110,7 @@ export default async function handler(req, res) {
         };
       });
 
-      console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개');
+      console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개 (총', totalCount, '개 중)');
       return res.status(200).json({ 
         images: imagesWithUrl,
         count: imagesWithUrl.length,
