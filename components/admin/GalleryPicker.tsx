@@ -12,6 +12,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [allImages, setAllImages] = useState<ImageItem[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
+  const [altText, setAltText] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,9 +41,11 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
     const q = query.trim().toLowerCase();
     return (allImages || [])
       .filter((img) => {
-        if (filter === 'webp') return /\.webp$/i.test(img.name);
-        if (filter === 'medium') return /_medium\./i.test(img.name);
-        if (filter === 'thumb') return /_thumb\./i.test(img.name) || /_thumb\.webp$/i.test(img.name);
+        const n = (img.name || '').toLowerCase();
+        const u = (img.url || '').toLowerCase();
+        if (filter === 'webp') return /\.webp$/i.test(n) || /\.webp$/i.test(u);
+        if (filter === 'medium') return /_medium\./i.test(n) || /_medium\./i.test(u);
+        if (filter === 'thumb') return /_thumb\./i.test(n) || /_thumb\.webp$/i.test(n) || /_thumb\./i.test(u) || /_thumb\.webp$/i.test(u);
         return true;
       })
       .filter((img) => !q || img.name.toLowerCase().includes(q) || img.url.toLowerCase().includes(q));
@@ -65,6 +68,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
             <button type="button" className={`px-2 py-1 rounded ${filter==='thumb'?'bg-blue-500 text-white':'bg-gray-100'}`} onClick={()=>setFilter('thumb')}>Thumb</button>
           </div>
           <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="검색(파일명/확장)" className="px-2 py-1 border rounded text-sm flex-1 min-w-[220px]" />
+          <input value={altText} onChange={(e)=>setAltText(e.target.value)} placeholder="ALT" className="px-2 py-1 border rounded text-sm min-w-[160px]" />
         </div>
         <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
           {isLoading ? (
@@ -76,7 +80,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
                   key={img.name}
                   type="button"
                   className="border rounded-lg overflow-hidden text-left group"
-                  onClick={() => onSelect(img.url, { alt: img.name })}
+                  onClick={() => onSelect(img.url, { alt: altText || img.name })}
                 >
                   <img src={img.url} alt={img.name} className="w-full h-32 object-contain bg-gray-50" />
                   <div className="p-2 text-xs text-gray-700 truncate">{img.name}</div>
