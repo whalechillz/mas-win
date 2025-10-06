@@ -44,6 +44,39 @@ export default function BlogAdmin() {
     return (strategy?.brandWeight as 'low' | 'medium' | 'high') || 'medium';
   };
 
+  // 오디언스 온도 상태
+  const [audienceTemperature, setAudienceTemperature] = useState<'cold' | 'warm' | 'hot' | 'pre_customer_inquiry_phone' | 'pre_customer_inquiry_kakao' | 'pre_customer_inquiry_website' | 'pre_customer_test_booking' | 'customer_purchase_lt_1y' | 'customer_purchase_1_2y' | 'customer_purchase_2_5y' | 'customer_purchase_gte_5y'>('warm');
+  
+  // 오디언스 온도 가중치 계산
+  const getAudienceWeight = (temp: typeof audienceTemperature): number => {
+    const weights = {
+      cold: 0,
+      warm: 1,
+      hot: 2,
+      pre_customer_inquiry_phone: 1,
+      pre_customer_inquiry_kakao: 1,
+      pre_customer_inquiry_website: 1,
+      pre_customer_test_booking: 2,
+      customer_purchase_lt_1y: 3,
+      customer_purchase_1_2y: 2,
+      customer_purchase_2_5y: 1,
+      customer_purchase_gte_5y: 0
+    };
+    return weights[temp] ?? 0;
+  };
+
+  // 페르소나별 추천 오디언스 온도
+  const getRecommendedAudience = (persona: typeof brandPersona): typeof audienceTemperature => {
+    switch (persona) {
+      case 'competitive_maintainer': return 'pre_customer_test_booking';
+      case 'high_rebound_enthusiast': return 'hot';
+      case 'health_conscious_senior': return 'warm';
+      case 'returning_60plus': return 'warm';
+      case 'distance_seeking_beginner': return 'cold';
+      default: return 'warm';
+    }
+  };
+
   // 이미지 관리 관련 상태
   const [postImages, setPostImages] = useState([]);
   const [allImages, setAllImages] = useState([]);
@@ -429,8 +462,8 @@ export default function BlogAdmin() {
         scheduled_at: post.scheduled_at || null,
         author: post.author || '마쓰구골프'
       });
-          
-          setShowForm(true);
+      
+    setShowForm(true);
           setActiveTab('create');
     } catch (error) {
       console.error('❌ 게시물 수정 모드 오류:', error);
@@ -485,7 +518,7 @@ export default function BlogAdmin() {
       const response = await fetch('/api/generate-blog-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           contentSource,
           contentType: formData.category,
           customerPersona: brandPersona,
@@ -494,7 +527,7 @@ export default function BlogAdmin() {
         })
       });
       if (!response.ok) throw new Error('제목 생성 실패');
-      const data = await response.json();
+        const data = await response.json();
       setGeneratedTitles(Array.isArray(data.titles) ? data.titles : []);
       setShowTitleOptions(true);
     } catch (error: any) {
@@ -506,8 +539,8 @@ export default function BlogAdmin() {
   };
 
   const selectGeneratedTitle = (title: string) => {
-    setFormData({
-      ...formData,
+        setFormData({
+          ...formData,
       title,
       slug: generateSlug(title),
       meta_title: title
@@ -558,12 +591,18 @@ export default function BlogAdmin() {
       const res = await fetch('/api/generate-paragraph-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           content: formData.content,
           title: formData.title,
           excerpt: formData.excerpt,
           contentType: formData.category,
-          brandStrategy: { customerPersona: brandPersona, customerChannel: 'local_customers', brandWeight: getBrandWeight(brandContentType) }
+          brandStrategy: { 
+            customerPersona: brandPersona, 
+            customerChannel: 'local_customers', 
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
+          }
         })
       });
       if (!res.ok) throw new Error('이미지 생성 실패');
@@ -610,7 +649,9 @@ export default function BlogAdmin() {
             contentType: formData.category,
             customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType)
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
           },
           model: 'dalle3'
         })
@@ -636,7 +677,9 @@ export default function BlogAdmin() {
             contentType: formData.category,
             customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType)
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
           },
           imageCount: count,
           customPrompt: smartPrompt
@@ -729,7 +772,9 @@ export default function BlogAdmin() {
             contentType: formData.category,
             customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType)
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
           },
           model: 'fal'
         })
@@ -754,7 +799,9 @@ export default function BlogAdmin() {
             contentType: formData.category,
             customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType)
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
           },
           imageCount: count,
           customPrompt: smartPrompt
@@ -815,7 +862,9 @@ export default function BlogAdmin() {
             contentType: formData.category,
             customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType)
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
           },
           model: 'google'
         })
@@ -840,7 +889,9 @@ export default function BlogAdmin() {
             contentType: formData.category,
             customerPersona: brandPersona,
             customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType)
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
           },
           imageCount: count,
           customPrompt: smartPrompt
@@ -1943,9 +1994,9 @@ export default function BlogAdmin() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={formData.title}
+                  <input
+                    type="text"
+                    value={formData.title}
                       onChange={(e) => setFormData({
                         ...formData,
                         title: e.target.value,
@@ -1953,8 +2004,8 @@ export default function BlogAdmin() {
                       })}
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="게시물 제목을 입력하세요"
-                      required
-                    />
+                    required
+                  />
                     <button
                       type="button"
                       onClick={generateAITitle}
@@ -1990,15 +2041,15 @@ export default function BlogAdmin() {
 
                 {/* 본문 도구들 */}
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
+                    <button 
+                      type="button"
                     onClick={handleGenerateParagraphImages}
                     className="px-3 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700"
                     title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
-                  >
+                    >
                     📷 단락별 이미지 일괄 생성
-                  </button>
-                </div>
+                    </button>
+                  </div>
 
                 {/* 요약 */}
                     <div>
@@ -2048,6 +2099,101 @@ export default function BlogAdmin() {
                     onRequestImageFromGallery={(insert) => openGalleryPicker(insert)}
                   />
                     </div>
+
+                {/* 마쓰구 브랜드 전략 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">🎯 마쓰구 브랜드 전략</h3>
+                    <span className="text-sm text-gray-500">페르소나와 오디언스 온도에 맞춘 맞춤형 콘텐츠 생성</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 콘텐츠 유형 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 유형</label>
+                      <select
+                        value={brandContentType}
+                        onChange={(e) => setBrandContentType(e.target.value as typeof brandContentType)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="골프 정보">골프 정보</option>
+                        <option value="튜토리얼">튜토리얼</option>
+                        <option value="고객 후기">고객 후기</option>
+                        <option value="고객 스토리">고객 스토리</option>
+                        <option value="이벤트">이벤트</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">브랜드 강도: {getBrandWeight(brandContentType)}</p>
+                    </div>
+
+                    {/* 고객 페르소나 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">고객 페르소나</label>
+                      <select
+                        value={brandPersona}
+                        onChange={(e) => {
+                          const newPersona = e.target.value as typeof brandPersona;
+                          setBrandPersona(newPersona);
+                          // 페르소나 변경 시 추천 오디언스 온도 자동 설정
+                          setAudienceTemperature(getRecommendedAudience(newPersona));
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="high_rebound_enthusiast">고반발 드라이버 선호 상급 골퍼</option>
+                        <option value="health_conscious_senior">건강을 고려한 비거리 증가 시니어 골퍼</option>
+                        <option value="competitive_maintainer">경기력을 유지하고 싶은 중상급 골퍼</option>
+                        <option value="returning_60plus">최근 골프를 다시 시작한 60대 이상 골퍼</option>
+                        <option value="distance_seeking_beginner">골프 입문자를 위한 비거리 향상 초급 골퍼</option>
+                      </select>
+                    </div>
+
+                    {/* 오디언스 온도 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">오디언스 온도</label>
+                      <select
+                        value={audienceTemperature}
+                        onChange={(e) => setAudienceTemperature(e.target.value as typeof audienceTemperature)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <optgroup label="기본 온도">
+                          <option value="cold">Cold (관심 낮음)</option>
+                          <option value="warm">Warm (관심 보통)</option>
+                          <option value="hot">Hot (관심 높음)</option>
+                        </optgroup>
+                        <optgroup label="문의 단계">
+                          <option value="pre_customer_inquiry_phone">전화 문의</option>
+                          <option value="pre_customer_inquiry_kakao">카카오 문의</option>
+                          <option value="pre_customer_inquiry_website">홈페이지 문의</option>
+                          <option value="pre_customer_test_booking">시타 예약</option>
+                        </optgroup>
+                        <optgroup label="구매 고객">
+                          <option value="customer_purchase_lt_1y">구매 1년 이내</option>
+                          <option value="customer_purchase_1_2y">구매 1-2년</option>
+                          <option value="customer_purchase_2_5y">구매 2-5년</option>
+                          <option value="customer_purchase_gte_5y">구매 5년 이상</option>
+                        </optgroup>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">온도 가중치: {getAudienceWeight(audienceTemperature)}</p>
+                    </div>
+
+                    {/* 브랜드 강도 표시 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">브랜드 강도</label>
+                      <div className="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700">
+                            {getBrandWeight(brandContentType) === 'low' ? '낮음 (순수 정보)' :
+                             getBrandWeight(brandContentType) === 'medium' ? '보통 (브랜드 언급)' :
+                             '높음 (강력한 브랜딩)'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {getBrandWeight(brandContentType) === 'low' ? '0' :
+                             getBrandWeight(brandContentType) === 'medium' ? '1' : '2'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* AI 이미지 생성 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
