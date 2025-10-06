@@ -6,9 +6,10 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (url: string, options?: { alt?: string; title?: string }) => void;
+  featuredUrl?: string;
 };
 
-const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
+const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl }) => {
   const [allImages, setAllImages] = useState<ImageItem[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
@@ -17,6 +18,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [currentFeatured, setCurrentFeatured] = useState<string | undefined>(featuredUrl);
   const pageSize = 24;
 
   useEffect(() => {
@@ -52,6 +54,10 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
       .filter((img) => !q || img.name.toLowerCase().includes(q) || img.url.toLowerCase().includes(q));
   }, [allImages, query, filter]);
 
+  useEffect(() => {
+    setCurrentFeatured(featuredUrl);
+  }, [featuredUrl]);
+
   if (!isOpen) return null;
 
   return (
@@ -83,7 +89,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {filtered.map((img) => (
-                <div key={img.name} className="border rounded-lg overflow-hidden text-left group relative">
+                <div key={img.name} className={`border rounded-lg overflow-hidden text-left group relative ${currentFeatured===img.url ? 'ring-2 ring-yellow-400' : ''}`}>
                   <button type="button" className="w-full" onClick={() => onSelect(img.url, { alt: altText || img.name })}>
                     <img src={img.url} alt={img.name} className="w-full h-32 object-contain bg-gray-50" />
                     <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between">
@@ -103,7 +109,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
                   {/* 퀵액션 */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <button type="button" title="대표로" className="px-2 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
-                      onClick={(e)=>{ e.stopPropagation(); if (typeof window!== 'undefined') { window.dispatchEvent(new CustomEvent('tiptap:set-featured-image',{ detail:{ url: img.url } })); } }}>
+                      onClick={(e)=>{ e.stopPropagation(); setCurrentFeatured(img.url); if (typeof window!== 'undefined') { window.dispatchEvent(new CustomEvent('tiptap:set-featured-image',{ detail:{ url: img.url } })); } }}>
                       ⭐ 대표
                     </button>
                     <button type="button" title="복사" className="px-2 py-1 text-xs rounded bg-gray-600 text-white hover:bg-gray-700"
