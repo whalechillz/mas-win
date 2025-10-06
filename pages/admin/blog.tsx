@@ -2710,7 +2710,8 @@ export default function BlogAdmin() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium text-gray-700">필터:</span>
-                      <button
+                            <button
+                              type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'all' 
                                   ? 'bg-blue-500 text-white' 
@@ -2721,6 +2722,7 @@ export default function BlogAdmin() {
                               전체
                       </button>
                             <button
+                              type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'featured' 
                                   ? 'bg-yellow-500 text-white' 
@@ -2731,6 +2733,7 @@ export default function BlogAdmin() {
                               ⭐ 대표 이미지만
                             </button>
                       <button
+                              type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'search' 
                                   ? 'bg-green-500 text-white' 
@@ -2760,6 +2763,7 @@ export default function BlogAdmin() {
                               className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
                     />
                     <button
+                              type="button"
                               onClick={() => setGallerySearchQuery('')}
                               className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
                             >
