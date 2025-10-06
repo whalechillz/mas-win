@@ -2687,12 +2687,6 @@ export default function BlogAdmin() {
                       <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <a
-                        href="/admin/gallery"
-                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm"
-                      >
-                        🔧 갤러리 관리
-                      </a>
                                 <button
                                   type="button"
                         onClick={toggleGallery}
@@ -2716,8 +2710,8 @@ export default function BlogAdmin() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium text-gray-700">필터:</span>
-                            <button
-                              type="button"
+                      <button
+                        type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'all' 
                                   ? 'bg-blue-500 text-white' 
@@ -2739,7 +2733,7 @@ export default function BlogAdmin() {
                               ⭐ 대표 이미지만
                             </button>
                       <button
-                              type="button"
+                        type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'search' 
                                   ? 'bg-green-500 text-white' 
@@ -2769,7 +2763,7 @@ export default function BlogAdmin() {
                               className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
                     />
                     <button
-                              type="button"
+                      type="button"
                               onClick={() => setGallerySearchQuery('')}
                               className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
                             >
@@ -2889,7 +2883,7 @@ export default function BlogAdmin() {
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center">
                     <button
-                                  type="button"
+                      type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (isFeaturedImage(representativeImage.url)) {
@@ -2909,7 +2903,7 @@ export default function BlogAdmin() {
                                   {isFeaturedImage(representativeImage.url) ? '⭐ 해제' : '⭐ 대표'}
                     </button>
                     <button
-                                  type="button"
+                      type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     insertImageToContent(forceHttps(representativeImage.url));
@@ -2919,7 +2913,7 @@ export default function BlogAdmin() {
                                   ➕ 삽입
                     </button>
                     <button
-                                  type="button"
+                      type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     copyImageUrl(forceHttps(representativeImage.url));

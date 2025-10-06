@@ -44,6 +44,17 @@ export default function GalleryAdmin() {
     category: ''
   });
 
+  // 일괄 편집/삭제 상태
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [bulkEditForm, setBulkEditForm] = useState({
+    alt_text: '',
+    keywords: '', // 쉼표 구분, 추가 모드
+    replaceAlt: false,
+    appendKeywords: true,
+  });
+  const [isBulkWorking, setIsBulkWorking] = useState(false);
+
   // 이미지 로드
   const fetchImages = async (page = 1, reset = false) => {
     try {
@@ -229,6 +240,99 @@ export default function GalleryAdmin() {
     });
   };
 
+  // 일괄 편집 실행
+  const handleBulkEdit = async () => {
+    if (selectedImages.size === 0) return;
+    setIsBulkWorking(true);
+    try {
+      const names = Array.from(selectedImages);
+      const keywordList = bulkEditForm.keywords
+        .split(',')
+        .map(k => k.trim())
+        .filter(Boolean);
+
+      for (const name of names) {
+        const target = images.find(i => i.name === name);
+        const updatedAlt = bulkEditForm.replaceAlt
+          ? bulkEditForm.alt_text
+          : (bulkEditForm.alt_text ? (target?.alt_text ? `${target?.alt_text} ${bulkEditForm.alt_text}` : bulkEditForm.alt_text) : (target?.alt_text || ''));
+
+        const updatedKeywords = (() => {
+          const current = target?.keywords || [];
+          if (keywordList.length === 0) return current;
+          if (bulkEditForm.appendKeywords) {
+            const merged = Array.from(new Set([...current, ...keywordList]));
+            return merged;
+          }
+          return keywordList;
+        })();
+
+        await fetch('/api/admin/image-metadata', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageName: name,
+            alt_text: updatedAlt,
+            keywords: updatedKeywords,
+          })
+        });
+      }
+
+      // 로컬 상태 업데이트
+      setImages(prev => prev.map(img => {
+        if (!selectedImages.has(img.name)) return img;
+        const newAlt = bulkEditForm.replaceAlt
+          ? bulkEditForm.alt_text || img.alt_text || ''
+          : (bulkEditForm.alt_text ? `${img.alt_text ? img.alt_text + ' ' : ''}${bulkEditForm.alt_text}` : (img.alt_text || ''));
+
+        const newKeywords = (() => {
+          const current = img.keywords || [];
+          if (keywordList.length === 0) return current;
+          if (bulkEditForm.appendKeywords) return Array.from(new Set([...(current), ...keywordList]));
+          return keywordList;
+        })();
+
+        return { ...img, alt_text: newAlt, keywords: newKeywords };
+      }));
+
+      setShowBulkEdit(false);
+      setBulkEditForm({ alt_text: '', keywords: '', replaceAlt: false, appendKeywords: true });
+      alert('일괄 편집이 완료되었습니다!');
+    } catch (e) {
+      console.error('❌ 일괄 편집 오류:', e);
+      alert('일괄 편집에 실패했습니다.');
+    } finally {
+      setIsBulkWorking(false);
+    }
+  };
+
+  // 일괄 삭제 실행
+  const handleBulkDelete = async () => {
+    if (selectedImages.size === 0) return;
+    setIsBulkWorking(true);
+    try {
+      const names = Array.from(selectedImages);
+      let success = 0;
+      for (const name of names) {
+        const res = await fetch('/api/admin/delete-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageName: name })
+        });
+        if (res.ok) success++;
+      }
+      setImages(prev => prev.filter(img => !selectedImages.has(img.name)));
+      setSelectedImages(new Set());
+      setShowBulkDeleteConfirm(false);
+      alert(`일괄 삭제 완료: ${success}/${names.length}개`);
+    } catch (e) {
+      console.error('❌ 일괄 삭제 오류:', e);
+      alert('일괄 삭제에 실패했습니다.');
+    } finally {
+      setIsBulkWorking(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -331,10 +435,18 @@ export default function GalleryAdmin() {
                   {selectedImages.size}개 이미지 선택됨
                 </span>
                 <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                  <button
+                    type="button"
+                    onClick={() => setShowBulkEdit(true)}
+                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                  >
                     📝 일괄 편집
                   </button>
-                  <button className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">
+                  <button
+                    type="button"
+                    onClick={() => setShowBulkDeleteConfirm(true)}
+                    className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                  >
                     🗑️ 일괄 삭제
                   </button>
                 </div>
@@ -548,6 +660,69 @@ export default function GalleryAdmin() {
               >
                 저장
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄 편집 모달 */}
+      {showBulkEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">일괄 편집 ({selectedImages.size}개)</h3>
+              <button onClick={() => setShowBulkEdit(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
+              <div className="text-sm text-gray-600">입력한 값만 적용됩니다. 비워두면 해당 항목은 변경하지 않습니다.</div>
+              <div className="flex items-center gap-2">
+                <label className="w-28 text-sm text-gray-700">ALT 텍스트</label>
+                <input
+                  type="text"
+                  value={bulkEditForm.alt_text}
+                  onChange={(e) => setBulkEditForm({ ...bulkEditForm, alt_text: e.target.value })}
+                  className="flex-1 px-3 py-2 border rounded"
+                  placeholder="추가 또는 교체할 ALT"
+                />
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={bulkEditForm.replaceAlt} onChange={(e)=>setBulkEditForm({ ...bulkEditForm, replaceAlt: e.target.checked })} /> ALT 완전 교체
+              </label>
+              <div className="flex items-center gap-2">
+                <label className="w-28 text-sm text-gray-700">키워드</label>
+                <input
+                  type="text"
+                  value={bulkEditForm.keywords}
+                  onChange={(e) => setBulkEditForm({ ...bulkEditForm, keywords: e.target.value })}
+                  className="flex-1 px-3 py-2 border rounded"
+                  placeholder="쉼표로 구분하여 추가"
+                />
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={bulkEditForm.appendKeywords} onChange={(e)=>setBulkEditForm({ ...bulkEditForm, appendKeywords: e.target.checked })} /> 기존 키워드에 추가 (해제 시 교체)
+              </label>
+            </div>
+            <div className="flex justify-end gap-3 p-4 border-t">
+              <button onClick={() => setShowBulkEdit(false)} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">취소</button>
+              <button disabled={isBulkWorking} onClick={handleBulkEdit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">
+                {isBulkWorking ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄 삭제 확인 모달 */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-4 border-b font-semibold">일괄 삭제 확인</div>
+            <div className="p-4 text-sm text-gray-700">
+              선택한 {selectedImages.size}개 이미지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </div>
+            <div className="flex justify-end gap-3 p-4 border-t">
+              <button onClick={()=>setShowBulkDeleteConfirm(false)} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">취소</button>
+              <button disabled={isBulkWorking} onClick={handleBulkDelete} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50">{isBulkWorking ? '삭제 중...' : '삭제'}</button>
             </div>
           </div>
         </div>
