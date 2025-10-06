@@ -61,6 +61,19 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
     setCurrentFeatured(featuredUrl);
   }, [featuredUrl]);
 
+  const isFeatured = (img: ImageItem) => {
+    if (!currentFeatured) return false;
+    const normalize = (u: string) => u.replace(/^http:\/\//, 'https://');
+    const a = normalize(currentFeatured);
+    const b = normalize(img.url);
+    if (a === b) return true;
+    // fallback: compare filename
+    const fname = (u: string) => {
+      try { return new URL(u).pathname.split('/').pop() || u; } catch { return u; }
+    };
+    return fname(a) === fname(b);
+  };
+
   const toggleSelect = (name: string) => {
     setSelected(prev => {
       const s = new Set(prev);
@@ -136,7 +149,10 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {filtered.map((img) => (
-                <div key={img.name} className={`border rounded-lg overflow-hidden text-left group relative ${currentFeatured===img.url ? 'ring-2 ring-yellow-400' : ''}`}>
+                <div key={img.name} className={`border rounded-lg overflow-hidden text-left group relative ${isFeatured(img) ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-white' : ''}`}>
+                  {isFeatured(img) && (
+                    <span className="absolute top-1 left-1 z-10 px-1.5 py-0.5 text-[10px] rounded bg-yellow-500 text-white">대표</span>
+                  )}
                   {/* 선택 체크박스 */}
                   <label className="absolute top-2 left-2 z-10 bg-white/80 rounded px-1 py-0.5">
                     <input type="checkbox" checked={selected.has(img.name)} onChange={()=>toggleSelect(img.name)} />
