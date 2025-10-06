@@ -725,7 +725,7 @@ export default function BlogAdmin() {
   // 생성된 이미지 선택
   const selectGeneratedImage = (imageUrl) => {
     setFormData({ ...formData, featured_image: forceHttps(imageUrl) });
-    setShowGeneratedImages(false);
+    // setShowGeneratedImages(false); // 갤러리를 닫지 않음 - 수정 상태 유지
     alert('선택한 이미지가 대표 이미지로 설정되었습니다!');
   };
 
