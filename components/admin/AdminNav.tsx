@@ -14,6 +14,7 @@ const AdminNav = () => {
             <span className="text-gray-300">|</span>
             <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>블로그 관리</Link>
             <Link href="/admin/gallery" className={`px-2 py-1 rounded ${isActive('/admin/gallery') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>갤러리 관리</Link>
+            <Link href="/admin/ai" className={`px-2 py-1 rounded ${isActive('/admin/ai') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>AI 관리</Link>
           </div>
         </div>
       </div>
