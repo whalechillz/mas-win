@@ -3419,6 +3419,7 @@ export default function BlogAdmin() {
         <GalleryPicker
           isOpen={showUnifiedPicker}
           onClose={() => setShowUnifiedPicker(false)}
+          featuredUrl={formData.featured_image}
           onSelect={(url) => {
             const preferredUrl = forceHttps(url);
             if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, {});
