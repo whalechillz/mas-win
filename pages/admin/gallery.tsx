@@ -52,6 +52,8 @@ export default function GalleryAdmin() {
     keywords: '', // 쉼표 구분, 추가 모드
     replaceAlt: false,
     appendKeywords: true,
+    removeKeywordsOnly: false,
+    category: '',
   });
   const [isBulkWorking, setIsBulkWorking] = useState(false);
 
@@ -129,14 +131,9 @@ export default function GalleryAdmin() {
     
     // 정렬
     filtered.sort((a, b) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
-      
-      if (sortBy === 'keywords') {
-        aValue = a.keywords?.join(', ') || '';
-        bValue = b.keywords?.join(', ') || '';
-      }
-      
+      const aValue: any = a[sortBy];
+      const bValue: any = b[sortBy];
+
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortOrder === 'asc' 
           ? aValue.localeCompare(bValue)
@@ -259,6 +256,10 @@ export default function GalleryAdmin() {
 
         const updatedKeywords = (() => {
           const current = target?.keywords || [];
+          if (bulkEditForm.removeKeywordsOnly) {
+            if (keywordList.length === 0) return current;
+            return current.filter(k => !keywordList.includes(k));
+          }
           if (keywordList.length === 0) return current;
           if (bulkEditForm.appendKeywords) {
             const merged = Array.from(new Set([...current, ...keywordList]));
@@ -274,6 +275,7 @@ export default function GalleryAdmin() {
             imageName: name,
             alt_text: updatedAlt,
             keywords: updatedKeywords,
+            category: bulkEditForm.category || (target?.category ?? ''),
           })
         });
       }
@@ -287,16 +289,22 @@ export default function GalleryAdmin() {
 
         const newKeywords = (() => {
           const current = img.keywords || [];
+          if (bulkEditForm.removeKeywordsOnly) {
+            if (keywordList.length === 0) return current;
+            return current.filter(k => !keywordList.includes(k));
+          }
           if (keywordList.length === 0) return current;
           if (bulkEditForm.appendKeywords) return Array.from(new Set([...(current), ...keywordList]));
           return keywordList;
         })();
 
-        return { ...img, alt_text: newAlt, keywords: newKeywords };
+        const newCategory = bulkEditForm.category ? bulkEditForm.category : (img.category || '');
+
+        return { ...img, alt_text: newAlt, keywords: newKeywords, category: newCategory };
       }));
 
       setShowBulkEdit(false);
-      setBulkEditForm({ alt_text: '', keywords: '', replaceAlt: false, appendKeywords: true });
+      setBulkEditForm({ alt_text: '', keywords: '', replaceAlt: false, appendKeywords: true, removeKeywordsOnly: false, category: '' });
       alert('일괄 편집이 완료되었습니다!');
     } catch (e) {
       console.error('❌ 일괄 편집 오류:', e);
@@ -695,12 +703,32 @@ export default function GalleryAdmin() {
                   value={bulkEditForm.keywords}
                   onChange={(e) => setBulkEditForm({ ...bulkEditForm, keywords: e.target.value })}
                   className="flex-1 px-3 py-2 border rounded"
-                  placeholder="쉼표로 구분하여 추가"
+                  placeholder="쉼표로 구분하여 추가 또는 제거"
                 />
               </div>
-              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" checked={bulkEditForm.appendKeywords} onChange={(e)=>setBulkEditForm({ ...bulkEditForm, appendKeywords: e.target.checked })} /> 기존 키워드에 추가 (해제 시 교체)
-              </label>
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={bulkEditForm.appendKeywords} onChange={(e)=>setBulkEditForm({ ...bulkEditForm, appendKeywords: e.target.checked, removeKeywordsOnly: false })} /> 기존 키워드에 추가 (해제 시 교체)
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={bulkEditForm.removeKeywordsOnly} onChange={(e)=>setBulkEditForm({ ...bulkEditForm, removeKeywordsOnly: e.target.checked })} /> 입력한 키워드만 제거 (추가/교체 비활성)
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="w-28 text-sm text-gray-700">카테고리</label>
+                <select
+                  value={bulkEditForm.category}
+                  onChange={(e)=>setBulkEditForm({ ...bulkEditForm, category: e.target.value })}
+                  className="flex-1 px-3 py-2 border rounded"
+                >
+                  <option value="">변경 안 함</option>
+                  <option value="golf">골프</option>
+                  <option value="equipment">장비</option>
+                  <option value="course">코스</option>
+                  <option value="event">이벤트</option>
+                  <option value="other">기타</option>
+                </select>
+              </div>
             </div>
             <div className="flex justify-end gap-3 p-4 border-t">
               <button onClick={() => setShowBulkEdit(false)} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">취소</button>
