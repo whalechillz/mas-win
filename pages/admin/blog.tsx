@@ -1608,6 +1608,28 @@ export default function BlogAdmin() {
       <Head>
         <title>블로그 관리자 - MAS Golf</title>
       </Head>
+      {/* 대표 이미지 프리뷰 섹션 */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div className="bg-white border rounded-lg p-4 flex items-center gap-4">
+          <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden flex items-center justify-center border">
+            {formData.featured_image ? (
+              <img src={formData.featured_image} alt="대표 이미지" className="w-full h-full object-contain" />
+            ) : (
+              <span className="text-xs text-gray-400">대표 이미지 없음</span>
+            )}
+          </div>
+          <div className="flex-1">
+            <div className="text-sm text-gray-700 font-medium">대표 이미지</div>
+            <div className="text-xs text-gray-500 break-all">{formData.featured_image || '미설정'}</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" className="px-3 py-2 bg-blue-500 text-white rounded" onClick={()=>setShowUnifiedPicker(true)}>변경</button>
+            {formData.featured_image && (
+              <button type="button" className="px-3 py-2 bg-gray-200 rounded" onClick={()=>setFormData({...formData, featured_image: ''})}>해제</button>
+            )}
+          </div>
+        </div>
+      </div>
       
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
