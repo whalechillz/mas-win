@@ -159,6 +159,10 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                   </button>
                   {/* 퀵액션 */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <button type="button" title="삽입" className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                      onClick={(e)=>{ e.stopPropagation(); onSelect(img.url, { alt: altText || img.name }); }}>
+                      ➕ 삽입
+                    </button>
                     <button type="button" title="대표로" className="px-2 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
                       onClick={(e)=>{ e.stopPropagation(); setCurrentFeatured(img.url); if (typeof window!== 'undefined') { window.dispatchEvent(new CustomEvent('tiptap:set-featured-image',{ detail:{ url: img.url } })); } }}>
                       ⭐ 대표
@@ -170,6 +174,29 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                     <button type="button" title="확대" className="px-2 py-1 text-xs rounded bg-white text-gray-800 hover:bg-gray-100"
                       onClick={(e)=>{ e.stopPropagation(); setPreviewUrl(img.url); }}>
                       🔍 확대
+                    </button>
+                    <button type="button" title="정보" className="px-2 py-1 text-xs rounded bg-white text-gray-800 hover:bg-gray-100"
+                      onClick={(e)=>{ e.stopPropagation(); alert(`이름: ${img.name}\nURL: ${img.url}`); }}>
+                      ℹ️ 정보
+                    </button>
+                    <button type="button" title="메타 편집" className="px-2 py-1 text-xs rounded bg-purple-500 text-white hover:bg-purple-600"
+                      onClick={async (e)=>{ e.stopPropagation();
+                        const newAlt = prompt('ALT 텍스트 입력(비우면 변경 없음)', altText || '');
+                        const newKeywords = prompt('키워드 입력(쉼표로 구분, 비우면 변경 없음)', '');
+                        try {
+                          await fetch('/api/admin/image-metadata', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageName: img.name, alt_text: newAlt || undefined, keywords: newKeywords ? newKeywords.split(',').map(s=>s.trim()).filter(Boolean) : undefined }) });
+                          alert('저장되었습니다.');
+                        } catch { alert('저장에 실패했습니다.'); }
+                      }}>
+                      ✎ 편집
+                    </button>
+                    <button type="button" title="삭제" className="px-2 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600"
+                      onClick={async (e)=>{ e.stopPropagation(); if (!confirm('이미지를 삭제하시겠습니까? 사용중인 곳이 있으면 깨질 수 있습니다.')) return; try { const res = await fetch('/api/admin/delete-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageName: img.name }) }); if (res.ok) { setAllImages(prev=>prev.filter(i=>i.name!==img.name)); alert('삭제되었습니다.'); } else { alert('삭제 실패'); } } catch { alert('삭제 실패'); } }}>
+                      🗑 삭제
+                    </button>
+                    <button type="button" title="새 탭" className="px-2 py-1 text-xs rounded bg-white text-gray-800 hover:bg-gray-100"
+                      onClick={(e)=>{ e.stopPropagation(); window.open(img.url, '_blank'); }}>
+                      🔗 링크
                     </button>
                   </div>
                 </div>
