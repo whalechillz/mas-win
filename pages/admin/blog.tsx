@@ -179,6 +179,11 @@ export default function BlogAdmin() {
   const [seoOptimizationResult, setSeoOptimizationResult] = useState('');
   const [selectedImageForAnalysis, setSelectedImageForAnalysis] = useState('');
 
+  // 제목/슬러그 AI 관련 상태
+  const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
+  const [showTitleOptions, setShowTitleOptions] = useState(false);
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
     title: '',
@@ -432,6 +437,73 @@ export default function BlogAdmin() {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  };
+
+  // AI 슬러그 생성
+  const generateAISlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+    try {
+      const response = await fetch('/api/generate-slug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: formData.title })
+      });
+      if (response.ok) {
+        const { slug } = await response.json();
+        setFormData({ ...formData, slug });
+      } else {
+        alert('AI 슬러그 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('AI 슬러그 생성 에러:', error);
+      alert('AI 슬러그 생성 중 오류가 발생했습니다.');
+    }
+  };
+
+  // AI 제목 5개 생성
+  const generateAITitle = async () => {
+    // 러프 소스가 있는 경우 우선 사용: 없으면 요약/제목으로 대체
+    const contentSource = `${formData.excerpt}\n\n${formData.content?.slice(0, 500) || ''}`;
+    if (!contentSource.trim()) {
+      alert('제목/요약 또는 내용 일부를 먼저 입력해주세요.');
+      return;
+    }
+    setIsGeneratingTitle(true);
+    try {
+      const response = await fetch('/api/generate-blog-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentSource,
+          contentType: formData.category,
+          customerPersona: 'competitive_maintainer',
+          customerChannel: 'local_customers',
+          brandWeight: 'medium'
+        })
+      });
+      if (!response.ok) throw new Error('제목 생성 실패');
+      const data = await response.json();
+      setGeneratedTitles(Array.isArray(data.titles) ? data.titles : []);
+      setShowTitleOptions(true);
+    } catch (error: any) {
+      console.error('AI 제목 생성 오류:', error);
+      alert(`AI 제목 생성 실패: ${error.message}`);
+    } finally {
+      setIsGeneratingTitle(false);
+    }
+  };
+
+  const selectGeneratedTitle = (title: string) => {
+    setFormData({
+      ...formData,
+      title,
+      slug: generateSlug(title),
+      meta_title: title
+    });
+    setShowTitleOptions(false);
   };
 
   // AI 이미지 생성 함수들
@@ -1791,35 +1863,51 @@ export default function BlogAdmin() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 제목 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    제목 *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({
+                  <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData({
                         ...formData,
-                      title: e.target.value,
-                      slug: generateSlug(e.target.value)
-                    })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="게시물 제목을 입력하세요"
-                    required
-                  />
+                        title: e.target.value,
+                        slug: generateSlug(e.target.value)
+                      })}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="게시물 제목을 입력하세요"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAITitle}
+                      className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                      disabled={isGeneratingTitle}
+                    >
+                      {isGeneratingTitle ? '생성 중…' : '🤖 제목 추천'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* 슬러그 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    슬러그
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">슬러그</label>
+                  <div className="flex gap-2 items-center">
                     <input
                       type="text"
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="url-friendly-slug"
-                  />
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="url-friendly-slug"
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAISlug}
+                      className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+                      title="AI로 SEO 최적화된 슬러그 생성"
+                    >
+                      🤖 AI
+                    </button>
+                  </div>
                 </div>
 
                 {/* 요약 */}
