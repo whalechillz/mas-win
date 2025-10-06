@@ -16,6 +16,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const pageSize = 24;
 
   useEffect(() => {
@@ -69,6 +70,12 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
           </div>
           <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="검색(파일명/확장)" className="px-2 py-1 border rounded text-sm flex-1 min-w-[220px]" />
           <input value={altText} onChange={(e)=>setAltText(e.target.value)} placeholder="ALT" className="px-2 py-1 border rounded text-sm min-w-[160px]" />
+          {/* 추천 태그 */}
+          <div className="hidden md:flex items-center gap-1 text-xs text-gray-600">
+            {['golf','driver','club','green','fairway','masgolf'].map(t => (
+              <button key={t} type="button" className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={()=>setQuery(t)}>{t}</button>
+            ))}
+          </div>
         </div>
         <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
           {isLoading ? (
@@ -76,15 +83,39 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {filtered.map((img) => (
-                <button
-                  key={img.name}
-                  type="button"
-                  className="border rounded-lg overflow-hidden text-left group"
-                  onClick={() => onSelect(img.url, { alt: altText || img.name })}
-                >
-                  <img src={img.url} alt={img.name} className="w-full h-32 object-contain bg-gray-50" />
-                  <div className="p-2 text-xs text-gray-700 truncate">{img.name}</div>
-                </button>
+                <div key={img.name} className="border rounded-lg overflow-hidden text-left group relative">
+                  <button type="button" className="w-full" onClick={() => onSelect(img.url, { alt: altText || img.name })}>
+                    <img src={img.url} alt={img.name} className="w-full h-32 object-contain bg-gray-50" />
+                    <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between">
+                      <span className="truncate mr-2">{img.name}</span>
+                      {/* 버전 배지 */}
+                      {/(_thumb\.|_thumb\.webp$)/i.test(img.name) ? (
+                        <span className="px-1 py-0.5 bg-gray-200 text-gray-700 rounded">thumb</span>
+                      ) : /_medium\./i.test(img.name) ? (
+                        <span className="px-1 py-0.5 bg-indigo-200 text-indigo-800 rounded">medium</span>
+                      ) : /\.webp$/i.test(img.name) ? (
+                        <span className="px-1 py-0.5 bg-green-200 text-green-800 rounded">webp</span>
+                      ) : (
+                        <span className="px-1 py-0.5 bg-blue-200 text-blue-800 rounded">original</span>
+                      )}
+                    </div>
+                  </button>
+                  {/* 퀵액션 */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <button type="button" title="대표로" className="px-2 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
+                      onClick={(e)=>{ e.stopPropagation(); if (typeof window!== 'undefined') { window.dispatchEvent(new CustomEvent('tiptap:set-featured-image',{ detail:{ url: img.url } })); } }}>
+                      ⭐ 대표
+                    </button>
+                    <button type="button" title="복사" className="px-2 py-1 text-xs rounded bg-gray-600 text-white hover:bg-gray-700"
+                      onClick={(e)=>{ e.stopPropagation(); navigator.clipboard.writeText(img.url); }}>
+                      📋 복사
+                    </button>
+                    <button type="button" title="확대" className="px-2 py-1 text-xs rounded bg-white text-gray-800 hover:bg-gray-100"
+                      onClick={(e)=>{ e.stopPropagation(); setPreviewUrl(img.url); }}>
+                      🔍 확대
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -98,6 +129,12 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
           </div>
           <button type="button" className="px-3 py-1 bg-blue-500 text-white rounded" onClick={onClose}>닫기</button>
         </div>
+        {/* 미리보기 모달 */}
+        {previewUrl && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4" onClick={()=>setPreviewUrl(null)}>
+            <img src={previewUrl} alt="preview" className="max-w-[95vw] max-h-[90vh] object-contain bg-white rounded" />
+          </div>
+        )}
       </div>
     </div>
   );
