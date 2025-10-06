@@ -27,6 +27,9 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  const GalleryPicker = dynamic(() => import('./GalleryPicker'), { ssr: false });
+  const [showPicker, setShowPicker] = useState(false);
+
   if (typeof window === 'undefined') return null;
 
   const editor = useEditor({
@@ -105,11 +108,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
 
   const handleInsertFromGallery = useCallback(() => {
     if (!editor) return;
-    if (!onRequestImageFromGallery) return handleUploadImage();
-    onRequestImageFromGallery((url: string, options?: { alt?: string; title?: string }) => {
-      editor.chain().focus().setImage({ src: url, alt: options?.alt }).run();
-    });
-  }, [editor, onRequestImageFromGallery, handleUploadImage]);
+    setShowPicker(true);
+  }, [editor]);
 
   if (!mounted || !editor) return null;
 
@@ -143,6 +143,16 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
       <div className="p-3">
         <EditorContent editor={editor} />
       </div>
+      {showPicker && (
+        <GalleryPicker
+          isOpen={showPicker}
+          onClose={() => setShowPicker(false)}
+          onSelect={(url, options) => {
+            editor.chain().focus().setImage({ src: url, alt: options?.alt }).run();
+            setShowPicker(false);
+          }}
+        />
+      )}
     </div>
   );
 };
