@@ -13,7 +13,42 @@ export default async function handler(req, res) {
   console.log('🗑️ 이미지 삭제 API 요청:', req.method, req.url);
 
   try {
-    if (req.method === 'DELETE') {
+    // 1) POST: 일괄 삭제 지원 (imageNames 배열)
+    if (req.method === 'POST') {
+      const { imageNames, imageName } = req.body || {};
+
+      // 단일 키로 들어오면 배열로 정규화
+      const targets = Array.isArray(imageNames)
+        ? imageNames
+        : (imageName ? [imageName] : []);
+
+      if (!targets || targets.length === 0) {
+        return res.status(400).json({ 
+          error: '삭제할 이미지 이름이 필요합니다. (imageNames: string[])' 
+        });
+      }
+
+      console.log('🗑️ 일괄 이미지 삭제 중:', targets.length, '개');
+
+      const { error } = await supabase.storage
+        .from('blog-images')
+        .remove(targets);
+
+      if (error) {
+        console.error('❌ 이미지 일괄 삭제 에러:', error);
+        return res.status(500).json({
+          error: '이미지 일괄 삭제에 실패했습니다.',
+          details: error.message
+        });
+      }
+
+      console.log('✅ 이미지 일괄 삭제 성공:', targets.length, '개');
+      return res.status(200).json({
+        success: true,
+        deletedImages: targets
+      });
+
+    } else if (req.method === 'DELETE') {
       const { imageName } = req.body;
 
       if (!imageName) {
