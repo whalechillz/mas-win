@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 
 interface ImageMetadata {
@@ -343,6 +344,7 @@ export default function GalleryAdmin() {
 
   return (
     <>
+      <AdminNav />
       <Head>
         <title>이미지 갤러리 관리 - MAS Golf</title>
       </Head>

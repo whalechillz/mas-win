@@ -3,6 +3,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 const TipTapEditor = dynamic(() => import('../../components/admin/TipTapEditor'), { ssr: false });
 import Head from 'next/head';
+import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
 import PostList from '../../components/admin/PostList';
 import PostGrid from '../../components/admin/PostGrid';
@@ -1604,6 +1605,7 @@ export default function BlogAdmin() {
 
   return (
     <>
+      <AdminNav />
       <Head>
         <title>블로그 관리자 - MAS Golf</title>
       </Head>
