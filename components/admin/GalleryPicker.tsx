@@ -19,6 +19,9 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentFeatured, setCurrentFeatured] = useState<string | undefined>(featuredUrl);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [bulkForm, setBulkForm] = useState({ alt: '', keywords: '', replaceAlt: false, appendKeywords: true, removeKeywordsOnly: false });
   const pageSize = 24;
 
   useEffect(() => {
@@ -58,6 +61,40 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
     setCurrentFeatured(featuredUrl);
   }, [featuredUrl]);
 
+  const toggleSelect = (name: string) => {
+    setSelected(prev => {
+      const s = new Set(prev);
+      if (s.has(name)) s.delete(name); else s.add(name);
+      return s;
+    });
+  };
+
+  const handleBulkEdit = async () => {
+    const names = Array.from(selected);
+    if (names.length === 0) return setShowBulkEdit(false);
+    const keywordList = bulkForm.keywords.split(',').map(k=>k.trim()).filter(Boolean);
+    for (const name of names) {
+      // find by name
+      const img = allImages.find(i=>i.name===name);
+      const currentAlt = '';
+      const updatedAlt = bulkForm.replaceAlt ? bulkForm.alt : (bulkForm.alt ? ((currentAlt? currentAlt+' ' : '') + bulkForm.alt) : currentAlt);
+      // keywords: client-only best-effort
+      await fetch('/api/admin/image-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageName: name,
+          alt_text: updatedAlt,
+          keywords: bulkForm.removeKeywordsOnly ? [] : keywordList,
+        })
+      });
+    }
+    setShowBulkEdit(false);
+    setBulkForm({ alt: '', keywords: '', replaceAlt: false, appendKeywords: true, removeKeywordsOnly: false });
+    setSelected(new Set());
+    alert('일괄 편집을 완료했습니다.');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -83,13 +120,27 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
             ))}
           </div>
         </div>
-        <div className="p-4 overflow-auto" style={{ maxHeight: '70vh' }}>
+        {/* 선택 액션 바 */}
+        {selected.size > 0 && (
+          <div className="px-4 py-2 border-b bg-blue-50 text-sm flex items-center justify-between">
+            <span className="text-blue-700">{selected.size}개 선택됨</span>
+            <div className="flex items-center gap-2">
+              <button type="button" className="px-2 py-1 rounded bg-blue-500 text-white" onClick={()=>setShowBulkEdit(true)}>📝 일괄 편집</button>
+              <button type="button" className="px-2 py-1 rounded bg-gray-200" onClick={()=>setSelected(new Set())}>선택 해제</button>
+            </div>
+          </div>
+        )}
+        <div className="p-4 overflow-auto" style={{ maxHeight: '64vh' }}>
           {isLoading ? (
             <div className="text-center text-gray-600">로딩 중...</div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {filtered.map((img) => (
                 <div key={img.name} className={`border rounded-lg overflow-hidden text-left group relative ${currentFeatured===img.url ? 'ring-2 ring-yellow-400' : ''}`}>
+                  {/* 선택 체크박스 */}
+                  <label className="absolute top-2 left-2 z-10 bg-white/80 rounded px-1 py-0.5">
+                    <input type="checkbox" checked={selected.has(img.name)} onChange={()=>toggleSelect(img.name)} />
+                  </label>
                   <button type="button" className="w-full" onClick={() => onSelect(img.url, { alt: altText || img.name })}>
                     <img src={img.url} alt={img.name} className="w-full h-32 object-contain bg-gray-50" />
                     <div className="p-2 text-xs text-gray-700 truncate flex items-center justify-between">
@@ -139,6 +190,34 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
         {previewUrl && (
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4" onClick={()=>setPreviewUrl(null)}>
             <img src={previewUrl} alt="preview" className="max-w-[95vw] max-h-[90vh] object-contain bg-white rounded" />
+          </div>
+        )}
+
+        {/* 일괄 편집 모달 */}
+        {showBulkEdit && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[90] p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-xl">
+              <div className="p-4 border-b font-semibold">일괄 편집 ({selected.size}개)</div>
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <label className="w-28 text-sm text-gray-700">ALT</label>
+                  <input value={bulkForm.alt} onChange={(e)=>setBulkForm({...bulkForm, alt:e.target.value})} className="flex-1 px-2 py-1 border rounded" placeholder="추가 또는 교체할 ALT" />
+                </div>
+                <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={bulkForm.replaceAlt} onChange={(e)=>setBulkForm({...bulkForm, replaceAlt:e.target.checked})}/> ALT 완전 교체</label>
+                <div className="flex items-center gap-2">
+                  <label className="w-28 text-sm text-gray-700">키워드</label>
+                  <input value={bulkForm.keywords} onChange={(e)=>setBulkForm({...bulkForm, keywords:e.target.value})} className="flex-1 px-2 py-1 border rounded" placeholder="쉼표로 구분" />
+                </div>
+                <div className="flex flex-col gap-2 text-sm">
+                  <label className="inline-flex items-center gap-2"><input type="checkbox" checked={bulkForm.appendKeywords} onChange={(e)=>setBulkForm({...bulkForm, appendKeywords:e.target.checked, removeKeywordsOnly:false})}/> 기존 키워드에 추가 (해제 시 교체)</label>
+                  <label className="inline-flex items-center gap-2"><input type="checkbox" checked={bulkForm.removeKeywordsOnly} onChange={(e)=>setBulkForm({...bulkForm, removeKeywordsOnly:e.target.checked})}/> 입력한 키워드만 제거</label>
+                </div>
+              </div>
+              <div className="p-4 border-t flex justify-end gap-2">
+                <button type="button" className="px-3 py-1 border rounded" onClick={()=>setShowBulkEdit(false)}>취소</button>
+                <button type="button" className="px-3 py-1 bg-blue-500 text-white rounded" onClick={handleBulkEdit}>저장</button>
+              </div>
+            </div>
           </div>
         )}
       </div>
