@@ -2687,6 +2687,12 @@ export default function BlogAdmin() {
                       <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <a
+                        href="/admin/gallery"
+                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm"
+                      >
+                        🔧 갤러리 관리
+                      </a>
                                 <button
                                   type="button"
                         onClick={toggleGallery}
