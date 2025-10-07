@@ -85,6 +85,7 @@ export default async function handler(req, res) {
 
       // 이미지를 Supabase에 자동 저장
       try {
+        console.log(`🔄 단락 ${i + 1} 이미지 Supabase 저장 시작...`);
         const saveResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/save-generated-image`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -99,9 +100,18 @@ export default async function handler(req, res) {
         if (saveResponse.ok) {
           const saveResult = await saveResponse.json();
           storedUrl = saveResult.storedUrl;
-          console.log(`✅ 단락 ${i + 1} 이미지 저장 완료:`, storedUrl);
+          console.log(`✅ 단락 ${i + 1} 이미지 Supabase 저장 성공:`, {
+            originalUrl: imageResponse.data[0].url,
+            storedUrl: storedUrl,
+            fileName: saveResult.fileName
+          });
         } else {
-          console.warn(`⚠️ 단락 ${i + 1} 이미지 저장 실패, 원본 URL 사용`);
+          const errorText = await saveResponse.text();
+          console.error(`❌ 단락 ${i + 1} 이미지 Supabase 저장 실패:`, {
+            status: saveResponse.status,
+            error: errorText
+          });
+          console.warn(`⚠️ 단락 ${i + 1} 원본 FAL AI URL 사용:`, imageResponse.data[0].url);
         }
         
         paragraphImages.push({
