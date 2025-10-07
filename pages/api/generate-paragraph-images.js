@@ -1,5 +1,10 @@
 import OpenAI from 'openai';
 import { logOpenAIUsage, logFALAIUsage } from '../../lib/ai-usage-logger';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -171,36 +176,42 @@ export default async function handler(req, res) {
         imageCount: 1
       });
 
-      // 이미지를 Supabase에 자동 저장
+      // 이미지를 Supabase에 직접 저장 (다른 API들과 동일한 방식)
       try {
         console.log(`🔄 단락 ${i + 1} 이미지 Supabase 저장 시작...`);
-        const saveResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/save-generated-image`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageUrl: imageResponse.data[0].url,
-            fileName: `paragraph-image-${Date.now()}-${i + 1}.png`,
-            blogPostId: blogPostId || null
-          })
-        });
         
-        let storedUrl = imageResponse.data[0].url; // 기본값은 원본 URL
-        if (saveResponse.ok) {
-          const saveResult = await saveResponse.json();
-          storedUrl = saveResult.storedUrl;
-          console.log(`✅ 단락 ${i + 1} 이미지 Supabase 저장 성공:`, {
-            originalUrl: imageResponse.data[0].url,
-            storedUrl: storedUrl,
-            fileName: saveResult.fileName
-          });
-        } else {
-          const errorText = await saveResponse.text();
-          console.error(`❌ 단락 ${i + 1} 이미지 Supabase 저장 실패:`, {
-            status: saveResponse.status,
-            error: errorText
-          });
-          console.warn(`⚠️ 단락 ${i + 1} 원본 FAL AI URL 사용:`, imageResponse.data[0].url);
+        // 외부 이미지 URL에서 이미지 데이터 다운로드
+        const imageFetchResponse = await fetch(imageResponse.data[0].url);
+        if (!imageFetchResponse.ok) {
+          throw new Error(`Failed to fetch image: ${imageFetchResponse.status}`);
         }
+        
+        const imageBuffer = await imageFetchResponse.arrayBuffer();
+        const fileName = `paragraph-image-${Date.now()}-${i + 1}.png`;
+        
+        // Supabase Storage에 업로드
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('blog-images')
+          .upload(fileName, imageBuffer, {
+            contentType: 'image/png',
+            upsert: false
+          });
+        
+        if (uploadError) {
+          throw new Error(`Supabase 업로드 실패: ${uploadError.message}`);
+        }
+        
+        // 공개 URL 생성
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(fileName);
+        
+        const storedUrl = publicUrl;
+        console.log(`✅ 단락 ${i + 1} 이미지 Supabase 저장 성공:`, {
+          originalUrl: imageResponse.data[0].url,
+          storedUrl: storedUrl,
+          fileName: fileName
+        });
         
         paragraphImages.push({
           paragraphIndex: i,
@@ -274,7 +285,7 @@ async function generateParagraphImagePrompt(paragraph, title, excerpt, contentTy
           프롬프트 작성 규칙:
           1. 단락의 핵심 내용을 시각적으로 표현
           2. 다양한 상황과 장면 생성 (드라이버만 들고 있는 모습 피하기)
-          3. 한국인 50-70대 골퍼가 주인공
+          3. 한국인 50-70대 골퍼가 주인공 (Korean male golfer, Asian appearance, Korean facial features)
           4. MASSGOO 브랜드 자연스럽게 포함
           5. 다양한 시간대와 환경 활용
           6. 텍스트나 글자는 절대 포함하지 않음

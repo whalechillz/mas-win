@@ -166,13 +166,15 @@ Guidelines:
 - Keep prompts between 50-100 words
 - Make it suitable for high-quality AI image generation
 - Consider the brand strategy and content type
+- IMPORTANT: Always feature a Korean golfer (Korean male golfer, Asian appearance) as the main character
+- Ensure the golfer has Korean/Asian facial features and appearance
 
 Brand Strategy: ${JSON.stringify(brandStrategy)}
 Content Type: ${contentType}
 Title: ${title}
 Excerpt: ${excerpt}
 
-Generate a compelling visual prompt for paragraph ${paragraphIndex + 1}.`;
+Generate a compelling visual prompt for paragraph ${paragraphIndex + 1} featuring a Korean golfer.`;
 
   const userPrompt = `Paragraph content: "${paragraph}"
 
