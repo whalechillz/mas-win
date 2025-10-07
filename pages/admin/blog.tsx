@@ -644,6 +644,10 @@ export default function BlogAdmin() {
       
       setParagraphImageStep('본문에 삽입 중...');
       
+      // 생성된 이미지를 갤러리에 추가
+      setGeneratedImages(prev => [...prev, ...urls]);
+      setShowGeneratedImages(true);
+      
       // 각 이미지를 순차적으로 삽입 (약간의 지연을 두어 사용자가 확인할 수 있도록)
       for (let i = 0; i < urls.length; i++) {
         const ev = new CustomEvent('tiptap:insert-image', { detail: { url: urls[i] } });
@@ -655,7 +659,7 @@ export default function BlogAdmin() {
       }
       
       setParagraphImageStep('완료!');
-      alert(`${urls.length}개의 이미지가 본문에 삽입되었습니다.`);
+      alert(`${urls.length}개의 이미지가 본문에 삽입되고 갤러리에 추가되었습니다.`);
       
     } catch (e: any) {
       console.error('단락 이미지 생성 오류:', e);
