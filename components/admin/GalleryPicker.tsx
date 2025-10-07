@@ -149,6 +149,16 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
           <div className="px-4 py-2 border-b bg-blue-50 text-sm flex items-center justify-between">
             <span className="text-blue-700">{selected.size}개 선택됨</span>
             <div className="flex items-center gap-2">
+              <button type="button" className="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" onClick={()=>{
+                const names = Array.from(selected);
+                // 다중 삽입: 선택된 순서대로 onSelect 호출
+                for (const name of names) {
+                  const img = allImages.find(i=>i.name===name);
+                  if (img) onSelect(img.url, { alt: altText || img.name });
+                }
+                setSelected(new Set());
+                onClose();
+              }}>➕ 선택 삽입</button>
               <button type="button" className="px-2 py-1 rounded bg-blue-500 text-white" onClick={()=>setShowBulkEdit(true)}>📝 일괄 편집</button>
               <button type="button" className="px-2 py-1 rounded bg-gray-200" onClick={()=>setSelected(new Set())}>선택 해제</button>
             </div>
