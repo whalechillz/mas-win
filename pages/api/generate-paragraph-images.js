@@ -123,6 +123,45 @@ export default async function handler(req, res) {
       }
     }
 
+    // 5단계: 자동 메타데이터 생성 및 적용
+    if (paragraphImages.length > 0) {
+      console.log('📝 단락별 이미지 메타데이터 자동 생성 시작...');
+      try {
+        const metadataItems = paragraphImages.map((img, index) => ({
+          name: `paragraph-image-${Date.now()}-${index + 1}.png`,
+          url: img.imageUrl,
+          alt_text: '',
+          title: '',
+          description: '',
+          keywords: [],
+          category: contentType || 'general'
+        }));
+        
+        const metadataResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/generate-alt-batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            items: metadataItems, 
+            mode: 'apply',
+            context: {
+              title: title,
+              excerpt: excerpt,
+              category: contentType,
+              prompt: paragraphImages[0]?.prompt || ''
+            }
+          })
+        });
+        
+        if (metadataResponse.ok) {
+          console.log('✅ 단락별 이미지 메타데이터 자동 생성 완료');
+        } else {
+          console.warn('⚠️ 단락별 이미지 메타데이터 생성 실패, 수동 입력 필요');
+        }
+      } catch (error) {
+        console.warn('⚠️ 단락별 이미지 메타데이터 생성 중 오류:', error);
+      }
+    }
+
     res.status(200).json({
       success: true,
       imageUrls: paragraphImages.map(img => img.imageUrl),
