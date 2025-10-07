@@ -2060,7 +2060,17 @@ export default function BlogAdmin() {
                         </div>
                     </div>
 
-                {/* 본문 도구들 - 단락별 이미지 생성 버튼은 내용 아래로 이동 */}
+                {/* 본문 도구들 */}
+                <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                    onClick={handleGenerateParagraphImages}
+                    className="px-3 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700"
+                    title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
+                      >
+                    📷 단락별 이미지 일괄 생성
+                      </button>
+                    </div>
 
                 {/* 요약 */}
                       <div>
@@ -2109,23 +2119,6 @@ export default function BlogAdmin() {
                     onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
                     onRequestImageFromGallery={(insert) => openGalleryPicker(insert)}
                   />
-                </div>
-
-                {/* 단락별 이미지 일괄 생성 - 내용 작성 후 사용 */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">📷 단락별 이미지 일괄 생성</h4>
-                      <p className="text-xs text-gray-500">본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleGenerateParagraphImages}
-                      className="px-4 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 flex items-center gap-2"
-                    >
-                      📷 단락별 이미지 일괄 생성
-                    </button>
-                  </div>
                 </div>
 
                 {/* 마쓰구 브랜드 전략 섹션 */}
@@ -2388,6 +2381,35 @@ export default function BlogAdmin() {
                                     >
                                       🎨
                                     </button>
+                                    <button
+                                      type="button"
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        try {
+                                          const response = await fetch('/api/save-generated-image', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              imageUrl: imageUrl,
+                                              fileName: `paragraph-image-${Date.now()}-${index + 1}.png`,
+                                              blogPostId: editingPost?.id || null
+                                            })
+                                          });
+                                          if (response.ok) {
+                                            alert('이미지가 Supabase에 저장되었습니다!');
+                                          } else {
+                                            alert('이미지 저장에 실패했습니다.');
+                                          }
+                                        } catch (error) {
+                                          console.error('이미지 저장 오류:', error);
+                                          alert('이미지 저장 중 오류가 발생했습니다.');
+                                        }
+                                      }}
+                                      className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                      title="Supabase 저장"
+                                    >
+                                      💾
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -2421,7 +2443,7 @@ export default function BlogAdmin() {
 
                     {/* AI 개선 버튼들 */}
                     <div className="flex flex-wrap gap-3">
-                      <button
+                                        <button
                         type="button"
                         onClick={() => improveAIContent('comprehensive')}
                         disabled={isImprovingContent || !simpleAIRequest.trim()}
@@ -2440,7 +2462,7 @@ export default function BlogAdmin() {
                         )}
                                         </button>
 
-                                        <button
+                              <button
                         type="button"
                         onClick={applySimpleAIImprovement}
                         disabled={isImprovingContent || !simpleAIRequest.trim()}
@@ -2457,22 +2479,22 @@ export default function BlogAdmin() {
                             <span>간단 AI 개선</span>
                           </>
                         )}
-                      </button>
-                                </div>
+                              </button>
+                            </div>
 
                     {/* 개선 과정 표시 */}
                     {isImprovingContent && improvementProcess && (
                       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <h4 className="text-sm font-medium text-blue-800 mb-2">
                           🤖 AI 콘텐츠 개선 과정
-                        </h4>
+                            </h4>
                         <div className="text-sm text-blue-700">
                           {improvementProcess}
-                                    </div>
+                                  </div>
                                   </div>
                                 )}
-                              </div>
-                          </div>
+                                </div>
+                            </div>
 
                 {/* 간단 AI 이미지 개선 섹션 - 제거됨 (생성된 이미지 변형 버튼으로 대체) */}
                 {/* 이미지 변형 시스템 섹션 - 제거됨 (생성된 이미지 변형 버튼으로 대체) */}
@@ -2483,33 +2505,33 @@ export default function BlogAdmin() {
                     <div className="flex items-center space-x-2">
                       <h3 className="text-lg font-semibold text-gray-900">📦 네이버 블로그 마이그레이션</h3>
                       <span className="text-sm text-gray-500">기존 네이버 블로그 포스트를 이 시스템으로 가져올 수 있습니다</span>
-            </div>
-                      <button
+                                  </div>
+                                  <button
                         type="button"
                       onClick={() => setShowNaverMigration(!showNaverMigration)}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                       >
                       {showNaverMigration ? '숨기기' : '마이그레이션 시작'}
-                      </button>
-                    </div>
+                                  </button>
+                                </div>
                   
                   {showNaverMigration && (
                     <div className="space-y-6">
                       {/* 네이버 블로그 URL 입력 */}
                 <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                           네이버 블로그 URL
-                        </label>
+                      </label>
                         <div className="flex space-x-3">
-                          <input
+                      <input 
                             type="url"
                             value={naverBlogUrl}
                             onChange={(e) => setNaverBlogUrl(e.target.value)}
                             placeholder="https://blog.naver.com/username"
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
-                                <button
-                                  type="button"
+                      <button 
+                        type="button"
                             onClick={migrateNaverBlog}
                             disabled={isMigrating || !naverBlogUrl.trim()}
                             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
@@ -2525,38 +2547,38 @@ export default function BlogAdmin() {
                                 <span>가져오기</span>
                               </>
                             )}
-                                </button>
-                                              </div>
+                    </button>
+                    </div>
                         <p className="text-xs text-gray-500 mt-1">
                           예: https://blog.naver.com/username 또는 https://blog.naver.com/username/PostList.nhn
-                </p>
-                                            </div>
-              
+                    </p>
+                  </div>
+
                       {/* 마이그레이션 진행 상태 */}
                       {migrationProgress && (
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="text-sm text-blue-700">
                             {migrationProgress}
-                              </div>
-                            </div>
+                          </div>
+                        </div>
                       )}
-
+                      
                       {/* 마이그레이션된 포스트 목록 */}
                       {migratedPosts.length > 0 && (
-                        <div>
+                          <div>
                           <div className="flex items-center justify-between mb-4">
                             <h4 className="text-md font-medium text-gray-900">
                               가져온 포스트 ({migratedPosts.length}개)
                             </h4>
-                        <button
+                                  <button
                           type="button"
                               onClick={saveAllMigratedPosts}
                               disabled={isMigrating}
                               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                               {isMigrating ? '저장 중...' : '모두 저장'}
-                        </button>
-                </div>
+                                  </button>
+                                </div>
                 
                           <div className="space-y-3 max-h-96 overflow-y-auto">
                             {migratedPosts.map((post) => (
@@ -2566,43 +2588,43 @@ export default function BlogAdmin() {
                                     <h5 className="font-medium text-gray-900 mb-2">{post.title}</h5>
                                     <div className="text-sm text-gray-600 mb-2">
                                       <p className="line-clamp-2">{post.excerpt || '요약이 없습니다.'}</p>
-              </div>
+                          </div>
                                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                                       <span>카테고리: {post.category || 'migrated'}</span>
                                       <span>태그: {post.tags ? post.tags.join(', ') : '없음'}</span>
                                       {post.featured_image && (
                                         <span className="text-green-600">이미지 포함</span>
-                                      )}
-          </div>
-        </div>
+                        )}
+                      </div>
+                    </div>
 
                                   <div className="flex flex-col space-y-2 ml-4">
-                <button
-                  type="button"
+                        <button 
+                          type="button"
                                       onClick={() => saveMigratedPost(post)}
                 className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
               >
                                       💾 저장
-              </button>
-              <button
-                type="button"
-                onClick={() => {
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => {
                                         if (confirm('이 포스트를 제거하시겠습니까?')) {
                                           setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
                   }
-                }}
+                        }}
                 className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
-              >
+                      >
                                       🗑️ 제거
-              </button>
-          </div>
-            </div>
-          </div>
-                            ))}
-                </div>
+                      </button>
+                    </div>
                   </div>
-                      )}
-
+                      </div>
+                            ))}
+                      </div>
+                    </div>
+                  )}
+                  
                       {/* 사용 안내 */}
                       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <h4 className="text-sm font-medium text-yellow-800 mb-2">📋 사용 안내</h4>
@@ -2612,10 +2634,10 @@ export default function BlogAdmin() {
                           <li>• 이미지가 포함된 포스트는 이미지 URL이 함께 저장됩니다</li>
                           <li>• 개별 포스트를 선택하여 저장하거나 모두 저장할 수 있습니다</li>
                         </ul>
-                                </div>
-                              </div>
+                      </div>
+                    </div>
                   )}
-                                </div>
+                                  </div>
 
                 {/* 고급 기능 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
@@ -2623,15 +2645,15 @@ export default function BlogAdmin() {
                     <div className="flex items-center space-x-2">
                       <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
                       <span className="text-sm text-gray-500">이미지 분석, SEO 최적화 등 고급 기능을 제공합니다</span>
-                                </div>
-                                  <button
-                            type="button"
+                                      </div>
+                      <button
+                        type="button"
                       onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
                       className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm"
-                                  >
+                      >
                       {showAdvancedFeatures ? '숨기기' : '고급 기능 열기'}
-                                  </button>
-                                </div>
+                      </button>
+                    </div>
                         
                   {showAdvancedFeatures && (
                     <div className="space-y-8">
@@ -2639,7 +2661,7 @@ export default function BlogAdmin() {
                       <div className="border border-gray-200 rounded-lg p-6">
                         <h4 className="text-md font-semibold text-gray-900 mb-4">🔍 이미지 분석</h4>
                         
-                        <div className="space-y-4">
+          <div className="space-y-4">
                           {/* 분석할 이미지 선택 */}
                 <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2651,35 +2673,35 @@ export default function BlogAdmin() {
                                   src={selectedImageForAnalysis}
                                   alt="선택된 분석 이미지"
                                   className="w-20 h-20 object-cover rounded-lg"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
                                     target.src = '/placeholder-image.jpg';
                                   }}
                                 />
                                 <div className="flex-1">
                                   <p className="text-sm font-medium text-purple-800">분석할 이미지가 선택되었습니다</p>
                                   <p className="text-xs text-purple-600 truncate">{selectedImageForAnalysis}</p>
-                                  </div>
-                              <button
-                                  type="button"
+                        </div>
+                        <button
+                          type="button"
                                   onClick={() => setSelectedImageForAnalysis('')}
                                   className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
                               >
                                   선택 해제
-                              </button>
-                </div>
-                            ) : (
+                        </button>
+              </div>
+            ) : (
                               <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                                 <p className="text-gray-500 mb-2">아래 이미지 갤러리에서 분석할 이미지를 선택하세요</p>
                                 <p className="text-xs text-gray-400">이미지에 마우스를 올리고 "🔍 분석" 버튼을 클릭하세요</p>
-                          </div>
-              )}
-                            </div>
+              </div>
+            )}
+        </div>
 
                           {/* 이미지 분석 버튼 */}
                           {selectedImageForAnalysis && (
-                              <button
-                      type="button"
+                <button
+                  type="button"
                               onClick={() => analyzeImage(selectedImageForAnalysis)}
                               disabled={isAnalyzingImage}
                               className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
@@ -2695,7 +2717,7 @@ export default function BlogAdmin() {
                                   <span>이미지 분석 시작</span>
                         </>
                       )}
-                              </button>
+                                  </button>
                           )}
 
                           {/* 이미지 분석 결과 */}
@@ -2704,11 +2726,11 @@ export default function BlogAdmin() {
                               <h5 className="text-sm font-medium text-purple-800 mb-2">🔍 이미지 분석 결과</h5>
                               <div className="text-sm text-purple-700 whitespace-pre-wrap">
                                 {imageAnalysisResult}
+                  </div>
+                </div>
+                            )}
                           </div>
                         </div>
-              )}
-            </div>
-              </div>
               
                       {/* SEO 최적화 기능 */}
                       <div className="border border-gray-200 rounded-lg p-6">
@@ -2723,8 +2745,8 @@ export default function BlogAdmin() {
                               <li>• 검색 엔진 최적화를 위한 키워드 제안</li>
                               <li>• 최적화된 내용을 자동으로 폼에 적용</li>
                             </ul>
-                    </div>
-                    
+                  </div>
+                  
                       <button
                         type="button"
                             onClick={optimizeSEO}
@@ -3245,10 +3267,9 @@ export default function BlogAdmin() {
                             </div>
                           </div>
             
-            {/* 이미지 정보 */}
+            {/* 이미지 정보 - 간소화 */}
             <div className="p-4 border-t bg-gray-50 flex-shrink-0">
-              <div className="text-sm text-gray-600 space-y-1">
-                <div><strong>이미지 타입:</strong> AI 생성 이미지</div>
+              <div className="text-sm text-gray-600">
                 <div><strong>원본 URL:</strong> 
                   <a 
                     href={selectedGeneratedImage} 
@@ -3258,49 +3279,170 @@ export default function BlogAdmin() {
                   >
                     {selectedGeneratedImage}
                   </a>
-                          </div>
-                <div className="text-orange-600 font-medium">🤖 AI가 생성한 이미지</div>
+                </div>
               </div>
             </div>
             
             {/* 액션 버튼들 */}
             <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                            <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(selectedGeneratedImage);
-                    alert('이미지 URL이 복사되었습니다!');
+                {/* Supabase 저장 버튼 */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/save-generated-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: selectedGeneratedImage,
+                          fileName: `modal-image-${Date.now()}.png`,
+                          blogPostId: editingPost?.id || null
+                        })
+                      });
+                      if (response.ok) {
+                        const { storedUrl } = await response.json();
+                        navigator.clipboard.writeText(storedUrl);
+                        alert('이미지가 Supabase에 저장되고 URL이 복사되었습니다!');
+                      } else {
+                        alert('이미지 저장에 실패했습니다.');
+                      }
+                    } catch (error) {
+                      console.error('이미지 저장 오류:', error);
+                      alert('이미지 저장 중 오류가 발생했습니다.');
+                    }
+                  }}
+                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
+                >
+                  💾 Supabase 저장
+                </button>
+                
+                {/* URL 복사 (Supabase 저장 후) */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/save-generated-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: selectedGeneratedImage,
+                          fileName: `copy-image-${Date.now()}.png`,
+                          blogPostId: editingPost?.id || null
+                        })
+                      });
+                      if (response.ok) {
+                        const { storedUrl } = await response.json();
+                        navigator.clipboard.writeText(storedUrl);
+                        alert('Supabase URL이 복사되었습니다!');
+                      } else {
+                        navigator.clipboard.writeText(selectedGeneratedImage);
+                        alert('원본 URL이 복사되었습니다.');
+                      }
+                    } catch (error) {
+                      navigator.clipboard.writeText(selectedGeneratedImage);
+                      alert('원본 URL이 복사되었습니다.');
+                    }
                   }}
                   className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 whitespace-nowrap"
                 >
                   📋 URL 복사
-                            </button>
-                            <button
-                  onClick={() => {
-                    insertImageToContent(forceHttps(selectedGeneratedImage));
-                    setShowGeneratedImageModal(false);
+                </button>
+                
+                {/* 콘텐츠에 삽입 (Supabase 저장 후) */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/save-generated-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: selectedGeneratedImage,
+                          fileName: `content-image-${Date.now()}.png`,
+                          blogPostId: editingPost?.id || null
+                        })
+                      });
+                      if (response.ok) {
+                        const { storedUrl } = await response.json();
+                        insertImageToContent(forceHttps(storedUrl));
+                        setShowGeneratedImageModal(false);
+                        alert('이미지가 Supabase에 저장되고 콘텐츠에 삽입되었습니다!');
+                      } else {
+                        insertImageToContent(forceHttps(selectedGeneratedImage));
+                        setShowGeneratedImageModal(false);
+                        alert('원본 이미지가 콘텐츠에 삽입되었습니다.');
+                      }
+                    } catch (error) {
+                      insertImageToContent(forceHttps(selectedGeneratedImage));
+                      setShowGeneratedImageModal(false);
+                      alert('원본 이미지가 콘텐츠에 삽입되었습니다.');
+                    }
                   }}
                   className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
                 >
                   ➕ 콘텐츠에 삽입
-                            </button>
-                            <button
-                  onClick={() => {
-                    selectGeneratedImage(selectedGeneratedImage);
-                    setShowGeneratedImageModal(false);
+                </button>
+                
+                {/* 대표 이미지로 설정 (Supabase 저장 후) */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/save-generated-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: selectedGeneratedImage,
+                          fileName: `featured-image-${Date.now()}.png`,
+                          blogPostId: editingPost?.id || null
+                        })
+                      });
+                      if (response.ok) {
+                        const { storedUrl } = await response.json();
+                        selectGeneratedImage(storedUrl);
+                        setShowGeneratedImageModal(false);
+                        alert('이미지가 Supabase에 저장되고 대표 이미지로 설정되었습니다!');
+                      } else {
+                        selectGeneratedImage(selectedGeneratedImage);
+                        setShowGeneratedImageModal(false);
+                        alert('원본 이미지가 대표 이미지로 설정되었습니다.');
+                      }
+                    } catch (error) {
+                      selectGeneratedImage(selectedGeneratedImage);
+                      setShowGeneratedImageModal(false);
+                      alert('원본 이미지가 대표 이미지로 설정되었습니다.');
+                    }
                   }}
                   className="px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 whitespace-nowrap"
                 >
                   ⭐ 대표 이미지로 설정
-                            </button>
-                                    <button
-                                      onClick={() => {
-                    window.open(selectedGeneratedImage, '_blank');
+                </button>
+                
+                {/* 새 탭에서 열기 (Supabase 저장 후) */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/save-generated-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: selectedGeneratedImage,
+                          fileName: `tab-image-${Date.now()}.png`,
+                          blogPostId: editingPost?.id || null
+                        })
+                      });
+                      if (response.ok) {
+                        const { storedUrl } = await response.json();
+                        window.open(storedUrl, '_blank');
+                        alert('이미지가 Supabase에 저장되고 새 탭에서 열렸습니다!');
+                      } else {
+                        window.open(selectedGeneratedImage, '_blank');
+                      }
+                    } catch (error) {
+                      window.open(selectedGeneratedImage, '_blank');
+                    }
                   }}
                   className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 whitespace-nowrap"
                 >
                   🔗 새 탭에서 열기
-                                    </button>
+                </button>
               </div>
                                     <button
                 onClick={() => setShowGeneratedImageModal(false)}
