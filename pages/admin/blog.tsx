@@ -592,7 +592,6 @@ export default function BlogAdmin() {
 
   // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
   const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
-  const [paragraphImageStep, setParagraphImageStep] = useState('');
   
   const handleGenerateParagraphImages = async () => {
     if (!formData.content || formData.content.trim().length < 30) {
@@ -607,7 +606,9 @@ export default function BlogAdmin() {
     
     try {
       setIsGeneratingParagraphImages(true);
-      setParagraphImageStep('단락 분석 중...');
+      setShowGenerationProcess(true);
+      setImageGenerationModel('FAL AI (단락별)');
+      setImageGenerationStep('단락 분석 중...');
       
       const res = await fetch('/api/generate-paragraph-images', {
         method: 'POST',
@@ -633,7 +634,7 @@ export default function BlogAdmin() {
         throw new Error(errorData.message || '이미지 생성 실패');
       }
       
-      setParagraphImageStep('이미지 생성 중...');
+      setImageGenerationStep('이미지 생성 중...');
       const data = await res.json();
       const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
       
@@ -642,7 +643,7 @@ export default function BlogAdmin() {
         return;
       }
       
-      setParagraphImageStep('본문에 삽입 중...');
+      setImageGenerationStep('본문에 삽입 중...');
       
       // 생성된 이미지를 갤러리에 추가
       setGeneratedImages(prev => [...prev, ...urls]);
@@ -658,7 +659,7 @@ export default function BlogAdmin() {
         }
       }
       
-      setParagraphImageStep('완료!');
+      setImageGenerationStep('완료!');
       alert(`${urls.length}개의 이미지가 본문에 삽입되고 갤러리에 추가되었습니다.`);
       
     } catch (e: any) {
@@ -667,7 +668,8 @@ export default function BlogAdmin() {
     } finally {
       setIsGeneratingParagraphImages(false);
       setTimeout(() => {
-        setParagraphImageStep('');
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
       }, 2000);
     }
   };
@@ -2644,7 +2646,7 @@ export default function BlogAdmin() {
                       {isGeneratingParagraphImages ? (
                         <span className="flex items-center justify-center gap-2">
                           <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          {paragraphImageStep || '생성 중...'}
+                          생성 중...
                         </span>
                       ) : (
                         '📷 단락별 이미지 일괄 생성'
