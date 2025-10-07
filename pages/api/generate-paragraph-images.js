@@ -5,6 +5,48 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// ChatGPT를 활용한 지능적 단락 분리 함수
+async function splitContentWithAI(content, targetCount, title, excerpt) {
+  const systemPrompt = `You are an expert content analyzer. Your task is to split the given content into ${targetCount} meaningful paragraphs that would work well for generating distinct images.
+
+Guidelines:
+- Each paragraph should be self-contained and represent a distinct visual concept
+- Paragraphs should be roughly equal in length (100-200 characters each)
+- Consider the natural flow and topics of the content
+- Each paragraph should be suitable for creating a unique image
+- Maintain the original meaning and context
+
+Title: ${title}
+Excerpt: ${excerpt}
+
+Split the content into exactly ${targetCount} paragraphs. Return only the paragraphs separated by "|||PARAGRAPH_BREAK|||".`;
+
+  const userPrompt = `Content to split:
+${content}
+
+Please split this into ${targetCount} meaningful paragraphs for image generation.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: 1000,
+      temperature: 0.3
+    });
+
+    const result = response.choices[0].message.content.trim();
+    const paragraphs = result.split('|||PARAGRAPH_BREAK|||').map(p => p.trim()).filter(p => p.length > 30);
+    
+    return paragraphs.length >= 2 ? paragraphs : null;
+  } catch (error) {
+    console.error('ChatGPT 단락 분리 오류:', error);
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -38,7 +80,21 @@ export default async function handler(req, res) {
       }
     }
     
-    // 방법 3: 강제로 내용을 균등 분할
+    // 3단계: ChatGPT를 활용한 지능적 분리 (내용이 충분히 길고 복잡할 때만)
+    if (paragraphs.length <= 1 && cleanContent.length > 500) {
+      try {
+        console.log('🧠 ChatGPT를 활용한 지능적 단락 분리 시도...');
+        const aiParagraphs = await splitContentWithAI(cleanContent, imageCount || 4, title, excerpt);
+        if (aiParagraphs && aiParagraphs.length > 1) {
+          paragraphs = aiParagraphs;
+          console.log('✅ ChatGPT 단락 분리 성공:', paragraphs.length, '개');
+        }
+      } catch (error) {
+        console.warn('⚠️ ChatGPT 단락 분리 실패, 규칙 기반으로 폴백:', error.message);
+      }
+    }
+    
+    // 4단계: 최후 수단 - 강제 균등 분할
     if (paragraphs.length <= 1 && cleanContent.length > 200) {
       const chunkSize = Math.ceil(cleanContent.length / (imageCount || 4));
       for (let i = 0; i < cleanContent.length; i += chunkSize) {
