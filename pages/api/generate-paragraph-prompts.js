@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { content, title, excerpt, contentType, brandStrategy } = req.body;
+    const { content, title, excerpt, contentType, imageCount, brandStrategy } = req.body;
 
     if (!content) {
       return res.status(400).json({ message: 'Content is required' });
@@ -28,8 +28,9 @@ export default async function handler(req, res) {
     
     const prompts = [];
 
-    // 각 단락에 대해 프롬프트 생성 (최대 4개 단락)
-    for (let i = 0; i < Math.min(paragraphs.length, 4); i++) {
+    // 각 단락에 대해 프롬프트 생성 (imageCount 또는 최대 4개 단락)
+    const maxParagraphs = Math.min(paragraphs.length, imageCount || 4);
+    for (let i = 0; i < maxParagraphs; i++) {
       const paragraph = paragraphs[i].trim();
       
       // 단락 내용을 기반으로 이미지 프롬프트 생성
