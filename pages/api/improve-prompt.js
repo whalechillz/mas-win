@@ -11,6 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const startedAt = Date.now();
     const { originalPrompt, userImprovements, brandStrategy } = req.body;
 
     if (!originalPrompt || !userImprovements) {
@@ -64,7 +65,8 @@ ${brandContext}
     // ChatGPT 사용량 로깅
     await logOpenAIUsage('improve-prompt', 'prompt-improvement', response, {
       originalPrompt: originalPrompt.substring(0, 100) + '...',
-      userImprovements
+      userImprovements,
+      durationMs: Date.now() - startedAt
     });
 
     const improvedPrompt = response.choices[0].message.content.trim();

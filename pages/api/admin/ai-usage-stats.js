@@ -78,7 +78,10 @@ export default async function handler(req, res) {
       modelStats: {},
       dailyStats: {},
       monthlyStats: {},
-      errorDailyStats: {}
+      errorDailyStats: {},
+      topErrors: [],
+      latency: { p50: 0, p95: 0 },
+      dailyLatency: []
     };
 
     if (stats.totalRequests > 0) {
@@ -91,6 +94,9 @@ export default async function handler(req, res) {
     const dailyGroups = {};
     const dailyErrors = {};
     const monthlyGroups = {};
+    const errorGroups = {}; // key -> count
+    const latencyValues = []; // number[]
+    const dailyLatencyGroups = {}; // date -> number[]
 
     usageLogs?.forEach(log => {
       // 엔드포인트별
@@ -136,6 +142,16 @@ export default async function handler(req, res) {
       if (isError) {
         if (!dailyErrors[day]) dailyErrors[day] = 0;
         dailyErrors[day] += 1;
+        const key = itype; // 간단 그룹화(향후 metadata.errorCode 병합 가능)
+        errorGroups[key] = (errorGroups[key] || 0) + 1;
+      }
+
+      // 지연시간 수집 (metadata.durationMs)
+      const duration = (log.metadata && (log.metadata.durationMs || log.metadata.duration_ms)) || 0;
+      if (duration > 0) {
+        latencyValues.push(duration);
+        if (!dailyLatencyGroups[day]) dailyLatencyGroups[day] = [];
+        dailyLatencyGroups[day].push(duration);
       }
 
       // 월별
@@ -176,6 +192,27 @@ export default async function handler(req, res) {
       const errorRate = d.requests > 0 ? errors / d.requests : 0;
       return { date: d.date, errors, errorRate };
     });
+
+    // Top 오류 유형 상위 5개
+    stats.topErrors = Object.entries(errorGroups)
+      .map(([key, count]) => ({ key, label: key, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // 지연시간 p50/p95 계산
+    const percentile = (arr, p) => {
+      if (!arr || arr.length === 0) return 0;
+      const sorted = [...arr].sort((a, b) => a - b);
+      const idx = Math.floor((p / 100) * (sorted.length - 1));
+      return sorted[idx];
+    };
+    stats.latency = {
+      p50: percentile(latencyValues, 50),
+      p95: percentile(latencyValues, 95)
+    };
+    stats.dailyLatency = Object.entries(dailyLatencyGroups)
+      .map(([date, arr]) => ({ date, p50: percentile(arr, 50), p95: percentile(arr, 95) }))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     stats.monthlyStats = Object.entries(monthlyGroups).map(([month, data]) => ({
       month,

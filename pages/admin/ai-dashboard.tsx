@@ -620,6 +620,58 @@ export default function AIDashboard() {
                 </div>
               )}
 
+              {/* 에러 유형 Top 5 */}
+              {usage7d?.stats?.topErrors && usage7d.stats.topErrors.length > 0 && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">에러 유형 Top 5</h2>
+                  {(() => {
+                    const items = usage7d.stats.topErrors;
+                    const maxCount = Math.max(1, ...items.map((e: any) => e.count));
+                    return (
+                      <div className="space-y-2">
+                        {items.map((e: any) => (
+                          <div key={e.key} className="flex items-center gap-3">
+                            <div className="w-60 truncate text-xs text-gray-700" title={e.label}>{e.label}</div>
+                            <div className="flex-1 h-3 bg-gray-100 rounded">
+                              <div className="h-3 rounded bg-gradient-to-r from-red-600 to-red-400" style={{ width: `${(e.count/maxCount)*100}%` }} title={`${e.count}건`}></div>
+                            </div>
+                            <div className="w-12 text-right text-xs text-gray-700">{e.count}</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* 지연시간 p50/p95 미니 그래프 */}
+              {usage7d?.stats?.dailyLatency && usage7d.stats.dailyLatency.length > 0 && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">지연시간 p50/p95 (최근 7일)</h2>
+                  {(() => {
+                    const items = usage7d.stats.dailyLatency.slice(0,7).reverse();
+                    const maxVal = Math.max(1, ...items.map((d: any) => Math.max(d.p50||0, d.p95||0)));
+                    return (
+                      <div className="flex items-end gap-4 h-40">
+                        {items.map((d: any) => {
+                          const h50 = Math.max(4, Math.round(((d.p50||0) / maxVal) * 140));
+                          const h95 = Math.max(4, Math.round(((d.p95||0) / maxVal) * 140));
+                          return (
+                            <div key={d.date} className="flex flex-col items-center gap-1">
+                              <div className="flex items-end gap-1">
+                                <div className="w-4 bg-green-500 rounded-t" style={{ height: `${h50}px` }} title={`${d.date} · p50 ${(d.p50||0).toFixed(0)}ms`}></div>
+                                <div className="w-4 bg-purple-600 rounded-t" style={{ height: `${h95}px` }} title={`${d.date} · p95 ${(d.p95||0).toFixed(0)}ms`}></div>
+                              </div>
+                              <div className="text-[10px] text-gray-500">{d.date.slice(5)}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
               {/* 에러율 상세 표 (최근 7일) */}
               {usage7d?.stats?.errorDailyStats && (
                 <div className="bg-white rounded-lg shadow p-6">

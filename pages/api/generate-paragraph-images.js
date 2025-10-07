@@ -24,6 +24,7 @@ export default async function handler(req, res) {
     // 각 단락에 대해 이미지 생성 (최대 4개 단락)
     for (let i = 0; i < Math.min(paragraphs.length, 4); i++) { // 최대 4개 단락
       const paragraph = paragraphs[i].trim();
+      const startedAt = Date.now();
       
       // 단락 내용을 기반으로 이미지 프롬프트 생성
       const imagePrompt = await generateParagraphImagePrompt(paragraph, title, excerpt, contentType, brandStrategy, i);
@@ -56,7 +57,8 @@ export default async function handler(req, res) {
       await logFALAIUsage('generate-paragraph-images', 'image-generation', {
         paragraphIndex: i,
         prompt: imagePrompt,
-        imageCount: 1
+        imageCount: 1,
+        durationMs: Date.now() - startedAt
       });
 
       // hidream-i1-dev는 동기식 응답

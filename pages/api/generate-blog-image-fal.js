@@ -175,6 +175,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const startedAt = Date.now();
     console.log('🎨 FAL AI 이미지 생성 시작...');
     console.log('제목:', title);
     console.log('콘텐츠 유형:', contentType);
@@ -223,7 +224,8 @@ export default async function handler(req, res) {
     // FAL AI 사용량 로깅
     await logFALAIUsage('generate-blog-image-fal', 'image-generation', {
       imageCount: validImageCount,
-      prompt: imagePrompt.substring(0, 100) + '...'
+      prompt: imagePrompt.substring(0, 100) + '...',
+      durationMs: Date.now() - startedAt
     });
     
     // FAL AI 응답에서 이미지 URL 추출
