@@ -437,7 +437,7 @@ export default function AIDashboard() {
                     const avgDaily = daily.length > 0 ? (daily.reduce((s: number, d: any) => s + (d.cost || 0), 0) / daily.length) : 0;
                     const monthDays = 30;
                     const forecast = avgDaily * monthDays;
-                    const budget = 10; // 가정치: 월 예산 $10 (추후 설정으로 분리)
+                    const budget = Number(process.env.NEXT_PUBLIC_AI_MONTHLY_BUDGET || '10');
                     const usageRate = budget > 0 ? Math.min(1, forecast / budget) : 0;
                     const barWidth = Math.round(usageRate * 100);
                     return (
@@ -612,6 +612,33 @@ export default function AIDashboard() {
                             <td className="px-6 py-3 text-sm">{m.requests}</td>
                             <td className="px-6 py-3 text-sm">{(m.tokens || 0).toLocaleString()}</td>
                             <td className="px-6 py-3 text-sm">${(m.cost || 0).toFixed(4)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* 에러율 상세 표 (최근 7일) */}
+              {usage7d?.stats?.errorDailyStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">에러율 상세 (최근 7일)</h2>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">에러 수</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">에러율</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {usage7d.stats.errorDailyStats.map((d: any) => (
+                          <tr key={d.date}>
+                            <td className="px-6 py-3 text-sm">{d.date}</td>
+                            <td className="px-6 py-3 text-sm">{d.errors}</td>
+                            <td className="px-6 py-3 text-sm">{(d.errorRate * 100).toFixed(1)}%</td>
                           </tr>
                         ))}
                       </tbody>
