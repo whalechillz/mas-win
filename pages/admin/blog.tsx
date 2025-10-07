@@ -2060,17 +2060,7 @@ export default function BlogAdmin() {
                         </div>
                     </div>
 
-                {/* 본문 도구들 */}
-                <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                    onClick={handleGenerateParagraphImages}
-                    className="px-3 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700"
-                    title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
-                      >
-                    📷 단락별 이미지 일괄 생성
-                      </button>
-                    </div>
+                {/* 본문 도구들 - 단락별 이미지 생성 버튼은 내용 아래로 이동 */}
 
                 {/* 요약 */}
                       <div>
@@ -2119,6 +2109,23 @@ export default function BlogAdmin() {
                     onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
                     onRequestImageFromGallery={(insert) => openGalleryPicker(insert)}
                   />
+                </div>
+
+                {/* 단락별 이미지 일괄 생성 - 내용 작성 후 사용 */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">📷 단락별 이미지 일괄 생성</h4>
+                      <p className="text-xs text-gray-500">본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleGenerateParagraphImages}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 flex items-center gap-2"
+                    >
+                      📷 단락별 이미지 일괄 생성
+                    </button>
+                  </div>
                 </div>
 
                 {/* 마쓰구 브랜드 전략 섹션 */}
