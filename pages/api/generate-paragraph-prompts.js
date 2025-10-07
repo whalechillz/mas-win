@@ -21,6 +21,8 @@ export default async function handler(req, res) {
     const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 50); // 최소 50자 이상인 단락만
     
     console.log(`📝 단락 분석: 총 ${paragraphs.length}개 단락 발견`);
+    console.log(`📝 요청된 이미지 개수: ${imageCount || 4}개`);
+    console.log(`📝 단락 내용 미리보기:`, paragraphs.map((p, i) => `단락 ${i+1}: ${p.substring(0, 100)}...`));
     
     if (paragraphs.length === 0) {
       return res.status(400).json({ message: '이미지 생성에 적합한 단락이 없습니다. (최소 50자 이상)' });
@@ -30,6 +32,8 @@ export default async function handler(req, res) {
 
     // 각 단락에 대해 프롬프트 생성 (imageCount 또는 최대 4개 단락)
     const maxParagraphs = Math.min(paragraphs.length, imageCount || 4);
+    console.log(`📝 처리할 단락 수: ${maxParagraphs}개 (전체 ${paragraphs.length}개 중)`);
+    
     for (let i = 0; i < maxParagraphs; i++) {
       const paragraph = paragraphs[i].trim();
       
@@ -42,7 +46,11 @@ export default async function handler(req, res) {
         fullParagraph: paragraph,
         prompt: imagePrompt
       });
+      
+      console.log(`✅ 단락 ${i + 1} 프롬프트 생성 완료:`, imagePrompt.substring(0, 100) + '...');
     }
+
+    console.log(`🎉 총 ${prompts.length}개 프롬프트 생성 완료`);
 
     res.status(200).json({
       success: true,
