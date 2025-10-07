@@ -309,7 +309,7 @@ export default function AIDashboard() {
               {/* AI 사용량 요약 */}
               {aiStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI 사용량 요약</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI 사용량 요약 <span className="ml-2 align-middle inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">누적(전체)</span></h2>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">{aiStats.totalCalls.toLocaleString()}</div>
@@ -484,12 +484,12 @@ export default function AIDashboard() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">요약</h2>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div className="bg-yellow-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-600 mb-1">오늘 비용</div>
+                    <div className="text-sm text-gray-600 mb-1">오늘 비용 <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-yellow-100 text-yellow-800">1일</span></div>
                     <div className="text-2xl font-bold text-yellow-700">${(usageToday?.stats?.totalCost || 0).toFixed(4)}</div>
                     <div className="text-xs text-gray-500">{usageToday?.stats?.totalRequests || 0}회</div>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-600 mb-1">7일 비용</div>
+                    <div className="text-sm text-gray-600 mb-1">선택 기간 비용 <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-800">{periodLabel(periodFromRange(dateRange))}</span></div>
                     <div className="text-2xl font-bold text-blue-700">${(usage7d?.stats?.totalCost || 0).toFixed(4)}</div>
                     <div className="text-xs text-gray-500">{usage7d?.stats?.totalRequests || 0}회</div>
                   </div>
@@ -829,7 +829,7 @@ export default function AIDashboard() {
           {/* 실시간 모니터링 탭 */}
           {activeTab === 'realtime' && (
             <div className="space-y-8">
-              <RealtimeAIMonitor refreshInterval={30000} />
+              <RealtimeAIMonitor refreshInterval={30000} showSummaryCards={false} />
             </div>
           )}
 

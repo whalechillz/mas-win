@@ -36,9 +36,10 @@ interface AIUsageData {
 
 interface RealtimeAIMonitorProps {
   refreshInterval?: number;
+  showSummaryCards?: boolean; // 기본 true
 }
 
-export default function RealtimeAIMonitor({ refreshInterval = 30000 }: RealtimeAIMonitorProps) {
+export default function RealtimeAIMonitor({ refreshInterval = 30000, showSummaryCards = true }: RealtimeAIMonitorProps) {
   const [usageData, setUsageData] = useState<AIUsageData[]>([]);
   const [currentStats, setCurrentStats] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -308,8 +309,8 @@ export default function RealtimeAIMonitor({ refreshInterval = 30000 }: RealtimeA
         </div>
       )}
 
-      {/* 실시간 통계 카드 */}
-      {currentStats && (
+      {/* 실시간 통계 카드 (옵션) */}
+      {showSummaryCards && currentStats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
             <div className="text-2xl font-bold text-blue-600">{currentStats.totalCalls}</div>
