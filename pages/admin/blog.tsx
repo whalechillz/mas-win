@@ -592,6 +592,123 @@ export default function BlogAdmin() {
 
   // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
   const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
+  const [paragraphPrompts, setParagraphPrompts] = useState([]); // 단락별 프롬프트 배열
+  const [showParagraphPromptPreview, setShowParagraphPromptPreview] = useState(false);
+  
+  // 단락별 프롬프트 미리 생성
+  const generateParagraphPrompts = async () => {
+    if (!formData.content || formData.content.trim().length < 30) {
+      alert('본문을 먼저 작성해주세요. (최소 30자)');
+      return;
+    }
+    
+    try {
+      setImageGenerationStep('단락 분석 및 프롬프트 생성 중...');
+      
+      const res = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content: formData.content,
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: { 
+            customerPersona: brandPersona, 
+            customerChannel: 'local_customers', 
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
+          }
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '프롬프트 생성 실패');
+      }
+      
+      const data = await res.json();
+      setParagraphPrompts(data.prompts || []);
+      setShowParagraphPromptPreview(true);
+      setImageGenerationStep('');
+      
+    } catch (e: any) {
+      console.error('단락 프롬프트 생성 오류:', e);
+      alert('단락 프롬프트 생성 중 오류가 발생했습니다: ' + e.message);
+      setImageGenerationStep('');
+    }
+  };
+  
+  // 수정된 프롬프트로 이미지 생성
+  const handleGenerateParagraphImagesWithCustomPrompts = async () => {
+    if (!paragraphPrompts.length) {
+      alert('수정된 프롬프트가 없습니다.');
+      return;
+    }
+    
+    if (isGeneratingParagraphImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
+    try {
+      setIsGeneratingParagraphImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('FAL AI (단락별)');
+      setImageGenerationStep('수정된 프롬프트로 이미지 생성 중...');
+      
+      const res = await fetch('/api/generate-paragraph-images-with-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompts: paragraphPrompts,
+          blogPostId: editingPost?.id || null
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '이미지 생성 실패');
+      }
+      
+      setImageGenerationStep('본문에 삽입 중...');
+      const data = await res.json();
+      const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+      
+      if (!urls.length) {
+        alert('생성된 이미지가 없습니다.');
+        return;
+      }
+      
+      // 생성된 이미지를 갤러리에 추가
+      setGeneratedImages(prev => [...prev, ...urls]);
+      setShowGeneratedImages(true);
+      
+      // 각 이미지를 순차적으로 삽입
+      for (let i = 0; i < urls.length; i++) {
+        const ev = new CustomEvent('tiptap:insert-image', { detail: { url: urls[i] } });
+        window.dispatchEvent(ev);
+        
+        if (i < urls.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      setImageGenerationStep('완료!');
+      alert(`${urls.length}개의 이미지가 수정된 프롬프트로 생성되어 본문에 삽입되고 갤러리에 추가되었습니다.`);
+      
+    } catch (e: any) {
+      console.error('단락 이미지 생성 오류:', e);
+      alert('단락 이미지 생성 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsGeneratingParagraphImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
   
   const handleGenerateParagraphImages = async () => {
     if (!formData.content || formData.content.trim().length < 30) {
@@ -2630,30 +2747,102 @@ export default function BlogAdmin() {
                     </button>
                   </div>
 
-                  {/* 단락별 이미지 일괄 생성 버튼 */}
+                  {/* 단락별 프롬프트 미리보기 */}
+                  {showParagraphPromptPreview && paragraphPrompts.length > 0 && (
+                    <div className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-medium text-gray-700">단락별 프롬프트 미리보기</h4>
+                        <button
+                          type="button"
+                          onClick={() => setShowParagraphPromptPreview(false)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="space-y-4">
+                        {paragraphPrompts.map((item, index) => (
+                          <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-gray-600">단락 {index + 1}</span>
+                              <span className="text-xs text-gray-500">{item.paragraph}</span>
+                            </div>
+                            <textarea
+                              className="w-full h-20 text-xs px-2 py-1 border border-gray-300 rounded"
+                              value={item.prompt}
+                              onChange={(e) => {
+                                const newPrompts = [...paragraphPrompts];
+                                newPrompts[index].prompt = e.target.value;
+                                setParagraphPrompts(newPrompts);
+                              }}
+                              placeholder="프롬프트를 수정하세요..."
+                            />
+                          </div>
+                        ))}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowParagraphPromptPreview(false);
+                              // 수정된 프롬프트로 이미지 생성
+                              handleGenerateParagraphImagesWithCustomPrompts();
+                            }}
+                            className="px-3 py-2 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700"
+                          >
+                            📷 수정된 프롬프트로 이미지 생성
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowParagraphPromptPreview(false)}
+                            className="px-3 py-2 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 단락별 이미지 일괄 생성 버튼들 */}
                   <div className="mb-6">
-                    <button
-                      type="button"
-                      onClick={handleGenerateParagraphImages}
-                      disabled={isGeneratingParagraphImages}
-                      className={`w-full px-4 py-3 rounded-lg text-sm font-medium ${
-                        isGeneratingParagraphImages 
-                          ? 'bg-emerald-300 text-white cursor-not-allowed' 
-                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                      }`}
-                      title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 에디터에 순차 삽입"
-                    >
-                      {isGeneratingParagraphImages ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          생성 중...
-                        </span>
-                      ) : (
-                        '📷 단락별 이미지 일괄 생성'
-                      )}
-                    </button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={generateParagraphPrompts}
+                        disabled={isGeneratingParagraphImages}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingParagraphImages 
+                            ? 'bg-gray-300 text-white cursor-not-allowed' 
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                        title="본문의 단락별 프롬프트를 미리 생성하여 확인하고 수정할 수 있습니다"
+                      >
+                        🔍 단락별 프롬프트 미리보기
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={handleGenerateParagraphImages}
+                        disabled={isGeneratingParagraphImages}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingParagraphImages 
+                            ? 'bg-emerald-300 text-white cursor-not-allowed' 
+                            : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                        }`}
+                        title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 에디터에 순차 삽입"
+                      >
+                        {isGeneratingParagraphImages ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            생성 중...
+                          </span>
+                        ) : (
+                          '📷 단락별 이미지 일괄 생성'
+                        )}
+                      </button>
+                    </div>
                     <p className="text-xs text-gray-500 mt-2 text-center">
-                      본문의 단락별로 이미지를 자동 생성하여 에디터에 삽입합니다
+                      먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다
                     </p>
                   </div>
 
