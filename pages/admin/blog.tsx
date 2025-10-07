@@ -42,6 +42,9 @@ export default function BlogAdmin() {
   const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
   const [modalSavingState, setModalSavingState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+  // 이미지 생성 개수 선택
+  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(4);
+
   // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
   const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
   const [brandContentType, setBrandContentType] = useState<'골프 정보' | '튜토리얼' | '고객 후기' | '고객 스토리' | '이벤트'>('골프 정보');
@@ -828,11 +831,37 @@ export default function BlogAdmin() {
         console.log('✅ FAL AI 이미지 생성 완료:', result.imageUrls.length, '개');
         setImageGenerationStep('3단계: FAL AI 이미지 생성 완료!');
         
-        // 생성된 이미지들을 상태에 추가
-        setGeneratedImages(prev => [...prev, ...result.imageUrls]);
+        // 생성된 이미지들을 자동으로 Supabase에 저장
+        const savedImages = [];
+        for (let i = 0; i < result.imageUrls.length; i++) {
+          try {
+            const saveResponse = await fetch('/api/save-generated-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: result.imageUrls[i],
+                fileName: `fal-ai-image-${Date.now()}-${i + 1}.png`,
+                blogPostId: editingPost?.id || null
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const saveResult = await saveResponse.json();
+              savedImages.push(saveResult.storedUrl);
+            } else {
+              savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
+            }
+          } catch (saveError) {
+            console.error('이미지 저장 오류:', saveError);
+            savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
+          }
+        }
+        
+        // 저장된 이미지들을 상태에 추가
+        setGeneratedImages(prev => [...prev, ...savedImages]);
         setShowGeneratedImages(true);
         
-        alert(`${result.imageUrls.length}개의 FAL AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+        alert(`${savedImages.length}개의 FAL AI 이미지가 생성되고 Supabase에 자동 저장되었습니다!`);
       } else {
         const error = await response.json();
         console.error('FAL AI 이미지 생성 실패:', error);
@@ -923,11 +952,37 @@ export default function BlogAdmin() {
         console.log('✅ Google AI 이미지 생성 완료:', result.imageUrls.length, '개');
         setImageGenerationStep('3단계: Google AI 이미지 생성 완료!');
         
-        // 생성된 이미지들을 상태에 추가
-        setGeneratedImages(prev => [...prev, ...result.imageUrls]);
+        // 생성된 이미지들을 자동으로 Supabase에 저장
+        const savedImages = [];
+        for (let i = 0; i < result.imageUrls.length; i++) {
+          try {
+            const saveResponse = await fetch('/api/save-generated-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: result.imageUrls[i],
+                fileName: `google-ai-image-${Date.now()}-${i + 1}.png`,
+                blogPostId: editingPost?.id || null
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const saveResult = await saveResponse.json();
+              savedImages.push(saveResult.storedUrl);
+            } else {
+              savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
+            }
+          } catch (saveError) {
+            console.error('이미지 저장 오류:', saveError);
+            savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
+          }
+        }
+        
+        // 저장된 이미지들을 상태에 추가
+        setGeneratedImages(prev => [...prev, ...savedImages]);
         setShowGeneratedImages(true);
         
-        alert(`${result.imageUrls.length}개의 Google AI 이미지가 생성되었습니다! 원하는 이미지를 선택하세요.`);
+        alert(`${savedImages.length}개의 Google AI 이미지가 생성되고 Supabase에 자동 저장되었습니다!`);
       } else {
         const error = await response.json();
         console.error('Google AI 이미지 생성 실패:', error);
@@ -2280,11 +2335,34 @@ export default function BlogAdmin() {
                   )}
                   </div>
 
+                  {/* 이미지 생성 개수 선택 */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      생성할 이미지 개수
+                    </label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4].map((count) => (
+                        <button
+                          key={count}
+                          type="button"
+                          onClick={() => setImageGenerationCount(count as 1 | 2 | 3 | 4)}
+                          className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                            imageGenerationCount === count
+                              ? 'bg-blue-500 text-white border-blue-500'
+                              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {count}개
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <button 
                       type="button"
-                      onClick={() => generateAIImage(4)}
+                      onClick={() => generateAIImage(imageGenerationCount)}
                       disabled={isGeneratingImages}
                       className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
@@ -2298,7 +2376,7 @@ export default function BlogAdmin() {
                     
                     <button 
                       type="button"
-                      onClick={() => generateFALAIImage(4)}
+                      onClick={() => generateFALAIImage(imageGenerationCount)}
                       disabled={isGeneratingImages}
                       className="px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
@@ -2312,7 +2390,7 @@ export default function BlogAdmin() {
                     
                     <button 
                       type="button"
-                      onClick={() => generateGoogleAIImage(4)}
+                      onClick={() => generateGoogleAIImage(imageGenerationCount)}
                       disabled={isGeneratingImages}
                       className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
@@ -2395,87 +2473,6 @@ export default function BlogAdmin() {
                                       title="변형"
                                     >
                                       🎨
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={imageSavingStates[index] === 'saving'}
-                                      onClick={async (e) => {
-                                        e.stopPropagation();
-                                        
-                                        // 이미 저장 중이면 중복 실행 방지
-                                        if (imageSavingStates[index] === 'saving') return;
-                                        
-                                        // 저장 상태를 'saving'으로 설정
-                                        setImageSavingStates(prev => ({ ...prev, [index]: 'saving' }));
-                                        
-                                        try {
-                                          const response = await fetch('/api/save-generated-image', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                              imageUrl: imageUrl,
-                                              fileName: `paragraph-image-${Date.now()}-${index + 1}.png`,
-                                              blogPostId: editingPost?.id || null
-                                            })
-                                          });
-                                          
-                                          if (response.ok) {
-                                            // 저장 성공
-                                            setImageSavingStates(prev => ({ ...prev, [index]: 'saved' }));
-                                            alert('이미지가 Supabase에 저장되었습니다!');
-                                            
-                                            // 3초 후 상태 초기화
-                                            setTimeout(() => {
-                                              setImageSavingStates(prev => ({ ...prev, [index]: 'idle' }));
-                                            }, 3000);
-                                          } else {
-                                            // 저장 실패
-                                            setImageSavingStates(prev => ({ ...prev, [index]: 'error' }));
-                                            alert('이미지 저장에 실패했습니다.');
-                                            
-                                            // 3초 후 상태 초기화
-                                            setTimeout(() => {
-                                              setImageSavingStates(prev => ({ ...prev, [index]: 'idle' }));
-                                            }, 3000);
-                                          }
-                                        } catch (error) {
-                                          console.error('이미지 저장 오류:', error);
-                                          setImageSavingStates(prev => ({ ...prev, [index]: 'error' }));
-                                          alert('이미지 저장 중 오류가 발생했습니다.');
-                                          
-                                          // 3초 후 상태 초기화
-                                          setTimeout(() => {
-                                            setImageSavingStates(prev => ({ ...prev, [index]: 'idle' }));
-                                          }, 3000);
-                                        }
-                                      }}
-                                      className={`px-2 py-1 text-white text-xs rounded transition-colors ${
-                                        imageSavingStates[index] === 'saving' 
-                                          ? 'bg-yellow-500 cursor-not-allowed' 
-                                          : imageSavingStates[index] === 'saved'
-                                          ? 'bg-green-600'
-                                          : imageSavingStates[index] === 'error'
-                                          ? 'bg-red-500'
-                                          : 'bg-green-500 hover:bg-green-600'
-                                      }`}
-                                      title={
-                                        imageSavingStates[index] === 'saving' 
-                                          ? '저장 중...' 
-                                          : imageSavingStates[index] === 'saved'
-                                          ? '저장 완료!'
-                                          : imageSavingStates[index] === 'error'
-                                          ? '저장 실패'
-                                          : 'Supabase 저장'
-                                      }
-                                    >
-                                      {imageSavingStates[index] === 'saving' 
-                                        ? '⏳' 
-                                        : imageSavingStates[index] === 'saved'
-                                        ? '✅'
-                                        : imageSavingStates[index] === 'error'
-                                        ? '❌'
-                                        : '💾'
-                                      }
                                     </button>
                                   </div>
                                 </div>

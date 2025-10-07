@@ -58,12 +58,41 @@ export default async function handler(req, res) {
 
       const imageResponse = { data: [{ url: falResult.images[0].url }] };
 
-      paragraphImages.push({
-        paragraphIndex: i,
-        paragraph: paragraph.substring(0, 100) + '...', // 미리보기용
-        imageUrl: imageResponse.data[0].url,
-        prompt: imagePrompt
-      });
+      // 이미지를 Supabase에 자동 저장
+      try {
+        const saveResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/save-generated-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageUrl: imageResponse.data[0].url,
+            fileName: `paragraph-image-${Date.now()}-${i + 1}.png`,
+            blogPostId: blogPostId || null
+          })
+        });
+        
+        let storedUrl = imageResponse.data[0].url; // 기본값은 원본 URL
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          storedUrl = saveResult.storedUrl;
+        }
+        
+        paragraphImages.push({
+          paragraphIndex: i,
+          paragraph: paragraph.substring(0, 100) + '...', // 미리보기용
+          imageUrl: storedUrl, // Supabase 저장된 URL 사용
+          originalUrl: imageResponse.data[0].url, // 원본 URL도 보관
+          prompt: imagePrompt
+        });
+      } catch (saveError) {
+        console.error('이미지 저장 오류:', saveError);
+        // 저장 실패 시 원본 URL 사용
+        paragraphImages.push({
+          paragraphIndex: i,
+          paragraph: paragraph.substring(0, 100) + '...',
+          imageUrl: imageResponse.data[0].url,
+          prompt: imagePrompt
+        });
+      }
     }
 
     res.status(200).json({
