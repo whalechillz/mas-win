@@ -1821,6 +1821,17 @@ export default function BlogAdmin() {
     };
   }, [formData]);
 
+  // 확대 모달 포커스 관리
+  useEffect(() => {
+    if (showGeneratedImageModal) {
+      // 모달이 열릴 때 포커스 설정
+      const modalElement = document.querySelector('[data-modal="image-viewer"]');
+      if (modalElement) {
+        (modalElement as HTMLElement).focus();
+      }
+    }
+  }, [showGeneratedImageModal]);
+
   // 정렬 옵션 변경 시 새로고침
   useEffect(() => {
     if (posts.length > 0) {
@@ -3286,20 +3297,70 @@ export default function BlogAdmin() {
                         
       {/* AI 생성 이미지 확대 보기 모달 */}
       {showGeneratedImageModal && selectedGeneratedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          data-modal="image-viewer"
+          onKeyDown={(e) => {
+            if (generatedImages.length > 1) {
+              if (e.key === 'ArrowLeft') {
+                const currentIndex = generatedImages.indexOf(selectedGeneratedImage);
+                const prevIndex = currentIndex > 0 ? currentIndex - 1 : generatedImages.length - 1;
+                setSelectedGeneratedImage(generatedImages[prevIndex]);
+              } else if (e.key === 'ArrowRight') {
+                const currentIndex = generatedImages.indexOf(selectedGeneratedImage);
+                const nextIndex = currentIndex < generatedImages.length - 1 ? currentIndex + 1 : 0;
+                setSelectedGeneratedImage(generatedImages[nextIndex]);
+              } else if (e.key === 'Escape') {
+                setShowGeneratedImageModal(false);
+              }
+            }
+          }}
+          tabIndex={0}
+        >
           <div className="bg-white rounded-lg max-w-6xl max-h-[95vh] w-full overflow-hidden flex flex-col">
             {/* 모달 헤더 */}
             <div className="p-4 border-b bg-orange-50 flex-shrink-0">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-orange-800">🎨 AI 생성 이미지 확대 보기</h3>
-                          <button
+                <div className="flex items-center gap-4">
+                  <h3 className="text-xl font-bold text-orange-800">🎨 AI 생성 이미지 확대 보기</h3>
+                  {generatedImages.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const currentIndex = generatedImages.indexOf(selectedGeneratedImage);
+                          const prevIndex = currentIndex > 0 ? currentIndex - 1 : generatedImages.length - 1;
+                          setSelectedGeneratedImage(generatedImages[prevIndex]);
+                        }}
+                        className="px-2 py-1 bg-orange-200 text-orange-800 rounded hover:bg-orange-300 text-sm"
+                        title="이전 이미지"
+                      >
+                        ←
+                      </button>
+                      <span className="text-sm text-orange-700">
+                        {generatedImages.indexOf(selectedGeneratedImage) + 1} / {generatedImages.length}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const currentIndex = generatedImages.indexOf(selectedGeneratedImage);
+                          const nextIndex = currentIndex < generatedImages.length - 1 ? currentIndex + 1 : 0;
+                          setSelectedGeneratedImage(generatedImages[nextIndex]);
+                        }}
+                        className="px-2 py-1 bg-orange-200 text-orange-800 rounded hover:bg-orange-300 text-sm"
+                        title="다음 이미지"
+                      >
+                        →
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button
                   onClick={() => setShowGeneratedImageModal(false)}
                   className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
                 >
                   ×
-                          </button>
-                        </div>
-                      </div>
+                </button>
+              </div>
+            </div>
                       
             {/* 이미지 영역 - 원본 비율 유지하며 위아래 잘림 방지 */}
             <div className="flex-1 p-4 flex items-center justify-center bg-gray-100 overflow-auto">
@@ -3341,8 +3402,8 @@ export default function BlogAdmin() {
             
             {/* 액션 버튼들 */}
             <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
-              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {/* Supabase 저장 버튼 */}
+              <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                {/* 저장 버튼 */}
                 <button
                   disabled={modalSavingState === 'saving'}
                   onClick={async () => {
@@ -3365,9 +3426,8 @@ export default function BlogAdmin() {
                       
                       if (response.ok) {
                         const { storedUrl } = await response.json();
-                        navigator.clipboard.writeText(storedUrl);
                         setModalSavingState('saved');
-                        alert('이미지가 Supabase에 저장되고 URL이 복사되었습니다!');
+                        alert('이미지가 Supabase에 저장되었습니다!');
                         
                         // 3초 후 상태 초기화
                         setTimeout(() => {
@@ -3393,7 +3453,7 @@ export default function BlogAdmin() {
                       }, 3000);
                     }
                   }}
-                  className={`px-3 py-2 text-white text-sm rounded whitespace-nowrap transition-colors ${
+                  className={`px-4 py-2 text-white text-sm rounded whitespace-nowrap transition-colors ${
                     modalSavingState === 'saving' 
                       ? 'bg-yellow-500 cursor-not-allowed' 
                       : modalSavingState === 'saved'
@@ -3409,177 +3469,23 @@ export default function BlogAdmin() {
                     ? '✅ 저장 완료!'
                     : modalSavingState === 'error'
                     ? '❌ 저장 실패'
-                    : '💾 Supabase 저장'
+                    : '💾 저장'
                   }
                 </button>
                 
-                {/* URL 복사 (Supabase 저장 후) */}
+                {/* 삭제 버튼 */}
                 <button
-                  disabled={modalSavingState === 'saving'}
-                  onClick={async () => {
-                    // 이미 저장 중이면 중복 실행 방지
-                    if (modalSavingState === 'saving') return;
-                    
-                    // 저장 상태를 'saving'으로 설정
-                    setModalSavingState('saving');
-                    
-                    try {
-                      const response = await fetch('/api/save-generated-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          imageUrl: selectedGeneratedImage,
-                          fileName: `copy-image-${Date.now()}.png`,
-                          blogPostId: editingPost?.id || null
-                        })
-                      });
-                      
-                      if (response.ok) {
-                        const { storedUrl } = await response.json();
-                        navigator.clipboard.writeText(storedUrl);
-                        setModalSavingState('saved');
-                        alert('Supabase URL이 복사되었습니다!');
-                        
-                        // 3초 후 상태 초기화
-                        setTimeout(() => {
-                          setModalSavingState('idle');
-                        }, 3000);
-                      } else {
-                        navigator.clipboard.writeText(selectedGeneratedImage);
-                        setModalSavingState('saved');
-                        alert('원본 URL이 복사되었습니다.');
-                        
-                        // 3초 후 상태 초기화
-                        setTimeout(() => {
-                          setModalSavingState('idle');
-                        }, 3000);
-                      }
-                    } catch (error) {
-                      navigator.clipboard.writeText(selectedGeneratedImage);
-                      setModalSavingState('error');
-                      alert('원본 URL이 복사되었습니다.');
-                      
-                      // 3초 후 상태 초기화
-                      setTimeout(() => {
-                        setModalSavingState('idle');
-                      }, 3000);
-                    }
-                  }}
-                  className={`px-3 py-2 text-white text-sm rounded whitespace-nowrap transition-colors ${
-                    modalSavingState === 'saving' 
-                      ? 'bg-yellow-500 cursor-not-allowed' 
-                      : modalSavingState === 'saved'
-                      ? 'bg-blue-600'
-                      : modalSavingState === 'error'
-                      ? 'bg-red-500'
-                      : 'bg-blue-500 hover:bg-blue-600'
-                  }`}
-                >
-                  {modalSavingState === 'saving' 
-                    ? '⏳ 복사 중...' 
-                    : modalSavingState === 'saved'
-                    ? '✅ 복사 완료!'
-                    : modalSavingState === 'error'
-                    ? '❌ 복사 실패'
-                    : '📋 URL 복사'
-                  }
-                </button>
-                
-                {/* 콘텐츠에 삽입 (Supabase 저장 후) */}
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/save-generated-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          imageUrl: selectedGeneratedImage,
-                          fileName: `content-image-${Date.now()}.png`,
-                          blogPostId: editingPost?.id || null
-                        })
-                      });
-                      if (response.ok) {
-                        const { storedUrl } = await response.json();
-                        insertImageToContent(forceHttps(storedUrl));
-                        setShowGeneratedImageModal(false);
-                        alert('이미지가 Supabase에 저장되고 콘텐츠에 삽입되었습니다!');
-                      } else {
-                        insertImageToContent(forceHttps(selectedGeneratedImage));
-                        setShowGeneratedImageModal(false);
-                        alert('원본 이미지가 콘텐츠에 삽입되었습니다.');
-                      }
-                    } catch (error) {
-                      insertImageToContent(forceHttps(selectedGeneratedImage));
+                  onClick={() => {
+                    if (confirm('이 이미지를 삭제하시겠습니까?')) {
+                      // 생성된 이미지 목록에서 제거
+                      setGeneratedImages(prev => prev.filter(img => img !== selectedGeneratedImage));
                       setShowGeneratedImageModal(false);
-                      alert('원본 이미지가 콘텐츠에 삽입되었습니다.');
+                      alert('이미지가 삭제되었습니다.');
                     }
                   }}
-                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
+                  className="px-4 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600 whitespace-nowrap"
                 >
-                  ➕ 콘텐츠에 삽입
-                </button>
-                
-                {/* 대표 이미지로 설정 (Supabase 저장 후) */}
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/save-generated-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          imageUrl: selectedGeneratedImage,
-                          fileName: `featured-image-${Date.now()}.png`,
-                          blogPostId: editingPost?.id || null
-                        })
-                      });
-                      if (response.ok) {
-                        const { storedUrl } = await response.json();
-                        selectGeneratedImage(storedUrl);
-                        setShowGeneratedImageModal(false);
-                        alert('이미지가 Supabase에 저장되고 대표 이미지로 설정되었습니다!');
-                      } else {
-                        selectGeneratedImage(selectedGeneratedImage);
-                        setShowGeneratedImageModal(false);
-                        alert('원본 이미지가 대표 이미지로 설정되었습니다.');
-                      }
-                    } catch (error) {
-                      selectGeneratedImage(selectedGeneratedImage);
-                      setShowGeneratedImageModal(false);
-                      alert('원본 이미지가 대표 이미지로 설정되었습니다.');
-                    }
-                  }}
-                  className="px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 whitespace-nowrap"
-                >
-                  ⭐ 대표 이미지로 설정
-                </button>
-                
-                {/* 새 탭에서 열기 (Supabase 저장 후) */}
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/save-generated-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          imageUrl: selectedGeneratedImage,
-                          fileName: `tab-image-${Date.now()}.png`,
-                          blogPostId: editingPost?.id || null
-                        })
-                      });
-                      if (response.ok) {
-                        const { storedUrl } = await response.json();
-                        window.open(storedUrl, '_blank');
-                        alert('이미지가 Supabase에 저장되고 새 탭에서 열렸습니다!');
-                      } else {
-                        window.open(selectedGeneratedImage, '_blank');
-                      }
-                    } catch (error) {
-                      window.open(selectedGeneratedImage, '_blank');
-                    }
-                  }}
-                  className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 whitespace-nowrap"
-                >
-                  🔗 새 탭에서 열기
+                  🗑️ 삭제
                 </button>
               </div>
                                     <button
