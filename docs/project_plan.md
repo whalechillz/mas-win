@@ -112,3 +112,7 @@
 ### 추가: 에러 상세/예산 분리
 - 대시보드: 에러율 상세 표(최근 7일)
 - 월 예산: `NEXT_PUBLIC_AI_MONTHLY_BUDGET` 환경변수 사용으로 분리 (기본 $10)
+
+### 기간 동기화
+- `ai-dashboard.tsx`: 기간 선택값을 집계 API 호출과 모든 그래프/표에 공유(1/7/30/90일)
+- helper: `periodFromRange`, `periodLabel`
