@@ -613,6 +613,7 @@ export default function BlogAdmin() {
           title: formData.title,
           excerpt: formData.excerpt,
           contentType: formData.category,
+          imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
           brandStrategy: { 
             customerPersona: brandPersona, 
             customerChannel: 'local_customers', 
@@ -735,6 +736,7 @@ export default function BlogAdmin() {
           title: formData.title,
           excerpt: formData.excerpt,
           contentType: formData.category,
+          imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
           blogPostId: editingPost?.id || null,
           brandStrategy: { 
             customerPersona: brandPersona, 
@@ -2842,7 +2844,8 @@ export default function BlogAdmin() {
                       </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 text-center">
-                      먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다
+                      먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다<br/>
+                      <span className="text-blue-600 font-medium">생성할 이미지 개수: {imageGenerationCount}개</span> (단락 수와 연동)
                     </p>
                   </div>
 

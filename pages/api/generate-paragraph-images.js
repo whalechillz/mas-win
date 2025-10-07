@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { content, title, excerpt, contentType, brandStrategy, blogPostId } = req.body;
+    const { content, title, excerpt, contentType, imageCount, brandStrategy, blogPostId } = req.body;
 
     if (!content) {
       return res.status(400).json({ message: 'Content is required' });
@@ -29,8 +29,9 @@ export default async function handler(req, res) {
     
     const paragraphImages = [];
 
-    // 각 단락에 대해 이미지 생성 (최대 4개 단락)
-    for (let i = 0; i < Math.min(paragraphs.length, 4); i++) { // 최대 4개 단락
+    // 각 단락에 대해 이미지 생성 (imageCount 또는 최대 4개 단락)
+    const maxParagraphs = Math.min(paragraphs.length, imageCount || 4);
+    for (let i = 0; i < maxParagraphs; i++) { // 최대 4개 단락
       const paragraph = paragraphs[i].trim();
       const startedAt = Date.now();
       
