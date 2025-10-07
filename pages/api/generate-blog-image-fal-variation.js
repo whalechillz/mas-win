@@ -64,8 +64,8 @@ export default async function handler(req, res) {
     console.log('✅ ChatGPT 변형 프롬프트 생성 완료');
     console.log('생성된 프롬프트:', variationPrompt);
 
-    // FAL AI Text-to-Image API 호출 (flux)
-    const falResponse = await fetch('https://queue.fal.run/fal-ai/flux', {
+    // FAL AI Image-to-Image API 호출 (flux-dev 이미지 변형 모델 사용)
+    const falResponse = await fetch('https://queue.fal.run/fal-ai/flux-dev', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
@@ -73,9 +73,11 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         prompt: variationPrompt,
+        image_url: baseImageUrl, // 원본 이미지 URL 추가
         num_inference_steps: 4,
         guidance_scale: 1,
         num_images: variationCount,
+        strength: variationStrength, // 변형 강도 적용
         enable_safety_checker: true
       })
     });
@@ -88,34 +90,35 @@ export default async function handler(req, res) {
     const falResult = await falResponse.json();
     console.log('FAL AI 응답:', falResult);
 
-    // FAL AI 폴링 로직 (IN_QUEUE 상태 처리)
+    // FAL AI 폴링 로직 (Replicate 스타일로 개선)
     let finalResult = falResult;
-    if (falResult.status === 'IN_QUEUE') {
-      console.log('🔄 FAL AI 큐 대기 중...');
-      let attempts = 0;
-      const maxAttempts = 30; // 5분 대기
-      
-      while (finalResult.status === 'IN_QUEUE' || finalResult.status === 'IN_PROGRESS') {
-        if (attempts >= maxAttempts) {
-          throw new Error('FAL AI 이미지 생성 시간 초과');
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 10000)); // 10초 대기
-        
-        const statusResponse = await fetch(falResult.status_url, {
-          headers: {
-            'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
-          }
-        });
-        
-        if (!statusResponse.ok) {
-          throw new Error(`FAL AI 상태 확인 실패: ${statusResponse.status}`);
-        }
-        
-        finalResult = await statusResponse.json();
-        console.log(`🔄 FAL AI 상태 확인 (${attempts + 1}/${maxAttempts}):`, finalResult.status);
-        attempts++;
+    let attempts = 0;
+    const maxAttempts = 30; // 5분 대기
+
+    while (finalResult.status === 'IN_QUEUE' || finalResult.status === 'IN_PROGRESS') {
+      if (attempts >= maxAttempts) {
+        throw new Error('FAL AI 이미지 생성 시간 초과');
       }
+      
+      console.log(`🔄 FAL AI 상태 확인 (${attempts + 1}/${maxAttempts}):`, finalResult.status);
+      await new Promise(resolve => setTimeout(resolve, 10000)); // 10초 대기
+      
+      const statusResponse = await fetch(finalResult.status_url, {
+        headers: {
+          'Authorization': `Key ${process.env.FAL_KEY || process.env.FAL_API_KEY}`,
+        }
+      });
+      
+      if (!statusResponse.ok) {
+        throw new Error(`FAL AI 상태 확인 실패: ${statusResponse.status}`);
+      }
+      
+      finalResult = await statusResponse.json();
+      attempts++;
+    }
+
+    if (finalResult.status !== 'COMPLETED') {
+      throw new Error(`FAL AI 이미지 생성 실패: ${finalResult.status}`);
     }
 
     if (!finalResult.images || finalResult.images.length === 0) {
