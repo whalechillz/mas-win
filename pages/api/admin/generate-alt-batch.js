@@ -7,15 +7,18 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { items = [], mode = 'preview' } = req.body || {};
+    const { items = [], mode = 'preview', context = {} } = req.body || {};
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'items required' });
 
-    const prompts = items.map((it) => `Image file: ${it.name}\nCurrent ALT: ${it.alt_text||''}\nKeywords: ${(it.keywords||[]).join(', ')}\nCategory: ${it.category||''}`);
+    // 컨텍스트 정보를 포함한 프롬프트 생성
+    const contextInfo = context.title ? `\nBlog Title: ${context.title}\nExcerpt: ${context.excerpt || ''}\nCategory: ${context.category || ''}\nPrompt: ${context.prompt || ''}` : '';
+    const prompts = items.map((it) => `Image file: ${it.name}\nCurrent ALT: ${it.alt_text||''}\nKeywords: ${(it.keywords||[]).join(', ')}\nCategory: ${it.category||''}${contextInfo}`);
+    
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0.5,
       messages: [
-        { role: 'system', content: 'You generate concise SEO-friendly alt text (<=120 chars), short title, and meta description (<=160 chars) for images. Return JSON array of {alt,title,description} aligning with golf brand tone in Korean.' },
+        { role: 'system', content: 'You generate concise SEO-friendly alt text (<=120 chars), short title, and meta description (<=160 chars) for images. Return JSON array of {alt,title,description} aligning with golf brand tone in Korean. If context is provided, use it to create more relevant metadata.' },
         { role: 'user', content: `Create entries for these images (count=${items.length}).\n${prompts.join('\n---\n')}` }
       ]
     });
@@ -27,11 +30,20 @@ export default async function handler(req, res) {
     if (mode === 'apply') {
       for (let i = 0; i < items.length; i++) {
         const s = suggestions[i] || {};
+        // 프롬프트 기반 폴백 ALT 생성 (AI 실패 시)
+        let fallbackAlt = '';
+        if (!s.alt && context.prompt) {
+          const keywords = context.prompt.toLowerCase().split(' ').slice(0, 5).join(' ');
+          fallbackAlt = keywords ? `${keywords} image` : '';
+        }
+        
         await supabase.from('image_metadata').upsert({
           name: items[i].name,
-          alt_text: s.alt || items[i].alt_text || '',
+          alt_text: s.alt || fallbackAlt || items[i].alt_text || '',
           title: s.title || items[i].title || '',
-          description: s.description || items[i].description || ''
+          description: s.description || items[i].description || '',
+          keywords: items[i].keywords || [],
+          category: items[i].category || context.category || 'general'
         }, { onConflict: 'name' });
       }
     }
