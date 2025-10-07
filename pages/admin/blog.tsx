@@ -38,6 +38,10 @@ export default function BlogAdmin() {
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
 
+  // 이미지 저장 상태 관리
+  const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
+  const [modalSavingState, setModalSavingState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
   // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
   const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
   const [brandContentType, setBrandContentType] = useState<'골프 정보' | '튜토리얼' | '고객 후기' | '고객 스토리' | '이벤트'>('골프 정보');
@@ -2383,8 +2387,16 @@ export default function BlogAdmin() {
                                     </button>
                                     <button
                                       type="button"
+                                      disabled={imageSavingStates[index] === 'saving'}
                                       onClick={async (e) => {
                                         e.stopPropagation();
+                                        
+                                        // 이미 저장 중이면 중복 실행 방지
+                                        if (imageSavingStates[index] === 'saving') return;
+                                        
+                                        // 저장 상태를 'saving'으로 설정
+                                        setImageSavingStates(prev => ({ ...prev, [index]: 'saving' }));
+                                        
                                         try {
                                           const response = await fetch('/api/save-generated-image', {
                                             method: 'POST',
@@ -2395,20 +2407,64 @@ export default function BlogAdmin() {
                                               blogPostId: editingPost?.id || null
                                             })
                                           });
+                                          
                                           if (response.ok) {
+                                            // 저장 성공
+                                            setImageSavingStates(prev => ({ ...prev, [index]: 'saved' }));
                                             alert('이미지가 Supabase에 저장되었습니다!');
+                                            
+                                            // 3초 후 상태 초기화
+                                            setTimeout(() => {
+                                              setImageSavingStates(prev => ({ ...prev, [index]: 'idle' }));
+                                            }, 3000);
                                           } else {
+                                            // 저장 실패
+                                            setImageSavingStates(prev => ({ ...prev, [index]: 'error' }));
                                             alert('이미지 저장에 실패했습니다.');
+                                            
+                                            // 3초 후 상태 초기화
+                                            setTimeout(() => {
+                                              setImageSavingStates(prev => ({ ...prev, [index]: 'idle' }));
+                                            }, 3000);
                                           }
                                         } catch (error) {
                                           console.error('이미지 저장 오류:', error);
+                                          setImageSavingStates(prev => ({ ...prev, [index]: 'error' }));
                                           alert('이미지 저장 중 오류가 발생했습니다.');
+                                          
+                                          // 3초 후 상태 초기화
+                                          setTimeout(() => {
+                                            setImageSavingStates(prev => ({ ...prev, [index]: 'idle' }));
+                                          }, 3000);
                                         }
                                       }}
-                                      className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                                      title="Supabase 저장"
+                                      className={`px-2 py-1 text-white text-xs rounded transition-colors ${
+                                        imageSavingStates[index] === 'saving' 
+                                          ? 'bg-yellow-500 cursor-not-allowed' 
+                                          : imageSavingStates[index] === 'saved'
+                                          ? 'bg-green-600'
+                                          : imageSavingStates[index] === 'error'
+                                          ? 'bg-red-500'
+                                          : 'bg-green-500 hover:bg-green-600'
+                                      }`}
+                                      title={
+                                        imageSavingStates[index] === 'saving' 
+                                          ? '저장 중...' 
+                                          : imageSavingStates[index] === 'saved'
+                                          ? '저장 완료!'
+                                          : imageSavingStates[index] === 'error'
+                                          ? '저장 실패'
+                                          : 'Supabase 저장'
+                                      }
                                     >
-                                      💾
+                                      {imageSavingStates[index] === 'saving' 
+                                        ? '⏳' 
+                                        : imageSavingStates[index] === 'saved'
+                                        ? '✅'
+                                        : imageSavingStates[index] === 'error'
+                                        ? '❌'
+                                        : '💾'
+                                      }
                                     </button>
                                   </div>
                                 </div>
@@ -3288,7 +3344,14 @@ export default function BlogAdmin() {
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                 {/* Supabase 저장 버튼 */}
                 <button
+                  disabled={modalSavingState === 'saving'}
                   onClick={async () => {
+                    // 이미 저장 중이면 중복 실행 방지
+                    if (modalSavingState === 'saving') return;
+                    
+                    // 저장 상태를 'saving'으로 설정
+                    setModalSavingState('saving');
+                    
                     try {
                       const response = await fetch('/api/save-generated-image', {
                         method: 'POST',
@@ -3299,26 +3362,67 @@ export default function BlogAdmin() {
                           blogPostId: editingPost?.id || null
                         })
                       });
+                      
                       if (response.ok) {
                         const { storedUrl } = await response.json();
                         navigator.clipboard.writeText(storedUrl);
+                        setModalSavingState('saved');
                         alert('이미지가 Supabase에 저장되고 URL이 복사되었습니다!');
+                        
+                        // 3초 후 상태 초기화
+                        setTimeout(() => {
+                          setModalSavingState('idle');
+                        }, 3000);
                       } else {
+                        setModalSavingState('error');
                         alert('이미지 저장에 실패했습니다.');
+                        
+                        // 3초 후 상태 초기화
+                        setTimeout(() => {
+                          setModalSavingState('idle');
+                        }, 3000);
                       }
                     } catch (error) {
                       console.error('이미지 저장 오류:', error);
+                      setModalSavingState('error');
                       alert('이미지 저장 중 오류가 발생했습니다.');
+                      
+                      // 3초 후 상태 초기화
+                      setTimeout(() => {
+                        setModalSavingState('idle');
+                      }, 3000);
                     }
                   }}
-                  className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 whitespace-nowrap"
+                  className={`px-3 py-2 text-white text-sm rounded whitespace-nowrap transition-colors ${
+                    modalSavingState === 'saving' 
+                      ? 'bg-yellow-500 cursor-not-allowed' 
+                      : modalSavingState === 'saved'
+                      ? 'bg-green-600'
+                      : modalSavingState === 'error'
+                      ? 'bg-red-500'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
                 >
-                  💾 Supabase 저장
+                  {modalSavingState === 'saving' 
+                    ? '⏳ 저장 중...' 
+                    : modalSavingState === 'saved'
+                    ? '✅ 저장 완료!'
+                    : modalSavingState === 'error'
+                    ? '❌ 저장 실패'
+                    : '💾 Supabase 저장'
+                  }
                 </button>
                 
                 {/* URL 복사 (Supabase 저장 후) */}
                 <button
+                  disabled={modalSavingState === 'saving'}
                   onClick={async () => {
+                    // 이미 저장 중이면 중복 실행 방지
+                    if (modalSavingState === 'saving') return;
+                    
+                    // 저장 상태를 'saving'으로 설정
+                    setModalSavingState('saving');
+                    
                     try {
                       const response = await fetch('/api/save-generated-image', {
                         method: 'POST',
@@ -3329,22 +3433,56 @@ export default function BlogAdmin() {
                           blogPostId: editingPost?.id || null
                         })
                       });
+                      
                       if (response.ok) {
                         const { storedUrl } = await response.json();
                         navigator.clipboard.writeText(storedUrl);
+                        setModalSavingState('saved');
                         alert('Supabase URL이 복사되었습니다!');
+                        
+                        // 3초 후 상태 초기화
+                        setTimeout(() => {
+                          setModalSavingState('idle');
+                        }, 3000);
                       } else {
                         navigator.clipboard.writeText(selectedGeneratedImage);
+                        setModalSavingState('saved');
                         alert('원본 URL이 복사되었습니다.');
+                        
+                        // 3초 후 상태 초기화
+                        setTimeout(() => {
+                          setModalSavingState('idle');
+                        }, 3000);
                       }
                     } catch (error) {
                       navigator.clipboard.writeText(selectedGeneratedImage);
+                      setModalSavingState('error');
                       alert('원본 URL이 복사되었습니다.');
+                      
+                      // 3초 후 상태 초기화
+                      setTimeout(() => {
+                        setModalSavingState('idle');
+                      }, 3000);
                     }
                   }}
-                  className="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 whitespace-nowrap"
+                  className={`px-3 py-2 text-white text-sm rounded whitespace-nowrap transition-colors ${
+                    modalSavingState === 'saving' 
+                      ? 'bg-yellow-500 cursor-not-allowed' 
+                      : modalSavingState === 'saved'
+                      ? 'bg-blue-600'
+                      : modalSavingState === 'error'
+                      ? 'bg-red-500'
+                      : 'bg-blue-500 hover:bg-blue-600'
+                  }`}
                 >
-                  📋 URL 복사
+                  {modalSavingState === 'saving' 
+                    ? '⏳ 복사 중...' 
+                    : modalSavingState === 'saved'
+                    ? '✅ 복사 완료!'
+                    : modalSavingState === 'error'
+                    ? '❌ 복사 실패'
+                    : '📋 URL 복사'
+                  }
                 </button>
                 
                 {/* 콘텐츠에 삽입 (Supabase 저장 후) */}
