@@ -66,6 +66,13 @@ export default async function handler(req, res) {
 
       const imageResponse = { data: [{ url: falResult.images[0].url }] };
 
+      // FAL AI 사용량 로깅
+      await logFALAIUsage('generate-paragraph-images', 'image-generation', {
+        paragraphIndex: i,
+        prompt: imagePrompt,
+        imageCount: 1
+      });
+
       // 이미지를 Supabase에 자동 저장
       try {
         const saveResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/save-generated-image`, {
