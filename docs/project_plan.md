@@ -148,3 +148,9 @@
   - 배치 메타 연동(단건 호출 제거)
   - 무한 스크롤 로딩(하단 400px 근접 시 다음 페이지 자동 로드)
   - 선택 액션: ⬇️ 일괄 다운로드, 📁 카테고리 이동 추가
+
+### 프롬프트 리셋 버튼
+- 위치: 블로그 편집 `프롬프트 미리보기` 우측 상단
+- 동작: `/api/preview-image-prompt`로 기본 프롬프트 재생성 → `imageGenerationPrompt` 갱신, `editedPrompt`/`generatedImages` 초기화
+- 기본 프롬프트 근거: 제목, 요약(또는 본문 일부), contentType, brandStrategy(페르소나/강도/오디언스) 사용
+- FAL 프롬프트: `pages/api/generate-blog-image-fal.js#createFALImagePrompt`에서 위 맥락 + 랜덤 요소(시간대/의상/포즈/배경/조명) 조합, 텍스트 비포함 규칙

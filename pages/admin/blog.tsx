@@ -2294,12 +2294,57 @@ export default function BlogAdmin() {
                   {/* 프롬프트 미리보기 */}
                   <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <div className="mb-2">
-                      <span className="text-sm font-medium text-gray-700">프롬프트 미리보기</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">프롬프트 미리보기</span>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              // 기본 프롬프트 재생성: 제목/요약/콘텐츠유형/브랜드전략 기반
+                              setImageGenerationStep('프롬프트 초기화 중...');
+                              const res = await fetch('/api/preview-image-prompt', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  title: formData.title,
+                                  excerpt: formData.excerpt || formData.content?.slice(0, 200) || '',
+                                  contentType: brandContentType,
+                                  brandStrategy: {
+                                    brandPersona,
+                                    brandContentType,
+                                    brandWeight: getBrandWeight(brandContentType),
+                                    audienceTemperature,
+                                    audienceWeight: getAudienceWeight(audienceTemperature)
+                                  }
+                                })
+                              });
+                              if (res.ok) {
+                                const data = await res.json();
+                                setImageGenerationPrompt(data.prompt || '');
+                                setEditedPrompt('');
+                                setGeneratedImages([]);
+                                setSelectedGeneratedImage('');
+                                alert('프롬프트가 초기화되었습니다. 새로 이미지를 생성해보세요.');
+                              } else {
+                                alert('프롬프트 초기화에 실패했습니다.');
+                              }
+                            } catch (e) {
+                              console.error(e);
+                              alert('프롬프트 초기화 중 오류가 발생했습니다.');
+                            } finally {
+                              setImageGenerationStep('');
+                            }
+                          }}
+                          className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        >
+                          ↺ 프롬프트 리셋
+                        </button>
+                      </div>
                     </div>
                     <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
                       {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
-                    </div>
-                    
+                  </div>
+
                     {/* 한글 수정사항 입력 */}
                     {imageGenerationPrompt && (
                       <div className="mt-3">
