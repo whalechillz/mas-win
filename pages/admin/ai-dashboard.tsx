@@ -65,6 +65,8 @@ export default function AIDashboard() {
   const [dateRange, setDateRange] = useState('7');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [usageToday, setUsageToday] = useState<any | null>(null);
+  const [usage7d, setUsage7d] = useState<any | null>(null);
 
   // AI 사용량 로그 및 통계 가져오기
   const fetchAIData = async () => {
@@ -80,6 +82,21 @@ export default function AIDashboard() {
       }
     } catch (error) {
       console.error('AI 데이터 가져오기 실패:', error);
+    }
+  };
+
+  // AI 비용/사용량 집계 API (일/주)
+  const fetchUsageStats = async () => {
+    try {
+      const [r1, r7] = await Promise.all([
+        fetch('/api/admin/ai-usage-stats?period=1d'),
+        fetch('/api/admin/ai-usage-stats?period=7d')
+      ]);
+      const [d1, d7] = await Promise.all([r1.json(), r7.json()]);
+      if (r1.ok) setUsageToday(d1);
+      if (r7.ok) setUsage7d(d7);
+    } catch (e) {
+      console.error('AI 사용량 집계 로드 실패:', e);
     }
   };
 
@@ -101,7 +118,8 @@ export default function AIDashboard() {
       setLoading(true);
       await Promise.all([
         fetchAIData(),
-        fetchBlogStats()
+        fetchBlogStats(),
+        fetchUsageStats()
       ]);
       setLoading(false);
       setLastUpdated(new Date());
@@ -122,7 +140,8 @@ export default function AIDashboard() {
     try {
       await Promise.all([
         fetchAIData(),
-        fetchBlogStats()
+        fetchBlogStats(),
+        fetchUsageStats()
       ]);
       setLastUpdated(new Date());
     } catch (error) {
@@ -176,6 +195,14 @@ export default function AIDashboard() {
                 <span className="text-sm text-gray-600">수동 새로고침 모드</span>
               </div>
               <div className="flex items-center space-x-3">
+                {/* 오늘 비용 배지 */}
+                {usageToday?.stats && (
+                  <div className="flex items-center gap-2 bg-yellow-50 text-yellow-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-yellow-200">
+                    <span>오늘 비용</span>
+                    <span className="text-yellow-900">${(usageToday.stats.totalCost || 0).toFixed(4)}</span>
+                    <span className="opacity-70">/ {usageToday.stats.totalRequests || 0}회</span>
+                  </div>
+                )}
                 <div className="text-sm text-gray-500">
                   마지막 업데이트: {lastUpdated.toLocaleTimeString()}
                 </div>
@@ -382,6 +409,31 @@ export default function AIDashboard() {
           {/* AI 사용량 탭 */}
           {activeTab === 'ai-usage' && (
             <div className="space-y-8">
+              {/* 요약 배지 */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">요약</h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">오늘 비용</div>
+                    <div className="text-2xl font-bold text-yellow-700">${(usageToday?.stats?.totalCost || 0).toFixed(4)}</div>
+                    <div className="text-xs text-gray-500">{usageToday?.stats?.totalRequests || 0}회</div>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">7일 비용</div>
+                    <div className="text-2xl font-bold text-blue-700">${(usage7d?.stats?.totalCost || 0).toFixed(4)}</div>
+                    <div className="text-xs text-gray-500">{usage7d?.stats?.totalRequests || 0}회</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">7일 토큰</div>
+                    <div className="text-2xl font-bold text-green-700">{(usage7d?.stats?.totalTokens || 0).toLocaleString()}</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">요청당 평균비용(7일)</div>
+                    <div className="text-2xl font-bold text-purple-700">${((usage7d?.stats?.avgCostPerRequest) || 0).toFixed(4)}</div>
+                  </div>
+                </div>
+              </div>
+
               {/* 필터 */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">필터</h2>
@@ -416,6 +468,64 @@ export default function AIDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* 일별 비용 (7일) */}
+              {usage7d?.stats?.dailyStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 비용 (최근 7일)</h2>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요청</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">토큰</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">비용</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {usage7d.stats.dailyStats.map((d: any) => (
+                          <tr key={d.date}>
+                            <td className="px-6 py-3 text-sm">{d.date}</td>
+                            <td className="px-6 py-3 text-sm">{d.requests}</td>
+                            <td className="px-6 py-3 text-sm">{(d.tokens || 0).toLocaleString()}</td>
+                            <td className="px-6 py-3 text-sm">${(d.cost || 0).toFixed(4)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* 모델별 비용 (7일) */}
+              {usage7d?.stats?.modelStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 (최근 7일)</h2>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">모델</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요청</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">토큰</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">비용</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {usage7d.stats.modelStats.map((m: any) => (
+                          <tr key={m.model}>
+                            <td className="px-6 py-3 text-sm">{m.model}</td>
+                            <td className="px-6 py-3 text-sm">{m.requests}</td>
+                            <td className="px-6 py-3 text-sm">{(m.tokens || 0).toLocaleString()}</td>
+                            <td className="px-6 py-3 text-sm">${(m.cost || 0).toFixed(4)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {/* AI 사용량 로그 테이블 */}
               <div className="bg-white rounded-lg shadow overflow-hidden">
