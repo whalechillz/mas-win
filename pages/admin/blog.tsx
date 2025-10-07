@@ -42,7 +42,7 @@ export default function BlogAdmin() {
   const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
 
   // 이미지 생성 개수 선택
-  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(4);
+  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
   // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
   const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
