@@ -512,6 +512,23 @@ export default function GalleryAdmin() {
                     ✅ 적용
                   </button>
                 )}
+
+                <button
+                  type="button"
+                  onClick={async()=>{
+                    const names = Array.from(selectedImages);
+                    const payload = names.map(n=> images.find(i=>i.name===n)).filter(Boolean);
+                    const res = await fetch('/api/admin/image-derivatives',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ items: payload, targets:["medium","thumbWebp"] })});
+                    const data = await res.json();
+                    if (res.ok){
+                      alert('파생 파일 생성(가상) 결과가 준비되었습니다. 실제 스토리지 변환 파이프라인 연동 예정.');
+                      console.log('derivatives', data);
+                    } else { alert('파생 파일 생성 실패'); }
+                  }}
+                  className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
+                >
+                  🧩 파생 파일 생성
+                </button>
                 <button
                   type="button"
                   onClick={async () => {
@@ -555,6 +572,21 @@ export default function GalleryAdmin() {
                   >
                     🗑️ 일괄 삭제
                   </button>
+                <button
+                  type="button"
+                  onClick={async()=>{
+                    const urls = Array.from(selectedImages).map(n=> images.find(i=>i.name===n)?.url).filter(Boolean);
+                    const res = await fetch('/api/admin/image-link-check',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ urls })});
+                    if (!res.ok) return alert('링크 검사 실패');
+                    const data = await res.json();
+                    const broken = (data.checks||[]).filter((c:any)=> !c.ok);
+                    if (broken.length===0) alert('모든 링크가 정상입니다.');
+                    else alert(`깨진 링크 ${broken.length}개 발견`);
+                  }}
+                  className="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700"
+                >
+                  🔗 링크 검사
+                </button>
                 </div>
               </div>
             </div>
