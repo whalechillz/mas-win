@@ -67,25 +67,21 @@ export default function GalleryAdmin() {
       const data = await response.json();
       
       if (response.ok) {
-        const imagesWithMetadata = await Promise.all(
-          (data.images || []).map(async (img: any) => {
-            // 메타데이터 조회
-            const metadataResponse = await fetch(`/api/admin/image-metadata?imageName=${encodeURIComponent(img.name)}`);
-            const metadata = metadataResponse.ok ? await metadataResponse.json() : {};
-            
-            return {
-              ...img,
-              alt_text: metadata.alt_text || '',
-              keywords: metadata.keywords || [],
-              title: metadata.title || '',
-              description: metadata.description || '',
-              category: metadata.category || '',
-              is_featured: false, // TODO: 실제 대표 이미지 여부 확인
-              usage_count: 0, // TODO: 사용 현황 조회
-              used_in_posts: [] // TODO: 사용된 포스트 목록
-            };
-          })
-        );
+        const list = data.images || [];
+        const metaRes = await fetch('/api/admin/image-metadata-batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageNames: list.map((i: any)=> i.name) }) });
+        const metaJson = metaRes.ok ? await metaRes.json() : { metadata: {} };
+        const metaMap = metaJson.metadata || {};
+        const imagesWithMetadata = list.map((img: any) => ({
+          ...img,
+          alt_text: metaMap[img.name]?.alt_text || '',
+          keywords: metaMap[img.name]?.keywords || [],
+          title: metaMap[img.name]?.title || '',
+          description: metaMap[img.name]?.description || '',
+          category: metaMap[img.name]?.category || '',
+          is_featured: false,
+          usage_count: 0,
+          used_in_posts: []
+        }));
         
         if (reset || page === 1) {
           setImages(imagesWithMetadata);
@@ -101,6 +97,19 @@ export default function GalleryAdmin() {
       setIsLoading(false);
     }
   };
+
+  // 무한 스크롤 로드
+  useEffect(() => {
+    const onScroll = () => {
+      if (isLoading) return;
+      const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+      if (remaining < 400 && images.length < totalCount) {
+        fetchImages(currentPage + 1);
+      }
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isLoading, images.length, totalCount, currentPage]);
 
   // 필터링 및 검색
   useEffect(() => {
@@ -452,6 +461,42 @@ export default function GalleryAdmin() {
                   >
                     📝 일괄 편집
                   </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const names = Array.from(selectedImages);
+                    for (const n of names) {
+                      const img = images.find(i=>i.name===n);
+                      if (!img) continue;
+                      const a = document.createElement('a');
+                      a.href = img.url;
+                      a.download = img.name;
+                      a.target = '_blank';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }
+                  }}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                >
+                  ⬇️ 일괄 다운로드
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const cat = prompt('이동할 카테고리 입력(예: golf/equipment/...)', '');
+                    if (cat === null) return;
+                    const names = Array.from(selectedImages);
+                    for (const n of names) {
+                      await fetch('/api/admin/image-metadata', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageName: n, category: cat }) });
+                    }
+                    setImages(prev=> prev.map(img => selectedImages.has(img.name) ? { ...img, category: cat || '' } : img));
+                    alert('이동(카테고리 변경) 완료');
+                  }}
+                  className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                >
+                  📁 카테고리 이동
+                </button>
                   <button
                     type="button"
                     onClick={() => setShowBulkDeleteConfirm(true)}
