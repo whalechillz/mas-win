@@ -331,6 +331,71 @@ export default function AIDashboard() {
                 </div>
               )}
 
+              {/* 점유율 도넛: 모델별 비용 비중 */}
+              {usage7d?.stats?.modelStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 점유율</h2>
+                  {(() => {
+                    const items = usage7d.stats.modelStats;
+                    const total = items.reduce((s: number, m: any) => s + (m.cost || 0), 0) || 1;
+                    const first = items[0];
+                    const pct = Math.round(((first?.cost || 0) / total) * 100);
+                    return (
+                      <div className="flex items-center gap-6">
+                        <div className="relative w-28 h-28">
+                          <div className="absolute inset-0 rounded-full bg-gray-100"></div>
+                          <div className="absolute inset-0 rounded-full" style={{ background: `conic-gradient(#7c3aed 0% ${pct}%, #e5e7eb ${pct}% 100%)` }}></div>
+                          <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center">
+                            <div className="text-sm font-semibold text-gray-900">{pct}%</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          {items.slice(0,5).map((m: any, i: number) => (
+                            <div key={m.model} className="flex items-center gap-2">
+                              <span className={`inline-block w-2 h-2 rounded-full ${i===0? 'bg-purple-600':'bg-gray-300'}`}></span>
+                              <span className="truncate w-48" title={m.model}>{m.model}</span>
+                              <span className="ml-auto text-gray-700">{Math.round(((m.cost||0)/total)*100)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* 점유율 도넛: 엔드포인트별 비용 비중 */}
+              {usage7d?.stats?.endpointStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">엔드포인트별 비용 점유율</h2>
+                  {(() => {
+                    const items = usage7d.stats.endpointStats;
+                    const total = items.reduce((s: number, e: any) => s + (e.cost || 0), 0) || 1;
+                    const first = items[0];
+                    const pct = Math.round(((first?.cost || 0) / total) * 100);
+                    return (
+                      <div className="flex items-center gap-6">
+                        <div className="relative w-28 h-28">
+                          <div className="absolute inset-0 rounded-full bg-gray-100"></div>
+                          <div className="absolute inset-0 rounded-full" style={{ background: `conic-gradient(#0ea5e9 0% ${pct}%, #e5e7eb ${pct}% 100%)` }}></div>
+                          <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center">
+                            <div className="text-sm font-semibold text-gray-900">{pct}%</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          {items.slice(0,5).map((e: any, i: number) => (
+                            <div key={e.endpoint} className="flex items-center gap-2">
+                              <span className={`inline-block w-2 h-2 rounded-full ${i===0? 'bg-sky-500':'bg-gray-300'}`}></span>
+                              <span className="truncate w-48" title={e.endpoint}>{e.endpoint}</span>
+                              <span className="ml-auto text-gray-700">{Math.round(((e.cost||0)/total)*100)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
               {/* 블로그 성과 요약 */}
               {blogStats && (
                 <div className="bg-white rounded-lg shadow p-6">
@@ -445,6 +510,16 @@ export default function AIDashboard() {
                     const budget = Number(process.env.NEXT_PUBLIC_AI_MONTHLY_BUDGET || '10');
                     const usageRate = budget > 0 ? Math.min(1, forecast / budget) : 0;
                     const barWidth = Math.round(usageRate * 100);
+                    const errorRate7d = (() => {
+                      const arr = usage7d?.stats?.errorDailyStats || [];
+                      const totalReq = (usage7d?.stats?.dailyStats || []).reduce((s: number, d: any) => s + (d.requests||0), 0);
+                      const totalErr = arr.reduce((s: number, d: any) => s + (d.errors||0), 0);
+                      return totalReq>0 ? totalErr/totalReq : 0;
+                    })();
+                    const alerts: string[] = [];
+                    if ((usage7d?.stats?.latency?.p95 || 0) > 60000) alerts.push('지연시간 p95 60s 초과');
+                    if (errorRate7d > 0.05) alerts.push('에러율 5% 초과');
+                    if (barWidth >= 90) alerts.push('예산 소진 90%');
                     return (
                       <div className="bg-rose-50 p-4 rounded-lg">
                         <div className="text-sm text-gray-600 mb-1">월 예산 소진 예측</div>
@@ -453,6 +528,13 @@ export default function AIDashboard() {
                           <div className={`h-2 rounded ${barWidth < 80 ? 'bg-rose-400' : 'bg-rose-600'}`} style={{ width: `${barWidth}%` }}></div>
                         </div>
                         <div className="mt-1 text-xs text-gray-500">평균 일일 비용 ${avgDaily.toFixed(3)} 기준</div>
+                        {alerts.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {alerts.map((a, idx) => (
+                              <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800">{a}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}

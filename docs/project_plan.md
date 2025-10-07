@@ -116,3 +116,7 @@
 ### 기간 동기화
 - `ai-dashboard.tsx`: 기간 선택값을 집계 API 호출과 모든 그래프/표에 공유(1/7/30/90일)
 - helper: `periodFromRange`, `periodLabel`
+
+### 점유율 도넛 & 임계치 경고
+- 대시보드: 모델/엔드포인트 비용 점유율 도넛(CSS conic-gradient)
+- 대시보드: 예산 카드에 임계치 경고 배지(p95>60s, 에러율>5%, 예산 90%) 표시
