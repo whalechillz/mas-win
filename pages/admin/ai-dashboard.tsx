@@ -85,16 +85,21 @@ export default function AIDashboard() {
     }
   };
 
-  // AI 비용/사용량 집계 API (일/주)
+  // 기간 문자열 매핑
+  const periodFromRange = (r: string) => (r === '1' ? '1d' : r === '7' ? '7d' : r === '30' ? '30d' : '90d');
+  const periodLabel = (p?: string) => (p === '1d' ? '최근 1일' : p === '7d' ? '최근 7일' : p === '30d' ? '최근 30일' : '최근 90일');
+
+  // AI 비용/사용량 집계 API (오늘 / 선택기간)
   const fetchUsageStats = async () => {
     try {
-      const [r1, r7] = await Promise.all([
+      const period = periodFromRange(dateRange);
+      const [r1, rSel] = await Promise.all([
         fetch('/api/admin/ai-usage-stats?period=1d'),
-        fetch('/api/admin/ai-usage-stats?period=7d')
+        fetch(`/api/admin/ai-usage-stats?period=${period}`)
       ]);
-      const [d1, d7] = await Promise.all([r1.json(), r7.json()]);
+      const [d1, dSel] = await Promise.all([r1.json(), rSel.json()]);
       if (r1.ok) setUsageToday(d1);
-      if (r7.ok) setUsage7d(d7);
+      if (rSel.ok) setUsage7d(dSel);
     } catch (e) {
       console.error('AI 사용량 집계 로드 실패:', e);
     }
@@ -132,7 +137,7 @@ export default function AIDashboard() {
     // }, 30000);
 
     // return () => clearInterval(interval);
-  }, []);
+  }, [dateRange]);
 
   // 수동 새로고침 함수
   const handleManualRefresh = async () => {
