@@ -602,6 +602,11 @@ export default function BlogAdmin() {
       return;
     }
     
+    if (isGeneratingParagraphImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
     try {
       setImageGenerationStep('단락 분석 및 프롬프트 생성 중...');
       
@@ -2798,7 +2803,7 @@ export default function BlogAdmin() {
                   {/* 단락별 이미지 일괄 생성 버튼들 */}
                   <div className="mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button
+                      <button
                         type="button"
                         onClick={generateParagraphPrompts}
                         disabled={isGeneratingParagraphImages}
@@ -2809,8 +2814,15 @@ export default function BlogAdmin() {
                         }`}
                         title="본문의 단락별 프롬프트를 미리 생성하여 확인하고 수정할 수 있습니다"
                       >
-                        🔍 단락별 프롬프트 미리보기
-                            </button>
+                        {isGeneratingParagraphImages ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            분석 중...
+                          </span>
+                        ) : (
+                          '🔍 단락별 프롬프트 미리보기'
+                        )}
+                      </button>
                       
                                         <button
                         type="button"
