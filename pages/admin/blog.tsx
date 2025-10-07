@@ -735,6 +735,45 @@ export default function BlogAdmin() {
         // 4단계: 이미지 생성 완료
         setImageGenerationStep('4단계: 이미지 생성 및 저장 완료!');
         
+        // 5단계: 자동 메타데이터 생성 및 적용
+        if (savedImages.length > 0) {
+          setImageGenerationStep('5단계: 메타데이터 자동 생성 중...');
+          try {
+            const metadataItems = savedImages.map((url, index) => ({
+              name: `dalle3-${Date.now()}-${index + 1}.png`,
+              url: url,
+              alt_text: '',
+              title: '',
+              description: '',
+              keywords: [],
+              category: formData.category || 'general'
+            }));
+            
+            const metadataResponse = await fetch('/api/admin/generate-alt-batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                items: metadataItems, 
+                mode: 'apply',
+                context: {
+                  title: formData.title,
+                  excerpt: formData.excerpt,
+                  category: formData.category,
+                  prompt: smartPrompt
+                }
+              })
+            });
+            
+            if (metadataResponse.ok) {
+              console.log('✅ 메타데이터 자동 생성 완료');
+            } else {
+              console.warn('⚠️ 메타데이터 생성 실패, 수동 입력 필요');
+            }
+          } catch (error) {
+            console.warn('⚠️ 메타데이터 생성 중 오류:', error);
+          }
+        }
+        
         // 저장된 이미지들을 상태에 저장
         setGeneratedImages(savedImages);
         setShowGeneratedImages(true);
@@ -857,6 +896,45 @@ export default function BlogAdmin() {
           }
         }
         
+        // 4단계: 자동 메타데이터 생성 및 적용
+        if (savedImages.length > 0) {
+          setImageGenerationStep('4단계: 메타데이터 자동 생성 중...');
+          try {
+            const metadataItems = savedImages.map((url, index) => ({
+              name: `fal-ai-image-${Date.now()}-${index + 1}.png`,
+              url: url,
+              alt_text: '',
+              title: '',
+              description: '',
+              keywords: [],
+              category: formData.category || 'general'
+            }));
+            
+            const metadataResponse = await fetch('/api/admin/generate-alt-batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                items: metadataItems, 
+                mode: 'apply',
+                context: {
+                  title: formData.title,
+                  excerpt: formData.excerpt,
+                  category: formData.category,
+                  prompt: smartPrompt
+                }
+              })
+            });
+            
+            if (metadataResponse.ok) {
+              console.log('✅ 메타데이터 자동 생성 완료');
+            } else {
+              console.warn('⚠️ 메타데이터 생성 실패, 수동 입력 필요');
+            }
+          } catch (error) {
+            console.warn('⚠️ 메타데이터 생성 중 오류:', error);
+          }
+        }
+        
         // 저장된 이미지들을 상태에 추가
         setGeneratedImages(prev => [...prev, ...savedImages]);
         setShowGeneratedImages(true);
@@ -975,6 +1053,45 @@ export default function BlogAdmin() {
           } catch (saveError) {
             console.error('이미지 저장 오류:', saveError);
             savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
+          }
+        }
+        
+        // 4단계: 자동 메타데이터 생성 및 적용
+        if (savedImages.length > 0) {
+          setImageGenerationStep('4단계: 메타데이터 자동 생성 중...');
+          try {
+            const metadataItems = savedImages.map((url, index) => ({
+              name: `google-ai-image-${Date.now()}-${index + 1}.png`,
+              url: url,
+              alt_text: '',
+              title: '',
+              description: '',
+              keywords: [],
+              category: formData.category || 'general'
+            }));
+            
+            const metadataResponse = await fetch('/api/admin/generate-alt-batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                items: metadataItems, 
+                mode: 'apply',
+                context: {
+                  title: formData.title,
+                  excerpt: formData.excerpt,
+                  category: formData.category,
+                  prompt: smartPrompt
+                }
+              })
+            });
+            
+            if (metadataResponse.ok) {
+              console.log('✅ 메타데이터 자동 생성 완료');
+            } else {
+              console.warn('⚠️ 메타데이터 생성 실패, 수동 입력 필요');
+            }
+          } catch (error) {
+            console.warn('⚠️ 메타데이터 생성 중 오류:', error);
           }
         }
         
@@ -2298,8 +2415,8 @@ export default function BlogAdmin() {
                     <div className="mb-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-700">프롬프트 미리보기</span>
-                        <button
-                          type="button"
+                      <button 
+                        type="button"
                           onClick={async () => {
                             try {
                               // 기본 프롬프트 재생성: 제목/요약/콘텐츠유형/브랜드전략 기반
@@ -2340,8 +2457,8 @@ export default function BlogAdmin() {
                           className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                         >
                           ↺ 프롬프트 리셋
-                        </button>
-                      </div>
+                      </button>
+                    </div>
                     </div>
                     <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
                       {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
