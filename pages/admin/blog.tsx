@@ -591,12 +591,24 @@ export default function BlogAdmin() {
   };
 
   // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
+  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
+  const [paragraphImageStep, setParagraphImageStep] = useState('');
+  
   const handleGenerateParagraphImages = async () => {
     if (!formData.content || formData.content.trim().length < 30) {
       alert('본문을 먼저 작성해주세요. (최소 30자)');
       return;
     }
+    
+    if (isGeneratingParagraphImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
     try {
+      setIsGeneratingParagraphImages(true);
+      setParagraphImageStep('단락 분석 중...');
+      
       const res = await fetch('/api/generate-paragraph-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -605,6 +617,7 @@ export default function BlogAdmin() {
           title: formData.title,
           excerpt: formData.excerpt,
           contentType: formData.category,
+          blogPostId: editingPost?.id || null,
           brandStrategy: { 
             customerPersona: brandPersona, 
             customerChannel: 'local_customers', 
@@ -614,21 +627,44 @@ export default function BlogAdmin() {
           }
         })
       });
-      if (!res.ok) throw new Error('이미지 생성 실패');
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '이미지 생성 실패');
+      }
+      
+      setParagraphImageStep('이미지 생성 중...');
       const data = await res.json();
       const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+      
       if (!urls.length) {
         alert('생성된 이미지가 없습니다.');
         return;
       }
-      urls.forEach((url) => {
-        const ev = new CustomEvent('tiptap:insert-image', { detail: { url } });
+      
+      setParagraphImageStep('본문에 삽입 중...');
+      
+      // 각 이미지를 순차적으로 삽입 (약간의 지연을 두어 사용자가 확인할 수 있도록)
+      for (let i = 0; i < urls.length; i++) {
+        const ev = new CustomEvent('tiptap:insert-image', { detail: { url: urls[i] } });
         window.dispatchEvent(ev);
-      });
+        
+        if (i < urls.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 대기
+        }
+      }
+      
+      setParagraphImageStep('완료!');
       alert(`${urls.length}개의 이미지가 본문에 삽입되었습니다.`);
+      
     } catch (e: any) {
       console.error('단락 이미지 생성 오류:', e);
       alert('단락 이미지 생성 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsGeneratingParagraphImages(false);
+      setTimeout(() => {
+        setParagraphImageStep('');
+      }, 2000);
     }
   };
 
@@ -2252,10 +2288,22 @@ export default function BlogAdmin() {
                       <button
                         type="button"
                     onClick={handleGenerateParagraphImages}
-                    className="px-3 py-2 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700"
+                    disabled={isGeneratingParagraphImages}
+                    className={`px-3 py-2 rounded text-sm ${
+                      isGeneratingParagraphImages 
+                        ? 'bg-emerald-300 text-white cursor-not-allowed' 
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    }`}
                     title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
                       >
-                    📷 단락별 이미지 일괄 생성
+                    {isGeneratingParagraphImages ? (
+                      <span className="flex items-center gap-2">
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        {paragraphImageStep || '생성 중...'}
+                      </span>
+                    ) : (
+                      '📷 단락별 이미지 일괄 생성'
+                    )}
                       </button>
                     </div>
 
