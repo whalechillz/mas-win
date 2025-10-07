@@ -101,3 +101,10 @@
 - 남은 작업
   - 모델별 그래프 툴팁/정렬 개선, 기간 토글(1/7/30/90일) 연동
   - 지연시간 p50/p95, 에러율, 예산 소진 예측 그래프 순차 추가
+
+### 추가: 에러율/예산
+- API(`pages/api/admin/ai-usage-stats.js`): `errorDailyStats`(errors, errorRate) 계산 추가
+- 대시보드(`pages/admin/ai-dashboard.tsx`):
+  - 일별 에러율 미니 그래프
+  - 월 예산 소진 간이 예측 카드(임시 월 예산 $10 가정)
+- 다음: 예산 값을 환경설정/DB에서 읽도록 분리, 기간 토글과 동기화

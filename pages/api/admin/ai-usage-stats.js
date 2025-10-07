@@ -77,7 +77,8 @@ export default async function handler(req, res) {
       endpointStats: {},
       modelStats: {},
       dailyStats: {},
-      monthlyStats: {}
+      monthlyStats: {},
+      errorDailyStats: {}
     };
 
     if (stats.totalRequests > 0) {
@@ -88,6 +89,7 @@ export default async function handler(req, res) {
     const endpointGroups = {};
     const modelGroups = {};
     const dailyGroups = {};
+    const dailyErrors = {};
     const monthlyGroups = {};
 
     usageLogs?.forEach(log => {
@@ -128,6 +130,14 @@ export default async function handler(req, res) {
       dailyGroups[day].tokens += log.total_tokens || 0;
       dailyGroups[day].cost += log.cost || 0;
 
+      // 일별 에러 카운트 (improvement_type이 *-error 또는 *-failed)
+      const itype = (log.improvement_type || '').toLowerCase();
+      const isError = itype.endsWith('error') || itype.endsWith('failed');
+      if (isError) {
+        if (!dailyErrors[day]) dailyErrors[day] = 0;
+        dailyErrors[day] += 1;
+      }
+
       // 월별
       const month = new Date(log.created_at).toISOString().substring(0, 7);
       if (!monthlyGroups[month]) {
@@ -159,6 +169,13 @@ export default async function handler(req, res) {
       ...data,
       avgCostPerRequest: data.cost / data.requests
     })).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // 에러 일별 통계 및 에러율
+    stats.errorDailyStats = stats.dailyStats.map((d) => {
+      const errors = dailyErrors[d.date] || 0;
+      const errorRate = d.requests > 0 ? errors / d.requests : 0;
+      return { date: d.date, errors, errorRate };
+    });
 
     stats.monthlyStats = Object.entries(monthlyGroups).map(([month, data]) => ({
       month,

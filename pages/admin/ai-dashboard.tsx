@@ -412,7 +412,7 @@ export default function AIDashboard() {
               {/* 요약 배지 */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">요약</h2>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div className="bg-yellow-50 p-4 rounded-lg">
                     <div className="text-sm text-gray-600 mb-1">오늘 비용</div>
                     <div className="text-2xl font-bold text-yellow-700">${(usageToday?.stats?.totalCost || 0).toFixed(4)}</div>
@@ -431,6 +431,27 @@ export default function AIDashboard() {
                     <div className="text-sm text-gray-600 mb-1">요청당 평균비용(7일)</div>
                     <div className="text-2xl font-bold text-purple-700">${((usage7d?.stats?.avgCostPerRequest) || 0).toFixed(4)}</div>
                   </div>
+                  {/* 월 예산 소진 예측 카드 */}
+                  {(() => {
+                    const daily = usage7d?.stats?.dailyStats || [];
+                    const avgDaily = daily.length > 0 ? (daily.reduce((s: number, d: any) => s + (d.cost || 0), 0) / daily.length) : 0;
+                    const monthDays = 30;
+                    const forecast = avgDaily * monthDays;
+                    const budget = 10; // 가정치: 월 예산 $10 (추후 설정으로 분리)
+                    const usageRate = budget > 0 ? Math.min(1, forecast / budget) : 0;
+                    const barWidth = Math.round(usageRate * 100);
+                    return (
+                      <div className="bg-rose-50 p-4 rounded-lg">
+                        <div className="text-sm text-gray-600 mb-1">월 예산 소진 예측</div>
+                        <div className="text-lg font-bold text-rose-700 mb-2">예상 ${forecast.toFixed(2)} / 예산 ${budget.toFixed(2)}</div>
+                        <div className="h-2 bg-rose-100 rounded">
+                          <div className={`h-2 rounded ${barWidth < 80 ? 'bg-rose-400' : 'bg-rose-600'}`} style={{ width: `${barWidth}%` }}></div>
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">평균 일일 비용 ${avgDaily.toFixed(3)} 기준</div>
+                      </div>
+                    );
+                  })()}
+                  
                 </div>
               </div>
 
@@ -519,6 +540,30 @@ export default function AIDashboard() {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {/* 일별 에러율 미니 그래프 (최근 7일) */}
+              {usage7d?.stats?.errorDailyStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 에러율 (최근 7일)</h2>
+                  {(() => {
+                    const items = usage7d.stats.errorDailyStats.slice().reverse();
+                    const maxRate = Math.max(0.01, ...items.map((d: any) => d.errorRate || 0));
+                    return (
+                      <div className="flex items-end gap-2 h-40">
+                        {items.map((d: any) => {
+                          const h = Math.max(4, Math.round((d.errorRate / maxRate) * 140));
+                          return (
+                            <div key={d.date} className="flex flex-col items-center gap-1">
+                              <div className="w-6 bg-gradient-to-t from-red-600 to-red-400 rounded-t" style={{ height: `${h}px` }} title={`${d.date} · ${(d.errorRate*100).toFixed(1)}% (${d.errors}건)`}></div>
+                              <div className="text-[10px] text-gray-500">{d.date.slice(5)}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
