@@ -498,16 +498,16 @@ export default function BlogAdmin() {
     try {
       const response = await fetch('/api/generate-slug', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: formData.title })
-      });
-      if (response.ok) {
+          });
+          if (response.ok) {
         const { slug } = await response.json();
         setFormData({ ...formData, slug });
-      } else {
+          } else {
         alert('AI 슬러그 생성에 실패했습니다.');
-      }
-    } catch (error) {
+          }
+        } catch (error) {
       console.error('AI 슬러그 생성 에러:', error);
       alert('AI 슬러그 생성 중 오류가 발생했습니다.');
     }
@@ -679,7 +679,7 @@ export default function BlogAdmin() {
       // 2단계: DALL-E 3로 이미지 생성
       setImageGenerationStep('2단계: DALL-E 3로 이미지 생성 중...');
       const response = await fetch('/api/generate-blog-image', {
-        method: 'POST',
+          method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           title: formData.title,
@@ -721,11 +721,11 @@ export default function BlogAdmin() {
               const { storedUrl } = await saveResponse.json();
               savedImages.push(storedUrl);
               console.log(`✅ 이미지 ${i + 1} 저장 완료:`, storedUrl);
-            } else {
+      } else {
               console.warn(`⚠️ 이미지 ${i + 1} 저장 실패, 원본 URL 사용:`, imageUrls[i]);
               savedImages.push(imageUrls[i]);
-            }
-          } catch (error) {
+      }
+    } catch (error) {
             console.warn(`⚠️ 이미지 ${i + 1} 저장 중 오류:`, error);
             savedImages.push(imageUrls[i]);
           }
@@ -897,12 +897,12 @@ export default function BlogAdmin() {
       let smartPrompt = customPromptOverride || imageGenerationPrompt;
       if (!smartPrompt) {
         setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
-        const promptResponse = await fetch('/api/generate-smart-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: formData.title,
-            excerpt: formData.excerpt,
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
             contentType: formData.category,
             brandStrategy: {
               contentType: formData.category,
@@ -913,16 +913,16 @@ export default function BlogAdmin() {
               audienceWeight: getAudienceWeight(audienceTemperature)
             },
             model: 'google'
-          })
-        });
+        })
+      });
 
-        if (!promptResponse.ok) {
-          throw new Error('ChatGPT 프롬프트 생성 실패');
-        }
+      if (!promptResponse.ok) {
+        throw new Error('ChatGPT 프롬프트 생성 실패');
+      }
 
         const resp = await promptResponse.json();
         smartPrompt = resp.prompt;
-        setImageGenerationPrompt(smartPrompt);
+      setImageGenerationPrompt(smartPrompt);
       }
       
       setImageGenerationStep('2단계: Google AI로 이미지 생성 중...');
@@ -2282,9 +2282,9 @@ export default function BlogAdmin() {
                     </div>
                     </div>
                     </div>
+                    </div>
                   </div>
-                  </div>
-
+                  
                 {/* AI 이미지 생성 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
@@ -2330,8 +2330,71 @@ export default function BlogAdmin() {
                     {!showPromptEditor && (
                       <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
                         {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                    
+                    {/* 한글 수정사항 입력 */}
+                    {imageGenerationPrompt && !showPromptEditor && (
+                      <div className="mt-3">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          한글 수정사항 (예: 배경을 여름 낮으로 변경, 더 밝게 만들어주세요)
+                        </label>
+                        <textarea
+                          className="w-full h-16 text-xs px-2 py-1 border border-gray-300 rounded"
+                          value={editedPrompt}
+                          onChange={(e) => setEditedPrompt(e.target.value)}
+                          placeholder="한글로 수정사항을 입력하세요. 예: 배경을 여름 낮으로 변경, 더 밝게 만들어주세요"
+                        />
+                        {editedPrompt && (
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch('/api/improve-prompt', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      originalPrompt: imageGenerationPrompt,
+                                      userImprovements: editedPrompt,
+                                      brandStrategy: {
+                                        brandPersona,
+                                        brandContentType,
+                                        brandWeight: getBrandWeight(brandContentType),
+                                        audienceTemperature,
+                                        audienceWeight: getAudienceWeight(audienceTemperature)
+                                      }
+                                    })
+                                  });
+                                  
+                                  if (response.ok) {
+                                    const result = await response.json();
+                                    setImageGenerationPrompt(result.improvedPrompt);
+                                    setEditedPrompt('');
+                                    alert('프롬프트가 개선되었습니다! 원하는 모델로 재생성하세요.');
+                                  } else {
+                                    alert('프롬프트 개선에 실패했습니다.');
+                                  }
+                                } catch (error) {
+                                  console.error('프롬프트 개선 오류:', error);
+                                  alert('프롬프트 개선 중 오류가 발생했습니다.');
+                                }
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              🔄 프롬프트 개선
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditedPrompt('')}
+                              className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* 이미지 생성 개수 선택 */}
@@ -3321,7 +3384,7 @@ export default function BlogAdmin() {
                   <h3 className="text-xl font-bold text-orange-800">🎨 AI 생성 이미지 확대 보기</h3>
                   {generatedImages.length > 1 && (
                     <div className="flex items-center gap-2">
-                      <button
+                          <button
                         onClick={() => {
                           const currentIndex = generatedImages.indexOf(selectedGeneratedImage);
                           const prevIndex = currentIndex > 0 ? currentIndex - 1 : generatedImages.length - 1;
@@ -3331,11 +3394,11 @@ export default function BlogAdmin() {
                         title="이전 이미지"
                       >
                         ←
-                      </button>
+                          </button>
                       <span className="text-sm text-orange-700">
                         {generatedImages.indexOf(selectedGeneratedImage) + 1} / {generatedImages.length}
                       </span>
-                      <button
+                          <button
                         onClick={() => {
                           const currentIndex = generatedImages.indexOf(selectedGeneratedImage);
                           const nextIndex = currentIndex < generatedImages.length - 1 ? currentIndex + 1 : 0;
@@ -3345,18 +3408,18 @@ export default function BlogAdmin() {
                         title="다음 이미지"
                       >
                         →
-                      </button>
-                    </div>
+                          </button>
+                        </div>
                   )}
                 </div>
-                <button
+                          <button
                   onClick={() => setShowGeneratedImageModal(false)}
                   className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-                >
+                          >
                   ×
-                </button>
-              </div>
-            </div>
+                          </button>
+                        </div>
+                      </div>
                       
             {/* 이미지 영역 - 원본 비율 유지하며 위아래 잘림 방지 */}
             <div className="flex-1 p-4 flex items-center justify-center bg-gray-100 overflow-auto">
@@ -3392,16 +3455,16 @@ export default function BlogAdmin() {
                   >
                     {selectedGeneratedImage}
                   </a>
-                </div>
-              </div>
-            </div>
+                          </div>
+                        </div>
+                      </div>
             
             {/* 액션 버튼들 */}
             <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
               <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
                 {/* 삭제 버튼 */}
-                <button
-                  onClick={() => {
+                                    <button
+                                      onClick={() => {
                     if (confirm('이 이미지를 삭제하시겠습니까?')) {
                       // 생성된 이미지 목록에서 제거
                       setGeneratedImages(prev => prev.filter(img => img !== selectedGeneratedImage));
@@ -3412,7 +3475,7 @@ export default function BlogAdmin() {
                   className="px-4 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600 whitespace-nowrap"
                 >
                   🗑️ 삭제
-                </button>
+                                    </button>
               </div>
                                     <button
                 onClick={() => setShowGeneratedImageModal(false)}
