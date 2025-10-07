@@ -580,7 +580,7 @@ export default function AIDashboard() {
               {/* 일별 비용 미니 그래프 (최근 7일) */}
               {usage7d?.stats?.dailyStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 비용 그래프 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 비용 그래프 ({periodLabel(periodFromRange(dateRange))})</h2>
                   {(() => {
                     const items = usage7d.stats.dailyStats.slice().reverse();
                     const maxCost = Math.max(0.0001, ...items.map((d: any) => d.cost || 0));
@@ -604,7 +604,7 @@ export default function AIDashboard() {
               {/* 일별 비용 (7일) */}
               {usage7d?.stats?.dailyStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 비용 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 비용 ({periodLabel(periodFromRange(dateRange))})</h2>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -633,7 +633,7 @@ export default function AIDashboard() {
               {/* 일별 에러율 미니 그래프 (최근 7일) */}
               {usage7d?.stats?.errorDailyStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 에러율 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 에러율 ({periodLabel(periodFromRange(dateRange))})</h2>
                   {(() => {
                     const items = usage7d.stats.errorDailyStats.slice().reverse();
                     const maxRate = Math.max(0.01, ...items.map((d: any) => d.errorRate || 0));
@@ -657,7 +657,7 @@ export default function AIDashboard() {
               {/* 모델별 비용 미니 그래프 (최근 7일) */}
               {usage7d?.stats?.modelStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 그래프 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 그래프 ({periodLabel(periodFromRange(dateRange))})</h2>
                   {(() => {
                     const items = usage7d.stats.modelStats;
                     const maxCost = Math.max(0.0001, ...items.map((m: any) => m.cost || 0));
@@ -681,7 +681,7 @@ export default function AIDashboard() {
               {/* 모델별 비용 (7일) */}
               {usage7d?.stats?.modelStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 ({periodLabel(periodFromRange(dateRange))})</h2>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -734,7 +734,7 @@ export default function AIDashboard() {
               {/* 지연시간 p50/p95 미니 그래프 */}
               {usage7d?.stats?.dailyLatency && usage7d.stats.dailyLatency.length > 0 && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">지연시간 p50/p95 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">지연시간 p50/p95 ({periodLabel(periodFromRange(dateRange))})</h2>
                   {(() => {
                     const items = usage7d.stats.dailyLatency.slice(0,7).reverse();
                     const maxVal = Math.max(1, ...items.map((d: any) => Math.max(d.p50||0, d.p95||0)));
@@ -762,7 +762,7 @@ export default function AIDashboard() {
               {/* 에러율 상세 표 (최근 7일) */}
               {usage7d?.stats?.errorDailyStats && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">에러율 상세 (최근 7일)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">에러율 상세 ({periodLabel(periodFromRange(dateRange))})</h2>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
