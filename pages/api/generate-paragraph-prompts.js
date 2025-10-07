@@ -18,7 +18,38 @@ export default async function handler(req, res) {
 
     // 내용을 단락별로 분리 (HTML 태그 제거 후)
     const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 50); // 최소 50자 이상인 단락만
+    
+    // 여러 방법으로 단락 분리 시도
+    let paragraphs = [];
+    
+    // 방법 1: \n\n으로 분리
+    paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 30);
+    
+    // 방법 2: 문장 단위로 분리 (마침표 기준)
+    if (paragraphs.length <= 1) {
+      const sentences = cleanContent.split(/[.!?]\s+/).filter(s => s.trim().length > 20);
+      // 문장들을 2-3개씩 묶어서 단락 만들기
+      for (let i = 0; i < sentences.length; i += 2) {
+        const paragraph = sentences.slice(i, i + 2).join('. ') + '.';
+        if (paragraph.trim().length > 30) {
+          paragraphs.push(paragraph);
+        }
+      }
+    }
+    
+    // 방법 3: 강제로 내용을 균등 분할
+    if (paragraphs.length <= 1 && cleanContent.length > 200) {
+      const chunkSize = Math.ceil(cleanContent.length / (imageCount || 4));
+      for (let i = 0; i < cleanContent.length; i += chunkSize) {
+        const chunk = cleanContent.substring(i, i + chunkSize).trim();
+        if (chunk.length > 30) {
+          paragraphs.push(chunk);
+        }
+      }
+    }
+    
+    // 최소 50자 이상인 단락만 유지
+    paragraphs = paragraphs.filter(p => p.trim().length > 50);
     
     console.log(`📝 단락 분석: 총 ${paragraphs.length}개 단락 발견`);
     console.log(`📝 요청된 이미지 개수: ${imageCount || 4}개`);
