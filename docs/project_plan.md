@@ -1,124 +1,83 @@
-## 배포 이력 메모
+# 프로젝트 계획 - 이미지 변형 기능 개선
 
-- 강제 재배포 트리거: 2025-10-06  (KST)
-  - 이유: 대표 이미지 프리뷰 위치 이동(요약↔내용 사이) 및 GalleryPicker 대표 하이라이트 표시 오류 수정 반영 확인
+## 완료된 작업
 
-# 🚨 Google Cloud 결제 폭탄 대응 및 비용 최적화 프로젝트
+### 1. 문제 분석 및 진단
+- **Replicate 모델 성공 요인 분석**: SDXL 모델 사용, 올바른 파라미터 설정, 완전한 폴링 로직
+- **다른 모델들의 문제점 파악**:
+  - FAL AI: Text-to-Image 모델 사용으로 이미지 변형 불가
+  - Stability AI: 잘못된 API 엔드포인트 및 파라미터 불일치
 
-## 📋 프로젝트 개요
-- **발생일**: 2025년 10월 4일
-- **비용**: ₩856,551 (약 $650)
-- **원인**: Google Vision API 및 Google AI API 과다 사용
-- **상태**: ✅ 완료
+### 2. FAL AI 이미지 변형 개선
+- **파일**: `pages/api/generate-blog-image-fal-variation.js`
+- **변경사항**:
+  - `fal-ai/flux` → `fal-ai/flux-dev` 모델로 변경 (이미지 변형 지원)
+  - `image_url` 파라미터 추가로 원본 이미지 전달
+  - `strength` 파라미터 추가로 변형 강도 조절
+  - 폴링 로직을 Replicate 스타일로 개선
+  - 상태 확인 로직 강화 (`COMPLETED` 상태 확인)
 
-## 🎯 완료된 작업
+### 3. Stability AI 이미지 변형 개선
+- **파일**: `pages/api/generate-blog-image-stability.js`
+- **변경사항**:
+  - API 파라미터 정확성 개선 (`weight: 1.0`)
+  - `seed` 파라미터 추가로 다양성 확보
+  - 기존 엔드포인트 유지 (올바른 엔드포인트 확인됨)
 
-### 1. 긴급 조치 ✅
-- **Google API 키 비활성화**: 로컬 및 Vercel 환경에서 완료
-- **코드 수정**: API 키 체크 로직에 `disabled` 조건 추가
-- **Vercel 재배포**: 환경 변수 변경사항 적용
+### 4. Replicate 모델 업그레이드
+- **파일**: `pages/api/generate-blog-image-replicate-flux.js`
+- **변경사항**:
+  - SDXL → Flux Dev 모델로 업그레이드 (더 나은 품질)
+  - `aspect_ratio`, `output_quality` 파라미터 추가
+  - `guidance_scale` 최적화 (7.5 → 3.5)
 
-### 2. 환불 신청 ✅
-- **Google Cloud Console** 접속 정보 제공
-- **환불 신청 절차** 상세 안내
-- **지원 문서** 작성 가이드
+### 5. 프론트엔드 요청 본문 개선
+- **파일**: `pages/admin/blog.tsx`
+- **변경사항**:
+  - API 요청에 필요한 모든 파라미터 추가:
+    - `title`, `excerpt`, `contentType`, `brandStrategy`
+    - `variationStrength`, `variationCount`
+  - `editingPost` 정보 활용으로 정확한 컨텍스트 전달
 
-### 3. 사용 내역 분석 ✅
-- **6개 API 파일**에서 Google API 사용 확인
-- **비용 발생 패턴** 분석 완료
-- **사용량 추적** 시스템 구축
+## 개선된 기능들
 
-### 4. 비용 최적화 시스템 ✅
-- **비용 모니터링 시스템** 구축
-- **일일/월간 한도** 설정 ($5/$50)
-- **자동 알림** 시스템 구현
+### 이미지 변형 모델별 특징
+1. **FAL AI**: 고품질 이미지 변형, flux-dev 모델 사용
+2. **Replicate Flux**: 빠른 처리, 최신 Flux Dev 모델
+3. **Stability AI**: 안정적인 변형, SDXL 기반
 
-## 📊 비용 발생 원인 분석
+### 공통 개선사항
+- 모든 모델에서 원본 이미지를 올바르게 활용
+- 변형 강도(`strength`) 파라미터 적용
+- 완전한 폴링 로직으로 안정성 확보
+- ChatGPT를 통한 스마트 프롬프트 생성
 
-### Google Vision API 사용 파일
-1. `pages/api/simple-ai-image-improvement.js`
-2. `pages/api/admin/image-ai-analyzer.js`
-3. `pages/api/admin/auto-tags.js`
+## 다음 단계
 
-### Google AI API 사용 파일
-1. `pages/api/generate-blog-image-google.js`
-2. `pages/api/analyze-image-google-ai.js`
-3. `pages/api/recreate-image-google-ai.js`
+### 테스트 및 검증
+- [ ] 각 모델별 이미지 변형 기능 테스트
+- [ ] 변형 강도 조절 기능 검증
+- [ ] 에러 처리 및 사용자 피드백 개선
 
-### 비용 구조
-- **Google Vision API**: 월 1,000회 무료 → 이후 $1.50/1,000회
-- **Google AI (Imagen)**: $0.04/이미지
-- **7가지 분석 기능** 동시 실행으로 비용 급증
+### 추가 개선 가능사항
+- [ ] 이미지 변형 결과 품질 비교 분석
+- [ ] 사용자 선호도에 따른 모델 추천 시스템
+- [ ] 배치 이미지 변형 기능 추가
 
-## 🛠️ 구현된 시스템
+## 기술적 세부사항
 
-### 비용 모니터링 시스템
-- **파일**: `cost-monitoring-system.js`
-- **기능**: 
-  - 실시간 비용 추적
-  - 자동 한도 체크
-  - 알림 시스템
-  - 리포트 생성
+### API 엔드포인트
+- `/api/generate-blog-image-fal-variation` - FAL AI 이미지 변형
+- `/api/generate-blog-image-replicate-flux` - Replicate Flux 이미지 변형  
+- `/api/generate-blog-image-stability` - Stability AI 이미지 변형
 
-### API 사용량 제한
-- **일일 한도**: $5
-- **월간 한도**: $50
-- **요청당 한도**: $0.1
+### 주요 파라미터
+- `baseImageUrl`: 변형할 원본 이미지 URL
+- `variationStrength`: 변형 강도 (0.0-1.0)
+- `variationCount`: 생성할 변형 이미지 개수
+- `title`, `excerpt`: ChatGPT 프롬프트 생성용 컨텍스트
 
-## 💡 비용 최적화 전략
-
-### 대안 서비스 비교
-| 서비스 | 비용 | 품질 | 권장도 |
-|--------|------|------|--------|
-| FAL AI | $0.01/이미지 | 높음 | ⭐⭐⭐⭐⭐ |
-| Replicate | $0.05/이미지 | 높음 | ⭐⭐⭐⭐ |
-| OpenAI DALL-E | $0.04/이미지 | 높음 | ⭐⭐⭐ |
-| Google AI | $0.04/이미지 | 높음 | ❌ (비활성화) |
-
-### 권장사항
-1. **FAL AI**를 주력으로 사용 (비용 75% 절약)
-2. **Google API** 완전 비활성화
-3. **월 예산 한도** ₩50,000 설정
-4. **사용량 모니터링** 정기 실행
-
-## 🔄 다음 단계
-
-### 즉시 실행
-1. **환불 신청** 완료 대기
-2. **Google Cloud Console** 예산 알림 설정
-3. **비용 모니터링** 정기 실행
-
-### 장기 계획
-1. **FAL AI** 전면 도입
-2. **비용 대시보드** 구축
-3. **자동화 시스템** 고도화
-
-## 📈 예상 효과
-
-### 비용 절약
-- **기존**: ₩856,551/월
-- **최적화 후**: ₩50,000/월
-- **절약률**: 94% 절약
-
-### 안정성 향상
-- **비용 예측 가능**
-- **자동 제한 시스템**
-- **실시간 모니터링**
-
-## 🚨 주의사항
-
-### Google API 사용 금지
-- 모든 Google Vision API 호출 비활성화
-- Google AI (Imagen) API 호출 비활성화
-- 환경 변수 `disabled` 상태 유지
-
-### 모니터링 필수
-- 일일 비용 체크
-- 월간 리포트 생성
-- 알림 시스템 활용
-
----
-
-**프로젝트 상태**: ✅ 완료  
-**마지막 업데이트**: 2025년 10월 4일  
-**담당자**: AI Assistant
+### 폴링 로직
+- FAL AI: `IN_QUEUE` → `IN_PROGRESS` → `COMPLETED`
+- Replicate: `starting` → `processing` → `succeeded`
+- Stability AI: 즉시 응답 (폴링 불필요)

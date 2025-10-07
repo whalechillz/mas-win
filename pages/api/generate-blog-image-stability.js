@@ -64,7 +64,7 @@ export default async function handler(req, res) {
     console.log('✅ ChatGPT 변형 프롬프트 생성 완료');
     console.log('생성된 프롬프트:', variationPrompt);
 
-    // Stability AI Image-to-Image API 호출
+    // Stability AI Image-to-Image API 호출 (올바른 엔드포인트 사용)
     const stabilityResponse = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image', {
       method: 'POST',
       headers: {
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
         text_prompts: [
           {
             text: variationPrompt,
-            weight: 1
+            weight: 1.0
           }
         ],
         cfg_scale: 7,
@@ -84,7 +84,8 @@ export default async function handler(req, res) {
         samples: variationCount,
         style_preset: 'photographic',
         init_image_mode: 'IMAGE_STRENGTH',
-        image_strength: variationStrength
+        image_strength: variationStrength,
+        seed: Math.floor(Math.random() * 1000000) // 시드 추가로 다양성 확보
       })
     });
 
