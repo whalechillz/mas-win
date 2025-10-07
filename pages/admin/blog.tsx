@@ -38,9 +38,8 @@ export default function BlogAdmin() {
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
 
-  // 이미지 저장 상태 관리
+  // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
   const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
-  const [modalSavingState, setModalSavingState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // 이미지 생성 개수 선택
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(4);
@@ -3400,76 +3399,6 @@ export default function BlogAdmin() {
             {/* 액션 버튼들 */}
             <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
               <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-                {/* 저장 버튼 */}
-                <button
-                  disabled={modalSavingState === 'saving'}
-                  onClick={async () => {
-                    // 이미 저장 중이면 중복 실행 방지
-                    if (modalSavingState === 'saving') return;
-                    
-                    // 저장 상태를 'saving'으로 설정
-                    setModalSavingState('saving');
-                    
-                    try {
-                      const response = await fetch('/api/save-generated-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          imageUrl: selectedGeneratedImage,
-                          fileName: `modal-image-${Date.now()}.png`,
-                          blogPostId: editingPost?.id || null
-                        })
-                      });
-                      
-                      if (response.ok) {
-                        const { storedUrl } = await response.json();
-                        setModalSavingState('saved');
-                        alert('이미지가 Supabase에 저장되었습니다!');
-                        
-                        // 3초 후 상태 초기화
-                        setTimeout(() => {
-                          setModalSavingState('idle');
-                        }, 3000);
-                      } else {
-                        setModalSavingState('error');
-                        alert('이미지 저장에 실패했습니다.');
-                        
-                        // 3초 후 상태 초기화
-                        setTimeout(() => {
-                          setModalSavingState('idle');
-                        }, 3000);
-                      }
-                    } catch (error) {
-                      console.error('이미지 저장 오류:', error);
-                      setModalSavingState('error');
-                      alert('이미지 저장 중 오류가 발생했습니다.');
-                      
-                      // 3초 후 상태 초기화
-                      setTimeout(() => {
-                        setModalSavingState('idle');
-                      }, 3000);
-                    }
-                  }}
-                  className={`px-4 py-2 text-white text-sm rounded whitespace-nowrap transition-colors ${
-                    modalSavingState === 'saving' 
-                      ? 'bg-yellow-500 cursor-not-allowed' 
-                      : modalSavingState === 'saved'
-                      ? 'bg-green-600'
-                      : modalSavingState === 'error'
-                      ? 'bg-red-500'
-                      : 'bg-green-500 hover:bg-green-600'
-                  }`}
-                >
-                  {modalSavingState === 'saving' 
-                    ? '⏳ 저장 중...' 
-                    : modalSavingState === 'saved'
-                    ? '✅ 저장 완료!'
-                    : modalSavingState === 'error'
-                    ? '❌ 저장 실패'
-                    : '💾 저장'
-                  }
-                </button>
-                
                 {/* 삭제 버튼 */}
                 <button
                   onClick={() => {
