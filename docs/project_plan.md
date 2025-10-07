@@ -154,3 +154,19 @@
 - 동작: `/api/preview-image-prompt`로 기본 프롬프트 재생성 → `imageGenerationPrompt` 갱신, `editedPrompt`/`generatedImages` 초기화
 - 기본 프롬프트 근거: 제목, 요약(또는 본문 일부), contentType, brandStrategy(페르소나/강도/오디언스) 사용
 - FAL 프롬프트: `pages/api/generate-blog-image-fal.js#createFALImagePrompt`에서 위 맥락 + 랜덤 요소(시간대/의상/포즈/배경/조명) 조합, 텍스트 비포함 규칙
+
+### 파생 파일 생성(1차)
+- API: `/api/admin/image-derivatives` (샘플) — 규칙 기반 파일명 제안, 실제 변환 파이프라인 연동 예정
+- UI: 갤러리 선택 액션 “🧩 파생 파일 생성” 추가
+
+### 링크/사용처 검사(1차)
+- API: `/api/admin/image-link-check` — HEAD 요청으로 200/404 검사
+- UI: 갤러리 선택 액션 “🔗 링크 검사” 추가(깨진 링크 개수 알림)
+
+### SEO/ALT 자동 생성(완료)
+- API: `/api/admin/generate-alt-batch` — GPT-4o-mini로 alt/title/description 제안, preview/apply 지원
+- UI: “🔎 SEO/ALT 미리보기” → “✅ 적용”
+
+### 카테고리/태그 관리(완료)
+- API: `/api/admin/image-categories`, `/api/admin/image-tags`
+- UI: 상단 모달에서 CRUD
