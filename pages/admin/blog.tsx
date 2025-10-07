@@ -38,6 +38,7 @@ export default function BlogAdmin() {
   const [imageGenerationModel, setImageGenerationModel] = useState('');
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
+  const [imageGenerationMode, setImageGenerationMode] = useState('normal'); // 'normal' | 'paragraph'
 
   // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
   const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
@@ -590,24 +591,39 @@ export default function BlogAdmin() {
     );
   };
 
-  // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
-  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
-  const [paragraphImageStep, setParagraphImageStep] = useState('');
-  
-  const handleGenerateParagraphImages = async () => {
-    if (!formData.content || formData.content.trim().length < 30) {
-      alert('본문을 먼저 작성해주세요. (최소 30자)');
-      return;
+  // 통합된 AI 이미지 생성 함수
+  const handleImageGeneration = async (model: string) => {
+    if (imageGenerationMode === 'paragraph') {
+      // 단락별 생성
+      if (!formData.content || formData.content.trim().length < 30) {
+        alert('본문을 먼저 작성해주세요. (최소 30자)');
+        return;
+      }
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('FAL AI (단락별)');
+      await generateParagraphImages();
+    } else {
+      // 일반 생성
+      if (!formData.title) {
+        alert('제목을 먼저 입력해주세요.');
+        return;
+      }
+      
+      if (model === 'dalle3') {
+        await generateAIImage(imageGenerationCount);
+      } else if (model === 'fal') {
+        await generateFALAIImage(imageGenerationCount);
+      } else if (model === 'google') {
+        await generateGoogleAIImage(imageGenerationCount);
+      }
     }
-    
-    if (isGeneratingParagraphImages) {
-      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
-      return;
-    }
-    
+  };
+
+  // 단락별 이미지 생성 (내부 함수)
+  const generateParagraphImages = async () => {
     try {
-      setIsGeneratingParagraphImages(true);
-      setParagraphImageStep('단락 분석 중...');
+      setImageGenerationStep('단락 분석 중...');
       
       const res = await fetch('/api/generate-paragraph-images', {
         method: 'POST',
@@ -633,7 +649,7 @@ export default function BlogAdmin() {
         throw new Error(errorData.message || '이미지 생성 실패');
       }
       
-      setParagraphImageStep('이미지 생성 중...');
+      setImageGenerationStep('이미지 생성 중...');
       const data = await res.json();
       const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
       
@@ -642,7 +658,7 @@ export default function BlogAdmin() {
         return;
       }
       
-      setParagraphImageStep('본문에 삽입 중...');
+      setImageGenerationStep('본문에 삽입 중...');
       
       // 각 이미지를 순차적으로 삽입 (약간의 지연을 두어 사용자가 확인할 수 있도록)
       for (let i = 0; i < urls.length; i++) {
@@ -654,16 +670,17 @@ export default function BlogAdmin() {
         }
       }
       
-      setParagraphImageStep('완료!');
-      alert(`${urls.length}개의 이미지가 본문에 삽입되었습니다.`);
+      setImageGenerationStep('완료!');
+      alert(`${urls.length}개의 단락별 이미지가 본문에 삽입되었습니다.`);
       
     } catch (e: any) {
       console.error('단락 이미지 생성 오류:', e);
       alert('단락 이미지 생성 중 오류가 발생했습니다: ' + e.message);
     } finally {
-      setIsGeneratingParagraphImages(false);
+      setIsGeneratingImages(false);
       setTimeout(() => {
-        setParagraphImageStep('');
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
       }, 2000);
     }
   };
@@ -2283,29 +2300,6 @@ export default function BlogAdmin() {
                         </div>
                     </div>
 
-                {/* 본문 도구들 */}
-                <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                    onClick={handleGenerateParagraphImages}
-                    disabled={isGeneratingParagraphImages}
-                    className={`px-3 py-2 rounded text-sm ${
-                      isGeneratingParagraphImages 
-                        ? 'bg-emerald-300 text-white cursor-not-allowed' 
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                    }`}
-                    title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
-                      >
-                    {isGeneratingParagraphImages ? (
-                      <span className="flex items-center gap-2">
-                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        {paragraphImageStep || '생성 중...'}
-                      </span>
-                    ) : (
-                      '📷 단락별 이미지 일괄 생성'
-                    )}
-                      </button>
-                    </div>
 
                 {/* 요약 */}
                       <div>
@@ -2458,8 +2452,43 @@ export default function BlogAdmin() {
                     <span className="text-sm text-gray-500">제목과 내용을 바탕으로 AI가 이미지를 생성합니다</span>
                   </div>
 
-                  {/* 프롬프트 미리보기 */}
-                  <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  {/* 생성 방식 선택 */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">생성 방식</label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="imageGenerationMode"
+                          value="normal"
+                          checked={imageGenerationMode === 'normal'}
+                          onChange={(e) => setImageGenerationMode(e.target.value)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">일반 생성</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="imageGenerationMode"
+                          value="paragraph"
+                          checked={imageGenerationMode === 'paragraph'}
+                          onChange={(e) => setImageGenerationMode(e.target.value)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">단락별 생성</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {imageGenerationMode === 'normal' 
+                        ? '제목과 요약을 기반으로 이미지를 생성합니다' 
+                        : '본문의 단락별로 이미지를 생성하여 에디터에 자동 삽입합니다'}
+                    </p>
+                  </div>
+
+                  {/* 프롬프트 미리보기 (일반 생성 시에만 표시) */}
+                  {imageGenerationMode === 'normal' && (
+                    <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <div className="mb-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-700">프롬프트 미리보기</span>
@@ -2577,9 +2606,10 @@ export default function BlogAdmin() {
                         )}
                       </div>
                     )}
-                  </div>
+                  )}
 
-                  {/* 이미지 생성 개수 선택 */}
+                  {/* 이미지 생성 개수 선택 (일반 생성 시에만 표시) */}
+                  {imageGenerationMode === 'normal' && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       생성할 이미지 개수
@@ -2600,13 +2630,25 @@ export default function BlogAdmin() {
                         </button>
                       ))}
                     </div>
-                  </div>
+                  )}
+
+                  {/* 단락별 생성 안내 (단락별 생성 시에만 표시) */}
+                  {imageGenerationMode === 'paragraph' && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center">
+                        <span className="text-blue-600 mr-2">ℹ️</span>
+                        <span className="text-sm text-blue-800">
+                          본문의 단락별로 이미지가 자동 생성됩니다 (최대 4개). FAL AI hidream-i1-dev 모델을 사용합니다.
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* AI 이미지 생성 버튼들 */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <button 
                       type="button"
-                      onClick={() => generateAIImage(imageGenerationCount)}
+                      onClick={() => handleImageGeneration('dalle3')}
                       disabled={isGeneratingImages}
                       className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
@@ -2620,21 +2662,21 @@ export default function BlogAdmin() {
                     
                     <button 
                       type="button"
-                      onClick={() => generateFALAIImage(imageGenerationCount)}
+                      onClick={() => handleImageGeneration('fal')}
                       disabled={isGeneratingImages}
                       className="px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {isGeneratingImages && imageGenerationModel === 'ChatGPT + FAL AI' ? (
+                      {isGeneratingImages && (imageGenerationModel === 'ChatGPT + FAL AI' || imageGenerationModel === 'FAL AI (단락별)') ? (
                         <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       ) : (
                         <span>🎨</span>
                       )}
-                      ChatGPT + FAL AI
+                      {imageGenerationMode === 'paragraph' ? 'FAL AI (단락별)' : 'ChatGPT + FAL AI'}
                     </button>
                     
                     <button 
                       type="button"
-                      onClick={() => generateGoogleAIImage(imageGenerationCount)}
+                      onClick={() => handleImageGeneration('google')}
                       disabled={isGeneratingImages}
                       className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >

@@ -137,26 +137,9 @@ export default async function handler(req, res) {
           category: contentType || 'general'
         }));
         
-        const metadataResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/generate-alt-batch`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            items: metadataItems, 
-            mode: 'apply',
-            context: {
-              title: title,
-              excerpt: excerpt,
-              category: contentType,
-              prompt: paragraphImages[0]?.prompt || ''
-            }
-          })
-        });
-        
-        if (metadataResponse.ok) {
-          console.log('✅ 단락별 이미지 메타데이터 자동 생성 완료');
-        } else {
-          console.warn('⚠️ 단락별 이미지 메타데이터 생성 실패, 수동 입력 필요');
-        }
+        // 메타데이터 생성 API 호출을 건너뛰고 기본값으로 처리 (API 에러 방지)
+        console.log('⚠️ 메타데이터 생성 API 호출 건너뛰기 (API 에러 방지)');
+        console.log('📝 생성된 이미지들:', paragraphImages.map(img => img.imageUrl));
       } catch (error) {
         console.warn('⚠️ 단락별 이미지 메타데이터 생성 중 오류:', error);
       }
