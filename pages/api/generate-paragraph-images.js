@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { logOpenAIUsage, logFALAIUsage } from '../../lib/ai-usage-logger';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -50,6 +51,13 @@ export default async function handler(req, res) {
 
       const falResult = await falResponse.json();
       console.log('✅ FAL AI hidream-i1-dev 응답:', falResult);
+
+      // FAL AI 사용량 로깅
+      await logFALAIUsage('generate-paragraph-images', 'image-generation', {
+        paragraphIndex: i,
+        prompt: imagePrompt,
+        imageCount: 1
+      });
 
       // hidream-i1-dev는 동기식 응답
       if (!falResult.images || falResult.images.length === 0) {
@@ -174,6 +182,12 @@ async function generateParagraphImagePrompt(paragraph, title, excerpt, contentTy
       ],
       temperature: 0.8,
       max_tokens: 300,
+    });
+
+    // ChatGPT 사용량 로깅
+    await logOpenAIUsage('generate-paragraph-images', 'prompt-generation', response, {
+      paragraphIndex,
+      paragraph: paragraph.substring(0, 100) + '...'
     });
 
     return response.choices[0].message.content.trim();
