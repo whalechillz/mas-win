@@ -34,6 +34,13 @@ export default function GalleryAdmin() {
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates'>('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  // 카테고리/태그 관리 UI 상태
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [editingTag, setEditingTag] = useState<any | null>(null);
   
   // 편집 상태
   const [editingImage, setEditingImage] = useState<string | null>(null);
@@ -57,6 +64,7 @@ export default function GalleryAdmin() {
     category: '',
   });
   const [isBulkWorking, setIsBulkWorking] = useState(false);
+  const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
 
   // 이미지 로드
   const fetchImages = async (page = 1, reset = false) => {
@@ -163,6 +171,11 @@ export default function GalleryAdmin() {
   // 초기 로드
   useEffect(() => {
     fetchImages(1, true);
+    // 카테고리/태그 로드
+    (async()=>{
+      try { const c = await (await fetch('/api/admin/image-categories')).json(); setCategories(c.categories||[]); } catch {}
+      try { const t = await (await fetch('/api/admin/image-tags')).json(); setTags(t.tags||[]); } catch {}
+    })();
   }, []);
 
   // 이미지 선택/해제
@@ -374,6 +387,8 @@ export default function GalleryAdmin() {
                 >
                   📝 블로그 관리로 돌아가기
                 </Link>
+              <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
+              <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
                 <button
                   onClick={() => fetchImages(1, true)}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
@@ -453,7 +468,7 @@ export default function GalleryAdmin() {
                 <span className="text-sm text-blue-700">
                   {selectedImages.size}개 이미지 선택됨
                 </span>
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
                   <button
                     type="button"
                     onClick={() => setShowBulkEdit(true)}
@@ -461,6 +476,42 @@ export default function GalleryAdmin() {
                   >
                     📝 일괄 편집
                   </button>
+                <button
+                  type="button"
+                  onClick={async()=>{
+                    const names = Array.from(selectedImages);
+                    const payload = names.map(n=> images.find(i=>i.name===n)).filter(Boolean);
+                    const res = await fetch('/api/admin/generate-alt-batch',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ items: payload, mode:'preview' })});
+                    if (res.ok){ const data = await res.json(); setSeoPreview(data.suggestions||[]);} else { alert('SEO 미리보기 실패'); }
+                  }}
+                  className="px-3 py-1 bg-teal-600 text-white text-sm rounded hover:bg-teal-700"
+                >
+                  🔎 SEO/ALT 미리보기
+                </button>
+                {seoPreview && (
+                  <button
+                    type="button"
+                    onClick={async()=>{
+                      const names = Array.from(selectedImages);
+                      const payload = names.map(n=> images.find(i=>i.name===n)).filter(Boolean);
+                      const res = await fetch('/api/admin/generate-alt-batch',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ items: payload, mode:'apply' })});
+                      if (res.ok){
+                        // 로컬 반영
+                        const data = await res.json();
+                        setImages(prev=> prev.map((img)=>{
+                          const idx = names.indexOf(img.name);
+                          if (idx>=0){ const s = (seoPreview||[])[idx]||{}; return { ...img, alt_text: s.alt||img.alt_text, title: s.title||img.title, description: s.description||img.description } }
+                          return img;
+                        }));
+                        setSeoPreview(null);
+                        alert('SEO/ALT 적용 완료');
+                      } else { alert('적용 실패'); }
+                    }}
+                    className="px-3 py-1 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700"
+                  >
+                    ✅ 적용
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={async () => {
@@ -798,6 +849,78 @@ export default function GalleryAdmin() {
             <div className="flex justify-end gap-3 p-4 border-t">
               <button onClick={()=>setShowBulkDeleteConfirm(false)} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">취소</button>
               <button disabled={isBulkWorking} onClick={handleBulkDelete} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50">{isBulkWorking ? '삭제 중...' : '삭제'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 카테고리 관리 모달 */}
+      {categoryModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">카테고리 관리</h3>
+              <button onClick={()=>setCategoryModalOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
+              <div className="flex gap-2">
+                <input placeholder="이름" className="flex-1 px-2 py-1 border rounded" value={editingCategory?.name||''} onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), name:e.target.value })} />
+                <input placeholder="슬러그(선택)" className="flex-1 px-2 py-1 border rounded" value={editingCategory?.slug||''} onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), slug:e.target.value })} />
+                <button onClick={async()=>{
+                  const body = { id: editingCategory?.id, name: editingCategory?.name, slug: editingCategory?.slug };
+                  if (!body.name) return alert('이름을 입력하세요.');
+                  const res = await fetch('/api/admin/image-categories', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                  if (res.ok) { const r = await res.json(); setEditingCategory(null); const list = await (await fetch('/api/admin/image-categories')).json(); setCategories(list.categories||[]); }
+                }} className="px-3 py-1 bg-indigo-500 text-white rounded">저장</button>
+              </div>
+              <div className="divide-y">
+                {categories.map((c)=> (
+                  <div key={c.id} className="py-2 flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="font-medium">{c.name}</div>
+                      <div className="text-xs text-gray-500">{c.slug}</div>
+                    </div>
+                    <button onClick={()=>setEditingCategory(c)} className="px-2 py-1 text-sm border rounded">편집</button>
+                    <button onClick={async()=>{ if (!confirm('삭제하시겠습니까?')) return; await fetch(`/api/admin/image-categories?id=${c.id}`, { method:'DELETE' }); const list = await (await fetch('/api/admin/image-categories')).json(); setCategories(list.categories||[]); }} className="px-2 py-1 text-sm border rounded text-red-600">삭제</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 태그 관리 모달 */}
+      {tagModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">태그 관리</h3>
+              <button onClick={()=>setTagModalOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
+              <div className="flex gap-2">
+                <input placeholder="이름" className="flex-1 px-2 py-1 border rounded" value={editingTag?.name||''} onChange={(e)=>setEditingTag({ ...(editingTag||{}), name:e.target.value })} />
+                <input placeholder="슬러그(선택)" className="flex-1 px-2 py-1 border rounded" value={editingTag?.slug||''} onChange={(e)=>setEditingTag({ ...(editingTag||{}), slug:e.target.value })} />
+                <button onClick={async()=>{
+                  const body = { id: editingTag?.id, name: editingTag?.name, slug: editingTag?.slug };
+                  if (!body.name) return alert('이름을 입력하세요.');
+                  const res = await fetch('/api/admin/image-tags', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                  if (res.ok) { const r = await res.json(); setEditingTag(null); const list = await (await fetch('/api/admin/image-tags')).json(); setTags(list.tags||[]); }
+                }} className="px-3 py-1 bg-violet-500 text-white rounded">저장</button>
+              </div>
+              <div className="divide-y">
+                {tags.map((t)=> (
+                  <div key={t.id} className="py-2 flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="font-medium">{t.name}</div>
+                      <div className="text-xs text-gray-500">{t.slug}</div>
+                    </div>
+                    <button onClick={()=>setEditingTag(t)} className="px-2 py-1 text-sm border rounded">편집</button>
+                    <button onClick={async()=>{ if (!confirm('삭제하시겠습니까?')) return; await fetch(`/api/admin/image-tags?id=${t.id}`, { method:'DELETE' }); const list = await (await fetch('/api/admin/image-tags')).json(); setTags(list.tags||[]); }} className="px-2 py-1 text-sm border rounded text-red-600">삭제</button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
