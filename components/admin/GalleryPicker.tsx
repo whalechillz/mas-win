@@ -205,8 +205,8 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                       )}
                     </div>
                   </button>
-                  {/* 퀵액션 (가시성 강화: 항상 노출, 호버 시 살짝 배경 강조) */}
-                  <div className="absolute inset-0 z-10 bg-black/0 hover:bg-black/10 transition flex items-center justify-center gap-2 opacity-100">
+                  {/* 퀵액션 (호버 시 노출) */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <button type="button" title="삽입" className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
                       onClick={(e)=>{ e.stopPropagation(); onSelect(img.url, { alt: altText || img.name }); }}>
                       ➕ 삽입
