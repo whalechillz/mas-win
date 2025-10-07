@@ -32,6 +32,8 @@ export default function BlogAdmin() {
   const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
   const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
   const [imageGenerationStep, setImageGenerationStep] = useState('');
+  const [isVarying, setIsVarying] = useState(false);
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
   const [imageGenerationModel, setImageGenerationModel] = useState('');
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
@@ -2362,6 +2364,8 @@ export default function BlogAdmin() {
                       <button 
                         type="button"
                               onClick={async () => {
+                                if (isImprovingPrompt) return;
+                                setIsImprovingPrompt(true);
                                 try {
                                   const response = await fetch('/api/improve-prompt', {
                                     method: 'POST',
@@ -2390,11 +2394,12 @@ export default function BlogAdmin() {
                                 } catch (error) {
                                   console.error('프롬프트 개선 오류:', error);
                                   alert('프롬프트 개선 중 오류가 발생했습니다.');
-                                }
+                                } finally { setIsImprovingPrompt(false); }
                               }}
-                              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                              disabled={isImprovingPrompt}
+                              className={`px-3 py-1 text-xs rounded text-white ${isImprovingPrompt ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
                             >
-                              🔄 프롬프트 개선
+                              {isImprovingPrompt ? '개선 중...' : '🔄 프롬프트 개선'}
                       </button>
                       <button 
                         type="button"
@@ -2538,15 +2543,17 @@ export default function BlogAdmin() {
                                     </button>
                                     <button
                                       type="button"
+                                      disabled={isGeneratingVariation}
                                       onClick={async (e) => {
                                         e.stopPropagation();
+                                        if (isGeneratingVariation) return;
                                         setSelectedBaseImage(imageUrl);
                                         await generateImageVariation('Replicate Flux');
                                       }}
-                                      className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                                      className={`px-2 py-1 text-xs rounded ${isGeneratingVariation ? 'bg-purple-300 text-white cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
                                       title="변형"
                                     >
-                                      🎨
+                                      {isGeneratingVariation ? '…' : '🎨'}
                                     </button>
                                   </div>
                                 </div>
