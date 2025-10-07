@@ -630,6 +630,10 @@ export default function BlogAdmin() {
       }
       
       const data = await res.json();
+      console.log('📝 API 응답 데이터:', data);
+      console.log('📝 받은 프롬프트 개수:', data.prompts?.length || 0);
+      console.log('📝 프롬프트 내용:', data.prompts?.map((p, i) => `단락 ${i+1}: ${p.prompt.substring(0, 50)}...`));
+      
       setParagraphPrompts(data.prompts || []);
       setShowParagraphPromptPreview(true);
       setImageGenerationStep('');
@@ -675,7 +679,11 @@ export default function BlogAdmin() {
       
       setImageGenerationStep('본문에 삽입 중...');
       const data = await res.json();
+      console.log('📷 단락별 이미지 생성 API 응답:', data);
+      
       const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+      console.log('📷 생성된 이미지 URL 개수:', urls.length);
+      console.log('📷 이미지 URL들:', urls);
       
       if (!urls.length) {
         alert('생성된 이미지가 없습니다.');
@@ -2753,7 +2761,9 @@ export default function BlogAdmin() {
                   {showParagraphPromptPreview && paragraphPrompts.length > 0 && (
                     <div className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-sm font-medium text-gray-700">단락별 프롬프트 미리보기</h4>
+                        <h4 className="text-sm font-medium text-gray-700">
+                          단락별 프롬프트 미리보기 ({paragraphPrompts.length}개)
+                        </h4>
                         <button
                           type="button"
                           onClick={() => setShowParagraphPromptPreview(false)}
