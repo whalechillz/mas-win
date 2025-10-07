@@ -469,6 +469,30 @@ export default function AIDashboard() {
                 </div>
               </div>
 
+              {/* 일별 비용 미니 그래프 (최근 7일) */}
+              {usage7d?.stats?.dailyStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">일별 비용 그래프 (최근 7일)</h2>
+                  {(() => {
+                    const items = usage7d.stats.dailyStats.slice().reverse();
+                    const maxCost = Math.max(0.0001, ...items.map((d: any) => d.cost || 0));
+                    return (
+                      <div className="flex items-end gap-2 h-40">
+                        {items.map((d: any) => {
+                          const h = Math.max(4, Math.round((d.cost / maxCost) * 140));
+                          return (
+                            <div key={d.date} className="flex flex-col items-center gap-1">
+                              <div className="w-6 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t" style={{ height: `${h}px` }} title={`${d.date} · $${(d.cost||0).toFixed(4)} · ${d.requests}회`}></div>
+                              <div className="text-[10px] text-gray-500">{d.date.slice(5)}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
               {/* 일별 비용 (7일) */}
               {usage7d?.stats?.dailyStats && (
                 <div className="bg-white rounded-lg shadow p-6">
@@ -495,6 +519,30 @@ export default function AIDashboard() {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {/* 모델별 비용 미니 그래프 (최근 7일) */}
+              {usage7d?.stats?.modelStats && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">모델별 비용 그래프 (최근 7일)</h2>
+                  {(() => {
+                    const items = usage7d.stats.modelStats;
+                    const maxCost = Math.max(0.0001, ...items.map((m: any) => m.cost || 0));
+                    return (
+                      <div className="space-y-2">
+                        {items.map((m: any) => (
+                          <div key={m.model} className="flex items-center gap-3">
+                            <div className="w-40 truncate text-xs text-gray-700" title={m.model}>{m.model}</div>
+                            <div className="flex-1 h-3 bg-gray-100 rounded">
+                              <div className="h-3 rounded bg-gradient-to-r from-purple-600 to-purple-400" style={{ width: `${(m.cost/maxCost)*100}%` }} title={`$${(m.cost||0).toFixed(4)} · ${m.requests}회`}></div>
+                            </div>
+                            <div className="w-20 text-right text-xs text-gray-700">${(m.cost||0).toFixed(4)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
