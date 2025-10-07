@@ -11,14 +11,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { content, title, excerpt, contentType, brandStrategy } = req.body;
+    const { content, title, excerpt, contentType, brandStrategy, blogPostId } = req.body;
 
     if (!content) {
       return res.status(400).json({ message: 'Content is required' });
     }
 
-    // 내용을 단락별로 분리
-    const paragraphs = content.split('\n\n').filter(p => p.trim().length > 0);
+    // 내용을 단락별로 분리 (HTML 태그 제거 후)
+    const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 50); // 최소 50자 이상인 단락만
+    
+    console.log(`📝 단락 분석: 총 ${paragraphs.length}개 단락 발견`);
+    
+    if (paragraphs.length === 0) {
+      return res.status(400).json({ message: '이미지 생성에 적합한 단락이 없습니다. (최소 50자 이상)' });
+    }
+    
     const paragraphImages = [];
 
     // 각 단락에 대해 이미지 생성 (최대 4개 단락)
@@ -91,6 +99,9 @@ export default async function handler(req, res) {
         if (saveResponse.ok) {
           const saveResult = await saveResponse.json();
           storedUrl = saveResult.storedUrl;
+          console.log(`✅ 단락 ${i + 1} 이미지 저장 완료:`, storedUrl);
+        } else {
+          console.warn(`⚠️ 단락 ${i + 1} 이미지 저장 실패, 원본 URL 사용`);
         }
         
         paragraphImages.push({
