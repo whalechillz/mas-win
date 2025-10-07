@@ -5,6 +5,7 @@ import {
   generateBrandMessage,
   generatePainPointMessage
 } from '../../lib/masgolf-brand-data';
+import { logFALAIUsage } from '../../lib/ai-usage-logger';
 
 // 동적 다양성을 위한 요소 생성 함수
 const generateDynamicElements = (title, excerpt, contentType, brandStrategy) => {
@@ -218,6 +219,12 @@ export default async function handler(req, res) {
 
     const falResult = await falResponse.json();
     console.log('FAL AI 응답:', falResult);
+    
+    // FAL AI 사용량 로깅
+    await logFALAIUsage('generate-blog-image-fal', 'image-generation', {
+      imageCount: validImageCount,
+      prompt: imagePrompt.substring(0, 100) + '...'
+    });
     
     // FAL AI 응답에서 이미지 URL 추출
     const imageUrls = falResult.images || [];

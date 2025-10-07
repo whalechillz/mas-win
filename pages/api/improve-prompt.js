@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { logOpenAIUsage } from '../../lib/ai-usage-logger';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -58,6 +59,12 @@ ${brandContext}
       ],
       temperature: 0.7,
       max_tokens: 400,
+    });
+
+    // ChatGPT 사용량 로깅
+    await logOpenAIUsage('improve-prompt', 'prompt-improvement', response, {
+      originalPrompt: originalPrompt.substring(0, 100) + '...',
+      userImprovements
     });
 
     const improvedPrompt = response.choices[0].message.content.trim();
