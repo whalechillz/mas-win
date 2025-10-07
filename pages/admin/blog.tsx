@@ -3921,9 +3921,3 @@ export default function BlogAdmin() {
     </>
   );
 }
-
-// 확대 이미지 모달 (공통)
-// 파일 하단에 렌더링되는 기존 모달들 직후에 추가됨
-// 실제 모달 렌더링
-// eslint-disable-next-line @next/next/no-sync-scripts
-// 아래는 페이지 컴포넌트 내부 JSX에 이미 모달들이 있으므로 동일 패턴으로 추가
