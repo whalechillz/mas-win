@@ -35,7 +35,6 @@ export default function BlogAdmin() {
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
   const [imageGenerationModel, setImageGenerationModel] = useState('');
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
-  const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
 
   // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
@@ -2292,49 +2291,17 @@ export default function BlogAdmin() {
                     <span className="text-sm text-gray-500">제목과 내용을 바탕으로 AI가 이미지를 생성합니다</span>
                   </div>
 
-                  {/* 프롬프트 편집기 */}
+                  {/* 프롬프트 미리보기 */}
                   <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">프롬프트 미리보기 및 수정</span>
-                      <div className="flex gap-2">
-                      <button 
-                        type="button"
-                          className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
-                          onClick={() => {
-                            setEditedPrompt(imageGenerationPrompt);
-                            setShowPromptEditor((v) => !v);
-                          }}
-                        >{showPromptEditor ? '닫기' : '열기'}</button>
-                      <button 
-                        type="button"
-                          className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
-                          onClick={() => {
-                            if (!editedPrompt?.trim()) {
-                              alert('수정할 프롬프트를 입력하세요.');
-                              return;
-                            }
-                            setImageGenerationPrompt(editedPrompt);
-                            alert('프롬프트가 업데이트되었습니다. 원하는 모델로 재생성하세요.');
-                          }}
-                        >프롬프트 저장</button>
+                    <div className="mb-2">
+                      <span className="text-sm font-medium text-gray-700">프롬프트 미리보기</span>
                     </div>
-                  </div>
-                    {showPromptEditor && (
-                      <textarea
-                        className="w-full h-28 text-sm px-3 py-2 border rounded"
-                        value={editedPrompt}
-                        onChange={(e) => setEditedPrompt(e.target.value)}
-                        placeholder="프롬프트를 입력하거나 자동 생성 후 수정하세요."
-                      />
-                    )}
-                    {!showPromptEditor && (
-                      <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
-                        {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
-                      </div>
-                    )}
+                    <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
+                      {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
+                    </div>
                     
                     {/* 한글 수정사항 입력 */}
-                    {imageGenerationPrompt && !showPromptEditor && (
+                    {imageGenerationPrompt && (
                       <div className="mt-3">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           한글 수정사항 (예: 배경을 여름 낮으로 변경, 더 밝게 만들어주세요)
@@ -2347,8 +2314,8 @@ export default function BlogAdmin() {
                         />
                         {editedPrompt && (
                           <div className="mt-2 flex gap-2">
-                            <button
-                              type="button"
+                      <button 
+                        type="button"
                               onClick={async () => {
                                 try {
                                   const response = await fetch('/api/improve-prompt', {
@@ -2383,15 +2350,15 @@ export default function BlogAdmin() {
                               className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
                             >
                               🔄 프롬프트 개선
-                            </button>
-                            <button
-                              type="button"
+                      </button>
+                      <button 
+                        type="button"
                               onClick={() => setEditedPrompt('')}
                               className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
                             >
                               취소
-                            </button>
-                          </div>
+                      </button>
+                    </div>
                         )}
                       </div>
                     )}
