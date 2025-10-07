@@ -2283,29 +2283,6 @@ export default function BlogAdmin() {
                         </div>
                     </div>
 
-                {/* 본문 도구들 */}
-                <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                    onClick={handleGenerateParagraphImages}
-                    disabled={isGeneratingParagraphImages}
-                    className={`px-3 py-2 rounded text-sm ${
-                      isGeneratingParagraphImages 
-                        ? 'bg-emerald-300 text-white cursor-not-allowed' 
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                    }`}
-                    title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 커서 위치에 순차 삽입"
-                      >
-                    {isGeneratingParagraphImages ? (
-                      <span className="flex items-center gap-2">
-                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        {paragraphImageStep || '생성 중...'}
-                      </span>
-                    ) : (
-                      '📷 단락별 이미지 일괄 생성'
-                    )}
-                      </button>
-                    </div>
 
                 {/* 요약 */}
                       <div>
@@ -2645,6 +2622,33 @@ export default function BlogAdmin() {
                       )}
                       ChatGPT + Google AI
                     </button>
+                  </div>
+
+                  {/* 단락별 이미지 일괄 생성 버튼 */}
+                  <div className="mb-6">
+                    <button
+                      type="button"
+                      onClick={handleGenerateParagraphImages}
+                      disabled={isGeneratingParagraphImages}
+                      className={`w-full px-4 py-3 rounded-lg text-sm font-medium ${
+                        isGeneratingParagraphImages 
+                          ? 'bg-emerald-300 text-white cursor-not-allowed' 
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      }`}
+                      title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 에디터에 순차 삽입"
+                    >
+                      {isGeneratingParagraphImages ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          {paragraphImageStep || '생성 중...'}
+                        </span>
+                      ) : (
+                        '📷 단락별 이미지 일괄 생성'
+                      )}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      본문의 단락별로 이미지를 자동 생성하여 에디터에 삽입합니다
+                    </p>
                   </div>
 
                   {/* 이미지 생성 과정 표시 */}
