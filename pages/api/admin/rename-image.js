@@ -23,56 +23,51 @@ export default async function handler(req, res) {
 
     console.log('📝 파일명 변경 요청:', oldName, '→', newName);
 
-    // 1. 먼저 데이터베이스에서 파일 정보 확인
-    console.log('🔍 데이터베이스에서 파일 검색 중:', oldName);
+    // 1. 먼저 Supabase Storage에서 파일 존재 확인
+    console.log('🔍 Storage에서 파일 검색 중:', oldName);
     
-    // 먼저 전체 이미지 목록을 확인해보기
-    const { data: allImages, error: allError } = await supabase
-      .from('image_metadata')
-      .select('name, url')
-      .order('created_at', { ascending: false })
-      .limit(5);
+    const bucketName = 'blog-images'; // 갤러리에서 사용하는 버킷명
+    console.log('🪣 사용할 버킷명:', bucketName);
     
-    if (!allError && allImages) {
-      console.log('📋 최근 5개 이미지 파일명들:', allImages.map(img => img.name));
-    }
-    
-    const { data: dbImage, error: dbError } = await supabase
-      .from('image_metadata')
-      .select('*')
-      .eq('name', oldName)
-      .single();
+    // Storage에서 파일 존재 확인
+    const { data: storageFiles, error: storageError } = await supabase.storage
+      .from(bucketName)
+      .list('', {
+        search: oldName
+      });
 
-    if (dbError || !dbImage) {
-      console.error('❌ 데이터베이스에서 파일을 찾을 수 없음:', dbError);
+    if (storageError) {
+      console.error('❌ Storage 조회 오류:', storageError);
+      return res.status(500).json({ error: 'Storage access error' });
+    }
+
+    // 정확한 파일명으로 찾기
+    const targetFile = storageFiles?.find(file => file.name === oldName);
+    
+    if (!targetFile) {
+      console.error('❌ Storage에서 파일을 찾을 수 없음:', oldName);
       
       // 디버깅: 비슷한 파일명들을 찾아보기
       console.log('🔍 비슷한 파일명 검색 중...');
-      const { data: similarFiles, error: similarError } = await supabase
-        .from('image_metadata')
-        .select('name, url')
-        .ilike('name', `%${oldName.split('-')[0]}%`)
-        .limit(5);
+      const { data: allFiles, error: allError } = await supabase.storage
+        .from(bucketName)
+        .list('', {
+          limit: 10,
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
       
-      if (!similarError && similarFiles) {
-        console.log('📋 비슷한 파일명들:', similarFiles.map(f => f.name));
+      if (!allError && allFiles) {
+        console.log('📋 최근 10개 파일명들:', allFiles.map(f => f.name));
       }
       
       return res.status(404).json({ 
-        error: 'File not found in database',
+        error: 'File not found in storage',
         searchedName: oldName,
-        similarFiles: similarFiles?.map(f => f.name) || []
+        similarFiles: allFiles?.map(f => f.name) || []
       });
     }
 
-    console.log('📁 데이터베이스에서 찾은 파일:', dbImage);
-
-    // 2. URL에서 버킷명 추출
-    const url = dbImage.url;
-    const bucketMatch = url.match(/\/storage\/v1\/object\/public\/([^\/]+)\//);
-    const bucketName = bucketMatch ? bucketMatch[1] : 'images';
-    
-    console.log('🪣 추출된 버킷명:', bucketName);
+    console.log('📁 Storage에서 찾은 파일:', targetFile);
 
     // 3. Supabase Storage에서 파일 다운로드
     const { data: downloadData, error: downloadError } = await supabase.storage
@@ -109,18 +104,36 @@ export default async function handler(req, res) {
 
     // 6. 데이터베이스에서 메타데이터 업데이트 (새 URL 포함)
     const newUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${newName}`;
-    const { error: updateError } = await supabase
+    
+    // 먼저 기존 메타데이터가 있는지 확인
+    const { data: existingMetadata, error: checkError } = await supabase
       .from('image_metadata')
-      .update({ 
-        name: newName,
-        url: newUrl,
-        updated_at: new Date().toISOString()
-      })
-      .eq('name', oldName);
+      .select('*')
+      .eq('name', oldName)
+      .single();
 
-    if (updateError) {
-      console.error('❌ 메타데이터 업데이트 오류:', updateError);
-      return res.status(500).json({ error: 'Failed to update metadata' });
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('❌ 메타데이터 확인 오류:', checkError);
+      // 메타데이터가 없어도 파일명 변경은 성공으로 처리
+    } else if (existingMetadata) {
+      // 메타데이터가 있으면 업데이트
+      const { error: updateError } = await supabase
+        .from('image_metadata')
+        .update({ 
+          name: newName,
+          url: newUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('name', oldName);
+
+      if (updateError) {
+        console.error('❌ 메타데이터 업데이트 오류:', updateError);
+        // 메타데이터 업데이트 실패해도 파일명 변경은 성공으로 처리
+      } else {
+        console.log('✅ 메타데이터 업데이트 완료');
+      }
+    } else {
+      console.log('ℹ️ 메타데이터가 없어서 업데이트 건너뜀');
     }
 
     console.log('✅ 파일명 변경 완료:', oldName, '→', newName);
