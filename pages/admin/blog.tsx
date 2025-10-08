@@ -1671,7 +1671,7 @@ export default function BlogAdmin() {
   };
 
   // 기존 이미지 변형 관련 함수들
-  const handleExistingImageVariationWithPrompt = async (improvedPrompt) => {
+  const handleLoadExistingImageAndPromptWithPrompt = async (improvedPrompt) => {
     if (!selectedExistingImage) {
       alert('변형할 이미지를 선택해주세요.');
       return;
@@ -1726,15 +1726,15 @@ export default function BlogAdmin() {
     }
   };
 
-  const handleExistingImageVariation = async () => {
+  const handleLoadExistingImageAndPrompt = async () => {
     if (!selectedExistingImage) {
-      alert('변형할 이미지를 선택해주세요.');
+      alert('불러올 이미지를 선택해주세요.');
       return;
     }
 
     setIsGeneratingExistingVariation(true);
-    setImageGenerationStep('기존 이미지 변형 중...');
-    setImageGenerationModel('FAL AI (기존 이미지 변형)');
+    setImageGenerationStep('이미지와 프롬프트 불러오는 중...');
+    setImageGenerationModel('이미지 불러오기');
       setShowGenerationProcess(true);
 
     try {
@@ -1789,11 +1789,11 @@ export default function BlogAdmin() {
       setIsGeneratingExistingVariation(false);
       setShowGenerationProcess(false);
       
-      alert('이미지와 프롬프트가 불러와졌습니다. "생성된 이미지" 섹션에서 확인하고 "프롬프트 미리보기"에서 수정하거나 AI 이미지 생성 버튼을 클릭하세요.');
+      alert('✅ 이미지와 프롬프트가 불러와졌습니다!\n\n📸 "생성된 이미지" 섹션에서 이미지 확인\n✏️ "프롬프트 미리보기"에서 프롬프트 수정 가능\n🎨 AI 이미지 생성 버튼으로 변형 시작');
       return;
     } catch (error) {
-      console.error('기존 이미지 변형 오류:', error);
-      alert('기존 이미지 변형 중 오류가 발생했습니다: ' + error.message);
+      console.error('이미지 불러오기 오류:', error);
+      alert('이미지 불러오기 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingExistingVariation(false);
       setTimeout(() => {
@@ -2778,7 +2778,7 @@ export default function BlogAdmin() {
                                     if (selectedExistingImage && showExistingImageModal === false) {
                                       // 기존 이미지 변형 모드: 개선된 프롬프트로 변형 실행
                                       alert('프롬프트가 개선되었습니다! 기존 이미지 변형을 시작합니다.');
-                                      handleExistingImageVariationWithPrompt(result.improvedPrompt);
+                                      handleLoadExistingImageAndPromptWithPrompt(result.improvedPrompt);
                                     } else {
                                       // 일반 모드: 재생성 안내
                                       alert('프롬프트가 개선되었습니다! 원하는 모델로 재생성하세요.');
@@ -3517,7 +3517,7 @@ export default function BlogAdmin() {
                                 e.preventDefault();
                                 if (selectedExistingImage) {
                                   setShowExistingImageModal(false);
-                                  handleExistingImageVariation();
+                                  handleLoadExistingImageAndPrompt();
                                 } else {
                                   alert('먼저 이미지 URL을 입력해주세요.');
                                 }
@@ -3574,9 +3574,9 @@ export default function BlogAdmin() {
                 onClick={() => {
                               if (selectedExistingImage) {
                                 setShowExistingImageModal(false);
-                                handleExistingImageVariation();
+                                handleLoadExistingImageAndPrompt();
                               } else {
-                                alert('변형할 이미지를 선택해주세요.');
+                                alert('불러올 이미지를 선택해주세요.');
                               }
                             }}
                             disabled={!selectedExistingImage || isGeneratingExistingVariation}
@@ -3586,7 +3586,7 @@ export default function BlogAdmin() {
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             }`}
                           >
-                            {isGeneratingExistingVariation ? '변형 중...' : '변형 시작'}
+                            {isGeneratingExistingVariation ? '불러오는 중...' : '이미지 불러오기'}
               </button>
           </div>
             </div>
