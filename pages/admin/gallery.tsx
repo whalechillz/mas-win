@@ -1845,10 +1845,29 @@ export default function GalleryAdmin() {
                   </button>
                   
                   <button
-                    onClick={() => {
-                      if (confirm('이 이미지를 삭제하시겠습니까?')) {
-                        // 삭제 로직 구현
-                        alert('삭제 기능은 추후 구현됩니다.');
+                    onClick={async () => {
+                      if (!selectedImageForZoom) return;
+                      if (confirm('이 이미지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                        try {
+                          const response = await fetch('/api/admin/delete-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageName: selectedImageForZoom.name })
+                          });
+                          
+                          if (response.ok) {
+                            // 이미지 목록에서 제거
+                            setImages(prev => prev.filter(img => img.name !== selectedImageForZoom.name));
+                            // 모달 닫기
+                            setSelectedImageForZoom(null);
+                            alert('이미지가 성공적으로 삭제되었습니다.');
+                          } else {
+                            alert('이미지 삭제에 실패했습니다.');
+                          }
+                        } catch (error) {
+                          console.error('❌ 이미지 삭제 오류:', error);
+                          alert('이미지 삭제 중 오류가 발생했습니다.');
+                        }
                       }
                     }}
                     className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md"
