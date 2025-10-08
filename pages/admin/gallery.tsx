@@ -999,7 +999,15 @@ export default function GalleryAdmin() {
                       
                       if (altResponse.status === 'fulfilled' && altResponse.value.ok) {
                         const data = await altResponse.value.json();
-                        altText = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                        altText = (data.prompt || '')
+                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
+                          .replace(/^\*\*이미지 분석\*\*\s*/i, '')
+                          .replace(/^\*\*.*?\*\*\s*/i, '')
+                          .replace(/^이미지 분석\s*/i, '')
+                          .replace(/^분석\s*/i, '')
+                          .replace(/^이미지는\s*/i, '')
+                          .replace(/^이\s*이미지는\s*/i, '')
+                          .trim();
                       }
                       
                       if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
@@ -1019,7 +1027,11 @@ export default function GalleryAdmin() {
                           .replace(/^\*\*Prompt:\*\*\s*/i, '')
                           .replace(/^\*\*이미지 제목\*\*:\s*/i, '')
                           .replace(/^\*\*제목\*\*:\s*/i, '')
+                          .replace(/^\*\*.*?\*\*\s*/i, '')
                           .replace(/\*\*설명\*\*:.*$/i, '') // 설명 부분 제거
+                          .replace(/^이미지 제목\s*:\s*/i, '')
+                          .replace(/^제목\s*:\s*/i, '')
+                          .replace(/^이미지는\s*/i, '')
                           .trim();
                         title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
                       }
@@ -1030,7 +1042,12 @@ export default function GalleryAdmin() {
                           .replace(/^\*\*Prompt:\*\*\s*/i, '')
                           .replace(/^\*\*이미지 설명\*\*\s*/i, '')
                           .replace(/^\*\*설명\*\*\s*/i, '')
+                          .replace(/^\*\*.*?\*\*\s*/i, '')
+                          .replace(/^이미지 설명\s*/i, '')
+                          .replace(/^설명\s*/i, '')
                           .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
+                          .replace(/^이미지는\s*/i, '')
+                          .replace(/^이\s*이미지는\s*/i, '')
                           .trim();
                       }
                       
@@ -1100,7 +1117,15 @@ export default function GalleryAdmin() {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
                           // "Prompt:" 접두사 제거
-                          const cleanAltText = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                          const cleanAltText = (data.prompt || '')
+                            .replace(/^\*\*Prompt:\*\*\s*/i, '')
+                            .replace(/^\*\*이미지 분석\*\*\s*/i, '')
+                            .replace(/^\*\*.*?\*\*\s*/i, '')
+                            .replace(/^이미지 분석\s*/i, '')
+                            .replace(/^분석\s*/i, '')
+                            .replace(/^이미지는\s*/i, '')
+                            .replace(/^이\s*이미지는\s*/i, '')
+                            .trim();
                           setEditForm({ ...editForm, alt_text: cleanAltText });
                         } else {
                           const errorData = await response.json();
@@ -1273,7 +1298,12 @@ export default function GalleryAdmin() {
                             .replace(/^\*\*Prompt:\*\*\s*/i, '')
                             .replace(/^\*\*이미지 설명\*\*\s*/i, '')
                             .replace(/^\*\*설명\*\*\s*/i, '')
+                            .replace(/^\*\*.*?\*\*\s*/i, '')
+                            .replace(/^이미지 설명\s*/i, '')
+                            .replace(/^설명\s*/i, '')
                             .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
+                            .replace(/^이미지는\s*/i, '')
+                            .replace(/^이\s*이미지는\s*/i, '')
                             .trim();
                           setEditForm({ ...editForm, description: cleanDescription });
                         } else {
