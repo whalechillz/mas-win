@@ -923,6 +923,7 @@ export default function GalleryAdmin() {
                       if (!image) return;
                       
                       try {
+                        console.log('🤖 AI ALT 텍스트 생성 시작:', image.url);
                         const response = await fetch('/api/analyze-image-prompt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
@@ -933,15 +934,20 @@ export default function GalleryAdmin() {
                           })
                         });
                         
+                        console.log('📡 API 응답 상태:', response.status);
+                        
                         if (response.ok) {
                           const data = await response.json();
+                          console.log('✅ AI 응답 데이터:', data);
                           setEditForm({ ...editForm, alt_text: data.prompt || '' });
                         } else {
-                          alert('AI ALT 텍스트 생성에 실패했습니다.');
+                          const errorData = await response.json();
+                          console.error('❌ API 오류 응답:', errorData);
+                          alert(`AI ALT 텍스트 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
                         }
                       } catch (error) {
-                        console.error('AI 분석 오류:', error);
-                        alert('AI 분석 중 오류가 발생했습니다.');
+                        console.error('❌ AI 분석 오류:', error);
+                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
                       }
                     }}
                     className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
@@ -969,6 +975,7 @@ export default function GalleryAdmin() {
                       if (!image) return;
                       
                       try {
+                        console.log('🤖 AI 키워드 생성 시작:', image.url);
                         const response = await fetch('/api/admin/image-ai-analyzer', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
@@ -978,16 +985,21 @@ export default function GalleryAdmin() {
                           })
                         });
                         
+                        console.log('📡 API 응답 상태:', response.status);
+                        
                         if (response.ok) {
                           const data = await response.json();
+                          console.log('✅ AI 응답 데이터:', data);
                           const tags = data.tags || [];
                           setEditForm({ ...editForm, keywords: tags.join(', ') });
                         } else {
-                          alert('AI 키워드 생성에 실패했습니다.');
+                          const errorData = await response.json();
+                          console.error('❌ API 오류 응답:', errorData);
+                          alert(`AI 키워드 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
                         }
                       } catch (error) {
-                        console.error('AI 분석 오류:', error);
-                        alert('AI 분석 중 오류가 발생했습니다.');
+                        console.error('❌ AI 분석 오류:', error);
+                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
                       }
                     }}
                     className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
@@ -1015,6 +1027,7 @@ export default function GalleryAdmin() {
                       if (!image) return;
                       
                       try {
+                        console.log('🤖 AI 제목 생성 시작:', image.url);
                         const response = await fetch('/api/analyze-image-prompt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
@@ -1025,17 +1038,22 @@ export default function GalleryAdmin() {
                           })
                         });
                         
+                        console.log('📡 API 응답 상태:', response.status);
+                        
                         if (response.ok) {
                           const data = await response.json();
+                          console.log('✅ AI 응답 데이터:', data);
                           // 프롬프트에서 간단한 제목 추출
                           const title = data.prompt?.split(',')[0]?.trim() || 'AI 생성 제목';
                           setEditForm({ ...editForm, title });
                         } else {
-                          alert('AI 제목 생성에 실패했습니다.');
+                          const errorData = await response.json();
+                          console.error('❌ API 오류 응답:', errorData);
+                          alert(`AI 제목 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
                         }
                       } catch (error) {
-                        console.error('AI 분석 오류:', error);
-                        alert('AI 분석 중 오류가 발생했습니다.');
+                        console.error('❌ AI 분석 오류:', error);
+                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
                       }
                     }}
                     className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
@@ -1063,6 +1081,7 @@ export default function GalleryAdmin() {
                       if (!image) return;
                       
                       try {
+                        console.log('🤖 AI 설명 생성 시작:', image.url);
                         const response = await fetch('/api/analyze-image-prompt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
@@ -1073,15 +1092,20 @@ export default function GalleryAdmin() {
                           })
                         });
                         
+                        console.log('📡 API 응답 상태:', response.status);
+                        
                         if (response.ok) {
                           const data = await response.json();
+                          console.log('✅ AI 응답 데이터:', data);
                           setEditForm({ ...editForm, description: data.prompt || '' });
                         } else {
-                          alert('AI 설명 생성에 실패했습니다.');
+                          const errorData = await response.json();
+                          console.error('❌ API 오류 응답:', errorData);
+                          alert(`AI 설명 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
                         }
                       } catch (error) {
-                        console.error('AI 분석 오류:', error);
-                        alert('AI 분석 중 오류가 발생했습니다.');
+                        console.error('❌ AI 분석 오류:', error);
+                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
                       }
                     }}
                     className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
