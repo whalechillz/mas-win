@@ -414,6 +414,8 @@ export default function GalleryAdmin() {
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
       if (editForm.filename && editForm.filename !== image.name) {
         console.log('📝 파일명 변경:', image.name, '→', editForm.filename);
+        
+        
         const renameResponse = await fetch('/api/admin/rename-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -425,7 +427,10 @@ export default function GalleryAdmin() {
         
         if (!renameResponse.ok) {
           const errorData = await renameResponse.json();
-          alert(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}`);
+          const shouldRefresh = confirm(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}\n\n갤러리를 새로고침하시겠습니까?`);
+          if (shouldRefresh) {
+            window.location.reload();
+          }
           return;
         }
         
@@ -603,6 +608,16 @@ export default function GalleryAdmin() {
                 <p className="text-sm text-gray-600 mt-1">이미지 메타데이터 관리 및 최적화</p>
               </div>
               <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => {
+                    if (confirm('갤러리를 새로고침하시겠습니까?')) {
+                      window.location.reload();
+                    }
+                  }}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
+                >
+                  🔄 갤러리 새로고침
+                </button>
                 <Link 
                   href="/admin/blog"
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
