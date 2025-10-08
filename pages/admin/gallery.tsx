@@ -416,7 +416,7 @@ export default function GalleryAdmin() {
         console.log('📝 파일명 변경:', image.name, '→', editForm.filename);
         
         
-        const renameResponse = await fetch('/api/admin/rename-image', {
+        const renameResponse = await fetch('/api/admin/rename-image/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2062,7 +2062,7 @@ export default function GalleryAdmin() {
                       );
                       if (newFileName && newFileName.trim() !== '') {
                         try {
-                          const response = await fetch('/api/admin/rename-image', {
+                          const response = await fetch('/api/admin/rename-image/', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -2088,7 +2088,10 @@ export default function GalleryAdmin() {
                             alert(`파일명이 "${newFileName}"로 성공적으로 변경되었습니다.`);
                           } else {
                             const errorData = await response.json();
-                            alert(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}`);
+                            const shouldRefresh = confirm(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}\n\n갤러리를 새로고침하시겠습니까?`);
+                            if (shouldRefresh) {
+                              window.location.reload();
+                            }
                           }
                         } catch (error) {
                           console.error('❌ 파일명 변경 오류:', error);
@@ -2122,7 +2125,7 @@ export default function GalleryAdmin() {
                       
                       if (newFileName && newFileName.trim() !== '') {
                         try {
-                          const response = await fetch('/api/admin/rename-image', {
+                          const response = await fetch('/api/admin/rename-image/', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -2148,7 +2151,10 @@ export default function GalleryAdmin() {
                             alert(`SEO 파일명 "${newFileName}"이 성공적으로 적용되었습니다.`);
                           } else {
                             const errorData = await response.json();
-                            alert(`SEO 파일명 적용에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}`);
+                            const shouldRefresh = confirm(`SEO 파일명 적용에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}\n\n갤러리를 새로고침하시겠습니까?`);
+                            if (shouldRefresh) {
+                              window.location.reload();
+                            }
                           }
                         } catch (error) {
                           console.error('❌ SEO 파일명 적용 오류:', error);
