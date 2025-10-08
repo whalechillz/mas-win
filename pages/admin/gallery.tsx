@@ -114,6 +114,37 @@ export default function GalleryAdmin() {
   // 확대 모달 상태
   const [selectedImageForZoom, setSelectedImageForZoom] = useState<ImageMetadata | null>(null);
 
+  // 확대보기 내 좌우 탐색 핸들러
+  const showAdjacentImage = (direction: 'prev' | 'next') => {
+    if (!selectedImageForZoom) return;
+    if (filteredImages.length === 0) return;
+    const currentIndex = filteredImages.findIndex(img => img.name === selectedImageForZoom.name);
+    if (currentIndex === -1) return;
+    const nextIndex = direction === 'next'
+      ? (currentIndex + 1) % filteredImages.length
+      : (currentIndex - 1 + filteredImages.length) % filteredImages.length;
+    setSelectedImageForZoom(filteredImages[nextIndex]);
+  };
+
+  // 키보드 단축키 (←/→/Esc)
+  useEffect(() => {
+    if (!selectedImageForZoom) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        showAdjacentImage('prev');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        showAdjacentImage('next');
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setSelectedImageForZoom(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedImageForZoom, filteredImages]);
+
   // 일괄 편집/삭제 상태
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
@@ -1721,12 +1752,27 @@ export default function GalleryAdmin() {
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* 이미지 영역 */}
                 <div className="flex-1">
-                  <div className="bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="bg-gray-100 rounded-lg overflow-hidden relative">
                     <img
                       src={selectedImageForZoom.url}
                       alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
                       className="w-full h-auto max-h-[60vh] object-contain"
                     />
+                    {/* 좌우 네비게이션 버튼 */}
+                    <button
+                      onClick={() => showAdjacentImage('prev')}
+                      className="hidden lg:flex items-center justify-center absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 hover:bg-white shadow border"
+                      title="이전 (←)"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      onClick={() => showAdjacentImage('next')}
+                      className="hidden lg:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 hover:bg-white shadow border"
+                      title="다음 (→)"
+                    >
+                      ▶
+                    </button>
                   </div>
                   
                   {/* 이미지 정보 */}
