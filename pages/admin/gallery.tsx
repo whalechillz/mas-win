@@ -568,7 +568,8 @@ export default function GalleryAdmin() {
                         let tags = [];
                         if (googleResponse.ok) {
                           const googleData = await googleResponse.json();
-                          tags = googleData.tags || [];
+                          // seoOptimizedTags에서 키워드 추출
+                          tags = googleData.seoOptimizedTags?.map(tag => tag.name) || googleData.tags || [];
                         }
 
                         // 메타데이터 업데이트
@@ -976,7 +977,13 @@ export default function GalleryAdmin() {
                       
                       if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
                         const data = await keywordResponse.value.json();
-                        keywords = (data.tags || []).join(', ');
+                        console.log('🔍 키워드 API 응답:', data);
+                        // seoOptimizedTags에서 키워드 추출
+                        const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
+                        keywords = tagNames.join(', ');
+                        console.log('🏷️ 추출된 키워드:', keywords);
+                      } else {
+                        console.log('❌ 키워드 API 실패:', keywordResponse);
                       }
                       
                       if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
@@ -1108,8 +1115,9 @@ export default function GalleryAdmin() {
                         if (response.ok) {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
-                          const tags = data.tags || [];
-                          setEditForm({ ...editForm, keywords: tags.join(', ') });
+                          // seoOptimizedTags에서 키워드 추출
+                          const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
+                          setEditForm({ ...editForm, keywords: tagNames.join(', ') });
                         } else {
                           const errorData = await response.json();
                           console.error('❌ API 오류 응답:', errorData);
