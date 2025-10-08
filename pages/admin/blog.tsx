@@ -540,15 +540,7 @@ export default function BlogAdmin() {
     }
   }, []);
 
-  // 제목에서 슬러그 자동 생성
-  const generateSlug = (title) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
+  // generateSlug 함수는 위에서 이미 정의됨 (SEO 최적화된 버전 사용)
 
   // AI 슬러그 생성
   const generateAISlug = async () => {
