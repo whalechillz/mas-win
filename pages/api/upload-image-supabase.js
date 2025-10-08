@@ -8,9 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '10mb', // 10MB 제한
-    },
+    bodyParser: false, // FormData를 위해 bodyParser 비활성화
   },
 };
 
@@ -20,18 +18,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, fileName, optimize = true } = req.body;
+    // FormData에서 파일 추출
+    const formidable = require('formidable');
+    const form = formidable({
+      maxFileSize: 10 * 1024 * 1024, // 10MB 제한
+    });
 
-    if (!image) {
-      return res.status(400).json({ error: '이미지 데이터가 필요합니다.' });
+    const [fields, files] = await form.parse(req);
+    const file = files.file?.[0];
+
+    if (!file) {
+      return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
     }
 
-    // Base64 데이터에서 실제 이미지 데이터 추출
-    const base64Data = image.replace(/^data:image\/[a-z]+;base64,/, '');
-    const imageBuffer = Buffer.from(base64Data, 'base64');
+    // 파일을 Buffer로 읽기
+    const fs = require('fs');
+    const imageBuffer = fs.readFileSync(file.filepath);
 
     let processedBuffer = imageBuffer;
-    let finalFileName = fileName || `image-${Date.now()}.jpg`;
+    let finalFileName = file.originalFilename || `image-${Date.now()}.jpg`;
 
     // 이미지 최적화
     if (optimize) {
@@ -113,7 +118,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ 
       success: true, 
-      imageUrl,
+      url: imageUrl,
       fileName: uniqueFileName,
       path: data.path
     });

@@ -33,3 +33,32 @@ INSERT INTO image_tags (name, slug) VALUES
   ('instruction', 'instruction'),
   ('review', 'review')
 ON CONFLICT (name) DO NOTHING;
+
+-- 이미지 메타데이터 테이블
+CREATE TABLE IF NOT EXISTS image_metadata (
+  id SERIAL PRIMARY KEY,
+  image_url TEXT NOT NULL UNIQUE,
+  prompt TEXT,
+  alt_text TEXT,
+  title TEXT,
+  description TEXT,
+  category_id INTEGER REFERENCES image_categories(id),
+  tags TEXT[], -- 태그 배열
+  file_size INTEGER,
+  width INTEGER,
+  height INTEGER,
+  format VARCHAR(20),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS 정책 설정
+ALTER TABLE image_metadata ENABLE ROW LEVEL SECURITY;
+
+-- 모든 사용자가 읽기 가능
+CREATE POLICY "Allow read access to image_metadata" ON image_metadata
+  FOR SELECT USING (true);
+
+-- 서비스 키로 모든 작업 가능
+CREATE POLICY "Allow all operations for service role" ON image_metadata
+  FOR ALL USING (true);
