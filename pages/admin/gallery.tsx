@@ -1615,30 +1615,6 @@ export default function GalleryAdmin() {
                     <span>삭제</span>
                   </button>
                   
-                  <button
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = selectedImageForZoom.url;
-                      link.download = selectedImageForZoom.name;
-                      link.click();
-                    }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    <span>💾</span>
-                    <span>다운로드</span>
-                  </button>
-                  
-                  <button
-                    onClick={async () => {
-                      if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
-                      // 삭제 로직 구현 필요
-                      alert('삭제 기능은 추후 구현됩니다.');
-                    }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                  >
-                    <span>🗑️</span>
-                    <span>삭제</span>
-                  </button>
                   
                   <button
                     onClick={async () => {
