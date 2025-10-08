@@ -72,6 +72,12 @@ CREATE TABLE IF NOT EXISTS image_metadata (
   format VARCHAR(20),
   upload_source VARCHAR(50) DEFAULT 'manual', -- 'manual', 'file_upload', 'ai_generated'
   status VARCHAR(20) DEFAULT 'active', -- 'active', 'deleted', 'broken'
+  -- 추가 고급 기능 컬럼들
+  hash_md5 VARCHAR(32), -- 중복 이미지 검사용
+  hash_sha256 VARCHAR(64), -- 중복 이미지 검사용
+  optimized_versions JSONB DEFAULT '{}', -- 썸네일, 중간 크기 등 파생 파일 정보
+  usage_count INTEGER DEFAULT 0, -- 사용 횟수 추적
+  last_used_at TIMESTAMP WITH TIME ZONE, -- 마지막 사용 시간
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
