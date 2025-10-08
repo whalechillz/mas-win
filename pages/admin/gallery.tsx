@@ -773,46 +773,188 @@ export default function GalleryAdmin() {
             <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">ALT 텍스트</label>
-                <input
-                  type="text"
-                  value={editForm.alt_text}
-                  onChange={(e) => setEditForm({ ...editForm, alt_text: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="이미지 설명을 입력하세요"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editForm.alt_text}
+                    onChange={(e) => setEditForm({ ...editForm, alt_text: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="이미지 설명을 입력하세요"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!editingImage) return;
+                      const image = images.find(img => img.name === editingImage);
+                      if (!image) return;
+                      
+                      try {
+                        const response = await fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: editForm.title || '이미지',
+                            excerpt: editForm.description || '이미지 설명'
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          setEditForm({ ...editForm, alt_text: data.prompt || '' });
+                        } else {
+                          alert('AI ALT 텍스트 생성에 실패했습니다.');
+                        }
+                      } catch (error) {
+                        console.error('AI 분석 오류:', error);
+                        alert('AI 분석 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                    title="AI로 ALT 텍스트 생성"
+                  >
+                    🤖 AI
+                  </button>
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">키워드</label>
-                <input
-                  type="text"
-                  value={editForm.keywords}
-                  onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="키워드를 쉼표로 구분하여 입력하세요"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editForm.keywords}
+                    onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="키워드를 쉼표로 구분하여 입력하세요"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!editingImage) return;
+                      const image = images.find(img => img.name === editingImage);
+                      if (!image) return;
+                      
+                      try {
+                        const response = await fetch('/api/admin/image-ai-analyzer', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            imageId: image.name
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          const tags = data.tags || [];
+                          setEditForm({ ...editForm, keywords: tags.join(', ') });
+                        } else {
+                          alert('AI 키워드 생성에 실패했습니다.');
+                        }
+                      } catch (error) {
+                        console.error('AI 분석 오류:', error);
+                        alert('AI 분석 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                    title="AI로 키워드 생성"
+                  >
+                    🤖 AI
+                  </button>
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
-                <input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="이미지 제목을 입력하세요"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="이미지 제목을 입력하세요"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!editingImage) return;
+                      const image = images.find(img => img.name === editingImage);
+                      if (!image) return;
+                      
+                      try {
+                        const response = await fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: '이미지 제목',
+                            excerpt: '이미지 제목 생성'
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          // 프롬프트에서 간단한 제목 추출
+                          const title = data.prompt?.split(',')[0]?.trim() || 'AI 생성 제목';
+                          setEditForm({ ...editForm, title });
+                        } else {
+                          alert('AI 제목 생성에 실패했습니다.');
+                        }
+                      } catch (error) {
+                        console.error('AI 분석 오류:', error);
+                        alert('AI 분석 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                    title="AI로 제목 생성"
+                  >
+                    🤖 AI
+                  </button>
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">설명</label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="이미지에 대한 자세한 설명을 입력하세요"
-                />
+                <div className="flex gap-2">
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={3}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="이미지에 대한 자세한 설명을 입력하세요"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!editingImage) return;
+                      const image = images.find(img => img.name === editingImage);
+                      if (!image) return;
+                      
+                      try {
+                        const response = await fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: editForm.title || '이미지',
+                            excerpt: '이미지 설명 생성'
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          setEditForm({ ...editForm, description: data.prompt || '' });
+                        } else {
+                          alert('AI 설명 생성에 실패했습니다.');
+                        }
+                      } catch (error) {
+                        console.error('AI 분석 오류:', error);
+                        alert('AI 분석 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                    title="AI로 설명 생성"
+                  >
+                    🤖 AI
+                  </button>
+                </div>
               </div>
               
               <div>
