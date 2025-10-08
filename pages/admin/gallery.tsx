@@ -405,13 +405,13 @@ export default function GalleryAdmin() {
       }
 
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
-      if (editForm.filename && editForm.filename !== editingImage) {
-        console.log('📝 파일명 변경:', editingImage, '→', editForm.filename);
+      if (editForm.filename && editForm.filename !== image.name) {
+        console.log('📝 파일명 변경:', image.name, '→', editForm.filename);
         const renameResponse = await fetch('/api/admin/rename-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            oldName: editingImage,
+            oldName: image.name,  // 실제 데이터베이스의 파일명 사용
             newName: editForm.filename
           })
         });
@@ -429,7 +429,7 @@ export default function GalleryAdmin() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageName: editForm.filename || editingImage,
+          imageName: editForm.filename || image.name,  // 실제 데이터베이스의 파일명 사용
           imageUrl: image.url,
           alt_text: editForm.alt_text,
           keywords: keywords,
@@ -444,8 +444,8 @@ export default function GalleryAdmin() {
       if (response.ok) {
         // 로컬 상태 업데이트
         setImages(prev => prev.map(img => 
-          img.name === editingImage 
-            ? { ...img, ...editForm, keywords, name: editForm.filename || editingImage }
+          img.name === image.name 
+            ? { ...img, ...editForm, keywords, name: editForm.filename || image.name }
             : img
         ));
         setEditingImage(null);
