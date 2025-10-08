@@ -373,25 +373,87 @@ function generateSEOTags(analysis) {
 // 영어 태그를 한국어로 매핑
 function mapToKoreanTag(englishTag) {
   const tagMapping = {
+    // 골프 관련
     'golf': '골프',
     'golf club': '골프클럽',
     'driver': '드라이버',
+    'iron': '아이언',
+    'putter': '퍼터',
+    'wedge': '웨지',
+    'wood': '우드',
     'golf course': '골프장',
     'golf ball': '골프공',
+    'golf bag': '골프백',
+    'golf glove': '골프장갑',
+    'golf shoes': '골프화',
+    'golf swing': '골프스윙',
+    'golf tee': '골프티',
+    'green': '그린',
+    'fairway': '페어웨이',
+    'bunker': '벙커',
+    'rough': '러프',
+    
+    // 사람 관련
     'person': '사람',
     'man': '남성',
     'woman': '여성',
+    'male': '남성',
+    'female': '여성',
+    'adult': '성인',
+    'young': '젊은',
+    'old': '나이든',
+    'smile': '미소',
+    'happy': '행복한',
+    
+    // 환경 관련
     'outdoor': '야외',
     'sport': '스포츠',
     'equipment': '장비',
     'landscape': '풍경',
     'nature': '자연',
     'sky': '하늘',
+    'cloud': '구름',
+    'sunset': '일몰',
+    'sunrise': '일출',
     'grass': '잔디',
     'tree': '나무',
     'water': '물',
+    'lake': '호수',
+    'mountain': '산',
+    'hill': '언덕',
     'building': '건물',
-    'car': '자동차'
+    'car': '자동차',
+    
+    // 색상 관련
+    'white': '흰색',
+    'black': '검은색',
+    'blue': '파란색',
+    'green': '초록색',
+    'red': '빨간색',
+    'yellow': '노란색',
+    'brown': '갈색',
+    'gray': '회색',
+    'grey': '회색',
+    
+    // 의류 관련
+    'shirt': '셔츠',
+    'polo': '폴로셔츠',
+    'pants': '바지',
+    'hat': '모자',
+    'cap': '캡',
+    'visor': '바이저',
+    'glove': '장갑',
+    'shoes': '신발',
+    
+    // 브랜드 관련
+    'adidas': '아디다스',
+    'nike': '나이키',
+    'puma': '푸마',
+    'titleist': '타이틀리스트',
+    'callaway': '캘러웨이',
+    'taylor made': '테일러메이드',
+    'ping': '핑',
+    'mizuno': '미즈노'
   };
 
   return tagMapping[englishTag.toLowerCase()] || englishTag;
