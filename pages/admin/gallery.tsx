@@ -1540,7 +1540,7 @@ export default function GalleryAdmin() {
                       setSelectedImageForZoom(null);
                       startEditing(selectedImageForZoom);
                     }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-md"
                   >
                     <span>✏️</span>
                     <span>메타데이터 편집</span>
@@ -1551,10 +1551,38 @@ export default function GalleryAdmin() {
                       navigator.clipboard.writeText(selectedImageForZoom.url);
                       alert('URL이 클립보드에 복사되었습니다.');
                     }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-md"
                   >
                     <span>📋</span>
                     <span>URL 복사</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = selectedImageForZoom.url;
+                      link.download = selectedImageForZoom.name;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors shadow-md"
+                  >
+                    <span>💾</span>
+                    <span>다운로드</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      if (confirm('이 이미지를 삭제하시겠습니까?')) {
+                        // 삭제 로직 구현
+                        alert('삭제 기능은 추후 구현됩니다.');
+                      }
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md"
+                  >
+                    <span>🗑️</span>
+                    <span>삭제</span>
                   </button>
                   
                   <button
