@@ -62,21 +62,16 @@ Generate a compelling visual prompt that captures the essence of this image.`
     const prompt = response.choices[0].message.content.trim();
     
     // AI 사용량 로깅
-    await logOpenAIUsage({
-      model: 'gpt-4o-mini',
-      prompt_tokens: response.usage?.prompt_tokens || 0,
-      completion_tokens: response.usage?.completion_tokens || 0,
-      total_tokens: response.usage?.total_tokens || 0,
-      cost: (response.usage?.total_tokens || 0) * 0.00015 / 1000, // gpt-4o-mini pricing
-      duration: 0, // Vision API는 시간 측정이 어려움
-      endpoint: 'analyze-image-prompt',
-      user_id: 'admin',
-      metadata: {
+    await logOpenAIUsage(
+      'analyze-image-prompt',
+      'image_analysis',
+      response,
+      {
         imageUrl: imageUrl,
         title: title,
         excerpt: excerpt
       }
-    });
+    );
 
     console.log('✅ 이미지 프롬프트 생성 완료:', prompt.substring(0, 100) + '...');
 
