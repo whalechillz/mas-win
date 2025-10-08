@@ -48,6 +48,64 @@ export default function BlogAdmin() {
   // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
   const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
   const [brandContentType, setBrandContentType] = useState<'골프 정보' | '튜토리얼' | '고객 후기' | '고객 스토리' | '이벤트'>('골프 정보');
+
+  // SEO 최적화: 한국어 제목을 영어 슬러그로 변환
+  const generateSlug = (title) => {
+    const slugMap = {
+      // 골프 기법 관련
+      '골프 드라이버 스윙 기법': 'golf-driver-swing-technique',
+      '골프 아이언 스윙 방법': 'golf-iron-swing-method',
+      '골프 퍼터 자세': 'golf-putter-stance',
+      '골프 그립 잡는 법': 'golf-grip-technique',
+      '골프 스탠스 자세': 'golf-stance-position',
+      
+      // 골프장 관련
+      '서울 골프장 리뷰': 'seoul-golf-course-review',
+      '경기 골프장 추천': 'gyeonggi-golf-course-recommendation',
+      '인천 골프장 가이드': 'incheon-golf-course-guide',
+      '부산 골프장 정보': 'busan-golf-course-info',
+      
+      // 골프 장비 관련
+      '골프 드라이버 추천': 'golf-driver-recommendation',
+      '골프 아이언 세트': 'golf-iron-set',
+      '골프 퍼터 선택': 'golf-putter-selection',
+      '골프 백 추천': 'golf-bag-recommendation',
+      '골프 공 종류': 'golf-ball-types',
+      
+      // 골프 용품 관련
+      '골프 장갑 추천': 'golf-glove-recommendation',
+      '골프 신발 선택': 'golf-shoes-selection',
+      '골프 의류 브랜드': 'golf-clothing-brands',
+      '골프 모자 스타일': 'golf-hat-style',
+      
+      // 골프 레슨 관련
+      '골프 초보자 가이드': 'golf-beginner-guide',
+      '골프 레슨 추천': 'golf-lesson-recommendation',
+      '골프 연습 방법': 'golf-practice-method',
+      '골프 실력 향상': 'golf-skill-improvement',
+      
+      // 골프 룰 관련
+      '골프 룰 정리': 'golf-rules-guide',
+      '골프 에티켓': 'golf-etiquette',
+      '골프 핸디캡': 'golf-handicap',
+      '골프 스코어 계산': 'golf-score-calculation'
+    };
+    
+    // 매핑된 슬러그가 있으면 사용
+    if (slugMap[title]) {
+      return slugMap[title];
+    }
+    
+    // 매핑이 없으면 자동 변환
+    return title
+      .toLowerCase()
+      .replace(/[가-힣]/g, '') // 한글 제거
+      .replace(/\s+/g, '-')    // 공백을 하이픈으로
+      .replace(/[^a-z0-9-]/g, '') // 특수문자 제거
+      .replace(/-+/g, '-')     // 연속 하이픈 제거
+      .replace(/^-|-$/g, '')   // 앞뒤 하이픈 제거
+      .substring(0, 50);       // 길이 제한
+  };
   const getBrandWeight = (ct: typeof brandContentType): 'low' | 'medium' | 'high' => {
     const strategy = (CONTENT_STRATEGY as any)[ct];
     return (strategy?.brandWeight as 'low' | 'medium' | 'high') || 'medium';
