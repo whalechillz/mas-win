@@ -1487,8 +1487,8 @@ export default function GalleryAdmin() {
       {/* 이미지 확대 모달 */}
       {selectedImageForZoom && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b flex-shrink-0">
               <h3 className="text-lg font-semibold text-gray-800">이미지 확대 보기</h3>
               <button
                 onClick={() => setSelectedImageForZoom(null)}
@@ -1498,7 +1498,7 @@ export default function GalleryAdmin() {
               </button>
             </div>
             
-            <div className="p-4">
+            <div className="p-4 flex-1 overflow-auto">
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* 이미지 영역 */}
                 <div className="flex-1">
