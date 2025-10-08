@@ -92,3 +92,24 @@ CREATE POLICY "Allow read access to image_metadata" ON image_metadata
 -- 서비스 키로 모든 작업 가능
 CREATE POLICY "Allow all operations for service role" ON image_metadata
   FOR ALL USING (true);
+
+-- 이미지-태그 연결 테이블 (N:N 관계)
+CREATE TABLE IF NOT EXISTS image_tag_relations (
+  id SERIAL PRIMARY KEY,
+  image_url TEXT REFERENCES image_metadata(image_url) ON DELETE CASCADE,
+  tag_id INTEGER REFERENCES image_tags(id) ON DELETE CASCADE,
+  tag_type VARCHAR(20) DEFAULT 'manual', -- 'manual', 'ai_generated', 'seo_optimized'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(image_url, tag_id) -- 중복 관계 방지
+);
+
+-- RLS 정책 설정
+ALTER TABLE image_tag_relations ENABLE ROW LEVEL SECURITY;
+
+-- 모든 사용자가 읽기 가능
+CREATE POLICY "Allow read access to image_tag_relations" ON image_tag_relations
+  FOR SELECT USING (true);
+
+-- 서비스 키로 모든 작업 가능
+CREATE POLICY "Allow all operations for service role" ON image_tag_relations
+  FOR ALL USING (true);
