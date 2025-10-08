@@ -18,6 +18,11 @@ interface ImageMetadata {
   is_featured?: boolean;
   usage_count?: number;
   used_in_posts?: string[];
+  // 선택적 상세 정보 (있을 수도 있음)
+  file_size?: number;
+  width?: number;
+  height?: number;
+  optimized_versions?: any;
 }
 
 export default function GalleryAdmin() {
@@ -490,7 +495,7 @@ export default function GalleryAdmin() {
   };
 
   return (
-    <>
+    <div>
       <AdminNav />
       <Head>
         <title>이미지 갤러리 관리 - MAS Golf</title>
@@ -1914,6 +1919,6 @@ export default function GalleryAdmin() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
