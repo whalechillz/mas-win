@@ -185,6 +185,76 @@ export default async function handler(req, res) {
       console.warn('⚠️ 파생 파일 생성 실패:', derivedError.message);
     }
 
+    // AI 메타데이터 자동 생성 (비동기로 처리)
+    let aiMetadata = {
+      alt_text: '',
+      title: finalFileName.replace(/\.[^/.]+$/, ''), // 기본 제목
+      description: '',
+      tags: []
+    };
+
+    // AI 분석을 비동기로 실행 (업로드 속도에 영향 없음)
+    setTimeout(async () => {
+      try {
+        console.log('🤖 AI 메타데이터 자동 생성 시작:', imageUrl);
+        
+        // OpenAI Vision API로 ALT 텍스트와 설명 생성
+        const openaiResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/analyze-image-prompt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: imageUrl,
+            title: '이미지 분석',
+            excerpt: 'AI 메타데이터 자동 생성'
+          })
+        });
+
+        if (openaiResponse.ok) {
+          const openaiData = await openaiResponse.json();
+          aiMetadata.alt_text = openaiData.prompt || '';
+          aiMetadata.description = openaiData.prompt || '';
+          console.log('✅ OpenAI Vision API 분석 완료');
+        }
+
+        // Google Vision API로 태그 생성
+        const googleResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/image-ai-analyzer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: imageUrl,
+            imageId: uniqueFileName
+          })
+        });
+
+        if (googleResponse.ok) {
+          const googleData = await googleResponse.json();
+          aiMetadata.tags = googleData.tags || [];
+          console.log('✅ Google Vision API 분석 완료');
+        }
+
+        // AI 생성된 메타데이터로 업데이트
+        const { error: updateError } = await supabase
+          .from('image_metadata')
+          .update({
+            alt_text: aiMetadata.alt_text,
+            title: aiMetadata.title,
+            description: aiMetadata.description,
+            tags: aiMetadata.tags
+          })
+          .eq('image_url', imageUrl);
+
+        if (updateError) {
+          console.error('❌ AI 메타데이터 업데이트 실패:', updateError);
+        } else {
+          console.log('✅ AI 메타데이터 자동 저장 완료');
+        }
+
+      } catch (aiError) {
+        console.error('❌ AI 메타데이터 생성 중 오류:', aiError);
+        // AI 실패해도 업로드는 성공으로 처리
+      }
+    }, 1000); // 1초 후 비동기 실행
+
     // 메타데이터를 image_metadata 테이블에 저장
     try {
       const metadataRecord = {
