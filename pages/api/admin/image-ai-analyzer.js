@@ -5,11 +5,15 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Google Vision API 설정
-const GOOGLE_VISION_API_KEY = process.env.GOOGLE_VISION_API_KEY;
-const GOOGLE_VISION_ENDPOINT = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`;
+// Google Vision API 제거됨 - OpenAI Vision API만 사용
+// const GOOGLE_VISION_API_KEY = process.env.GOOGLE_VISION_API_KEY;
+// const GOOGLE_VISION_ENDPOINT = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`;
 
-// AWS Rekognition 제거됨 - Google Vision만 사용
+// OpenAI Vision API 설정
+import OpenAI from 'openai';
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // AI 사용량 로그 기록 함수
 async function logAIUsage(apiName, action, tokens, cost, processingTime) {
@@ -75,9 +79,9 @@ export default async function handler(req, res) {
     // 이미지 다운로드
     const imageBuffer = await downloadImage(imageUrl);
     
-    // AI 분석 실행 (Google Vision + 메타데이터만)
+    // AI 분석 실행 (OpenAI Vision + 메타데이터)
     const analysisResults = await Promise.allSettled([
-      analyzeWithGoogleVision(imageBuffer),
+      analyzeWithOpenAIVision(imageUrl),
       extractImageMetadata(imageBuffer)
     ]);
 
@@ -95,9 +99,9 @@ export default async function handler(req, res) {
     // AI 사용량 로그 기록
     const processingTime = Date.now() - startTime;
     const estimatedTokens = Math.ceil(combinedAnalysis.tags?.length * 2 + combinedAnalysis.objects?.length * 3 + combinedAnalysis.colors?.length * 1.5) || 50;
-    const estimatedCost = estimatedTokens * 0.0000015; // Google Vision API 대략적 비용
+    const estimatedCost = estimatedTokens * 0.00015; // OpenAI Vision API 비용 (gpt-4o-mini)
     
-    await logAIUsage('google-vision-api', 'image-analysis-success', estimatedTokens, estimatedCost, processingTime);
+    await logAIUsage('openai-vision-api', 'image-analysis-success', estimatedTokens, estimatedCost, processingTime);
 
     console.log('✅ 이미지 AI 분석 완료:', combinedAnalysis);
 
@@ -132,44 +136,69 @@ async function downloadImage(imageUrl) {
   }
 }
 
-// Google Vision API 분석
-async function analyzeWithGoogleVision(imageBuffer) {
-  if (!GOOGLE_VISION_API_KEY) {
-    console.log('⚠️ Google Vision API 키가 설정되지 않음');
-    return null;
-  }
-
+// OpenAI Vision API 분석
+async function analyzeWithOpenAIVision(imageUrl) {
   try {
-    const base64Image = imageBuffer.toString('base64');
+    console.log('🤖 OpenAI Vision API 분석 시작:', imageUrl);
     
-    const requestBody = {
-      requests: [{
-        image: { content: base64Image },
-        features: [
-          { type: 'LABEL_DETECTION', maxResults: 20 },
-          { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
-          { type: 'TEXT_DETECTION' },
-          { type: 'IMAGE_PROPERTIES' },
-          { type: 'SAFE_SEARCH_DETECTION' }
-        ]
-      }]
-    };
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert image analyzer for golf-related content. 
+Analyze the given image and extract relevant keywords and tags in Korean.
 
-    const response = await fetch(GOOGLE_VISION_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
+Guidelines:
+- Extract golf-related keywords (골프, 드라이버, 아이언, 퍼터, 웨지, 우드, 골프장, 그린, 페어웨이, 벙커, 러프)
+- Extract person-related keywords (남성, 여성, 성인, 젊은, 나이든, 미소, 행복한, 웃음)
+- Extract environment keywords (야외, 스포츠, 자연, 하늘, 구름, 일몰, 일출, 잔디, 나무, 호수, 산, 언덕)
+- Extract color keywords (흰색, 검은색, 파란색, 초록색, 빨간색, 노란색, 갈색, 회색)
+- Extract clothing keywords (폴로셔츠, 바지, 모자, 캡, 바이저, 장갑, 신발)
+- Extract brand keywords (아디다스, 나이키, 푸마, 타이틀리스트, 캘러웨이, 테일러메이드, 핑, 미즈노)
+- Return only the keywords separated by commas
+- Maximum 8 keywords
+- All keywords should be in Korean`
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "이 이미지에서 골프 관련 키워드를 추출해주세요. 한국어로 8개 이하의 키워드를 쉼표로 구분해서 반환해주세요."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: imageUrl
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 100,
+      temperature: 0.1
     });
 
-    if (!response.ok) {
-      throw new Error(`Google Vision API 오류: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return parseGoogleVisionResults(data.responses[0]);
+    const keywordsText = response.choices[0].message.content.trim();
+    const keywords = keywordsText.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    
+    console.log('✅ OpenAI Vision API 키워드 추출 완료:', keywords);
+    
+    return {
+      labels: keywords.map(keyword => ({
+        name: keyword,
+        confidence: 0.9,
+        source: 'openai_vision'
+      })),
+      objects: [],
+      text: '',
+      colors: [],
+      safeSearch: null
+    };
 
   } catch (error) {
-    console.error('Google Vision API 오류:', error);
+    console.error('OpenAI Vision API 오류:', error);
     return null;
   }
 }
