@@ -31,6 +31,33 @@ export default function GalleryAdmin() {
   const [imagesPerPage] = useState(24);
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
+  // 한국어 텍스트에서 키워드 추출 함수
+  const extractKoreanKeywords = (text) => {
+    const golfKeywords = [
+      '골프', '드라이버', '아이언', '퍼터', '웨지', '우드', '골프장', '골프공', '골프백', '골프장갑', '골프화',
+      '그린', '페어웨이', '벙커', '러프', '티', '스윙', '그립', '스탠스', '샷', '라운드',
+      '남성', '여성', '성인', '젊은', '나이든', '미소', '행복한', '웃음',
+      '야외', '스포츠', '자연', '하늘', '구름', '일몰', '일출', '잔디', '나무', '호수', '산', '언덕',
+      '흰색', '검은색', '파란색', '초록색', '빨간색', '노란색', '갈색', '회색',
+      '폴로셔츠', '바지', '모자', '캡', '바이저', '장갑', '신발',
+      '아디다스', '나이키', '푸마', '타이틀리스트', '캘러웨이', '테일러메이드', '핑', '미즈노'
+    ];
+    
+    const foundKeywords = [];
+    const words = text.split(/[\s,.\-!?]+/);
+    
+    words.forEach(word => {
+      const cleanWord = word.trim();
+      if (cleanWord.length > 1 && golfKeywords.includes(cleanWord)) {
+        if (!foundKeywords.includes(cleanWord)) {
+          foundKeywords.push(cleanWord);
+        }
+      }
+    });
+    
+    return foundKeywords.slice(0, 8); // 최대 8개 키워드
+  };
+  
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates'>('all');
@@ -982,6 +1009,36 @@ export default function GalleryAdmin() {
                         const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
                         keywords = tagNames.join(', ');
                         console.log('🏷️ 추출된 키워드:', keywords);
+                        
+                        // 키워드가 없으면 OpenAI Vision API로 fallback
+                        if (!keywords || keywords.trim() === '') {
+                          console.log('🔄 Google Vision API 키워드 없음, OpenAI Vision API로 fallback');
+                          try {
+                            const fallbackResponse = await fetch('/api/analyze-image-prompt', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                imageUrl: image.url,
+                                title: '키워드 생성',
+                                excerpt: '이미지에서 키워드 추출'
+                              })
+                            });
+                            
+                            if (fallbackResponse.ok) {
+                              const fallbackData = await fallbackResponse.json();
+                              const fallbackText = (fallbackData.prompt || '')
+                                .replace(/^\*\*.*?\*\*\s*/i, '')
+                                .trim();
+                              
+                              // 한국어 텍스트에서 키워드 추출
+                              const koreanKeywords = extractKoreanKeywords(fallbackText);
+                              keywords = koreanKeywords.join(', ');
+                              console.log('🏷️ OpenAI fallback 키워드:', keywords);
+                            }
+                          } catch (fallbackError) {
+                            console.error('❌ OpenAI fallback 실패:', fallbackError);
+                          }
+                        }
                       } else {
                         console.log('❌ 키워드 API 실패:', keywordResponse);
                       }
@@ -1117,7 +1174,39 @@ export default function GalleryAdmin() {
                           console.log('✅ AI 응답 데이터:', data);
                           // seoOptimizedTags에서 키워드 추출
                           const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
-                          setEditForm({ ...editForm, keywords: tagNames.join(', ') });
+                          let keywords = tagNames.join(', ');
+                          
+                          // 키워드가 없으면 OpenAI Vision API로 fallback
+                          if (!keywords || keywords.trim() === '') {
+                            console.log('🔄 Google Vision API 키워드 없음, OpenAI Vision API로 fallback');
+                            try {
+                              const fallbackResponse = await fetch('/api/analyze-image-prompt', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                  imageUrl: image.url,
+                                  title: '키워드 생성',
+                                  excerpt: '이미지에서 키워드 추출'
+                                })
+                              });
+                              
+                              if (fallbackResponse.ok) {
+                                const fallbackData = await fallbackResponse.json();
+                                const fallbackText = (fallbackData.prompt || '')
+                                  .replace(/^\*\*.*?\*\*\s*/i, '')
+                                  .trim();
+                                
+                                // 한국어 텍스트에서 키워드 추출
+                                const koreanKeywords = extractKoreanKeywords(fallbackText);
+                                keywords = koreanKeywords.join(', ');
+                                console.log('🏷️ OpenAI fallback 키워드:', keywords);
+                              }
+                            } catch (fallbackError) {
+                              console.error('❌ OpenAI fallback 실패:', fallbackError);
+                            }
+                          }
+                          
+                          setEditForm({ ...editForm, keywords });
                         } else {
                           const errorData = await response.json();
                           console.error('❌ API 오류 응답:', errorData);
