@@ -26,6 +26,17 @@ export default async function handler(req, res) {
     // 1. 먼저 데이터베이스에서 파일 정보 확인
     console.log('🔍 데이터베이스에서 파일 검색 중:', oldName);
     
+    // 먼저 전체 이미지 목록을 확인해보기
+    const { data: allImages, error: allError } = await supabase
+      .from('image_metadata')
+      .select('name, url')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (!allError && allImages) {
+      console.log('📋 최근 5개 이미지 파일명들:', allImages.map(img => img.name));
+    }
+    
     const { data: dbImage, error: dbError } = await supabase
       .from('image_metadata')
       .select('*')

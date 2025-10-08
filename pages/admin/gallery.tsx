@@ -403,6 +403,13 @@ export default function GalleryAdmin() {
         alert('이미지 정보를 찾을 수 없습니다.');
         return;
       }
+      
+      console.log('🔍 편집 중인 이미지 정보:', {
+        editingImage,
+        imageName: image.name,
+        imageUrl: image.url,
+        isMatch: editingImage === image.name
+      });
 
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
       if (editForm.filename && editForm.filename !== image.name) {
