@@ -1649,6 +1649,9 @@ export default function BlogAdmin() {
   // 갤러리 이미지 목록 상태
   const [galleryImages, setGalleryImages] = useState([]);
   const [showGallerySelection, setShowGallerySelection] = useState(false);
+  
+  // 기존 이미지 변형 모달 탭 상태
+  const [activeImageTab, setActiveImageTab] = useState<'upload' | 'gallery' | 'url'>('upload');
 
   // 갤러리 이미지 목록 가져오기
   const fetchGalleryImages = async () => {
@@ -1773,50 +1776,12 @@ export default function BlogAdmin() {
 
       // 프롬프트 미리보기에 표시 (한글 개선 가능)
       setImageGenerationPrompt(prompt);
-      setShowPromptPreview(true);
-
-      // 사용자에게 프롬프트 개선 기회 제공
-      const shouldImprove = confirm(`프롬프트가 생성되었습니다.\n\n"확인"을 누르면 현재 프롬프트로 변형을 시작합니다.\n"취소"를 누르면 프롬프트를 한글로 개선할 수 있습니다.`);
       
-      if (!shouldImprove) {
-        // 프롬프트 개선 모드로 전환
-        setImageGenerationStep('');
-        alert('프롬프트 미리보기에서 한글로 수정사항을 입력하고 "프롬프트 개선" 버튼을 클릭하세요.');
-        return;
-      }
-
-      // 변형 생성
-      setImageGenerationStep('FAL AI로 이미지 변형 중...');
-      const response = await fetch('/api/vary-existing-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          imageUrl: selectedExistingImage,
-          prompt: prompt,
-          title: editingPost?.title || '이미지 변형',
-          excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
-          contentType: editingPost?.content_type || 'blog',
-          brandStrategy: editingPost?.brand_strategy || 'professional'
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        if (result.imageUrl) {
-          // 변형된 이미지를 갤러리에 추가
-          setGeneratedImages(prev => [result.imageUrl, ...prev]);
-          setShowGeneratedImages(true);
-          
-          setImageGenerationStep('완료!');
-          alert('기존 이미지 변형이 완료되었습니다!');
-        } else {
-          throw new Error('변형된 이미지가 생성되지 않았습니다.');
-        }
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || '이미지 변형에 실패했습니다.');
-      }
+      // 모달 닫고 프롬프트 미리보기 섹션으로 이동
+      setShowExistingImageModal(false);
+      setImageGenerationStep('');
+      alert('프롬프트가 생성되었습니다. 프롬프트 미리보기에서 수정하거나 AI 이미지 생성 버튼을 클릭하세요.');
+      return;
     } catch (error) {
       console.error('기존 이미지 변형 오류:', error);
       alert('기존 이미지 변형 중 오류가 발생했습니다: ' + error.message);
@@ -3425,6 +3390,7 @@ export default function BlogAdmin() {
                           onClick={() => {
                             setShowExistingImageModal(false);
                             setSelectedExistingImage('');
+                            setActiveImageTab('upload');
                           }}
                           className="text-gray-500 hover:text-gray-700"
                         >
@@ -3437,28 +3403,44 @@ export default function BlogAdmin() {
                         <div className="flex space-x-4 border-b border-gray-200">
                                 <button
                             type="button"
-                            onClick={() => setSelectedExistingImage('')}
-                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                            onClick={() => setActiveImageTab('upload')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                              activeImageTab === 'upload'
+                                ? 'text-blue-600 border-blue-600'
+                                : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                            }`}
                                 >
                             📁 파일 업로드
                                 </button>
                                 <button
                             type="button"
-                            onClick={fetchGalleryImages}
-                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                            onClick={() => {
+                              setActiveImageTab('gallery');
+                              fetchGalleryImages();
+                            }}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                              activeImageTab === 'gallery'
+                                ? 'text-blue-600 border-blue-600'
+                                : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                            }`}
                                 >
                             🖼️ 갤러리에서 선택
                                 </button>
                       <button
                         type="button"
-                            onClick={() => setSelectedExistingImage('')}
-                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                            onClick={() => setActiveImageTab('url')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                              activeImageTab === 'url'
+                                ? 'text-blue-600 border-blue-600'
+                                : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                            }`}
                       >
                             🔗 URL 입력
                       </button>
                     </div>
                         
                         {/* 파일 업로드 섹션 */}
+                        {activeImageTab === 'upload' && (
           <div className="space-y-4">
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               <div className="space-y-4">
@@ -3497,8 +3479,10 @@ export default function BlogAdmin() {
                                             </div>
                           </div>
                         </div>
+                        )}
                         
                         {/* URL 입력 섹션 */}
+                        {activeImageTab === 'url' && (
                         <div className="space-y-4">
                           <label className="block text-sm font-medium text-gray-700">
                             이미지 URL
@@ -3519,8 +3503,20 @@ export default function BlogAdmin() {
                                 setSelectedExistingImage(url);
                               }
                             }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (selectedExistingImage) {
+                                  setShowExistingImageModal(false);
+                                  handleExistingImageVariation();
+                                } else {
+                                  alert('먼저 이미지 URL을 입력해주세요.');
+                                }
+                              }
+                            }}
                           />
                               </div>
+                        )}
                         
                         {/* 선택된 이미지 미리보기 */}
                         {selectedExistingImage && (
@@ -3558,6 +3554,7 @@ export default function BlogAdmin() {
                 onClick={() => {
                               setShowExistingImageModal(false);
                               setSelectedExistingImage('');
+                              setActiveImageTab('upload');
                             }}
                             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                           >
