@@ -52,6 +52,9 @@ export default function GalleryAdmin() {
     category: ''
   });
 
+  // 확대 모달 상태
+  const [selectedImageForZoom, setSelectedImageForZoom] = useState<ImageMetadata | null>(null);
+
   // 일괄 편집/삭제 상태
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
@@ -630,16 +633,23 @@ export default function GalleryAdmin() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {filteredImages.map((image) => (
-                    <div key={image.name} className="relative group border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                      {/* 선택 체크박스 */}
-                      <div className="absolute top-2 left-2 z-10">
-                        <input
-                          type="checkbox"
-                          checked={selectedImages.has(image.name)}
-                          onChange={() => toggleImageSelection(image.name)}
-                          className="rounded border-gray-300"
-                        />
-                      </div>
+                    <div 
+                      key={image.name} 
+                      className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all cursor-pointer ${
+                        selectedImages.has(image.name) 
+                          ? 'border-blue-500 ring-2 ring-blue-200' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => toggleImageSelection(image.name)}
+                    >
+                      {/* 선택 표시 */}
+                      {selectedImages.has(image.name) && (
+                        <div className="absolute top-2 left-2 z-10">
+                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✓</span>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* 이미지 */}
                       <div className="aspect-square bg-gray-100">
@@ -690,14 +700,51 @@ export default function GalleryAdmin() {
                         </div>
                       </div>
                       
-                      {/* 편집 버튼 */}
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* 퀵 액션 버튼들 */}
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col space-y-1">
                         <button
-                          onClick={() => startEditing(image)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedImageForZoom(image);
+                          }}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                          title="확대"
+                        >
+                          🔍
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing(image);
+                          }}
                           className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
                           title="편집"
                         >
                           ✏️
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(image.url);
+                            alert('URL이 클립보드에 복사되었습니다.');
+                          }}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                          title="URL 복사"
+                        >
+                          📋
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const link = document.createElement('a');
+                            link.href = image.url;
+                            link.download = image.name;
+                            link.click();
+                          }}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                          title="다운로드"
+                        >
+                          💾
                         </button>
                       </div>
                     </div>
@@ -952,6 +999,122 @@ export default function GalleryAdmin() {
                     <button onClick={async()=>{ if (!confirm('삭제하시겠습니까?')) return; await fetch(`/api/admin/image-tags?id=${t.id}`, { method:'DELETE' }); const list = await (await fetch('/api/admin/image-tags')).json(); setTags(list.tags||[]); }} className="px-2 py-1 text-sm border rounded text-red-600">삭제</button>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 이미지 확대 모달 */}
+      {selectedImageForZoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">이미지 확대 보기</h3>
+              <button
+                onClick={() => setSelectedImageForZoom(null)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-4">
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* 이미지 영역 */}
+                <div className="flex-1">
+                  <div className="bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={selectedImageForZoom.url}
+                      alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
+                      className="w-full h-auto max-h-[60vh] object-contain"
+                    />
+                  </div>
+                  
+                  {/* 이미지 정보 */}
+                  <div className="mt-4 space-y-2">
+                    <div className="text-sm text-gray-600">
+                      <strong>파일명:</strong> {selectedImageForZoom.name}
+                    </div>
+                    {selectedImageForZoom.alt_text && (
+                      <div className="text-sm text-gray-600">
+                        <strong>ALT:</strong> {selectedImageForZoom.alt_text}
+                      </div>
+                    )}
+                    {selectedImageForZoom.keywords && selectedImageForZoom.keywords.length > 0 && (
+                      <div className="text-sm text-gray-600">
+                        <strong>키워드:</strong> {selectedImageForZoom.keywords.join(', ')}
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-600">
+                      <strong>사용 횟수:</strong> {selectedImageForZoom.usage_count || 0}회
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 액션 버튼들 */}
+                <div className="w-full lg:w-64 space-y-3">
+                  <div className="text-sm font-medium text-gray-700 mb-3">빠른 작업</div>
+                  
+                  <button
+                    onClick={() => {
+                      setSelectedImageForZoom(null);
+                      startEditing(selectedImageForZoom);
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    <span>✏️</span>
+                    <span>메타데이터 편집</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedImageForZoom.url);
+                      alert('URL이 클립보드에 복사되었습니다.');
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    <span>📋</span>
+                    <span>URL 복사</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = selectedImageForZoom.url;
+                      link.download = selectedImageForZoom.name;
+                      link.click();
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    <span>💾</span>
+                    <span>다운로드</span>
+                  </button>
+                  
+                  <button
+                    onClick={async () => {
+                      if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
+                      // 삭제 로직 구현 필요
+                      alert('삭제 기능은 추후 구현됩니다.');
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    <span>🗑️</span>
+                    <span>삭제</span>
+                  </button>
+                  
+                  <button
+                    onClick={async () => {
+                      if (!confirm('AI로 메타데이터를 재생성하시겠습니까?')) return;
+                      // AI 분석 로직 구현 필요
+                      alert('AI 분석 기능은 추후 구현됩니다.');
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    <span>🤖</span>
+                    <span>AI 태그 재생성</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
