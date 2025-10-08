@@ -25,9 +25,11 @@ export default function GalleryAdmin() {
   const [filteredImages, setFilteredImages] = useState<ImageMetadata[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [imagesPerPage] = useState(24);
+  const [hasMoreImages, setHasMoreImages] = useState(true);
   
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,32 +74,47 @@ export default function GalleryAdmin() {
   // 이미지 로드
   const fetchImages = async (page = 1, reset = false) => {
     try {
-      setIsLoading(true);
+      if (reset || page === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      
       const offset = (page - 1) * imagesPerPage;
       const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}`);
       const data = await response.json();
       
       if (response.ok) {
         const list = data.images || [];
-        const metaRes = await fetch('/api/admin/image-metadata-batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageNames: list.map((i: any)=> i.name) }) });
+        
+        // 더 이상 로드할 이미지가 없는지 확인
+        if (list.length < imagesPerPage) {
+          setHasMoreImages(false);
+        } else {
+          setHasMoreImages(true);
+        }
+        
+        const metaRes = await fetch('/api/admin/image-metadata-batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrls: list.map((i: any)=> i.url) }) });
         const metaJson = metaRes.ok ? await metaRes.json() : { metadata: {} };
         const metaMap = metaJson.metadata || {};
         const imagesWithMetadata = list.map((img: any) => ({
           ...img,
-          alt_text: metaMap[img.name]?.alt_text || '',
-          keywords: metaMap[img.name]?.keywords || [],
-          title: metaMap[img.name]?.title || '',
-          description: metaMap[img.name]?.description || '',
-          category: metaMap[img.name]?.category || '',
+          alt_text: metaMap[img.url]?.alt_text || '',
+          keywords: metaMap[img.url]?.tags || [],
+          title: metaMap[img.url]?.title || '',
+          description: metaMap[img.url]?.description || '',
+          category: metaMap[img.url]?.category_id || '',
           is_featured: false,
-          usage_count: 0,
+          usage_count: metaMap[img.url]?.usage_count || 0,
           used_in_posts: []
         }));
         
         if (reset || page === 1) {
           setImages(imagesWithMetadata);
+          setCurrentPage(1);
         } else {
           setImages(prev => [...prev, ...imagesWithMetadata]);
+          setCurrentPage(page);
         }
         setTotalCount(data.total || 0);
         setCurrentPage(page);
@@ -106,15 +123,17 @@ export default function GalleryAdmin() {
       console.error('❌ 이미지 로드 에러:', error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
   // 무한 스크롤 로드
   useEffect(() => {
     const onScroll = () => {
-      if (isLoading) return;
+      if (isLoading || isLoadingMore || !hasMoreImages) return;
+      
       const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-      if (remaining < 400 && images.length < totalCount) {
+      if (remaining < 200) {
         fetchImages(currentPage + 1);
       }
     };
@@ -848,6 +867,23 @@ export default function GalleryAdmin() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              
+              {/* 무한 스크롤 로딩 인디케이터 */}
+              {isLoadingMore && (
+                <div className="col-span-full flex justify-center items-center py-8">
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    <span>더 많은 이미지를 불러오는 중...</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* 더 이상 로드할 이미지가 없을 때 */}
+              {!hasMoreImages && images.length > 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  <p>모든 이미지를 불러왔습니다.</p>
                 </div>
               )}
             </div>
