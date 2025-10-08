@@ -31,6 +31,36 @@ export default function GalleryAdmin() {
   const [imagesPerPage] = useState(24);
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
+  // SEO 최적화된 파일명 생성 함수
+  const generateSEOFileName = (title, keywords, index = 1) => {
+    // 제목에서 주요 키워드 추출
+    const titleWords = title
+      .toLowerCase()
+      .replace(/[^\w\s가-힣]/g, '') // 특수문자 제거
+      .split(/\s+/)
+      .filter(word => word.length > 1)
+      .slice(0, 3); // 최대 3개 단어
+    
+    // 키워드에서 주요 키워드 추출
+    const keywordWords = keywords
+      .split(',')
+      .map(k => k.trim().toLowerCase())
+      .filter(k => k.length > 1)
+      .slice(0, 2); // 최대 2개 키워드
+    
+    // 브랜드명 + 주요 키워드 조합
+    const allWords = ['masgolf', ...titleWords, ...keywordWords];
+    const uniqueWords = [...new Set(allWords)]; // 중복 제거
+    
+    // SEO 친화적인 파일명 생성
+    const fileName = uniqueWords
+      .join('-')
+      .substring(0, 50) // 길이 제한
+      + `-${String(index).padStart(3, '0')}`; // 3자리 번호
+    
+    return fileName;
+  };
+
   // 한국어 텍스트에서 키워드 추출 함수
   const extractKoreanKeywords = (text) => {
     const golfKeywords = [
@@ -1707,6 +1737,52 @@ export default function GalleryAdmin() {
                   >
                     <span>🤖</span>
                     <span>AI 태그 재생성</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      const newFileName = prompt(
+                        '새로운 파일명을 입력하세요 (확장자 제외):',
+                        selectedImageForZoom.name.replace(/\.[^/.]+$/, '')
+                      );
+                      if (newFileName && newFileName.trim() !== '') {
+                        // 파일명 변경 로직 구현 필요
+                        alert(`파일명을 "${newFileName}"로 변경하는 기능은 추후 구현됩니다.`);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    <span>📝</span>
+                    <span>파일명 변경</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      if (!selectedImageForZoom.alt_text || !selectedImageForZoom.keywords) {
+                        alert('SEO 파일명 생성을 위해 먼저 ALT 텍스트와 키워드를 생성해주세요.');
+                        return;
+                      }
+                      
+                      const seoFileName = generateSEOFileName(
+                        selectedImageForZoom.title || '골프 이미지',
+                        selectedImageForZoom.keywords || '',
+                        Math.floor(Math.random() * 999) + 1
+                      );
+                      
+                      const newFileName = prompt(
+                        'SEO 최적화된 파일명을 생성했습니다. 수정하거나 그대로 사용하세요:',
+                        seoFileName
+                      );
+                      
+                      if (newFileName && newFileName.trim() !== '') {
+                        // SEO 파일명 적용 로직 구현 필요
+                        alert(`SEO 파일명 "${newFileName}"을 적용하는 기능은 추후 구현됩니다.`);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+                  >
+                    <span>🎯</span>
+                    <span>SEO 파일명 생성</span>
                   </button>
                 </div>
               </div>
