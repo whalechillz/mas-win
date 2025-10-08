@@ -17,11 +17,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'oldName and newName are required' });
     }
 
-    if (oldName === newName) {
+    // 파일명 검증: 특수문자 제거 및 안전한 문자만 허용
+    const sanitizedNewName = newName
+      .replace(/[^a-zA-Z0-9가-힣\-_.]/g, '-')  // 특수문자를 하이픈으로 변경
+      .replace(/-+/g, '-')                     // 연속 하이픈을 하나로
+      .replace(/^-|-$/g, '')                   // 앞뒤 하이픈 제거
+      .toLowerCase();                          // 소문자로 변환
+
+    if (sanitizedNewName !== newName) {
+      console.log('🔧 파일명 정리:', newName, '→', sanitizedNewName);
+    }
+
+    if (oldName === sanitizedNewName) {
       return res.status(200).json({ message: 'No change needed' });
     }
 
-    console.log('📝 파일명 변경 요청:', oldName, '→', newName);
+    console.log('📝 파일명 변경 요청:', oldName, '→', sanitizedNewName);
 
     // 1. 먼저 Supabase Storage에서 파일 존재 확인
     console.log('🔍 Storage에서 파일 검색 중:', oldName);
@@ -81,15 +92,15 @@ export default async function handler(req, res) {
 
     // 4. 새 파일명으로 업로드 (같은 버킷에)
     // 확장자 처리: 원본 파일에 확장자가 없으면 새 파일명에서 확장자를 제거
-    let finalNewName = newName;
+    let finalNewName = sanitizedNewName;
     const originalExtension = oldName.split('.').pop();
-    const newExtension = newName.split('.').pop();
+    const newExtension = sanitizedNewName.split('.').pop();
     
     // 원본에 확장자가 없고 새 파일명에 확장자가 있으면 확장자 제거
     if (!originalExtension || originalExtension === oldName) {
-      if (newExtension && newExtension !== newName) {
-        finalNewName = newName.replace(`.${newExtension}`, '');
-        console.log('🔧 확장자 제거:', newName, '→', finalNewName);
+      if (newExtension && newExtension !== sanitizedNewName) {
+        finalNewName = sanitizedNewName.replace(`.${newExtension}`, '');
+        console.log('🔧 확장자 제거:', sanitizedNewName, '→', finalNewName);
       }
     }
     
@@ -156,6 +167,7 @@ export default async function handler(req, res) {
       oldName,
       newName: finalNewName,
       originalNewName: newName,
+      sanitizedNewName: sanitizedNewName,
       newUrl: newUrl,
       bucketName: bucketName
     });
