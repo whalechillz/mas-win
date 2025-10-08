@@ -1015,13 +1015,23 @@ export default function GalleryAdmin() {
                       
                       if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
                         const data = await titleResponse.value.json();
-                        const cleanPrompt = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                        const cleanPrompt = (data.prompt || '')
+                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
+                          .replace(/^\*\*이미지 제목\*\*:\s*/i, '')
+                          .replace(/^\*\*제목\*\*:\s*/i, '')
+                          .replace(/\*\*설명\*\*:.*$/i, '') // 설명 부분 제거
+                          .trim();
                         title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
                       }
                       
                       if (descResponse.status === 'fulfilled' && descResponse.value.ok) {
                         const data = await descResponse.value.json();
-                        description = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                        description = (data.prompt || '')
+                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
+                          .replace(/^\*\*이미지 설명\*\*\s*/i, '')
+                          .replace(/^\*\*설명\*\*\s*/i, '')
+                          .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
+                          .trim();
                       }
                       
                       // 폼 업데이트
@@ -1198,8 +1208,13 @@ export default function GalleryAdmin() {
                         if (response.ok) {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
-                          // "Prompt:" 접두사 제거하고 간단한 제목 추출
-                          const cleanPrompt = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                          // 접두사 제거하고 깔끔한 제목 추출
+                          const cleanPrompt = (data.prompt || '')
+                            .replace(/^\*\*Prompt:\*\*\s*/i, '')
+                            .replace(/^\*\*이미지 제목\*\*:\s*/i, '')
+                            .replace(/^\*\*제목\*\*:\s*/i, '')
+                            .replace(/\*\*설명\*\*:.*$/i, '') // 설명 부분 제거
+                            .trim();
                           const title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
                           setEditForm({ ...editForm, title });
                         } else {
@@ -1254,7 +1269,12 @@ export default function GalleryAdmin() {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
                           // "Prompt:" 접두사 제거
-                          const cleanDescription = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                          const cleanDescription = (data.prompt || '')
+                            .replace(/^\*\*Prompt:\*\*\s*/i, '')
+                            .replace(/^\*\*이미지 설명\*\*\s*/i, '')
+                            .replace(/^\*\*설명\*\*\s*/i, '')
+                            .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
+                            .trim();
                           setEditForm({ ...editForm, description: cleanDescription });
                         } else {
                           const errorData = await response.json();
