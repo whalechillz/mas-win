@@ -48,8 +48,8 @@ export default function GalleryAdmin() {
       .filter(k => k.length > 1)
       .slice(0, 2); // 최대 2개 키워드
     
-    // 브랜드명 + 주요 키워드 조합
-    const allWords = ['masgolf', ...titleWords, ...keywordWords];
+    // 브랜드명 + 주요 키워드 조합 (massgoo로 통일)
+    const allWords = ['massgoo', ...titleWords, ...keywordWords];
     const uniqueWords = [...new Set(allWords)]; // 중복 제거
     
     // SEO 친화적인 파일명 생성
