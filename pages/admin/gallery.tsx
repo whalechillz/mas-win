@@ -1009,36 +1009,6 @@ export default function GalleryAdmin() {
                         const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
                         keywords = tagNames.join(', ');
                         console.log('🏷️ 추출된 키워드:', keywords);
-                        
-                        // 키워드가 없으면 OpenAI Vision API로 fallback
-                        if (!keywords || keywords.trim() === '') {
-                          console.log('🔄 Google Vision API 키워드 없음, OpenAI Vision API로 fallback');
-                          try {
-                            const fallbackResponse = await fetch('/api/analyze-image-prompt', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ 
-                                imageUrl: image.url,
-                                title: '키워드 생성',
-                                excerpt: '이미지에서 키워드 추출'
-                              })
-                            });
-                            
-                            if (fallbackResponse.ok) {
-                              const fallbackData = await fallbackResponse.json();
-                              const fallbackText = (fallbackData.prompt || '')
-                                .replace(/^\*\*.*?\*\*\s*/i, '')
-                                .trim();
-                              
-                              // 한국어 텍스트에서 키워드 추출
-                              const koreanKeywords = extractKoreanKeywords(fallbackText);
-                              keywords = koreanKeywords.join(', ');
-                              console.log('🏷️ OpenAI fallback 키워드:', keywords);
-                            }
-                          } catch (fallbackError) {
-                            console.error('❌ OpenAI fallback 실패:', fallbackError);
-                          }
-                        }
                       } else {
                         console.log('❌ 키워드 API 실패:', keywordResponse);
                       }
@@ -1174,37 +1144,7 @@ export default function GalleryAdmin() {
                           console.log('✅ AI 응답 데이터:', data);
                           // seoOptimizedTags에서 키워드 추출
                           const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
-                          let keywords = tagNames.join(', ');
-                          
-                          // 키워드가 없으면 OpenAI Vision API로 fallback
-                          if (!keywords || keywords.trim() === '') {
-                            console.log('🔄 Google Vision API 키워드 없음, OpenAI Vision API로 fallback');
-                            try {
-                              const fallbackResponse = await fetch('/api/analyze-image-prompt', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ 
-                                  imageUrl: image.url,
-                                  title: '키워드 생성',
-                                  excerpt: '이미지에서 키워드 추출'
-                                })
-                              });
-                              
-                              if (fallbackResponse.ok) {
-                                const fallbackData = await fallbackResponse.json();
-                                const fallbackText = (fallbackData.prompt || '')
-                                  .replace(/^\*\*.*?\*\*\s*/i, '')
-                                  .trim();
-                                
-                                // 한국어 텍스트에서 키워드 추출
-                                const koreanKeywords = extractKoreanKeywords(fallbackText);
-                                keywords = koreanKeywords.join(', ');
-                                console.log('🏷️ OpenAI fallback 키워드:', keywords);
-                              }
-                            } catch (fallbackError) {
-                              console.error('❌ OpenAI fallback 실패:', fallbackError);
-                            }
-                          }
+                          const keywords = tagNames.join(', ');
                           
                           setEditForm({ ...editForm, keywords });
                         } else {
