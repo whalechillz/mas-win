@@ -120,6 +120,7 @@ export default function GalleryAdmin() {
   const [selectedImageForZoom, setSelectedImageForZoom] = useState<ImageMetadata | null>(null);
   const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
   const [metadataAnimation, setMetadataAnimation] = useState(false);
+  const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
 
   // 확대보기 내 좌우 탐색 핸들러
   const showAdjacentImage = (direction: 'prev' | 'next') => {
@@ -1969,39 +1970,133 @@ export default function GalleryAdmin() {
             
             {/* 썸네일 스트립 */}
             <div className="border-t bg-gray-50 p-4 flex-shrink-0">
+              {/* 썸네일 스트립 컨트롤 */}
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setThumbnailSelectMode(!thumbnailSelectMode)}
+                    className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                      thumbnailSelectMode 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {thumbnailSelectMode ? '✓ 선택 모드' : '☐ 선택 모드'}
+                  </button>
+                  {thumbnailSelectMode && (
+                    <button
+                      onClick={async () => {
+                        const selectedInThumbnails = Array.from(selectedImages);
+                        if (selectedInThumbnails.length === 0) {
+                          alert('삭제할 이미지를 선택해주세요.');
+                          return;
+                        }
+                        if (confirm(`선택한 ${selectedInThumbnails.length}개 이미지를 삭제하시겠습니까?`)) {
+                          try {
+                            let success = 0;
+                            for (const name of selectedInThumbnails) {
+                              const res = await fetch('/api/admin/delete-image', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ imageName: name })
+                              });
+                              if (res.ok) success++;
+                            }
+                            setImages(prev => prev.filter(img => !selectedImages.has(img.name)));
+                            setSelectedImages(new Set());
+                            setThumbnailSelectMode(false);
+                            if (selectedImageForZoom && selectedImages.has(selectedImageForZoom.name)) {
+                              setSelectedImageForZoom(null);
+                            }
+                            alert(`일괄 삭제 완료: ${success}/${selectedInThumbnails.length}개`);
+                          } catch (error) {
+                            console.error('❌ 일괄 삭제 오류:', error);
+                            alert('일괄 삭제에 실패했습니다.');
+                          }
+                        }
+                      }}
+                      className="px-3 py-1 text-xs bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      🗑️ 선택된 {selectedImages.size}개 삭제
+                    </button>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {navigateSelectedOnly 
+                    ? `선택된 이미지 ${filteredImages.filter(img => selectedImages.has(img.name)).length}개`
+                    : `전체 이미지 ${filteredImages.length}개`
+                  }
+                </div>
+              </div>
+
+              {/* 썸네일 그리드 */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {(navigateSelectedOnly 
                   ? filteredImages.filter(img => selectedImages.has(img.name))
                   : filteredImages
                 ).map((image, index) => (
-                  <button
-                    key={image.name}
-                    onClick={() => {
-                      setMetadataAnimation(true);
-                      setTimeout(() => {
-                        setSelectedImageForZoom(image);
-                        setMetadataAnimation(false);
-                      }, 150);
-                    }}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                      selectedImageForZoom?.name === image.name
-                        ? 'border-blue-500 ring-2 ring-blue-200'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <img
-                      src={image.url}
-                      alt={image.alt_text || image.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
+                  <div key={image.name} className="relative flex-shrink-0">
+                    {thumbnailSelectMode && (
+                      <div className="absolute top-1 left-1 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedImages.has(image.name)}
+                          onChange={(e) => {
+                            const newSelected = new Set(selectedImages);
+                            if (e.target.checked) {
+                              newSelected.add(image.name);
+                            } else {
+                              newSelected.delete(image.name);
+                            }
+                            setSelectedImages(newSelected);
+                          }}
+                          className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => {
+                        if (thumbnailSelectMode) {
+                          // 선택 모드에서는 체크박스 토글
+                          const newSelected = new Set(selectedImages);
+                          if (selectedImages.has(image.name)) {
+                            newSelected.delete(image.name);
+                          } else {
+                            newSelected.add(image.name);
+                          }
+                          setSelectedImages(newSelected);
+                        } else {
+                          // 일반 모드에서는 이미지 이동
+                          setMetadataAnimation(true);
+                          setTimeout(() => {
+                            setSelectedImageForZoom(image);
+                            setMetadataAnimation(false);
+                          }, 150);
+                        }
+                      }}
+                      className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                        selectedImageForZoom?.name === image.name
+                          ? 'border-blue-500 ring-2 ring-blue-200'
+                          : selectedImages.has(image.name)
+                          ? 'border-green-500 ring-2 ring-green-200'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt_text || image.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  </div>
                 ))}
               </div>
+              
               <div className="text-xs text-gray-500 mt-2 text-center">
-                {navigateSelectedOnly 
-                  ? `선택된 이미지 ${filteredImages.filter(img => selectedImages.has(img.name)).length}개`
-                  : `전체 이미지 ${filteredImages.length}개`
-                } • 썸네일 클릭으로 이동
+                {thumbnailSelectMode 
+                  ? '체크박스 또는 썸네일 클릭으로 선택/해제'
+                  : '썸네일 클릭으로 이동'
+                }
               </div>
             </div>
           </div>
