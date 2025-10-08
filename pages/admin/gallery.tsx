@@ -118,17 +118,33 @@ export default function GalleryAdmin() {
 
   // 확대 모달 상태
   const [selectedImageForZoom, setSelectedImageForZoom] = useState<ImageMetadata | null>(null);
+  const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
+  const [metadataAnimation, setMetadataAnimation] = useState(false);
 
   // 확대보기 내 좌우 탐색 핸들러
   const showAdjacentImage = (direction: 'prev' | 'next') => {
     if (!selectedImageForZoom) return;
-    if (filteredImages.length === 0) return;
-    const currentIndex = filteredImages.findIndex(img => img.name === selectedImageForZoom.name);
+    
+    // 탐색할 이미지 배열 결정
+    const imagesToNavigate = navigateSelectedOnly 
+      ? filteredImages.filter(img => selectedImages.has(img.name))
+      : filteredImages;
+    
+    if (imagesToNavigate.length === 0) return;
+    
+    const currentIndex = imagesToNavigate.findIndex(img => img.name === selectedImageForZoom.name);
     if (currentIndex === -1) return;
+    
     const nextIndex = direction === 'next'
-      ? (currentIndex + 1) % filteredImages.length
-      : (currentIndex - 1 + filteredImages.length) % filteredImages.length;
-    setSelectedImageForZoom(filteredImages[nextIndex]);
+      ? (currentIndex + 1) % imagesToNavigate.length
+      : (currentIndex - 1 + imagesToNavigate.length) % imagesToNavigate.length;
+    
+    // 메타데이터 애니메이션 효과
+    setMetadataAnimation(true);
+    setTimeout(() => {
+      setSelectedImageForZoom(imagesToNavigate[nextIndex]);
+      setMetadataAnimation(false);
+    }, 150);
   };
 
   // 키보드 단축키 (←/→/Esc)
@@ -1746,7 +1762,20 @@ export default function GalleryAdmin() {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-4 border-b flex-shrink-0">
-              <h3 className="text-lg font-semibold text-gray-800">이미지 확대 보기</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-semibold text-gray-800">이미지 확대 보기</h3>
+                {selectedImages.size > 0 && (
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={navigateSelectedOnly}
+                      onChange={(e) => setNavigateSelectedOnly(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    선택된 이미지만 탐색 ({selectedImages.size}개)
+                  </label>
+                )}
+              </div>
               <button
                 onClick={() => setSelectedImageForZoom(null)}
                 className="text-gray-500 hover:text-gray-700 text-xl"
@@ -1783,7 +1812,7 @@ export default function GalleryAdmin() {
                   </div>
                   
                   {/* 이미지 정보 */}
-                  <div className="mt-4 space-y-2">
+                  <div className={`mt-4 space-y-2 transition-all duration-300 ${metadataAnimation ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}>
                     <div className="text-sm text-gray-600">
                       <strong>파일명:</strong> {selectedImageForZoom.name}
                     </div>
@@ -1935,6 +1964,44 @@ export default function GalleryAdmin() {
                     <span>SEO 파일명 생성</span>
                   </button>
                 </div>
+              </div>
+            </div>
+            
+            {/* 썸네일 스트립 */}
+            <div className="border-t bg-gray-50 p-4 flex-shrink-0">
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {(navigateSelectedOnly 
+                  ? filteredImages.filter(img => selectedImages.has(img.name))
+                  : filteredImages
+                ).map((image, index) => (
+                  <button
+                    key={image.name}
+                    onClick={() => {
+                      setMetadataAnimation(true);
+                      setTimeout(() => {
+                        setSelectedImageForZoom(image);
+                        setMetadataAnimation(false);
+                      }, 150);
+                    }}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                      selectedImageForZoom?.name === image.name
+                        ? 'border-blue-500 ring-2 ring-blue-200'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <img
+                      src={image.url}
+                      alt={image.alt_text || image.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs text-gray-500 mt-2 text-center">
+                {navigateSelectedOnly 
+                  ? `선택된 이미지 ${filteredImages.filter(img => selectedImages.has(img.name)).length}개`
+                  : `전체 이미지 ${filteredImages.length}개`
+                } • 썸네일 클릭으로 이동
               </div>
             </div>
           </div>
