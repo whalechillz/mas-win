@@ -55,7 +55,7 @@ export default function GalleryAdmin() {
     
     // 브랜드명 + 주요 키워드 조합 (massgoo로 통일)
     const allWords = ['massgoo', ...titleWords, ...keywordWords];
-    const uniqueWords = [...new Set(allWords)]; // 중복 제거
+    const uniqueWords = Array.from(new Set(allWords)); // 중복 제거
     
     // SEO 친화적인 파일명 생성
     const fileName = uniqueWords
@@ -1655,6 +1655,7 @@ export default function GalleryAdmin() {
                     <button onClick={async()=>{ if (!confirm('삭제하시겠습니까?')) return; await fetch(`/api/admin/image-categories?id=${c.id}`, { method:'DELETE' }); const list = await (await fetch('/api/admin/image-categories')).json(); setCategories(list.categories||[]); }} className="px-2 py-1 text-sm border rounded text-red-600">삭제</button>
                   </div>
                 ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1733,6 +1734,7 @@ export default function GalleryAdmin() {
                     <button onClick={async()=>{ if (!confirm('삭제하시겠습니까?')) return; await fetch(`/api/admin/image-tags?id=${t.id}`, { method:'DELETE' }); const list = await (await fetch('/api/admin/image-tags')).json(); setTags(list.tags||[]); }} className="px-2 py-1 text-sm border rounded text-red-600">삭제</button>
                   </div>
                 ))}
+                </div>
               </div>
             </div>
           </div>
