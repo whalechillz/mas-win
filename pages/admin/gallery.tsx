@@ -355,13 +355,14 @@ export default function GalleryAdmin() {
   }, []);
 
   // 이미지 선택/해제
-  const toggleImageSelection = (imageName: string) => {
+  const toggleImageSelection = (image: ImageMetadata) => {
+    const uniqueId = getImageUniqueId(image);
     setSelectedImages(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(imageName)) {
-        newSet.delete(imageName);
+      if (newSet.has(uniqueId)) {
+        newSet.delete(uniqueId);
       } else {
-        newSet.add(imageName);
+        newSet.add(uniqueId);
       }
       return newSet;
     });
@@ -372,7 +373,7 @@ export default function GalleryAdmin() {
     if (selectedImages.size === filteredImages.length) {
       setSelectedImages(new Set());
     } else {
-      setSelectedImages(new Set(filteredImages.map(img => img.name)));
+      setSelectedImages(new Set(filteredImages.map(img => getImageUniqueId(img))));
     }
   };
 
@@ -519,7 +520,7 @@ export default function GalleryAdmin() {
 
       // 로컬 상태 업데이트
       setImages(prev => prev.map(img => {
-        if (!selectedImages.has(img.name)) return img;
+        if (!selectedImages.has(getImageUniqueId(img))) return img;
         const newAlt = bulkEditForm.replaceAlt
           ? bulkEditForm.alt_text || img.alt_text || ''
           : (bulkEditForm.alt_text ? `${img.alt_text ? img.alt_text + ' ' : ''}${bulkEditForm.alt_text}` : (img.alt_text || ''));
@@ -566,7 +567,7 @@ export default function GalleryAdmin() {
         });
         if (res.ok) success++;
       }
-      setImages(prev => prev.filter(img => !selectedImages.has(img.name)));
+      setImages(prev => prev.filter(img => !selectedImages.has(getImageUniqueId(img))));
       setSelectedImages(new Set());
       setShowBulkDeleteConfirm(false);
       alert(`일괄 삭제 완료: ${success}/${names.length}개`);
@@ -857,7 +858,7 @@ export default function GalleryAdmin() {
                     for (const n of names) {
                       await fetch('/api/admin/image-metadata', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageName: n, category: cat }) });
                     }
-                    setImages(prev=> prev.map(img => selectedImages.has(img.name) ? { ...img, category: cat || '' } : img));
+                    setImages(prev=> prev.map(img => selectedImages.has(getImageUniqueId(img)) ? { ...img, category: cat || '' } : img));
                     alert('이동(카테고리 변경) 완료');
                   }}
                   className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
@@ -932,14 +933,14 @@ export default function GalleryAdmin() {
                     <div 
                       key={image.name} 
                       className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all cursor-pointer ${
-                        selectedImages.has(image.name) 
+                        selectedImages.has(getImageUniqueId(image)) 
                           ? 'border-blue-500 ring-2 ring-blue-200' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
-                      onClick={() => toggleImageSelection(image.name)}
+                      onClick={() => toggleImageSelection(image)}
                     >
                       {/* 선택 표시 */}
-                      {selectedImages.has(image.name) && (
+                      {selectedImages.has(getImageUniqueId(image)) && (
                         <div className="absolute top-2 left-2 z-10">
                           <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                             <span className="text-white text-xs">✓</span>
@@ -2104,7 +2105,7 @@ export default function GalleryAdmin() {
                               });
                               if (res.ok) success++;
                             }
-                            setImages(prev => prev.filter(img => !selectedImages.has(img.name)));
+                            setImages(prev => prev.filter(img => !selectedImages.has(getImageUniqueId(img))));
                             setSelectedImages(new Set());
                             setThumbnailSelectMode(false);
                             // 삭제 후에도 모달을 유지 (현재 이미지가 삭제되지 않은 경우)
@@ -2123,7 +2124,7 @@ export default function GalleryAdmin() {
                 </div>
                 <div className="text-xs text-gray-500">
                   {navigateSelectedOnly 
-                    ? `선택된 이미지 ${filteredImages.filter(img => selectedImages.has(img.name)).length}개`
+                    ? `선택된 이미지 ${filteredImages.filter(img => selectedImages.has(getImageUniqueId(img))).length}개`
                     : `전체 이미지 ${filteredImages.length}개`
                   }
                 </div>
@@ -2132,7 +2133,7 @@ export default function GalleryAdmin() {
               {/* 썸네일 그리드 */}
               <div ref={thumbnailStripRef} className="flex gap-2 overflow-x-auto pb-2">
                 {(navigateSelectedOnly 
-                  ? filteredImages.filter(img => selectedImages.has(img.name))
+                  ? filteredImages.filter(img => selectedImages.has(getImageUniqueId(img)))
                   : filteredImages
                 ).map((image, index) => (
                   <div key={image.name} className="relative flex-shrink-0">
