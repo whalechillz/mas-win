@@ -1726,6 +1726,57 @@ export default function BlogAdmin() {
     }
   };
 
+  // 파일 업로드 처리 함수 (HEIC 변환 및 Supabase 업로드)
+  const handleFileUpload = async (file) => {
+    try {
+      let processedFile = file;
+      
+      // HEIC 파일인 경우 JPG로 변환
+      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+        console.log('🔄 HEIC 파일 변환 중...');
+        
+        // 동적 import로 heic2any 로드
+        const heic2any = (await import('heic2any')).default;
+        
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.8
+        });
+        processedFile = new File([convertedBlob[0]], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+          type: 'image/jpeg'
+        });
+        console.log('✅ HEIC → JPG 변환 완료');
+      }
+
+      // Supabase에 업로드
+      console.log('🔄 Supabase 업로드 중...');
+      const formData = new FormData();
+      formData.append('file', processedFile);
+      
+      const uploadResponse = await fetch('/api/upload-image-supabase', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error(`업로드 실패: ${uploadResponse.status}`);
+      }
+      
+      const uploadData = await uploadResponse.json();
+      const supabaseUrl = uploadData.url;
+      
+      console.log('✅ Supabase 업로드 완료:', supabaseUrl);
+      
+      // 선택된 이미지로 설정
+      setSelectedExistingImage(supabaseUrl);
+      
+    } catch (error) {
+      console.error('❌ 파일 업로드 오류:', error);
+      alert('파일 업로드 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
   const handleLoadExistingImageAndPrompt = async () => {
     if (!selectedExistingImage) {
       alert('불러올 이미지를 선택해주세요.');
@@ -2249,6 +2300,25 @@ export default function BlogAdmin() {
   // 초기 로드
   useEffect(() => {
     fetchPosts();
+  }, []);
+
+  // 페이지 전체 드래그앤드롭 방지
+  useEffect(() => {
+    const preventDragDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    // 페이지 전체에 드래그앤드롭 이벤트 방지
+    document.addEventListener('dragover', preventDragDrop);
+    document.addEventListener('dragenter', preventDragDrop);
+    document.addEventListener('drop', preventDragDrop);
+
+    return () => {
+      document.removeEventListener('dragover', preventDragDrop);
+      document.removeEventListener('dragenter', preventDragDrop);
+      document.removeEventListener('drop', preventDragDrop);
+    };
   }, []);
 
   // TipTap 에디터에서 대표 이미지 설정 이벤트 리스너
@@ -3451,12 +3521,32 @@ export default function BlogAdmin() {
                         {/* 파일 업로드 섹션 */}
                         {activeImageTab === 'upload' && (
           <div className="space-y-4">
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onDrop={async (e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const files = e.dataTransfer.files;
+                              if (files.length > 0) {
+                                await handleFileUpload(files[0]);
+                              }
+                            }}
+                          >
               <div className="space-y-4">
                               <div className="text-gray-500">
-                                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
+                                <label htmlFor="file-upload" className="cursor-pointer">
+                                  <svg className="mx-auto h-12 w-12 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </label>
                               </div>
                               <div>
                                 <label htmlFor="file-upload" className="cursor-pointer">
@@ -3464,7 +3554,7 @@ export default function BlogAdmin() {
                                     이미지 파일을 선택하거나 드래그하세요
                       </span>
                                   <span className="mt-1 block text-sm text-gray-500">
-                                    PNG, JPG, GIF 파일 지원
+                                    PNG, JPG, GIF, HEIC 파일 지원
                                   </span>
                                 </label>
                                 <input
@@ -3472,15 +3562,11 @@ export default function BlogAdmin() {
                                   name="file-upload"
                                   type="file"
                                   className="sr-only"
-                                  accept="image/*"
-                                  onChange={(e) => {
+                                  accept="image/*,.heic,.heif"
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      const reader = new FileReader();
-                                      reader.onload = (event) => {
-                                        setSelectedExistingImage(event.target?.result as string);
-                                      };
-                                      reader.readAsDataURL(file);
+                                      await handleFileUpload(file);
                                     }
                                   }}
                                 />

@@ -41,6 +41,7 @@
     "formidable": "^3.5.4",
     "google-ads-api": "^21.0.0",
     "googleapis": "^133.0.0",
+    "heic2any": "^0.0.4",
     "jsdom": "^27.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.539.0",
