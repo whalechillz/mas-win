@@ -1007,6 +1007,8 @@ export default function GalleryAdmin() {
                           .replace(/^분석\s*/i, '')
                           .replace(/^이미지는\s*/i, '')
                           .replace(/^이\s*이미지는\s*/i, '')
+                          .replace(/^이\s*사진은\s*/i, '')
+                          .replace(/^사진은\s*/i, '')
                           .trim();
                       }
                       
@@ -1048,16 +1050,34 @@ export default function GalleryAdmin() {
                           .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
                           .replace(/^이미지는\s*/i, '')
                           .replace(/^이\s*이미지는\s*/i, '')
+                          .replace(/^이\s*사진은\s*/i, '')
+                          .replace(/^사진은\s*/i, '')
                           .trim();
                       }
                       
+                      // 카테고리 자동 선택
+                      let selectedCategory = '';
+                      const combinedText = `${altText} ${keywords} ${title} ${description}`.toLowerCase();
+                      if (combinedText.includes('골프') || combinedText.includes('golf')) {
+                        selectedCategory = 'golf';
+                      } else if (combinedText.includes('장비') || combinedText.includes('equipment') || combinedText.includes('클럽') || combinedText.includes('드라이버')) {
+                        selectedCategory = 'equipment';
+                      } else if (combinedText.includes('코스') || combinedText.includes('course') || combinedText.includes('골프장')) {
+                        selectedCategory = 'course';
+                      } else if (combinedText.includes('이벤트') || combinedText.includes('event') || combinedText.includes('대회')) {
+                        selectedCategory = 'event';
+                      } else {
+                        selectedCategory = 'other';
+                      }
+
                       // 폼 업데이트
                       setEditForm({
                         ...editForm,
                         alt_text: altText,
                         keywords: keywords,
                         title: title,
-                        description: description
+                        description: description,
+                        category: selectedCategory
                       });
                       
                       console.log('✅ 전체 AI 메타데이터 생성 완료');
@@ -1125,6 +1145,8 @@ export default function GalleryAdmin() {
                             .replace(/^분석\s*/i, '')
                             .replace(/^이미지는\s*/i, '')
                             .replace(/^이\s*이미지는\s*/i, '')
+                            .replace(/^이\s*사진은\s*/i, '')
+                            .replace(/^사진은\s*/i, '')
                             .trim();
                           setEditForm({ ...editForm, alt_text: cleanAltText });
                         } else {
@@ -1304,6 +1326,8 @@ export default function GalleryAdmin() {
                             .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
                             .replace(/^이미지는\s*/i, '')
                             .replace(/^이\s*이미지는\s*/i, '')
+                            .replace(/^이\s*사진은\s*/i, '')
+                            .replace(/^사진은\s*/i, '')
                             .trim();
                           setEditForm({ ...editForm, description: cleanDescription });
                         } else {
@@ -1326,18 +1350,75 @@ export default function GalleryAdmin() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
-                <select
-                  value={editForm.category}
-                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">카테고리 선택</option>
-                  <option value="golf">골프</option>
-                  <option value="equipment">장비</option>
-                  <option value="course">코스</option>
-                  <option value="event">이벤트</option>
-                  <option value="other">기타</option>
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={editForm.category}
+                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">카테고리 선택</option>
+                    <option value="golf">골프</option>
+                    <option value="equipment">장비</option>
+                    <option value="course">코스</option>
+                    <option value="event">이벤트</option>
+                    <option value="other">기타</option>
+                  </select>
+                  <button
+                    onClick={async () => {
+                      if (!editingImage) return;
+                      const image = images.find(img => img.name === editingImage);
+                      if (!image) return;
+                      
+                      try {
+                        console.log('🤖 AI 카테고리 생성 시작:', image.url);
+                        const response = await fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: '카테고리 분류',
+                            excerpt: '이미지 카테고리 자동 분류'
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          console.log('✅ AI 카테고리 응답:', data);
+                          
+                          // AI 응답에서 카테고리 추출
+                          const categoryText = (data.prompt || '')
+                            .replace(/^\*\*.*?\*\*\s*/i, '')
+                            .toLowerCase();
+                          
+                          let selectedCategory = '';
+                          if (categoryText.includes('골프') || categoryText.includes('golf')) {
+                            selectedCategory = 'golf';
+                          } else if (categoryText.includes('장비') || categoryText.includes('equipment') || categoryText.includes('클럽') || categoryText.includes('드라이버')) {
+                            selectedCategory = 'equipment';
+                          } else if (categoryText.includes('코스') || categoryText.includes('course') || categoryText.includes('골프장')) {
+                            selectedCategory = 'course';
+                          } else if (categoryText.includes('이벤트') || categoryText.includes('event') || categoryText.includes('대회')) {
+                            selectedCategory = 'event';
+                          } else {
+                            selectedCategory = 'other';
+                          }
+                          
+                          setEditForm({ ...editForm, category: selectedCategory });
+                          console.log('🏷️ 선택된 카테고리:', selectedCategory);
+                        } else {
+                          alert('AI 카테고리 생성에 실패했습니다.');
+                        }
+                      } catch (error) {
+                        console.error('❌ AI 카테고리 분석 오류:', error);
+                        alert('AI 카테고리 분석 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                    title="AI로 카테고리 자동 선택"
+                  >
+                    🤖 AI
+                  </button>
+                </div>
               </div>
             </div>
             
