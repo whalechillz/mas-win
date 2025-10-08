@@ -7,6 +7,17 @@ CREATE TABLE IF NOT EXISTS image_categories (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- RLS 정책 설정
+ALTER TABLE image_categories ENABLE ROW LEVEL SECURITY;
+
+-- 모든 사용자가 읽기 가능
+CREATE POLICY "Allow read access to image_categories" ON image_categories
+  FOR SELECT USING (true);
+
+-- 서비스 키로 모든 작업 가능
+CREATE POLICY "Allow all operations for service role" ON image_categories
+  FOR ALL USING (true);
+
 -- 이미지 태그 테이블
 CREATE TABLE IF NOT EXISTS image_tags (
   id SERIAL PRIMARY KEY,
@@ -15,6 +26,17 @@ CREATE TABLE IF NOT EXISTS image_tags (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- RLS 정책 설정
+ALTER TABLE image_tags ENABLE ROW LEVEL SECURITY;
+
+-- 모든 사용자가 읽기 가능
+CREATE POLICY "Allow read access to image_tags" ON image_tags
+  FOR SELECT USING (true);
+
+-- 서비스 키로 모든 작업 가능
+CREATE POLICY "Allow all operations for service role" ON image_tags
+  FOR ALL USING (true);
 
 -- 기본 카테고리 데이터 삽입
 INSERT INTO image_categories (name, slug) VALUES 
