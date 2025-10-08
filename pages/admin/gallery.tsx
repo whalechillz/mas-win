@@ -239,13 +239,21 @@ export default function GalleryAdmin() {
     if (!editingImage) return;
     
     try {
+      console.log('💾 메타데이터 저장 시작:', editingImage);
       const keywords = editForm.keywords.split(',').map(k => k.trim()).filter(k => k);
       
+      const image = images.find(img => img.name === editingImage);
+      if (!image) {
+        alert('이미지 정보를 찾을 수 없습니다.');
+        return;
+      }
+
       const response = await fetch('/api/admin/image-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageName: editingImage,
+          imageUrl: image.url,
           alt_text: editForm.alt_text,
           keywords: keywords,
           title: editForm.title,
@@ -253,6 +261,8 @@ export default function GalleryAdmin() {
           category: editForm.category
         })
       });
+      
+      console.log('📡 저장 API 응답 상태:', response.status);
       
       if (response.ok) {
         // 로컬 상태 업데이트
@@ -263,10 +273,15 @@ export default function GalleryAdmin() {
         ));
         setEditingImage(null);
         alert('메타데이터가 저장되었습니다!');
+        console.log('✅ 메타데이터 저장 완료');
+      } else {
+        const errorData = await response.json();
+        console.error('❌ 저장 API 오류 응답:', errorData);
+        alert(`저장에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('❌ 메타데이터 저장 에러:', error);
-      alert('저장에 실패했습니다.');
+      alert(`저장에 실패했습니다.\n오류: ${error.message}`);
     }
   };
 
@@ -981,7 +996,7 @@ export default function GalleryAdmin() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             imageUrl: image.url,
-                            imageId: image.name
+                            imageId: null // UUID가 아닌 파일명이므로 null로 전달
                           })
                         });
                         
