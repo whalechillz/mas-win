@@ -26,25 +26,26 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: `You are an expert image prompt generator for golf-related content. 
-Analyze the given image and create a detailed, vivid English prompt that could be used to generate a similar image.
+          content: `You are an expert image analyzer for golf-related content. 
+Analyze the given image and create a detailed, vivid Korean description that describes what you see in the image.
 
 Guidelines:
+- Write in Korean language
 - Focus on visual elements: composition, lighting, colors, objects, people, setting
 - Include specific golf-related details if present (clubs, courses, players, equipment, etc.)
-- Use descriptive adjectives and technical photography terms
-- Keep prompts between 50-100 words
-- Make it suitable for high-quality AI image generation
-- Consider the context: title="${title || 'golf content'}", excerpt="${excerpt || 'golf-related content'}"
+- Use descriptive adjectives and natural Korean expressions
+- Keep descriptions between 50-100 words
+- Make it suitable for SEO and accessibility
+- Consider the context: title="${title || '골프 콘텐츠'}", excerpt="${excerpt || '골프 관련 콘텐츠'}"
 
-Generate a compelling visual prompt that captures the essence of this image.`
+Generate a compelling Korean description that captures the essence of this image.`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analyze this image and create a detailed prompt for generating a similar image. Focus on the visual elements, composition, and golf-related aspects if present.`
+              text: `이 이미지를 분석하고 이미지에 대한 자세한 한국어 설명을 작성해주세요. 시각적 요소, 구도, 골프 관련 요소에 집중해주세요.`
             },
             {
               type: "image_url",
