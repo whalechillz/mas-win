@@ -24,6 +24,8 @@ export default async function handler(req, res) {
     console.log('📝 파일명 변경 요청:', oldName, '→', newName);
 
     // 1. 먼저 데이터베이스에서 파일 정보 확인
+    console.log('🔍 데이터베이스에서 파일 검색 중:', oldName);
+    
     const { data: dbImage, error: dbError } = await supabase
       .from('image_metadata')
       .select('*')
@@ -32,7 +34,24 @@ export default async function handler(req, res) {
 
     if (dbError || !dbImage) {
       console.error('❌ 데이터베이스에서 파일을 찾을 수 없음:', dbError);
-      return res.status(404).json({ error: 'File not found in database' });
+      
+      // 디버깅: 비슷한 파일명들을 찾아보기
+      console.log('🔍 비슷한 파일명 검색 중...');
+      const { data: similarFiles, error: similarError } = await supabase
+        .from('image_metadata')
+        .select('name, url')
+        .ilike('name', `%${oldName.split('-')[0]}%`)
+        .limit(5);
+      
+      if (!similarError && similarFiles) {
+        console.log('📋 비슷한 파일명들:', similarFiles.map(f => f.name));
+      }
+      
+      return res.status(404).json({ 
+        error: 'File not found in database',
+        searchedName: oldName,
+        similarFiles: similarFiles?.map(f => f.name) || []
+      });
     }
 
     console.log('📁 데이터베이스에서 찾은 파일:', dbImage);
