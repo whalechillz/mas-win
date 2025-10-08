@@ -204,6 +204,11 @@ export default function BlogAdmin() {
   const [variationStrength, setVariationStrength] = useState(0.7);
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
   
+  // 기존 이미지 변형 관련 상태
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [selectedExistingImage, setSelectedExistingImage] = useState('');
+  const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
+  
   // 간단 AI 이미지 개선 관련 상태
   const [simpleAIImageRequest, setSimpleAIImageRequest] = useState('');
   const [selectedImageForImprovement, setSelectedImageForImprovement] = useState('');
@@ -1641,6 +1646,103 @@ export default function BlogAdmin() {
     alert('개선된 콘텐츠가 적용되었습니다!');
   };
 
+  // 기존 이미지 변형 관련 함수들
+  const handleExistingImageVariation = async () => {
+    if (!selectedExistingImage) {
+      alert('변형할 이미지를 선택해주세요.');
+      return;
+    }
+
+    setIsGeneratingExistingVariation(true);
+    setImageGenerationStep('기존 이미지 변형 중...');
+    setImageGenerationModel('FAL AI (기존 이미지 변형)');
+    setShowGenerationProcess(true);
+
+    try {
+      // 기존 이미지의 프롬프트가 있는지 확인
+      let prompt = '';
+      try {
+        const promptResponse = await fetch('/api/get-image-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: selectedExistingImage })
+        });
+        
+        if (promptResponse.ok) {
+          const promptData = await promptResponse.json();
+          prompt = promptData.prompt || '';
+        }
+      } catch (error) {
+        console.warn('기존 프롬프트 조회 실패, AI로 생성:', error);
+      }
+
+      // 프롬프트가 없으면 AI로 생성
+      if (!prompt) {
+        setImageGenerationStep('이미지 분석 및 프롬프트 생성 중...');
+        const analysisResponse = await fetch('/api/analyze-image-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: selectedExistingImage,
+            title: editingPost?.title || '이미지 변형',
+            excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트'
+          })
+        });
+        
+        if (analysisResponse.ok) {
+          const analysisData = await analysisResponse.json();
+          prompt = analysisData.prompt || '';
+        }
+      }
+
+      // 프롬프트 미리보기에 표시
+      setGeneratedPrompt(prompt);
+      setShowPromptPreview(true);
+
+      // 변형 생성
+      setImageGenerationStep('FAL AI로 이미지 변형 중...');
+      const response = await fetch('/api/vary-existing-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedExistingImage,
+          prompt: prompt,
+          title: editingPost?.title || '이미지 변형',
+          excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
+          contentType: editingPost?.content_type || 'blog',
+          brandStrategy: editingPost?.brand_strategy || 'professional'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.imageUrl) {
+          // 변형된 이미지를 갤러리에 추가
+          setGeneratedImages(prev => [result.imageUrl, ...prev]);
+          setShowGeneratedImages(true);
+          
+          setImageGenerationStep('완료!');
+          alert('기존 이미지 변형이 완료되었습니다!');
+        } else {
+          throw new Error('변형된 이미지가 생성되지 않았습니다.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 변형에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('기존 이미지 변형 오류:', error);
+      alert('기존 이미지 변형 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingExistingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
   // 이미지 변형 관련 함수들
   const generateImageVariation = async (model) => {
     if (!selectedBaseImage) {
@@ -2766,7 +2868,7 @@ export default function BlogAdmin() {
 
                   {/* 단락별 이미지 일괄 생성 버튼들 */}
                   <div className="mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <button
                         type="button"
                         onClick={generateParagraphPrompts}
@@ -2808,10 +2910,32 @@ export default function BlogAdmin() {
                           '📷 단락별 이미지 일괄 생성'
                         )}
                       </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setShowExistingImageModal(true)}
+                        disabled={isGeneratingExistingVariation}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingExistingVariation 
+                            ? 'bg-gray-300 text-white cursor-not-allowed' 
+                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                        title="기존 이미지(갤러리/파일/URL)를 선택하여 비슷한 변형 이미지를 생성합니다"
+                      >
+                        {isGeneratingExistingVariation ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            변형 중...
+                          </span>
+                        ) : (
+                          '🔄 기존 이미지 변형'
+                        )}
+                      </button>
                                 </div>
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다<br/>
-                      <span className="text-blue-600 font-medium">생성할 이미지 개수: {imageGenerationCount}개</span> (단락 수와 연동)
+                      <span className="text-blue-600 font-medium">생성할 이미지 개수: {imageGenerationCount}개</span> (단락 수와 연동)<br/>
+                      <span className="text-purple-600 font-medium">기존 이미지 변형:</span> 갤러리/파일/URL에서 이미지를 선택하여 비슷한 변형 생성
                                   </p>
                                 </div>
 
