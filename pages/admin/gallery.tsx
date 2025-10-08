@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
@@ -121,6 +121,32 @@ export default function GalleryAdmin() {
   const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
   const [metadataAnimation, setMetadataAnimation] = useState(false);
   const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
+  const thumbnailStripRef = useRef<HTMLDivElement>(null);
+
+  // 썸네일을 가운데로 스크롤하는 함수
+  const scrollThumbnailToCenter = (imageName: string) => {
+    if (!thumbnailStripRef.current) return;
+    
+    const imagesToShow = navigateSelectedOnly 
+      ? filteredImages.filter(img => selectedImages.has(img.name))
+      : filteredImages;
+    
+    const targetIndex = imagesToShow.findIndex(img => img.name === imageName);
+    if (targetIndex === -1) return;
+    
+    const thumbnailWidth = 64; // w-16 = 64px
+    const gap = 8; // gap-2 = 8px
+    const containerWidth = thumbnailStripRef.current.clientWidth;
+    const thumbnailWithGap = thumbnailWidth + gap;
+    
+    // 가운데 위치 계산
+    const centerPosition = (targetIndex * thumbnailWithGap) - (containerWidth / 2) + (thumbnailWidth / 2);
+    
+    thumbnailStripRef.current.scrollTo({
+      left: Math.max(0, centerPosition),
+      behavior: 'smooth'
+    });
+  };
 
   // 확대보기 내 좌우 탐색 핸들러
   const showAdjacentImage = (direction: 'prev' | 'next') => {
@@ -145,6 +171,8 @@ export default function GalleryAdmin() {
     setTimeout(() => {
       setSelectedImageForZoom(imagesToNavigate[nextIndex]);
       setMetadataAnimation(false);
+      // 썸네일을 가운데로 스크롤
+      scrollThumbnailToCenter(imagesToNavigate[nextIndex].name);
     }, 150);
   };
 
@@ -166,6 +194,16 @@ export default function GalleryAdmin() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [selectedImageForZoom, filteredImages]);
+
+  // 모달이 열릴 때 현재 이미지의 썸네일을 가운데로 스크롤
+  useEffect(() => {
+    if (selectedImageForZoom && thumbnailStripRef.current) {
+      // 모달이 완전히 렌더링된 후 스크롤
+      setTimeout(() => {
+        scrollThumbnailToCenter(selectedImageForZoom.name);
+      }, 100);
+    }
+  }, [selectedImageForZoom]);
 
   // 일괄 편집/삭제 상태
   const [showBulkEdit, setShowBulkEdit] = useState(false);
@@ -2027,7 +2065,7 @@ export default function GalleryAdmin() {
               </div>
 
               {/* 썸네일 그리드 */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div ref={thumbnailStripRef} className="flex gap-2 overflow-x-auto pb-2">
                 {(navigateSelectedOnly 
                   ? filteredImages.filter(img => selectedImages.has(img.name))
                   : filteredImages
@@ -2068,6 +2106,8 @@ export default function GalleryAdmin() {
                           setTimeout(() => {
                             setSelectedImageForZoom(image);
                             setMetadataAnimation(false);
+                            // 썸네일을 가운데로 스크롤
+                            scrollThumbnailToCenter(image.name);
                           }, 150);
                         }
                       }}
