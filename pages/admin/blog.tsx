@@ -1777,10 +1777,19 @@ export default function BlogAdmin() {
       // 프롬프트 미리보기에 표시 (한글 개선 가능)
       setImageGenerationPrompt(prompt);
       
-      // 모달 닫고 프롬프트 미리보기 섹션으로 이동
+      // 선택된 이미지를 "생성된 이미지" 섹션에 추가
+      setGeneratedImages(prev => [selectedExistingImage, ...prev]);
+      setShowGeneratedImages(true);
+      
+      // 모달 닫고 상태 초기화
       setShowExistingImageModal(false);
+      setSelectedExistingImage('');
+      setActiveImageTab('upload');
       setImageGenerationStep('');
-      alert('프롬프트가 생성되었습니다. 프롬프트 미리보기에서 수정하거나 AI 이미지 생성 버튼을 클릭하세요.');
+      setIsGeneratingExistingVariation(false);
+      setShowGenerationProcess(false);
+      
+      alert('이미지와 프롬프트가 불러와졌습니다. "생성된 이미지" 섹션에서 확인하고 "프롬프트 미리보기"에서 수정하거나 AI 이미지 생성 버튼을 클릭하세요.');
       return;
     } catch (error) {
       console.error('기존 이미지 변형 오류:', error);
