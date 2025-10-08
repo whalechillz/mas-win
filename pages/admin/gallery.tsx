@@ -113,7 +113,8 @@ export default function GalleryAdmin() {
     keywords: '',
     title: '',
     description: '',
-    category: ''
+    category: '',
+    filename: ''
   });
 
   // 확대 모달 상태
@@ -122,6 +123,11 @@ export default function GalleryAdmin() {
   const [metadataAnimation, setMetadataAnimation] = useState(false);
   const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
+
+  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name + url 조합)
+  const getImageUniqueId = (image: ImageMetadata) => {
+    return image.id || `${image.name}-${image.url}`;
+  };
 
   // 썸네일을 가운데로 스크롤하는 함수
   const scrollThumbnailToCenter = (imageName: string) => {
@@ -154,7 +160,7 @@ export default function GalleryAdmin() {
     
     // 탐색할 이미지 배열 결정
     const imagesToNavigate = navigateSelectedOnly 
-      ? filteredImages.filter(img => selectedImages.has(img.name))
+      ? filteredImages.filter(img => selectedImages.has(getImageUniqueId(img)))
       : filteredImages;
     
     if (imagesToNavigate.length === 0) return;
@@ -378,7 +384,8 @@ export default function GalleryAdmin() {
       keywords: image.keywords?.join(', ') || '',
       title: image.title || '',
       description: image.description || '',
-      category: image.category || ''
+      category: image.category || '',
+      filename: image.name || ''
     });
   };
 
@@ -396,11 +403,32 @@ export default function GalleryAdmin() {
         return;
       }
 
+      // 파일명이 변경된 경우 먼저 파일명 변경 처리
+      if (editForm.filename && editForm.filename !== editingImage) {
+        console.log('📝 파일명 변경:', editingImage, '→', editForm.filename);
+        const renameResponse = await fetch('/api/admin/rename-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            oldName: editingImage,
+            newName: editForm.filename
+          })
+        });
+        
+        if (!renameResponse.ok) {
+          const errorData = await renameResponse.json();
+          alert(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}`);
+          return;
+        }
+        
+        console.log('✅ 파일명 변경 완료');
+      }
+
       const response = await fetch('/api/admin/image-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageName: editingImage,
+          imageName: editForm.filename || editingImage,
           imageUrl: image.url,
           alt_text: editForm.alt_text,
           keywords: keywords,
@@ -416,7 +444,7 @@ export default function GalleryAdmin() {
         // 로컬 상태 업데이트
         setImages(prev => prev.map(img => 
           img.name === editingImage 
-            ? { ...img, ...editForm, keywords }
+            ? { ...img, ...editForm, keywords, name: editForm.filename || editingImage }
             : img
         ));
         setEditingImage(null);
@@ -441,7 +469,8 @@ export default function GalleryAdmin() {
       keywords: '',
       title: '',
       description: '',
-      category: ''
+      category: '',
+      filename: ''
     });
   };
 
@@ -1541,6 +1570,42 @@ export default function GalleryAdmin() {
                   </button>
                 </div>
               </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">파일명 (SEO 최적화)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editForm.filename}
+                    onChange={(e) => setEditForm({ ...editForm, filename: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="SEO 최적화된 파일명을 입력하세요"
+                  />
+                  <button
+                    onClick={() => {
+                      if (!editForm.title && !editForm.keywords) {
+                        alert('SEO 파일명 생성을 위해 먼저 제목과 키워드를 입력해주세요.');
+                        return;
+                      }
+                      
+                      const seoFileName = generateSEOFileName(
+                        editForm.title || '골프 이미지',
+                        editForm.keywords || '',
+                        Math.floor(Math.random() * 999) + 1
+                      );
+                      
+                      setEditForm({ ...editForm, filename: seoFileName });
+                    }}
+                    className="px-3 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+                    title="제목과 키워드로 SEO 파일명 자동 생성"
+                  >
+                    🎯 SEO 생성
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  현재: {editingImage} → 변경 후: {editForm.filename || editingImage}
+                </div>
+              </div>
             </div>
             
             <div className="flex justify-end gap-3 p-4 border-t">
@@ -2075,13 +2140,14 @@ export default function GalleryAdmin() {
                       <div className="absolute top-1 left-1 z-10">
                         <input
                           type="checkbox"
-                          checked={selectedImages.has(image.name)}
+                          checked={selectedImages.has(getImageUniqueId(image))}
                           onChange={(e) => {
                             const newSelected = new Set(selectedImages);
+                            const uniqueId = getImageUniqueId(image);
                             if (e.target.checked) {
-                              newSelected.add(image.name);
+                              newSelected.add(uniqueId);
                             } else {
-                              newSelected.delete(image.name);
+                              newSelected.delete(uniqueId);
                             }
                             setSelectedImages(newSelected);
                           }}
@@ -2094,10 +2160,11 @@ export default function GalleryAdmin() {
                         if (thumbnailSelectMode) {
                           // 선택 모드에서는 체크박스 토글
                           const newSelected = new Set(selectedImages);
-                          if (selectedImages.has(image.name)) {
-                            newSelected.delete(image.name);
+                          const uniqueId = getImageUniqueId(image);
+                          if (selectedImages.has(uniqueId)) {
+                            newSelected.delete(uniqueId);
                           } else {
-                            newSelected.add(image.name);
+                            newSelected.add(uniqueId);
                           }
                           setSelectedImages(newSelected);
                         } else {
@@ -2114,7 +2181,7 @@ export default function GalleryAdmin() {
                       className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                         selectedImageForZoom?.name === image.name
                           ? 'border-blue-500 ring-2 ring-blue-200'
-                          : selectedImages.has(image.name)
+                          : selectedImages.has(getImageUniqueId(image))
                           ? 'border-green-500 ring-2 ring-green-200'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
