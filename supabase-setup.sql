@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS image_metadata (
   width INTEGER,
   height INTEGER,
   format VARCHAR(20),
+  upload_source VARCHAR(50) DEFAULT 'manual', -- 'manual', 'file_upload', 'ai_generated'
+  status VARCHAR(20) DEFAULT 'active', -- 'active', 'deleted', 'broken'
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
