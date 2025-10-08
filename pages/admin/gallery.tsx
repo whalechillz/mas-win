@@ -491,6 +491,90 @@ export default function GalleryAdmin() {
                 >
                   🔎 SEO/ALT 미리보기
                 </button>
+                <button
+                  type="button"
+                  onClick={async()=>{
+                    if (!confirm(`선택된 ${selectedImages.size}개 이미지에 대해 AI 메타데이터를 일괄 생성하시겠습니까?\n\n이 작업은 시간이 걸릴 수 있습니다.`)) return;
+                    
+                    const selectedImageList = Array.from(selectedImages).map(name => images.find(img => img.name === name)).filter(Boolean);
+                    let completed = 0;
+                    let failed = 0;
+                    
+                    for (const image of selectedImageList) {
+                      try {
+                        // OpenAI Vision API로 ALT 텍스트와 설명 생성
+                        const openaiResponse = await fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: image.title || '이미지',
+                            excerpt: image.description || 'AI 메타데이터 생성'
+                          })
+                        });
+
+                        let altText = '';
+                        let description = '';
+                        if (openaiResponse.ok) {
+                          const openaiData = await openaiResponse.json();
+                          altText = openaiData.prompt || '';
+                          description = openaiData.prompt || '';
+                        }
+
+                        // Google Vision API로 태그 생성
+                        const googleResponse = await fetch('/api/admin/image-ai-analyzer', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            imageId: image.name
+                          })
+                        });
+
+                        let tags = [];
+                        if (googleResponse.ok) {
+                          const googleData = await googleResponse.json();
+                          tags = googleData.tags || [];
+                        }
+
+                        // 메타데이터 업데이트
+                        const updateResponse = await fetch('/api/admin/image-metadata-batch', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            imageUrls: [image.url],
+                            updates: {
+                              alt_text: altText,
+                              description: description,
+                              tags: tags
+                            }
+                          })
+                        });
+
+                        if (updateResponse.ok) {
+                          completed++;
+                        } else {
+                          failed++;
+                        }
+
+                        // 진행 상태 표시
+                        console.log(`AI 분석 진행: ${completed + failed}/${selectedImageList.length}`);
+                        
+                      } catch (error) {
+                        console.error('AI 분석 오류:', error);
+                        failed++;
+                      }
+                    }
+                    
+                    alert(`AI 메타데이터 일괄 생성 완료!\n\n✅ 성공: ${completed}개\n❌ 실패: ${failed}개`);
+                    
+                    // 갤러리 새로고침
+                    fetchImages(1, true);
+                  }}
+                  className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                >
+                  🤖 AI 일괄 분석
+                </button>
                 {seoPreview && (
                   <button
                     type="button"
@@ -689,14 +773,29 @@ export default function GalleryAdmin() {
                           </div>
                         )}
                         
-                        {/* 사용 현황 */}
+                        {/* 사용 현황 및 파일 정보 */}
                         <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{image.usage_count || 0}회 사용</span>
-                          {image.is_featured && (
-                            <span className="px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs">
-                              ⭐ 대표
-                            </span>
-                          )}
+                          <div className="flex flex-col">
+                            <span>{image.usage_count || 0}회 사용</span>
+                            {image.file_size && (
+                              <span>{(image.file_size / 1024).toFixed(1)}KB</span>
+                            )}
+                            {image.width && image.height && (
+                              <span>{image.width}×{image.height}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end">
+                            {image.is_featured && (
+                              <span className="px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs mb-1">
+                                ⭐ 대표
+                              </span>
+                            )}
+                            {image.optimized_versions && (
+                              <span className="px-1 py-0.5 bg-green-200 text-green-800 rounded text-xs">
+                                📱 최적화됨
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
