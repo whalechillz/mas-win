@@ -17,6 +17,10 @@ export default async function handler(req, res) {
     }
 
     console.log('🔍 이미지 프롬프트 조회 시작:', imageUrl);
+    console.log('🔧 Supabase 설정 확인:', {
+      url: supabaseUrl ? '설정됨' : '누락',
+      key: supabaseServiceKey ? '설정됨' : '누락'
+    });
 
     // image_metadata 테이블에서 해당 이미지의 프롬프트 조회
     const { data: metadata, error } = await supabase

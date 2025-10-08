@@ -18,6 +18,7 @@ export default async function handler(req, res) {
     }
 
     console.log('🔍 이미지 프롬프트 분석 시작:', imageUrl);
+    console.log('🔧 OpenAI API 키 확인:', process.env.OPENAI_API_KEY ? '설정됨' : '누락');
 
     // OpenAI Vision API를 사용하여 이미지 분석
     const response = await openai.chat.completions.create({
