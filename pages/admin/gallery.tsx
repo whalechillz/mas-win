@@ -2055,14 +2055,45 @@ export default function GalleryAdmin() {
                   </button>
                   
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const newFileName = prompt(
                         '새로운 파일명을 입력하세요 (확장자 제외):',
                         selectedImageForZoom.name.replace(/\.[^/.]+$/, '')
                       );
                       if (newFileName && newFileName.trim() !== '') {
-                        // 파일명 변경 로직 구현 필요
-                        alert(`파일명을 "${newFileName}"로 변경하는 기능은 추후 구현됩니다.`);
+                        try {
+                          const response = await fetch('/api/admin/rename-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              oldName: selectedImageForZoom.name,
+                              newName: newFileName.trim()
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            // 이미지 목록에서 파일명 업데이트
+                            setImages(prev => prev.map(img => 
+                              img.name === selectedImageForZoom.name 
+                                ? { ...img, name: newFileName.trim() }
+                                : img
+                            ));
+                            
+                            // 현재 확대된 이미지의 파일명도 업데이트
+                            setSelectedImageForZoom(prev => ({
+                              ...prev,
+                              name: newFileName.trim()
+                            }));
+                            
+                            alert(`파일명이 "${newFileName}"로 성공적으로 변경되었습니다.`);
+                          } else {
+                            const errorData = await response.json();
+                            alert(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}`);
+                          }
+                        } catch (error) {
+                          console.error('❌ 파일명 변경 오류:', error);
+                          alert('파일명 변경 중 오류가 발생했습니다.');
+                        }
                       }
                     }}
                     className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
@@ -2072,7 +2103,7 @@ export default function GalleryAdmin() {
                   </button>
                   
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!selectedImageForZoom.alt_text || !selectedImageForZoom.keywords) {
                         alert('SEO 파일명 생성을 위해 먼저 ALT 텍스트와 키워드를 생성해주세요.');
                         return;
@@ -2090,8 +2121,39 @@ export default function GalleryAdmin() {
                       );
                       
                       if (newFileName && newFileName.trim() !== '') {
-                        // SEO 파일명 적용 로직 구현 필요
-                        alert(`SEO 파일명 "${newFileName}"을 적용하는 기능은 추후 구현됩니다.`);
+                        try {
+                          const response = await fetch('/api/admin/rename-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              oldName: selectedImageForZoom.name,
+                              newName: newFileName.trim()
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            // 이미지 목록에서 파일명 업데이트
+                            setImages(prev => prev.map(img => 
+                              img.name === selectedImageForZoom.name 
+                                ? { ...img, name: newFileName.trim() }
+                                : img
+                            ));
+                            
+                            // 현재 확대된 이미지의 파일명도 업데이트
+                            setSelectedImageForZoom(prev => ({
+                              ...prev,
+                              name: newFileName.trim()
+                            }));
+                            
+                            alert(`SEO 파일명 "${newFileName}"이 성공적으로 적용되었습니다.`);
+                          } else {
+                            const errorData = await response.json();
+                            alert(`SEO 파일명 적용에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}`);
+                          }
+                        } catch (error) {
+                          console.error('❌ SEO 파일명 적용 오류:', error);
+                          alert('SEO 파일명 적용 중 오류가 발생했습니다.');
+                        }
                       }
                     }}
                     className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
