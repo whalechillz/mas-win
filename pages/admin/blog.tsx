@@ -24,7 +24,7 @@ export default function BlogAdmin() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  
   // AI 이미지 생성 관련 상태
   const [generatedImages, setGeneratedImages] = useState([]);
   const [showGeneratedImages, setShowGeneratedImages] = useState(false);
@@ -271,13 +271,13 @@ export default function BlogAdmin() {
   const [simpleAIImageRequest, setSimpleAIImageRequest] = useState('');
   const [selectedImageForImprovement, setSelectedImageForImprovement] = useState('');
   const [isImprovingImage, setIsImprovingImage] = useState(false);
-
+  
   // 저장된 프롬프트 관리 상태
   const [savedPrompts, setSavedPrompts] = useState([]);
   const [expandedPromptId, setExpandedPromptId] = useState(null);
   const [editingPromptId, setEditingPromptId] = useState(null);
   const [editingKoreanPrompt, setEditingKoreanPrompt] = useState('');
-
+  
   // 네이버 블로그 마이그레이션 관련 상태
   const [showNaverMigration, setShowNaverMigration] = useState(false);
   const [naverBlogUrl, setNaverBlogUrl] = useState('');
@@ -1633,7 +1633,7 @@ export default function BlogAdmin() {
 
     setIsImprovingContent(true);
     setImprovementProcess('AI가 콘텐츠를 분석하고 개선 중입니다...');
-
+    
     try {
       const response = await fetch('/api/improve-content', {
         method: 'POST',
@@ -1646,7 +1646,7 @@ export default function BlogAdmin() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
         setImprovedContent(data.improvedContent);
         setShowImprovedContent(true);
         setImprovementProcess('콘텐츠 개선이 완료되었습니다!');
@@ -1674,7 +1674,7 @@ export default function BlogAdmin() {
       const response = await fetch('/api/simple-ai-improvement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           content: formData.content,
           request: simpleAIRequest
         })
@@ -1851,8 +1851,8 @@ export default function BlogAdmin() {
       let prompt = '';
       try {
         const promptResponse = await fetch('/api/get-image-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ imageUrl: selectedExistingImage })
         });
         
@@ -3591,7 +3591,7 @@ export default function BlogAdmin() {
                             }}
                             onDrop={async (e) => {
                               e.preventDefault();
-                              e.stopPropagation();
+                                    e.stopPropagation();
                               const files = e.dataTransfer.files;
                               if (files.length > 0) {
                                 await handleFileUpload(files[0]);
@@ -3605,7 +3605,7 @@ export default function BlogAdmin() {
                                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                 </label>
-                              </div>
+                                              </div>
                               <div>
                                 <label htmlFor="file-upload" className="cursor-pointer">
                                   <span className="mt-2 block text-sm font-medium text-gray-900">
@@ -3628,8 +3628,8 @@ export default function BlogAdmin() {
                                     }
                                   }}
                                 />
-                                              </div>
-                                            </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         )}
@@ -3662,15 +3662,15 @@ export default function BlogAdmin() {
                                 if (selectedExistingImage) {
                                   setShowExistingImageModal(false);
                                   handleLoadExistingImageAndPrompt();
-                                } else {
+                              } else {
                                   alert('먼저 이미지 URL을 입력해주세요.');
                                 }
                               }
                             }}
                           />
-                              </div>
-                        )}
-                        
+              </div>
+            )}
+            
                         {/* 선택된 이미지 미리보기 */}
                         {selectedExistingImage && (
                           <div className="space-y-4">
@@ -3688,14 +3688,14 @@ export default function BlogAdmin() {
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-800">이미지가 선택되었습니다</p>
                                 <p className="text-xs text-gray-600 truncate">{selectedExistingImage}</p>
-                        </div>
-                        <button
-                          type="button"
+          </div>
+                <button
+                  type="button"
                                 onClick={() => setSelectedExistingImage('')}
                                 className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
-                              >
+              >
                                 선택 해제
-                        </button>
+              </button>
                       </div>
               </div>
             )}
@@ -3744,7 +3744,7 @@ export default function BlogAdmin() {
                     <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-900">🖼️ 갤러리에서 이미지 선택</h3>
-                        <button
+                                  <button
                           type="button"
                           onClick={() => {
                             setShowGallerySelection(false);
@@ -3753,8 +3753,8 @@ export default function BlogAdmin() {
                           className="text-gray-500 hover:text-gray-700"
                         >
                           ✕
-                        </button>
-                      </div>
+                                  </button>
+                                </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {galleryImages.map((image, index) => (
@@ -3780,21 +3780,21 @@ export default function BlogAdmin() {
                               <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                                 선택
                               </span>
-                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
+                    </div>
                       
                       {galleryImages.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           갤러리에 이미지가 없습니다.
-                        </div>
+              </div>
                       )}
                       
                       <div className="flex justify-end mt-6">
-                        <button
-                          type="button"
-                          onClick={() => {
+                      <button
+                        type="button"
+                                onClick={() => {
                             setShowGallerySelection(false);
                             setGalleryImages([]);
                           }}
@@ -3802,9 +3802,9 @@ export default function BlogAdmin() {
                         >
                           취소
                         </button>
-                      </div>
-                    </div>
-                  </div>
+                              </div>
+                              </div>
+                              </div>
                 )}
 
                 {/* 이미지 갤러리 섹션 - 아코디언 */}
@@ -3813,7 +3813,7 @@ export default function BlogAdmin() {
                   <div className="flex items-center space-x-2">
                       <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
                       <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
-                    </div>
+                            </div>
                     <div className="flex items-center space-x-2">
                       <Link
                         href="/admin/gallery"
@@ -3821,20 +3821,20 @@ export default function BlogAdmin() {
                       >
                         📚 갤러리 관리
                       </Link>
-                                  <button
-                                  type="button"
+                <button
+                  type="button"
                         onClick={toggleGallery}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                                   >
                         {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
-                                  </button>
+                                </button>
                       {totalImagesCount > 0 && (
                         <span className="text-sm text-gray-600">
                           총 {totalImagesCount}개
                         </span>
                       )}
-                                </div>
-                              </div>
+              </div>
+                  </div>
                   
                   {/* 갤러리 내용 - 아코디언 */}
                   {isGalleryOpen && (
@@ -3844,7 +3844,7 @@ export default function BlogAdmin() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium text-gray-700">필터:</span>
-                                  <button
+                      <button
                         type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'all' 
@@ -3854,8 +3854,8 @@ export default function BlogAdmin() {
                               onClick={() => setGalleryFilter('all')}
                             >
                               전체
-                                  </button>
-                                  <button
+                      </button>
+                            <button
                               type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'featured' 
@@ -3865,8 +3865,8 @@ export default function BlogAdmin() {
                               onClick={() => setGalleryFilter('featured')}
                             >
                               ⭐ 대표 이미지만
-                                  </button>
-                                  <button
+                            </button>
+                      <button
                         type="button"
                               className={`px-3 py-1 rounded text-sm ${
                                 galleryFilter === 'search' 
@@ -3876,16 +3876,16 @@ export default function BlogAdmin() {
                               onClick={() => setGalleryFilter('search')}
                             >
                               🔍 검색
-                                  </button>
-                                </div>
-                                  <button
+                      </button>
+                    </div>
+                          <button
                             type="button"
                             onClick={() => fetchImageGallery(1, true)}
                             className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
                                   >
                             🔄 새로고침
-                                  </button>
-                                </div>
+                          </button>
+                        </div>
                         
                         {galleryFilter === 'search' && (
                           <div className="flex items-center space-x-2">
@@ -3896,16 +3896,16 @@ export default function BlogAdmin() {
                               placeholder="이미지 이름으로 검색..."
                               className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
                     />
-                              <button
+                    <button
                       type="button"
                               onClick={() => setGallerySearchQuery('')}
                               className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
                               >
                               지우기
-                              </button>
-                </div>
+                    </button>
+                  </div>
                             )}
-                          </div>
+                </div>
                 
                       {/* 이미지 갤러리 컨트롤 */}
                       {getFilteredImages().length > 0 && (
@@ -3913,25 +3913,25 @@ export default function BlogAdmin() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
+                      <input
+                        type="checkbox"
                                   checked={getFilteredImages().length > 0 && selectedImages.size === getFilteredImages().length}
                           onChange={handleSelectAllImages}
                                   className="rounded border-gray-300"
                         />
                                 <span className="text-sm text-gray-700">
                                   전체 선택 ({selectedImages.size}/{getFilteredImages().length}개 표시)
-                        </span>
-          </label>
-                    </div>
+                          </span>
+            </label>
+                      </div>
                     {selectedImages.size > 0 && (
-                      <button
-                        type="button"
+                        <button
+                          type="button"
                                 onClick={deleteSelectedImages}
                                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
                               >
                                 🗑️ 선택된 이미지 삭제 ({selectedImages.size}개)
-                      </button>
+                        </button>
                     )}
                   </div>
                             </div>
@@ -3967,7 +3967,7 @@ export default function BlogAdmin() {
                               <div className="p-2 bg-white">
                                 <div className="text-xs text-gray-600 truncate" title={baseName}>
                                   {baseName}
-                              </div>
+                            </div>
                                 <div className="text-[11px] text-gray-500 flex items-center justify-between gap-2">
                                   <span className="truncate">ALT: {representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
                                   <button
@@ -3976,7 +3976,7 @@ export default function BlogAdmin() {
                                     onClick={(e) => { e.stopPropagation(); const newAlt = window.prompt('ALT 텍스트를 입력하세요', representativeImage.altText || representativeImage.name); if (newAlt !== null) updateImageMetadata(representativeImage.name, { altText: newAlt }); }}
                                     className="px-1 py-0.5 text-[11px] bg-gray-100 hover:bg-gray-200 rounded"
                                   >✎ 수정</button>
-                              </div>
+                          </div>
                                 <div className="text-[11px] text-gray-400 flex items-center justify-between">
                                   <span>버전 {group.length}</span>
                                   {isFeaturedImage(representativeImage.url) && (
@@ -3985,8 +3985,8 @@ export default function BlogAdmin() {
                                 </span>
                                   )}
                               </div>
-                            </div>
-                              </div>
+                          </div>
+                        </div>
                   
                             {/* 개별 이미지 선택 체크박스 */}
                             <div className="absolute top-2 left-2">
@@ -4011,13 +4011,13 @@ export default function BlogAdmin() {
                                 className="rounded border-gray-300"
                                 onClick={(e) => e.stopPropagation()}
                     />
-                              </div>
+            </div>
                   
                             {/* 호버 액션 */}
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center">
-                                <button
-                                  type="button"
+                    <button
+                      type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (isFeaturedImage(representativeImage.url)) {
@@ -4035,9 +4035,9 @@ export default function BlogAdmin() {
                                   }`}
                     >
                                   {isFeaturedImage(representativeImage.url) ? '⭐ 해제' : '⭐ 대표'}
-                                </button>
-                <button
-                  type="button"
+                    </button>
+                    <button
+                      type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     const preferredUrl = forceHttps(representativeImage.url);
@@ -4050,9 +4050,9 @@ export default function BlogAdmin() {
                                   className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                                 >
                                   ➕ 삽입
-                                </button>
-                                <button
-                                  type="button"
+                    </button>
+                    <button
+                      type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     copyImageUrl(forceHttps(representativeImage.url));
@@ -4087,13 +4087,13 @@ export default function BlogAdmin() {
                                   className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
                                 >
                                   🔍 분석
-                </button>
+                    </button>
             </div>
-                            </div>
-                          </div>
+          </div>
+              </div>
                           );
                         })}
-                      </div>
+            </div>
                         ) : (
                           <div className="text-center py-12 text-gray-500">
                             <div className="text-4xl mb-4">🖼️</div>
@@ -4107,37 +4107,37 @@ export default function BlogAdmin() {
                                galleryFilter === 'search' ? '다른 검색어를 시도해보세요' :
                                '위의 AI 이미지 생성 기능을 사용하거나 이미지를 업로드하세요'}
                 </p>
-              </div>
+                </div>
                         )}
 
                       {/* 페이지네이션 컨트롤 */}
                       {getFilteredImages().length > 0 && galleryFilter === 'all' && (
                     <div className="mt-6 flex items-center justify-center space-x-4">
-                        <button
-                          type="button"
+                      <button
+                        type="button"
                         onClick={() => handlePageChange(1)}
                         disabled={currentPage === 1}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         첫 페이지
-                        </button>
-                    <button
-                      type="button"
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         이전
-                    </button>
+                      </button>
                     
                       <div className="flex items-center space-x-2">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
                           if (pageNum > totalPages) return null;
                           return (
-                    <button
+                      <button
                               key={pageNum}
-                      type="button"
+                        type="button"
                               onClick={() => handlePageChange(pageNum)}
                               className={`px-3 py-2 text-sm border rounded-lg ${
                                 currentPage === pageNum
@@ -4146,28 +4146,28 @@ export default function BlogAdmin() {
                               }`}
                             >
                               {pageNum}
-                    </button>
+                      </button>
                           );
                         })}
-                </div>
+                    </div>
 
-                      <button
-                        type="button"
+                        <button
+                          type="button"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         다음
-                      </button>
-                      <button
-                        type="button"
+                        </button>
+                        <button
+                          type="button"
                         onClick={() => handlePageChange(totalPages)}
                         disabled={currentPage === totalPages}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         마지막 페이지
-                      </button>
-                    </div>
+                        </button>
+        </div>
                   )}
 
                       {/* 로딩 상태 표시 */}
