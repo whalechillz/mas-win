@@ -912,12 +912,113 @@ export default function GalleryAdmin() {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-800">이미지 메타데이터 편집</h3>
-              <button
-                onClick={cancelEdit}
-                className="text-gray-500 hover:text-gray-700 text-xl"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    if (!editingImage) return;
+                    const image = images.find(img => img.name === editingImage);
+                    if (!image) return;
+                    
+                    if (!confirm('모든 메타데이터를 AI로 생성하시겠습니까?\n\nALT 텍스트, 키워드, 제목, 설명이 모두 생성됩니다.')) return;
+                    
+                    try {
+                      console.log('🤖 전체 AI 메타데이터 생성 시작:', image.url);
+                      
+                      // 모든 AI 요청을 병렬로 실행
+                      const [altResponse, keywordResponse, titleResponse, descResponse] = await Promise.allSettled([
+                        fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: '이미지 분석',
+                            excerpt: 'AI 메타데이터 자동 생성'
+                          })
+                        }),
+                        fetch('/api/admin/image-ai-analyzer', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            imageId: null
+                          })
+                        }),
+                        fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: '이미지 제목',
+                            excerpt: '이미지 제목 생성'
+                          })
+                        }),
+                        fetch('/api/analyze-image-prompt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: image.url,
+                            title: '이미지 설명',
+                            excerpt: '이미지 설명 생성'
+                          })
+                        })
+                      ]);
+                      
+                      // 결과 처리
+                      let altText = '';
+                      let keywords = '';
+                      let title = '';
+                      let description = '';
+                      
+                      if (altResponse.status === 'fulfilled' && altResponse.value.ok) {
+                        const data = await altResponse.value.json();
+                        altText = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                      }
+                      
+                      if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
+                        const data = await keywordResponse.value.json();
+                        keywords = (data.tags || []).join(', ');
+                      }
+                      
+                      if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
+                        const data = await titleResponse.value.json();
+                        const cleanPrompt = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                        title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
+                      }
+                      
+                      if (descResponse.status === 'fulfilled' && descResponse.value.ok) {
+                        const data = await descResponse.value.json();
+                        description = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                      }
+                      
+                      // 폼 업데이트
+                      setEditForm({
+                        ...editForm,
+                        alt_text: altText,
+                        keywords: keywords,
+                        title: title,
+                        description: description
+                      });
+                      
+                      console.log('✅ 전체 AI 메타데이터 생성 완료');
+                      alert('모든 메타데이터가 AI로 생성되었습니다!');
+                      
+                    } catch (error) {
+                      console.error('❌ 전체 AI 생성 오류:', error);
+                      alert(`AI 메타데이터 생성 중 오류가 발생했습니다.\n오류: ${error.message}`);
+                    }
+                  }}
+                  className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                  title="모든 메타데이터를 AI로 한 번에 생성"
+                >
+                  🤖 전체 AI 생성
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
             <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
@@ -954,7 +1055,9 @@ export default function GalleryAdmin() {
                         if (response.ok) {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
-                          setEditForm({ ...editForm, alt_text: data.prompt || '' });
+                          // "Prompt:" 접두사 제거
+                          const cleanAltText = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                          setEditForm({ ...editForm, alt_text: cleanAltText });
                         } else {
                           const errorData = await response.json();
                           console.error('❌ API 오류 응답:', errorData);
@@ -1058,8 +1161,9 @@ export default function GalleryAdmin() {
                         if (response.ok) {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
-                          // 프롬프트에서 간단한 제목 추출
-                          const title = data.prompt?.split(',')[0]?.trim() || 'AI 생성 제목';
+                          // "Prompt:" 접두사 제거하고 간단한 제목 추출
+                          const cleanPrompt = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                          const title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
                           setEditForm({ ...editForm, title });
                         } else {
                           const errorData = await response.json();
@@ -1112,7 +1216,9 @@ export default function GalleryAdmin() {
                         if (response.ok) {
                           const data = await response.json();
                           console.log('✅ AI 응답 데이터:', data);
-                          setEditForm({ ...editForm, description: data.prompt || '' });
+                          // "Prompt:" 접두사 제거
+                          const cleanDescription = (data.prompt || '').replace(/^\*\*Prompt:\*\*\s*/i, '').trim();
+                          setEditForm({ ...editForm, description: cleanDescription });
                         } else {
                           const errorData = await response.json();
                           console.error('❌ API 오류 응답:', errorData);
