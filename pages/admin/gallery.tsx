@@ -1556,23 +1556,59 @@ export default function GalleryAdmin() {
       {/* 카테고리 관리 모달 */}
       {categoryModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold">카테고리 관리</h3>
+              <h3 className="text-lg font-semibold">📂 카테고리 관리</h3>
               <button onClick={()=>setCategoryModalOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
-            <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
-              <div className="flex gap-2">
-                <input placeholder="이름" className="flex-1 px-2 py-1 border rounded" value={editingCategory?.name||''} onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), name:e.target.value })} />
-                <input placeholder="슬러그(선택)" className="flex-1 px-2 py-1 border rounded" value={editingCategory?.slug||''} onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), slug:e.target.value })} />
-                <button onClick={async()=>{
-                  const body = { id: editingCategory?.id, name: editingCategory?.name, slug: editingCategory?.slug };
-                  if (!body.name) return alert('이름을 입력하세요.');
-                  const res = await fetch('/api/admin/image-categories', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-                  if (res.ok) { const r = await res.json(); setEditingCategory(null); const list = await (await fetch('/api/admin/image-categories')).json(); setCategories(list.categories||[]); }
-                }} className="px-3 py-1 bg-indigo-500 text-white rounded">저장</button>
+            <div className="p-4 space-y-4 max-h-[70vh] overflow-auto">
+              {/* 카테고리 추가/편집 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-3">새 카테고리 추가</h4>
+                <div className="flex gap-2">
+                  <input 
+                    placeholder="카테고리 이름 (예: 드라이버, 아이언, 퍼터)" 
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" 
+                    value={editingCategory?.name||''} 
+                    onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), name:e.target.value })} 
+                  />
+                  <input 
+                    placeholder="슬러그 (자동생성)" 
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" 
+                    value={editingCategory?.slug||''} 
+                    onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), slug:e.target.value })} 
+                  />
+                  <input 
+                    placeholder="설명 (선택)" 
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" 
+                    value={editingCategory?.description||''} 
+                    onChange={(e)=>setEditingCategory({ ...(editingCategory||{}), description:e.target.value })} 
+                  />
+                  <button onClick={async()=>{
+                    const body = { 
+                      id: editingCategory?.id, 
+                      name: editingCategory?.name, 
+                      slug: editingCategory?.slug || editingCategory?.name?.toLowerCase().replace(/\s+/g, '-'),
+                      description: editingCategory?.description
+                    };
+                    if (!body.name) return alert('카테고리 이름을 입력하세요.');
+                    const res = await fetch('/api/admin/image-categories', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                    if (res.ok) { 
+                      const r = await res.json(); 
+                      setEditingCategory(null); 
+                      const list = await (await fetch('/api/admin/image-categories')).json(); 
+                      setCategories(list.categories||[]); 
+                    }
+                  }} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">
+                    {editingCategory?.id ? '수정' : '추가'}
+                  </button>
+                </div>
               </div>
-              <div className="divide-y">
+              
+              {/* 카테고리 목록 */}
+              <div className="bg-white border rounded-lg">
+                <h4 className="font-medium p-4 border-b">기존 카테고리 목록</h4>
+                <div className="divide-y">
                 {categories.map((c)=> (
                   <div key={c.id} className="py-2 flex items-center gap-2">
                     <div className="flex-1">
@@ -1592,23 +1628,65 @@ export default function GalleryAdmin() {
       {/* 태그 관리 모달 */}
       {tagModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold">태그 관리</h3>
+              <h3 className="text-lg font-semibold">🏷️ 태그 관리</h3>
               <button onClick={()=>setTagModalOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
-            <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
-              <div className="flex gap-2">
-                <input placeholder="이름" className="flex-1 px-2 py-1 border rounded" value={editingTag?.name||''} onChange={(e)=>setEditingTag({ ...(editingTag||{}), name:e.target.value })} />
-                <input placeholder="슬러그(선택)" className="flex-1 px-2 py-1 border rounded" value={editingTag?.slug||''} onChange={(e)=>setEditingTag({ ...(editingTag||{}), slug:e.target.value })} />
-                <button onClick={async()=>{
-                  const body = { id: editingTag?.id, name: editingTag?.name, slug: editingTag?.slug };
-                  if (!body.name) return alert('이름을 입력하세요.');
-                  const res = await fetch('/api/admin/image-tags', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-                  if (res.ok) { const r = await res.json(); setEditingTag(null); const list = await (await fetch('/api/admin/image-tags')).json(); setTags(list.tags||[]); }
-                }} className="px-3 py-1 bg-violet-500 text-white rounded">저장</button>
+            <div className="p-4 space-y-4 max-h-[70vh] overflow-auto">
+              {/* 태그 추가/편집 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-3">새 태그 추가</h4>
+                <div className="flex gap-2">
+                  <input 
+                    placeholder="태그 이름 (예: 드라이버, 스윙, 골프장)" 
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-violet-500" 
+                    value={editingTag?.name||''} 
+                    onChange={(e)=>setEditingTag({ ...(editingTag||{}), name:e.target.value })} 
+                  />
+                  <input 
+                    placeholder="슬러그 (자동생성)" 
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-violet-500" 
+                    value={editingTag?.slug||''} 
+                    onChange={(e)=>setEditingTag({ ...(editingTag||{}), slug:e.target.value })} 
+                  />
+                  <select 
+                    className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-violet-500"
+                    value={editingTag?.color||'blue'}
+                    onChange={(e)=>setEditingTag({ ...(editingTag||{}), color:e.target.value })}
+                  >
+                    <option value="blue">🔵 파란색</option>
+                    <option value="green">🟢 초록색</option>
+                    <option value="red">🔴 빨간색</option>
+                    <option value="yellow">🟡 노란색</option>
+                    <option value="purple">🟣 보라색</option>
+                    <option value="orange">🟠 주황색</option>
+                  </select>
+                  <button onClick={async()=>{
+                    const body = { 
+                      id: editingTag?.id, 
+                      name: editingTag?.name, 
+                      slug: editingTag?.slug || editingTag?.name?.toLowerCase().replace(/\s+/g, '-'),
+                      color: editingTag?.color || 'blue'
+                    };
+                    if (!body.name) return alert('태그 이름을 입력하세요.');
+                    const res = await fetch('/api/admin/image-tags', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                    if (res.ok) { 
+                      const r = await res.json(); 
+                      setEditingTag(null); 
+                      const list = await (await fetch('/api/admin/image-tags')).json(); 
+                      setTags(list.tags||[]); 
+                    }
+                  }} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600">
+                    {editingTag?.id ? '수정' : '추가'}
+                  </button>
+                </div>
               </div>
-              <div className="divide-y">
+              
+              {/* 태그 목록 */}
+              <div className="bg-white border rounded-lg">
+                <h4 className="font-medium p-4 border-b">기존 태그 목록</h4>
+                <div className="divide-y">
                 {tags.map((t)=> (
                   <div key={t.id} className="py-2 flex items-center gap-2">
                     <div className="flex-1">
