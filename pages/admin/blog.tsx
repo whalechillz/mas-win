@@ -1647,6 +1647,61 @@ export default function BlogAdmin() {
   };
 
   // 기존 이미지 변형 관련 함수들
+  const handleExistingImageVariationWithPrompt = async (improvedPrompt) => {
+    if (!selectedExistingImage) {
+      alert('변형할 이미지를 선택해주세요.');
+      return;
+    }
+
+    setIsGeneratingExistingVariation(true);
+    setImageGenerationStep('FAL AI로 이미지 변형 중...');
+    setImageGenerationModel('FAL AI (기존 이미지 변형)');
+    setShowGenerationProcess(true);
+
+    try {
+      // 변형 생성
+      const response = await fetch('/api/vary-existing-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedExistingImage,
+          prompt: improvedPrompt,
+          title: editingPost?.title || '이미지 변형',
+          excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
+          contentType: editingPost?.content_type || 'blog',
+          brandStrategy: editingPost?.brand_strategy || 'professional'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.imageUrl) {
+          // 변형된 이미지를 갤러리에 추가
+          setGeneratedImages(prev => [result.imageUrl, ...prev]);
+          setShowGeneratedImages(true);
+          
+          setImageGenerationStep('완료!');
+          alert('기존 이미지 변형이 완료되었습니다!');
+        } else {
+          throw new Error('변형된 이미지가 생성되지 않았습니다.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 변형에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('기존 이미지 변형 오류:', error);
+      alert('기존 이미지 변형 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingExistingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
   const handleExistingImageVariation = async () => {
     if (!selectedExistingImage) {
       alert('변형할 이미지를 선택해주세요.');
@@ -1695,9 +1750,19 @@ export default function BlogAdmin() {
         }
       }
 
-      // 프롬프트 미리보기에 표시
+      // 프롬프트 미리보기에 표시 (한글 개선 가능)
       setGeneratedPrompt(prompt);
       setShowPromptPreview(true);
+
+      // 사용자에게 프롬프트 개선 기회 제공
+      const shouldImprove = confirm(`프롬프트가 생성되었습니다.\n\n"확인"을 누르면 현재 프롬프트로 변형을 시작합니다.\n"취소"를 누르면 프롬프트를 한글로 개선할 수 있습니다.`);
+      
+      if (!shouldImprove) {
+        // 프롬프트 개선 모드로 전환
+        setImageGenerationStep('');
+        alert('프롬프트 미리보기에서 한글로 수정사항을 입력하고 "프롬프트 개선" 버튼을 클릭하세요.');
+        return;
+      }
 
       // 변형 생성
       setImageGenerationStep('FAL AI로 이미지 변형 중...');
@@ -2713,7 +2778,16 @@ export default function BlogAdmin() {
                                     const result = await response.json();
                                     setImageGenerationPrompt(result.improvedPrompt);
                                     setEditedPrompt('');
-                                    alert('프롬프트가 개선되었습니다! 원하는 모델로 재생성하세요.');
+                                    
+                                    // 기존 이미지 변형 모드인지 확인
+                                    if (selectedExistingImage && showExistingImageModal === false) {
+                                      // 기존 이미지 변형 모드: 개선된 프롬프트로 변형 실행
+                                      alert('프롬프트가 개선되었습니다! 기존 이미지 변형을 시작합니다.');
+                                      handleExistingImageVariationWithPrompt(result.improvedPrompt);
+                                    } else {
+                                      // 일반 모드: 재생성 안내
+                                      alert('프롬프트가 개선되었습니다! 원하는 모델로 재생성하세요.');
+                                    }
                                   } else {
                                     alert('프롬프트 개선에 실패했습니다.');
                                   }
