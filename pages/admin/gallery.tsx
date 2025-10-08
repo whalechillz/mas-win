@@ -1992,7 +1992,17 @@ export default function GalleryAdmin() {
                           if (response.ok) {
                             // 이미지 목록에서 제거
                             setImages(prev => prev.filter(img => img.name !== selectedImageForZoom.name));
-                            // 삭제 후에도 모달을 유지
+                            
+                            // 삭제된 이미지가 현재 편집 중인 이미지인 경우 편집 모달 닫기
+                            if (editingImage === selectedImageForZoom.name) {
+                              setEditingImage(null);
+                            }
+                            
+                            // 살짝 리로딩 효과 (첫 페이지만 새로고침)
+                            setTimeout(() => {
+                              fetchImages(1, true);
+                            }, 500);
+                            
                             alert('이미지가 성공적으로 삭제되었습니다.');
                           } else {
                             alert('이미지 삭제에 실패했습니다.');
@@ -2108,6 +2118,12 @@ export default function GalleryAdmin() {
                             setImages(prev => prev.filter(img => !selectedImages.has(getImageUniqueId(img))));
                             setSelectedImages(new Set());
                             setThumbnailSelectMode(false);
+                            
+                            // 살짝 리로딩 효과 (첫 페이지만 새로고침)
+                            setTimeout(() => {
+                              fetchImages(1, true);
+                            }, 500);
+                            
                             // 삭제 후에도 모달을 유지 (현재 이미지가 삭제되지 않은 경우)
                             alert(`일괄 삭제 완료: ${success}/${selectedInThumbnails.length}개`);
                           } catch (error) {
