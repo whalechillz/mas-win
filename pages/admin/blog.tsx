@@ -3319,6 +3319,173 @@ export default function BlogAdmin() {
               )}
                               </div>
 
+                {/* 기존 이미지 변형 모달 */}
+                {showExistingImageModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">🔄 기존 이미지 변형</h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowExistingImageModal(false);
+                            setSelectedExistingImage('');
+                          }}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {/* 이미지 선택 탭 */}
+                        <div className="flex space-x-4 border-b border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedExistingImage('')}
+                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                          >
+                            📁 파일 업로드
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedExistingImage('')}
+                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                          >
+                            🖼️ 갤러리에서 선택
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedExistingImage('')}
+                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                          >
+                            🔗 URL 입력
+                          </button>
+                        </div>
+                        
+                        {/* 파일 업로드 섹션 */}
+                        <div className="space-y-4">
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <div className="space-y-4">
+                              <div className="text-gray-500">
+                                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
+                              <div>
+                                <label htmlFor="file-upload" className="cursor-pointer">
+                                  <span className="mt-2 block text-sm font-medium text-gray-900">
+                                    이미지 파일을 선택하거나 드래그하세요
+                                  </span>
+                                  <span className="mt-1 block text-sm text-gray-500">
+                                    PNG, JPG, GIF 파일 지원
+                                  </span>
+                                </label>
+                                <input
+                                  id="file-upload"
+                                  name="file-upload"
+                                  type="file"
+                                  className="sr-only"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = (event) => {
+                                        setSelectedExistingImage(event.target?.result as string);
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* URL 입력 섹션 */}
+                        <div className="space-y-4">
+                          <label className="block text-sm font-medium text-gray-700">
+                            이미지 URL
+                          </label>
+                          <input
+                            type="url"
+                            placeholder="https://example.com/image.jpg"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setSelectedExistingImage(e.target.value);
+                              }
+                            }}
+                          />
+                        </div>
+                        
+                        {/* 선택된 이미지 미리보기 */}
+                        {selectedExistingImage && (
+                          <div className="space-y-4">
+                            <h4 className="text-sm font-medium text-gray-700">선택된 이미지</h4>
+                            <div className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                              <img
+                                src={selectedExistingImage}
+                                alt="선택된 이미지"
+                                className="w-24 h-24 object-cover rounded-lg"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = '/placeholder-image.jpg';
+                                }}
+                              />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-800">이미지가 선택되었습니다</p>
+                                <p className="text-xs text-gray-600 truncate">{selectedExistingImage}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedExistingImage('')}
+                                className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                              >
+                                선택 해제
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* 액션 버튼들 */}
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowExistingImageModal(false);
+                              setSelectedExistingImage('');
+                            }}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                          >
+                            취소
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (selectedExistingImage) {
+                                setShowExistingImageModal(false);
+                                handleExistingImageVariation();
+                              } else {
+                                alert('변형할 이미지를 선택해주세요.');
+                              }
+                            }}
+                            disabled={!selectedExistingImage || isGeneratingExistingVariation}
+                            className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                              selectedExistingImage && !isGeneratingExistingVariation
+                                ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                          >
+                            {isGeneratingExistingVariation ? '변형 중...' : '변형 시작'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 이미지 갤러리 섹션 - 아코디언 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center justify-between mb-4">
