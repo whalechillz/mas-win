@@ -92,25 +92,65 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       // 특정 이미지의 메타데이터 조회
-      const { imageName } = req.query;
+      const { imageName, imageUrl } = req.query;
       
-      if (!imageName) {
+      if (!imageName && !imageUrl) {
         return res.status(400).json({
-          error: 'imageName 파라미터가 필요합니다.'
+          error: 'imageName 또는 imageUrl 파라미터가 필요합니다.'
         });
       }
 
-      // 이미지 메타데이터 조회 (실제 구현 시 별도 테이블에서 조회)
-      const metadata = {
-        filename: imageName,
-        altText: generateSEOAltText(imageName),
-        keywords: extractKeywordsFromFilename(imageName),
-        seoTitle: `${extractKeywordsFromFilename(imageName).slice(0, 2).join(' ')} - MASGOLF`,
-        description: `MASGOLF ${extractKeywordsFromFilename(imageName).join(' ')} 관련 이미지입니다.`,
-        createdAt: new Date().toISOString()
-      };
+      try {
+        // 데이터베이스에서 실제 메타데이터 조회
+        let query = supabase.from('image_metadata').select('*');
+        
+        if (imageUrl) {
+          query = query.eq('image_url', imageUrl);
+        } else if (imageName) {
+          // imageName으로 조회할 때는 URL을 구성해서 검색
+          const constructedUrl = `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/${imageName}`;
+          query = query.eq('image_url', constructedUrl);
+        }
+        
+        const { data, error } = await query.single();
+        
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // 데이터가 없는 경우 더미 데이터 반환
+            const metadata = {
+              filename: imageName,
+              altText: generateSEOAltText(imageName),
+              keywords: extractKeywordsFromFilename(imageName),
+              seoTitle: `${extractKeywordsFromFilename(imageName).slice(0, 2).join(' ')} - MASGOLF`,
+              description: `MASGOLF ${extractKeywordsFromFilename(imageName).join(' ')} 관련 이미지입니다.`,
+              createdAt: new Date().toISOString()
+            };
+            return res.status(200).json({ metadata });
+          }
+          console.error('❌ 메타데이터 조회 오류:', error);
+          return res.status(500).json({ error: '메타데이터 조회 실패', details: error.message });
+        }
 
-      return res.status(200).json({ metadata });
+        // 데이터베이스에서 조회한 실제 데이터 반환
+        const metadata = {
+          filename: imageName,
+          altText: data.alt_text || '',
+          keywords: data.tags || [],
+          seoTitle: data.title || '',
+          description: data.description || '',
+          category: data.category_id ? 
+            (data.category_id === 1 ? '골프' : 
+             data.category_id === 2 ? '장비' : 
+             data.category_id === 3 ? '코스' : 
+             data.category_id === 4 ? '이벤트' : '기타') : '',
+          createdAt: data.created_at
+        };
+
+        return res.status(200).json({ metadata });
+      } catch (error) {
+        console.error('❌ 메타데이터 조회 중 오류:', error);
+        return res.status(500).json({ error: '서버 오류', details: error.message });
+      }
       
     } else if (req.method === 'POST') {
       // 이미지 메타데이터 생성/업데이트
