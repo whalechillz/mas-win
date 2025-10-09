@@ -36,34 +36,11 @@ export default function GalleryAdmin() {
   const [imagesPerPage] = useState(24);
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
-  // SEO 최적화된 파일명 생성 함수
+  // SEO 최적화된 파일명 생성 함수 (한글 자동 영문 변환)
   const generateSEOFileName = (title, keywords, index = 1) => {
-    // 제목에서 주요 키워드 추출
-    const titleWords = title
-      .toLowerCase()
-      .replace(/[^\w\s가-힣]/g, '') // 특수문자 제거
-      .split(/\s+/)
-      .filter(word => word.length > 1)
-      .slice(0, 3); // 최대 3개 단어
-    
-    // 키워드에서 주요 키워드 추출
-    const keywordWords = keywords
-      .split(',')
-      .map(k => k.trim().toLowerCase())
-      .filter(k => k.length > 1)
-      .slice(0, 2); // 최대 2개 키워드
-    
-    // 브랜드명 + 주요 키워드 조합 (massgoo로 통일)
-    const allWords = ['massgoo', ...titleWords, ...keywordWords];
-    const uniqueWords = Array.from(new Set(allWords)); // 중복 제거
-    
-    // SEO 친화적인 파일명 생성
-    const fileName = uniqueWords
-      .join('-')
-      .substring(0, 50) // 길이 제한
-      + `-${String(index).padStart(3, '0')}`; // 3자리 번호
-    
-    return fileName;
+    // 한글-영문 변환 라이브러리 사용
+    const { generateSEOFileName: generateSEO } = require('../../lib/korean-to-english-translator');
+    return generateSEO(title, keywords, index);
   };
 
   // 한국어 텍스트에서 키워드 추출 함수
