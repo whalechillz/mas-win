@@ -133,57 +133,8 @@ export default async function handler(req, res) {
     const hashMd5 = crypto.createHash('md5').update(processedBuffer).digest('hex');
     const hashSha256 = crypto.createHash('sha256').update(processedBuffer).digest('hex');
 
-    // 파생 파일 생성 (썸네일, 중간 크기)
+    // 파생 파일 생성 비활성화: 단일 원본만 업로드 (중복 생성 원인 제거)
     let optimizedVersions = {};
-    try {
-      // 썸네일 생성 (150x150)
-      const thumbnailBuffer = await sharp(processedBuffer)
-        .resize(150, 150, { fit: 'cover' })
-        .jpeg({ quality: 80 })
-        .toBuffer();
-
-      const thumbnailFileName = `thumb_${uniqueFileName}`;
-      const { data: thumbnailData, error: thumbnailError } = await supabase.storage
-        .from('blog-images')
-        .upload(thumbnailFileName, thumbnailBuffer, {
-          contentType: 'image/jpeg',
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (!thumbnailError) {
-        const { data: thumbnailUrlData } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(thumbnailFileName);
-        optimizedVersions.thumbnail = thumbnailUrlData.publicUrl;
-        console.log('✅ 썸네일 생성 완료:', optimizedVersions.thumbnail);
-      }
-
-      // 중간 크기 생성 (600x400)
-      const mediumBuffer = await sharp(processedBuffer)
-        .resize(600, 400, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toBuffer();
-
-      const mediumFileName = `medium_${uniqueFileName}`;
-      const { data: mediumData, error: mediumError } = await supabase.storage
-        .from('blog-images')
-        .upload(mediumFileName, mediumBuffer, {
-          contentType: 'image/jpeg',
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (!mediumError) {
-        const { data: mediumUrlData } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(mediumFileName);
-        optimizedVersions.medium = mediumUrlData.publicUrl;
-        console.log('✅ 중간 크기 생성 완료:', optimizedVersions.medium);
-      }
-    } catch (derivedError) {
-      console.warn('⚠️ 파생 파일 생성 실패:', derivedError.message);
-    }
 
     // AI 메타데이터 자동 생성 (비동기로 처리)
     let aiMetadata = {
