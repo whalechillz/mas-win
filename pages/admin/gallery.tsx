@@ -149,8 +149,6 @@ export default function GalleryAdmin() {
   // 카테고리/태그 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
-  const [duplicateData, setDuplicateData] = useState(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
@@ -666,34 +664,6 @@ export default function GalleryAdmin() {
                 </Link>
               <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
               <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
-              <button 
-                onClick={async () => {
-                  try {
-                    setIsLoading(true);
-                    const response = await fetch('/api/admin/cleanup-duplicates', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ action: 'analyze' })
-                    });
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                      setDuplicateData(result.data);
-                      setDuplicateModalOpen(true);
-                    } else {
-                      alert('중복 분석에 실패했습니다: ' + result.error);
-                    }
-                  } catch (error) {
-                    console.error('❌ 중복 분석 오류:', error);
-                    alert('중복 분석 중 오류가 발생했습니다.');
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
-              >
-                🔍 중복 정리
-              </button>
               </div>
             </div>
           </div>
@@ -2428,147 +2398,6 @@ export default function GalleryAdmin() {
         </div>
       )}
 
-      {/* 중복 정리 모달 */}
-      {duplicateModalOpen && duplicateData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">🔍 중복 이미지 정리</h3>
-              <button
-                onClick={() => setDuplicateModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {/* 요약 정보 */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">📊 분석 결과</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">총 파일:</span>
-                    <span className="ml-2 font-medium">{duplicateData.totalFiles}개</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">AI 생성 파일:</span>
-                    <span className="ml-2 font-medium">{duplicateData.generatedFiles}개</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">중복 그룹:</span>
-                    <span className="ml-2 font-medium text-orange-600">{duplicateData.duplicateGroups.length}개</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">삭제 예정:</span>
-                    <span className="ml-2 font-medium text-red-600">{duplicateData.filesToDelete}개</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 중복 그룹 목록 */}
-              {duplicateData.duplicateGroups.length > 0 ? (
-                <div>
-                  <h4 className="font-medium mb-2">🔄 중복 이미지 그룹</h4>
-                  <div className="space-y-4">
-                    {duplicateData.duplicateGroups.map((group, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="font-medium text-orange-600">
-                            패턴: {group.pattern}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {group.count}개 파일 (1개 유지, {group.count - 1}개 삭제)
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {group.files.map((file, fileIndex) => (
-                            <div key={fileIndex} className={`p-3 rounded-lg border-2 ${
-                              file.keep 
-                                ? 'border-green-500 bg-green-50' 
-                                : 'border-red-500 bg-red-50'
-                            }`}>
-                              <div className="flex items-center space-x-3">
-                                <img 
-                                  src={file.url} 
-                                  alt={file.name}
-                                  className="w-12 h-12 object-cover rounded"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs font-mono truncate">{file.name}</div>
-                                  <div className="text-xs text-gray-500">
-                                    {new Date(file.created_at).toLocaleDateString()}
-                                  </div>
-                                  <div className={`text-xs font-medium ${
-                                    file.keep ? 'text-green-600' : 'text-red-600'
-                                  }`}>
-                                    {file.keep ? '✅ 유지' : '❌ 삭제'}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-green-600 text-lg">✅ 중복 이미지가 없습니다!</div>
-                  <div className="text-gray-500 text-sm mt-2">정리할 중복 파일이 없습니다.</div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-2 mt-6">
-              <button
-                onClick={() => setDuplicateModalOpen(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-              >
-                닫기
-              </button>
-              {duplicateData.filesToDelete > 0 && (
-                <button
-                  onClick={async () => {
-                    if (confirm(`정말로 ${duplicateData.filesToDelete}개의 중복 파일을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다!`)) {
-                      try {
-                        setIsLoading(true);
-                        const response = await fetch('/api/admin/cleanup-duplicates', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            action: 'cleanup',
-                            duplicateGroups: duplicateData.duplicateGroups
-                          })
-                        });
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                          alert(`✅ 중복 정리 완료!\n\n🗑️ 삭제된 파일: ${result.data.deleted}개\n❌ 오류: ${result.data.errors}개`);
-                          setDuplicateModalOpen(false);
-                          // 갤러리 새로고침
-                          fetchImages(1, true);
-                        } else {
-                          alert('중복 정리에 실패했습니다: ' + result.error);
-                        }
-                      } catch (error) {
-                        console.error('❌ 중복 정리 오류:', error);
-                        alert('중복 정리 중 오류가 발생했습니다.');
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                >
-                  🗑️ 중복 파일 삭제 ({duplicateData.filesToDelete}개)
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
