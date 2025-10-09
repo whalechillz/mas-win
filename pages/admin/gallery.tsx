@@ -1235,26 +1235,30 @@ export default function GalleryAdmin() {
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-800">이미지 메타데이터 편집</h3>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={async () => {
-                    if (!editingImage) return;
-                    const image = images.find(img => img.name === editingImage);
-                    if (!image) return;
-                    
-                    if (!confirm('모든 메타데이터를 AI로 생성하시겠습니까?\n\nALT 텍스트, 키워드, 제목, 설명이 모두 생성됩니다.')) return;
+                <div className="flex gap-2 items-center">
+                  <button
+                    onClick={async () => {
+                      if (!editingImage) return;
+                      const image = images.find(img => img.name === editingImage);
+                      if (!image) return;
+                      
+                      const useEnglish = confirm('언어를 선택해주세요:\n\n확인: 영어로 생성\n취소: 한글로 생성');
+                      
+                      if (!confirm('모든 메타데이터를 AI로 생성하시겠습니까?\n\nALT 텍스트, 키워드, 제목, 설명이 모두 생성됩니다.')) return;
                     
                     try {
                       console.log('🤖 전체 AI 메타데이터 생성 시작:', image.url);
                       
                       // 모든 AI 요청을 병렬로 실행
+                      const language = useEnglish ? 'English' : 'Korean';
                       const [altResponse, keywordResponse, titleResponse, descResponse] = await Promise.allSettled([
                         fetch('/api/analyze-image-prompt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             imageUrl: image.url,
-                            title: '이미지 상세 설명',
-                            excerpt: '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
+                            title: useEnglish ? 'Detailed image description' : '이미지 상세 설명',
+                            excerpt: useEnglish ? 'Describe the specific content of the image in detail (for ALT text)' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
                           })
                         }),
                         fetch('/api/admin/image-ai-analyzer', {
@@ -1270,8 +1274,8 @@ export default function GalleryAdmin() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             imageUrl: image.url,
-                            title: '이미지 제목',
-                            excerpt: '이미지 제목 생성'
+                            title: useEnglish ? 'Image title' : '이미지 제목',
+                            excerpt: useEnglish ? 'Generate an image title' : '이미지 제목 생성'
                           })
                         }),
                         fetch('/api/analyze-image-prompt', {
@@ -1279,8 +1283,8 @@ export default function GalleryAdmin() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             imageUrl: image.url,
-                            title: '이미지 일반 설명',
-                            excerpt: '이미지에 대한 일반적인 설명이나 배경 정보 생성'
+                            title: useEnglish ? 'General image description' : '이미지 일반 설명',
+                            excerpt: useEnglish ? 'Generate general description or background information about the image' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
                           })
                         })
                       ]);
@@ -1454,18 +1458,19 @@ export default function GalleryAdmin() {
                       }
                       
                       console.log('✅ 전체 AI 메타데이터 생성 완료');
-                      alert(`모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다!${wasOptimized ? '\n\n📝 SEO 최적화를 위해 텍스트 길이가 자동으로 조정되었습니다.' : ''}`);
+                      alert(`모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다! (${language})${wasOptimized ? '\n\n📝 SEO 최적화를 위해 텍스트 길이가 자동으로 조정되었습니다.' : ''}`);
                       
                     } catch (error) {
                       console.error('❌ 전체 AI 생성 오류:', error);
                       alert(`AI 메타데이터 생성 중 오류가 발생했습니다.\n오류: ${error.message}`);
                     }
                   }}
-                  className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
-                  title="모든 메타데이터를 AI로 한 번에 생성"
-                >
-                  🤖 전체 AI 생성
-                </button>
+                    className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                    title="모든 메타데이터를 AI로 한 번에 생성 (한글/영어 선택 가능)"
+                  >
+                    🤖 전체 AI 생성
+                  </button>
+                </div>
                 <button
                   onClick={cancelEdit}
                   className="text-gray-500 hover:text-gray-700 text-xl"

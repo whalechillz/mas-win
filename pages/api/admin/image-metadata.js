@@ -165,12 +165,16 @@ export default async function handler(req, res) {
       console.log('📝 메타데이터 저장 시작:', { 
         imageName, 
         imageUrl, 
-        alt_text: alt_text ? `${alt_text.substring(0, 50)}... (길이: ${alt_text.length})` : null,
-        keywords: keywords ? `${keywords.length}개 키워드` : null,
-        title: title ? `${title.substring(0, 30)}... (길이: ${title.length})` : null,
-        description: description ? `${description.substring(0, 50)}... (길이: ${description.length})` : null,
+        alt_text: alt_text ? `${alt_text.substring(0, 50)}... (길이: ${alt_text.length}, 바이트: ${Buffer.byteLength(alt_text, 'utf8')})` : null,
+        keywords: keywords ? `${keywords.length}개 키워드 (바이트: ${Buffer.byteLength(keywords, 'utf8')})` : null,
+        title: title ? `${title.substring(0, 30)}... (길이: ${title.length}, 바이트: ${Buffer.byteLength(title, 'utf8')})` : null,
+        description: description ? `${description.substring(0, 50)}... (길이: ${description.length}, 바이트: ${Buffer.byteLength(description, 'utf8')})` : null,
         category,
-        requestBody: req.body 
+        requestBody: req.body,
+        encoding: {
+          alt_text_encoding: alt_text ? Buffer.from(alt_text, 'utf8').toString('hex').substring(0, 20) + '...' : null,
+          title_encoding: title ? Buffer.from(title, 'utf8').toString('hex').substring(0, 20) + '...' : null
+        }
       });
 
       // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
@@ -284,6 +288,23 @@ export default async function handler(req, res) {
         }
         result = data;
         console.log('✅ 메타데이터 생성 완료:', result);
+      }
+
+      // 🔍 저장된 데이터 검증 (한글 인코딩 확인)
+      if (result) {
+        console.log('🔍 저장된 데이터 검증:', {
+          alt_text: result.alt_text,
+          alt_text_length: result.alt_text ? result.alt_text.length : 0,
+          alt_text_bytes: result.alt_text ? Buffer.byteLength(result.alt_text, 'utf8') : 0,
+          title: result.title,
+          title_length: result.title ? result.title.length : 0,
+          title_bytes: result.title ? Buffer.byteLength(result.title, 'utf8') : 0,
+          description: result.description,
+          description_length: result.description ? result.description.length : 0,
+          description_bytes: result.description ? Buffer.byteLength(result.description, 'utf8') : 0,
+          tags: result.tags,
+          tags_json: JSON.stringify(result.tags)
+        });
       }
 
       return res.status(200).json({ 
