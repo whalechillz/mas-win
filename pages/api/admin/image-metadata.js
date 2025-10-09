@@ -165,10 +165,10 @@ export default async function handler(req, res) {
       console.log('📝 메타데이터 저장 시작:', { 
         imageName, 
         imageUrl, 
-        alt_text, 
-        keywords, 
-        title, 
-        description, 
+        alt_text: alt_text ? `${alt_text.substring(0, 50)}... (길이: ${alt_text.length})` : null,
+        keywords: keywords ? `${keywords.length}개 키워드` : null,
+        title: title ? `${title.substring(0, 30)}... (길이: ${title.length})` : null,
+        description: description ? `${description.substring(0, 50)}... (길이: ${description.length})` : null,
         category,
         requestBody: req.body 
       });
@@ -188,6 +188,29 @@ export default async function handler(req, res) {
         categoryId = categoryMap[category.toLowerCase()] || null;
       }
 
+      // 🔍 입력값 검증 및 길이 제한 확인
+      const validationErrors = [];
+      
+      if (alt_text && alt_text.length > 500) {
+        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, 최대 500자)`);
+      }
+      
+      if (title && title.length > 200) {
+        validationErrors.push(`제목이 너무 깁니다 (${title.length}자, 최대 200자)`);
+      }
+      
+      if (description && description.length > 1000) {
+        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, 최대 1000자)`);
+      }
+      
+      if (validationErrors.length > 0) {
+        console.error('❌ 입력값 검증 실패:', validationErrors);
+        return res.status(400).json({ 
+          error: '입력값 검증 실패', 
+          details: validationErrors 
+        });
+      }
+
       // 데이터베이스에 메타데이터 저장/업데이트
       const metadataData = {
         image_url: imageUrl,
@@ -198,6 +221,14 @@ export default async function handler(req, res) {
         category_id: categoryId,
         updated_at: new Date().toISOString()
       };
+      
+      console.log('📊 최종 저장 데이터:', {
+        alt_text_length: metadataData.alt_text.length,
+        title_length: metadataData.title.length,
+        description_length: metadataData.description.length,
+        tags_count: metadataData.tags.length,
+        category_id: metadataData.category_id
+      });
 
       // 기존 메타데이터가 있는지 확인
       console.log('🔍 기존 메타데이터 확인 중:', imageUrl);
