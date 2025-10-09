@@ -183,7 +183,7 @@ export default async function handler(req, res) {
           console.log('✅ Google Vision API 분석 완료');
         }
 
-        // AI 생성된 메타데이터로 업데이트
+        // AI 생성된 메타데이터로 업데이트 (중복 방지)
         const { error: updateError } = await supabase
           .from('image_metadata')
           .update({
@@ -192,7 +192,8 @@ export default async function handler(req, res) {
             description: aiMetadata.description,
             tags: aiMetadata.tags
           })
-          .eq('image_url', imageUrl);
+          .eq('image_url', imageUrl)
+          .not('alt_text', 'is', null); // 이미 AI 메타데이터가 있는 경우만 업데이트
 
         if (updateError) {
           console.error('❌ AI 메타데이터 업데이트 실패:', updateError);
@@ -225,13 +226,47 @@ export default async function handler(req, res) {
 
       console.log('💾 메타데이터 저장 중:', metadataRecord);
 
-      const { data: metadataData, error: metadataError } = await supabase
+      // 중복 방지를 위해 먼저 기존 레코드 확인
+      const { data: existingRecord, error: checkError } = await supabase
         .from('image_metadata')
-        .upsert(metadataRecord, { 
-          onConflict: 'image_url',
-          ignoreDuplicates: false 
-        })
-        .select();
+        .select('id')
+        .eq('image_url', imageUrl)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ 기존 레코드 확인 오류:', checkError);
+        throw checkError;
+      }
+
+      let metadataData;
+      if (existingRecord) {
+        // 기존 레코드가 있으면 업데이트
+        const { data: updateData, error: updateError } = await supabase
+          .from('image_metadata')
+          .update(metadataRecord)
+          .eq('image_url', imageUrl)
+          .select();
+        
+        if (updateError) {
+          console.error('❌ 메타데이터 업데이트 실패:', updateError);
+          throw updateError;
+        }
+        metadataData = updateData;
+        console.log('✅ 기존 메타데이터 업데이트 완료');
+      } else {
+        // 새 레코드 생성
+        const { data: insertData, error: insertError } = await supabase
+          .from('image_metadata')
+          .insert(metadataRecord)
+          .select();
+        
+        if (insertError) {
+          console.error('❌ 메타데이터 생성 실패:', insertError);
+          throw insertError;
+        }
+        metadataData = insertData;
+        console.log('✅ 새 메타데이터 생성 완료');
+      }
 
       if (metadataError) {
         console.error('❌ 메타데이터 저장 실패:', metadataError);
