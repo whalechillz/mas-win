@@ -492,6 +492,12 @@ export default function GalleryAdmin() {
   const saveEdit = async () => {
     if (!editingImage) return;
     
+    // 🔍 저장 전 유효성 검사
+    if (!editForm.category || editForm.category.trim() === '') {
+      alert('카테고리를 선택해주세요.');
+      return;
+    }
+    
     try {
       console.log('💾 메타데이터 저장 시작:', editingImage);
       const keywords = editForm.keywords.split(',').map(k => k.trim()).filter(k => k);
@@ -622,7 +628,20 @@ export default function GalleryAdmin() {
           statusText: response.statusText,
           errorData: errorData
         });
-        alert(`저장에 실패했습니다.\n상태: ${response.status}\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
+        // 더 구체적인 오류 메시지 표시
+        let errorMessage = `저장에 실패했습니다.\n상태: ${response.status}\n`;
+        
+        if (errorData.details && Array.isArray(errorData.details)) {
+          errorMessage += `오류 내용:\n${errorData.details.join('\n')}`;
+        } else if (errorData.error) {
+          errorMessage += `오류: ${errorData.error}`;
+        } else if (errorData.message) {
+          errorMessage += `오류: ${errorData.message}`;
+        } else {
+          errorMessage += '알 수 없는 오류가 발생했습니다.';
+        }
+        
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('❌ 메타데이터 저장 에러:', error);
@@ -1350,14 +1369,23 @@ export default function GalleryAdmin() {
             
             <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ALT 텍스트</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">ALT 텍스트</label>
+                  <span className={`text-xs ${editForm.alt_text.length > 125 ? 'text-red-500' : editForm.alt_text.length > 100 ? 'text-yellow-500' : 'text-gray-500'}`}>
+                    {editForm.alt_text.length}/125 (SEO 최적화: 50-100자 권장)
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={editForm.alt_text}
                     onChange={(e) => setEditForm({ ...editForm, alt_text: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="이미지 설명을 입력하세요"
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      editForm.alt_text.length > 125 ? 'border-red-300 bg-red-50' : 
+                      editForm.alt_text.length > 100 ? 'border-yellow-300 bg-yellow-50' : 
+                      'border-gray-300'
+                    }`}
+                    placeholder="이미지 설명을 입력하세요 (SEO 최적화: 50-100자 권장)"
                   />
                   <button
                     onClick={async () => {
@@ -1469,14 +1497,23 @@ export default function GalleryAdmin() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">제목</label>
+                  <span className={`text-xs ${editForm.title.length > 60 ? 'text-red-500' : editForm.title.length > 50 ? 'text-yellow-500' : 'text-gray-500'}`}>
+                    {editForm.title.length}/60 (SEO 최적화: 50자 이하 권장)
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={editForm.title}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="이미지 제목을 입력하세요"
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      editForm.title.length > 60 ? 'border-red-300 bg-red-50' : 
+                      editForm.title.length > 50 ? 'border-yellow-300 bg-yellow-50' : 
+                      'border-gray-300'
+                    }`}
+                    placeholder="이미지 제목을 입력하세요 (SEO 최적화: 50자 이하 권장)"
                   />
                   <button
                     onClick={async () => {
@@ -1529,14 +1566,23 @@ export default function GalleryAdmin() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">설명</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">설명</label>
+                  <span className={`text-xs ${editForm.description.length > 160 ? 'text-red-500' : editForm.description.length > 140 ? 'text-yellow-500' : 'text-gray-500'}`}>
+                    {editForm.description.length}/160 (SEO 최적화: 140자 이하 권장)
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   <textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     rows={3}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="이미지에 대한 자세한 설명을 입력하세요"
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      editForm.description.length > 160 ? 'border-red-300 bg-red-50' : 
+                      editForm.description.length > 140 ? 'border-yellow-300 bg-yellow-50' : 
+                      'border-gray-300'
+                    }`}
+                    placeholder="이미지에 대한 자세한 설명을 입력하세요 (SEO 최적화: 140자 이하 권장)"
                   />
                   <button
                     onClick={async () => {
@@ -1713,7 +1759,13 @@ export default function GalleryAdmin() {
               </button>
               <button
                 onClick={saveEdit}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                disabled={!editForm.category || editForm.category.trim() === ''}
+                className={`px-4 py-2 rounded transition-colors ${
+                  !editForm.category || editForm.category.trim() === ''
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+                title={!editForm.category || editForm.category.trim() === '' ? '카테고리를 선택해주세요' : '메타데이터 저장'}
               >
                 저장
               </button>
