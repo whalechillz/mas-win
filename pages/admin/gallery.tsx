@@ -1324,13 +1324,47 @@ export default function GalleryAdmin() {
                         selectedCategory = '기타';
                       }
 
+                      // 🔧 SEO 최적화 길이 제한 적용
+                      const truncateText = (text: string, maxLength: number): string => {
+                        if (text.length <= maxLength) return text;
+                        // 문장 단위로 자르기 (마침표, 느낌표, 물음표 기준)
+                        const sentences = text.split(/[.!?]+/);
+                        let result = '';
+                        for (const sentence of sentences) {
+                          if ((result + sentence).length <= maxLength - 3) {
+                            result += sentence + '.';
+                          } else {
+                            break;
+                          }
+                        }
+                        // 문장 단위로 자르기가 안 되면 단어 단위로 자르기
+                        if (!result) {
+                          const words = text.split(' ');
+                          result = '';
+                          for (const word of words) {
+                            if ((result + word + ' ').length <= maxLength - 3) {
+                              result += word + ' ';
+                            } else {
+                              break;
+                            }
+                          }
+                          result = result.trim();
+                        }
+                        return result.length < text.length ? result + '...' : result;
+                      };
+
+                      // 각 필드별 길이 제한 적용
+                      const optimizedAltText = truncateText(altText, 125);
+                      const optimizedTitle = truncateText(title, 60);
+                      const optimizedDescription = truncateText(description, 160);
+
                       // 폼 업데이트
                       setEditForm({
                         ...editForm,
-                        alt_text: altText,
+                        alt_text: optimizedAltText,
                         keywords: keywords,
-                        title: title,
-                        description: description,
+                        title: optimizedTitle,
+                        description: optimizedDescription,
                         category: selectedCategory
                       });
                       
@@ -1345,8 +1379,21 @@ export default function GalleryAdmin() {
                         console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
                       }
                       
+                      // 최적화 결과 로그
+                      const wasOptimized = optimizedAltText.length < altText.length || 
+                                         optimizedTitle.length < title.length || 
+                                         optimizedDescription.length < description.length;
+                      
+                      if (wasOptimized) {
+                        console.log('🔧 SEO 최적화 적용:', {
+                          altText: `${altText.length} → ${optimizedAltText.length}자`,
+                          title: `${title.length} → ${optimizedTitle.length}자`,
+                          description: `${description.length} → ${optimizedDescription.length}자`
+                        });
+                      }
+                      
                       console.log('✅ 전체 AI 메타데이터 생성 완료');
-                      alert('모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다!');
+                      alert(`모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다!${wasOptimized ? '\n\n📝 SEO 최적화를 위해 텍스트 길이가 자동으로 조정되었습니다.' : ''}`);
                       
                     } catch (error) {
                       console.error('❌ 전체 AI 생성 오류:', error);
