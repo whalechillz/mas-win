@@ -478,12 +478,31 @@ export default function GalleryAdmin() {
   // 편집 시작
   const startEditing = (image: ImageMetadata) => {
     setEditingImage(image.name);
+    
+    // 🔧 category 안전하게 처리
+    let categoryValue = '';
+    if (image.category !== null && image.category !== undefined) {
+      if (typeof image.category === 'number') {
+        // 숫자 카테고리 ID를 문자열로 변환
+        const categoryMap: { [key: number]: string } = {
+          1: '골프',
+          2: '장비', 
+          3: '코스',
+          4: '이벤트',
+          5: '기타'
+        };
+        categoryValue = categoryMap[image.category] || '';
+      } else {
+        categoryValue = String(image.category);
+      }
+    }
+    
     setEditForm({
       alt_text: image.alt_text || '',
       keywords: image.keywords?.join(', ') || '',
       title: image.title || '',
       description: image.description || '',
-      category: String(image.category || ''),
+      category: categoryValue,
       filename: image.name || ''
     });
   };
@@ -493,7 +512,8 @@ export default function GalleryAdmin() {
     if (!editingImage) return;
     
     // 🔍 저장 전 유효성 검사
-    if (!editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '')) {
+    const categoryStr = String(editForm.category || '');
+    if (!categoryStr || categoryStr.trim() === '') {
       alert('카테고리를 선택해주세요.');
       return;
     }
@@ -1809,13 +1829,13 @@ export default function GalleryAdmin() {
               </button>
               <button
                 onClick={saveEdit}
-                disabled={!editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '')}
+                disabled={!String(editForm.category || '').trim()}
                 className={`px-4 py-2 rounded transition-colors ${
-                  !editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '')
+                  !String(editForm.category || '').trim()
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-500 text-white hover:bg-blue-600'
                 }`}
-                title={!editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '') ? '카테고리를 선택해주세요' : '메타데이터 저장'}
+                title={!String(editForm.category || '').trim() ? '카테고리를 선택해주세요' : '메타데이터 저장'}
               >
                 저장
               </button>
