@@ -1169,15 +1169,15 @@ export default function GalleryAdmin() {
                       let selectedCategory = '';
                       const combinedText = `${altText} ${keywords} ${title} ${description}`.toLowerCase();
                       if (combinedText.includes('골프') || combinedText.includes('golf')) {
-                        selectedCategory = 'golf';
+                        selectedCategory = '골프';
                       } else if (combinedText.includes('장비') || combinedText.includes('equipment') || combinedText.includes('클럽') || combinedText.includes('드라이버')) {
-                        selectedCategory = 'equipment';
+                        selectedCategory = '장비';
                       } else if (combinedText.includes('코스') || combinedText.includes('course') || combinedText.includes('골프장')) {
-                        selectedCategory = 'course';
+                        selectedCategory = '코스';
                       } else if (combinedText.includes('이벤트') || combinedText.includes('event') || combinedText.includes('대회')) {
-                        selectedCategory = 'event';
+                        selectedCategory = '이벤트';
                       } else {
-                        selectedCategory = 'other';
+                        selectedCategory = '기타';
                       }
 
                       // 폼 업데이트
@@ -1513,15 +1513,15 @@ export default function GalleryAdmin() {
                           
                           let selectedCategory = '';
                           if (categoryText.includes('골프') || categoryText.includes('golf')) {
-                            selectedCategory = 'golf';
+                            selectedCategory = '골프';
                           } else if (categoryText.includes('장비') || categoryText.includes('equipment') || categoryText.includes('클럽') || categoryText.includes('드라이버')) {
-                            selectedCategory = 'equipment';
+                            selectedCategory = '장비';
                           } else if (categoryText.includes('코스') || categoryText.includes('course') || categoryText.includes('골프장')) {
-                            selectedCategory = 'course';
+                            selectedCategory = '코스';
                           } else if (categoryText.includes('이벤트') || categoryText.includes('event') || categoryText.includes('대회')) {
-                            selectedCategory = 'event';
+                            selectedCategory = '이벤트';
                           } else {
-                            selectedCategory = 'other';
+                            selectedCategory = '기타';
                           }
                           
                           setEditForm({ ...editForm, category: selectedCategory });
