@@ -716,6 +716,7 @@ export default function GalleryAdmin() {
               >
                 🔍 중복 제거
               </button>
+              {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
             </div>
           </div>

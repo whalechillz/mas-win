@@ -149,7 +149,7 @@ export default async function handler(req, res) {
       throw new Error(`Supabase 업로드 실패: ${error.message}`);
     }
     
-    // 4개 버전 생성 (원본, WebP 썸네일, 미디움, WebP 버전) - 중복 제거
+    // 다중 버전 생성 비활성화: 단일 원본만 유지
     const versions = [];
     const baseFileName = finalFileName.replace(/\.[^/.]+$/, '');
     const extension = finalFileName.split('.').pop();
@@ -166,90 +166,7 @@ export default async function handler(req, res) {
       size: imageData.length
     });
     
-    // 2. WebP 썸네일 (300x300) - 하나만 생성
-    const webpThumbFileName = `${baseFileName}_thumb.webp`;
-    const webpThumbData = await sharp(imageData)
-      .resize(300, 300, { fit: 'cover' })
-      .webp({ quality: 80 })
-      .toBuffer();
-    
-    const { error: webpThumbError } = await supabase.storage
-      .from('blog-images')
-      .upload(webpThumbFileName, webpThumbData, {
-        contentType: 'image/webp',
-        cacheControl: '3600',
-        upsert: false
-      });
-    
-    if (!webpThumbError) {
-      const { data: webpThumbUrlData } = supabase.storage
-        .from('blog-images')
-        .getPublicUrl(webpThumbFileName);
-      
-      versions.push({
-        type: 'thumbnail',
-        fileName: webpThumbFileName,
-        url: webpThumbUrlData.publicUrl,
-        size: webpThumbData.length
-      });
-    }
-    
-    // 3. 미디움 (800x600)
-    const mediumFileName = `${baseFileName}_medium.${extension}`;
-    const mediumData = await sharp(imageData)
-      .resize(800, 600, { fit: 'cover' })
-      .jpeg({ quality: 85 })
-      .toBuffer();
-    
-    const { error: mediumError } = await supabase.storage
-      .from('blog-images')
-      .upload(mediumFileName, mediumData, {
-        contentType: 'image/jpeg',
-        cacheControl: '3600',
-        upsert: false
-      });
-    
-    if (!mediumError) {
-      const { data: mediumUrlData } = supabase.storage
-        .from('blog-images')
-        .getPublicUrl(mediumFileName);
-      
-      versions.push({
-        type: 'medium',
-        fileName: mediumFileName,
-        url: mediumUrlData.publicUrl,
-        size: mediumData.length
-      });
-    }
-    
-    // 4. WebP 버전 (원본 크기)
-    const webpFileName = `${baseFileName}.webp`;
-    const webpData = await sharp(imageData)
-      .webp({ quality: 85 })
-      .toBuffer();
-    
-    const { error: webpError } = await supabase.storage
-      .from('blog-images')
-      .upload(webpFileName, webpData, {
-        contentType: 'image/webp',
-        cacheControl: '3600',
-        upsert: false
-      });
-    
-    if (!webpError) {
-      const { data: webpUrlData } = supabase.storage
-        .from('blog-images')
-        .getPublicUrl(webpFileName);
-      
-      versions.push({
-        type: 'webp',
-        fileName: webpFileName,
-        url: webpUrlData.publicUrl,
-        size: webpData.length
-      });
-    }
-    
-    console.log('✅ 4개 버전 생성 완료 (중복 제거):', versions.length, '개');
+    console.log('ℹ️ 다중 버전 생성 비활성화: 원본만 유지');
     
     return res.status(200).json({
       success: true,
