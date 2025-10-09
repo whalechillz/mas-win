@@ -598,9 +598,23 @@ export default function GalleryAdmin() {
         console.log('✅ 메타데이터 저장 완료');
         
         // 갤러리 자동 새로고침
+        console.log('🔄 갤러리 새로고침 시작...');
         setTimeout(() => {
           fetchImages(1, true);
         }, 500);
+        
+        // 저장된 데이터 확인을 위한 추가 로그
+        setTimeout(() => {
+          console.log('🔍 저장 후 데이터 확인:', {
+            editingImage: editingImage,
+            savedData: {
+              alt_text: editForm.alt_text,
+              title: editForm.title,
+              description: editForm.description,
+              category: editForm.category
+            }
+          });
+        }, 1000);
       } else {
         const errorData = await response.json();
         console.error('❌ 저장 API 오류 응답:', {
