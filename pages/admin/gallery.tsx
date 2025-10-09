@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
@@ -27,8 +27,8 @@ interface ImageMetadata {
 
 export default function GalleryAdmin() {
   const [images, setImages] = useState<ImageMetadata[]>([]);
-  const [filteredImages, setFilteredImages] = useState<ImageMetadata[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,6 +75,77 @@ export default function GalleryAdmin() {
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates'>('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // 필터링된 이미지 계산 (useMemo로 최적화)
+  const filteredImages = useMemo(() => {
+    let filtered = images;
+    
+    // 검색 필터
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(img => 
+        img.name.toLowerCase().includes(query) ||
+        img.alt_text?.toLowerCase().includes(query) ||
+        img.keywords?.some((k: string) => k.toLowerCase().includes(query)) ||
+        img.title?.toLowerCase().includes(query)
+      );
+    }
+    
+    // 타입 필터
+    switch (filterType) {
+      case 'featured':
+        filtered = filtered.filter(img => img.is_featured);
+        break;
+      case 'unused':
+        filtered = filtered.filter(img => !img.usage_count || img.usage_count === 0);
+        break;
+      case 'duplicates':
+        // 중복 이미지 필터링 (같은 이름을 가진 이미지들)
+        const nameCounts = filtered.reduce((acc, img) => {
+          acc[img.name] = (acc[img.name] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        filtered = filtered.filter(img => nameCounts[img.name] > 1);
+        break;
+      case 'all':
+      default:
+        // 전체 이미지 표시
+        break;
+    }
+    
+    // 정렬
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'size':
+          aValue = a.size || 0;
+          bValue = b.size || 0;
+          break;
+        case 'usage_count':
+          aValue = a.usage_count || 0;
+          bValue = b.usage_count || 0;
+          break;
+        case 'created_at':
+        default:
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+    
+    return filtered;
+  }, [images, searchQuery, filterType, sortBy, sortOrder]);
   // 카테고리/태그 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [tagModalOpen, setTagModalOpen] = useState(false);
@@ -207,6 +278,11 @@ export default function GalleryAdmin() {
     try {
       if (reset || page === 1) {
         setIsLoading(true);
+        // 새로고침 시 필터를 "전체"로 초기화
+        if (reset) {
+          setFilterType('all');
+          setSearchQuery('');
+        }
       } else {
         setIsLoadingMore(true);
       }
@@ -272,54 +348,6 @@ export default function GalleryAdmin() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isLoading, images.length, totalCount, currentPage]);
 
-  // 필터링 및 검색
-  useEffect(() => {
-    let filtered = [...images];
-    
-    // 검색어 필터
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(img => 
-        img.name.toLowerCase().includes(query) ||
-        img.alt_text?.toLowerCase().includes(query) ||
-        img.keywords?.some(keyword => keyword.toLowerCase().includes(query)) ||
-        img.title?.toLowerCase().includes(query)
-      );
-    }
-    
-    // 타입 필터
-    switch (filterType) {
-      case 'featured':
-        filtered = filtered.filter(img => img.is_featured);
-        break;
-      case 'unused':
-        filtered = filtered.filter(img => img.usage_count === 0);
-        break;
-      case 'duplicates':
-        // TODO: 중복 이미지 로직 구현
-        break;
-    }
-    
-    // 정렬
-    filtered.sort((a, b) => {
-      const aValue: any = a[sortBy];
-      const bValue: any = b[sortBy];
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortOrder === 'asc' 
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-      
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
-      }
-      
-      return 0;
-    });
-    
-    setFilteredImages(filtered);
-  }, [images, searchQuery, filterType, sortBy, sortOrder]);
 
   // 초기 로드
   useEffect(() => {
