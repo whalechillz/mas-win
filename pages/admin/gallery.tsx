@@ -1578,11 +1578,16 @@ export default function GalleryAdmin() {
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">카테고리 선택</option>
-                    <option value="golf">골프</option>
-                    <option value="equipment">장비</option>
-                    <option value="course">코스</option>
-                    <option value="event">이벤트</option>
-                    <option value="other">기타</option>
+                    <option value="골프">골프 (Golf)</option>
+                    <option value="장비">장비 (Equipment)</option>
+                    <option value="코스">코스 (Course)</option>
+                    <option value="이벤트">이벤트 (Event)</option>
+                    <option value="기타">기타 (Other)</option>
+                    <option value="golf">Golf (영문)</option>
+                    <option value="equipment">Equipment (영문)</option>
+                    <option value="course">Course (영문)</option>
+                    <option value="event">Event (영문)</option>
+                    <option value="other">Other (영문)</option>
                   </select>
                   <button
                     onClick={async () => {
