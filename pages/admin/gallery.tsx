@@ -672,39 +672,24 @@ export default function GalleryAdmin() {
               <button 
                 onClick={async () => {
                   try {
-                    const response = await fetch('/api/admin/diagnose-duplicates');
+                    const response = await fetch('/api/admin/debug-storage-duplicates');
                     const data = await response.json();
                     if (response.ok) {
                       const diagnosis = data.diagnosis;
                       const summary = diagnosis.summary;
-                      const shouldCleanup = confirm(`🔍 중복 메타데이터 진단 결과:\n\n📊 총 레코드: ${summary.totalRecords}개\n🔗 고유 URL: ${summary.totalUniqueUrls}개\n🔄 중복 그룹: ${summary.duplicateGroups}개\n🗑️ 중복 레코드: ${summary.duplicateRecords}개 (${summary.duplicatePercentage}%)\n\n중복 메타데이터를 정리하시겠습니까?`);
-                      if (shouldCleanup) {
-                        const cleanupResponse = await fetch('/api/admin/cleanup-duplicate-metadata', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ action: 'cleanup', dryRun: false })
-                        });
-                        const cleanupData = await cleanupResponse.json();
-                        if (cleanupResponse.ok) {
-                          alert(`✅ 중복 메타데이터 정리 완료!\n\n🗑️ 삭제된 레코드: ${cleanupData.summary.actuallyDeleted}개\n💾 정리된 그룹: ${cleanupData.summary.totalGroups}개\n❌ 오류: ${cleanupData.summary.errors}개`);
-                          // 갤러리 새로고침
-                          fetchImages(1, true);
-                        } else {
-                          alert('중복 메타데이터 정리에 실패했습니다.');
-                        }
-                      }
-                      console.log('🔍 중복 메타데이터 진단 결과:', diagnosis);
+                      alert(`🔍 Storage 중복 진단 결과:\n\n📊 Storage 파일: ${summary.totalStorageFiles}개\n📝 메타데이터: ${summary.totalMetadataRecords}개\n🔄 정확한 중복 파일명: ${summary.exactDuplicateNames}개\n🎯 유사한 패턴: ${summary.similarPatterns}개\n❌ 고아 Storage: ${summary.orphanedStorageFiles}개\n❌ 고아 메타데이터: ${summary.orphanedMetadataRecords}개\n\n이는 갤러리에서 같은 이미지가 여러 번 표시되는 원인일 수 있습니다.`);
+                      console.log('🔍 Storage 중복 진단 결과:', diagnosis);
                     } else {
-                      alert('중복 메타데이터 진단에 실패했습니다.');
+                      alert('Storage 중복 진단에 실패했습니다.');
                     }
                   } catch (error) {
-                    console.error('❌ 중복 메타데이터 진단 오류:', error);
-                    alert('중복 메타데이터 진단 중 오류가 발생했습니다.');
+                    console.error('❌ Storage 중복 진단 오류:', error);
+                    alert('Storage 중복 진단 중 오류가 발생했습니다.');
                   }
                 }}
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
               >
-                🔍 중복 메타데이터 정리
+                🔍 Storage 중복 진단
               </button>
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
