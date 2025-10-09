@@ -1327,36 +1327,39 @@ export default function GalleryAdmin() {
                       // 🔧 SEO 최적화 길이 제한 적용
                       const truncateText = (text: string, maxLength: number): string => {
                         if (text.length <= maxLength) return text;
-                        // 문장 단위로 자르기 (마침표, 느낌표, 물음표 기준)
-                        const sentences = text.split(/[.!?]+/);
+                        
+                        // 단어 단위로 자르기 (더 안전한 방법)
+                        const words = text.split(' ');
                         let result = '';
-                        for (const sentence of sentences) {
-                          if ((result + sentence).length <= maxLength - 3) {
-                            result += sentence + '.';
+                        
+                        for (const word of words) {
+                          const testResult = result + (result ? ' ' : '') + word;
+                          if (testResult.length <= maxLength - 3) {
+                            result = testResult;
                           } else {
                             break;
                           }
                         }
-                        // 문장 단위로 자르기가 안 되면 단어 단위로 자르기
-                        if (!result) {
-                          const words = text.split(' ');
-                          result = '';
-                          for (const word of words) {
-                            if ((result + word + ' ').length <= maxLength - 3) {
-                              result += word + ' ';
-                            } else {
-                              break;
-                            }
-                          }
-                          result = result.trim();
+                        
+                        // 결과가 있으면 ... 추가, 없으면 강제로 자르기
+                        if (result) {
+                          return result + '...';
+                        } else {
+                          return text.substring(0, maxLength - 3) + '...';
                         }
-                        return result.length < text.length ? result + '...' : result;
                       };
 
                       // 각 필드별 길이 제한 적용
                       const optimizedAltText = truncateText(altText, 125);
                       const optimizedTitle = truncateText(title, 60);
                       const optimizedDescription = truncateText(description, 160);
+                      
+                      // 🔍 디버깅 로그
+                      console.log('🔧 텍스트 최적화 결과:', {
+                        altText: `${altText.length}자 → ${optimizedAltText.length}자`,
+                        title: `${title.length}자 → ${optimizedTitle.length}자`,
+                        description: `${description.length}자 → ${optimizedDescription.length}자`
+                      });
 
                       // 폼 업데이트
                       setEditForm({
