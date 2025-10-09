@@ -149,6 +149,8 @@ export default function GalleryAdmin() {
   // 카테고리/태그 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [duplicateData, setDuplicateData] = useState(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
@@ -674,6 +676,31 @@ export default function GalleryAdmin() {
                 </Link>
               <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
               <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
+              <button 
+                onClick={async () => {
+                  try {
+                    setIsLoading(true);
+                    const response = await fetch('/api/admin/detect-duplicate-images');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                      setDuplicateData(result.data);
+                      setDuplicateModalOpen(true);
+                      console.log('🔍 중복 감지 결과:', result.data);
+                    } else {
+                      alert('중복 감지에 실패했습니다: ' + result.error);
+                    }
+                  } catch (error) {
+                    console.error('❌ 중복 감지 오류:', error);
+                    alert('중복 감지 중 오류가 발생했습니다.');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
+              >
+                🔍 중복 이미지 감지
+              </button>
                 <button
                   onClick={() => fetchImages(1, true)}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
@@ -2409,6 +2436,140 @@ export default function GalleryAdmin() {
                   : '썸네일 클릭으로 이동'
                 }
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 중복 이미지 감지 모달 */}
+      {duplicateModalOpen && duplicateData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">🔍 중복 이미지 감지 결과</h3>
+              <button
+                onClick={() => setDuplicateModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* 요약 정보 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">📊 요약</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">총 파일:</span>
+                    <span className="ml-2 font-medium">{duplicateData.totalFiles}개</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">메타데이터:</span>
+                    <span className="ml-2 font-medium">{duplicateData.totalMetadata}개</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">중복 그룹:</span>
+                    <span className="ml-2 font-medium text-orange-600">{duplicateData.duplicateGroups.length}개</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">고아 파일:</span>
+                    <span className="ml-2 font-medium text-red-600">{duplicateData.orphanedFiles.length}개</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 중복 그룹 목록 */}
+              {duplicateData.duplicateGroups.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">🔄 중복 이미지 그룹</h4>
+                  <div className="space-y-3">
+                    {duplicateData.duplicateGroups.map((group, index) => (
+                      <div key={index} className="border rounded-lg p-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-orange-600">
+                            패턴: {group.pattern}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {group.count}개 파일
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          {group.files.map((file, fileIndex) => (
+                            <div key={fileIndex} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                              <div className="flex items-center space-x-2">
+                                <img 
+                                  src={file.url} 
+                                  alt={file.name}
+                                  className="w-8 h-8 object-cover rounded"
+                                />
+                                <span className="font-mono text-xs">{file.name}</span>
+                              </div>
+                              <div className="text-gray-500 text-xs">
+                                {new Date(file.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 고아 파일 목록 */}
+              {duplicateData.orphanedFiles.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2 text-red-600">🗑️ 고아 파일 (메타데이터 없음)</h4>
+                  <div className="space-y-1 max-h-40 overflow-auto">
+                    {duplicateData.orphanedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm bg-red-50 p-2 rounded">
+                        <span className="font-mono text-xs">{file.name}</span>
+                        <span className="text-gray-500 text-xs">
+                          {new Date(file.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 고아 메타데이터 목록 */}
+              {duplicateData.orphanedMetadata.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2 text-blue-600">📝 고아 메타데이터 (파일 없음)</h4>
+                  <div className="space-y-1 max-h-40 overflow-auto">
+                    {duplicateData.orphanedMetadata.map((meta, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm bg-blue-50 p-2 rounded">
+                        <span className="font-mono text-xs">{meta.image_url.split('/').pop()}</span>
+                        <span className="text-gray-500 text-xs">
+                          {new Date(meta.updated_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                onClick={() => setDuplicateModalOpen(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                닫기
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('중복 파일들을 정리하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                    // TODO: 중복 정리 로직 구현
+                    alert('중복 정리 기능은 추후 구현됩니다.');
+                  }
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                🗑️ 중복 정리
+              </button>
             </div>
           </div>
         </div>
