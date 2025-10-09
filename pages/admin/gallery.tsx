@@ -511,10 +511,30 @@ export default function GalleryAdmin() {
   const saveEdit = async () => {
     if (!editingImage) return;
     
-    // 🔍 저장 전 유효성 검사
+    // 🔍 저장 전 유효성 검사 (SEO 최적화 강제)
     const categoryStr = String(editForm.category || '');
     if (!categoryStr || categoryStr.trim() === '') {
       alert('카테고리를 선택해주세요.');
+      return;
+    }
+    
+    // 글자 수 제한 검사
+    const validationErrors = [];
+    if (editForm.alt_text && editForm.alt_text.length > 100) {
+      validationErrors.push(`ALT 텍스트가 너무 깁니다 (${editForm.alt_text.length}자, 100자 이하 강제)`);
+    }
+    if (editForm.keywords && editForm.keywords.length > 20) {
+      validationErrors.push(`키워드가 너무 깁니다 (${editForm.keywords.length}자, 20자 이하 강제)`);
+    }
+    if (editForm.title && editForm.title.length > 30) {
+      validationErrors.push(`제목이 너무 깁니다 (${editForm.title.length}자, 30자 이하 강제)`);
+    }
+    if (editForm.description && editForm.description.length > 100) {
+      validationErrors.push(`설명이 너무 깁니다 (${editForm.description.length}자, 100자 이하 강제)`);
+    }
+    
+    if (validationErrors.length > 0) {
+      alert(`SEO 최적화 글자 수 제한을 초과했습니다:\n\n${validationErrors.join('\n')}`);
       return;
     }
     
@@ -1291,8 +1311,26 @@ export default function GalleryAdmin() {
                         console.log('🔍 키워드 API 응답:', data);
                         // seoOptimizedTags에서 키워드 추출
                         const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
-                        keywords = tagNames.join(', ');
-                        console.log('🏷️ 추출된 키워드:', keywords);
+                        let rawKeywords = tagNames.join(', ');
+                        
+                        // 🔧 키워드 길이 제한 (20자 이하)
+                        if (rawKeywords.length > 20) {
+                          const words = rawKeywords.split(', ');
+                          let limitedKeywords = '';
+                          for (const word of words) {
+                            const testKeywords = limitedKeywords + (limitedKeywords ? ', ' : '') + word;
+                            if (testKeywords.length <= 20) {
+                              limitedKeywords = testKeywords;
+                            } else {
+                              break;
+                            }
+                          }
+                          keywords = limitedKeywords || words[0] || '';
+                        } else {
+                          keywords = rawKeywords;
+                        }
+                        
+                        console.log('🏷️ 추출된 키워드 (20자 제한):', keywords);
                       } else {
                         console.log('❌ 키워드 API 실패:', keywordResponse);
                       }
@@ -1369,10 +1407,10 @@ export default function GalleryAdmin() {
                         }
                       };
 
-                      // 각 필드별 길이 제한 적용
-                      const optimizedAltText = truncateText(altText, 125);
-                      const optimizedTitle = truncateText(title, 60);
-                      const optimizedDescription = truncateText(description, 160);
+                      // 각 필드별 길이 제한 적용 (SEO 최적화 강화)
+                      const optimizedAltText = truncateText(altText, 100);
+                      const optimizedTitle = truncateText(title, 30);
+                      const optimizedDescription = truncateText(description, 100);
                       
                       // 🔍 디버깅 로그 (역할 바뀜)
                       console.log('🔧 텍스트 최적화 결과 (역할 바뀜):', {
@@ -1441,8 +1479,8 @@ export default function GalleryAdmin() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-medium text-gray-700">ALT 텍스트</label>
-                  <span className={`text-xs ${editForm.alt_text.length > 125 ? 'text-red-500' : editForm.alt_text.length > 100 ? 'text-yellow-500' : 'text-gray-500'}`}>
-                    {editForm.alt_text.length}/125 (SEO 최적화: 50-100자 권장)
+                  <span className={`text-xs ${editForm.alt_text.length > 100 ? 'text-red-500' : 'text-gray-500'}`}>
+                    {editForm.alt_text.length}/100 (SEO 최적화: 100자 이하 강제)
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -1451,11 +1489,9 @@ export default function GalleryAdmin() {
                     value={editForm.alt_text}
                     onChange={(e) => setEditForm({ ...editForm, alt_text: e.target.value })}
                     className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.alt_text.length > 125 ? 'border-red-300 bg-red-50' : 
-                      editForm.alt_text.length > 100 ? 'border-yellow-300 bg-yellow-50' : 
-                      'border-gray-300'
+                      editForm.alt_text.length > 100 ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
-                    placeholder="이미지 설명을 입력하세요 (SEO 최적화: 50-100자 권장)"
+                    placeholder="이미지 설명을 입력하세요 (SEO 최적화: 100자 이하 강제)"
                   />
                   <button
                     onClick={async () => {
@@ -1512,14 +1548,21 @@ export default function GalleryAdmin() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">키워드</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">키워드</label>
+                  <span className={`text-xs ${editForm.keywords.length > 20 ? 'text-red-500' : 'text-gray-500'}`}>
+                    {editForm.keywords.length}/20 (SEO 최적화: 20자 이하 강제)
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={editForm.keywords}
                     onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="키워드를 쉼표로 구분하여 입력하세요"
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      editForm.keywords.length > 20 ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    placeholder="키워드를 쉼표로 구분하여 입력하세요 (SEO 최적화: 20자 이하 강제)"
                   />
                   <button
                     onClick={async () => {
@@ -1569,8 +1612,8 @@ export default function GalleryAdmin() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-medium text-gray-700">제목</label>
-                  <span className={`text-xs ${editForm.title.length > 60 ? 'text-red-500' : editForm.title.length > 50 ? 'text-yellow-500' : 'text-gray-500'}`}>
-                    {editForm.title.length}/60 (SEO 최적화: 50자 이하 권장)
+                  <span className={`text-xs ${editForm.title.length > 30 ? 'text-red-500' : 'text-gray-500'}`}>
+                    {editForm.title.length}/30 (SEO 최적화: 30자 이하 강제)
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -1579,11 +1622,9 @@ export default function GalleryAdmin() {
                     value={editForm.title}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                     className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.title.length > 60 ? 'border-red-300 bg-red-50' : 
-                      editForm.title.length > 50 ? 'border-yellow-300 bg-yellow-50' : 
-                      'border-gray-300'
+                      editForm.title.length > 30 ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
-                    placeholder="이미지 제목을 입력하세요 (SEO 최적화: 50자 이하 권장)"
+                    placeholder="이미지 제목을 입력하세요 (SEO 최적화: 30자 이하 강제)"
                   />
                   <button
                     onClick={async () => {
@@ -1638,8 +1679,8 @@ export default function GalleryAdmin() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-medium text-gray-700">설명</label>
-                  <span className={`text-xs ${editForm.description.length > 160 ? 'text-red-500' : editForm.description.length > 140 ? 'text-yellow-500' : 'text-gray-500'}`}>
-                    {editForm.description.length}/160 (SEO 최적화: 140자 이하 권장)
+                  <span className={`text-xs ${editForm.description.length > 100 ? 'text-red-500' : 'text-gray-500'}`}>
+                    {editForm.description.length}/100 (SEO 최적화: 100자 이하 강제)
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -1648,11 +1689,9 @@ export default function GalleryAdmin() {
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     rows={3}
                     className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.description.length > 160 ? 'border-red-300 bg-red-50' : 
-                      editForm.description.length > 140 ? 'border-yellow-300 bg-yellow-50' : 
-                      'border-gray-300'
+                      editForm.description.length > 100 ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
-                    placeholder="이미지에 대한 자세한 설명을 입력하세요 (SEO 최적화: 140자 이하 권장)"
+                    placeholder="이미지에 대한 자세한 설명을 입력하세요 (SEO 최적화: 100자 이하 강제)"
                   />
                   <button
                     onClick={async () => {
@@ -1829,13 +1868,28 @@ export default function GalleryAdmin() {
               </button>
               <button
                 onClick={saveEdit}
-                disabled={!String(editForm.category || '').trim()}
+                disabled={!String(editForm.category || '').trim() || 
+                         editForm.alt_text.length > 100 || 
+                         editForm.keywords.length > 20 || 
+                         editForm.title.length > 30 || 
+                         editForm.description.length > 100}
                 className={`px-4 py-2 rounded transition-colors ${
-                  !String(editForm.category || '').trim()
+                  !String(editForm.category || '').trim() || 
+                  editForm.alt_text.length > 100 || 
+                  editForm.keywords.length > 20 || 
+                  editForm.title.length > 30 || 
+                  editForm.description.length > 100
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-500 text-white hover:bg-blue-600'
                 }`}
-                title={!String(editForm.category || '').trim() ? '카테고리를 선택해주세요' : '메타데이터 저장'}
+                title={
+                  !String(editForm.category || '').trim() ? '카테고리를 선택해주세요' :
+                  editForm.alt_text.length > 100 ? 'ALT 텍스트는 100자 이하로 입력해주세요' :
+                  editForm.keywords.length > 20 ? '키워드는 20자 이하로 입력해주세요' :
+                  editForm.title.length > 30 ? '제목은 30자 이하로 입력해주세요' :
+                  editForm.description.length > 100 ? '설명은 100자 이하로 입력해주세요' :
+                  '메타데이터 저장'
+                }
               >
                 저장
               </button>
