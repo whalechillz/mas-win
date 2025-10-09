@@ -345,6 +345,34 @@ export default function GalleryAdmin() {
         
         console.log(`--- 📊 디버깅 로그 끝 ---`);
         
+        // 🔍 전체 images 배열 중복 체크 (setImages 후)
+        setTimeout(() => {
+          setImages(currentImages => {
+            const allNameGroups: { [key: string]: any[] } = {};
+            currentImages.forEach((img: any) => {
+              if (!allNameGroups[img.name]) {
+                allNameGroups[img.name] = [];
+              }
+              allNameGroups[img.name].push(img);
+            });
+            
+            const allDuplicateNames = Object.entries(allNameGroups).filter(([name, files]) => files.length > 1);
+            if (allDuplicateNames.length > 0) {
+              console.log(`🚨 전체 배열에서 중복 파일명 발견: ${allDuplicateNames.length}개 그룹`);
+              allDuplicateNames.forEach(([name, files]) => {
+                console.log(`📁 "${name}" (${files.length}개):`);
+                files.forEach((file, index) => {
+                  console.log(`  ${index + 1}. ID: ${file.id}, URL: ${file.url}`);
+                });
+              });
+            } else {
+              console.log(`✅ 전체 배열에서 중복 파일명 없음`);
+            }
+            
+            return currentImages;
+          });
+        }, 100);
+        
         // 더 이상 로드할 이미지가 없는지 확인
         if (list.length < imagesPerPage) {
           setHasMoreImages(false);
@@ -371,7 +399,21 @@ export default function GalleryAdmin() {
           setImages(imagesWithMetadata);
           setCurrentPage(1);
         } else {
-          setImages(prev => [...prev, ...imagesWithMetadata]);
+          setImages(prev => {
+            // 🔧 중복 제거 로직 추가: 같은 name과 url을 가진 이미지는 하나만 유지
+            const existingIds = new Set(prev.map(img => `${img.name}-${img.url}`));
+            const newImages = imagesWithMetadata.filter(img => 
+              !existingIds.has(`${img.name}-${img.url}`)
+            );
+            
+            // 🔍 중복 제거 디버깅 로그
+            if (newImages.length !== imagesWithMetadata.length) {
+              const removedCount = imagesWithMetadata.length - newImages.length;
+              console.log(`🔄 중복 제거: ${removedCount}개 이미지가 이미 존재하여 제외됨`);
+            }
+            
+            return [...prev, ...newImages];
+          });
           setCurrentPage(page);
         }
         setTotalCount(data.total || 0);
