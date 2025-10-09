@@ -434,7 +434,29 @@ export default function GalleryAdmin() {
           return;
         }
         
-        console.log('✅ 파일명 변경 완료');
+        const renameResult = await renameResponse.json();
+        const finalFileName = renameResult.newName || editForm.filename;
+        const newUrl = renameResult.newUrl;
+        
+        console.log('✅ 파일명 변경 완료:', {
+          oldName: image.name,
+          newName: finalFileName,
+          newUrl: newUrl
+        });
+        
+        // 파일명 변경 후 로컬 상태 즉시 업데이트
+        setImages(prev => prev.map(img => 
+          img.name === image.name 
+            ? { 
+                ...img, 
+                name: finalFileName,
+                url: newUrl || img.url
+              }
+            : img
+        ));
+        
+        // 편집 중인 이미지 정보도 업데이트
+        setEditingImage(finalFileName);
       }
 
       const response = await fetch('/api/admin/image-metadata', {
@@ -442,7 +464,7 @@ export default function GalleryAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageName: editForm.filename || image.name,  // 실제 데이터베이스의 파일명 사용
-          imageUrl: image.url,
+          imageUrl: image.url,  // URL은 파일명 변경 시 이미 업데이트됨
           alt_text: editForm.alt_text,
           keywords: keywords,
           title: editForm.title,
@@ -454,10 +476,17 @@ export default function GalleryAdmin() {
       console.log('📡 저장 API 응답 상태:', response.status);
       
       if (response.ok) {
-        // 로컬 상태 업데이트
+        // 로컬 상태 업데이트 (파일명 변경 시 URL도 함께 업데이트)
         setImages(prev => prev.map(img => 
           img.name === image.name 
-            ? { ...img, ...editForm, keywords, name: editForm.filename || image.name }
+            ? { 
+                ...img, 
+                ...editForm, 
+                keywords, 
+                name: editForm.filename || image.name,
+                url: editForm.filename && editForm.filename !== image.name ? 
+                  `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/${editForm.filename}` : img.url
+              }
             : img
         ));
         setEditingImage(null);
@@ -2072,20 +2101,35 @@ export default function GalleryAdmin() {
                           });
                           
                           if (response.ok) {
-                            // 이미지 목록에서 파일명 업데이트
+                            const result = await response.json();
+                            const finalFileName = result.newName || newFileName.trim();
+                            const newUrl = result.newUrl;
+                            
+                            console.log('✅ 파일명 변경 성공:', {
+                              oldName: selectedImageForZoom.name,
+                              newName: finalFileName,
+                              newUrl: newUrl
+                            });
+                            
+                            // 이미지 목록에서 파일명과 URL 업데이트
                             setImages(prev => prev.map(img => 
                               img.name === selectedImageForZoom.name 
-                                ? { ...img, name: newFileName.trim() }
+                                ? { 
+                                    ...img, 
+                                    name: finalFileName,
+                                    url: newUrl || img.url
+                                  }
                                 : img
                             ));
                             
-                            // 현재 확대된 이미지의 파일명도 업데이트
+                            // 현재 확대된 이미지의 파일명과 URL도 업데이트 (캐시 버스터 추가)
                             setSelectedImageForZoom(prev => ({
                               ...prev,
-                              name: newFileName.trim()
+                              name: finalFileName,
+                              url: newUrl ? `${newUrl}?t=${Date.now()}` : prev.url
                             }));
                             
-                            alert(`파일명이 "${newFileName}"로 성공적으로 변경되었습니다.`);
+                            alert(`파일명이 "${finalFileName}"로 성공적으로 변경되었습니다.`);
                           } else {
                             const errorData = await response.json();
                             const shouldRefresh = confirm(`파일명 변경에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}\n\n갤러리를 새로고침하시겠습니까?`);
@@ -2135,20 +2179,35 @@ export default function GalleryAdmin() {
                           });
                           
                           if (response.ok) {
-                            // 이미지 목록에서 파일명 업데이트
+                            const result = await response.json();
+                            const finalFileName = result.newName || newFileName.trim();
+                            const newUrl = result.newUrl;
+                            
+                            console.log('✅ SEO 파일명 변경 성공:', {
+                              oldName: selectedImageForZoom.name,
+                              newName: finalFileName,
+                              newUrl: newUrl
+                            });
+                            
+                            // 이미지 목록에서 파일명과 URL 업데이트
                             setImages(prev => prev.map(img => 
                               img.name === selectedImageForZoom.name 
-                                ? { ...img, name: newFileName.trim() }
+                                ? { 
+                                    ...img, 
+                                    name: finalFileName,
+                                    url: newUrl || img.url
+                                  }
                                 : img
                             ));
                             
-                            // 현재 확대된 이미지의 파일명도 업데이트
+                            // 현재 확대된 이미지의 파일명과 URL도 업데이트 (캐시 버스터 추가)
                             setSelectedImageForZoom(prev => ({
                               ...prev,
-                              name: newFileName.trim()
+                              name: finalFileName,
+                              url: newUrl ? `${newUrl}?t=${Date.now()}` : prev.url
                             }));
                             
-                            alert(`SEO 파일명 "${newFileName}"이 성공적으로 적용되었습니다.`);
+                            alert(`SEO 파일명 "${finalFileName}"이 성공적으로 적용되었습니다.`);
                           } else {
                             const errorData = await response.json();
                             const shouldRefresh = confirm(`SEO 파일명 적용에 실패했습니다.\n오류: ${errorData.error || '알 수 없는 오류'}\n\n갤러리를 새로고침하시겠습니까?`);
