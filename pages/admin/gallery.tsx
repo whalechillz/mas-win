@@ -540,7 +540,10 @@ export default function GalleryAdmin() {
     
     try {
       console.log('💾 메타데이터 저장 시작:', editingImage);
-      const keywords = editForm.keywords.split(',').map(k => k.trim()).filter(k => k);
+      // 🔧 keywords 안전하게 처리
+      const keywords = editForm.keywords && typeof editForm.keywords === 'string' 
+        ? editForm.keywords.split(',').map(k => k.trim()).filter(k => k)
+        : [];
       
       const image = images.find(img => img.name === editingImage);
       if (!image) {
@@ -1436,8 +1439,7 @@ export default function GalleryAdmin() {
                       if (title && keywords) {
                         const seoFileName = generateSEOFileName(
                           title,
-                          keywords,
-                          Math.floor(Math.random() * 999) + 1
+                          (keywords || '').split(',').map(k => k.trim()).filter(k => k)
                         );
                         setEditForm(prev => ({ ...prev, filename: seoFileName }));
                         console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
@@ -1659,7 +1661,7 @@ export default function GalleryAdmin() {
                       setEditForm({
                         ...editForm,
                         alt_text: optimizedDescription, // 설명을 ALT 텍스트로
-                        keywords: keywords,
+                        keywords: keywords || '', // keywords 안전하게 처리
                         title: optimizedTitle,
                         description: optimizedAltText, // ALT 텍스트를 설명으로
                         category: selectedCategory
@@ -1669,7 +1671,7 @@ export default function GalleryAdmin() {
                       if (title && keywords) {
                         const seoFileName = generateSEOFileName(
                           title,
-                          keywords.split(',').map(k => k.trim()).filter(k => k)
+                          (keywords || '').split(',').map(k => k.trim()).filter(k => k)
                         );
                         setEditForm(prev => ({ ...prev, filename: seoFileName }));
                         console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
