@@ -114,7 +114,7 @@ export default async function handler(req, res) {
       
     } else if (req.method === 'POST') {
       // 이미지 메타데이터 생성/업데이트
-      const { imageName, imageUrl, customAltText, customKeywords } = req.body;
+      const { imageName, imageUrl, alt_text, keywords, title, description, category } = req.body;
       
       if (!imageName || !imageUrl) {
         return res.status(400).json({
@@ -122,55 +122,108 @@ export default async function handler(req, res) {
         });
       }
 
-      // Google Vision API로 이미지 분석 (실제 구현 시)
-      const visionAnalysis = await analyzeImageWithGoogleVision(imageUrl);
-      
-      // SEO 최적화된 메타데이터 생성
-      const metadata = {
-        filename: imageName,
-        url: imageUrl,
-        altText: customAltText || generateSEOAltText(imageName, visionAnalysis.labels),
-        keywords: customKeywords || [...extractKeywordsFromFilename(imageName), ...visionAnalysis.labels],
-        seoTitle: customAltText ? `${customAltText} - MASGOLF` : generateSEOAltText(imageName, visionAnalysis.labels),
-        description: `MASGOLF ${extractKeywordsFromFilename(imageName).join(' ')} 관련 이미지입니다.`,
-        visionAnalysis,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      console.log('📝 메타데이터 저장 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category });
+
+      // 데이터베이스에 메타데이터 저장/업데이트
+      const metadataData = {
+        name: imageName,
+        image_url: imageUrl,
+        alt_text: alt_text || '',
+        tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
+        title: title || '',
+        description: description || '',
+        category_id: category || null,
+        updated_at: new Date().toISOString()
       };
 
-      // 실제 구현 시 데이터베이스에 저장
-      console.log('📝 이미지 메타데이터 생성:', metadata);
+      // 기존 메타데이터가 있는지 확인
+      const { data: existingData, error: checkError } = await supabase
+        .from('image_metadata')
+        .select('id')
+        .eq('image_url', imageUrl)
+        .single();
+
+      let result;
+      if (existingData) {
+        // 기존 메타데이터 업데이트
+        const { data, error } = await supabase
+          .from('image_metadata')
+          .update(metadataData)
+          .eq('image_url', imageUrl)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('❌ 메타데이터 업데이트 오류:', error);
+          return res.status(500).json({ error: '메타데이터 업데이트 실패', details: error.message });
+        }
+        result = data;
+        console.log('✅ 메타데이터 업데이트 완료');
+      } else {
+        // 새 메타데이터 생성
+        const { data, error } = await supabase
+          .from('image_metadata')
+          .insert([{
+            ...metadataData,
+            created_at: new Date().toISOString()
+          }])
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('❌ 메타데이터 생성 오류:', error);
+          return res.status(500).json({ error: '메타데이터 생성 실패', details: error.message });
+        }
+        result = data;
+        console.log('✅ 메타데이터 생성 완료');
+      }
 
       return res.status(200).json({ 
         success: true,
-        metadata 
+        metadata: result
       });
       
     } else if (req.method === 'PUT') {
       // 이미지 메타데이터 업데이트
-      const { imageName, altText, keywords, seoTitle, description } = req.body;
+      const { imageName, imageUrl, alt_text, keywords, title, description, category } = req.body;
       
-      if (!imageName) {
+      if (!imageName || !imageUrl) {
         return res.status(400).json({
-          error: 'imageName이 필요합니다.'
+          error: 'imageName과 imageUrl이 필요합니다.'
         });
       }
 
-      const updatedMetadata = {
-        filename: imageName,
-        altText: altText || generateSEOAltText(imageName),
-        keywords: keywords || extractKeywordsFromFilename(imageName),
-        seoTitle: seoTitle || `${extractKeywordsFromFilename(imageName).slice(0, 2).join(' ')} - MASGOLF`,
-        description: description || `MASGOLF ${extractKeywordsFromFilename(imageName).join(' ')} 관련 이미지입니다.`,
-        updatedAt: new Date().toISOString()
+      console.log('📝 메타데이터 업데이트 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category });
+
+      // 데이터베이스에서 메타데이터 업데이트
+      const metadataData = {
+        name: imageName,
+        image_url: imageUrl,
+        alt_text: alt_text || '',
+        tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
+        title: title || '',
+        description: description || '',
+        category_id: category || null,
+        updated_at: new Date().toISOString()
       };
 
-      // 실제 구현 시 데이터베이스 업데이트
-      console.log('📝 이미지 메타데이터 업데이트:', updatedMetadata);
+      const { data, error } = await supabase
+        .from('image_metadata')
+        .update(metadataData)
+        .eq('image_url', imageUrl)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ 메타데이터 업데이트 오류:', error);
+        return res.status(500).json({ error: '메타데이터 업데이트 실패', details: error.message });
+      }
+
+      console.log('✅ 메타데이터 업데이트 완료');
 
       return res.status(200).json({ 
         success: true,
-        metadata: updatedMetadata 
+        metadata: data
       });
       
     } else {
