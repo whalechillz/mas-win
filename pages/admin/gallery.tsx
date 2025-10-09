@@ -672,10 +672,37 @@ export default function GalleryAdmin() {
               <button 
                 onClick={async () => {
                   try {
-                    const response = await fetch('/api/debug-duplicates');
+                    const response = await fetch('/api/admin/remove-duplicates', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'analyze' })
+                    });
                     const data = await response.json();
                     if (response.ok) {
-                      alert(`🔍 중복 파일 분석 결과:\n\n📊 총 파일: ${data.totalFiles}개\n📝 파일명 중복: ${data.summary.nameDuplicates}개\n🔗 URL 중복: ${data.summary.urlDuplicates}개\n🎯 패턴 중복: ${data.summary.patternDuplicates}개\n\n자세한 내용은 콘솔을 확인하세요.`);
+                      if (data.summary.filesToDelete > 0) {
+                        const shouldRemove = confirm(`🔍 중복 파일 분석 결과:\n\n📊 총 파일: ${data.totalFiles}개\n🔄 중복 그룹: ${data.summary.duplicateGroups}개\n🗑️ 삭제 예정: ${data.summary.filesToDelete}개\n\n중복 파일들을 제거하시겠습니까?`);
+                        if (shouldRemove) {
+                          // 중복 제거 실행
+                          const removeResponse = await fetch('/api/admin/remove-duplicates', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              action: 'remove',
+                              duplicateGroups: data.duplicateGroups
+                            })
+                          });
+                          const removeData = await removeResponse.json();
+                          if (removeResponse.ok) {
+                            alert(`✅ 중복 제거 완료!\n\n🗑️ 삭제된 파일: ${removeData.deleted}개\n❌ 오류: ${removeData.errors}개`);
+                            // 갤러리 새로고침
+                            fetchImages(1, true);
+                          } else {
+                            alert('중복 제거에 실패했습니다.');
+                          }
+                        }
+                      } else {
+                        alert('✅ 중복 파일이 없습니다!');
+                      }
                       console.log('🔍 중복 파일 분석 결과:', data);
                     } else {
                       alert('중복 파일 분석에 실패했습니다.');
@@ -687,7 +714,7 @@ export default function GalleryAdmin() {
                 }}
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
               >
-                🔍 중복 분석
+                🔍 중복 제거
               </button>
               </div>
             </div>
@@ -1968,15 +1995,19 @@ export default function GalleryAdmin() {
                               setEditingImage(null);
                             }
                             
-                            // 선택된 이미지에서도 제거
+                            // 선택된 이미지에서도 제거 (즉시 업데이트)
+                            const uniqueId = getImageUniqueId(selectedImageForZoom);
                             setSelectedImages(prev => {
                               const newSet = new Set(prev);
-                              newSet.delete(selectedImageForZoom.name);
+                              newSet.delete(uniqueId);
                               return newSet;
                             });
                             
                             // 모달 닫기 (삭제된 이미지는 더 이상 볼 수 없음)
                             setSelectedImageForZoom(null);
+                            
+                            // 갤러리에서 삭제된 이미지 즉시 제거
+                            setImages(prev => prev.filter(img => img.name !== selectedImageForZoom.name));
                             
                             // 살짝 리로딩 효과 (첫 페이지만 새로고침)
                             setTimeout(() => {
