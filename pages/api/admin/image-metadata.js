@@ -162,7 +162,16 @@ export default async function handler(req, res) {
         });
       }
 
-      console.log('📝 메타데이터 저장 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category });
+      console.log('📝 메타데이터 저장 시작:', { 
+        imageName, 
+        imageUrl, 
+        alt_text, 
+        keywords, 
+        title, 
+        description, 
+        category,
+        requestBody: req.body 
+      });
 
       // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
       let categoryId = null;
@@ -191,15 +200,19 @@ export default async function handler(req, res) {
       };
 
       // 기존 메타데이터가 있는지 확인
+      console.log('🔍 기존 메타데이터 확인 중:', imageUrl);
       const { data: existingData, error: checkError } = await supabase
         .from('image_metadata')
         .select('id')
         .eq('image_url', imageUrl)
         .single();
+      
+      console.log('🔍 기존 메타데이터 확인 결과:', { existingData, checkError });
 
       let result;
       if (existingData) {
         // 기존 메타데이터 업데이트
+        console.log('🔄 기존 메타데이터 업데이트 중:', metadataData);
         const { data, error } = await supabase
           .from('image_metadata')
           .update(metadataData)
@@ -212,9 +225,10 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: '메타데이터 업데이트 실패', details: error.message });
         }
         result = data;
-        console.log('✅ 메타데이터 업데이트 완료');
+        console.log('✅ 메타데이터 업데이트 완료:', result);
       } else {
         // 새 메타데이터 생성
+        console.log('➕ 새 메타데이터 생성 중:', metadataData);
         const { data, error } = await supabase
           .from('image_metadata')
           .insert([{
@@ -229,7 +243,7 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: '메타데이터 생성 실패', details: error.message });
         }
         result = data;
-        console.log('✅ 메타데이터 생성 완료');
+        console.log('✅ 메타데이터 생성 완료:', result);
       }
 
       return res.status(200).json({ 

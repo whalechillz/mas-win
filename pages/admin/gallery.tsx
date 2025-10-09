@@ -557,23 +557,29 @@ export default function GalleryAdmin() {
         setEditingImage(finalFileName);
       }
 
+      const requestData = {
+        imageName: editForm.filename || image.name,  // 실제 데이터베이스의 파일명 사용
+        imageUrl: image.url,  // URL은 파일명 변경 시 이미 업데이트됨
+        alt_text: editForm.alt_text,
+        keywords: keywords,
+        title: editForm.title,
+        description: editForm.description,
+        category: editForm.category
+      };
+      
+      console.log('📤 저장 요청 데이터:', requestData);
+      
       const response = await fetch('/api/admin/image-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageName: editForm.filename || image.name,  // 실제 데이터베이스의 파일명 사용
-          imageUrl: image.url,  // URL은 파일명 변경 시 이미 업데이트됨
-          alt_text: editForm.alt_text,
-          keywords: keywords,
-          title: editForm.title,
-          description: editForm.description,
-          category: editForm.category
-        })
+        body: JSON.stringify(requestData)
       });
       
       console.log('📡 저장 API 응답 상태:', response.status);
       
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ 저장 API 응답 데이터:', responseData);
         // 로컬 상태 업데이트 (파일명 변경 시 URL도 함께 업데이트)
         setImages(prev => prev.map(img => 
           img.name === image.name 
@@ -597,8 +603,12 @@ export default function GalleryAdmin() {
         }, 500);
       } else {
         const errorData = await response.json();
-        console.error('❌ 저장 API 오류 응답:', errorData);
-        alert(`저장에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
+        console.error('❌ 저장 API 오류 응답:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData: errorData
+        });
+        alert(`저장에 실패했습니다.\n상태: ${response.status}\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('❌ 메타데이터 저장 에러:', error);
