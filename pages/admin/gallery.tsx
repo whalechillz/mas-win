@@ -294,6 +294,57 @@ export default function GalleryAdmin() {
       if (response.ok) {
         const list = data.images || [];
         
+        // 🔍 중복 이미지 디버깅 로그 추가
+        console.log(`--- 📊 페이지 ${page} 이미지 로드 결과 ---`);
+        console.log(`총 ${list.length}개 이미지 로드됨`);
+        
+        // 파일명별 그룹화하여 중복 확인
+        const nameGroups: { [key: string]: any[] } = {};
+        list.forEach((img: any) => {
+          if (!nameGroups[img.name]) {
+            nameGroups[img.name] = [];
+          }
+          nameGroups[img.name].push(img);
+        });
+        
+        // 중복 파일명 찾기
+        const duplicateNames = Object.entries(nameGroups).filter(([name, files]) => files.length > 1);
+        if (duplicateNames.length > 0) {
+          console.log(`🔄 중복 파일명 발견: ${duplicateNames.length}개 그룹`);
+          duplicateNames.forEach(([name, files]) => {
+            console.log(`📁 "${name}" (${files.length}개):`);
+            files.forEach((file, index) => {
+              console.log(`  ${index + 1}. ID: ${file.id}, URL: ${file.url}`);
+            });
+          });
+        } else {
+          console.log(`✅ 중복 파일명 없음`);
+        }
+        
+        // URL별 그룹화하여 중복 확인
+        const urlGroups: { [key: string]: any[] } = {};
+        list.forEach((img: any) => {
+          if (!urlGroups[img.url]) {
+            urlGroups[img.url] = [];
+          }
+          urlGroups[img.url].push(img);
+        });
+        
+        const duplicateUrls = Object.entries(urlGroups).filter(([url, files]) => files.length > 1);
+        if (duplicateUrls.length > 0) {
+          console.log(`🔄 중복 URL 발견: ${duplicateUrls.length}개 그룹`);
+          duplicateUrls.forEach(([url, files]) => {
+            console.log(`🔗 "${url}" (${files.length}개):`);
+            files.forEach((file, index) => {
+              console.log(`  ${index + 1}. ID: ${file.id}, Name: ${file.name}`);
+            });
+          });
+        } else {
+          console.log(`✅ 중복 URL 없음`);
+        }
+        
+        console.log(`--- 📊 디버깅 로그 끝 ---`);
+        
         // 더 이상 로드할 이미지가 없는지 확인
         if (list.length < imagesPerPage) {
           setHasMoreImages(false);
@@ -891,7 +942,11 @@ export default function GalleryAdmin() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {filteredImages.map((image) => (
+                  {filteredImages.map((image, index) => {
+                    // 🔍 렌더링 디버깅 로그 추가
+                    console.log(`[렌더링] ${index + 1}. Name: "${image.name}", URL: "${image.url}", ID: ${getImageUniqueId(image)}`);
+                    
+                    return (
                     <div 
                       key={image.name} 
                       className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all cursor-pointer ${
@@ -1022,7 +1077,8 @@ export default function GalleryAdmin() {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               
