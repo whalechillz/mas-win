@@ -664,6 +664,27 @@ export default function GalleryAdmin() {
                 </Link>
               <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
               <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/admin/check-duplicates');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                      const data = result.data;
+                      alert(`🔍 중복 이미지 분석 결과:\n\n📁 총 파일: ${data.totalFiles}개\n🎨 AI 생성 파일: ${data.generatedFiles}개\n🔄 중복 그룹: ${data.duplicateGroups.length}개\n📊 중복 파일: ${data.duplicateCount}개\n\n${data.duplicateGroups.length > 0 ? '⚠️ 실제로 중복 이미지가 존재합니다!' : '✅ 중복 이미지가 없습니다.'}`);
+                    } else {
+                      alert('중복 확인에 실패했습니다: ' + result.error);
+                    }
+                  } catch (error) {
+                    console.error('❌ 중복 확인 오류:', error);
+                    alert('중복 확인 중 오류가 발생했습니다.');
+                  }
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
+              >
+                🔍 중복 확인
+              </button>
               </div>
             </div>
           </div>
