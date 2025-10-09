@@ -1233,8 +1233,8 @@ export default function GalleryAdmin() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             imageUrl: image.url,
-                            title: '이미지 분석',
-                            excerpt: 'AI 메타데이터 자동 생성'
+                            title: '이미지 상세 설명',
+                            excerpt: '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
                           })
                         }),
                         fetch('/api/admin/image-ai-analyzer', {
@@ -1259,8 +1259,8 @@ export default function GalleryAdmin() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             imageUrl: image.url,
-                            title: '이미지 설명',
-                            excerpt: '이미지 설명 생성'
+                            title: '이미지 일반 설명',
+                            excerpt: '이미지에 대한 일반적인 설명이나 배경 정보 생성'
                           })
                         })
                       ]);
@@ -1374,20 +1374,20 @@ export default function GalleryAdmin() {
                       const optimizedTitle = truncateText(title, 60);
                       const optimizedDescription = truncateText(description, 160);
                       
-                      // 🔍 디버깅 로그
-                      console.log('🔧 텍스트 최적화 결과:', {
-                        altText: `${altText.length}자 → ${optimizedAltText.length}자`,
+                      // 🔍 디버깅 로그 (역할 바뀜)
+                      console.log('🔧 텍스트 최적화 결과 (역할 바뀜):', {
+                        altText: `${description.length}자 → ${optimizedDescription.length}자 (구체적 설명)`,
                         title: `${title.length}자 → ${optimizedTitle.length}자`,
-                        description: `${description.length}자 → ${optimizedDescription.length}자`
+                        description: `${altText.length}자 → ${optimizedAltText.length}자 (일반 설명)`
                       });
 
-                      // 폼 업데이트
+                      // 폼 업데이트 (ALT 텍스트와 설명 역할 바꿈)
                       setEditForm({
                         ...editForm,
-                        alt_text: optimizedAltText,
+                        alt_text: optimizedDescription, // 설명을 ALT 텍스트로
                         keywords: keywords,
                         title: optimizedTitle,
-                        description: optimizedDescription,
+                        description: optimizedAltText, // ALT 텍스트를 설명으로
                         category: selectedCategory
                       });
                       
@@ -1402,16 +1402,16 @@ export default function GalleryAdmin() {
                         console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
                       }
                       
-                      // 최적화 결과 로그
+                      // 최적화 결과 로그 (역할 바뀜)
                       const wasOptimized = optimizedAltText.length < altText.length || 
                                          optimizedTitle.length < title.length || 
                                          optimizedDescription.length < description.length;
                       
                       if (wasOptimized) {
-                        console.log('🔧 SEO 최적화 적용:', {
-                          altText: `${altText.length} → ${optimizedAltText.length}자`,
+                        console.log('🔧 SEO 최적화 적용 (역할 바뀜):', {
+                          altText: `${description.length} → ${optimizedDescription.length}자 (구체적 설명)`,
                           title: `${title.length} → ${optimizedTitle.length}자`,
-                          description: `${description.length} → ${optimizedDescription.length}자`
+                          description: `${altText.length} → ${optimizedAltText.length}자 (일반 설명)`
                         });
                       }
                       
