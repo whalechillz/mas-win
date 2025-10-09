@@ -189,24 +189,7 @@ export default async function handler(req, res) {
           // 추가 영문 카테고리
           'general': 5, 'instruction': 1
         };
-        const categoryKey = String(category).toLowerCase().trim();
-        categoryId = categoryMap[categoryKey] || null;
-        
-        console.log('🔍 카테고리 매핑:', {
-          originalCategory: category,
-          categoryKey: categoryKey,
-          categoryId: categoryId,
-          availableKeys: Object.keys(categoryMap)
-        });
-        
-        // 카테고리 ID가 null인 경우 기본값 설정
-        if (categoryId === null) {
-          console.warn('⚠️ 알 수 없는 카테고리, 기본값(골프)으로 설정:', category);
-          categoryId = 1; // 기본값: 골프
-        }
-      } else {
-        console.warn('⚠️ 카테고리가 비어있음, 기본값(골프)으로 설정');
-        categoryId = 1; // 기본값: 골프
+        categoryId = categoryMap[category.toLowerCase()] || null;
       }
 
       // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준)
@@ -282,20 +265,8 @@ export default async function handler(req, res) {
           .single();
         
         if (error) {
-          console.error('❌ 메타데이터 업데이트 오류:', {
-            error: error,
-            errorMessage: error.message,
-            errorCode: error.code,
-            errorHint: error.hint,
-            errorDetails: error.details,
-            metadataData: metadataData
-          });
-          return res.status(500).json({ 
-            error: '메타데이터 업데이트 실패', 
-            details: error.message,
-            code: error.code,
-            hint: error.hint
-          });
+          console.error('❌ 메타데이터 업데이트 오류:', error);
+          return res.status(500).json({ error: '메타데이터 업데이트 실패', details: error.message });
         }
         result = data;
         console.log('✅ 메타데이터 업데이트 완료:', result);
@@ -312,20 +283,8 @@ export default async function handler(req, res) {
           .single();
         
         if (error) {
-          console.error('❌ 메타데이터 생성 오류:', {
-            error: error,
-            errorMessage: error.message,
-            errorCode: error.code,
-            errorHint: error.hint,
-            errorDetails: error.details,
-            metadataData: metadataData
-          });
-          return res.status(500).json({ 
-            error: '메타데이터 생성 실패', 
-            details: error.message,
-            code: error.code,
-            hint: error.hint
-          });
+          console.error('❌ 메타데이터 생성 오류:', error);
+          return res.status(500).json({ error: '메타데이터 생성 실패', details: error.message });
         }
         result = data;
         console.log('✅ 메타데이터 생성 완료:', result);

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
+import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 
 interface ImageMetadata {
   id?: string;
@@ -1231,912 +1232,141 @@ export default function GalleryAdmin() {
         </div>
       </div>
 
-      {/* 편집 모달 */}
-      {editingImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">이미지 메타데이터 편집</h3>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-2 items-center">
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      if (!confirm('모든 메타데이터를 한글로 AI 생성하시겠습니까?\n\nALT 텍스트, 키워드, 제목, 설명이 모두 생성됩니다.')) return;
-                    
-                    try {
-                      console.log('🤖 전체 AI 메타데이터 생성 시작:', image.url);
-                      
-                      // 모든 AI 요청을 병렬로 실행 (한글)
-                      const useEnglish = false;
-                      const language = 'Korean';
-                      const [altResponse, keywordResponse, titleResponse, descResponse] = await Promise.allSettled([
-                        fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: useEnglish ? 'Detailed image description' : '이미지 상세 설명',
-                            excerpt: useEnglish ? 'Describe the specific content of the image in detail (for ALT text)' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
-                          })
-                        }),
-                        fetch('/api/admin/image-ai-analyzer', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            imageId: null
-                          })
-                        }),
-                        fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: useEnglish ? 'Image title' : '이미지 제목',
-                            excerpt: useEnglish ? 'Generate an image title' : '이미지 제목 생성'
-                          })
-                        }),
-                        fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: useEnglish ? 'General image description' : '이미지 일반 설명',
-                            excerpt: useEnglish ? 'Generate general description or background information about the image' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
-                          })
-                        })
-                      ]);
-                      
-                      // 결과 처리
-                      let altText = '';
-                      let keywords = '';
-                      let title = '';
-                      let description = '';
-                      
-                      if (altResponse.status === 'fulfilled' && altResponse.value.ok) {
-                        const data = await altResponse.value.json();
-                        altText = (data.prompt || '')
-                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                          .replace(/^\*\*이미지 분석\*\*\s*/i, '')
-                          .replace(/^\*\*.*?\*\*\s*/i, '')
-                          .replace(/^이미지 분석\s*/i, '')
-                          .replace(/^분석\s*/i, '')
-                          .replace(/^이미지는\s*/i, '')
-                          .replace(/^이\s*이미지는\s*/i, '')
-                          .replace(/^이\s*사진은\s*/i, '')
-                          .replace(/^사진은\s*/i, '')
-                          .trim();
-                      }
-                      
-                      if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
-                        const data = await keywordResponse.value.json();
-                        console.log('🔍 키워드 API 응답:', data);
-                        // seoOptimizedTags에서 키워드 추출
-                        const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
-                        let rawKeywords = tagNames.join(', ');
-                        
-                        // 🔧 키워드 길이 제한 (20자 이하)
-                        if (rawKeywords.length > 20) {
-                          const words = rawKeywords.split(', ');
-                          let limitedKeywords = '';
-                          for (const word of words) {
-                            const testKeywords = limitedKeywords + (limitedKeywords ? ', ' : '') + word;
-                            if (testKeywords.length <= 20) {
-                              limitedKeywords = testKeywords;
-                            } else {
-                              break;
-                            }
-                          }
-                          keywords = limitedKeywords || words[0] || '';
-                        } else {
-                          keywords = rawKeywords;
-                        }
-                        
-                        console.log('🏷️ 추출된 키워드 (20자 제한):', keywords);
-                      } else {
-                        console.log('❌ 키워드 API 실패:', keywordResponse);
-                      }
-                      
-                      if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
-                        const data = await titleResponse.value.json();
-                        const cleanPrompt = (data.prompt || '')
-                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                          .replace(/^\*\*이미지 제목\*\*:\s*/i, '')
-                          .replace(/^\*\*제목\*\*:\s*/i, '')
-                          .replace(/^\*\*.*?\*\*\s*/i, '')
-                          .replace(/\*\*설명\*\*:.*$/i, '') // 설명 부분 제거
-                          .replace(/^이미지 제목\s*:\s*/i, '')
-                          .replace(/^제목\s*:\s*/i, '')
-                          .replace(/^이미지는\s*/i, '')
-                          .trim();
-                        title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
-                      }
-                      
-                      if (descResponse.status === 'fulfilled' && descResponse.value.ok) {
-                        const data = await descResponse.value.json();
-                        description = (data.prompt || '')
-                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                          .replace(/^\*\*이미지 설명\*\*\s*/i, '')
-                          .replace(/^\*\*설명\*\*\s*/i, '')
-                          .replace(/^\*\*.*?\*\*\s*/i, '')
-                          .replace(/^이미지 설명\s*/i, '')
-                          .replace(/^설명\s*/i, '')
-                          .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
-                          .replace(/^이미지는\s*/i, '')
-                          .replace(/^이\s*이미지는\s*/i, '')
-                          .replace(/^이\s*사진은\s*/i, '')
-                          .replace(/^사진은\s*/i, '')
-                          .trim();
-                      }
-                      
-                      // 카테고리 자동 선택
-                      let selectedCategory = '';
-                      const combinedText = `${altText} ${keywords} ${title} ${description}`.toLowerCase();
-                      if (combinedText.includes('골프') || combinedText.includes('golf')) {
-                        selectedCategory = '골프';
-                      } else if (combinedText.includes('장비') || combinedText.includes('equipment') || combinedText.includes('클럽') || combinedText.includes('드라이버')) {
-                        selectedCategory = '장비';
-                      } else if (combinedText.includes('코스') || combinedText.includes('course') || combinedText.includes('골프장')) {
-                        selectedCategory = '코스';
-                      } else if (combinedText.includes('이벤트') || combinedText.includes('event') || combinedText.includes('대회')) {
-                        selectedCategory = '이벤트';
-                      } else {
-                        selectedCategory = '기타';
-                      }
+      {/* 새로운 이미지 메타데이터 편집 모달 */}
+      <ImageMetadataModal
+        isOpen={!!editingImage}
+        image={editingImage ? images.find(img => img.name === editingImage) || null : null}
+        onClose={() => setEditingImage(null)}
+        onSave={async (metadata) => {
+          // 기존 saveEdit 로직 사용
+          const keywords = metadata.keywords && typeof metadata.keywords === 'string' 
+            ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
+            : [];
+          
+          const image = images.find(img => img.name === editingImage);
+          if (!image) {
+            alert('이미지 정보를 찾을 수 없습니다.');
+            return;
+          }
 
-                      // 🔧 SEO 최적화 길이 제한 적용
-                      const truncateText = (text: string, maxLength: number): string => {
-                        if (text.length <= maxLength) return text;
-                        
-                        // 단어 단위로 자르기 (더 안전한 방법)
-                        const words = text.split(' ');
-                        let result = '';
-                        
-                        for (const word of words) {
-                          const testResult = result + (result ? ' ' : '') + word;
-                          if (testResult.length <= maxLength - 3) {
-                            result = testResult;
-                          } else {
-                            break;
-                          }
-                        }
-                        
-                        // 결과가 있으면 ... 추가, 없으면 강제로 자르기
-                        if (result) {
-                          return result + '...';
-                        } else {
-                          return text.substring(0, maxLength - 3) + '...';
-                        }
-                      };
-
-                      // 각 필드별 길이 제한 적용 (SEO 최적화 강화)
-                      const optimizedAltText = truncateText(altText, 50);
-                      const optimizedTitle = truncateText(title, 30);
-                      const optimizedDescription = truncateText(description, 100);
-                      
-                      // 🔍 디버깅 로그 (역할 바뀜)
-                      console.log('🔧 텍스트 최적화 결과 (역할 바뀜):', {
-                        altText: `${description.length}자 → ${optimizedDescription.length}자 (구체적 설명)`,
-                        title: `${title.length}자 → ${optimizedTitle.length}자`,
-                        description: `${altText.length}자 → ${optimizedAltText.length}자 (일반 설명)`
-                      });
-
-                      // 폼 업데이트 (ALT 텍스트와 설명 역할 바꿈)
-                      setEditForm({
-                        ...editForm,
-                        alt_text: optimizedDescription, // 설명을 ALT 텍스트로
-                        keywords: keywords || '', // keywords 안전하게 처리
-                        title: optimizedTitle,
-                        description: optimizedAltText, // ALT 텍스트를 설명으로
-                        category: selectedCategory
-                      });
-                      
-                      // SEO 파일명도 자동 생성
-                      if (title && keywords) {
-                        const seoFileName = generateSEOFileName(
-                          title,
-                          keywords.split(',').map(k => k.trim()).filter(k => k),
-                          Math.floor(Math.random() * 999) + 1
-                        );
-                        setEditForm(prev => ({ ...prev, filename: seoFileName }));
-                        console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
-                      }
-                      
-                      // 최적화 결과 로그 (역할 바뀜)
-                      const wasOptimized = optimizedAltText.length < altText.length || 
-                                         optimizedTitle.length < title.length || 
-                                         optimizedDescription.length < description.length;
-                      
-                      if (wasOptimized) {
-                        console.log('🔧 SEO 최적화 적용 (역할 바뀜):', {
-                          altText: `${description.length} → ${optimizedDescription.length}자 (구체적 설명)`,
-                          title: `${title.length} → ${optimizedTitle.length}자`,
-                          description: `${altText.length} → ${optimizedAltText.length}자 (일반 설명)`
-                        });
-                      }
-                      
-                      console.log('✅ 전체 AI 메타데이터 생성 완료');
-                      alert(`모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다! (${language})${wasOptimized ? '\n\n📝 SEO 최적화를 위해 텍스트 길이가 자동으로 조정되었습니다.' : ''}`);
-                      
-                    } catch (error) {
-                      console.error('❌ 전체 AI 생성 오류:', error);
-                      alert(`AI 메타데이터 생성 중 오류가 발생했습니다.\n오류: ${error.message}`);
-                    }
-                  }}
-                    className="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all"
-                    title="모든 메타데이터를 한글로 AI 생성"
-                  >
-                    🇰🇷 한글 AI 생성
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      if (!confirm('모든 메타데이터를 영어로 AI 생성하시겠습니까?\n\nALT 텍스트, 키워드, 제목, 설명이 모두 생성됩니다.')) return;
-                    
-                    try {
-                      console.log('🤖 전체 AI 메타데이터 생성 시작 (영어):', image.url);
-                      
-                      // 모든 AI 요청을 병렬로 실행 (영어)
-                      const useEnglish = true;
-                      const language = 'English';
-                      const [altResponse, keywordResponse, titleResponse, descResponse] = await Promise.allSettled([
-                        fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: useEnglish ? 'Detailed image description' : '이미지 상세 설명',
-                            excerpt: useEnglish ? 'Describe the specific content of the image in detail (for ALT text)' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
-                          })
-                        }),
-                        fetch('/api/admin/image-ai-analyzer', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            imageId: null
-                          })
-                        }),
-                        fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: useEnglish ? 'Image title' : '이미지 제목',
-                            excerpt: useEnglish ? 'Generate an image title' : '이미지 제목 생성'
-                          })
-                        }),
-                        fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: useEnglish ? 'General image description' : '이미지 일반 설명',
-                            excerpt: useEnglish ? 'Generate general description or background information about the image' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
-                          })
-                        })
-                      ]);
-                      
-                      // 결과 처리
-                      let altText = '';
-                      let keywords = '';
-                      let title = '';
-                      let description = '';
-                      
-                      if (altResponse.status === 'fulfilled' && altResponse.value.ok) {
-                        const data = await altResponse.value.json();
-                        altText = (data.prompt || '')
-                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                          .replace(/^\*\*이미지 분석\*\*\s*/i, '')
-                          .replace(/^\*\*.*?\*\*\s*/i, '')
-                          .replace(/^이미지 분석\s*/i, '')
-                          .replace(/^분석\s*/i, '')
-                          .replace(/^이미지는\s*/i, '')
-                          .replace(/^이\s*이미지는\s*/i, '')
-                          .replace(/^이\s*사진은\s*/i, '')
-                          .replace(/^사진은\s*/i, '')
-                          .trim();
-                      }
-                      
-                      if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
-                        const data = await keywordResponse.value.json();
-                        console.log('🔍 키워드 API 응답:', data);
-                        // seoOptimizedTags에서 키워드 추출
-                        const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
-                        let rawKeywords = tagNames.join(', ');
-                        
-                        // 🔧 키워드 길이 제한 (20자 이하)
-                        if (rawKeywords.length > 20) {
-                          const words = rawKeywords.split(', ');
-                          let limitedKeywords = '';
-                          for (const word of words) {
-                            const testKeywords = limitedKeywords + (limitedKeywords ? ', ' : '') + word;
-                            if (testKeywords.length <= 20) {
-                              limitedKeywords = testKeywords;
-                            } else {
-                              break;
-                            }
-                          }
-                          keywords = limitedKeywords || words[0] || '';
-                        } else {
-                          keywords = rawKeywords;
-                        }
-                        
-                        console.log('🏷️ 추출된 키워드 (20자 제한):', keywords);
-                      } else {
-                        console.log('❌ 키워드 API 실패:', keywordResponse);
-                      }
-                      
-                      if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
-                        const data = await titleResponse.value.json();
-                        const cleanPrompt = (data.prompt || '')
-                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                          .replace(/^\*\*이미지 제목\*\*:\s*/i, '')
-                          .replace(/^\*\*제목\*\*:\s*/i, '')
-                          .replace(/^\*\*.*?\*\*\s*/i, '')
-                          .replace(/\*\*설명\*\*:.*$/i, '') // 설명 부분 제거
-                          .replace(/^이미지 제목\s*:\s*/i, '')
-                          .replace(/^제목\s*:\s*/i, '')
-                          .replace(/^이미지는\s*/i, '')
-                          .trim();
-                        title = cleanPrompt.split(',')[0]?.trim() || 'AI Generated Title';
-                      }
-                      
-                      if (descResponse.status === 'fulfilled' && descResponse.value.ok) {
-                        const data = await descResponse.value.json();
-                        description = (data.prompt || '')
-                          .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                          .replace(/^\*\*이미지 설명\*\*\s*/i, '')
-                          .replace(/^\*\*설명\*\*\s*/i, '')
-                          .replace(/^\*\*.*?\*\*\s*/i, '')
-                          .replace(/^이미지 설명\s*/i, '')
-                          .replace(/^설명\s*/i, '')
-                          .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
-                          .replace(/^이미지는\s*/i, '')
-                          .replace(/^이\s*이미지는\s*/i, '')
-                          .replace(/^이\s*사진은\s*/i, '')
-                          .replace(/^사진은\s*/i, '')
-                          .trim();
-                      }
-                      
-                      // 카테고리 자동 선택
-                      let selectedCategory = '';
-                      const combinedText = `${altText} ${keywords} ${title} ${description}`.toLowerCase();
-                      if (combinedText.includes('골프') || combinedText.includes('golf')) {
-                        selectedCategory = '골프';
-                      } else if (combinedText.includes('장비') || combinedText.includes('equipment') || combinedText.includes('클럽') || combinedText.includes('드라이버')) {
-                        selectedCategory = '장비';
-                      } else if (combinedText.includes('코스') || combinedText.includes('course') || combinedText.includes('골프장')) {
-                        selectedCategory = '코스';
-                      } else if (combinedText.includes('이벤트') || combinedText.includes('event') || combinedText.includes('대회')) {
-                        selectedCategory = '이벤트';
-                      } else {
-                        selectedCategory = '기타';
-                      }
-
-                      // 🔧 SEO 최적화 길이 제한 적용
-                      const truncateText = (text: string, maxLength: number): string => {
-                        if (text.length <= maxLength) return text;
-                        
-                        // 단어 단위로 자르기 (더 안전한 방법)
-                        const words = text.split(' ');
-                        let result = '';
-                        
-                        for (const word of words) {
-                          const testResult = result + (result ? ' ' : '') + word;
-                          if (testResult.length <= maxLength - 3) {
-                            result = testResult;
-                          } else {
-                            break;
-                          }
-                        }
-                        
-                        // 결과가 있으면 ... 추가, 없으면 강제로 자르기
-                        if (result) {
-                          return result + '...';
-                        } else {
-                          return text.substring(0, maxLength - 3) + '...';
-                        }
-                      };
-
-                      // 각 필드별 길이 제한 적용 (SEO 최적화 강화)
-                      const optimizedAltText = truncateText(altText, 50);
-                      const optimizedTitle = truncateText(title, 30);
-                      const optimizedDescription = truncateText(description, 100);
-                      
-                      // 🔍 디버깅 로그 (역할 바뀜)
-                      console.log('🔧 텍스트 최적화 결과 (역할 바뀜):', {
-                        altText: `${description.length}자 → ${optimizedDescription.length}자 (구체적 설명)`,
-                        title: `${title.length}자 → ${optimizedTitle.length}자`,
-                        description: `${altText.length}자 → ${optimizedAltText.length}자 (일반 설명)`
-                      });
-
-                      // 폼 업데이트 (ALT 텍스트와 설명 역할 바꿈)
-                      setEditForm({
-                        ...editForm,
-                        alt_text: optimizedDescription, // 설명을 ALT 텍스트로
-                        keywords: keywords || '', // keywords 안전하게 처리
-                        title: optimizedTitle,
-                        description: optimizedAltText, // ALT 텍스트를 설명으로
-                        category: selectedCategory
-                      });
-                      
-                      // SEO 파일명도 자동 생성
-                      if (title && keywords) {
-                        const seoFileName = generateSEOFileName(
-                          title,
-                          keywords.split(',').map(k => k.trim()).filter(k => k),
-                          Math.floor(Math.random() * 999) + 1
-                        );
-                        setEditForm(prev => ({ ...prev, filename: seoFileName }));
-                        console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
-                      }
-                      
-                      // 최적화 결과 로그 (역할 바뀜)
-                      const wasOptimized = optimizedAltText.length < altText.length || 
-                                         optimizedTitle.length < title.length || 
-                                         optimizedDescription.length < description.length;
-                      
-                      if (wasOptimized) {
-                        console.log('🔧 SEO 최적화 적용 (역할 바뀜):', {
-                          altText: `${description.length} → ${optimizedDescription.length}자 (구체적 설명)`,
-                          title: `${title.length} → ${optimizedTitle.length}자`,
-                          description: `${altText.length} → ${optimizedAltText.length}자 (일반 설명)`
-                        });
-                      }
-                      
-                      console.log('✅ 전체 AI 메타데이터 생성 완료');
-                      alert(`모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다! (${language})${wasOptimized ? '\n\n📝 SEO 최적화를 위해 텍스트 길이가 자동으로 조정되었습니다.' : ''}`);
-                      
-                    } catch (error) {
-                      console.error('❌ 전체 AI 생성 오류:', error);
-                      alert(`AI 메타데이터 생성 중 오류가 발생했습니다.\n오류: ${error.message}`);
-                    }
-                  }}
-                    className="px-3 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
-                    title="모든 메타데이터를 영어로 AI 생성"
-                  >
-                    🇺🇸 영어 AI 생성
-                  </button>
-                </div>
-                <button
-                  onClick={cancelEdit}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
+          try {
+            console.log('💾 메타데이터 저장 시작:', editingImage);
             
-            <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">ALT 텍스트</label>
-                  <span className={`text-xs ${editForm.alt_text.length > 50 ? 'text-red-500' : 'text-gray-500'}`}>
-                    {editForm.alt_text.length}/50 (SEO 최적화: 50자 이하 강제)
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editForm.alt_text}
-                    onChange={(e) => setEditForm({ ...editForm, alt_text: e.target.value })}
-                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.alt_text.length > 50 ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="이미지 설명을 입력하세요 (SEO 최적화: 50자 이하 강제)"
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      try {
-                        console.log('🤖 AI ALT 텍스트 생성 시작:', image.url);
-                        const response = await fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: editForm.title || '이미지',
-                            excerpt: editForm.description || '이미지 설명'
-                          })
-                        });
-                        
-                        console.log('📡 API 응답 상태:', response.status);
-                        
-                        if (response.ok) {
-                          const data = await response.json();
-                          console.log('✅ AI 응답 데이터:', data);
-                          // "Prompt:" 접두사 제거
-                          const cleanAltText = (data.prompt || '')
-                            .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                            .replace(/^\*\*이미지 분석\*\*\s*/i, '')
-                            .replace(/^\*\*.*?\*\*\s*/i, '')
-                            .replace(/^이미지 분석\s*/i, '')
-                            .replace(/^분석\s*/i, '')
-                            .replace(/^이미지는\s*/i, '')
-                            .replace(/^이\s*이미지는\s*/i, '')
-                            .replace(/^이\s*사진은\s*/i, '')
-                            .replace(/^사진은\s*/i, '')
-                            .trim();
-                          setEditForm({ ...editForm, alt_text: cleanAltText });
-                        } else {
-                          const errorData = await response.json();
-                          console.error('❌ API 오류 응답:', errorData);
-                          alert(`AI ALT 텍스트 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
-                        }
-                      } catch (error) {
-                        console.error('❌ AI 분석 오류:', error);
-                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                    title="AI로 ALT 텍스트 생성"
-                  >
-                    🤖 AI
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">키워드</label>
-                  <span className={`text-xs ${editForm.keywords.length > 20 ? 'text-red-500' : 'text-gray-500'}`}>
-                    {editForm.keywords.length}/20 (SEO 최적화: 20자 이하 강제)
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editForm.keywords}
-                    onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
-                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.keywords.length > 20 ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="키워드를 쉼표로 구분하여 입력하세요 (SEO 최적화: 20자 이하 강제)"
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      try {
-                        console.log('🤖 AI 키워드 생성 시작:', image.url);
-                        const response = await fetch('/api/admin/image-ai-analyzer', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            imageId: null // UUID가 아닌 파일명이므로 null로 전달
-                          })
-                        });
-                        
-                        console.log('📡 API 응답 상태:', response.status);
-                        
-                        if (response.ok) {
-                          const data = await response.json();
-                          console.log('✅ AI 응답 데이터:', data);
-                          // seoOptimizedTags에서 키워드 추출
-                          const tagNames = data.seoOptimizedTags?.map(tag => tag.name) || data.tags || [];
-                          const keywords = tagNames.join(', ');
-                          
-                          setEditForm({ ...editForm, keywords });
-                        } else {
-                          const errorData = await response.json();
-                          console.error('❌ API 오류 응답:', errorData);
-                          alert(`AI 키워드 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
-                        }
-                      } catch (error) {
-                        console.error('❌ AI 분석 오류:', error);
-                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                    title="AI로 키워드 생성"
-                  >
-                    🤖 AI
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">제목</label>
-                  <span className={`text-xs ${editForm.title.length > 30 ? 'text-red-500' : 'text-gray-500'}`}>
-                    {editForm.title.length}/30 (SEO 최적화: 30자 이하 강제)
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editForm.title}
-                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.title.length > 30 ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="이미지 제목을 입력하세요 (SEO 최적화: 30자 이하 강제)"
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      try {
-                        console.log('🤖 AI 제목 생성 시작:', image.url);
-                        const response = await fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: '이미지 제목',
-                            excerpt: '이미지 제목 생성'
-                          })
-                        });
-                        
-                        console.log('📡 API 응답 상태:', response.status);
-                        
-                        if (response.ok) {
-                          const data = await response.json();
-                          console.log('✅ AI 응답 데이터:', data);
-                          // 접두사 제거하고 깔끔한 제목 추출
-                          const cleanPrompt = (data.prompt || '')
-                            .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                            .replace(/^\*\*이미지 제목\*\*:\s*/i, '')
-                            .replace(/^\*\*제목\*\*:\s*/i, '')
-                            .replace(/\*\*설명\*\*:.*$/i, '') // 설명 부분 제거
-                            .trim();
-                          const title = cleanPrompt.split(',')[0]?.trim() || 'AI 생성 제목';
-                          setEditForm({ ...editForm, title });
-                        } else {
-                          const errorData = await response.json();
-                          console.error('❌ API 오류 응답:', errorData);
-                          alert(`AI 제목 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
-                        }
-                      } catch (error) {
-                        console.error('❌ AI 분석 오류:', error);
-                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                    title="AI로 제목 생성"
-                  >
-                    🤖 AI
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">설명</label>
-                  <span className={`text-xs ${editForm.description.length > 100 ? 'text-red-500' : 'text-gray-500'}`}>
-                    {editForm.description.length}/100 (SEO 최적화: 100자 이하 강제)
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <textarea
-                    value={editForm.description}
-                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    rows={3}
-                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      editForm.description.length > 100 ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="이미지에 대한 자세한 설명을 입력하세요 (SEO 최적화: 100자 이하 강제)"
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      try {
-                        console.log('🤖 AI 설명 생성 시작:', image.url);
-                        const response = await fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: editForm.title || '이미지',
-                            excerpt: '이미지 설명 생성'
-                          })
-                        });
-                        
-                        console.log('📡 API 응답 상태:', response.status);
-                        
-                        if (response.ok) {
-                          const data = await response.json();
-                          console.log('✅ AI 응답 데이터:', data);
-                          // "Prompt:" 접두사 제거
-                          const cleanDescription = (data.prompt || '')
-                            .replace(/^\*\*Prompt:\*\*\s*/i, '')
-                            .replace(/^\*\*이미지 설명\*\*\s*/i, '')
-                            .replace(/^\*\*설명\*\*\s*/i, '')
-                            .replace(/^\*\*.*?\*\*\s*/i, '')
-                            .replace(/^이미지 설명\s*/i, '')
-                            .replace(/^설명\s*/i, '')
-                            .replace(/^이 이미지는\s*/i, '') // "이 이미지는" 제거
-                            .replace(/^이미지는\s*/i, '')
-                            .replace(/^이\s*이미지는\s*/i, '')
-                            .replace(/^이\s*사진은\s*/i, '')
-                            .replace(/^사진은\s*/i, '')
-                            .trim();
-                          setEditForm({ ...editForm, description: cleanDescription });
-                        } else {
-                          const errorData = await response.json();
-                          console.error('❌ API 오류 응답:', errorData);
-                          alert(`AI 설명 생성에 실패했습니다.\n오류: ${errorData.error || errorData.message || '알 수 없는 오류'}`);
-                        }
-                      } catch (error) {
-                        console.error('❌ AI 분석 오류:', error);
-                        alert(`AI 분석 중 오류가 발생했습니다.\n오류: ${error.message}`);
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                    title="AI로 설명 생성"
-                  >
-                    🤖 AI
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
-                <div className="flex gap-2">
-                  <select
-                    value={editForm.category}
-                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">카테고리 선택</option>
-                    <option value="골프">골프</option>
-                    <option value="장비">장비</option>
-                    <option value="코스">코스</option>
-                    <option value="이벤트">이벤트</option>
-                    <option value="기타">기타</option>
-                  </select>
-                  <button
-                    onClick={async () => {
-                      if (!editingImage) return;
-                      const image = images.find(img => img.name === editingImage);
-                      if (!image) return;
-                      
-                      try {
-                        console.log('🤖 AI 카테고리 생성 시작:', image.url);
-                        const response = await fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: '카테고리 분류',
-                            excerpt: '이미지 카테고리 자동 분류'
-                          })
-                        });
-                        
-                        if (response.ok) {
-                          const data = await response.json();
-                          console.log('✅ AI 카테고리 응답:', data);
-                          
-                          // AI 응답에서 카테고리 추출
-                          const categoryText = (data.prompt || '')
-                            .replace(/^\*\*.*?\*\*\s*/i, '')
-                            .toLowerCase();
-                          
-                          let selectedCategory = '';
-                          if (categoryText.includes('골프') || categoryText.includes('golf')) {
-                            selectedCategory = '골프';
-                          } else if (categoryText.includes('장비') || categoryText.includes('equipment') || categoryText.includes('클럽') || categoryText.includes('드라이버')) {
-                            selectedCategory = '장비';
-                          } else if (categoryText.includes('코스') || categoryText.includes('course') || categoryText.includes('골프장')) {
-                            selectedCategory = '코스';
-                          } else if (categoryText.includes('이벤트') || categoryText.includes('event') || categoryText.includes('대회')) {
-                            selectedCategory = '이벤트';
-                          } else {
-                            selectedCategory = '기타';
-                          }
-                          
-                          setEditForm({ ...editForm, category: selectedCategory });
-                          console.log('🏷️ 선택된 카테고리:', selectedCategory);
-                        } else {
-                          alert('AI 카테고리 생성에 실패했습니다.');
-                        }
-                      } catch (error) {
-                        console.error('❌ AI 카테고리 분석 오류:', error);
-                        alert('AI 카테고리 분석 중 오류가 발생했습니다.');
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                    title="AI로 카테고리 자동 선택"
-                  >
-                    🤖 AI
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">파일명 (SEO 최적화)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editForm.filename}
-                    onChange={(e) => setEditForm({ ...editForm, filename: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="SEO 최적화된 파일명을 입력하세요"
-                  />
-                  <button
-                    onClick={() => {
-                      if (!editForm.title && !editForm.keywords) {
-                        alert('SEO 파일명 생성을 위해 먼저 제목과 키워드를 입력해주세요.');
-                        return;
-                      }
-                      
-                      const seoFileName = generateSEOFileName(
-                        editForm.title || '골프 이미지',
-                        editForm.keywords || '',
-                        Math.floor(Math.random() * 999) + 1
-                      );
-                      
-                      setEditForm({ ...editForm, filename: seoFileName });
-                    }}
-                    className="px-3 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
-                    title="제목과 키워드로 SEO 파일명 자동 생성"
-                  >
-                    🎯 SEO 생성
-                  </button>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  현재: {editingImage} → 변경 후: {editForm.filename || editingImage}
-                </div>
-              </div>
-            </div>
+            const requestData = {
+              imageName: metadata.filename || image.name,
+              imageUrl: image.url,
+              alt_text: metadata.alt_text,
+              keywords: keywords,
+              title: metadata.title,
+              description: metadata.description,
+              category: metadata.category
+            };
             
-            <div className="flex justify-end gap-3 p-4 border-t">
-              <button
-                onClick={cancelEdit}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-              >
-                취소
-              </button>
-              <button
-                onClick={saveEdit}
-                disabled={!String(editForm.category || '').trim() || 
-                         editForm.alt_text.length > 50 || 
-                         editForm.keywords.length > 20 || 
-                         editForm.title.length > 30 || 
-                         editForm.description.length > 100}
-                className={`px-4 py-2 rounded transition-colors ${
-                  !String(editForm.category || '').trim() || 
-                  editForm.alt_text.length > 50 || 
-                  editForm.keywords.length > 20 || 
-                  editForm.title.length > 30 || 
-                  editForm.description.length > 100
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-                title={
-                  !String(editForm.category || '').trim() ? '카테고리를 선택해주세요' :
-                  editForm.alt_text.length > 100 ? 'ALT 텍스트는 100자 이하로 입력해주세요' :
-                  editForm.keywords.length > 20 ? '키워드는 20자 이하로 입력해주세요' :
-                  editForm.title.length > 30 ? '제목은 30자 이하로 입력해주세요' :
-                  editForm.description.length > 100 ? '설명은 100자 이하로 입력해주세요' :
-                  '메타데이터 저장'
-                }
-              >
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            console.log('📤 저장 요청 데이터:', requestData);
+            
+            const response = await fetch('/api/admin/image-metadata', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestData)
+            });
+            
+            console.log('📡 저장 API 응답 상태:', response.status);
+            
+            if (response.ok) {
+              const responseData = await response.json();
+              console.log('✅ 저장 API 응답 데이터:', responseData);
+              
+              // 로컬 상태 업데이트
+              setImages(prev => prev.map(img => 
+                img.name === editingImage 
+                  ? { 
+                      ...img, 
+                      alt_text: metadata.alt_text,
+                      keywords: keywords,
+                      title: metadata.title,
+                      description: metadata.description,
+                      category: metadata.category,
+                      name: metadata.filename || img.name
+                    }
+                  : img
+              ));
+              
+              // 편집 모달 닫기
+              setEditingImage(null);
+              
+              // 갤러리 새로고침 (약간의 지연 후)
+              setTimeout(() => {
+                fetchImages(1, true);
+              }, 1000);
+              
+              alert('메타데이터가 성공적으로 저장되었습니다!');
+            } else {
+              const errorData = await response.json();
+              console.error('❌ 저장 API 오류 응답:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorData: errorData
+              });
+              let errorMessage = `저장에 실패했습니다.\n상태: ${response.status}\n`;
+              
+              if (errorData.details && Array.isArray(errorData.details)) {
+                errorMessage += `오류 내용:\n${errorData.details.join('\n')}`;
+              } else if (errorData.error) {
+                errorMessage += `오류: ${errorData.error}`;
+              } else if (errorData.message) {
+                errorMessage += `오류: ${errorData.message}`;
+              } else {
+                errorMessage += '알 수 없는 오류가 발생했습니다.';
+              }
+              
+              alert(errorMessage);
+            }
+          } catch (error) {
+            console.error('❌ 저장 중 오류:', error);
+            alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+          }
+        }}
+        onRename={async (newFilename) => {
+          if (!editingImage) return;
+          
+          try {
+            const image = images.find(img => img.name === editingImage);
+            if (!image) return;
+            
+            const response = await fetch('/api/admin/rename-image/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                oldName: image.name,
+                newName: newFilename,
+                imageUrl: image.url
+              })
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              console.log('✅ 파일명 변경 성공:', result);
+              
+              // 로컬 상태 업데이트
+              setImages(prev => prev.map(img => 
+                img.name === editingImage 
+                  ? { ...img, name: result.newName, url: result.newUrl }
+                  : img
+              ));
+              
+              return result;
+            } else {
+              const errorData = await response.json();
+              throw new Error(errorData.error || '파일명 변경에 실패했습니다.');
+            }
+          } catch (error) {
+            console.error('❌ 파일명 변경 오류:', error);
+            throw error;
+          }
+        }}
+      />
+
+      {/* 기존 편집 모달 제거됨 */}
 
       {/* 일괄 편집 모달 */}
       {showBulkEdit && (
@@ -2146,6 +1376,13 @@ export default function GalleryAdmin() {
               <h3 className="text-lg font-semibold text-gray-800">일괄 편집 ({selectedImages.size}개)</h3>
               <button onClick={() => setShowBulkEdit(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
+            <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
+              {/* 일괄 편집 폼 내용 */}
+              <p>일괄 편집 기능이 구현될 예정입니다.</p>
+            </div>
+          </div>
+        </div>
+      )}
             <div className="p-4 max-h-[60vh] overflow-auto space-y-4">
               <div className="text-sm text-gray-600">입력한 값만 적용됩니다. 비워두면 해당 항목은 변경하지 않습니다.</div>
               <div className="flex items-center gap-2">
