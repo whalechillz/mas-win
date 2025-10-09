@@ -188,19 +188,24 @@ export default async function handler(req, res) {
         categoryId = categoryMap[category.toLowerCase()] || null;
       }
 
-      // 🔍 입력값 검증 및 길이 제한 확인
+      // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준)
       const validationErrors = [];
       
-      if (alt_text && alt_text.length > 500) {
-        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, 최대 500자)`);
+      if (alt_text && alt_text.length > 125) {
+        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, SEO 최적화 권장: 125자 이하)`);
       }
       
-      if (title && title.length > 200) {
-        validationErrors.push(`제목이 너무 깁니다 (${title.length}자, 최대 200자)`);
+      if (title && title.length > 60) {
+        validationErrors.push(`제목이 너무 깁니다 (${title.length}자, SEO 최적화 권장: 60자 이하)`);
       }
       
-      if (description && description.length > 1000) {
-        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, 최대 1000자)`);
+      if (description && description.length > 160) {
+        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, SEO 최적화 권장: 160자 이하)`);
+      }
+      
+      // 카테고리 필수 입력 검증
+      if (!category || category.trim() === '') {
+        validationErrors.push('카테고리를 선택해주세요');
       }
       
       if (validationErrors.length > 0) {
