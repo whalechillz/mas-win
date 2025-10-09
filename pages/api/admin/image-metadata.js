@@ -195,8 +195,8 @@ export default async function handler(req, res) {
       // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준)
       const validationErrors = [];
       
-      if (alt_text && alt_text.length > 100) {
-        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, SEO 최적화 강제: 100자 이하)`);
+      if (alt_text && alt_text.length > 50) {
+        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, SEO 최적화 강제: 50자 이하)`);
       }
       
       if (title && title.length > 30) {
