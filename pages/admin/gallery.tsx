@@ -483,7 +483,7 @@ export default function GalleryAdmin() {
       keywords: image.keywords?.join(', ') || '',
       title: image.title || '',
       description: image.description || '',
-      category: image.category || '',
+      category: String(image.category || ''),
       filename: image.name || ''
     });
   };
@@ -493,7 +493,7 @@ export default function GalleryAdmin() {
     if (!editingImage) return;
     
     // 🔍 저장 전 유효성 검사
-    if (!editForm.category || editForm.category.trim() === '') {
+    if (!editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '')) {
       alert('카테고리를 선택해주세요.');
       return;
     }
@@ -1809,13 +1809,13 @@ export default function GalleryAdmin() {
               </button>
               <button
                 onClick={saveEdit}
-                disabled={!editForm.category || editForm.category.trim() === ''}
+                disabled={!editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '')}
                 className={`px-4 py-2 rounded transition-colors ${
-                  !editForm.category || editForm.category.trim() === ''
+                  !editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '')
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-500 text-white hover:bg-blue-600'
                 }`}
-                title={!editForm.category || editForm.category.trim() === '' ? '카테고리를 선택해주세요' : '메타데이터 저장'}
+                title={!editForm.category || (typeof editForm.category === 'string' && editForm.category.trim() === '') ? '카테고리를 선택해주세요' : '메타데이터 저장'}
               >
                 저장
               </button>
