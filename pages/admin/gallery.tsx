@@ -1185,8 +1185,19 @@ export default function GalleryAdmin() {
                         category: selectedCategory
                       });
                       
+                      // SEO 파일명도 자동 생성
+                      if (title && keywords) {
+                        const seoFileName = generateSEOFileName(
+                          title,
+                          keywords,
+                          Math.floor(Math.random() * 999) + 1
+                        );
+                        setEditForm(prev => ({ ...prev, filename: seoFileName }));
+                        console.log('🎯 SEO 파일명 자동 생성:', seoFileName);
+                      }
+                      
                       console.log('✅ 전체 AI 메타데이터 생성 완료');
-                      alert('모든 메타데이터가 AI로 생성되었습니다!');
+                      alert('모든 메타데이터와 SEO 파일명이 AI로 생성되었습니다!');
                       
                     } catch (error) {
                       console.error('❌ 전체 AI 생성 오류:', error);
