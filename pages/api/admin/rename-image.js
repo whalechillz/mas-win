@@ -17,12 +17,24 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'oldName and newName are required' });
     }
 
-    // 파일명 검증: 특수문자 제거 및 안전한 문자만 허용
-    const sanitizedNewName = newName
-      .replace(/[^a-zA-Z0-9가-힣\-_.]/g, '-')  // 특수문자를 하이픈으로 변경
-      .replace(/-+/g, '-')                     // 연속 하이픈을 하나로
-      .replace(/^-|-$/g, '')                   // 앞뒤 하이픈 제거
-      .toLowerCase();                          // 소문자로 변환
+    // 한글-영문 변환 라이브러리 사용
+    const { translateKoreanToEnglish } = require('../../../lib/korean-to-english-translator');
+    
+    // 파일명 검증: 한글을 영문으로 변환하고 특수문자 제거
+    let sanitizedNewName = newName;
+    
+    // 한글이 포함된 경우 영문으로 변환
+    if (/[가-힣]/.test(newName)) {
+      sanitizedNewName = translateKoreanToEnglish(newName);
+      console.log('🔧 한글 파일명 영문 변환:', newName, '→', sanitizedNewName);
+    } else {
+      // 한글이 없는 경우 기존 정리 로직 적용
+      sanitizedNewName = newName
+        .replace(/[^a-zA-Z0-9\-_.]/g, '-')  // 특수문자를 하이픈으로 변경
+        .replace(/-+/g, '-')                // 연속 하이픈을 하나로
+        .replace(/^-|-$/g, '')              // 앞뒤 하이픈 제거
+        .toLowerCase();                     // 소문자로 변환
+    }
 
     if (sanitizedNewName !== newName) {
       console.log('🔧 파일명 정리:', newName, '→', sanitizedNewName);
