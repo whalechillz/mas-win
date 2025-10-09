@@ -126,7 +126,6 @@ export default async function handler(req, res) {
 
       // 데이터베이스에 메타데이터 저장/업데이트
       const metadataData = {
-        name: imageName,
         image_url: imageUrl,
         alt_text: alt_text || '',
         tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
@@ -197,7 +196,6 @@ export default async function handler(req, res) {
 
       // 데이터베이스에서 메타데이터 업데이트
       const metadataData = {
-        name: imageName,
         image_url: imageUrl,
         alt_text: alt_text || '',
         tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
