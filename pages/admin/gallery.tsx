@@ -664,6 +664,26 @@ export default function GalleryAdmin() {
                 </Link>
               <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
               <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/debug-duplicates');
+                    const data = await response.json();
+                    if (response.ok) {
+                      alert(`🔍 중복 파일 분석 결과:\n\n📊 총 파일: ${data.totalFiles}개\n📝 파일명 중복: ${data.summary.nameDuplicates}개\n🔗 URL 중복: ${data.summary.urlDuplicates}개\n🎯 패턴 중복: ${data.summary.patternDuplicates}개\n\n자세한 내용은 콘솔을 확인하세요.`);
+                      console.log('🔍 중복 파일 분석 결과:', data);
+                    } else {
+                      alert('중복 파일 분석에 실패했습니다.');
+                    }
+                  } catch (error) {
+                    console.error('❌ 중복 파일 분석 오류:', error);
+                    alert('중복 파일 분석 중 오류가 발생했습니다.');
+                  }
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
+              >
+                🔍 중복 분석
+              </button>
               </div>
             </div>
           </div>
@@ -745,103 +765,6 @@ export default function GalleryAdmin() {
                   >
                     📝 일괄 편집
                   </button>
-                <button
-                  type="button"
-                  onClick={async()=>{
-                    const names = Array.from(selectedImages);
-                    const payload = names.map(n=> images.find(i=>i.name===n)).filter(Boolean);
-                    const res = await fetch('/api/admin/generate-alt-batch',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ items: payload, mode:'preview' })});
-                    if (res.ok){ const data = await res.json(); setSeoPreview(data.suggestions||[]);} else { alert('SEO 미리보기 실패'); }
-                  }}
-                  className="px-3 py-1 bg-teal-600 text-white text-sm rounded hover:bg-teal-700"
-                >
-                  🔎 SEO/ALT 미리보기
-                </button>
-                <button
-                  type="button"
-                  onClick={async()=>{
-                    if (!confirm(`선택된 ${selectedImages.size}개 이미지에 대해 AI 메타데이터를 일괄 생성하시겠습니까?\n\n이 작업은 시간이 걸릴 수 있습니다.`)) return;
-                    
-                    const selectedImageList = Array.from(selectedImages).map(name => images.find(img => img.name === name)).filter(Boolean);
-                    let completed = 0;
-                    let failed = 0;
-                    
-                    for (const image of selectedImageList) {
-                      try {
-                        // OpenAI Vision API로 ALT 텍스트와 설명 생성
-                        const openaiResponse = await fetch('/api/analyze-image-prompt', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            title: image.title || '이미지',
-                            excerpt: image.description || 'AI 메타데이터 생성'
-                          })
-                        });
-
-                        let altText = '';
-                        let description = '';
-                        if (openaiResponse.ok) {
-                          const openaiData = await openaiResponse.json();
-                          altText = openaiData.prompt || '';
-                          description = openaiData.prompt || '';
-                        }
-
-                        // Google Vision API로 태그 생성
-                        const googleResponse = await fetch('/api/admin/image-ai-analyzer', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: image.url,
-                            imageId: image.name
-                          })
-                        });
-
-                        let tags = [];
-                        if (googleResponse.ok) {
-                          const googleData = await googleResponse.json();
-                          // seoOptimizedTags에서 키워드 추출
-                          tags = googleData.seoOptimizedTags?.map(tag => tag.name) || googleData.tags || [];
-                        }
-
-                        // 메타데이터 업데이트
-                        const updateResponse = await fetch('/api/admin/image-metadata-batch', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            imageUrls: [image.url],
-                            updates: {
-                              alt_text: altText,
-                              description: description,
-                              tags: tags
-                            }
-                          })
-                        });
-
-                        if (updateResponse.ok) {
-                          completed++;
-                        } else {
-                          failed++;
-                        }
-
-                        // 진행 상태 표시
-                        console.log(`AI 분석 진행: ${completed + failed}/${selectedImageList.length}`);
-                        
-                      } catch (error) {
-                        console.error('AI 분석 오류:', error);
-                        failed++;
-                      }
-                    }
-                    
-                    alert(`AI 메타데이터 일괄 생성 완료!\n\n✅ 성공: ${completed}개\n❌ 실패: ${failed}개`);
-                    
-                    // 갤러리 새로고침
-                    fetchImages(1, true);
-                  }}
-                  className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
-                >
-                  🤖 AI 일괄 분석
-                </button>
                 {seoPreview && (
                   <button
                     type="button"
@@ -867,22 +790,6 @@ export default function GalleryAdmin() {
                   </button>
                 )}
 
-                <button
-                  type="button"
-                  onClick={async()=>{
-                    const names = Array.from(selectedImages);
-                    const payload = names.map(n=> images.find(i=>i.name===n)).filter(Boolean);
-                    const res = await fetch('/api/admin/image-derivatives',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ items: payload, targets:["medium","thumbWebp"] })});
-                    const data = await res.json();
-                    if (res.ok){
-                      alert('파생 파일 생성(가상) 결과가 준비되었습니다. 실제 스토리지 변환 파이프라인 연동 예정.');
-                      console.log('derivatives', data);
-                    } else { alert('파생 파일 생성 실패'); }
-                  }}
-                  className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
-                >
-                  🧩 파생 파일 생성
-                </button>
                 <button
                   type="button"
                   onClick={async () => {
@@ -926,21 +833,6 @@ export default function GalleryAdmin() {
                   >
                     🗑️ 일괄 삭제
                   </button>
-                <button
-                  type="button"
-                  onClick={async()=>{
-                    const urls = Array.from(selectedImages).map(n=> images.find(i=>i.name===n)?.url).filter(Boolean);
-                    const res = await fetch('/api/admin/image-link-check',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ urls })});
-                    if (!res.ok) return alert('링크 검사 실패');
-                    const data = await res.json();
-                    const broken = (data.checks||[]).filter((c:any)=> !c.ok);
-                    if (broken.length===0) alert('모든 링크가 정상입니다.');
-                    else alert(`깨진 링크 ${broken.length}개 발견`);
-                  }}
-                  className="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700"
-                >
-                  🔗 링크 검사
-                </button>
                 </div>
               </div>
             </div>
@@ -960,6 +852,14 @@ export default function GalleryAdmin() {
                     />
                     <span className="text-sm text-gray-700">전체 선택</span>
                   </label>
+                  {selectedImages.size > 0 && (
+                    <button
+                      onClick={() => setSelectedImages(new Set())}
+                      className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+                    >
+                      전체 취소
+                    </button>
+                  )}
                   <span className="text-sm text-gray-600">
                     {filteredImages.length}개 표시 (총 {totalCount}개)
                   </span>
