@@ -1038,7 +1038,7 @@ export default function GalleryAdmin() {
                         {/* 메타데이터 미리보기 */}
                         {image.alt_text && (
                           <div className="text-xs text-gray-500 mb-1 truncate" title={image.alt_text}>
-                            ALT: {image.alt_text}
+                            {image.alt_text}
                           </div>
                         )}
                         
@@ -2004,7 +2004,7 @@ export default function GalleryAdmin() {
                     </div>
                     {selectedImageForZoom.alt_text && (
                       <div className="text-sm text-gray-600">
-                        <strong>ALT:</strong> {selectedImageForZoom.alt_text}
+                        <strong>설명:</strong> {selectedImageForZoom.alt_text}
                       </div>
                     )}
                     {selectedImageForZoom.keywords && selectedImageForZoom.keywords.length > 0 && (
