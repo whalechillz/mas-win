@@ -497,6 +497,11 @@ export default function GalleryAdmin() {
         setEditingImage(null);
         alert('메타데이터가 저장되었습니다!');
         console.log('✅ 메타데이터 저장 완료');
+        
+        // 갤러리 자동 새로고침
+        setTimeout(() => {
+          fetchImages(1, true);
+        }, 500);
       } else {
         const errorData = await response.json();
         console.error('❌ 저장 API 오류 응답:', errorData);
