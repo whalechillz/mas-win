@@ -169,7 +169,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       // 1순위: 검색량 높은 일반 키워드 (우리 제품이 노출되어야 할 키워드)
       const highSearchVolumeKeywords = [
         '비거리드라이버', '고반발드라이버', '골프드라이버', '남성드라이버', '여성드라이버',
-        '프로드라이버', '아마추어드라이버', '추천드라이버', '인기드라이버'
+        '프로드라이버', '아마추어드라이버', '추천드라이버', '인기드라이버', '추천', '비교'
       ];
       
       // 2순위: 우리 브랜드 키워드 (일반 키워드와 조합하여 상위 노출)
@@ -204,7 +204,15 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     // 중복 제거 (순서 유지)
     const uniqueWords = [...new Set(prioritizedWords)];
     
-    const allWords = uniqueWords.slice(0, 4); // 최대 4개 단어
+    // SEO 전략: 일반 키워드 + 브랜드명 조합
+    let finalWords = uniqueWords.slice(0, 3); // 최대 3개 단어
+    
+    // 브랜드명이 없으면 추가
+    if (!finalWords.some(word => word.includes('massgoo'))) {
+      finalWords.push('massgoo');
+    }
+    
+    const allWords = finalWords.slice(0, 4); // 최대 4개 단어
 
     if (allWords.length === 0) {
       return 'golf-image-' + Math.floor(Math.random() * 999 + 1);
