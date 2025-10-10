@@ -90,6 +90,14 @@ export default async function handler(req, res) {
   console.log('🔍 이미지 메타데이터 API 요청:', req.method, req.url);
   
   try {
+    // 환경 변수 확인
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+      return res.status(500).json({ 
+        error: '서버 설정 오류',
+        details: 'Supabase 환경 변수가 설정되지 않았습니다'
+      });
+    }
     if (req.method === 'GET') {
       // 특정 이미지의 메타데이터 조회
       const { imageName, imageUrl } = req.query;
@@ -165,16 +173,12 @@ export default async function handler(req, res) {
       console.log('📝 메타데이터 저장 시작:', { 
         imageName, 
         imageUrl, 
-        alt_text: alt_text ? `${alt_text.substring(0, 50)}... (길이: ${alt_text.length}, 바이트: ${Buffer.byteLength(alt_text, 'utf8')})` : null,
-        keywords: keywords ? `${keywords.length}개 키워드 (바이트: ${Buffer.byteLength(keywords, 'utf8')})` : null,
-        title: title ? `${title.substring(0, 30)}... (길이: ${title.length}, 바이트: ${Buffer.byteLength(title, 'utf8')})` : null,
-        description: description ? `${description.substring(0, 50)}... (길이: ${description.length}, 바이트: ${Buffer.byteLength(description, 'utf8')})` : null,
+        alt_text: alt_text ? `${alt_text.substring(0, 50)}... (길이: ${alt_text.length})` : null,
+        keywords: keywords ? `${keywords.length}개 키워드` : null,
+        title: title ? `${title.substring(0, 30)}... (길이: ${title.length})` : null,
+        description: description ? `${description.substring(0, 50)}... (길이: ${description.length})` : null,
         category,
-        requestBody: req.body,
-        encoding: {
-          alt_text_encoding: alt_text ? Buffer.from(alt_text, 'utf8').toString('hex').substring(0, 20) + '...' : null,
-          title_encoding: title ? Buffer.from(title, 'utf8').toString('hex').substring(0, 20) + '...' : null
-        }
+        requestBody: req.body
       });
 
       // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
@@ -267,7 +271,17 @@ export default async function handler(req, res) {
         
         if (error) {
           console.error('❌ 메타데이터 업데이트 오류:', error);
-          return res.status(500).json({ error: '메타데이터 업데이트 실패', details: error.message });
+          console.error('오류 상세:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          return res.status(500).json({ 
+            error: '메타데이터 업데이트 실패', 
+            details: error.message,
+            code: error.code
+          });
         }
         result = data;
         console.log('✅ 메타데이터 업데이트 완료:', result);
@@ -285,24 +299,31 @@ export default async function handler(req, res) {
         
         if (error) {
           console.error('❌ 메타데이터 생성 오류:', error);
-          return res.status(500).json({ error: '메타데이터 생성 실패', details: error.message });
+          console.error('오류 상세:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          return res.status(500).json({ 
+            error: '메타데이터 생성 실패', 
+            details: error.message,
+            code: error.code
+          });
         }
         result = data;
         console.log('✅ 메타데이터 생성 완료:', result);
       }
 
-      // 🔍 저장된 데이터 검증 (한글 인코딩 확인)
+      // 🔍 저장된 데이터 검증
       if (result) {
         console.log('🔍 저장된 데이터 검증:', {
           alt_text: result.alt_text,
           alt_text_length: result.alt_text ? result.alt_text.length : 0,
-          alt_text_bytes: result.alt_text ? Buffer.byteLength(result.alt_text, 'utf8') : 0,
           title: result.title,
           title_length: result.title ? result.title.length : 0,
-          title_bytes: result.title ? Buffer.byteLength(result.title, 'utf8') : 0,
           description: result.description,
           description_length: result.description ? result.description.length : 0,
-          description_bytes: result.description ? Buffer.byteLength(result.description, 'utf8') : 0,
           tags: result.tags,
           tags_json: JSON.stringify(result.tags)
         });
