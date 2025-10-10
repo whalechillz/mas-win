@@ -30,12 +30,12 @@ interface ProductPageProps {
 
 export default function ProductPage({ product }: ProductPageProps) {
   const router = useRouter();
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ja');
+  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
 
   if (router.isFallback) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-white text-xl">読み込み中...</div>
+        <div className="text-white text-xl">로딩 중...</div>
       </div>
     );
   }
@@ -44,13 +44,13 @@ export default function ProductPage({ product }: ProductPageProps) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">商品が見つかりません</h1>
-          <p className="text-gray-400 mb-6">お探しの商品は存在しません。</p>
+          <h1 className="text-2xl font-bold text-white mb-4">제품을 찾을 수 없습니다</h1>
+          <p className="text-gray-400 mb-6">요청하신 제품이 존재하지 않습니다.</p>
           <a 
             href="/muziik"
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            商品一覧に戻る
+            홈으로 돌아가기
           </a>
         </div>
       </div>
