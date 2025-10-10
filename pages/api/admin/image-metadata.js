@@ -182,7 +182,7 @@ export default async function handler(req, res) {
       });
 
       // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
-      let categoryId = null;
+      let categoryId = 5; // 기본값: '기타'
       if (category && category !== '') {
         // 한글/영문 카테고리를 숫자 ID로 변환
         const categoryMap = {
@@ -193,7 +193,7 @@ export default async function handler(req, res) {
           // 추가 영문 카테고리
           'general': 5, 'instruction': 1
         };
-        categoryId = categoryMap[category.toLowerCase()] || null;
+        categoryId = categoryMap[category.toLowerCase()] || 5; // 기본값: '기타'
       }
 
       // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준 - 완화된 제한)
@@ -347,7 +347,7 @@ export default async function handler(req, res) {
       console.log('📝 메타데이터 업데이트 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category });
 
       // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
-      let categoryId = null;
+      let categoryId = 5; // 기본값: '기타'
       if (category && category !== '') {
         // 한글/영문 카테고리를 숫자 ID로 변환
         const categoryMap = {
@@ -358,7 +358,7 @@ export default async function handler(req, res) {
           // 추가 영문 카테고리
           'general': 5, 'instruction': 1
         };
-        categoryId = categoryMap[category.toLowerCase()] || null;
+        categoryId = categoryMap[category.toLowerCase()] || 5; // 기본값: '기타'
       }
 
       // 데이터베이스에서 메타데이터 업데이트
