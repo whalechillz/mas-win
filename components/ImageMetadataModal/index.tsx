@@ -140,6 +140,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       // 골프 기술/성능
       '고반발': 'high-rebound', '비거리': 'distance', '정확도': 'accuracy', '스핀': 'spin',
       '스윙': 'swing', '샷': 'shot', '퍼팅': 'putting', '칩': 'chip',
+      '관용성': 'forgiving', '연습용': 'practice', '경기용': 'tournament',
       
       // 골프 코스/환경
       '코스': 'course', '페어웨이': 'fairway', '그린': 'green', '벙커': 'bunker',
@@ -147,7 +148,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       
       // 인물/성별
       '남성': 'male', '여성': 'female', '남자': 'men', '여자': 'women',
-      '프로': 'pro', '아마추어': 'amateur',
+      '프로': 'pro', '아마추어': 'amateur', '시니어': 'senior', '초보자': 'beginner',
       
       // 브랜드/모델 (SEO 전략: 일반 키워드와 조합하여 상위 노출)
       '마쓰구': 'massgoo', '마쓰구골프': 'massgoo-golf', '마쓰구드라이버': 'massgoo-driver',
@@ -157,7 +158,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       // 일반 키워드
       '추천': 'recommended', '비교': 'comparison', '리뷰': 'review', '가격': 'price',
       '할인': 'discount', '세일': 'sale', '신제품': 'new', '베스트': 'best',
-      '랭킹': 'ranking', '순위': 'ranking', '인기': 'popular', '화제': 'trending'
+      '랭킹': 'ranking', '순위': 'ranking', '인기': 'popular', '화제': 'trending',
+      '인기드라이버': 'popular-driver', '추천드라이버': 'recommended-driver'
     };
 
     const convertToEnglish = (word: string) => {
@@ -168,9 +170,16 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     const prioritizeKeywords = (words: string[]) => {
       // 1순위: 검색량 높은 일반 키워드 (우리 제품이 노출되어야 할 키워드)
       const highSearchVolumeKeywords = [
-        '비거리드라이버', '고반발드라이버', '골프드라이버', '남성드라이버', '여성드라이버',
-        '프로드라이버', '아마추어드라이버', '추천드라이버', '인기드라이버', '추천', '비교',
-        '골프스윙', '골프코스', '골프연습', '골프장', '골프클럽'
+        // 드라이버 특화 키워드 (최고 우선순위)
+        '비거리드라이버', '고반발드라이버', '골프드라이버', '관용성드라이버', '정확도드라이버',
+        // 타겟 고객 키워드
+        '남성드라이버', '여성드라이버', '시니어드라이버', '초보자드라이버', '프로드라이버',
+        // 성능/용도 키워드
+        '추천드라이버', '인기드라이버', '연습용드라이버', '경기용드라이버',
+        // 일반 골프 키워드
+        '골프스윙', '골프코스', '골프연습', '골프장', '골프클럽',
+        // 검색 보조 키워드
+        '추천', '비교', '리뷰', '랭킹'
       ];
       
       // 2순위: 우리 브랜드 키워드 (일반 키워드와 조합하여 상위 노출)
