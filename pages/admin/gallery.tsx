@@ -798,6 +798,12 @@ export default function GalleryAdmin() {
       <Head>
         <title>이미지 갤러리 관리 - MAS Golf</title>
       </Head>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
       
       <div className="min-h-screen bg-gray-50">
         {/* 헤더 */}
@@ -1333,7 +1339,88 @@ export default function GalleryAdmin() {
         }}
       />
 
-      {/* 기존 편집 모달 제거됨 */}
+      {/* 확대 모달 */}
+      {selectedImageForZoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex flex-col">
+            {/* 헤더 */}
+            <div className="flex justify-between items-center p-4 bg-white bg-opacity-90 rounded-t-lg">
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {selectedImageForZoom.name}
+                </h3>
+                <span className="text-sm text-gray-500">
+                  {selectedImageForZoom.size ? `${(selectedImageForZoom.size / 1024 / 1024).toFixed(1)}MB` : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedImageForZoom(null)}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                  title="닫기 (Esc)"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* 메인 이미지 영역 */}
+            <div className="flex-1 flex items-center justify-center bg-gray-100 relative overflow-hidden">
+              <img
+                src={`${selectedImageForZoom.url}?t=${Date.now()}`}
+                alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
+                className="max-w-full max-h-full object-contain"
+                style={{ 
+                  animation: metadataAnimation ? 'fadeIn 0.15s ease-in-out' : 'none'
+                }}
+              />
+              
+              {/* 좌우 네비게이션 버튼 */}
+              <button
+                onClick={() => showAdjacentImage('prev')}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-lg transition-all"
+                title="이전 이미지 (←)"
+              >
+                ←
+              </button>
+              <button
+                onClick={() => showAdjacentImage('next')}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-lg transition-all"
+                title="다음 이미지 (→)"
+              >
+                →
+              </button>
+            </div>
+
+            {/* 썸네일 스트립 */}
+            <div className="bg-white bg-opacity-90 p-4 rounded-b-lg">
+              <div 
+                ref={thumbnailStripRef}
+                className="flex gap-2 overflow-x-auto pb-2"
+                style={{ scrollbarWidth: 'thin' }}
+              >
+                {filteredImages.map((img) => (
+                  <div
+                    key={getImageUniqueId(img)}
+                    className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                      img.name === selectedImageForZoom.name 
+                        ? 'border-blue-500 shadow-lg' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedImageForZoom(img)}
+                  >
+                    <img
+                      src={`${img.url}?t=${Date.now()}`}
+                      alt={img.alt_text || img.name}
+                      className="w-16 h-16 object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 일괄 편집 모달 */}
       {showBulkEdit && (
