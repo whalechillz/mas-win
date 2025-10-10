@@ -149,7 +149,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       '남성': 'male', '여성': 'female', '남자': 'men', '여자': 'women',
       '프로': 'pro', '아마추어': 'amateur',
       
-      // 브랜드/모델 (실제 검색량 기반)
+      // 브랜드/모델 (SEO 전략: 일반 키워드와 조합하여 상위 노출)
       '마쓰구': 'massgoo', '마쓰구골프': 'massgoo-golf', '마쓰구드라이버': 'massgoo-driver',
       '타이틀리스트': 'titleist', '테일러메이드': 'taylormade', '캘러웨이': 'callaway',
       '핑': 'ping', '미즈노': 'mizuno', '윌슨': 'wilson', '브리지스톤': 'bridgestone',
@@ -164,12 +164,20 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       return koreanToEnglish[word] || word.replace(/[가-힣]/g, '');
     };
 
-    // 복합 키워드 우선 매칭 (실제 검색량 높은 키워드)
+    // SEO 전략: 일반 키워드 + 브랜드명 조합으로 상위 노출 목표
     const prioritizeKeywords = (words: string[]) => {
-      const priorityKeywords = [
-        '마쓰구드라이버', '마쓰구골프', '고반발드라이버', '비거리드라이버',
-        '남성드라이버', '여성드라이버', '프로드라이버', '아마추어드라이버'
+      // 1순위: 검색량 높은 일반 키워드 (우리 제품이 노출되어야 할 키워드)
+      const highSearchVolumeKeywords = [
+        '비거리드라이버', '고반발드라이버', '골프드라이버', '남성드라이버', '여성드라이버',
+        '프로드라이버', '아마추어드라이버', '추천드라이버', '인기드라이버'
       ];
+      
+      // 2순위: 우리 브랜드 키워드 (일반 키워드와 조합하여 상위 노출)
+      const brandKeywords = [
+        '마쓰구드라이버', '마쓰구골프', '마쓰구'
+      ];
+      
+      const priorityKeywords = [...highSearchVolumeKeywords, ...brandKeywords];
       
       const result: string[] = [];
       const combinedText = words.join(' ');
@@ -213,25 +221,28 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       body: JSON.stringify({
         imageUrl,
         title: 'SEO optimized filename',
-        excerpt: `Generate a SEO-friendly filename for this golf image. 
+        excerpt: `Generate a SEO-friendly filename for this golf image to help our brand (마쓰구/massgoo) rank higher in Korean search results.
                   Current title: ${title}, Keywords: ${keywords}
+                  
+                  SEO Strategy: Help our products appear when people search for popular golf terms
                   
                   Requirements:
                   - Use lowercase letters and hyphens only
-                  - Prioritize high-search-volume Korean golf keywords:
-                    * "massgoo-driver" (not "massgoo-golf")
-                    * "massgoo-golf" for general golf content
-                    * "high-rebound-driver" for 고반발드라이버
-                    * "distance-driver" for 비거리드라이버
-                    * "male-driver" or "female-driver" for gender-specific
+                  - Prioritize high-search-volume Korean golf keywords that people actually search for:
+                    * "distance-driver" (비거리드라이버) - people search this to find distance drivers
+                    * "high-rebound-driver" (고반발드라이버) - people search this to find high-rebound drivers  
+                    * "golf-driver" (골프드라이버) - general golf driver searches
+                    * "male-driver" or "female-driver" - gender-specific searches
+                    * "recommended-driver" (추천드라이버) - people looking for recommendations
+                  - Include "massgoo" brand name to connect popular searches to our products
                   - Maximum 4-5 words
-                  - Focus on actual Korean search trends
+                  - Focus on keywords that will help our products rank higher
                   - Return only the filename without extension
                   
                   Examples:
-                  - "massgoo-driver-high-rebound-123"
-                  - "golf-driver-distance-male-456"
-                  - "massgoo-golf-equipment-789"`
+                  - "distance-driver-massgoo-123" (비거리드라이버 검색 시 우리 제품 노출)
+                  - "high-rebound-driver-massgoo-456" (고반발드라이버 검색 시 우리 제품 노출)
+                  - "golf-driver-recommended-massgoo-789" (골프드라이버 추천 검색 시 노출)`
       })
     });
 
