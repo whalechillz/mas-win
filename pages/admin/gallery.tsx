@@ -34,7 +34,7 @@ export default function GalleryAdmin() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [imagesPerPage] = useState(24);
+  const [imagesPerPage] = useState(30); // 관리하기 쉬운 페이지당 글수
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
   // SEO 최적화된 파일명 생성 함수 (한글 자동 영문 변환)
@@ -296,8 +296,7 @@ export default function GalleryAdmin() {
         const list = data.images || [];
         
         // 🔍 중복 이미지 디버깅 로그 추가
-        console.log(`--- 📊 페이지 ${page} 이미지 로드 결과 ---`);
-        console.log(`총 ${list.length}개 이미지 로드됨`);
+        // 이미지 로드 완료
         
         // 파일명별 그룹화하여 중복 확인
         const nameGroups: { [key: string]: any[] } = {};
@@ -310,17 +309,7 @@ export default function GalleryAdmin() {
         
         // 중복 파일명 찾기
         const duplicateNames = Object.entries(nameGroups).filter(([name, files]) => files.length > 1);
-        if (duplicateNames.length > 0) {
-          console.log(`🔄 중복 파일명 발견: ${duplicateNames.length}개 그룹`);
-          duplicateNames.forEach(([name, files]) => {
-            console.log(`📁 "${name}" (${files.length}개):`);
-            files.forEach((file, index) => {
-              console.log(`  ${index + 1}. ID: ${file.id}, URL: ${file.url}`);
-            });
-          });
-        } else {
-          console.log(`✅ 중복 파일명 없음`);
-        }
+        // 중복 파일명 체크 (로그 제거)
         
         // URL별 그룹화하여 중복 확인
         const urlGroups: { [key: string]: any[] } = {};
@@ -332,19 +321,7 @@ export default function GalleryAdmin() {
         });
         
         const duplicateUrls = Object.entries(urlGroups).filter(([url, files]) => files.length > 1);
-        if (duplicateUrls.length > 0) {
-          console.log(`🔄 중복 URL 발견: ${duplicateUrls.length}개 그룹`);
-          duplicateUrls.forEach(([url, files]) => {
-            console.log(`🔗 "${url}" (${files.length}개):`);
-            files.forEach((file, index) => {
-              console.log(`  ${index + 1}. ID: ${file.id}, Name: ${file.name}`);
-            });
-          });
-        } else {
-          console.log(`✅ 중복 URL 없음`);
-        }
-        
-        console.log(`--- 📊 디버깅 로그 끝 ---`);
+        // 중복 URL 체크 (로그 제거)
         
         // 🔍 전체 images 배열 중복 체크 (setImages 후)
         setTimeout(() => {
@@ -358,17 +335,7 @@ export default function GalleryAdmin() {
             });
             
             const allDuplicateNames = Object.entries(allNameGroups).filter(([name, files]) => files.length > 1);
-            if (allDuplicateNames.length > 0) {
-              console.log(`🚨 전체 배열에서 중복 파일명 발견: ${allDuplicateNames.length}개 그룹`);
-              allDuplicateNames.forEach(([name, files]) => {
-                console.log(`📁 "${name}" (${files.length}개):`);
-                files.forEach((file, index) => {
-                  console.log(`  ${index + 1}. ID: ${file.id}, URL: ${file.url}`);
-                });
-              });
-            } else {
-              console.log(`✅ 전체 배열에서 중복 파일명 없음`);
-            }
+            // 전체 배열 중복 체크 (로그 제거)
             
             return currentImages;
           });
@@ -410,7 +377,7 @@ export default function GalleryAdmin() {
             // 🔍 중복 제거 디버깅 로그
             if (newImages.length !== imagesWithMetadata.length) {
               const removedCount = imagesWithMetadata.length - newImages.length;
-              console.log(`🔄 중복 제거: ${removedCount}개 이미지가 이미 존재하여 제외됨`);
+              // 중복 제거 완료
             }
             
             return [...prev, ...newImages];
@@ -428,20 +395,26 @@ export default function GalleryAdmin() {
     }
   };
 
-  // 무한 스크롤 로드
+  // 무한 스크롤 로드 (의존성 배열 최적화)
   useEffect(() => {
     const onScroll = () => {
       if (isLoading || isLoadingMore || !hasMoreImages) return;
       
       const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
       if (remaining < 200) {
-        fetchImages(currentPage + 1);
+        setCurrentPage(prev => prev + 1);
       }
     };
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
-  }, [isLoading, images.length, totalCount, currentPage]);
+  }, [isLoading, isLoadingMore, hasMoreImages]); // 불필요한 의존성 제거
 
+  // currentPage 변경 시 이미지 로드
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchImages(currentPage);
+    }
+  }, [currentPage]);
 
   // 초기 로드
   useEffect(() => {
@@ -540,7 +513,7 @@ export default function GalleryAdmin() {
     }
     
     try {
-      console.log('💾 메타데이터 저장 시작:', editingImage);
+      // 메타데이터 저장 시작
       // 🔧 keywords 안전하게 처리
       const keywords = editForm.keywords && typeof editForm.keywords === 'string' 
         ? editForm.keywords.split(',').map(k => k.trim()).filter(k => k)
@@ -552,16 +525,11 @@ export default function GalleryAdmin() {
         return;
       }
       
-      console.log('🔍 편집 중인 이미지 정보:', {
-        editingImage,
-        imageName: image.name,
-        imageUrl: image.url,
-        isMatch: editingImage === image.name
-      });
+      // 편집 중인 이미지 정보 확인
 
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
       if (editForm.filename && editForm.filename !== image.name) {
-        console.log('📝 파일명 변경:', image.name, '→', editForm.filename);
+        // 파일명 변경 처리
         
         
         const renameResponse = await fetch('/api/admin/rename-image/', {
@@ -1072,8 +1040,7 @@ export default function GalleryAdmin() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {filteredImages.map((image, index) => {
-                    // 🔍 렌더링 디버깅 로그 추가
-                    console.log(`[렌더링] ${index + 1}. Name: "${image.name}", URL: "${image.url}", ID: ${getImageUniqueId(image)}`);
+                    // 렌더링 중
                     
                     return (
                     <div 
@@ -1250,7 +1217,7 @@ export default function GalleryAdmin() {
           }
 
           try {
-            console.log('💾 메타데이터 저장 시작:', editingImage);
+            // 메타데이터 저장 시작
             
             const requestData = {
               imageName: metadata.filename || image.name,
