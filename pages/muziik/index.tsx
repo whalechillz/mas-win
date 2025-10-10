@@ -190,6 +190,7 @@ export default function MuziikHome() {
                   <div className="text-center">
                     <div className="text-6xl mb-4">💎</div>
                     <h3 className="text-2xl font-bold text-white">Sapphire</h3>
+                    <p className="text-blue-200 text-sm mt-2">ONE-FLEX 40</p>
                   </div>
                   <div className="absolute top-4 left-4">
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -211,6 +212,25 @@ export default function MuziikHome() {
                       : '초고속의 반발력과 헤드 안정성을 실현하는, MUZIIK 독자적인 티타늄 파이버 기술을 채택한 프리미엄 샤프트.'
                     }
                   </p>
+
+                  {/* Sapphire 스펙 미리보기 */}
+                  <div className="mb-4 bg-gray-800 rounded p-3">
+                    <h4 className="text-white font-semibold mb-2 text-sm">
+                      {language === 'ja' ? '주요 스펙' : '주요 스펙'}
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="text-gray-300">
+                        <span className="text-gray-400">Model 40:</span><br/>
+                        무게: 45g<br/>
+                        토크: 5.0°
+                      </div>
+                      <div className="text-gray-300">
+                        <span className="text-gray-400">Model 50:</span><br/>
+                        무게: 54g<br/>
+                        토크: 4.2°
+                      </div>
+                    </div>
+                  </div>
                   
                   <Link 
                     href="/muziik/sapphire"
