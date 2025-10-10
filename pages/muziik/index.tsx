@@ -88,10 +88,10 @@ export default function MuziikHome() {
                 <Link href="/muziik" className="text-gray-300 hover:text-white transition-colors">
                   {t.home}
                 </Link>
-                <Link href="/muziik/sapphire" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/sapphire" className="text-gray-300 hover:text-white transition-colors">
                   {t.sapphire}
                 </Link>
-                <Link href="/muziik/beryl" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/beryl" className="text-gray-300 hover:text-white transition-colors">
                   {t.beryl}
                 </Link>
                 <a href="mailto:info@masgolf.co.kr" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -310,7 +310,7 @@ export default function MuziikHome() {
                   </div>
 
                   <Link 
-                    href="/muziik/sapphire"
+                    href="/sapphire"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                   >
                     {language === 'ja' ? '詳細を見る' : '자세히 보기'}
@@ -432,7 +432,7 @@ export default function MuziikHome() {
                   </div>
 
                   <Link 
-                    href="/muziik/beryl"
+                    href="/beryl"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                   >
                     {language === 'ja' ? '詳細を見る' : '자세히 보기'}
