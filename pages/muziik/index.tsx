@@ -309,6 +309,82 @@ export default function MuziikHome() {
                       : '고탄성 카본 시트와 티타늄 파이버를 조합한, 아름다움과 성능을 겸비한 프리미엄 샤프트.'
                     }
                   </p>
+
+                  {/* Beryl 스펙 미리보기 */}
+                  <div className="mb-4 bg-gray-800 rounded p-3">
+                    <h4 className="text-white font-semibold mb-2 text-sm">
+                      {language === 'ja' ? 'DOGATTI GENERATION BERYL 40' : 'DOGATTI GENERATION BERYL 40'}
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-gray-300">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-1 px-2">FLEX</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
+                            <th className="text-left py-1 px-2">Tip(mm)</th>
+                            <th className="text-left py-1 px-2">Butt(mm)</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°)' : '토크(°)'}</th>
+                            <th className="text-left py-1 px-2">CPM</th>
+                            <th className="text-left py-1 px-2">K.P.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">R2</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">42</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">14.95</td>
+                            <td className="py-1 px-2">5.0</td>
+                            <td className="py-1 px-2">215</td>
+                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}
+                            </td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">R</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">48</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.1</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">225</td>
+                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">SR</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">49</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.15</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">235</td>
+                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">S</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">50</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.2</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">245</td>
+                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 px-2">X</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">53</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.3</td>
+                            <td className="py-1 px-2">3.9</td>
+                            <td className="py-1 px-2">255</td>
+                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                   
                   {/* Beryl 실제 이미지 */}
                   <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
