@@ -185,9 +185,9 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">이미지 메타데이터 편집</h2>
             <p className="text-sm text-gray-500 mt-1">{image.name}</p>
@@ -223,8 +223,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           </div>
         </div>
 
-        {/* 컨텐츠 */}
-        <div className="flex h-[calc(90vh-140px)]">
+        {/* 컨텐츠 - 스크롤 가능한 영역 */}
+        <div className="flex flex-1 overflow-hidden">
           {/* 메인 폼 */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="space-y-6">
@@ -258,8 +258,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           </div>
         </div>
 
-        {/* 푸터 */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+        {/* 푸터 - 항상 하단에 고정 */}
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="flex items-center gap-4">
             {hasChanges && (
               <span className="text-sm text-orange-600 flex items-center gap-1">
