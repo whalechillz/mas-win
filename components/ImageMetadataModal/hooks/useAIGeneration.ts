@@ -96,10 +96,10 @@ export const useAIGeneration = () => {
       const result: AIGenerationResult = {
         success: true,
         data: {
-          alt_text: description, // 설명을 ALT 텍스트로
+          alt_text: truncateText(description, 125), // ALT 텍스트를 125자로 제한
           keywords,
-          title,
-          description: altText, // ALT 텍스트를 설명으로
+          title: truncateText(title, 60), // 제목을 60자로 제한
+          description: truncateText(altText, 160), // 설명을 160자로 제한
           category: selectedCategory
         }
       };
@@ -225,16 +225,16 @@ const determineCategory = (altText: string, keywords: string, title: string, des
 const getFieldPrompts = (field: keyof MetadataForm, isEnglish: boolean) => {
   const prompts = {
     alt_text: {
-      title: isEnglish ? 'Detailed image description' : '이미지 상세 설명',
-      excerpt: isEnglish ? 'Describe the specific content of the image in detail (for ALT text). Please respond in English only.' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
+      title: isEnglish ? 'Concise image description' : '이미지 간결 설명',
+      excerpt: isEnglish ? 'Describe the image content concisely in 1-2 sentences (max 125 characters) for ALT text. Please respond in English only.' : '이미지 내용을 1-2문장으로 간결하게 설명 (최대 125자, ALT 텍스트용)'
     },
     title: {
       title: isEnglish ? 'Image title' : '이미지 제목',
-      excerpt: isEnglish ? 'Generate an image title. Please respond in English only.' : '이미지 제목 생성'
+      excerpt: isEnglish ? 'Generate a short, catchy image title in English only. Maximum 60 characters. Do not use Korean.' : '이미지 제목 생성'
     },
     description: {
       title: isEnglish ? 'General image description' : '이미지 일반 설명',
-      excerpt: isEnglish ? 'Generate general description or background information about the image. Please respond in English only.' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
+      excerpt: isEnglish ? 'Generate a detailed description of the image in English only. Maximum 160 characters. Do not use Korean.' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
     },
     keywords: {
       title: isEnglish ? 'Image keywords' : '이미지 키워드',
