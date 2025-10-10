@@ -232,6 +232,24 @@ export default function MuziikHome() {
                     </div>
                   </div>
                   
+                  {/* Sapphire 실제 이미지 */}
+                  <div className="space-y-3 mb-4">
+                    <div className="bg-gray-800 rounded overflow-hidden border border-gray-700">
+                      <img
+                        src="/muziik/sapphire_one_flex_shaft_main.png"
+                        alt="DOGATTI GENERATION Sapphire one-flex shaft"
+                        className="w-full h-32 object-cover object-center"
+                      />
+                    </div>
+                    <div className="bg-gray-800 rounded overflow-hidden border border-gray-700">
+                      <img
+                        src="/muziik/sapphire_40_50_bending_profile.png"
+                        alt="Sapphire 40/50 E.I. bending profile chart"
+                        className="w-full h-32 object-contain bg-black"
+                      />
+                    </div>
+                  </div>
+
                   <Link 
                     href="/muziik/sapphire"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
@@ -269,6 +287,15 @@ export default function MuziikHome() {
                     }
                   </p>
                   
+                  {/* Beryl 실제 이미지 */}
+                  <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
+                    <img
+                      src="/muziik/beryl_40_shaft_main.png"
+                      alt="DOGATTI GENERATION Beryl_40 shaft"
+                      className="w-full h-32 object-cover object-center"
+                    />
+                  </div>
+
                   <Link 
                     href="/muziik/beryl"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
