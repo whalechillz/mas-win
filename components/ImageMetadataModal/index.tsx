@@ -330,6 +330,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
     setIsSaving(true);
     try {
+      // 파일명이 변경된 경우 먼저 파일명 변경
+      if (image && form.filename !== image.name && onRename) {
+        await onRename(form.filename);
+      }
+      
+      // 모든 메타데이터 저장
       await onSave(form);
       setHasChanges(false);
       onClose();
@@ -339,20 +345,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     } finally {
       setIsSaving(false);
     }
-  }, [form, onSave, onClose]);
+  }, [form, image, onSave, onRename, onClose]);
 
-  // 파일명 변경
-  const handleRename = useCallback(async () => {
-    if (!onRename || !form.filename) return;
-    
-    try {
-      await onRename(form.filename);
-      alert('파일명이 변경되었습니다.');
-    } catch (error) {
-      console.error('파일명 변경 오류:', error);
-      alert('파일명 변경에 실패했습니다.');
-    }
-  }, [form.filename, onRename]);
 
   // SEO 점수 및 권장사항 계산
   const seoScore = calculateSEOScore(form);
@@ -478,15 +472,6 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               취소
             </button>
             
-            {onRename && (
-              <button
-                onClick={handleRename}
-                disabled={!form.filename || isSaving}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                파일명 변경
-              </button>
-            )}
             
             <button
               onClick={handleSave}
