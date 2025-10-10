@@ -84,6 +84,63 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
   const { isGenerating, generateAllMetadata, generateField } = useAIGeneration();
 
+  // SEO 파일명 자동 생성
+  const handleGenerateSEOFileName = useCallback(() => {
+    if (!form.title && !form.keywords) {
+      alert('제목이나 키워드를 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      // 제목과 키워드를 기반으로 SEO 파일명 생성
+      const titleWords = form.title.toLowerCase().replace(/[^a-z0-9가-힣\s]/g, '').split(/\s+/).filter(word => word.length > 0);
+      const keywordWords = form.keywords.toLowerCase().replace(/[^a-z0-9가-힣\s,]/g, '').split(/[,\s]+/).filter(word => word.length > 0);
+      
+      // 한글을 영문으로 변환하는 간단한 매핑
+      const koreanToEnglish: Record<string, string> = {
+        '골프': 'golf',
+        '드라이버': 'driver',
+        '스윙': 'swing',
+        '남성': 'male',
+        '여성': 'female',
+        '야외': 'outdoor',
+        '자연': 'nature',
+        '잔디': 'grass',
+        '일몰': 'sunset',
+        '폴로셔츠': 'polo',
+        '캡': 'cap',
+        '모자': 'hat',
+        '클럽': 'club',
+        '공': 'ball',
+        '코스': 'course',
+        '장비': 'equipment',
+        '이벤트': 'event'
+      };
+
+      const convertToEnglish = (word: string) => {
+        return koreanToEnglish[word] || word.replace(/[가-힣]/g, '');
+      };
+
+      // 제목과 키워드에서 영문 단어 추출
+      const allWords = [...titleWords, ...keywordWords]
+        .map(convertToEnglish)
+        .filter(word => /^[a-z0-9]+$/.test(word) && word.length > 2)
+        .slice(0, 4); // 최대 4개 단어
+
+      if (allWords.length === 0) {
+        alert('영문 키워드를 찾을 수 없습니다. 제목이나 키워드에 영문을 포함해주세요.');
+        return;
+      }
+
+      const seoFileName = allWords.join('-') + '-' + Math.floor(Math.random() * 999 + 1);
+      setForm(prev => ({ ...prev, filename: seoFileName }));
+      setHasChanges(true);
+    } catch (error) {
+      console.error('SEO 파일명 생성 오류:', error);
+      alert('SEO 파일명 생성 중 오류가 발생했습니다.');
+    }
+  }, [form.title, form.keywords]);
+
   // 이미지 변경 시 폼 초기화
   useEffect(() => {
     if (image) {
@@ -241,6 +298,21 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   isGenerating={isGenerating}
                 />
               ))}
+              
+              {/* SEO 파일명 자동 생성 버튼 */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">🎯 SEO 파일명 최적화</h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  제목과 키워드를 기반으로 SEO 친화적인 파일명을 자동 생성합니다.
+                </p>
+                <button
+                  onClick={handleGenerateSEOFileName}
+                  disabled={isGenerating}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-lg hover:from-teal-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isGenerating ? '⏳' : '🎯'} SEO 파일명 자동 생성
+                </button>
+              </div>
             </div>
           </div>
 
