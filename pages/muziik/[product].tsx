@@ -165,17 +165,12 @@ export default function ProductPage({ product }: ProductPageProps) {
                 <h3 className="text-lg font-semibold text-white mb-4">
                   {language === 'ja' ? '샤프트 이미지' : '샤프트 이미지'}
                 </h3>
-                <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <div className="text-4xl mb-2">{product.id === 'sapphire' ? '💎' : '💚'}</div>
-                    <p>{language === 'ja' ? '샤프트 이미지' : '샤프트 이미지'}</p>
-                    <p className="text-sm mt-2">
-                      {product.id === 'sapphire' 
-                        ? '경로: /muziik/products/sapphire/sapphire_one_flex_shaft_main.jpg'
-                        : '경로: /muziik/products/beryl/beryl_40_shaft_main.jpg'
-                      }
-                    </p>
-                  </div>
+                <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
+                  <img
+                    src={product.shaftImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover object-center"
+                  />
                 </div>
               </div>
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
@@ -185,22 +180,21 @@ export default function ProductPage({ product }: ProductPageProps) {
                     : (language === 'ja' ? '기술 스펙' : '기술 스펙')
                   }
                 </h3>
-                <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <div className="text-4xl mb-2">📊</div>
-                    <p>
-                      {product.id === 'sapphire' 
-                        ? (language === 'ja' ? '벤딩 프로파일 차트' : '벤딩 프로파일 차트')
-                        : (language === 'ja' ? '스펙 테이블' : '스펙 테이블')
-                      }
-                    </p>
-                    <p className="text-sm mt-2">
-                      {product.id === 'sapphire' 
-                        ? '경로: /muziik/charts/sapphire_bending_profile.jpg'
-                        : '스펙 테이블 (차트 없음)'
-                      }
-                    </p>
-                  </div>
+                <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
+                  {product.id === 'sapphire' && product.chartImage ? (
+                    <img
+                      src={product.chartImage}
+                      alt="Bending Profile Chart"
+                      className="w-full h-full object-contain bg-black"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center text-gray-400">
+                        <div className="text-4xl mb-2">📊</div>
+                        <p>{language === 'ja' ? '스펙 테이블' : '스펙 테이블'}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
