@@ -130,6 +130,11 @@ export default function MuziikHome() {
         <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20">
           <div className="container mx-auto px-4">
             <div className="text-center">
+              <div className="mb-6">
+                <span className="inline-block bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                  NEW
+                </span>
+              </div>
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
                 {t.heroTitle}
               </h1>
@@ -137,9 +142,40 @@ export default function MuziikHome() {
                 {t.heroSubtitle}
               </h2>
               <p 
-                className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
+                className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8"
                 dangerouslySetInnerHTML={{ __html: t.heroDescription }}
               />
+              
+              {/* Technology Highlights */}
+              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
+                <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
+                  <div className="text-2xl mb-2">🔬</div>
+                  <h3 className="text-white font-semibold mb-2">
+                    {language === 'ja' ? 'ナノレベル樹脂' : '나노레벨 수지'}
+                  </h3>
+                  <p className="text-gray-300 text-sm">
+                    {language === 'ja' ? '樹脂含有率削減で弾き向上' : '수지 함유율 감소로 반발성 향상'}
+                  </p>
+                </div>
+                <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
+                  <div className="text-2xl mb-2">⚡</div>
+                  <h3 className="text-white font-semibold mb-2">
+                    {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
+                  </h3>
+                  <p className="text-gray-300 text-sm">
+                    {language === 'ja' ? 'インパクト時のコントロール向上' : '임팩트시 컨트롤 향상'}
+                  </p>
+                </div>
+                <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
+                  <div className="text-2xl mb-2">💎</div>
+                  <h3 className="text-white font-semibold mb-2">
+                    {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
+                  </h3>
+                  <p className="text-gray-300 text-sm">
+                    {language === 'ja' ? '軽量で高弾性実現' : '경량으로 고탄성 실현'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -407,8 +443,76 @@ export default function MuziikHome() {
           </div>
         </section>
 
-        {/* Technology Section */}
+        {/* Dogatti Generation Technology Section */}
         <section className="py-16 bg-gray-900">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-3xl font-bold text-white mb-12 text-center">
+                {language === 'ja' ? 'Dogatti Generation Technology' : 'Dogatti Generation Technology'}
+              </h2>
+              
+              {/* Technology Features */}
+              <div className="grid md:grid-cols-3 gap-8 mb-12">
+                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <div className="text-4xl mb-4 text-center">🔬</div>
+                  <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                    {language === 'ja' ? 'ナノレベル樹脂を採用' : '나노레벨 수지 채택'}
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {language === 'ja' 
+                      ? 'ドガッティゼネレーションに採用されているナノ樹脂。樹脂の含有率を削減し、カーボンの密度を高めることで弾きの良さと打感の向上をもたらします。'
+                      : '도가티 제네레이션에 채택된 나노 수지. 수지 함유율을 줄이고 카본 밀도를 높여 반발성과 타감의 향상을 가져옵니다.'
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <div className="text-4xl mb-4 text-center">⚡</div>
+                  <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                    {language === 'ja' ? 'インパクト時の逆トルクを防ぐ' : '임팩트시 역토크 방지'}
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {language === 'ja' 
+                      ? '軽量シャフトは、そのトルクの多さとヘッド重量の関係性からインパクト時、特にオフセンターショット時に逆トルクは発生します。ドガッティゼネレーションはチタンファイバーの全長使用により、逆トルクの発生を減少させます。'
+                      : '경량 샤프트는 토크의 많음과 헤드 중량의 관계로 인해 임팩트시, 특히 오프센터 샷시 역토크가 발생합니다. 도가티 제네레이션은 티타늄 파이버 전장 사용으로 역토크 발생을 감소시킵니다.'
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <div className="text-4xl mb-4 text-center">💎</div>
+                  <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                    {language === 'ja' ? 'チタン繊維を全長に使用' : '티타늄 섬유 전장 사용'}
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {language === 'ja' 
+                      ? '軽くて弾きに優れたチタン細線をコンポジット。重量は軽量化をキープしながらも、超高弾性のようなしなり戻りとインパクト時のしっかり感を実現しています。'
+                      : '가볍고 반발성이 뛰어난 티타늄 세선을 컴포지트. 중량은 경량화를 유지하면서도 초고탄성과 같은 휨 복원과 임팩트시의 탄탄함을 실현합니다.'
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Technology Description */}
+              <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-lg p-8 border border-blue-800">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    {language === 'ja' ? 'ムジーク独自のチタンファイバー・テクノロジー搭載' : '무지크 독자적인 티타늄 파이버 테크놀로지 탑재'}
+                  </h3>
+                  <p className="text-blue-200 text-lg leading-relaxed max-w-4xl mx-auto">
+                    {language === 'ja' 
+                      ? 'チタンの反発力で飛ばし、インパクト時に起こる逆トルクを防いでコントロール性もアップ。ドガッティゼネレーションはムジーク独自の設計思想に基づき創られた最強シャフト。'
+                      : '티타늄의 반발력으로 비거리를 늘리고, 임팩트시 발생하는 역토크를 방지하여 컨트롤성도 향상. 도가티 제네레이션은 무지크 독자적인 설계 사상에 기반하여 만들어진 최강 샤프트.'
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Technology Section */}
+        <section className="py-16 bg-black">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-3xl font-bold text-white mb-8">
