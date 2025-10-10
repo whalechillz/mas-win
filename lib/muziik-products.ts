@@ -36,11 +36,7 @@ export const products: Product[] = [
       '自動的なワンフレックスタイプ',
       '様々なゴルファーに対応'
     ],
-    technicalDescription: `超高速の反発力とヘッド安定性は、MUZIIK独自のチタンファイバー技術によるものです。
-シャフト全体にチタンファイバーを使用することで、強いインパクトやオフセンター時のヘッドのブレを抑制します。
-強靭さと大きな反発が高い弾道を実現します。
-バックスイングトップからインパクトまで、ヘッドの動きを安定化するようシャフト剛性が設計されており、タイミングを掴みやすくなっています。
-ヘッドスピードに関係なく、様々なゴルファーに適した自動的なワンフレックスタイプです。`,
+    technicalDescription: `超高速な撓り戻りとヘッドの挙動安定性はムジーク独自のチタンファイバーテクノロジーよるもの。チタンファイバーをシャフト全長に使用することで当たり負けのない強いインパクトとオフセンターヒット時によるヘッドのブレを抑制。強靭かつ大きな持りが高弾道を実現させます。また切り返しからインパクトに欠けてヘッド挙動を安定させるようにシャフト剛性を設計しているのでタイミングがとりやすい。ヘッドスピードに関係なく幅広いゴルファーに適応したオートマチックなワンフレックスタイプ。`,
     specs: [
       {
         model: '40',
@@ -76,10 +72,7 @@ export const products: Product[] = [
       '美しいアルミニウムIP処理',
       'BERYL(美しさ、輝き、若さ)にふさわしいデザイン'
     ],
-    technicalDescription: `高弾性(65t)カーボンシートを使用しています。
-ストレートレイヤー全体にチタンファイバーを使用することで、引張強度を向上させ、シャフトの反発性を良くし、粘りとドライブという相反する特性を組み合わせています。
-さらに、インパクト時の逆トルクを抑制し、フェースコントロールを容易にし、方向性を安定させます。
-DOGATTIは、BERYL(美しさ、輝き、若さ)にふさわしい、光沢があり美しいアルミニウムIP処理カラーリングが特徴です。`,
+    technicalDescription: `High modulus (65t) carbon sheet is used. By using titanium fiber in the entire length of the straight layer, the tensile strength is increased and the shaft has a good return to elasticity, and the shaft combines the contradictory qualities of stickiness and drive. In addition, reverse torque is suppressed at impact, making face control easier and directionality more stable. The Dogatti is also characterized by its shiny, beautiful aluminum IP-processed coloring, which is appropriate for BERYL (beauty, brilliance, and youth).`,
     specs: [
       {
         model: 'R2',

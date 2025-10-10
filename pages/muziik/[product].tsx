@@ -135,13 +135,21 @@ export default function ProductPage({ product }: ProductPageProps) {
 
           {/* Main Product Image */}
           <div className="mb-12">
-            <div className="relative h-96 md:h-[500px] rounded-lg overflow-hidden bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-8xl mb-4">{product.id === 'sapphire' ? '💎' : '💚'}</div>
-                <h2 className="text-3xl font-bold text-white">{product.name}</h2>
-                <p className="text-blue-200 mt-2">プレミアムシャフト</p>
-                <div className="mt-4 text-sm text-gray-300">
-                  <p>※ 실제 제품 이미지는 준비 중입니다</p>
+            <div className="relative h-96 md:h-[500px] rounded-lg overflow-hidden bg-gray-900 border border-gray-800">
+              <img
+                src={product.id === 'sapphire' 
+                  ? '/muziik/sapphire_one_flex_shaft_main.png'
+                  : '/muziik/beryl_40_shaft_main.png'
+                }
+                alt={product.name}
+                className="w-full h-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold text-white mb-2">{product.name}</h2>
+                  <p className="text-gray-200">
+                    {language === 'ja' ? 'プレミアムシャフト' : '프리미엄 샤프트'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -200,7 +208,9 @@ export default function ProductPage({ product }: ProductPageProps) {
 
           {/* Technical Description */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6">技術的特徴</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">
+              {language === 'ja' ? '技術的特徴' : '기술적 특징'}
+            </h2>
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
               <p className="text-gray-300 leading-relaxed whitespace-pre-line">
                 {product.technicalDescription}
@@ -210,7 +220,9 @@ export default function ProductPage({ product }: ProductPageProps) {
 
           {/* Features */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6">主な特徴</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">
+              {language === 'ja' ? '主な特徴' : '주요 특징'}
+            </h2>
             <div className="grid md:grid-cols-2 gap-6">
               {product.features.map((feature, index) => (
                 <div key={index} className="flex items-start space-x-3">
@@ -276,15 +288,20 @@ export default function ProductPage({ product }: ProductPageProps) {
 
           {/* CTA Section */}
           <div className="text-center bg-gray-900 rounded-lg p-8 border border-gray-800">
-            <h3 className="text-2xl font-bold text-white mb-4">お問い合わせ</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">
+              {language === 'ja' ? 'お問い合わせ' : '문의하기'}
+            </h3>
             <p className="text-gray-300 mb-6">
-              詳細な情報やカスタムオーダーについては、お気軽にお問い合わせください。
+              {language === 'ja' 
+                ? '詳細な情報やカスタムオーダーについては、お気軽にお問い合わせください。'
+                : '자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요.'
+              }
             </p>
             <a 
               href="mailto:info@masgolf.co.kr"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
-              お問い合わせする
+              {language === 'ja' ? 'お問い合わせする' : '문의하기'}
             </a>
           </div>
         </div>
