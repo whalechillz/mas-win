@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
+import Navigation from '../../components/muziik/Navigation';
 
 export default function MuziikHome() {
   const [language, setLanguage] = useState<'ja' | 'ko'>('ja');
@@ -77,54 +78,11 @@ export default function MuziikHome() {
       </Head>
 
       <div className="min-h-screen bg-black text-white">
-        {/* Header */}
-        <header className="bg-black border-b border-gray-800">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex justify-between items-center">
-              <Link href="/muziik" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
-                MUZIIK
-              </Link>
-              <nav className="hidden md:flex space-x-8 items-center">
-                <Link href="/muziik" className="text-gray-300 hover:text-white transition-colors">
-                  {t.home}
-                </Link>
-                <Link href="/sapphire" className="text-gray-300 hover:text-white transition-colors">
-                  {t.sapphire}
-                </Link>
-                <Link href="/beryl" className="text-gray-300 hover:text-white transition-colors">
-                  {t.beryl}
-                </Link>
-                <a href="mailto:info@masgolf.co.kr" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  {t.contact}
-                </a>
-                
-                {/* 언어 전환 버튼 */}
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setLanguage('ja')}
-                    className={`px-3 py-1 rounded text-sm transition-colors ${
-                      language === 'ja' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    🇯🇵
-                  </button>
-                  <button
-                    onClick={() => setLanguage('ko')}
-                    className={`px-3 py-1 rounded text-sm transition-colors ${
-                      language === 'ko' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    🇰🇷
-                  </button>
-                </div>
-              </nav>
-            </div>
-          </div>
-        </header>
+        <Navigation 
+          language={language} 
+          onLanguageChange={setLanguage}
+          currentPath="/muziik"
+        />
 
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20">

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
+import Navigation from '../../components/muziik/Navigation';
 
 interface ProductPageProps {
   product: {
@@ -67,54 +68,11 @@ export default function ProductPage({ product }: ProductPageProps) {
       </Head>
 
       <div className="min-h-screen bg-black text-white">
-        {/* Header */}
-        <header className="bg-black border-b border-gray-800">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex justify-between items-center">
-              <Link href="/muziik" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
-                MUZIIK
-              </Link>
-              <nav className="hidden md:flex space-x-8">
-                <Link href="/muziik" className="text-gray-300 hover:text-white transition-colors">
-                  ホーム
-                </Link>
-                <Link href="/muziik/sapphire" className="text-gray-300 hover:text-white transition-colors">
-                  Sapphire
-                </Link>
-                <Link href="/muziik/beryl" className="text-gray-300 hover:text-white transition-colors">
-                  Beryl
-                </Link>
-                <a href="mailto:info@masgolf.co.kr" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  {language === 'ja' ? 'お問い合わせ' : '문의하기'}
-                </a>
-                
-                {/* 언어 전환 버튼 */}
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setLanguage('ja')}
-                    className={`px-3 py-1 rounded text-sm transition-colors ${
-                      language === 'ja' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    🇯🇵
-                  </button>
-                  <button
-                    onClick={() => setLanguage('ko')}
-                    className={`px-3 py-1 rounded text-sm transition-colors ${
-                      language === 'ko' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    🇰🇷
-                  </button>
-                </div>
-              </nav>
-            </div>
-          </div>
-        </header>
+        <Navigation 
+          language={language} 
+          onLanguageChange={setLanguage}
+          currentPath={`/${product.id}`}
+        />
 
         <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Product Header */}
