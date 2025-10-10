@@ -32,7 +32,7 @@ export const useAIGeneration = () => {
           body: JSON.stringify({ 
             imageUrl,
             title: isEnglish ? 'Detailed image description' : '이미지 상세 설명',
-            excerpt: isEnglish ? 'Describe the specific content of the image in detail (for ALT text)' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
+            excerpt: isEnglish ? 'Describe the specific content of the image in detail (for ALT text). Please respond in English only.' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
           })
         }),
         fetch('/api/admin/image-ai-analyzer', {
@@ -49,7 +49,7 @@ export const useAIGeneration = () => {
           body: JSON.stringify({ 
             imageUrl,
             title: isEnglish ? 'Image title' : '이미지 제목',
-            excerpt: isEnglish ? 'Generate an image title' : '이미지 제목 생성'
+            excerpt: isEnglish ? 'Generate an image title. Please respond in English only.' : '이미지 제목 생성'
           })
         }),
         fetch('/api/analyze-image-prompt', {
@@ -58,7 +58,7 @@ export const useAIGeneration = () => {
           body: JSON.stringify({ 
             imageUrl,
             title: isEnglish ? 'General image description' : '이미지 일반 설명',
-            excerpt: isEnglish ? 'Generate general description or background information about the image' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
+            excerpt: isEnglish ? 'Generate general description or background information about the image. Please respond in English only.' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
           })
         })
       ]);
@@ -226,23 +226,23 @@ const getFieldPrompts = (field: keyof MetadataForm, isEnglish: boolean) => {
   const prompts = {
     alt_text: {
       title: isEnglish ? 'Detailed image description' : '이미지 상세 설명',
-      excerpt: isEnglish ? 'Describe the specific content of the image in detail (for ALT text)' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
+      excerpt: isEnglish ? 'Describe the specific content of the image in detail (for ALT text). Please respond in English only.' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
     },
     title: {
       title: isEnglish ? 'Image title' : '이미지 제목',
-      excerpt: isEnglish ? 'Generate an image title' : '이미지 제목 생성'
+      excerpt: isEnglish ? 'Generate an image title. Please respond in English only.' : '이미지 제목 생성'
     },
     description: {
       title: isEnglish ? 'General image description' : '이미지 일반 설명',
-      excerpt: isEnglish ? 'Generate general description or background information about the image' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
+      excerpt: isEnglish ? 'Generate general description or background information about the image. Please respond in English only.' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
     },
     keywords: {
       title: isEnglish ? 'Image keywords' : '이미지 키워드',
-      excerpt: isEnglish ? 'Generate relevant keywords for the image' : '이미지에 대한 관련 키워드 생성'
+      excerpt: isEnglish ? 'Generate relevant keywords for the image. Please respond in English only.' : '이미지에 대한 관련 키워드 생성'
     },
     category: {
       title: isEnglish ? 'Image category' : '이미지 카테고리',
-      excerpt: isEnglish ? 'Determine the appropriate category for the image' : '이미지에 적합한 카테고리 결정'
+      excerpt: isEnglish ? 'Determine the appropriate category for the image. Please respond in English only.' : '이미지에 적합한 카테고리 결정'
     }
   };
 

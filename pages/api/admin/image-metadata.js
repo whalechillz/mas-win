@@ -192,36 +192,37 @@ export default async function handler(req, res) {
         categoryId = categoryMap[category.toLowerCase()] || null;
       }
 
-      // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준)
+      // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준 - 완화된 제한)
       const validationErrors = [];
       
-      if (alt_text && alt_text.length > 50) {
-        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, SEO 최적화 강제: 50자 이하)`);
+      // 더 관대한 길이 제한으로 변경 (SEO 권장사항이지만 강제하지 않음)
+      if (alt_text && alt_text.length > 200) {
+        validationErrors.push(`ALT 텍스트가 너무 깁니다 (${alt_text.length}자, 권장: 200자 이하)`);
       }
       
-      if (title && title.length > 30) {
-        validationErrors.push(`제목이 너무 깁니다 (${title.length}자, SEO 최적화 강제: 30자 이하)`);
+      if (title && title.length > 100) {
+        validationErrors.push(`제목이 너무 깁니다 (${title.length}자, 권장: 100자 이하)`);
       }
       
-      if (description && description.length > 100) {
-        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, SEO 최적화 강제: 100자 이하)`);
+      if (description && description.length > 300) {
+        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, 권장: 300자 이하)`);
       }
       
-      if (keywords && keywords.length > 20) {
-        validationErrors.push(`키워드가 너무 깁니다 (${keywords.length}자, SEO 최적화 강제: 20자 이하)`);
+      if (keywords && keywords.length > 50) {
+        validationErrors.push(`키워드가 너무 깁니다 (${keywords.length}자, 권장: 50자 이하)`);
       }
       
-      // 카테고리 필수 입력 검증
+      // 카테고리 필수 입력 검증 (완화)
       if (!category || category.trim() === '') {
-        validationErrors.push('카테고리를 선택해주세요');
+        console.warn('⚠️ 카테고리가 선택되지 않았습니다. 기본값으로 설정합니다.');
+        // 카테고리가 없으면 기본값으로 설정
+        categoryId = 5; // '기타' 카테고리
       }
       
+      // 경고만 표시하고 저장은 허용 (SEO 최적화는 권장사항)
       if (validationErrors.length > 0) {
-        console.error('❌ 입력값 검증 실패:', validationErrors);
-        return res.status(400).json({ 
-          error: '입력값 검증 실패', 
-          details: validationErrors 
-        });
+        console.warn('⚠️ SEO 최적화 권장사항:', validationErrors);
+        // 에러로 처리하지 않고 경고만 로그에 남김
       }
 
       // 데이터베이스에 메타데이터 저장/업데이트
