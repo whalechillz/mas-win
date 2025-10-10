@@ -1,6 +1,31 @@
 import { useState, useCallback } from 'react';
 import { AIGenerationOptions, MetadataForm } from '../types/metadata.types';
 
+// 텍스트 자르기 함수
+const truncateText = (text: string, maxLength: number): string => {
+  if (!text || text.length <= maxLength) return text;
+  
+  // 단어 단위로 자르기 시도
+  const words = text.split(' ');
+  let result = '';
+  
+  for (const word of words) {
+    const testResult = result + (result ? ' ' : '') + word;
+    if (testResult.length <= maxLength - 3) {
+      result = testResult;
+    } else {
+      break;
+    }
+  }
+  
+  // 단어 단위로 자르기가 불가능하면 문자 단위로 자르기
+  if (!result) {
+    result = text.substring(0, maxLength - 3);
+  }
+  
+  return result + '...';
+};
+
 interface AIGenerationResult {
   success: boolean;
   data?: Partial<MetadataForm>;
