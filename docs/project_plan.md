@@ -185,3 +185,78 @@
 - **변경 파일**:
   - `pages/api/admin/image-metadata.js` - 길이 제한 및 검증 로직 수정
   - `pages/admin/gallery.tsx` - UI 글자수 카운터 및 오류 메시지 개선
+
+## MUZIIK 샤프트 사이트 구축 (완료)
+
+### 개요
+DOGATTI GENERATION 일본 샤프트 브랜드 소개 사이트를 muziik.masgolf.co.kr 도메인에 구축
+
+### 완료된 작업
+
+#### 1. 도메인 라우팅 설정
+- **파일**: `middleware.ts`
+- **변경사항**: muziik.masgolf.co.kr → /muziik 경로로 라우팅 추가
+- **기존 win.masgolf.co.kr는 그대로 유지**
+
+#### 2. 폴더 구조 생성
+```
+pages/muziik/
+  ├── index.tsx           # 메인 페이지 (제품 목록)
+  └── [product].tsx       # 개별 제품 상세 페이지
+
+components/muziik/
+  ├── Layout.tsx          # 공통 레이아웃
+  ├── ProductCard.tsx     # 제품 카드
+  ├── ProductDetail.tsx   # 제품 상세
+  └── SpecTable.tsx       # 스펙 표
+
+public/muziik/
+  ├── sapphire/           # Sapphire 제품 이미지
+  └── beryl/              # Beryl 제품 이미지
+
+public/uploads/           # 임시 이미지 업로드 경로
+```
+
+#### 3. 컴포넌트 구현
+- **Layout.tsx**: 공통 헤더/푸터, SEO 메타 태그, 반응형 디자인
+- **ProductCard.tsx**: 제품 썸네일, 제품명, 간단한 설명, 상세 페이지 링크
+- **ProductDetail.tsx**: 제품별 상세 정보, 기술 설명, 스펙 표, CTA 버튼
+- **SpecTable.tsx**: 제품 스펙 표 렌더링, 반응형 테이블 디자인
+
+#### 4. 페이지 구현
+- **메인 페이지** (`pages/muziik/index.tsx`):
+  - 히어로 섹션: muziik 브랜드 소개
+  - 제품 카드: Sapphire one-flex, Beryl_40
+  - 기술 특징 섹션
+  - CTA 섹션
+- **제품 상세 페이지** (`pages/muziik/[product].tsx`):
+  - 제품별 상세 정보
+  - 기술 설명 (일본어/영어)
+  - 스펙 표
+  - E.I.剛性分布 차트 (Sapphire)
+  - CTA 버튼 (문의하기)
+
+#### 5. 제품 데이터
+- **파일**: `lib/muziik-products.ts`
+- **제품**: 
+  - DOGATTI GENERATION Sapphire one-flex (40/50 모델)
+  - DOGATTI GENERATION Beryl_40 (R2/R/SR/S/X 플렉스)
+- **스펙**: 길이, 무게, 팁/버트 직경, 토크, 진동수, 킥포인트 등
+
+#### 6. 디자인 테마
+- **색상**: 블랙/화이트 베이스 + 블루 포인트 (샤프트 컬러)
+- **타이포그래피**: 일본 제품 느낌의 모던하고 깔끔한 디자인
+- **반응형**: 모바일/태블릿/데스크톱 대응
+
+### 주요 기능
+- 도메인별 라우팅 (muziik.masgolf.co.kr)
+- 정적 생성 (Static Site Generation)
+- 반응형 디자인
+- SEO 최적화
+- 제품 상세 정보 및 스펙 표시
+- 문의하기 CTA
+
+### 접속 URL
+- **메인**: https://muziik.masgolf.co.kr
+- **Sapphire**: https://muziik.masgolf.co.kr/sapphire
+- **Beryl**: https://muziik.masgolf.co.kr/beryl
