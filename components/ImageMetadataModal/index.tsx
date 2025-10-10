@@ -84,62 +84,133 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
   const { isGenerating, generateAllMetadata, generateField } = useAIGeneration();
 
-  // SEO 파일명 자동 생성
-  const handleGenerateSEOFileName = useCallback(() => {
+  // SEO 파일명 자동 생성 (하이브리드: 규칙 기반 + AI)
+  const handleGenerateSEOFileName = useCallback(async () => {
     if (!form.title && !form.keywords) {
       alert('제목이나 키워드를 먼저 입력해주세요.');
       return;
     }
 
     try {
-      // 제목과 키워드를 기반으로 SEO 파일명 생성
-      const titleWords = form.title.toLowerCase().replace(/[^a-z0-9가-힣\s]/g, '').split(/\s+/).filter(word => word.length > 0);
-      const keywordWords = form.keywords.toLowerCase().replace(/[^a-z0-9가-힣\s,]/g, '').split(/[,\s]+/).filter(word => word.length > 0);
+      // 1단계: 규칙 기반 기본 변환
+      const basicFileName = generateBasicFileName(form.title, form.keywords);
       
-      // 한글을 영문으로 변환하는 간단한 매핑
-      const koreanToEnglish: Record<string, string> = {
-        '골프': 'golf',
-        '드라이버': 'driver',
-        '스윙': 'swing',
-        '남성': 'male',
-        '여성': 'female',
-        '야외': 'outdoor',
-        '자연': 'nature',
-        '잔디': 'grass',
-        '일몰': 'sunset',
-        '폴로셔츠': 'polo',
-        '캡': 'cap',
-        '모자': 'hat',
-        '클럽': 'club',
-        '공': 'ball',
-        '코스': 'course',
-        '장비': 'equipment',
-        '이벤트': 'event'
-      };
+      // 2단계: AI 최적화가 필요한지 판단
+      const shouldUseAI = form.keywords.length > 50 || 
+                         form.title.includes('추천') || 
+                         form.title.includes('비교') ||
+                         form.keywords.includes('고반발') ||
+                         form.keywords.includes('비거리');
 
-      const convertToEnglish = (word: string) => {
-        return koreanToEnglish[word] || word.replace(/[가-힣]/g, '');
-      };
+      let finalFileName = basicFileName;
 
-      // 제목과 키워드에서 영문 단어 추출
-      const allWords = [...titleWords, ...keywordWords]
-        .map(convertToEnglish)
-        .filter(word => /^[a-z0-9]+$/.test(word) && word.length > 2)
-        .slice(0, 4); // 최대 4개 단어
-
-      if (allWords.length === 0) {
-        alert('영문 키워드를 찾을 수 없습니다. 제목이나 키워드에 영문을 포함해주세요.');
-        return;
+      if (shouldUseAI && image?.url) {
+        try {
+          // AI 기반 최적화 시도
+          const aiFileName = await generateAIFileName(image.url, form.title, form.keywords);
+          if (aiFileName && aiFileName.length > 0) {
+            finalFileName = aiFileName;
+          }
+        } catch (aiError) {
+          console.warn('AI 파일명 생성 실패, 규칙 기반 사용:', aiError);
+          // AI 실패 시 규칙 기반 결과 사용
+        }
       }
 
-      const seoFileName = allWords.join('-') + '-' + Math.floor(Math.random() * 999 + 1);
-      setForm(prev => ({ ...prev, filename: seoFileName }));
+      setForm(prev => ({ ...prev, filename: finalFileName }));
       setHasChanges(true);
     } catch (error) {
       console.error('SEO 파일명 생성 오류:', error);
       alert('SEO 파일명 생성 중 오류가 발생했습니다.');
     }
-  }, [form.title, form.keywords]);
+  }, [form.title, form.keywords, image?.url]);
+
+  // 규칙 기반 파일명 생성
+  const generateBasicFileName = (title: string, keywords: string) => {
+    const titleWords = title.toLowerCase().replace(/[^a-z0-9가-힣\s]/g, '').split(/\s+/).filter(word => word.length > 0);
+    const keywordWords = keywords.toLowerCase().replace(/[^a-z0-9가-힣\s,]/g, '').split(/[,\s]+/).filter(word => word.length > 0);
+    
+    // 골프 전문 키워드 매핑 (한국 검색엔진 고려)
+    const koreanToEnglish: Record<string, string> = {
+      // 골프 장비
+      '골프': 'golf', '드라이버': 'driver', '아이언': 'iron', '퍼터': 'putter', '웨지': 'wedge',
+      '우드': 'wood', '클럽': 'club', '공': 'ball', '티': 'tee', '백': 'bag',
+      '장갑': 'glove', '신발': 'shoes', '모자': 'hat', '캡': 'cap',
+      
+      // 골프 기술/성능
+      '고반발': 'high-rebound', '비거리': 'distance', '정확도': 'accuracy', '스핀': 'spin',
+      '스윙': 'swing', '샷': 'shot', '퍼팅': 'putting', '칩': 'chip',
+      
+      // 골프 코스/환경
+      '코스': 'course', '페어웨이': 'fairway', '그린': 'green', '벙커': 'bunker',
+      '러프': 'rough', '티박스': 'tee-box', '홀': 'hole',
+      
+      // 인물/성별
+      '남성': 'male', '여성': 'female', '남자': 'men', '여자': 'women',
+      '프로': 'pro', '아마추어': 'amateur',
+      
+      // 브랜드/모델
+      '마쓰구': 'masgolf', '타이틀리스트': 'titleist', '테일러메이드': 'taylormade',
+      '캘러웨이': 'callaway', '핑': 'ping', '미즈노': 'mizuno',
+      
+      // 일반 키워드
+      '추천': 'recommended', '비교': 'comparison', '리뷰': 'review', '가격': 'price',
+      '할인': 'discount', '세일': 'sale', '신제품': 'new', '베스트': 'best'
+    };
+
+    const convertToEnglish = (word: string) => {
+      return koreanToEnglish[word] || word.replace(/[가-힣]/g, '');
+    };
+
+    // 제목과 키워드에서 영문 단어 추출
+    const allWords = [...titleWords, ...keywordWords]
+      .map(convertToEnglish)
+      .filter(word => /^[a-z0-9-]+$/.test(word) && word.length > 2)
+      .slice(0, 4); // 최대 4개 단어
+
+    if (allWords.length === 0) {
+      return 'golf-image-' + Math.floor(Math.random() * 999 + 1);
+    }
+
+    return allWords.join('-') + '-' + Math.floor(Math.random() * 999 + 1);
+  };
+
+  // AI 기반 파일명 생성
+  const generateAIFileName = async (imageUrl: string, title: string, keywords: string) => {
+    const response = await fetch('/api/analyze-image-prompt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageUrl,
+        title: 'SEO optimized filename',
+        excerpt: `Generate a SEO-friendly filename for this golf image. 
+                  Current title: ${title}, Keywords: ${keywords}
+                  
+                  Requirements:
+                  - Use lowercase letters and hyphens only
+                  - Include relevant golf terms (driver, golf, distance, etc.)
+                  - Maximum 4-5 words
+                  - Focus on Korean golf market keywords
+                  - Return only the filename without extension
+                  
+                  Example: golf-driver-distance-male-123`
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('AI 파일명 생성 실패');
+    }
+
+    const data = await response.json();
+    const aiFileName = data.prompt
+      ?.replace(/[^a-z0-9-\s]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    return aiFileName ? aiFileName + '-' + Math.floor(Math.random() * 999 + 1) : null;
+  };
 
   // 이미지 변경 시 폼 초기화
   useEffect(() => {
@@ -303,14 +374,17 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-200">
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">🎯 SEO 파일명 최적화</h3>
                 <p className="text-xs text-gray-600 mb-3">
-                  제목과 키워드를 기반으로 SEO 친화적인 파일명을 자동 생성합니다.
+                  골프 전문 키워드 매핑 + AI 최적화로 한국 검색엔진에 최적화된 파일명을 생성합니다.
+                  <br />
+                  <span className="text-teal-600">• 규칙 기반: 빠른 변환</span>
+                  <span className="text-blue-600 ml-2">• AI 기반: 복잡한 키워드 최적화</span>
                 </p>
                 <button
                   onClick={handleGenerateSEOFileName}
                   disabled={isGenerating}
                   className="w-full px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-lg hover:from-teal-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isGenerating ? '⏳' : '🎯'} SEO 파일명 자동 생성
+                  {isGenerating ? '⏳' : '🎯'} 하이브리드 SEO 파일명 생성
                 </button>
               </div>
             </div>
