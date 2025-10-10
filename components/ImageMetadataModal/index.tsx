@@ -130,7 +130,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     const titleWords = title.toLowerCase().replace(/[^a-z0-9가-힣\s]/g, '').split(/\s+/).filter(word => word.length > 0);
     const keywordWords = keywords.toLowerCase().replace(/[^a-z0-9가-힣\s,]/g, '').split(/[,\s]+/).filter(word => word.length > 0);
     
-    // 골프 전문 키워드 매핑 (한국 검색엔진 고려)
+    // 골프 전문 키워드 매핑 (실제 검색량 기반)
     const koreanToEnglish: Record<string, string> = {
       // 골프 장비
       '골프': 'golf', '드라이버': 'driver', '아이언': 'iron', '퍼터': 'putter', '웨지': 'wedge',
@@ -149,22 +149,49 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       '남성': 'male', '여성': 'female', '남자': 'men', '여자': 'women',
       '프로': 'pro', '아마추어': 'amateur',
       
-      // 브랜드/모델
-      '마쓰구': 'masgolf', '타이틀리스트': 'titleist', '테일러메이드': 'taylormade',
-      '캘러웨이': 'callaway', '핑': 'ping', '미즈노': 'mizuno',
+      // 브랜드/모델 (실제 검색량 기반)
+      '마쓰구': 'masgolf', '마쓰구골프': 'masgolf-golf', '마쓰구드라이버': 'masgolf-driver',
+      '타이틀리스트': 'titleist', '테일러메이드': 'taylormade', '캘러웨이': 'callaway',
+      '핑': 'ping', '미즈노': 'mizuno', '윌슨': 'wilson', '브리지스톤': 'bridgestone',
       
       // 일반 키워드
       '추천': 'recommended', '비교': 'comparison', '리뷰': 'review', '가격': 'price',
-      '할인': 'discount', '세일': 'sale', '신제품': 'new', '베스트': 'best'
+      '할인': 'discount', '세일': 'sale', '신제품': 'new', '베스트': 'best',
+      '랭킹': 'ranking', '순위': 'ranking', '인기': 'popular', '화제': 'trending'
     };
 
     const convertToEnglish = (word: string) => {
       return koreanToEnglish[word] || word.replace(/[가-힣]/g, '');
     };
 
-    // 제목과 키워드에서 영문 단어 추출
-    const allWords = [...titleWords, ...keywordWords]
-      .map(convertToEnglish)
+    // 복합 키워드 우선 매칭 (실제 검색량 높은 키워드)
+    const prioritizeKeywords = (words: string[]) => {
+      const priorityKeywords = [
+        '마쓰구드라이버', '마쓰구골프', '고반발드라이버', '비거리드라이버',
+        '남성드라이버', '여성드라이버', '프로드라이버', '아마추어드라이버'
+      ];
+      
+      const result: string[] = [];
+      
+      // 1단계: 복합 키워드 우선 매칭
+      for (const priority of priorityKeywords) {
+        const combinedText = words.join(' ');
+        if (combinedText.includes(priority)) {
+          result.push(koreanToEnglish[priority] || priority.replace(/[가-힣]/g, ''));
+          // 매칭된 키워드 제거
+          words = words.filter(word => !combinedText.includes(word));
+        }
+      }
+      
+      // 2단계: 나머지 단어들 처리
+      const remainingWords = words.map(convertToEnglish);
+      result.push(...remainingWords);
+      
+      return result;
+    };
+
+    // 제목과 키워드에서 영문 단어 추출 (우선순위 기반)
+    const allWords = prioritizeKeywords([...titleWords, ...keywordWords])
       .filter(word => /^[a-z0-9-]+$/.test(word) && word.length > 2)
       .slice(0, 4); // 최대 4개 단어
 
@@ -188,12 +215,20 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   
                   Requirements:
                   - Use lowercase letters and hyphens only
-                  - Include relevant golf terms (driver, golf, distance, etc.)
+                  - Prioritize high-search-volume Korean golf keywords:
+                    * "masgolf-driver" (not "masgolf-golf")
+                    * "masgolf-golf" for general golf content
+                    * "high-rebound-driver" for 고반발드라이버
+                    * "distance-driver" for 비거리드라이버
+                    * "male-driver" or "female-driver" for gender-specific
                   - Maximum 4-5 words
-                  - Focus on Korean golf market keywords
+                  - Focus on actual Korean search trends
                   - Return only the filename without extension
                   
-                  Example: golf-driver-distance-male-123`
+                  Examples:
+                  - "masgolf-driver-high-rebound-123"
+                  - "golf-driver-distance-male-456"
+                  - "masgolf-golf-equipment-789"`
       })
     });
 
