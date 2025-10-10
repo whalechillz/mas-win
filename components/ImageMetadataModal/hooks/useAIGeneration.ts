@@ -102,7 +102,9 @@ export const useAIGeneration = () => {
       if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
         const data = await keywordResponse.value.json();
         const tagNames = data.seoOptimizedTags?.map((tag: any) => tag.name) || data.tags || [];
-        keywords = tagNames.join(', ');
+        // 키워드를 5개로 제한 (SEO 최적화)
+        const limitedKeywords = tagNames.slice(0, 5);
+        keywords = limitedKeywords.join(', ');
       }
 
       if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
@@ -222,6 +224,9 @@ const cleanAIText = (text: string): string => {
     .replace(/^설명\s*/i, '')
     .replace(/^이 이미지는\s*/i, '')
     .replace(/^이미지는\s*/i, '')
+    .replace(/\*\*설명\*\*:.*$/i, '') // 제목에서 설명 부분 제거
+    .replace(/설명:\s*.*$/i, '') // "설명:" 부분 제거
+    .replace(/\s+/g, ' ') // 연속 공백 제거
     .replace(/^이\s*이미지는\s*/i, '')
     .replace(/^이\s*사진은\s*/i, '')
     .replace(/^사진은\s*/i, '')
