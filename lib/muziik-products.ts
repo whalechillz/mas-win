@@ -26,9 +26,9 @@ export const products: Product[] = [
     name: 'DOGATTI GENERATION Sapphire one-flex',
     nameEn: 'DOGATTI GENERATION Sapphire one-flex',
     description: '超高速の反発力とヘッド安定性を実現する、MUZIIK独自のチタンファイバー技術を採用したプレミアムシャフト。',
-    mainImage: '/muziik/sapphire/main.jpg',
-    shaftImage: '/muziik/sapphire/shaft.jpg',
-    chartImage: '/muziik/sapphire/chart.jpg',
+    mainImage: '/muziik/sapphire_one_flex_shaft_main.png',
+    shaftImage: '/muziik/sapphire_one_flex_shaft_main.png',
+    chartImage: '/muziik/sapphire_40_50_bending_profile.png',
     features: [
       'チタンファイバー技術による超高速反発力',
       'ヘッド安定性の向上',
@@ -63,8 +63,8 @@ export const products: Product[] = [
     name: 'DOGATTI GENERATION Beryl_40',
     nameEn: 'DOGATTI GENERATION Beryl_40',
     description: '高弾性カーボンシートとチタンファイバーを組み合わせた、美しさと性能を兼ね備えたプレミアムシャフト。',
-    mainImage: '/muziik/beryl/main.jpg',
-    shaftImage: '/muziik/beryl/shaft.jpg',
+    mainImage: '/muziik/beryl_40_shaft_main.png',
+    shaftImage: '/muziik/beryl_40_shaft_main.png',
     features: [
       '高弾性(65t)カーボンシート使用',
       'チタンファイバーによる引張強度向上',
