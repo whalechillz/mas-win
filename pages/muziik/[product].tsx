@@ -223,19 +223,29 @@ export default function ProductPage({ product }: ProductPageProps) {
 
           {/* Specifications */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6">仕様表</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">
+              {language === 'ja' ? '仕様表' : '스펙표'}
+            </h2>
             <div className="overflow-x-auto">
               <table className="w-full bg-gray-900 border border-gray-800 rounded-lg">
                 <thead>
                   <tr className="bg-gray-800">
                     <th className="px-4 py-3 text-left text-white font-semibold">Model</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">全長(mm)</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">重量(g)</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Tip径(mm)</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Butt径(mm)</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">トルク(°)</th>
+                    <th className="px-4 py-3 text-left text-white font-semibold">
+                      {language === 'ja' ? '全長(mm)' : '전장(mm)'}
+                    </th>
+                    <th className="px-4 py-3 text-left text-white font-semibold">
+                      {language === 'ja' ? '重量(g)' : '중량(g)'}
+                    </th>
+                    <th className="px-4 py-3 text-left text-white font-semibold">Tip(mm)</th>
+                    <th className="px-4 py-3 text-left text-white font-semibold">Butt(mm)</th>
+                    <th className="px-4 py-3 text-left text-white font-semibold">
+                      {language === 'ja' ? 'トルク(°)' : '토크(°)'}
+                    </th>
                     {product.specs[0]?.frequency && (
-                      <th className="px-4 py-3 text-left text-white font-semibold">振動数(cpm)</th>
+                      <th className="px-4 py-3 text-left text-white font-semibold">
+                        {language === 'ja' ? '振動数(cpm)' : '진동수(cpm)'}
+                      </th>
                     )}
                     {product.specs[0]?.kickPoint && (
                       <th className="px-4 py-3 text-left text-white font-semibold">K.P.</th>

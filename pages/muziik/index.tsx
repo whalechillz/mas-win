@@ -216,19 +216,42 @@ export default function MuziikHome() {
                   {/* Sapphire 스펙 미리보기 */}
                   <div className="mb-4 bg-gray-800 rounded p-3">
                     <h4 className="text-white font-semibold mb-2 text-sm">
-                      {language === 'ja' ? '주요 스펙' : '주요 스펙'}
+                      {language === 'ja' ? 'DOGATTI GENERATION SAPPHIRE 40/50' : 'DOGATTI GENERATION SAPPHIRE 40/50'}
                     </h4>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="text-gray-300">
-                        <span className="text-gray-400">Model 40:</span><br/>
-                        무게: 45g<br/>
-                        토크: 5.0°
-                      </div>
-                      <div className="text-gray-300">
-                        <span className="text-gray-400">Model 50:</span><br/>
-                        무게: 54g<br/>
-                        토크: 4.2°
-                      </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-gray-300">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Model' : 'Model'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Tip(mm)' : 'Tip(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Butt(mm)' : 'Butt(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°)' : '토크(°)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '振動数(cpm)' : '진동수(cpm)'}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">40</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">45</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.05</td>
+                            <td className="py-1 px-2">5.0</td>
+                            <td className="py-1 px-2">185</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 px-2">50</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">54</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.4</td>
+                            <td className="py-1 px-2">4.2</td>
+                            <td className="py-1 px-2">195</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                   
