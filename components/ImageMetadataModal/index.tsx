@@ -150,7 +150,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       '프로': 'pro', '아마추어': 'amateur',
       
       // 브랜드/모델 (실제 검색량 기반)
-      '마쓰구': 'masgolf', '마쓰구골프': 'masgolf-golf', '마쓰구드라이버': 'masgolf-driver',
+      '마쓰구': 'massgoo', '마쓰구골프': 'massgoo-golf', '마쓰구드라이버': 'massgoo-driver',
       '타이틀리스트': 'titleist', '테일러메이드': 'taylormade', '캘러웨이': 'callaway',
       '핑': 'ping', '미즈노': 'mizuno', '윌슨': 'wilson', '브리지스톤': 'bridgestone',
       
@@ -216,8 +216,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   Requirements:
                   - Use lowercase letters and hyphens only
                   - Prioritize high-search-volume Korean golf keywords:
-                    * "masgolf-driver" (not "masgolf-golf")
-                    * "masgolf-golf" for general golf content
+                    * "massgoo-driver" (not "massgoo-golf")
+                    * "massgoo-golf" for general golf content
                     * "high-rebound-driver" for 고반발드라이버
                     * "distance-driver" for 비거리드라이버
                     * "male-driver" or "female-driver" for gender-specific
@@ -226,9 +226,9 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   - Return only the filename without extension
                   
                   Examples:
-                  - "masgolf-driver-high-rebound-123"
+                  - "massgoo-driver-high-rebound-123"
                   - "golf-driver-distance-male-456"
-                  - "masgolf-golf-equipment-789"`
+                  - "massgoo-golf-equipment-789"`
       })
     });
 
