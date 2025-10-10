@@ -172,14 +172,13 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       ];
       
       const result: string[] = [];
+      const combinedText = words.join(' ');
       
       // 1단계: 복합 키워드 우선 매칭
       for (const priority of priorityKeywords) {
-        const combinedText = words.join(' ');
         if (combinedText.includes(priority)) {
-          result.push(koreanToEnglish[priority] || priority.replace(/[가-힣]/g, ''));
-          // 매칭된 키워드 제거
-          words = words.filter(word => !combinedText.includes(word));
+          const converted = koreanToEnglish[priority] || priority.replace(/[가-힣]/g, '');
+          result.push(converted);
         }
       }
       
@@ -191,9 +190,13 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     };
 
     // 제목과 키워드에서 영문 단어 추출 (우선순위 기반)
-    const allWords = prioritizeKeywords([...titleWords, ...keywordWords])
-      .filter(word => /^[a-z0-9-]+$/.test(word) && word.length > 2)
-      .slice(0, 4); // 최대 4개 단어
+    const prioritizedWords = prioritizeKeywords([...titleWords, ...keywordWords])
+      .filter(word => /^[a-z0-9-]+$/.test(word) && word.length > 2);
+    
+    // 중복 제거 (순서 유지)
+    const uniqueWords = [...new Set(prioritizedWords)];
+    
+    const allWords = uniqueWords.slice(0, 4); // 최대 4개 단어
 
     if (allWords.length === 0) {
       return 'golf-image-' + Math.floor(Math.random() * 999 + 1);
