@@ -41,8 +41,9 @@ export default async function handler(req, res) {
 
     // 프리셋 설정값 (8단계 확장)
     const PRESETS = {
-      max_free: { guidance_scale: 1.0, num_inference_steps: 50 },         // 최대자유 창의
-      ultra_free: { guidance_scale: 1.2, num_inference_steps: 50 },       // 초자유 창의
+      extreme_max_free: { guidance_scale: 0.6, num_inference_steps: 50 }, // 극최대자유 창의
+      max_free: { guidance_scale: 0.8, num_inference_steps: 50 },         // 최대자유 창의
+      ultra_free: { guidance_scale: 1.0, num_inference_steps: 50 },       // 초자유 창의
       super_free: { guidance_scale: 1.4, num_inference_steps: 50 },       // 슈퍼자유 창의
       extreme_creative: { guidance_scale: 1.8, num_inference_steps: 50 }, // 극자유 창의
       free_creative: { guidance_scale: 2.0, num_inference_steps: 50 },    // 자유 창의
