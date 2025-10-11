@@ -46,7 +46,7 @@ export default function BlogAdmin() {
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
   // AI 프리셋 설정 (8단계 확장)
-  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
+  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
@@ -80,10 +80,22 @@ export default function BlogAdmin() {
       guidance_scale: 1.0,
       num_inference_steps: 50
     },
+    hyper_free: {
+      name: "하이퍼자유 변형",
+      description: "하이퍼자유 창의 (1.2)",
+      guidance_scale: 1.2,
+      num_inference_steps: 50
+    },
     extreme_creative: {
       name: "극자유 변형",
       description: "극자유 창의 (1.4)",
       guidance_scale: 1.4,
+      num_inference_steps: 50
+    },
+    mega_creative: {
+      name: "메가자유 변형",
+      description: "메가자유 창의 (1.6)",
+      guidance_scale: 1.6,
       num_inference_steps: 50
     },
     free_creative: {
@@ -3033,7 +3045,7 @@ export default function BlogAdmin() {
                             name="aiPreset"
                             value={key}
                             checked={aiPreset === key}
-                            onChange={(e) => setAiPreset(e.target.value as 'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision')}
+                            onChange={(e) => setAiPreset(e.target.value as 'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision')}
                             className="mt-1"
                           />
                           <div>

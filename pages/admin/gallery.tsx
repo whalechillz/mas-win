@@ -74,7 +74,8 @@ export default function GalleryAdmin() {
   
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
@@ -108,6 +109,19 @@ export default function GalleryAdmin() {
           return acc;
         }, {} as Record<string, number>);
         filtered = filtered.filter(img => nameCounts[img.name] > 1);
+        break;
+      case 'category':
+        if (selectedCategoryFilter !== null) {
+          filtered = filtered.filter(img => {
+            // 카테고리가 숫자 ID인 경우
+            if (typeof img.category === 'number') {
+              return img.category === selectedCategoryFilter;
+            }
+            // 카테고리가 문자열인 경우 (하위 호환성)
+            const category = dynamicCategories.find(cat => cat.id === selectedCategoryFilter);
+            return category && img.category === category.name;
+          });
+        }
         break;
       case 'all':
       default:
@@ -147,7 +161,7 @@ export default function GalleryAdmin() {
     });
     
     return filtered;
-  }, [images, searchQuery, filterType, sortBy, sortOrder]);
+  }, [images, searchQuery, filterType, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
   // 카테고리 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryMoveModalOpen, setCategoryMoveModalOpen] = useState(false);
@@ -964,8 +978,28 @@ export default function GalleryAdmin() {
                   <option value="featured">⭐ 대표 이미지</option>
                   <option value="unused">사용되지 않음</option>
                   <option value="duplicates">중복 이미지</option>
+                  <option value="category">📂 카테고리별</option>
                 </select>
               </div>
+
+              {/* 카테고리 선택 (카테고리별 필터가 선택된 경우에만 표시) */}
+              {filterType === 'category' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">카테고리 선택</label>
+                  <select
+                    value={selectedCategoryFilter || ''}
+                    onChange={(e) => setSelectedCategoryFilter(e.target.value ? parseInt(e.target.value) : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">카테고리 선택</option>
+                    {dynamicCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               {/* 정렬 기준 */}
               <div>

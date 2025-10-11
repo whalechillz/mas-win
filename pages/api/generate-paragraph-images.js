@@ -129,7 +129,9 @@ const PRESETS = {
   max_free: { guidance_scale: 0.6, num_inference_steps: 50 },           // 최대자유 창의
   ultra_free: { guidance_scale: 0.8, num_inference_steps: 50 },         // 초자유 창의
   super_free: { guidance_scale: 1.0, num_inference_steps: 50 },         // 슈퍼자유 창의
+  hyper_free: { guidance_scale: 1.2, num_inference_steps: 50 },         // 하이퍼자유 창의
   extreme_creative: { guidance_scale: 1.4, num_inference_steps: 50 },   // 극자유 창의
+  mega_creative: { guidance_scale: 1.6, num_inference_steps: 50 },      // 메가자유 창의
   free_creative: { guidance_scale: 1.8, num_inference_steps: 50 },      // 자유 창의
   creative: { guidance_scale: 2.0, num_inference_steps: 50 },           // 창의적
   balanced: { guidance_scale: 2.1, num_inference_steps: 50 },           // 균형
