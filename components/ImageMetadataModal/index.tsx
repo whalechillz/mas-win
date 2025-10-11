@@ -11,6 +11,7 @@ interface ImageMetadataModalProps {
   onClose: () => void;
   onSave: (metadata: MetadataForm) => Promise<void>;
   onRename?: (newFilename: string) => Promise<void>;
+  categories?: Array<{ id: number; name: string }>;
 }
 
 // 필드 설정
@@ -67,7 +68,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   image,
   onClose,
   onSave,
-  onRename
+  onRename,
+  categories = []
 }) => {
   const [form, setForm] = useState<MetadataForm>({
     alt_text: '',
@@ -437,6 +439,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   error={validationErrors[field]}
                   seoScore={config.seoOptimized ? seoScore : undefined}
                   isGenerating={isGenerating}
+                  categories={categories}
                 />
               ))}
               

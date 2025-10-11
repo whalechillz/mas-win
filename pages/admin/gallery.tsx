@@ -3,6 +3,7 @@ import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
+import { CategoryManagementModal } from '../../components/CategoryManagementModal';
 
 interface ImageMetadata {
   id?: string;
@@ -154,6 +155,41 @@ export default function GalleryAdmin() {
   const [tags, setTags] = useState<any[]>([]);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [editingTag, setEditingTag] = useState<any | null>(null);
+  
+  // 동적 카테고리 상태
+  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  
+  // 동적 카테고리 로드 함수
+  const loadDynamicCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setDynamicCategories(data.categories || []);
+      } else {
+        console.error('❌ 카테고리 로드 실패:', data.error);
+        // 실패 시 기본 카테고리 사용
+        setDynamicCategories([
+          { id: 1, name: '골프' },
+          { id: 2, name: '장비' },
+          { id: 3, name: '코스' },
+          { id: 4, name: '이벤트' },
+          { id: 5, name: '기타' }
+        ]);
+      }
+    } catch (error) {
+      console.error('❌ 카테고리 로드 오류:', error);
+      // 오류 시 기본 카테고리 사용
+      setDynamicCategories([
+        { id: 1, name: '골프' },
+        { id: 2, name: '장비' },
+        { id: 3, name: '코스' },
+        { id: 4, name: '이벤트' },
+        { id: 5, name: '기타' }
+      ]);
+    }
+  };
   
   // 편집 상태
   const [editingImage, setEditingImage] = useState<string | null>(null);
@@ -447,6 +483,7 @@ export default function GalleryAdmin() {
   // 초기 로드
   useEffect(() => {
     fetchImages(1, true);
+    loadDynamicCategories(); // 동적 카테고리 로드
     // 카테고리/태그 로드
     (async()=>{
       try { const c = await (await fetch('/api/admin/image-categories')).json(); setCategories(c.categories||[]); } catch {}
@@ -485,15 +522,9 @@ export default function GalleryAdmin() {
     let categoryValue = '';
     if (image.category !== null && image.category !== undefined) {
       if (typeof image.category === 'number') {
-        // 숫자 카테고리 ID를 문자열로 변환
-        const categoryMap: { [key: number]: string } = {
-          1: '골프',
-          2: '장비', 
-          3: '코스',
-          4: '이벤트',
-          5: '기타'
-        };
-        categoryValue = categoryMap[image.category] || '';
+        // 동적 카테고리에서 ID로 이름 찾기
+        const category = dynamicCategories.find(cat => cat.id === image.category);
+        categoryValue = category ? category.name : '';
       } else {
         categoryValue = String(image.category);
       }
@@ -899,58 +930,11 @@ export default function GalleryAdmin() {
                 >
                   📝 블로그 관리로 돌아가기
                 </Link>
-              <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
+              <button onClick={()=>{
+                setCategoryModalOpen(true);
+                loadDynamicCategories(); // 카테고리 새로고침
+              }} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
               <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
-              <button
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/admin/debug-storage-duplicates');
-                    const data = await response.json();
-                    if (response.ok) {
-                      const diagnosis = data.diagnosis;
-                      const summary = diagnosis.summary;
-                      alert(`🔍 Storage 중복 진단 결과:\n\n📊 Storage 파일: ${summary.totalStorageFiles}개\n📝 메타데이터: ${summary.totalMetadataRecords}개\n🔄 정확한 중복 파일명: ${summary.exactDuplicateNames}개\n🎯 유사한 패턴: ${summary.similarPatterns}개\n❌ 고아 Storage: ${summary.orphanedStorageFiles}개\n❌ 고아 메타데이터: ${summary.orphanedMetadataRecords}개\n\n이는 갤러리에서 같은 이미지가 여러 번 표시되는 원인일 수 있습니다.`);
-                      console.log('🔍 Storage 중복 진단 결과:', diagnosis);
-                    } else {
-                      alert('Storage 중복 진단에 실패했습니다.');
-                    }
-                  } catch (error) {
-                    console.error('❌ Storage 중복 진단 오류:', error);
-                    alert('Storage 중복 진단 중 오류가 발생했습니다.');
-                  }
-                }}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
-              >
-                🔍 Storage 중복 진단
-              </button>
-              <button
-                onClick={async () => {
-                  if (!confirm('replicate-flux로 시작하는 중복 이미지들을 정리하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
-                    return;
-                  }
-                  
-                  try {
-                    const response = await fetch('/api/admin/cleanup-replicate-duplicates', {
-                      method: 'POST'
-                    });
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                      alert(`✅ 중복 이미지 정리 완료!\n\n🗑️ 삭제된 파일: ${data.deletedCount}개\n\n이제 갤러리를 새로고침해주세요.`);
-                      // 갤러리 새로고침
-                      fetchImages(1, true);
-                    } else {
-                      alert(`❌ 중복 이미지 정리 실패: ${data.error}`);
-                    }
-                  } catch (error) {
-                    console.error('❌ 중복 이미지 정리 오류:', error);
-                    alert('중복 이미지 정리 중 오류가 발생했습니다.');
-                  }
-                }}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
-              >
-                🧹 Replicate 중복 정리
-              </button>
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
             </div>
@@ -1443,6 +1427,7 @@ export default function GalleryAdmin() {
             throw error;
           }
         }}
+        categories={dynamicCategories}
       />
 
       {/* 확대 모달 */}
@@ -1644,6 +1629,12 @@ export default function GalleryAdmin() {
           </div>
         </div>
       )}
+
+      {/* 카테고리 관리 모달 */}
+      <CategoryManagementModal
+        isOpen={categoryModalOpen}
+        onClose={() => setCategoryModalOpen(false)}
+      />
     </div>
   );
 }
