@@ -38,6 +38,9 @@ export default async function handler(req, res) {
     const falApiKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
     const startTime = Date.now();
 
+    // 제품 이미지 변형을 위한 최적화된 설정
+    const optimizedPrompt = prompt || 'Create a variation of this product image maintaining exact product details, same brand, same model, only change background or lighting while preserving all product features';
+    
     const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
       method: 'POST',
       headers: {
@@ -46,9 +49,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         image_url: imageUrl,
-        prompt: prompt || 'Create a variation of this image with similar style and composition',
-        num_inference_steps: 20,
-        guidance_scale: 7.5,
+        prompt: optimizedPrompt,
+        num_inference_steps: 30,        // 더 정교한 생성
+        guidance_scale: 3.0,            // 원본에 더 충실
         seed: Math.floor(Math.random() * 1000000)
       })
     });
