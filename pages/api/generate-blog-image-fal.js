@@ -211,7 +211,8 @@ const PRESETS = {
   precise: { guidance_scale: 2.2, num_inference_steps: 50 },            // 정밀
   ultra_precise: { guidance_scale: 2.3, num_inference_steps: 50 },      // 초정밀
   high_precision: { guidance_scale: 2.5, num_inference_steps: 50 },     // 고정밀
-  ultra_high_precision: { guidance_scale: 2.7, num_inference_steps: 50 } // 초고정밀
+  ultra_high_precision: { guidance_scale: 2.7, num_inference_steps: 50 }, // 초고정밀
+  extreme_precision: { guidance_scale: 2.9, num_inference_steps: 50 } // 극고정밀
 };
     
     const presetSettings = PRESETS[preset] || PRESETS.creative;

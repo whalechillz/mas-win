@@ -46,7 +46,7 @@ export default function BlogAdmin() {
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
   // AI 프리셋 설정 (8단계 확장)
-  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision'>('creative');
+  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
@@ -126,6 +126,12 @@ export default function BlogAdmin() {
       name: "초고정밀 변형",
       description: "초고정밀 (2.7)",
       guidance_scale: 2.7,
+      num_inference_steps: 50
+    },
+    extreme_precision: {
+      name: "극고정밀 변형",
+      description: "극고정밀 (2.9)",
+      guidance_scale: 2.9,
       num_inference_steps: 50
     }
   };
@@ -3027,7 +3033,7 @@ export default function BlogAdmin() {
                             name="aiPreset"
                             value={key}
                             checked={aiPreset === key}
-                            onChange={(e) => setAiPreset(e.target.value as 'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision')}
+                            onChange={(e) => setAiPreset(e.target.value as 'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision')}
                             className="mt-1"
                           />
                           <div>
