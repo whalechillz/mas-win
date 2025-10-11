@@ -755,17 +755,26 @@ export default function GalleryAdmin() {
   const handleBulkDelete = async () => {
     if (selectedImages.size === 0) return;
     setIsBulkWorking(true);
+    
     try {
       const names = Array.from(selectedImages);
-      let success = 0;
-      for (const name of names) {
-        const res = await fetch('/api/admin/delete-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageName: name })
-        });
-        if (res.ok) success++;
+      console.log('🗑️ 일괄 삭제 시작:', names.length, '개');
+      
+      // 일괄 삭제 API 호출 (더 효율적)
+      const response = await fetch('/api/admin/delete-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageNames: names })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '일괄 삭제에 실패했습니다.');
       }
+      
+      const result = await response.json();
+      console.log('✅ 일괄 삭제 성공:', result);
+      
       // 삭제된 이미지들을 상태에서 제거
       setImages(prev => prev.filter(img => !selectedImages.has(getImageUniqueId(img))));
       
@@ -783,10 +792,11 @@ export default function GalleryAdmin() {
         fetchImages(1, true);
       }, 500);
       
-      alert(`일괄 삭제 완료: ${success}/${names.length}개`);
-    } catch (e) {
-      console.error('❌ 일괄 삭제 오류:', e);
-      alert('일괄 삭제에 실패했습니다.');
+      alert(`일괄 삭제 완료: ${names.length}개 이미지가 삭제되었습니다.`);
+      
+    } catch (error) {
+      console.error('❌ 일괄 삭제 오류:', error);
+      alert(`일괄 삭제에 실패했습니다: ${error.message}`);
     } finally {
       setIsBulkWorking(false);
     }
@@ -1416,6 +1426,46 @@ export default function GalleryAdmin() {
                     />
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄 삭제 확인 모달 */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-red-600 text-xl">⚠️</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  일괄 삭제 확인
+                </h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  선택된 <span className="font-semibold text-red-600">{selectedImages.size}개</span>의 이미지를 삭제하시겠습니까?
+                  <br />
+                  <span className="text-red-600">이 작업은 되돌릴 수 없습니다.</span>
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => setShowBulkDeleteConfirm(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleBulkDelete}
+                    disabled={isBulkWorking}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isBulkWorking ? '삭제 중...' : '삭제'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
