@@ -125,7 +125,7 @@ export const useAIGeneration = () => {
         data: {
           alt_text: truncateText(description, 125), // ALT 텍스트를 125자로 제한
           keywords,
-          title: truncateText(title, 60), // 제목을 60자로 제한
+          title: truncateText(title, 30), // 제목을 30자로 제한
           description: truncateText(altText, 160), // 설명을 160자로 제한
           category: selectedCategory
         }
@@ -175,9 +175,19 @@ export const useAIGeneration = () => {
         const data = await response.json();
         const cleanedText = cleanAIText(data.prompt || '');
         
+        // 필드별 길이 제한 적용
+        let processedText = cleanedText;
+        if (field === 'title') {
+          processedText = truncateText(cleanedText, 30);
+        } else if (field === 'alt_text') {
+          processedText = truncateText(cleanedText, 125);
+        } else if (field === 'description') {
+          processedText = truncateText(cleanedText, 160);
+        }
+        
         const result: AIGenerationResult = {
           success: true,
-          data: { [field]: cleanedText }
+          data: { [field]: processedText }
         };
         
         setGenerationHistory(prev => [...prev, result]);
