@@ -106,8 +106,26 @@ export default function TechnologyPage() {
       <Head>
         <title>{t.title}</title>
         <meta name="description" content={t.description} />
+        <meta name="keywords" content="MUZIIK,도가티,골프샤프트기술,티타늄파이버,나노수지,역토크방지,골프샤프트테크놀로지,DOGATTI GENERATION" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="MUZIIK Dogatti Generation Technology" />
+        <meta property="og:description" content="나노레벨 수지, 역토크 방지, 티타늄 파이버 전장 사용 기술. MUZIIK 독자적인 샤프트 테크놀로지." />
+        <meta property="og:image" content="/muziik/technology-og.jpg" />
+        <meta property="og:url" content="https://muziik.masgolf.co.kr/technology" />
+        <meta property="og:type" content="article" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="MUZIIK Dogatti Generation Technology" />
+        <meta name="twitter:description" content="나노레벨 수지, 역토크 방지, 티타늄 파이버 전장 사용 기술." />
+        <meta name="twitter:image" content="/muziik/technology-og.jpg" />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://muziik.masgolf.co.kr/technology" />
       </Head>
 
       <div className="min-h-screen bg-black text-white">

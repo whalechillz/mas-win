@@ -124,8 +124,26 @@ export default function AboutPage() {
       <Head>
         <title>{t.title}</title>
         <meta name="description" content={t.description} />
+        <meta name="keywords" content="MUZIIK,일본골프샤프트,도가티,골프샤프트제조사,일본제골프샤프트,DOGATTI GENERATION,골프샤프트수입,프리미엄골프샤프트" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="MUZIIK - 일본제 프리미엄 골프 샤프트" />
+        <meta property="og:description" content="40년 전통의 일본제 프리미엄 골프 샤프트. MUZIIK DOGATTI GENERATION의 한국 정식 수입 판매." />
+        <meta property="og:image" content="/muziik/about-og.jpg" />
+        <meta property="og:url" content="https://muziik.masgolf.co.kr/about" />
+        <meta property="og:type" content="website" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="MUZIIK - 일본제 프리미엄 골프 샤프트" />
+        <meta name="twitter:description" content="40년 전통의 일본제 프리미엄 골프 샤프트." />
+        <meta name="twitter:image" content="/muziik/about-og.jpg" />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://muziik.masgolf.co.kr/about" />
       </Head>
 
       <div className="min-h-screen bg-black text-white">

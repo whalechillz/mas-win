@@ -61,10 +61,28 @@ export default function ProductPage({ product }: ProductPageProps) {
   return (
     <>
       <Head>
-        <title>{product.name} - MUZIIK</title>
-        <meta name="description" content={product.description} />
+        <title>{product.name} - MUZIIK DOGATTI GENERATION</title>
+        <meta name="description" content={`${product.name} - ${product.description}. 마쓰구 드라이버와 완벽한 조합. 일본 최고급 골프 샤프트.`} />
+        <meta name="keywords" content={`${product.name},MUZIIK,도가티,골프샤프트,프리미엄샤프트,일본샤프트,DOGATTI GENERATION,마쓰구드라이버,골프피팅`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={`${product.name} - MUZIIK DOGATTI GENERATION`} />
+        <meta property="og:description" content={`${product.name} - ${product.description}. 마쓰구 드라이버와 완벽한 조합.`} />
+        <meta property="og:image" content={product.mainImage} />
+        <meta property="og:url" content={`https://muziik.masgolf.co.kr/${product.id}`} />
+        <meta property="og:type" content="product" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${product.name} - MUZIIK`} />
+        <meta name="twitter:description" content={`${product.description}. 마쓰구 드라이버와 완벽한 조합.`} />
+        <meta name="twitter:image" content={product.mainImage} />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`https://muziik.masgolf.co.kr/${product.id}`} />
       </Head>
 
       <div className="min-h-screen bg-black text-white">
