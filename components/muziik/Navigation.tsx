@@ -51,7 +51,7 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
           <Link 
-            href="/" 
+            href="/muziik" 
             className="text-2xl font-bold text-white hover:text-blue-400 transition-colors"
             onClick={closeMobileMenu}
           >
