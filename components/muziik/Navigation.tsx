@@ -60,9 +60,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
           
           <nav className="hidden md:flex space-x-8 items-center">
             <Link 
-              href="/muziik" 
+              href="/" 
               className={`transition-colors ${
-                isActive('/muziik') 
+                isActive('/') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -71,9 +71,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/muziik/sapphire" 
+              href="/sapphire" 
               className={`transition-colors ${
-                isActive('/muziik/sapphire') 
+                isActive('/sapphire') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -82,9 +82,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/muziik/beryl" 
+              href="/beryl" 
               className={`transition-colors ${
-                isActive('/muziik/beryl') 
+                isActive('/beryl') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -93,9 +93,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/muziik/technology" 
+              href="/technology" 
               className={`transition-colors ${
-                isActive('/muziik/technology') 
+                isActive('/technology') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -104,9 +104,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/muziik/about" 
+              href="/about" 
               className={`transition-colors ${
-                isActive('/muziik/about') 
+                isActive('/about') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -115,7 +115,7 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/muziik/contact" 
+              href="/contact" 
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               {t.contact}
@@ -171,9 +171,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
           <div className="md:hidden mt-4 pb-4 border-t border-gray-800">
             <nav className="flex flex-col space-y-4 pt-4">
               <Link 
-                href="/muziik" 
+                href="/" 
                 className={`transition-colors py-2 ${
-                  isActive('/muziik') 
+                  isActive('/') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -195,9 +195,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/muziik/beryl" 
+                href="/beryl" 
                 className={`transition-colors py-2 ${
-                  isActive('/muziik/beryl') 
+                  isActive('/beryl') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -207,9 +207,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/muziik/technology" 
+                href="/technology" 
                 className={`transition-colors py-2 ${
-                  isActive('/muziik/technology') 
+                  isActive('/technology') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -219,9 +219,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/muziik/about" 
+                href="/about" 
                 className={`transition-colors py-2 ${
-                  isActive('/muziik/about') 
+                  isActive('/about') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -231,7 +231,7 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/muziik/contact" 
+                href="/contact" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-center"
                 onClick={closeMobileMenu}
               >

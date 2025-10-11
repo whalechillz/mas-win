@@ -289,7 +289,7 @@ export default function MuziikHome() {
                   </div>
 
                   <Link 
-                    href="/muziik/sapphire"
+                    href="/sapphire"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                   >
                     {language === 'ja' ? '詳細を見る' : '자세히 보기'}
@@ -411,7 +411,7 @@ export default function MuziikHome() {
                   </div>
 
                   <Link 
-                    href="/muziik/beryl"
+                    href="/beryl"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                   >
                     {language === 'ja' ? '詳細を見る' : '자세히 보기'}
