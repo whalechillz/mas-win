@@ -197,12 +197,16 @@ export default async function handler(req, res) {
     // 이미지 개수 제한 (1-4개)
     const validImageCount = Math.min(Math.max(imageCount, 1), 4);
     
-    // 프리셋 설정값 (2.5 임계점 기준 최적화)
+    // 프리셋 설정값 (8단계 확장)
     const PRESETS = {
-      creative: { guidance_scale: 2.1, num_inference_steps: 50 },    // 가장 창의적 (가장 낮음)
-      balanced: { guidance_scale: 2.2, num_inference_steps: 50 },    // 중간
-      precise: { guidance_scale: 2.3, num_inference_steps: 50 },     // 정확
-      ultra_precise: { guidance_scale: 2.5, num_inference_steps: 50 } // 가장 정밀 (가장 높음)
+      extreme_creative: { guidance_scale: 1.8, num_inference_steps: 50 }, // 최고 창의성
+      free_creative: { guidance_scale: 2.0, num_inference_steps: 50 },    // 자유 창의
+      creative: { guidance_scale: 2.1, num_inference_steps: 50 },         // 창의적
+      balanced: { guidance_scale: 2.2, num_inference_steps: 50 },         // 균형
+      precise: { guidance_scale: 2.3, num_inference_steps: 50 },          // 정밀
+      ultra_precise: { guidance_scale: 2.5, num_inference_steps: 50 },    // 초정밀
+      high_precision: { guidance_scale: 2.7, num_inference_steps: 50 },   // 고정밀
+      ultra_high_precision: { guidance_scale: 2.9, num_inference_steps: 50 } // 초고정밀
     };
     
     const presetSettings = PRESETS[preset] || PRESETS.creative;
