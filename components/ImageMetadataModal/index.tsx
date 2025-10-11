@@ -92,6 +92,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     }
 
     try {
+      // 기존 파일의 확장자 추출
+      const currentFilename = form.filename || image?.name || '';
+      const extension = currentFilename.includes('.') 
+        ? '.' + currentFilename.split('.').pop() 
+        : '.jpg'; // 기본값
+
       // 1단계: 규칙 기반 기본 변환
       const basicFileName = generateBasicFileName(form.title, form.keywords);
       
@@ -117,13 +123,16 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         }
       }
 
-      setForm(prev => ({ ...prev, filename: finalFileName }));
+      // 확장자 추가 (기존 확장자 유지)
+      const finalFileNameWithExtension = finalFileName + extension;
+
+      setForm(prev => ({ ...prev, filename: finalFileNameWithExtension }));
       setHasChanges(true);
     } catch (error) {
       console.error('SEO 파일명 생성 오류:', error);
       alert('SEO 파일명 생성 중 오류가 발생했습니다.');
     }
-  }, [form.title, form.keywords, image?.url]);
+  }, [form.title, form.keywords, form.filename, image?.url, image?.name]);
 
   // 규칙 기반 파일명 생성
   const generateBasicFileName = (title: string, keywords: string) => {
@@ -212,7 +221,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       .filter(word => /^[a-z0-9-]+$/.test(word) && word.length > 2);
     
     // 중복 제거 (순서 유지)
-    const uniqueWords = [...new Set(prioritizedWords)];
+    const uniqueWords = Array.from(new Set(prioritizedWords));
     
     // SEO 전략: 일반 키워드 + 브랜드명 조합
     let finalWords = uniqueWords.slice(0, 3); // 최대 3개 단어
