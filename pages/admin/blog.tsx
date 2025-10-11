@@ -1054,24 +1054,25 @@ export default function BlogAdmin() {
       let smartPrompt = customPromptOverride || imageGenerationPrompt;
       if (!smartPrompt) {
         setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
-        const promptResponse = await fetch('/api/generate-smart-prompt', {
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
           excerpt: formData.excerpt,
-            contentType: formData.category,
+          contentType: formData.category,
           brandStrategy: {
-              contentType: formData.category,
-              customerPersona: brandPersona,
-              customerChannel: '',
-              brandWeight: getBrandWeight(brandContentType),
-              audienceTemperature,
-              audienceWeight: getAudienceWeight(audienceTemperature)
-            },
-            model: 'fal'
-          })
-        });
+            contentType: formData.category,
+            customerPersona: brandPersona,
+            customerChannel: '',
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
+          },
+          model: 'fal',
+          preset: aiPreset
+        })
+      });
 
         if (!promptResponse.ok) {
           throw new Error('ChatGPT 프롬프트 생성 실패');

@@ -129,7 +129,8 @@ export default async function handler(req, res) {
       customerChannel: 'local_customers',
       brandWeight: 'medium'
     },
-    model = 'dalle3' // 'dalle3', 'fal', 'kie', 'fal-variation', 'replicate-flux', 'stability-ai'
+    model = 'dalle3', // 'dalle3', 'fal', 'kie', 'fal-variation', 'replicate-flux', 'stability-ai'
+    preset = 'creative' // 'creative', 'balanced', 'precise', 'ultra_precise'
   } = req.body;
 
   if (!title) {
@@ -158,6 +159,16 @@ export default async function handler(req, res) {
     const appliedBrandStrategy = applyBrandStrategy(finalContentType, brandStrategy, userSettings);
     console.log('🎯 적용된 브랜드 전략:', appliedBrandStrategy);
     
+    // 프리셋별 프롬프트 생성 전략 설정
+    const presetInstructions = {
+      creative: "창의적이고 다양한 이미지를 생성합니다. 새로운 구도, 색감, 배경을 자유롭게 활용하여 독창적인 이미지를 만듭니다.",
+      balanced: "창의성과 정확성의 균형을 맞춘 이미지를 생성합니다. 적절한 변화를 주면서도 콘텐츠의 핵심을 유지합니다.",
+      precise: "원본 콘텐츠에 충실한 정확한 이미지를 생성합니다. 제품 사진이나 정확한 표현이 필요한 경우에 적합합니다.",
+      ultra_precise: "매우 정밀하고 세밀한 이미지를 생성합니다. 배경, 구도, 색감, 인물 특성을 최대한 유지하면서 최소한의 변화만 줍니다."
+    };
+    
+    console.log(`🎨 프리셋 적용: ${preset} - ${presetInstructions[preset]}`);
+    
     // ChatGPT에게 프롬프트 생성 요청
     const promptGenerationResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -167,6 +178,9 @@ export default async function handler(req, res) {
           content: `당신은 전문적인 AI 이미지 생성 프롬프트 작성자입니다. 
           
           요약 내용을 바탕으로 마케팅에 최적화된 이미지 프롬프트를 작성해주세요.
+          
+          **현재 프리셋: ${preset}**
+          ${presetInstructions[preset]}
           
           ${model === 'fal' ? 
             'FAL AI hidream-i1-dev 모델용으로 간단하고 명확한 프롬프트를 생성합니다. 이 모델은 복잡한 프롬프트보다는 간단한 키워드 스타일을 선호합니다.' :
@@ -207,6 +221,16 @@ export default async function handler(req, res) {
             finalContentType === 'shopping' ? '사용, 테스트, 만족' :
             '상담, 테스트, 플레이, 만족'
           })
+          
+          **프리셋별 특별 지시사항:**
+          ${preset === 'creative' ? 
+            '- 창의적이고 독창적인 구도와 색감 사용\n- 새로운 배경과 환경 시도\n- 다양한 조명과 분위기 활용\n- 예술적이고 감성적인 표현' :
+            preset === 'balanced' ?
+            '- 적절한 창의성과 정확성의 균형\n- 안정적인 구도와 색감\n- 일반적으로 인정받는 스타일\n- 마케팅에 적합한 균형잡힌 표현' :
+            preset === 'precise' ?
+            '- 정확하고 세밀한 표현\n- 제품이나 서비스의 핵심 특징 강조\n- 명확하고 구체적인 묘사\n- 전문적이고 신뢰할 수 있는 이미지' :
+            '- 매우 정밀하고 세밀한 표현\n- 모든 세부사항을 정확히 유지\n- 최소한의 변화만 허용\n- 완벽한 정확성을 추구하는 이미지'
+          }
           
           ${model === 'fal' ? 
             `FAL AI용 구체적이고 명확한 프롬프트 규칙:
