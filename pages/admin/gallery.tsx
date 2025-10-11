@@ -150,6 +150,7 @@ export default function GalleryAdmin() {
   }, [images, searchQuery, filterType, sortBy, sortOrder]);
   // 카테고리/태그 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [categoryMoveModalOpen, setCategoryMoveModalOpen] = useState(false);
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
@@ -1064,63 +1065,7 @@ export default function GalleryAdmin() {
                 </button>
                 <button
                   type="button"
-                  onClick={async () => {
-                    // 동적 카테고리 목록 표시
-                    const categoryList = dynamicCategories.map(cat => `${cat.id}: ${cat.name}`).join('\n');
-                    const catInput = prompt(`이동할 카테고리 입력:\n\n${categoryList}\n\n카테고리 이름을 입력하세요:`, '');
-                    if (catInput === null || catInput.trim() === '') return;
-                    
-                    // 입력된 카테고리 이름으로 ID 찾기
-                    const targetCategory = dynamicCategories.find(cat => 
-                      cat.name.toLowerCase() === catInput.toLowerCase().trim()
-                    );
-                    
-                    if (!targetCategory) {
-                      alert(`카테고리 "${catInput}"를 찾을 수 없습니다.\n\n사용 가능한 카테고리:\n${dynamicCategories.map(cat => cat.name).join(', ')}`);
-                      return;
-                    }
-                    
-                    try {
-                      const selectedIds = Array.from(selectedImages);
-                      const names = selectedIds.map(id => {
-                        const image = images.find(img => getImageUniqueId(img) === id);
-                        return image ? image.name : id;
-                      });
-                      
-                      console.log('📁 카테고리 이동 시작:', names.length, '개 이미지');
-                      console.log('📁 대상 카테고리:', targetCategory.name, '(ID:', targetCategory.id, ')');
-                      
-                      // 각 이미지의 카테고리 업데이트
-                      for (const imageName of names) {
-                        const response = await fetch('/api/admin/image-metadata', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            imageName: imageName,
-                            category: targetCategory.id // 숫자 ID로 전송
-                          })
-                        });
-                        
-                        if (!response.ok) {
-                          const error = await response.json();
-                          console.error('❌ 카테고리 업데이트 실패:', imageName, error);
-                        }
-                      }
-                      
-                      // 로컬 상태 업데이트
-                      setImages(prev => prev.map(img => 
-                        selectedImages.has(getImageUniqueId(img)) 
-                          ? { ...img, category: targetCategory.id }
-                          : img
-                      ));
-                      
-                      alert(`카테고리 이동 완료!\n\n${names.length}개 이미지가 "${targetCategory.name}" 카테고리로 이동되었습니다.`);
-                      
-                    } catch (error) {
-                      console.error('❌ 카테고리 이동 오류:', error);
-                      alert('카테고리 이동 중 오류가 발생했습니다.');
-                    }
-                  }}
+                  onClick={() => setCategoryMoveModalOpen(true)}
                   className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
                 >
                   📁 카테고리 이동
@@ -1682,6 +1627,110 @@ export default function GalleryAdmin() {
         isOpen={categoryModalOpen}
         onClose={() => setCategoryModalOpen(false)}
       />
+
+      {/* 카테고리 이동 모달 */}
+      {categoryMoveModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">📁 카테고리 이동</h3>
+              <button 
+                onClick={() => setCategoryMoveModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                {selectedImages.size}개 이미지를 이동할 카테고리를 선택하세요.
+              </p>
+              <select
+                id="categorySelect"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                defaultValue=""
+              >
+                <option value="">카테고리 선택</option>
+                {dynamicCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-3 p-4 border-t">
+              <button
+                onClick={() => setCategoryMoveModalOpen(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={async () => {
+                  const selectElement = document.getElementById('categorySelect') as HTMLSelectElement;
+                  const selectedCategoryId = selectElement.value;
+                  
+                  if (!selectedCategoryId) {
+                    alert('카테고리를 선택해주세요.');
+                    return;
+                  }
+                  
+                  const targetCategory = dynamicCategories.find(cat => cat.id === parseInt(selectedCategoryId));
+                  if (!targetCategory) {
+                    alert('선택된 카테고리를 찾을 수 없습니다.');
+                    return;
+                  }
+                  
+                  try {
+                    const selectedIds = Array.from(selectedImages);
+                    const names = selectedIds.map(id => {
+                      const image = images.find(img => getImageUniqueId(img) === id);
+                      return image ? image.name : id;
+                    });
+                    
+                    console.log('📁 카테고리 이동 시작:', names.length, '개 이미지');
+                    console.log('📁 대상 카테고리:', targetCategory.name, '(ID:', targetCategory.id, ')');
+                    
+                    // 각 이미지의 카테고리 업데이트
+                    for (const imageName of names) {
+                      const response = await fetch('/api/admin/image-metadata', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageName: imageName,
+                          category: targetCategory.id
+                        })
+                      });
+                      
+                      if (!response.ok) {
+                        const error = await response.json();
+                        console.error('❌ 카테고리 업데이트 실패:', imageName, error);
+                      }
+                    }
+                    
+                    // 로컬 상태 업데이트
+                    setImages(prev => prev.map(img => 
+                      selectedImages.has(getImageUniqueId(img)) 
+                        ? { ...img, category: targetCategory.id }
+                        : img
+                    ));
+                    
+                    setCategoryMoveModalOpen(false);
+                    alert(`카테고리 이동 완료!\n\n${names.length}개 이미지가 "${targetCategory.name}" 카테고리로 이동되었습니다.`);
+                    
+                  } catch (error) {
+                    console.error('❌ 카테고리 이동 오류:', error);
+                    alert('카테고리 이동 중 오류가 발생했습니다.');
+                  }
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                이동
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
