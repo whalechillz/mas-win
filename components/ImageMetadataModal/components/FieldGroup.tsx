@@ -11,6 +11,7 @@ interface FieldGroupProps {
   error?: string;
   seoScore?: number;
   isGenerating?: boolean;
+  categories?: Array<{ id: number; name: string }>;
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
@@ -21,7 +22,8 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   onAIGenerate,
   error,
   seoScore,
-  isGenerating = false
+  isGenerating = false,
+  categories = []
 }) => {
   const [showAIOptions, setShowAIOptions] = useState(false);
 
@@ -71,11 +73,11 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
           className={baseClasses}
         >
           <option value="">카테고리 선택</option>
-          <option value="골프">골프</option>
-          <option value="장비">장비</option>
-          <option value="코스">코스</option>
-          <option value="이벤트">이벤트</option>
-          <option value="기타">기타</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.name}>
+              {category.name}
+            </option>
+          ))}
         </select>
       );
     }
