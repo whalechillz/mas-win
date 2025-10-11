@@ -197,12 +197,12 @@ export default async function handler(req, res) {
     // 이미지 개수 제한 (1-4개)
     const validImageCount = Math.min(Math.max(imageCount, 1), 4);
     
-    // 프리셋 설정값
+    // 프리셋 설정값 (FAL AI 최적화)
     const PRESETS = {
-      creative: { guidance_scale: 7.5, num_inference_steps: 20 },
-      balanced: { guidance_scale: 5.0, num_inference_steps: 30 },
-      precise: { guidance_scale: 3.0, num_inference_steps: 40 },
-      ultra_precise: { guidance_scale: 2.5, num_inference_steps: 50 } // 인물 특성 유지를 위해 조정
+      creative: { guidance_scale: 6.0, num_inference_steps: 45 },    // 창의적이지만 사실적
+      balanced: { guidance_scale: 4.0, num_inference_steps: 50 },    // 균형잡힌 품질
+      precise: { guidance_scale: 3.0, num_inference_steps: 50 },     // 정확하고 사실적
+      ultra_precise: { guidance_scale: 2.5, num_inference_steps: 50 } // 인물 특성 완전 유지
     };
     
     const presetSettings = PRESETS[preset] || PRESETS.creative;
