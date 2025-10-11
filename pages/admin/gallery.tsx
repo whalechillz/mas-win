@@ -173,9 +173,9 @@ export default function GalleryAdmin() {
   const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
-  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name + url 조합)
+  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용)
   const getImageUniqueId = (image: ImageMetadata) => {
-    return image.id || `${image.name}-${image.url}`;
+    return image.id || image.name;
   };
 
   // 썸네일을 가운데로 스크롤하는 함수
@@ -757,8 +757,22 @@ export default function GalleryAdmin() {
     setIsBulkWorking(true);
     
     try {
-      const names = Array.from(selectedImages);
-      console.log('🗑️ 일괄 삭제 시작:', names.length, '개');
+      const selectedIds = Array.from(selectedImages);
+      console.log('🗑️ 일괄 삭제 시작:', selectedIds.length, '개');
+      console.log('🔍 선택된 ID들:', selectedIds);
+      
+      // 선택된 ID에서 실제 파일명 추출
+      const names = selectedIds.map(id => {
+        const image = images.find(img => getImageUniqueId(img) === id);
+        if (image) {
+          console.log('📝 ID 매칭:', { id, actualName: image.name });
+          return image.name;
+        }
+        console.warn('⚠️ 매칭되지 않은 ID:', id);
+        return id; // 매칭되지 않으면 ID 그대로 사용
+      });
+      
+      console.log('🗑️ 실제 삭제할 파일명들:', names);
       
       // 일괄 삭제 API 호출 (더 효율적)
       const response = await fetch('/api/admin/delete-image', {

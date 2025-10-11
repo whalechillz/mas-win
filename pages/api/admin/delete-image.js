@@ -31,62 +31,57 @@ export default async function handler(req, res) {
       console.log('🗑️ 일괄 이미지 삭제 중:', targets.length, '개');
       console.log('🗑️ 삭제 대상 파일들:', targets);
 
-      // 파일 확장자 확인 및 추가
-      const targetsWithExtension = targets.map(target => {
-        // 이미 확장자가 있으면 그대로 사용
-        if (target.includes('.')) {
-          return target;
-        }
+      // 실제 존재하는 파일들만 필터링
+      const existingFiles = [];
+      for (const target of targets) {
+        // 파일 확장자 확인 및 추가
+        const targetWithExtension = target.includes('.') ? target : `${target}.jpg`;
         
-        // 확장자가 없으면 가능한 확장자들을 시도
-        const possibleExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-        
-        // 가장 일반적인 .jpg를 기본으로 사용
-        return `${target}.jpg`;
-      });
-
-      console.log('🗑️ 확장자 추가된 파일들:', targetsWithExtension);
-
-      // 첫 번째 시도: 확장자 추가된 파일명으로 삭제
-      let { data, error } = await supabase.storage
-        .from('blog-images')
-        .remove(targetsWithExtension);
-
-      // 삭제 실패 시 원본 파일명으로도 시도
-      if (error) {
-        console.log('🔄 확장자 추가 파일명으로 삭제 실패, 원본 파일명으로 재시도...');
-        const retryResult = await supabase.storage
+        // 파일 존재 여부 확인
+        const { data: fileData, error: checkError } = await supabase.storage
           .from('blog-images')
-          .remove(targets);
+          .list('', { search: targetWithExtension });
         
-        if (retryResult.error) {
-          console.error('❌ 이미지 일괄 삭제 에러 (재시도 후):', retryResult.error);
-          return res.status(500).json({
-            error: '이미지 일괄 삭제에 실패했습니다.',
-            details: retryResult.error.message,
-            attemptedFiles: targetsWithExtension,
-            retryFiles: targets
-          });
+        if (!checkError && fileData && fileData.length > 0) {
+          existingFiles.push(targetWithExtension);
+          console.log('✅ 파일 존재 확인:', targetWithExtension);
+        } else {
+          console.warn('⚠️ 파일이 존재하지 않음:', targetWithExtension);
         }
-        
-        data = retryResult.data;
-        error = null;
       }
+
+      console.log('🗑️ 실제 존재하는 파일들:', existingFiles);
+
+      if (existingFiles.length === 0) {
+        console.warn('⚠️ 삭제할 파일이 존재하지 않음');
+        return res.status(200).json({
+          success: true,
+          message: '삭제할 파일이 존재하지 않습니다.',
+          deletedImages: [],
+          originalTargets: targets
+        });
+      }
+
+      // 실제 존재하는 파일들만 삭제
+      const { data, error } = await supabase.storage
+        .from('blog-images')
+        .remove(existingFiles);
 
       if (error) {
         console.error('❌ 이미지 일괄 삭제 에러:', error);
         return res.status(500).json({
           error: '이미지 일괄 삭제에 실패했습니다.',
-          details: error.message
+          details: error.message,
+          attemptedFiles: existingFiles
         });
       }
 
-      console.log('✅ 이미지 일괄 삭제 성공:', targets.length, '개');
+      console.log('✅ 이미지 일괄 삭제 성공:', existingFiles.length, '개');
       console.log('✅ 삭제된 파일들:', data);
       
       return res.status(200).json({
         success: true,
-        deletedImages: targetsWithExtension,
+        deletedImages: existingFiles,
         originalTargets: targets,
         deletionResult: data
       });
@@ -105,6 +100,21 @@ export default async function handler(req, res) {
       // 파일 확장자 확인 및 추가
       const targetWithExtension = imageName.includes('.') ? imageName : `${imageName}.jpg`;
       console.log('🗑️ 확장자 추가된 파일명:', targetWithExtension);
+
+      // 파일 존재 여부 확인
+      const { data: fileData, error: checkError } = await supabase.storage
+        .from('blog-images')
+        .list('', { search: targetWithExtension });
+      
+      if (checkError || !fileData || fileData.length === 0) {
+        console.warn('⚠️ 파일이 존재하지 않음:', targetWithExtension);
+        return res.status(404).json({
+          error: '파일을 찾을 수 없습니다.',
+          details: `파일 '${targetWithExtension}'이 존재하지 않습니다.`
+        });
+      }
+
+      console.log('✅ 파일 존재 확인:', targetWithExtension);
 
       // Supabase Storage에서 이미지 삭제
       const { data, error } = await supabase.storage
