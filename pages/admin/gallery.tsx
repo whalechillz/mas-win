@@ -203,8 +203,18 @@ export default function GalleryAdmin() {
     });
   };
 
+  // 이미지 preloading 함수
+  const preloadImage = (url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
   // 확대보기 내 좌우 탐색 핸들러
-  const showAdjacentImage = (direction: 'prev' | 'next') => {
+  const showAdjacentImage = async (direction: 'prev' | 'next') => {
     if (!selectedImageForZoom) return;
     
     // 탐색할 이미지 배열 결정
@@ -221,14 +231,26 @@ export default function GalleryAdmin() {
       ? (currentIndex + 1) % imagesToNavigate.length
       : (currentIndex - 1 + imagesToNavigate.length) % imagesToNavigate.length;
     
-    // 메타데이터 애니메이션 효과
-    setMetadataAnimation(true);
-    setTimeout(() => {
-      setSelectedImageForZoom(imagesToNavigate[nextIndex]);
-      setMetadataAnimation(false);
-      // 썸네일을 가운데로 스크롤
-      scrollThumbnailToCenter(imagesToNavigate[nextIndex].name);
-    }, 150);
+    const nextImage = imagesToNavigate[nextIndex];
+    
+    try {
+      // 다음 이미지를 미리 로드
+      await preloadImage(nextImage.url);
+      
+      // 메타데이터 애니메이션 효과
+      setMetadataAnimation(true);
+      setTimeout(() => {
+        setSelectedImageForZoom(nextImage);
+        setMetadataAnimation(false);
+        // 썸네일을 가운데로 스크롤
+        scrollThumbnailToCenter(nextImage.name);
+      }, 100); // 애니메이션 시간 단축
+    } catch (error) {
+      console.error('이미지 preload 실패:', error);
+      // preload 실패해도 이미지 변경은 진행
+      setSelectedImageForZoom(nextImage);
+      scrollThumbnailToCenter(nextImage.name);
+    }
   };
 
   // 키보드 단축키 (←/→/Esc)
@@ -752,6 +774,29 @@ export default function GalleryAdmin() {
   };
 
   // 일괄 삭제 실행
+  // 개별 이미지 삭제 핸들러
+  const handleDeleteImage = async (imageName: string) => {
+    try {
+      const response = await fetch('/api/admin/delete-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageNames: [imageName] })
+      });
+
+      if (response.ok) {
+        // 삭제된 이미지를 상태에서 제거
+        setImages(prev => prev.filter(img => img.name !== imageName));
+        alert('이미지가 삭제되었습니다.');
+      } else {
+        const error = await response.json();
+        alert(`삭제 실패: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('이미지 삭제 오류:', error);
+      alert('이미지 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (selectedImages.size === 0) return;
     setIsBulkWorking(true);
@@ -1406,6 +1451,57 @@ export default function GalleryAdmin() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
+                {/* 액션 버튼들 */}
+                <button
+                  onClick={() => {
+                    // 편집 기능 - 메타데이터 편집 모달 열기
+                    setEditingImage(selectedImageForZoom);
+                    setShowEditModal(true);
+                  }}
+                  className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+                  title="메타데이터 편집"
+                >
+                  📝 편집
+                </button>
+                <button
+                  onClick={() => {
+                    // URL 복사
+                    navigator.clipboard.writeText(selectedImageForZoom.url);
+                    alert('이미지 URL이 클립보드에 복사되었습니다.');
+                  }}
+                  className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors"
+                  title="URL 복사"
+                >
+                  🔗 복사
+                </button>
+                <button
+                  onClick={() => {
+                    // 다운로드
+                    const link = document.createElement('a');
+                    link.href = selectedImageForZoom.url;
+                    link.download = selectedImageForZoom.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition-colors"
+                  title="다운로드"
+                >
+                  ⬇️ 저장
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`"${selectedImageForZoom.name}" 이미지를 삭제하시겠습니까?`)) {
+                      // 개별 이미지 삭제
+                      handleDeleteImage(selectedImageForZoom.name);
+                      setSelectedImageForZoom(null);
+                    }
+                  }}
+                  className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
+                  title="삭제"
+                >
+                  🗑️ 삭제
+                </button>
                 <button
                   onClick={() => setSelectedImageForZoom(null)}
                   className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
