@@ -34,8 +34,8 @@ export default async function handler(req, res) {
       // 실제 존재하는 파일들만 필터링
       const existingFiles = [];
       for (const target of targets) {
-        // 파일 확장자 확인 및 추가
-        const targetWithExtension = target.includes('.') ? target : `${target}.jpg`;
+        // 파일명 그대로 사용 (확장자 자동 추가 제거)
+        const targetWithExtension = target;
         
         // 파일 존재 여부 확인
         const { data: fileData, error: checkError } = await supabase.storage
@@ -97,9 +97,9 @@ export default async function handler(req, res) {
 
       console.log('🗑️ 이미지 삭제 중:', imageName);
 
-      // 파일 확장자 확인 및 추가
-      const targetWithExtension = imageName.includes('.') ? imageName : `${imageName}.jpg`;
-      console.log('🗑️ 확장자 추가된 파일명:', targetWithExtension);
+      // 파일명 그대로 사용 (확장자 자동 추가 제거)
+      const targetWithExtension = imageName;
+      console.log('🗑️ 삭제할 파일명:', targetWithExtension);
 
       // 파일 존재 여부 확인
       const { data: fileData, error: checkError } = await supabase.storage
