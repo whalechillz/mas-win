@@ -1065,14 +1065,61 @@ export default function GalleryAdmin() {
                 <button
                   type="button"
                   onClick={async () => {
-                    const cat = prompt('이동할 카테고리 입력(예: golf/equipment/...)', '');
-                    if (cat === null) return;
-                    const names = Array.from(selectedImages);
-                    for (const n of names) {
-                      await fetch('/api/admin/image-metadata', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageName: n, category: cat }) });
+                    // 동적 카테고리 목록 표시
+                    const categoryList = dynamicCategories.map(cat => `${cat.id}: ${cat.name}`).join('\n');
+                    const catInput = prompt(`이동할 카테고리 입력:\n\n${categoryList}\n\n카테고리 이름을 입력하세요:`, '');
+                    if (catInput === null || catInput.trim() === '') return;
+                    
+                    // 입력된 카테고리 이름으로 ID 찾기
+                    const targetCategory = dynamicCategories.find(cat => 
+                      cat.name.toLowerCase() === catInput.toLowerCase().trim()
+                    );
+                    
+                    if (!targetCategory) {
+                      alert(`카테고리 "${catInput}"를 찾을 수 없습니다.\n\n사용 가능한 카테고리:\n${dynamicCategories.map(cat => cat.name).join(', ')}`);
+                      return;
                     }
-                    setImages(prev=> prev.map(img => selectedImages.has(getImageUniqueId(img)) ? { ...img, category: cat || '' } : img));
-                    alert('이동(카테고리 변경) 완료');
+                    
+                    try {
+                      const selectedIds = Array.from(selectedImages);
+                      const names = selectedIds.map(id => {
+                        const image = images.find(img => getImageUniqueId(img) === id);
+                        return image ? image.name : id;
+                      });
+                      
+                      console.log('📁 카테고리 이동 시작:', names.length, '개 이미지');
+                      console.log('📁 대상 카테고리:', targetCategory.name, '(ID:', targetCategory.id, ')');
+                      
+                      // 각 이미지의 카테고리 업데이트
+                      for (const imageName of names) {
+                        const response = await fetch('/api/admin/image-metadata', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            imageName: imageName,
+                            category: targetCategory.id // 숫자 ID로 전송
+                          })
+                        });
+                        
+                        if (!response.ok) {
+                          const error = await response.json();
+                          console.error('❌ 카테고리 업데이트 실패:', imageName, error);
+                        }
+                      }
+                      
+                      // 로컬 상태 업데이트
+                      setImages(prev => prev.map(img => 
+                        selectedImages.has(getImageUniqueId(img)) 
+                          ? { ...img, category: targetCategory.id }
+                          : img
+                      ));
+                      
+                      alert(`카테고리 이동 완료!\n\n${names.length}개 이미지가 "${targetCategory.name}" 카테고리로 이동되었습니다.`);
+                      
+                    } catch (error) {
+                      console.error('❌ 카테고리 이동 오류:', error);
+                      alert('카테고리 이동 중 오류가 발생했습니다.');
+                    }
                   }}
                   className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
                 >
