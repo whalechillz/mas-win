@@ -46,20 +46,26 @@ export default function BlogAdmin() {
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
   // AI 프리셋 설정 (8단계 확장)
-  const [aiPreset, setAiPreset] = useState<'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision'>('creative');
+  const [aiPreset, setAiPreset] = useState<'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision'>('creative');
 
-  // AI 프리셋 상수 정의 (10단계 확장)
+  // AI 프리셋 상수 정의 (12단계 확장)
   const AI_PRESETS = {
+    max_free: {
+      name: "최대자유 변형",
+      description: "최대자유 창의 (1.0)",
+      guidance_scale: 1.0,
+      num_inference_steps: 50
+    },
     ultra_free: {
       name: "초자유 변형",
-      description: "초자유 창의 (1.4)",
-      guidance_scale: 1.4,
+      description: "초자유 창의 (1.2)",
+      guidance_scale: 1.2,
       num_inference_steps: 50
     },
     super_free: {
       name: "슈퍼자유 변형",
-      description: "슈퍼자유 창의 (1.6)",
-      guidance_scale: 1.6,
+      description: "슈퍼자유 창의 (1.4)",
+      guidance_scale: 1.4,
       num_inference_steps: 50
     },
     extreme_creative: {
@@ -3009,7 +3015,7 @@ export default function BlogAdmin() {
                             name="aiPreset"
                             value={key}
                             checked={aiPreset === key}
-                            onChange={(e) => setAiPreset(e.target.value as 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision')}
+                            onChange={(e) => setAiPreset(e.target.value as 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision')}
                             className="mt-1"
                           />
                           <div>
