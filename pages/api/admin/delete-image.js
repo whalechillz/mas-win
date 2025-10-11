@@ -29,10 +29,49 @@ export default async function handler(req, res) {
       }
 
       console.log('🗑️ 일괄 이미지 삭제 중:', targets.length, '개');
+      console.log('🗑️ 삭제 대상 파일들:', targets);
 
-      const { error } = await supabase.storage
+      // 파일 확장자 확인 및 추가
+      const targetsWithExtension = targets.map(target => {
+        // 이미 확장자가 있으면 그대로 사용
+        if (target.includes('.')) {
+          return target;
+        }
+        
+        // 확장자가 없으면 가능한 확장자들을 시도
+        const possibleExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        
+        // 가장 일반적인 .jpg를 기본으로 사용
+        return `${target}.jpg`;
+      });
+
+      console.log('🗑️ 확장자 추가된 파일들:', targetsWithExtension);
+
+      // 첫 번째 시도: 확장자 추가된 파일명으로 삭제
+      let { data, error } = await supabase.storage
         .from('blog-images')
-        .remove(targets);
+        .remove(targetsWithExtension);
+
+      // 삭제 실패 시 원본 파일명으로도 시도
+      if (error) {
+        console.log('🔄 확장자 추가 파일명으로 삭제 실패, 원본 파일명으로 재시도...');
+        const retryResult = await supabase.storage
+          .from('blog-images')
+          .remove(targets);
+        
+        if (retryResult.error) {
+          console.error('❌ 이미지 일괄 삭제 에러 (재시도 후):', retryResult.error);
+          return res.status(500).json({
+            error: '이미지 일괄 삭제에 실패했습니다.',
+            details: retryResult.error.message,
+            attemptedFiles: targetsWithExtension,
+            retryFiles: targets
+          });
+        }
+        
+        data = retryResult.data;
+        error = null;
+      }
 
       if (error) {
         console.error('❌ 이미지 일괄 삭제 에러:', error);
@@ -43,9 +82,13 @@ export default async function handler(req, res) {
       }
 
       console.log('✅ 이미지 일괄 삭제 성공:', targets.length, '개');
+      console.log('✅ 삭제된 파일들:', data);
+      
       return res.status(200).json({
         success: true,
-        deletedImages: targets
+        deletedImages: targetsWithExtension,
+        originalTargets: targets,
+        deletionResult: data
       });
 
     } else if (req.method === 'DELETE') {
@@ -59,10 +102,14 @@ export default async function handler(req, res) {
 
       console.log('🗑️ 이미지 삭제 중:', imageName);
 
+      // 파일 확장자 확인 및 추가
+      const targetWithExtension = imageName.includes('.') ? imageName : `${imageName}.jpg`;
+      console.log('🗑️ 확장자 추가된 파일명:', targetWithExtension);
+
       // Supabase Storage에서 이미지 삭제
-      const { error } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('blog-images')
-        .remove([imageName]);
+        .remove([targetWithExtension]);
 
       if (error) {
         console.error('❌ 이미지 삭제 에러:', error);
@@ -72,12 +119,14 @@ export default async function handler(req, res) {
         });
       }
 
-      console.log('✅ 이미지 삭제 성공:', imageName);
+      console.log('✅ 이미지 삭제 성공:', targetWithExtension);
+      console.log('✅ 삭제 결과:', data);
       
       return res.status(200).json({
         success: true,
         message: '이미지가 성공적으로 삭제되었습니다.',
-        deletedImage: imageName
+        deletedImage: targetWithExtension,
+        originalName: imageName
       });
 
     } else {
