@@ -73,8 +73,29 @@ export default function MuziikHome() {
       <Head>
         <title>{t.title}</title>
         <meta name="description" content={t.description} />
+        <meta name="keywords" content="뮤직샤프트,MUZIIK,도가티,마쓰구드라이버,골프샤프트,프리미엄샤프트,일본샤프트,DOGATTI GENERATION,Sapphire,Beryl" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="MUZIIK 샤프트 x 마쓰구 드라이버" />
+        <meta property="og:description" content="일본 최고급 MUZIIK DOGATTI GENERATION 샤프트. 마쓰구 드라이버와 완벽한 조합. 국내 정식 수입." />
+        <meta property="og:image" content="/muziik/og-image.jpg" />
+        <meta property="og:url" content="https://muziik.masgolf.co.kr" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="MUZIIK" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="MUZIIK 샤프트 x 마쓰구 드라이버" />
+        <meta name="twitter:description" content="일본 최고급 MUZIIK DOGATTI GENERATION 샤프트. 마쓰구 드라이버와 완벽한 조합." />
+        <meta name="twitter:image" content="/muziik/og-image.jpg" />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="MUZIIK" />
+        <meta name="language" content="ko" />
+        <link rel="canonical" href="https://muziik.masgolf.co.kr" />
       </Head>
 
       <div className="min-h-screen bg-black text-white">
@@ -395,6 +416,81 @@ export default function MuziikHome() {
                   >
                     {language === 'ja' ? '詳細を見る' : '자세히 보기'}
                   </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 마쓰구 콜라보레이션 섹션 */}
+        <section className="py-16 bg-gradient-to-r from-red-900 to-orange-900">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto text-center">
+              <h2 className="text-4xl font-bold text-white mb-6">
+                {language === 'ja' ? 'マツグドライバーと一緒に' : '마쓰구 드라이버와 함께'}
+              </h2>
+              <p className="text-xl text-orange-200 mb-8">
+                {language === 'ja' 
+                  ? 'MUZIIK シャフト + マツグドライバー = 最高の組み合わせ'
+                  : 'MUZIIK 샤프트 + 마쓰구 드라이버 = 최상의 조합'
+                }
+              </p>
+              
+              <div className="grid md:grid-cols-3 gap-8 mb-12">
+                <div className="bg-black bg-opacity-30 rounded-lg p-6 border border-orange-500">
+                  <div className="text-4xl mb-4">🇰🇷</div>
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    {language === 'ja' ? '国内唯一のコラボ' : '국내 유일 콜라보'}
+                  </h3>
+                  <p className="text-orange-200 text-sm">
+                    {language === 'ja' 
+                      ? 'マツグとMUZIIKの特別なパートナーシップ'
+                      : '마쓰구와 MUZIIK의 특별한 파트너십'
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-black bg-opacity-30 rounded-lg p-6 border border-orange-500">
+                  <div className="text-4xl mb-4">🎯</div>
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    {language === 'ja' ? '専門フィッティング' : '전문 피팅 지원'}
+                  </h3>
+                  <p className="text-orange-200 text-sm">
+                    {language === 'ja' 
+                      ? '最適な組み合わせをプロがサポート'
+                      : '최적의 조합을 프로가 지원'
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-black bg-opacity-30 rounded-lg p-6 border border-orange-500">
+                  <div className="text-4xl mb-4">⚡</div>
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    {language === 'ja' ? '最高の性能保証' : '최적의 성능 보장'}
+                  </h3>
+                  <p className="text-orange-200 text-sm">
+                    {language === 'ja' 
+                      ? 'テスト済みの完璧なマッチング'
+                      : '테스트 완료된 완벽한 매칭'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <a 
+                  href="https://www.masgolf.co.kr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-white text-red-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-orange-100 transition-colors"
+                >
+                  {language === 'ja' ? 'マツグドライバーを見る →' : '마쓰구 드라이버 보기 →'}
+                </a>
+                <div className="text-orange-200 text-sm">
+                  {language === 'ja' 
+                    ? 'マツグドライ버とMUZIIKシャフトの組み合わせで、飛距離とコントロールを両立'
+                    : '마쓰구 드라이버와 MUZIIK 샤프트 조합으로 비거리와 컨트롤을 동시에'
+                  }
                 </div>
               </div>
             </div>
