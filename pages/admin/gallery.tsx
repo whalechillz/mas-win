@@ -786,16 +786,18 @@ export default function GalleryAdmin() {
       const response = await fetch('/api/admin/delete-image', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageNames: [imageName] })
+        body: JSON.stringify({ imageName: imageName })
       });
 
       if (response.ok) {
+        const result = await response.json();
         // 삭제된 이미지를 상태에서 제거
         setImages(prev => prev.filter(img => img.name !== imageName));
         alert('이미지가 삭제되었습니다.');
       } else {
-        const error = await response.json();
-        alert(`삭제 실패: ${error.message}`);
+        const errorData = await response.json();
+        const errorMessage = errorData.error || errorData.details || '알 수 없는 오류';
+        alert(`삭제 실패: ${errorMessage}`);
       }
     } catch (error) {
       console.error('이미지 삭제 오류:', error);
@@ -834,7 +836,8 @@ export default function GalleryAdmin() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || '일괄 삭제에 실패했습니다.');
+        const errorMessage = errorData.error || errorData.details || '일괄 삭제에 실패했습니다.';
+        throw new Error(errorMessage);
       }
       
       const result = await response.json();
