@@ -171,6 +171,7 @@ export default function GalleryAdmin() {
   const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
   const [metadataAnimation, setMetadataAnimation] = useState(false);
   const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
   // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용)
@@ -215,17 +216,25 @@ export default function GalleryAdmin() {
 
   // 확대보기 내 좌우 탐색 핸들러
   const showAdjacentImage = async (direction: 'prev' | 'next') => {
-    if (!selectedImageForZoom) return;
+    if (!selectedImageForZoom || isNavigating) return;
+    
+    setIsNavigating(true);
     
     // 탐색할 이미지 배열 결정
     const imagesToNavigate = navigateSelectedOnly 
       ? filteredImages.filter(img => selectedImages.has(getImageUniqueId(img)))
       : filteredImages;
     
-    if (imagesToNavigate.length === 0) return;
+    if (imagesToNavigate.length === 0) {
+      setIsNavigating(false);
+      return;
+    }
     
     const currentIndex = imagesToNavigate.findIndex(img => img.name === selectedImageForZoom.name);
-    if (currentIndex === -1) return;
+    if (currentIndex === -1) {
+      setIsNavigating(false);
+      return;
+    }
     
     const nextIndex = direction === 'next'
       ? (currentIndex + 1) % imagesToNavigate.length
@@ -237,19 +246,16 @@ export default function GalleryAdmin() {
       // 다음 이미지를 미리 로드
       await preloadImage(nextImage.url);
       
-      // 메타데이터 애니메이션 효과
-      setMetadataAnimation(true);
-      setTimeout(() => {
-        setSelectedImageForZoom(nextImage);
-        setMetadataAnimation(false);
-        // 썸네일을 가운데로 스크롤
-        scrollThumbnailToCenter(nextImage.name);
-      }, 100); // 애니메이션 시간 단축
+      // 즉시 이미지 변경
+      setSelectedImageForZoom(nextImage);
+      scrollThumbnailToCenter(nextImage.name);
     } catch (error) {
       console.error('이미지 preload 실패:', error);
       // preload 실패해도 이미지 변경은 진행
       setSelectedImageForZoom(nextImage);
       scrollThumbnailToCenter(nextImage.name);
+    } finally {
+      setIsNavigating(false);
     }
   };
 
@@ -1515,28 +1521,38 @@ export default function GalleryAdmin() {
             {/* 메인 이미지 영역 */}
             <div className="flex-1 flex items-center justify-center bg-gray-100 relative overflow-hidden">
               <img
-                src={`${selectedImageForZoom.url}?t=${Date.now()}`}
+                src={selectedImageForZoom.url}
                 alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
                 className="max-w-full max-h-full object-contain"
                 style={{ 
-                  animation: metadataAnimation ? 'fadeIn 0.15s ease-in-out' : 'none'
+                  transition: 'opacity 0.1s ease-in-out'
                 }}
               />
               
               {/* 좌우 네비게이션 버튼 */}
               <button
                 onClick={() => showAdjacentImage('prev')}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-lg transition-all"
+                disabled={isNavigating}
+                className={`absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg transition-all ${
+                  isNavigating 
+                    ? 'bg-gray-300 cursor-not-allowed' 
+                    : 'bg-white bg-opacity-80 hover:bg-opacity-100'
+                }`}
                 title="이전 이미지 (←)"
               >
-                ←
+                {isNavigating ? '⏳' : '←'}
               </button>
               <button
                 onClick={() => showAdjacentImage('next')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-lg transition-all"
+                disabled={isNavigating}
+                className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg transition-all ${
+                  isNavigating 
+                    ? 'bg-gray-300 cursor-not-allowed' 
+                    : 'bg-white bg-opacity-80 hover:bg-opacity-100'
+                }`}
                 title="다음 이미지 (→)"
               >
-                →
+                {isNavigating ? '⏳' : '→'}
               </button>
             </div>
 
@@ -1558,7 +1574,7 @@ export default function GalleryAdmin() {
                     onClick={() => setSelectedImageForZoom(img)}
                   >
                     <img
-                      src={`${img.url}?t=${Date.now()}`}
+                      src={img.url}
                       alt={img.alt_text || img.name}
                       className="w-16 h-16 object-cover"
                     />
