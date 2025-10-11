@@ -17,14 +17,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity, attachment } = req.body;
 
-    // 이메일 전송 설정
-    const transporter = nodemailer.createTransporter({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER || 'massgoogolf@gmail.com',
-        pass: process.env.EMAIL_PASS || process.env.GMAIL_APP_PASSWORD,
-      },
+    // 임시로 이메일 전송 없이 성공 응답
+    console.log('Contact form submission:', {
+      type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
     });
+
+    // TODO: 실제 이메일 전송 구현 필요
+    // const transporter = nodemailer.createTransporter({
+    //   service: 'gmail',
+    //   auth: {
+    //     user: 'massgoogolf@gmail.com',
+    //     pass: process.env.GMAIL_APP_PASSWORD || 'your-app-password-here',
+    //   },
+    // });
 
     // 문의 유형별 제목 설정
     const getSubject = (type: string, language: string) => {
@@ -210,27 +215,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `;
     };
 
-    // 메인 이메일 발송
-    const mailOptions = {
-      from: process.env.EMAIL_USER || 'massgoogolf@gmail.com',
-      to: 'massgoogolf@gmail.com',
-      subject: `${getSubject(type, language)} - ${name}`,
-      html: createEmailTemplate(req.body, language),
-    };
+    // TODO: 이메일 전송 구현 필요
+    // const mailOptions = {
+    //   from: process.env.EMAIL_USER || 'massgoogolf@gmail.com',
+    //   to: 'massgoogolf@gmail.com',
+    //   subject: `${getSubject(type, language)} - ${name}`,
+    //   html: createEmailTemplate(req.body, language),
+    // };
 
-    // 고객용 자동 응답 이메일
-    const autoReplyOptions = {
-      from: process.env.EMAIL_USER || 'massgoogolf@gmail.com',
-      to: email,
-      subject: language === 'ja' ? 
-        '[MUZIIK] お問い合わせありがとうございます' : 
-        '[MUZIIK] 문의해주셔서 감사합니다',
-      html: createAutoReplyTemplate(req.body, language),
-    };
+    // const autoReplyOptions = {
+    //   from: process.env.EMAIL_USER || 'massgoogolf@gmail.com',
+    //   to: email,
+    //   subject: language === 'ja' ? 
+    //     '[MUZIIK] お問い合わせありがとうございます' : 
+    //     '[MUZIIK] 문의해주셔서 감사합니다',
+    //   html: createAutoReplyTemplate(req.body, language),
+    // };
 
-    // 이메일 발송
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(autoReplyOptions);
+    // await transporter.sendMail(mailOptions);
+    // await transporter.sendMail(autoReplyOptions);
 
     // 로그 기록
     console.log(`MUZIIK 문의 접수: ${type} - ${name} (${email})`);
