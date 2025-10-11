@@ -45,33 +45,57 @@ export default function BlogAdmin() {
   // 이미지 생성 개수 선택
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
-  // AI 프리셋 설정
-  const [aiPreset, setAiPreset] = useState<'creative' | 'balanced' | 'precise' | 'ultra_precise'>('creative');
+  // AI 프리셋 설정 (8단계 확장)
+  const [aiPreset, setAiPreset] = useState<'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision'>('creative');
 
-  // AI 프리셋 상수 정의
+  // AI 프리셋 상수 정의 (8단계 확장)
   const AI_PRESETS = {
+    extreme_creative: {
+      name: "극자유 변형",
+      description: "최고 창의성",
+      guidance_scale: 1.8,
+      num_inference_steps: 50
+    },
+    free_creative: {
+      name: "자유 변형",
+      description: "자유 창의",
+      guidance_scale: 2.0,
+      num_inference_steps: 50
+    },
     creative: {
       name: "창의적 변형",
-      description: "가장 창의적이고 자유로운 이미지 - 골퍼 사진에 적합",
+      description: "창의적",
       guidance_scale: 2.1,
       num_inference_steps: 50
     },
     balanced: {
       name: "균형 변형",
-      description: "창의성과 정확성의 균형 - 일반적인 용도",
+      description: "균형",
       guidance_scale: 2.2,
       num_inference_steps: 50
     },
     precise: {
       name: "정밀 변형",
-      description: "정확하고 사실적인 변형 - 제품 사진에 적합",
+      description: "정밀",
       guidance_scale: 2.3,
       num_inference_steps: 50
     },
     ultra_precise: {
       name: "초정밀 변형",
-      description: "인물/배경/구도/색감 완전 유지 - 동일 인물 보장",
+      description: "초정밀",
       guidance_scale: 2.5,
+      num_inference_steps: 50
+    },
+    high_precision: {
+      name: "고정밀 변형",
+      description: "고정밀",
+      guidance_scale: 2.7,
+      num_inference_steps: 50
+    },
+    ultra_high_precision: {
+      name: "초고정밀 변형",
+      description: "초고정밀",
+      guidance_scale: 2.9,
       num_inference_steps: 50
     }
   };
@@ -2965,19 +2989,19 @@ export default function BlogAdmin() {
                     <h4 className="text-sm font-semibold text-purple-800 mb-3">
                       이미지 생성 모드
                     </h4>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {Object.entries(AI_PRESETS).map(([key, preset]) => (
-                        <label key={key} className="flex items-start gap-3 cursor-pointer hover:bg-purple-100 p-2 rounded">
+                        <label key={key} className="flex items-center gap-2 cursor-pointer hover:bg-purple-100 p-2 rounded">
                           <input
                             type="radio"
                             name="aiPreset"
                             value={key}
                             checked={aiPreset === key}
-                            onChange={(e) => setAiPreset(e.target.value as 'creative' | 'balanced' | 'precise' | 'ultra_precise')}
+                            onChange={(e) => setAiPreset(e.target.value as 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision')}
                             className="mt-1"
                           />
                           <div>
-                            <div className="font-medium text-gray-800">{preset.name}</div>
+                            <div className="font-medium text-gray-800 text-sm">{preset.name}</div>
                             <div className="text-xs text-gray-600">{preset.description}</div>
                           </div>
                         </label>
