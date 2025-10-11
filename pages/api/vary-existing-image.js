@@ -44,14 +44,21 @@ export default async function handler(req, res) {
       creative: { guidance_scale: 7.5, num_inference_steps: 20 },
       balanced: { guidance_scale: 5.0, num_inference_steps: 30 },
       precise: { guidance_scale: 3.0, num_inference_steps: 40 },
-      ultra_precise: { guidance_scale: 1.5, num_inference_steps: 40 }
+      ultra_precise: { guidance_scale: 2.5, num_inference_steps: 50 } // 인물 특성 유지를 위해 조정
     };
     
     const presetSettings = PRESETS[preset] || PRESETS.creative;
     console.log(`🔄 이미지 변형 프리셋 적용: ${preset}`, presetSettings);
     
-    // 제품 이미지 변형을 위한 최적화된 설정
-    const optimizedPrompt = prompt || 'Create a variation of this product image maintaining exact product details, same brand, same model, only change background or lighting while preserving all product features';
+    // 프리셋별 최적화된 프롬프트 설정
+    let optimizedPrompt;
+    if (preset === 'ultra_precise') {
+      optimizedPrompt = prompt || 'Create a variation of this image maintaining EXACT same person, same ethnicity, same facial features, same clothing, same pose, same background composition, same lighting, same colors. Only make minimal adjustments to lighting or background details while preserving ALL human characteristics and appearance. Keep the same person identity completely unchanged.';
+    } else if (preset === 'precise') {
+      optimizedPrompt = prompt || 'Create a variation of this image maintaining same person characteristics, same clothing style, same pose, same background setting. Preserve human features and identity while allowing some creative variations in lighting or composition.';
+    } else {
+      optimizedPrompt = prompt || 'Create a variation of this image with similar style and composition, maintaining the overall theme and setting while allowing creative changes.';
+    }
     
     const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
       method: 'POST',
