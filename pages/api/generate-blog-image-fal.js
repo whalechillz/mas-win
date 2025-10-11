@@ -167,7 +167,8 @@ export default async function handler(req, res) {
     },
     imageCount = 1, // 생성할 이미지 개수 (1-4개)
     customPrompt = null, // ChatGPT로 생성한 커스텀 프롬프트
-    includeAdCopy = false // 광고 카피 포함 여부
+    includeAdCopy = false, // 광고 카피 포함 여부
+    preset = 'creative' // AI 프리셋 설정
   } = req.body;
 
   if (!title) {
@@ -196,6 +197,17 @@ export default async function handler(req, res) {
     // 이미지 개수 제한 (1-4개)
     const validImageCount = Math.min(Math.max(imageCount, 1), 4);
     
+    // 프리셋 설정값
+    const PRESETS = {
+      creative: { guidance_scale: 7.5, num_inference_steps: 20 },
+      balanced: { guidance_scale: 5.0, num_inference_steps: 30 },
+      precise: { guidance_scale: 3.0, num_inference_steps: 40 },
+      ultra_precise: { guidance_scale: 1.5, num_inference_steps: 40 }
+    };
+    
+    const presetSettings = PRESETS[preset] || PRESETS.creative;
+    console.log(`🎨 FAL AI 프리셋 적용: ${preset}`, presetSettings);
+    
     // FAL AI hidream-i1-dev 모델로 이미지 생성
     const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
       method: 'POST',
@@ -207,7 +219,8 @@ export default async function handler(req, res) {
         prompt: imagePrompt,
         num_images: validImageCount,
         image_size: "square", // FAL AI 지원 형식 (1024x1024와 유사)
-        num_inference_steps: 28, // 성공 사례와 동일한 설정
+        num_inference_steps: presetSettings.num_inference_steps,
+        guidance_scale: presetSettings.guidance_scale,
         seed: null
       })
     });

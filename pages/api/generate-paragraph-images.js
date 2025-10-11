@@ -58,7 +58,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { content, title, excerpt, contentType, imageCount, brandStrategy, blogPostId } = req.body;
+    const { content, title, excerpt, contentType, imageCount, brandStrategy, blogPostId, preset = 'creative' } = req.body;
 
     if (!content) {
       return res.status(400).json({ message: 'Content is required' });
@@ -122,6 +122,17 @@ export default async function handler(req, res) {
     const paragraphImages = [];
 
     // 각 단락에 대해 이미지 생성 (imageCount 또는 최대 4개 단락)
+    // 프리셋 설정값
+    const PRESETS = {
+      creative: { guidance_scale: 7.5, num_inference_steps: 20 },
+      balanced: { guidance_scale: 5.0, num_inference_steps: 30 },
+      precise: { guidance_scale: 3.0, num_inference_steps: 40 },
+      ultra_precise: { guidance_scale: 1.5, num_inference_steps: 40 }
+    };
+    
+    const presetSettings = PRESETS[preset] || PRESETS.creative;
+    console.log(`📝 단락별 이미지 생성 프리셋 적용: ${preset}`, presetSettings);
+
     const maxParagraphs = Math.min(paragraphs.length, imageCount || 4);
     for (let i = 0; i < maxParagraphs; i++) { // 최대 4개 단락
       const paragraph = paragraphs[i].trim();
@@ -141,7 +152,8 @@ export default async function handler(req, res) {
           prompt: imagePrompt,
           num_images: 1,
           image_size: "square",
-          num_inference_steps: 28,
+          num_inference_steps: presetSettings.num_inference_steps,
+          guidance_scale: presetSettings.guidance_scale,
           seed: null
         })
       });

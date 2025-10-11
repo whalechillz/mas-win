@@ -26,7 +26,8 @@ export default async function handler(req, res) {
       title, 
       excerpt, 
       contentType, 
-      brandStrategy
+      brandStrategy,
+      preset = 'creative'
     } = req.body;
 
     console.log('🎨 기존 이미지 변형 시작...');
@@ -38,6 +39,17 @@ export default async function handler(req, res) {
     const falApiKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
     const startTime = Date.now();
 
+    // 프리셋 설정값
+    const PRESETS = {
+      creative: { guidance_scale: 7.5, num_inference_steps: 20 },
+      balanced: { guidance_scale: 5.0, num_inference_steps: 30 },
+      precise: { guidance_scale: 3.0, num_inference_steps: 40 },
+      ultra_precise: { guidance_scale: 1.5, num_inference_steps: 40 }
+    };
+    
+    const presetSettings = PRESETS[preset] || PRESETS.creative;
+    console.log(`🔄 이미지 변형 프리셋 적용: ${preset}`, presetSettings);
+    
     // 제품 이미지 변형을 위한 최적화된 설정
     const optimizedPrompt = prompt || 'Create a variation of this product image maintaining exact product details, same brand, same model, only change background or lighting while preserving all product features';
     
@@ -50,8 +62,8 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         image_url: imageUrl,
         prompt: optimizedPrompt,
-        num_inference_steps: 30,        // 더 정교한 생성
-        guidance_scale: 3.0,            // 원본에 더 충실
+        num_inference_steps: presetSettings.num_inference_steps,
+        guidance_scale: presetSettings.guidance_scale,
         seed: Math.floor(Math.random() * 1000000)
       })
     });
