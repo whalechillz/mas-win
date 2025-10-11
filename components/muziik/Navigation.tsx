@@ -71,9 +71,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/sapphire" 
+              href="/muziik/sapphire" 
               className={`transition-colors ${
-                isActive('/sapphire') 
+                isActive('/muziik/sapphire') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -82,9 +82,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/beryl" 
+              href="/muziik/beryl" 
               className={`transition-colors ${
-                isActive('/beryl') 
+                isActive('/muziik/beryl') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -93,9 +93,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/technology" 
+              href="/muziik/technology" 
               className={`transition-colors ${
-                isActive('/technology') 
+                isActive('/muziik/technology') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -104,9 +104,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             </Link>
             
             <Link 
-              href="/about" 
+              href="/muziik/about" 
               className={`transition-colors ${
-                isActive('/about') 
+                isActive('/muziik/about') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -114,12 +114,12 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               {t.about}
             </Link>
             
-            <a 
-              href="mailto:info@masgolf.co.kr" 
+            <Link 
+              href="/muziik/contact" 
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               {t.contact}
-            </a>
+            </Link>
             
             {/* 언어 전환 버튼 */}
             <div className="flex space-x-2">
@@ -195,9 +195,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/beryl" 
+                href="/muziik/beryl" 
                 className={`transition-colors py-2 ${
-                  isActive('/beryl') 
+                  isActive('/muziik/beryl') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -207,9 +207,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/technology" 
+                href="/muziik/technology" 
                 className={`transition-colors py-2 ${
-                  isActive('/technology') 
+                  isActive('/muziik/technology') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -219,9 +219,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               </Link>
               
               <Link 
-                href="/about" 
+                href="/muziik/about" 
                 className={`transition-colors py-2 ${
-                  isActive('/about') 
+                  isActive('/muziik/about') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -230,13 +230,13 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
                 {t.about}
               </Link>
               
-              <a 
-                href="mailto:info@masgolf.co.kr" 
+              <Link 
+                href="/muziik/contact" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-center"
                 onClick={closeMobileMenu}
               >
                 {t.contact}
-              </a>
+              </Link>
               
               {/* 모바일 언어 전환 버튼 */}
               <div className="flex space-x-2 justify-center pt-4">
