@@ -79,6 +79,9 @@ export default function GalleryAdmin() {
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
+  // 동적 카테고리 상태 (useMemo보다 먼저 정의)
+  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  
   // 필터링된 이미지 계산 (useMemo로 최적화)
   const filteredImages = useMemo(() => {
     let filtered = images;
@@ -162,12 +165,10 @@ export default function GalleryAdmin() {
     
     return filtered;
   }, [images, searchQuery, filterType, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
+  
   // 카테고리 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryMoveModalOpen, setCategoryMoveModalOpen] = useState(false);
-  
-  // 동적 카테고리 상태
-  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
   
   // 동적 카테고리 로드 함수
   const loadDynamicCategories = async () => {
