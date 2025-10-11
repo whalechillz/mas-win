@@ -36,7 +36,7 @@ export const SEOScore: React.FC<SEOScoreProps> = ({
             {score}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800">SEO 최적화 점수</h3>
+            <h3 className="font-semibold text-gray-800">최적화 점수</h3>
             <p className={`text-sm ${getScoreColor(score)}`}>
               {getScoreIcon(score)} {getScoreText(score)}
             </p>
@@ -97,7 +97,7 @@ export const SEOScore: React.FC<SEOScoreProps> = ({
 
       {/* SEO 팁 */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <h5 className="text-sm font-medium text-blue-800 mb-2">💡 SEO 최적화 팁</h5>
+        <h5 className="text-sm font-medium text-blue-800 mb-2">💡 최적화 팁</h5>
         <ul className="text-xs text-blue-700 space-y-1">
           <li>• ALT 텍스트는 이미지를 정확히 설명하세요</li>
           <li>• 키워드는 쉼표로 구분하여 관련성 높은 것만 사용하세요</li>

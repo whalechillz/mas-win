@@ -159,14 +159,9 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
       )}
 
       {/* SEO 권장사항 */}
-      {config.seoOptimized && config.maxLength && (
-        <div className="text-xs text-gray-500">
-          {value.length < config.maxLength * 0.5 && (
-            <span className="text-yellow-600">💡 더 자세한 내용을 추가하면 SEO에 도움이 됩니다</span>
-          )}
-          {value.length > config.maxLength * 0.9 && (
-            <span className="text-red-600">⚠️ 내용이 너무 깁니다. 간결하게 정리해보세요</span>
-          )}
+      {config.maxLength && value.length > config.maxLength * 0.9 && (
+        <div className="text-xs text-red-600">
+          ⚠️ 내용이 너무 깁니다
         </div>
       )}
     </div>

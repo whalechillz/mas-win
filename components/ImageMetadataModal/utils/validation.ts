@@ -4,7 +4,7 @@ import { MetadataForm, ValidationRule, SEORecommendation } from '../types/metada
 export const SEO_RECOMMENDATIONS = {
   alt_text: { min: 50, max: 125, optimal: 100 },
   keywords: { min: 10, max: 30, optimal: 20 },
-  title: { min: 20, max: 60, optimal: 30 },
+  title: { min: 25, max: 60, optimal: 30 },
   description: { min: 80, max: 160, optimal: 100 }
 };
 
@@ -128,11 +128,11 @@ const generateSuggestions = (field: string, current: number, recommendation: any
   const suggestions: string[] = [];
 
   if (current < recommendation.min) {
-    suggestions.push(`${recommendation.min - current}자 더 추가하면 SEO에 도움이 됩니다`);
+    suggestions.push(`${recommendation.min - current}자 더 추가하세요`);
   } else if (current > recommendation.max) {
-    suggestions.push(`${current - recommendation.max}자 줄이면 더 최적화됩니다`);
+    suggestions.push(`${current - recommendation.max}자 줄이세요`);
   } else {
-    suggestions.push('SEO 최적화가 잘 되어 있습니다');
+    suggestions.push('적절한 길이입니다');
   }
 
   return suggestions;

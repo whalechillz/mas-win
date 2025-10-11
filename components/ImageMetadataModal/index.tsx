@@ -56,8 +56,8 @@ const FIELD_CONFIGS: Record<keyof MetadataForm, FieldConfig> = {
     aiEnabled: true
   },
   filename: {
-    label: '파일명 (SEO 최적화)',
-    placeholder: 'SEO 최적화된 파일명',
+    label: '파일명',
+    placeholder: '파일명',
     type: 'text',
     maxLength: 100
   }
@@ -436,13 +436,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               
               {/* SEO 파일명 자동 생성 버튼 */}
               <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-200">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">🎯 SEO 파일명 최적화</h3>
-                <p className="text-xs text-gray-600 mb-3">
-                  골프 전문 키워드 매핑 + AI 최적화로 한국 검색엔진에 최적화된 파일명을 생성합니다.
-                  <br />
-                  <span className="text-teal-600">• 규칙 기반: 빠른 변환</span>
-                  <span className="text-blue-600 ml-2">• AI 기반: 복잡한 키워드 최적화</span>
-                </p>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">🎯 파일명 자동 생성</h3>
                 <button
                   onClick={handleGenerateSEOFileName}
                   disabled={isGenerating}
@@ -480,7 +474,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
             {seoScore < 60 && (
               <span className="text-sm text-red-600 flex items-center gap-1">
                 <span>📈</span>
-                SEO 최적화를 개선해보세요
+                개선이 필요합니다
               </span>
             )}
           </div>
