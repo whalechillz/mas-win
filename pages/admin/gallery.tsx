@@ -847,7 +847,7 @@ export default function GalleryAdmin() {
                 </Link>
               <button onClick={()=>{setCategoryModalOpen(true)}} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
               <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
-              <button 
+              <button
                 onClick={async () => {
                   try {
                     const response = await fetch('/api/admin/debug-storage-duplicates');
@@ -868,6 +868,34 @@ export default function GalleryAdmin() {
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm"
               >
                 🔍 Storage 중복 진단
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('replicate-flux로 시작하는 중복 이미지들을 정리하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+                    return;
+                  }
+                  
+                  try {
+                    const response = await fetch('/api/admin/cleanup-replicate-duplicates', {
+                      method: 'POST'
+                    });
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                      alert(`✅ 중복 이미지 정리 완료!\n\n🗑️ 삭제된 파일: ${data.deletedCount}개\n\n이제 갤러리를 새로고침해주세요.`);
+                      // 갤러리 새로고침
+                      fetchImages(1, true);
+                    } else {
+                      alert(`❌ 중복 이미지 정리 실패: ${data.error}`);
+                    }
+                  } catch (error) {
+                    console.error('❌ 중복 이미지 정리 오류:', error);
+                    alert('중복 이미지 정리 중 오류가 발생했습니다.');
+                  }
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+              >
+                🧹 Replicate 중복 정리
               </button>
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
