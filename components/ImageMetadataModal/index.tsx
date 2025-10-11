@@ -42,9 +42,9 @@ const FIELD_CONFIGS: Record<keyof MetadataForm, FieldConfig> = {
   },
   description: {
     label: '설명',
-    placeholder: '이미지에 대한 자세한 설명을 입력하세요',
+    placeholder: '이미지 설명',
     type: 'textarea',
-    maxLength: 300,
+    maxLength: 200,
     aiEnabled: true,
     seoOptimized: true
   },
@@ -395,22 +395,13 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           
           <div className="flex items-center gap-3">
             {/* 전체 AI 생성 버튼들 */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleGenerateAll('korean')}
-                disabled={isGenerating}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isGenerating ? '⏳' : '🇰🇷'} 한글 AI 생성
-              </button>
-              <button
-                onClick={() => handleGenerateAll('english')}
-                disabled={isGenerating}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isGenerating ? '⏳' : '🇺🇸'} 영어 AI 생성
-              </button>
-            </div>
+            <button
+              onClick={() => handleGenerateAll('korean')}
+              disabled={isGenerating}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isGenerating ? '⏳' : '🤖'} 한글 AI 생성
+            </button>
             
             <button
               onClick={onClose}

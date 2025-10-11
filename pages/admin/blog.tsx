@@ -46,80 +46,86 @@ export default function BlogAdmin() {
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
   // AI 프리셋 설정 (8단계 확장)
-  const [aiPreset, setAiPreset] = useState<'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision'>('creative');
+  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision'>('creative');
 
-  // AI 프리셋 상수 정의 (14단계 확장)
+  // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
+    ultra_extreme_free: {
+      name: "초극자유 변형",
+      description: "초극자유 창의 (0.2)",
+      guidance_scale: 0.2,
+      num_inference_steps: 50
+    },
     extreme_max_free: {
       name: "극최대자유 변형",
-      description: "극최대자유 창의 (0.6)",
-      guidance_scale: 0.6,
+      description: "극최대자유 창의 (0.4)",
+      guidance_scale: 0.4,
       num_inference_steps: 50
     },
     max_free: {
       name: "최대자유 변형",
-      description: "최대자유 창의 (0.8)",
-      guidance_scale: 0.8,
+      description: "최대자유 창의 (0.6)",
+      guidance_scale: 0.6,
       num_inference_steps: 50
     },
     ultra_free: {
       name: "초자유 변형",
-      description: "초자유 창의 (1.0)",
-      guidance_scale: 1.0,
+      description: "초자유 창의 (0.8)",
+      guidance_scale: 0.8,
       num_inference_steps: 50
     },
     super_free: {
       name: "슈퍼자유 변형",
-      description: "슈퍼자유 창의 (1.4)",
-      guidance_scale: 1.4,
+      description: "슈퍼자유 창의 (1.0)",
+      guidance_scale: 1.0,
       num_inference_steps: 50
     },
     extreme_creative: {
       name: "극자유 변형",
-      description: "극자유 창의 (1.8)",
-      guidance_scale: 1.8,
+      description: "극자유 창의 (1.4)",
+      guidance_scale: 1.4,
       num_inference_steps: 50
     },
     free_creative: {
       name: "자유 변형",
-      description: "자유 창의 (2.0)",
-      guidance_scale: 2.0,
+      description: "자유 창의 (1.8)",
+      guidance_scale: 1.8,
       num_inference_steps: 50
     },
     creative: {
       name: "창의적 변형",
-      description: "창의적 (2.1)",
-      guidance_scale: 2.1,
+      description: "창의적 (2.0)",
+      guidance_scale: 2.0,
       num_inference_steps: 50
     },
     balanced: {
       name: "균형 변형",
-      description: "균형 (2.2)",
-      guidance_scale: 2.2,
+      description: "균형 (2.1)",
+      guidance_scale: 2.1,
       num_inference_steps: 50
     },
     precise: {
       name: "정밀 변형",
-      description: "정밀 (2.3)",
-      guidance_scale: 2.3,
+      description: "정밀 (2.2)",
+      guidance_scale: 2.2,
       num_inference_steps: 50
     },
     ultra_precise: {
       name: "초정밀 변형",
-      description: "초정밀 (2.5)",
-      guidance_scale: 2.5,
+      description: "초정밀 (2.3)",
+      guidance_scale: 2.3,
       num_inference_steps: 50
     },
     high_precision: {
       name: "고정밀 변형",
-      description: "고정밀 (2.7)",
-      guidance_scale: 2.7,
+      description: "고정밀 (2.5)",
+      guidance_scale: 2.5,
       num_inference_steps: 50
     },
     ultra_high_precision: {
       name: "초고정밀 변형",
-      description: "초고정밀 (2.9)",
-      guidance_scale: 2.9,
+      description: "초고정밀 (2.7)",
+      guidance_scale: 2.7,
       num_inference_steps: 50
     }
   };
@@ -3021,7 +3027,7 @@ export default function BlogAdmin() {
                             name="aiPreset"
                             value={key}
                             checked={aiPreset === key}
-                            onChange={(e) => setAiPreset(e.target.value as 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision')}
+                            onChange={(e) => setAiPreset(e.target.value as 'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'extreme_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision')}
                             className="mt-1"
                           />
                           <div>
