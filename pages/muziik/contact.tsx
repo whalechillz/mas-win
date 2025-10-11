@@ -464,12 +464,12 @@ export default function ContactPage() {
         <section className="py-16 bg-black">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold text-white mb-8">
-              {language === 'ja' ? 'その他のお問い合わせ方法' : '기타 문의 방법'}
+              {language === 'ja' ? 'お問い合わせ先' : '문의처'}
             </h2>
             <div className="max-w-2xl mx-auto">
               <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
                 <h3 className="text-xl font-semibold text-white mb-4">
-                  {language === 'ja' ? 'メール' : '이메일'}
+                  {language === 'ja' ? '直接メール' : '직접 이메일'}
                 </h3>
                 <a 
                   href="mailto:massgoogolf@gmail.com"
