@@ -52,20 +52,20 @@ export default function BlogAdmin() {
   const AI_PRESETS = {
     creative: {
       name: "창의적 변형",
-      description: "창의적이지만 사실적인 이미지 - 골퍼 사진에 적합",
-      guidance_scale: 6.0,
-      num_inference_steps: 45
+      description: "가장 창의적이고 자유로운 이미지 - 골퍼 사진에 적합",
+      guidance_scale: 2.1,
+      num_inference_steps: 50
     },
     balanced: {
       name: "균형 변형",
       description: "창의성과 정확성의 균형 - 일반적인 용도",
-      guidance_scale: 4.0,
+      guidance_scale: 2.2,
       num_inference_steps: 50
     },
     precise: {
       name: "정밀 변형",
       description: "정확하고 사실적인 변형 - 제품 사진에 적합",
-      guidance_scale: 3.0,
+      guidance_scale: 2.3,
       num_inference_steps: 50
     },
     ultra_precise: {
