@@ -142,49 +142,17 @@ export default async function handler(req, res) {
 
     console.log('✅ Replicate Flux 이미지 변형 완료:', prediction.output.length, '개');
 
-    // 생성된 이미지들을 Supabase에 저장
-    const savedImages = [];
+    // 생성된 이미지 URL들을 반환 (Supabase에 직접 저장하지 않음)
+    const generatedImages = [];
     for (let i = 0; i < prediction.output.length; i++) {
       const imageUrl = prediction.output[i];
       
-      try {
-        // 이미지 다운로드
-        const imageResponse = await fetch(imageUrl);
-        if (!imageResponse.ok) {
-          throw new Error(`이미지 다운로드 실패: ${imageResponse.status}`);
-        }
-        
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const fileName = `replicate-flux-${Date.now()}-${i + 1}.png`;
-        
-        // Supabase Storage에 업로드
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('blog-images')
-          .upload(fileName, imageBuffer, {
-            contentType: 'image/png',
-            upsert: false
-          });
+      generatedImages.push({
+        originalUrl: imageUrl,
+        variationIndex: i + 1
+      });
 
-        if (uploadError) {
-          throw new Error(`Supabase 업로드 실패: ${uploadError.message}`);
-        }
-
-        // 공개 URL 생성
-        const { data: { publicUrl } } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(fileName);
-
-        savedImages.push({
-          originalUrl: imageUrl,
-          fileName: fileName,
-          publicUrl: publicUrl,
-          variationIndex: i + 1
-        });
-
-        console.log(`✅ 이미지 ${i + 1} 저장 완료:`, publicUrl);
-      } catch (error) {
-        console.error(`이미지 ${i + 1} 저장 실패:`, error);
-      }
+      console.log(`✅ 이미지 ${i + 1} 생성 완료:`, imageUrl);
     }
 
     // AI 사용량 추적
@@ -195,9 +163,9 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           action: 'image-variation-success',
           model: 'Replicate Flux',
-          cost: 0.05 * savedImages.length,
+          cost: 0.05 * generatedImages.length,
           details: {
-            variationCount: savedImages.length,
+            variationCount: generatedImages.length,
             variationStrength,
             baseImageUrl
           }
@@ -209,8 +177,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: `Replicate Flux 이미지 변형 완료: ${savedImages.length}개`,
-      images: savedImages,
+      message: `Replicate Flux 이미지 변형 완료: ${generatedImages.length}개`,
+      images: generatedImages,
       prompt: variationPrompt,
       variationStrength,
       model: 'Replicate Flux'

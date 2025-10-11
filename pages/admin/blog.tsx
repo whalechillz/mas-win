@@ -1960,7 +1960,7 @@ export default function BlogAdmin() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  imageUrl: result.images[i].publicUrl || result.images[i],
+                  imageUrl: result.images[i].originalUrl || result.images[i],
                   fileName: `${model.toLowerCase().replace(' ', '-')}-variation-${Date.now()}-${i + 1}.png`,
                   blogPostId: editingPost?.id || null
                 })
@@ -1970,11 +1970,11 @@ export default function BlogAdmin() {
                 const { storedUrl } = await saveResponse.json();
                 savedImages.push(storedUrl);
               } else {
-                savedImages.push(result.images[i].publicUrl || result.images[i]);
+                savedImages.push(result.images[i].originalUrl || result.images[i]);
               }
             } catch (error) {
               console.warn(`이미지 ${i + 1} 저장 실패:`, error);
-              savedImages.push(result.images[i].publicUrl || result.images[i]);
+              savedImages.push(result.images[i].originalUrl || result.images[i]);
             }
           }
           
