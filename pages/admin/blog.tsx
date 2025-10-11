@@ -70,9 +70,9 @@ export default function BlogAdmin() {
     },
     ultra_precise: {
       name: "초정밀 변형",
-      description: "배경/구도/색감 유지 - 음식/건물/아이폰 사진",
-      guidance_scale: 1.5,
-      num_inference_steps: 40
+      description: "인물/배경/구도/색감 완전 유지 - 동일 인물 보장",
+      guidance_scale: 2.5,
+      num_inference_steps: 50
     }
   };
 
