@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Navigation from '../../components/muziik/Navigation';
 
 export default function MuziikHome() {
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ja');
+  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
 
   // 언어별 콘텐츠
   const content = {
