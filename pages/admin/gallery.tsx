@@ -148,14 +148,9 @@ export default function GalleryAdmin() {
     
     return filtered;
   }, [images, searchQuery, filterType, sortBy, sortOrder]);
-  // 카테고리/태그 관리 UI 상태
+  // 카테고리 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryMoveModalOpen, setCategoryMoveModalOpen] = useState(false);
-  const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
-  const [editingCategory, setEditingCategory] = useState<any | null>(null);
-  const [editingTag, setEditingTag] = useState<any | null>(null);
   
   // 동적 카테고리 상태
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
@@ -935,7 +930,6 @@ export default function GalleryAdmin() {
                 setCategoryModalOpen(true);
                 loadDynamicCategories(); // 카테고리 새로고침
               }} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
-              <button onClick={()=>{setTagModalOpen(true)}} className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 text-sm">🏷️ 태그 관리</button>
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
             </div>
