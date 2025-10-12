@@ -452,6 +452,9 @@ async function saveMultichannelContent(parentId, multichannelContent) {
                            content.channel === 'naver_shopping' ? '[쇼핑]' : `[${content.channel}]`;
       const uniqueTitle = `${channelPrefix} ${baseTitle}`;
       
+      // 제목 길이 제한 (데이터베이스 제약조건 고려)
+      const finalTitle = uniqueTitle.length > 200 ? uniqueTitle.substring(0, 197) + '...' : uniqueTitle;
+      
       // 각 콘텐츠마다 다른 날짜로 설정 (중복 방지)
       const contentDate = new Date(currentDate);
       contentDate.setDate(contentDate.getDate() + index);
@@ -459,7 +462,7 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       
       return {
         parent_content_id: parentId,
-        title: uniqueTitle,
+        title: finalTitle,
         content_type: 'social',
         target_audience_type: content.target_audience,
         channel_type: content.channel,
