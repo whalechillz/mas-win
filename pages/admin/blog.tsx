@@ -6,11 +6,13 @@ const GalleryPicker = dynamic(() => import('../../components/admin/GalleryPicker
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import PostList from '../../components/admin/PostList';
 import PostGrid from '../../components/admin/PostGrid';
 
 export default function BlogAdmin() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -2705,6 +2707,17 @@ export default function BlogAdmin() {
   // 카테고리 목록
   const categories = Array.from(new Set(posts.map(post => post.category))).filter(Boolean);
 
+  // 인증 체크
+  useEffect(() => {
+    if (status === 'loading') return; // 로딩 중이면 대기
+    
+    if (!session) {
+      // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+      window.location.href = '/admin/login';
+      return;
+    }
+  }, [session, status]);
+
   // URL 파라미터 처리
   useEffect(() => {
     if (router.isReady) {
@@ -2797,6 +2810,22 @@ export default function BlogAdmin() {
       fetchPosts(sortBy, sortOrder);
     }
   }, [sortBy, sortOrder]);
+
+  // 로딩 중이거나 인증되지 않은 경우
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!session) {
+    return null; // 리다이렉트 중
+  }
 
   return (
     <>
