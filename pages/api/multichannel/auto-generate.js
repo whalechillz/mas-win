@@ -478,6 +478,27 @@ async function saveMultichannelContent(parentId, multichannelContent) {
     console.log('📝 삽입할 데이터:', insertData.map(item => ({ title: item.title, channel: item.channel_type, target: item.target_audience_type })));
     console.log('📝 최종 삽입 데이터 상세:', JSON.stringify(insertData, null, 2));
 
+    // 삽입 전에 중복 확인
+    for (const item of insertData) {
+      const { data: duplicateCheck, error: checkError } = await supabase
+        .from('cc_content_calendar')
+        .select('id, title')
+        .eq('year', item.year)
+        .eq('month', item.month)
+        .eq('content_date', item.content_date)
+        .eq('title', item.title);
+
+      if (checkError) {
+        console.error(`❌ 중복 확인 오류 (${item.title}):`, checkError);
+      } else if (duplicateCheck && duplicateCheck.length > 0) {
+        console.error(`❌ 중복 발견 (${item.title}):`, duplicateCheck);
+        // 중복이 발견되면 제목을 다시 생성
+        const newUniqueTitle = `${item.title} [DUPLICATE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}]`;
+        item.title = newUniqueTitle;
+        console.log(`✅ 제목 재생성: ${newUniqueTitle}`);
+      }
+    }
+
     const { data, error } = await supabase
       .from('cc_content_calendar')
       .insert(insertData)
