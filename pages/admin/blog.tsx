@@ -600,47 +600,28 @@ export default function BlogAdmin() {
           
           // 콘텐츠 캘린더에 자동 등록
           try {
+            console.log('🔄 콘텐츠 캘린더 동기화 시작...');
             const calendarResponse = await fetch('/api/blog/save-to-calendar', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                blogPost: {
-                  ...savedBlog,
-                  brand_strategy: {
-                    contentType: formData.category,
-                    customerPersona: brandPersona,
-                    brandWeight: getBrandWeight(brandContentType),
-                    painPoint: null,
-                    conversionGoal: 'awareness',
-                    storyFramework: 'pixar'
-                  },
-                  conversion_goal: 'awareness',
-                  landing_url: 'https://win.masgolf.co.kr'
-                }
+              body: JSON.stringify({
+                blogPostId: savedBlog.id,
+                title: formData.title,
+                content: formData.content,
+                contentType: formData.category,
+                customerPersona: formData.customerPersona || '시니어 골퍼',
+                conversionGoal: formData.conversionGoal || 'awareness',
+                landingPage: 'https://win.masgolf.co.kr',
+                publishedDate: formData.published_at ? formData.published_at.split('T')[0] : new Date().toISOString().split('T')[0]
               })
             });
             
             if (calendarResponse.ok) {
-              console.log('✅ 콘텐츠 캘린더에 자동 등록 완료');
-              
-              // 발행 상태인 경우 콘텐츠 캘린더 상태도 업데이트
-              if (formData.status === 'published') {
-                try {
-                  await fetch('/api/blog/update-calendar-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      blogPostId: savedBlog.id,
-                      status: 'published',
-                      publishedAt: new Date().toISOString(),
-                      publishedChannels: ['blog']
-                    })
-                  });
-                  console.log('✅ 콘텐츠 캘린더 발행 상태 업데이트 완료');
-                } catch (statusError) {
-                  console.error('콘텐츠 캘린더 상태 업데이트 오류:', statusError);
-                }
-              }
+              const calendarResult = await calendarResponse.json();
+              console.log('✅ 콘텐츠 캘린더 동기화 성공:', calendarResult);
+            } else {
+              const calendarError = await calendarResponse.json();
+              console.error('❌ 콘텐츠 캘린더 동기화 실패:', calendarError);
             }
           } catch (calendarError) {
             console.error('콘텐츠 캘린더 등록 오류:', calendarError);
