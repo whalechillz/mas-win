@@ -476,6 +476,7 @@ async function saveMultichannelContent(parentId, multichannelContent) {
     });
 
     console.log('📝 삽입할 데이터:', insertData.map(item => ({ title: item.title, channel: item.channel_type, target: item.target_audience_type })));
+    console.log('📝 최종 삽입 데이터 상세:', JSON.stringify(insertData, null, 2));
 
     const { data, error } = await supabase
       .from('cc_content_calendar')
@@ -483,7 +484,9 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       .select();
 
     if (error) {
-      console.error('멀티채널 콘텐츠 저장 오류:', error);
+      console.error('❌ 멀티채널 콘텐츠 저장 오류:', error);
+      console.error('❌ 오류 상세:', JSON.stringify(error, null, 2));
+      console.error('❌ 삽입 시도한 데이터:', JSON.stringify(insertData, null, 2));
       throw error;
     }
 
