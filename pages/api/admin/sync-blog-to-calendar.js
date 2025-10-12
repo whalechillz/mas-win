@@ -63,8 +63,8 @@ export default async function handler(req, res) {
         month: date.getMonth() + 1,
         content_date: date.toISOString().split('T')[0],
         content_type: 'blog',
-        title: post.title,
-        description: post.excerpt || post.summary || '',
+        title: post.meta_title || post.title || '제목 없음',
+        description: post.meta_description || post.excerpt || post.summary || post.content || '설명 없음',
         target_audience: post.target_audience || {
           type: 'new_customer',
           persona: '시니어 골퍼',
@@ -92,7 +92,8 @@ export default async function handler(req, res) {
         },
         status: post.status || 'published',
         blog_post_id: post.id, // 핵심: blog_posts.id를 blog_post_id로 연결
-        content_body: post.content,
+        content_body: post.content || post.summary || '콘텐츠 내용이 없습니다.',
+        is_root_content: true,
         created_at: post.created_at,
         updated_at: post.updated_at
       };
