@@ -4,8 +4,8 @@ import bcrypt from 'bcryptjs'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key'
 )
 
 export default NextAuth({
@@ -126,7 +126,7 @@ export default NextAuth({
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30일
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key',
+  secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024',
   debug: process.env.NODE_ENV === 'development'
 })
 
@@ -223,6 +223,6 @@ export const authOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30일
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key',
+  secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024',
   debug: process.env.NODE_ENV === 'development'
 }
