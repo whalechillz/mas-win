@@ -396,19 +396,32 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       .eq('parent_content_id', parentId)
       .eq('content_type', 'multichannel');
 
-    if (selectError) {
-      console.error('❌ 기존 데이터 조회 오류:', selectError);
+    // 2. 추가로 같은 blog_post_id를 가진 모든 멀티채널 콘텐츠도 조회
+    const { data: existingByBlogId, error: selectByBlogIdError } = await supabase
+      .from('cc_content_calendar')
+      .select('id, title, parent_content_id, blog_post_id, year, month, content_date')
+      .eq('blog_post_id', parentId)
+      .eq('content_type', 'multichannel');
+
+    // 두 조회 결과를 합쳐서 중복 제거
+    const allExistingData = [...(existingData || []), ...(existingByBlogId || [])];
+    const uniqueExistingData = allExistingData.filter((item, index, self) => 
+      index === self.findIndex(t => t.id === item.id)
+    );
+
+    if (selectError || selectByBlogIdError) {
+      console.error('❌ 기존 데이터 조회 오류:', selectError || selectByBlogIdError);
     } else {
-      console.log(`📊 기존 멀티채널 콘텐츠 ${existingData ? existingData.length : 0}개 발견`);
-      if (existingData && existingData.length > 0) {
-        console.log('🔍 기존 데이터:', existingData.map(d => ({ 
+      console.log(`📊 기존 멀티채널 콘텐츠 ${uniqueExistingData.length}개 발견`);
+      if (uniqueExistingData.length > 0) {
+        console.log('🔍 기존 데이터:', uniqueExistingData.map(d => ({ 
           id: d.id, 
           title: d.title,
           date: `${d.year}-${d.month}-${d.content_date}`
         })));
         
         // 각 항목을 개별적으로 삭제 (unique constraint를 피하기 위해)
-        for (const item of existingData) {
+        for (const item of uniqueExistingData) {
           const { error: deleteItemError } = await supabase
             .from('cc_content_calendar')
             .delete()
