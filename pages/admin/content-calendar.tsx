@@ -79,6 +79,10 @@ export default function ContentCalendar() {
   const [showDateModal, setShowDateModal] = useState(false);
   const [uploadedMdFiles, setUploadedMdFiles] = useState<any[]>([]);
   const [showUploadedFiles, setShowUploadedFiles] = useState(false);
+  
+  // 섹션 접기/펼치기 상태
+  const [isFileUploadCollapsed, setIsFileUploadCollapsed] = useState(true);
+  const [isAnnualGeneratorCollapsed, setIsAnnualGeneratorCollapsed] = useState(true);
 
   // 인증 체크
   useEffect(() => {
@@ -870,19 +874,20 @@ export default function ContentCalendar() {
           </div>
 
           {/* 파일 업로드 섹션 */}
-          <div className="mb-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+          <div className="mb-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-green-800">📁 파일 업로드 (MD, TXT, HTML, PDF)</h3>
-              {uploadedMdFiles.length > 0 && (
-                <button
-                  onClick={() => setShowUploadedFiles(!showUploadedFiles)}
-                  className="text-sm text-green-600 hover:text-green-800 flex items-center space-x-1"
-                >
-                  <span>{showUploadedFiles ? '접기' : '펼치기'}</span>
-                  <span>{showUploadedFiles ? '▲' : '▼'}</span>
-                </button>
-              )}
+              <button
+                onClick={() => setIsFileUploadCollapsed(!isFileUploadCollapsed)}
+                className="text-sm text-green-600 hover:text-green-800 flex items-center space-x-1"
+              >
+                <span>{isFileUploadCollapsed ? '펼치기' : '접기'}</span>
+                <span>{isFileUploadCollapsed ? '▼' : '▲'}</span>
+              </button>
             </div>
+            
+            {!isFileUploadCollapsed && (
+              <div>
             <p className="text-gray-600 mb-4">
               퍼널 관련 아이디어나 마케팅 캠페인 내용이 담긴 파일을 업로드하여 AI가 참고할 수 있도록 합니다.
             </p>
@@ -952,12 +957,25 @@ export default function ContentCalendar() {
                 )}
               </div>
             )}
+              </div>
+            )}
           </div>
 
           {/* 연간 콘텐츠 생성 패널 */}
-          {showAnnualGenerator && (
-            <div className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-purple-800 mb-4">📅 연간 콘텐츠 자동생성 (퍼널 캠페인 기반)</h3>
+          <div className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-purple-800">📅 연간 콘텐츠 자동생성 (퍼널 캠페인 기반)</h3>
+              <button
+                onClick={() => setIsAnnualGeneratorCollapsed(!isAnnualGeneratorCollapsed)}
+                className="text-sm text-purple-600 hover:text-purple-800 flex items-center space-x-1"
+              >
+                <span>{isAnnualGeneratorCollapsed ? '펼치기' : '접기'}</span>
+                <span>{isAnnualGeneratorCollapsed ? '▼' : '▲'}</span>
+              </button>
+            </div>
+            
+            {!isAnnualGeneratorCollapsed && (
+              <div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
@@ -1118,118 +1136,84 @@ export default function ContentCalendar() {
               )}
             </div>
           )}
+              </div>
+            )}
+          </div>
 
           {/* 리스트 뷰 */}
-          {/* 빠른 추가 섹션 */}
-          <div className="bg-white shadow rounded-lg mb-6">
-            <div className="px-6 py-4 border-b border-gray-200">
+          {/* 빠른 추가 섹션 - 간소화 */}
+          <div className="bg-white shadow rounded-lg mb-6 p-4">
+            <div className="flex items-center space-x-4">
               <h3 className="text-lg font-medium text-gray-900">⚡ 빠른 추가</h3>
-              <p className="text-sm text-gray-600 mt-1">제목만 입력하면 바로 캘린더에 추가됩니다</p>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    제목
-                  </label>
-                  <input
-                    type="text"
-                    value={quickAddTitle}
-                    onChange={(e) => setQuickAddTitle(e.target.value)}
-                    placeholder="예: 겨울 골프 연습법"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    발행 날짜
-                  </label>
-                  <input
-                    type="date"
-                    value={quickAddDate}
-                    onChange={(e) => setQuickAddDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={handleQuickAdd}
-                    disabled={!quickAddTitle || !quickAddDate}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    빠른 추가
-                  </button>
-                </div>
-              </div>
+              <input
+                type="text"
+                value={quickAddTitle}
+                onChange={(e) => setQuickAddTitle(e.target.value)}
+                placeholder="제목을 입력하세요"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="date"
+                value={quickAddDate}
+                onChange={(e) => setQuickAddDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min={new Date().toISOString().split('T')[0]}
+              />
+              <button
+                onClick={handleQuickAdd}
+                disabled={!quickAddTitle || !quickAddDate}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                추가
+              </button>
             </div>
           </div>
 
-          {/* 블로그 포스트 동기화 */}
-          <div className="bg-white shadow rounded-lg mb-6">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">🔄 블로그 포스트 동기화</h3>
-              <p className="text-sm text-gray-600 mt-1">기존 블로그 포스트들을 콘텐츠 캘린더에 연결합니다</p>
-            </div>
-            <div className="p-6">
+          {/* 블로그 포스트 동기화 - 간소화 */}
+          <div className="bg-white shadow rounded-lg mb-6 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">🔄 블로그 포스트 동기화</h3>
+                <p className="text-sm text-gray-600">기존 블로그 포스트들을 콘텐츠 캘린더에 연결합니다</p>
+              </div>
               <button
                 onClick={handleSyncBlogToCalendar}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                🔄 블로그 포스트 동기화
+                동기화
               </button>
-              <p className="text-xs text-gray-500 mt-2">
-                기존 블로그 포스트들을 콘텐츠 캘린더에 연결하여 편집 버튼이 작동하도록 합니다.
-              </p>
             </div>
           </div>
 
-          {/* 템플릿 기반 빠른 생성 */}
-          <div className="bg-white shadow rounded-lg mb-6">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">📝 템플릿 기반 생성</h3>
-              <p className="text-sm text-gray-600 mt-1">미리 정의된 템플릿으로 빠르게 콘텐츠를 생성합니다</p>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    템플릿 선택
-                  </label>
-                  <select
-                    value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">템플릿을 선택하세요</option>
-                    <option value="seasonal">계절별 골프 가이드</option>
-                    <option value="product_review">제품 리뷰 및 후기</option>
-                    <option value="tips">골프 실력 향상 팁</option>
-                    <option value="news">골프 업계 뉴스</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    발행 날짜
-                  </label>
-                  <input
-                    type="date"
-                    value={templateDate}
-                    onChange={(e) => setTemplateDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={handleTemplateGenerate}
-                    disabled={!selectedTemplate || !templateDate}
-                    className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    템플릿 생성
-                  </button>
-                </div>
-              </div>
+          {/* 템플릿 기반 생성 - 간소화 */}
+          <div className="bg-white shadow rounded-lg mb-6 p-4">
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-medium text-gray-900">📝 템플릿 생성</h3>
+              <select
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">템플릿 선택</option>
+                <option value="seasonal">계절별 골프 가이드</option>
+                <option value="product_review">제품 리뷰 및 후기</option>
+                <option value="tips">골프 실력 향상 팁</option>
+                <option value="news">골프 업계 뉴스</option>
+              </select>
+              <input
+                type="date"
+                value={templateDate}
+                onChange={(e) => setTemplateDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min={new Date().toISOString().split('T')[0]}
+              />
+              <button
+                onClick={handleTemplateGenerate}
+                disabled={!selectedTemplate || !templateDate}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                생성
+              </button>
             </div>
           </div>
 
