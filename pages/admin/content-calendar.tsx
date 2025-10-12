@@ -127,7 +127,12 @@ export default function ContentCalendar() {
     try {
       // 콘텐츠 정보에서 blog_post_id 찾기
       const content = contents.find(c => c.id === contentId);
-      const blogPostId = content?.blog_post_id || contentId;
+      const blogPostId = content?.blog_post_id;
+      
+      if (!blogPostId) {
+        alert('멀티채널 생성을 위해 블로그 포스트가 연결되어야 합니다.');
+        return;
+      }
       
       console.log('멀티채널 생성 요청:', { contentId, blogPostId, content });
       
@@ -1545,7 +1550,14 @@ export default function ContentCalendar() {
                           멀티채널 생성
                         </button>
                         <button
-                          onClick={() => window.open(`/admin/blog?edit=${rootContent.blog_post_id || rootContent.id}`, '_blank')}
+                          onClick={() => {
+                            const blogPostId = rootContent.blog_post_id;
+                            if (blogPostId) {
+                              window.open(`/admin/blog?edit=${blogPostId}`, '_blank');
+                            } else {
+                              alert('편집할 수 있는 블로그 포스트가 연결되지 않았습니다.');
+                            }
+                          }}
                           className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                         >
                           편집
@@ -1592,7 +1604,14 @@ export default function ContentCalendar() {
                                 </button>
                               )}
                               <button
-                                onClick={() => window.open(`/admin/blog?edit=${child.blog_post_id || child.id}`, '_blank')}
+                                onClick={() => {
+                                  const blogPostId = child.blog_post_id;
+                                  if (blogPostId) {
+                                    window.open(`/admin/blog?edit=${blogPostId}`, '_blank');
+                                  } else {
+                                    alert('편집할 수 있는 블로그 포스트가 연결되지 않았습니다.');
+                                  }
+                                }}
                                 className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
                               >
                                 편집
