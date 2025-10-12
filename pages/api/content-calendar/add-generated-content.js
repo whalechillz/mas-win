@@ -12,6 +12,17 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// URL 친화적인 슬러그 생성 함수
+function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s가-힣]/g, '') // 특수문자 제거
+    .replace(/\s+/g, '-') // 공백을 하이픈으로 변경
+    .replace(/-+/g, '-') // 연속된 하이픈을 하나로 변경
+    .trim()
+    .substring(0, 100); // 길이 제한
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -75,33 +86,81 @@ export default async function handler(req, res) {
       }
     }));
 
-    const { data, error } = await supabase
+    const { data: calendarData, error: calendarError } = await supabase
       .from('cc_content_calendar')
       .insert(calendarItems)
       .select();
 
-    if (error) {
-      console.error('콘텐츠 캘린더 등록 오류:', error);
+    if (calendarError) {
+      console.error('콘텐츠 캘린더 등록 오류:', calendarError);
       console.error('상세 오류 정보:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint
+        code: calendarError.code,
+        message: calendarError.message,
+        details: calendarError.details,
+        hint: calendarError.hint
       });
       return res.status(500).json({ 
         success: false,
         message: '콘텐츠 캘린더 등록 실패',
-        error: error.message,
-        details: error.details
+        error: calendarError.message,
+        details: calendarError.details
       });
     }
 
     console.log(`✅ ${calendarItems.length}개의 콘텐츠가 캘린더에 등록되었습니다.`);
 
+    // 블로그 포스트에도 자동으로 저장 (양방향 동기화)
+    const blogPosts = [];
+    for (let i = 0; i < contentItems.length; i++) {
+      const content = contentItems[i];
+      const calendarItem = calendarData[i];
+      
+      try {
+        // blog_posts 테이블에 저장
+        const { data: blogPost, error: blogError } = await supabase
+          .from('blog_posts')
+          .insert({
+            title: content.title,
+            slug: generateSlug(content.title),
+            summary: content.description,
+            content: content.description,
+            category: content.campaignType || '일반',
+            status: 'draft',
+            meta_title: content.title,
+            meta_description: content.description,
+            meta_keywords: content.keywords ? content.keywords.join(', ') : '',
+            target_audience: content.targetAudience || 'new_customer',
+            conversion_goal: content.conversionGoal || 'awareness',
+            content_type: 'blog',
+            published_channels: content.channels || ['blog'],
+            calendar_content_id: calendarItem.id, // 캘린더 콘텐츠 ID 연결
+            author: '마쓰구골프'
+          })
+          .select()
+          .single();
+
+        if (blogError) {
+          console.error(`블로그 포스트 ${i + 1} 저장 오류:`, blogError);
+        } else {
+          console.log(`✅ 블로그 포스트 ${i + 1} 저장 성공:`, blogPost.id);
+          blogPosts.push(blogPost);
+          
+          // 캘린더 테이블에 blog_post_id 업데이트
+          await supabase
+            .from('cc_content_calendar')
+            .update({ blog_post_id: blogPost.id })
+            .eq('id', calendarItem.id);
+        }
+      } catch (blogError) {
+        console.error(`블로그 포스트 ${i + 1} 저장 중 오류:`, blogError);
+      }
+    }
+
     res.status(200).json({
       success: true,
-      message: `${calendarItems.length}개의 콘텐츠가 캘린더에 추가되었습니다.`,
-      addedItems: data,
+      message: `${calendarItems.length}개의 콘텐츠가 캘린더와 블로그에 추가되었습니다.`,
+      addedItems: calendarData,
+      blogPosts: blogPosts,
       count: calendarItems.length
     });
 
