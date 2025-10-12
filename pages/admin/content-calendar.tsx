@@ -789,28 +789,8 @@ export default function ContentCalendar() {
         
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">📅 콘텐츠 캘린더</h1>
-                <p className="mt-2 text-gray-600">월별 콘텐츠 계획 및 발행 일정을 관리합니다</p>
-              </div>
-              
-              {/* 사용자 정보 및 로그아웃 버튼 */}
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  {session?.user?.name} ({session?.user?.role === 'admin' ? '총관리자' : '편집자'})
-                </span>
-                <button
-                  onClick={async () => {
-                    const { signOut } = await import('next-auth/react');
-                    await signOut({ callbackUrl: '/admin/login' });
-                  }}
-                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-sm"
-                >
-                  로그아웃
-                </button>
-              </div>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900">📅 콘텐츠 캘린더</h1>
+            <p className="mt-2 text-gray-600">월별 콘텐츠 계획 및 발행 일정을 관리합니다</p>
           </div>
 
           {/* 뷰 전환 버튼 */}
