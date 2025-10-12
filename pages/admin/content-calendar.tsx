@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import AdminNav from '../../components/admin/AdminNav';
 import { useSession } from 'next-auth/react';
 
@@ -789,8 +790,20 @@ export default function ContentCalendar() {
         
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">📅 콘텐츠 캘린더</h1>
-            <p className="mt-2 text-gray-600">월별 콘텐츠 계획 및 발행 일정을 관리합니다</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">📅 콘텐츠 캘린더</h1>
+                <p className="mt-2 text-gray-600">월별 콘텐츠 계획 및 발행 일정을 관리합니다</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/admin" 
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  ← 메인 대시보드로 돌아가기
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* 뷰 전환 버튼 */}
