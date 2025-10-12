@@ -389,47 +389,48 @@ async function saveMultichannelContent(parentId, multichannelContent) {
     // 먼저 기존 멀티채널 콘텐츠가 있는지 확인하고 삭제
     console.log('🗑️ 기존 멀티채널 콘텐츠 삭제 중...', parentId);
     
-    // 1. parent_content_id로 삭제
-    const { error: deleteError1 } = await supabase
+    // 1. 기존 데이터 조회
+    const { data: existingData, error: selectError } = await supabase
+      .from('cc_content_calendar')
+      .select('id, title, parent_content_id, blog_post_id')
+      .or(`parent_content_id.eq.${parentId},blog_post_id.eq.${parentId}`)
+      .eq('content_type', 'multichannel');
+
+    if (selectError) {
+      console.error('❌ 기존 데이터 조회 오류:', selectError);
+    } else {
+      console.log(`📊 기존 멀티채널 콘텐츠 ${existingData ? existingData.length : 0}개 발견`);
+      if (existingData && existingData.length > 0) {
+        console.log('🔍 기존 데이터:', existingData.map(d => ({ id: d.id, title: d.title })));
+      }
+    }
+
+    // 2. parent_content_id로 삭제
+    const { data: deleted1, error: deleteError1 } = await supabase
       .from('cc_content_calendar')
       .delete()
       .eq('parent_content_id', parentId)
-      .eq('content_type', 'multichannel');
+      .eq('content_type', 'multichannel')
+      .select();
 
     if (deleteError1) {
       console.error('❌ parent_content_id로 삭제 오류:', deleteError1);
+    } else {
+      console.log(`✅ parent_content_id로 삭제됨: ${deleted1 ? deleted1.length : 0}개`);
     }
 
-    // 2. blog_post_id로도 삭제 (혹시 모를 경우)
-    const { error: deleteError2 } = await supabase
+    // 3. blog_post_id로도 삭제 (혹시 모를 경우)
+    const { data: deleted2, error: deleteError2 } = await supabase
       .from('cc_content_calendar')
       .delete()
       .eq('blog_post_id', parentId)
-      .eq('content_type', 'multichannel');
+      .eq('content_type', 'multichannel')
+      .select();
 
     if (deleteError2) {
       console.error('❌ blog_post_id로 삭제 오류:', deleteError2);
-    }
-
-    // 3. 제목 패턴으로 삭제 (혹시 모를 경우)
-    const { error: deleteError3 } = await supabase
-      .from('cc_content_calendar')
-      .delete()
-      .like('title', '%[kakao%')
-      .eq('content_type', 'multichannel');
-
-    if (deleteError3) {
-      console.error('❌ 제목 패턴으로 삭제 오류:', deleteError3);
-    }
-
-    // 4. 모든 멀티채널 콘텐츠 삭제 (강제 삭제)
-    const { error: deleteError4 } = await supabase
-      .from('cc_content_calendar')
-      .delete()
-      .eq('content_type', 'multichannel');
-
-    if (deleteError4) {
-      console.error('❌ 모든 멀티채널 콘텐츠 삭제 오류:', deleteError4);
+    } else {
+      console.log(`✅ blog_post_id로 삭제됨: ${deleted2 ? deleted2.length : 0}개`);
     }
 
     console.log('✅ 기존 멀티채널 콘텐츠 삭제 완료');
