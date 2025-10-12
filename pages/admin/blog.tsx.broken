@@ -6,7 +6,7 @@ const GalleryPicker = dynamic(() => import('../../components/admin/GalleryPicker
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
-import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
+import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS, AUDIENCE_STAGES } from '../../lib/masgolf-brand-data';
 import PostList from '../../components/admin/PostList';
 import PostGrid from '../../components/admin/PostGrid';
 
@@ -45,14 +45,10 @@ export default function BlogAdmin() {
   // 이미지 생성 개수 선택
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
-  // AI 프리셋 설정 (8단계 확장)
+  // AI 프리셋 설정 (17단계 확장)
   const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
-  
-  // 러프 콘텐츠 관련 상태 (기존 기능 복원)
-  const [roughContent, setRoughContent] = useState('');
-  const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
 
-  // AI 블로그 생성 관련 상태
+  // AI 블로그 생성 관련 상태 (통합)
   const [generationMode, setGenerationMode] = useState('auto'); // 'auto' | 'manual'
   const [autoGenerateTopic, setAutoGenerateTopic] = useState('');
   const [selectedContentType, setSelectedContentType] = useState('골프 정보');
@@ -66,14 +62,6 @@ export default function BlogAdmin() {
   const [generationProgress, setGenerationProgress] = useState('');
   const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
   const [multichannelPreview, setMultichannelPreview] = useState(null);
-
-  // 연간 콘텐츠 자동생성 관련 상태
-  const [annualGenerationPeriod, setAnnualGenerationPeriod] = useState('3months');
-  const [annualContentCategory, setAnnualContentCategory] = useState('mixed');
-  const [annualPublishFrequency, setAnnualPublishFrequency] = useState('weekly');
-  const [isGeneratingAnnual, setIsGeneratingAnnual] = useState(false);
-  const [showAnnualPreview, setShowAnnualPreview] = useState(false);
-  const [annualGeneratedContent, setAnnualGeneratedContent] = useState(null);
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
@@ -239,6 +227,147 @@ export default function BlogAdmin() {
   const getBrandWeight = (ct: typeof brandContentType): 'low' | 'medium' | 'high' => {
     const strategy = (CONTENT_STRATEGY as any)[ct];
     return (strategy?.brandWeight as 'low' | 'medium' | 'high') || 'medium';
+  };
+
+  // 수동 생성 핸들러 (기존 브랜드 전략 기반)
+  const handleManualGenerate = async () => {
+    if (!autoGenerateTopic.trim()) {
+      alert('주제를 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingBlog(true);
+    setGenerationProgress('');
+    setGeneratedBlog(null);
+
+    try {
+      // 기존 브랜드 전략 기반 생성 로직 사용
+      const response = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: autoGenerateTopic,
+          type: 'content',
+          keywords: autoGenerateTopic,
+          contentType: selectedContentType,
+          audienceTemp: 'warm',
+          brandWeight: selectedBrandWeight,
+          customerChannel: 'blog',
+          painPoint: selectedPainPoint,
+          customerPersona: selectedPersona,
+          enableWebSearch: true
+        })
+      });
+
+      if (response.ok) {
+        const { content } = await response.json();
+        setGeneratedBlog({
+          title: autoGenerateTopic,
+          content: content,
+          contentType: selectedContentType,
+          persona: selectedPersona
+        });
+        setGenerationProgress('브랜드 전략 기반 생성 완료!');
+      } else {
+        throw new Error('생성 실패');
+      }
+    } catch (error) {
+      console.error('수동 생성 오류:', error);
+      alert('생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingBlog(false);
+    }
+  };
+
+  // AI 블로그 완전 자동 생성 핸들러 (신규)
+  const handleFullAutoGenerate = async () => {
+    if (!autoGenerateTopic.trim()) {
+      alert('주제를 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingBlog(true);
+    setGenerationProgress('');
+    setGeneratedBlog(null);
+
+    try {
+      const response = await fetch('/api/blog/auto-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: autoGenerateTopic,
+          contentType: selectedContentType,
+          customerPersona: selectedPersona,
+          brandWeight: selectedBrandWeight,
+          painPoint: selectedPainPoint,
+          conversionGoal: selectedConversionGoal,
+          storyFramework: selectedStoryFramework
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('생성 실패');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line);
+              if (data.step === 5 && data.message === '블로그 생성 완료!') {
+                setGeneratedBlog(data.data.blogPost);
+                setGenerationProgress('완료!');
+              } else {
+                setGenerationProgress(data.message);
+              }
+            } catch (e) {
+              // JSON 파싱 실패 시 무시
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('AI 블로그 생성 오류:', error);
+      alert('블로그 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingBlog(false);
+    }
+  };
+
+  // 멀티채널 미리보기 생성 (신규)
+  const handlePreviewMultichannel = async () => {
+    if (!generatedBlog) {
+      alert('먼저 블로그를 생성해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/multichannel/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blogPost: generatedBlog
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setMultichannelPreview(data.preview);
+        setShowMultichannelPreview(true);
+      }
+    } catch (error) {
+      console.error('멀티채널 미리보기 오류:', error);
+      alert('미리보기 생성 중 오류가 발생했습니다.');
+    }
   };
 
   // 오디언스 온도 상태
@@ -445,48 +574,6 @@ export default function BlogAdmin() {
     author: '마쓰구골프'
   });
 
-  // 특정 포스트 로드 (편집용)
-  const loadPostForEdit = useCallback(async (postId: string) => {
-    try {
-      console.log('🔍 포스트 로드 중:', postId);
-      const response = await fetch(`/api/blog/${postId}`);
-      
-      if (response.ok) {
-        const post = await response.json();
-        console.log('✅ 포스트 로드 성공:', post);
-        
-        setFormData({
-          title: post.title || '',
-          slug: post.slug || '',
-          summary: post.summary || '',
-          content: post.content || '',
-          category: post.category || 'blog',
-          status: post.status || 'draft',
-          featuredImage: post.featured_image || '',
-          tags: post.tags || [],
-          metaTitle: post.meta_title || '',
-          metaDescription: post.meta_description || '',
-          metaKeywords: post.meta_keywords || '',
-          customerPersona: post.customer_persona || '',
-          brandWeight: post.brand_weight || 'medium',
-          painPoint: post.pain_point || '',
-          conversionGoal: post.conversion_goal || 'awareness',
-          storytellingFramework: post.storytelling_framework || 'pixar',
-          targetAudience: post.target_audience || 'new_customer',
-          seoMeta: post.seo_meta || {},
-          publishedChannels: post.published_channels || [],
-          contentType: post.content_type || 'blog'
-        });
-      } else {
-        console.error('❌ 포스트 로드 실패:', response.status);
-        alert('포스트를 불러올 수 없습니다.');
-      }
-    } catch (error) {
-      console.error('❌ 포스트 로드 오류:', error);
-      alert('포스트 로드 중 오류가 발생했습니다.');
-    }
-  }, []);
-
   // 게시물 목록 불러오기
   const fetchPosts = useCallback(async (currentSortBy = sortBy, currentSortOrder = sortOrder) => {
     try {
@@ -559,28 +646,7 @@ export default function BlogAdmin() {
         });
         
         if (response.ok) {
-          const updatedBlog = await response.json();
-          
-          // 콘텐츠 캘린더 상태 업데이트
-          if (formData.status === 'published') {
-            try {
-              await fetch('/api/blog/update-calendar-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  blogPostId: editingPost.id,
-                  status: 'published',
-                  publishedAt: new Date().toISOString(),
-                  publishedChannels: ['blog']
-                })
-              });
-              console.log('✅ 콘텐츠 캘린더 상태 업데이트 완료');
-            } catch (calendarError) {
-              console.error('콘텐츠 캘린더 업데이트 오류:', calendarError);
-            }
-          }
-          
-          alert('게시물이 수정되었습니다!');
+            alert('게시물이 수정되었습니다!');
           fetchPosts();
           resetForm();
         } else {
@@ -596,58 +662,7 @@ export default function BlogAdmin() {
         });
         
         if (response.ok) {
-          const savedBlog = await response.json();
-          
-          // 콘텐츠 캘린더에 자동 등록
-          try {
-            const calendarResponse = await fetch('/api/blog/save-to-calendar', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                blogPost: {
-                  ...savedBlog,
-                  brand_strategy: {
-                    contentType: formData.category,
-                    customerPersona: brandPersona,
-                    brandWeight: getBrandWeight(brandContentType),
-                    painPoint: null,
-                    conversionGoal: 'awareness',
-                    storyFramework: 'pixar'
-                  },
-                  conversion_goal: 'awareness',
-                  landing_url: 'https://win.masgolf.co.kr'
-                }
-              })
-            });
-            
-            if (calendarResponse.ok) {
-              console.log('✅ 콘텐츠 캘린더에 자동 등록 완료');
-              
-              // 발행 상태인 경우 콘텐츠 캘린더 상태도 업데이트
-              if (formData.status === 'published') {
-                try {
-                  await fetch('/api/blog/update-calendar-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      blogPostId: savedBlog.id,
-                      status: 'published',
-                      publishedAt: new Date().toISOString(),
-                      publishedChannels: ['blog']
-                    })
-                  });
-                  console.log('✅ 콘텐츠 캘린더 발행 상태 업데이트 완료');
-                } catch (statusError) {
-                  console.error('콘텐츠 캘린더 상태 업데이트 오류:', statusError);
-                }
-              }
-            }
-          } catch (calendarError) {
-            console.error('콘텐츠 캘린더 등록 오류:', calendarError);
-            // 캘린더 등록 실패해도 블로그 저장은 성공으로 처리
-          }
-          
-          alert('게시물이 생성되었습니다! 콘텐츠 캘린더에도 자동 등록되었습니다.');
+          alert('게시물이 생성되었습니다!');
           fetchPosts();
           resetForm();
         } else {
@@ -807,139 +822,6 @@ export default function BlogAdmin() {
     } catch (error) {
       console.error('AI 슬러그 생성 에러:', error);
       alert('AI 슬러그 생성 중 오류가 발생했습니다.');
-    }
-  };
-
-  // 연간 콘텐츠 자동생성 함수
-  const handleAnnualContentGeneration = async () => {
-    setIsGeneratingAnnual(true);
-    setAnnualGeneratedContent(null);
-
-    try {
-      const response = await fetch('/api/blog/annual-content-generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          period: annualGenerationPeriod,
-          category: annualContentCategory,
-          frequency: annualPublishFrequency,
-          brandStrategy: {
-            contentType: brandContentType,
-            customerPersona: brandPersona,
-            audienceTemp: audienceTemperature,
-            brandWeight: getBrandWeight(brandContentType),
-            storyFramework: selectedStoryFramework,
-            conversionGoal: selectedConversionGoal
-          }
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAnnualGeneratedContent(data.contentPlan);
-        alert(`✅ ${data.contentPlan.length}개의 연간 콘텐츠 계획이 생성되었습니다!`);
-      } else {
-        throw new Error('연간 콘텐츠 생성 실패');
-      }
-    } catch (error) {
-      console.error('연간 콘텐츠 생성 오류:', error);
-      alert('연간 콘텐츠 생성 중 오류가 발생했습니다.');
-    } finally {
-      setIsGeneratingAnnual(false);
-    }
-  };
-
-  // 러프 콘텐츠에서 제목, 요약, 본문 생성 (기존 기능 복원)
-  const handleRoughContentGenerate = async () => {
-    if (!roughContent.trim()) {
-      alert('러프 콘텐츠를 먼저 입력해주세요.');
-      return;
-    }
-
-    setIsGeneratingFromRough(true);
-    
-    try {
-      // 1단계: 제목 생성
-      const titleResponse = await fetch('/api/generate-blog-title', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          contentSource: roughContent,
-          contentType: formData.category || '골프 정보',
-          customerPersona: brandPersona,
-          customerChannel: 'local_customers',
-          brandWeight: getBrandWeight(brandContentType)
-        })
-      });
-      
-      if (titleResponse.ok) {
-        const titleData = await titleResponse.json();
-        const selectedTitle = titleData.titles[0]; // 첫 번째 제목 선택
-        
-        // 2단계: 요약 생성
-        const summaryResponse = await fetch('/api/generate-enhanced-content', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            title: selectedTitle,
-            type: 'excerpt',
-            keywords: roughContent,
-            contentType: formData.category || '골프 정보',
-            audienceTemp: 'warm',
-            brandWeight: getBrandWeight(brandContentType),
-            customerChannel: 'local_customers',
-            painPoint: null,
-            customerPersona: brandPersona,
-            enableWebSearch: true,
-            excerpt: roughContent
-          })
-        });
-        
-        if (summaryResponse.ok) {
-          const summaryData = await summaryResponse.json();
-          
-          // 3단계: 본문 생성
-          const contentResponse = await fetch('/api/generate-enhanced-content', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              title: selectedTitle,
-              type: 'content',
-              keywords: roughContent,
-              contentType: formData.category || '골프 정보',
-              audienceTemp: 'warm',
-              brandWeight: getBrandWeight(brandContentType),
-              customerChannel: 'local_customers',
-              painPoint: null,
-              customerPersona: brandPersona,
-              enableWebSearch: true,
-              excerpt: summaryData.content
-            })
-          });
-          
-          if (contentResponse.ok) {
-            const contentData = await contentResponse.json();
-            
-            // 폼 데이터에 자동 입력
-            setFormData({
-              ...formData,
-              title: selectedTitle,
-              excerpt: summaryData.content,
-              content: contentData.content,
-              slug: generateSlug(selectedTitle),
-              meta_title: selectedTitle
-            });
-            
-            alert('✅ 러프 콘텐츠가 제목, 요약, 본문으로 정리되었습니다!');
-            setRoughContent(''); // 입력창 초기화
-          }
-        }
-      }
-    } catch (error) {
-      console.error('러프 콘텐츠 처리 오류:', error);
-      alert('러프 콘텐츠 처리 중 오류가 발생했습니다.');
-    } finally {
-      setIsGeneratingFromRough(false);
     }
   };
 
@@ -2724,35 +2606,6 @@ export default function BlogAdmin() {
   // 카테고리 목록
   const categories = Array.from(new Set(posts.map(post => post.category))).filter(Boolean);
 
-  // URL 파라미터 처리
-  useEffect(() => {
-    if (router.isReady) {
-      const { edit, new: isNew, title, content, category, status } = router.query;
-      
-      if (edit) {
-        // 기존 포스트 편집 모드
-        const postId = edit as string;
-        console.log('🔍 편집 모드 진입:', postId);
-        setEditingPost(postId);
-        setShowForm(true);
-        
-        // 포스트 데이터 로드
-        loadPostForEdit(postId);
-      } else if (isNew === 'true') {
-        // 새 포스트 생성 모드 (캘린더에서 온 경우)
-        console.log('🔍 새 포스트 생성 모드 진입');
-        setFormData(prev => ({
-          ...prev,
-          title: title as string || '',
-          content: content as string || '',
-          category: category as string || 'blog',
-          status: status as string || 'draft'
-        }));
-        setShowForm(true);
-      }
-    }
-  }, [router.isReady, router.query, loadPostForEdit]);
-
   // 초기 로드
   useEffect(() => {
     fetchPosts();
@@ -3103,94 +2956,272 @@ export default function BlogAdmin() {
                   />
                 </div>
 
-                {/* 연간 콘텐츠 생성 안내 */}
+                {/* AI 블로그 생성 섹션 (통합) */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">📅 연간 콘텐츠 계획</h3>
-                    <span className="text-sm text-gray-500">퍼널 캠페인 기반 연간 콘텐츠 자동생성</span>
+                    <h3 className="text-lg font-semibold text-gray-900">🤖 AI 블로그 생성</h3>
+                    <span className="text-sm text-gray-500">주제만 입력하면 AI가 완전한 블로그를 생성합니다</span>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-6">
-                    <div className="text-center">
-                      <h4 className="text-lg font-semibold text-purple-800 mb-2">🎯 퍼널 캠페인 기반 연간 콘텐츠 생성</h4>
-                      <p className="text-gray-600 mb-4">
-                        아까 제공해주신 마케팅 캠페인 퍼널 내용을 기반으로<br/>
-                        계절과 시즌에 맞는 고품질 콘텐츠를 자동 생성하고 선별할 수 있습니다.
-                      </p>
-                      <div className="flex justify-center space-x-4">
-                        <a
-                          href="/admin/content-calendar"
-                          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 flex items-center space-x-2"
-                        >
-                          <span>📅</span>
-                          <span>콘텐츠 캘린더에서 생성하기</span>
-                        </a>
-                      </div>
-                      <div className="mt-4 text-sm text-gray-500">
-                        <p>✨ 퍼널 캠페인 10개 + 스토리텔링 프레임워크 + 계절별 테마</p>
-                        <p>🎯 선별하여 캘린더에 추가하는 방식으로 개선되었습니다</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 러프 콘텐츠 입력 섹션 (기존 기능 복원) */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">✍️ 러프 콘텐츠 입력</h3>
-                    <span className="text-sm text-gray-500">두서없이 써도 AI가 정리해드립니다</span>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-6">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        글감/아이디어/두서없는 내용 입력
-                      </label>
-                      <textarea
-                        placeholder="예: 드라이버 비거리 늘리고 싶은데... 60대라서 힘들어... 마쓰구프라는 브랜드가 있다고 들었는데... 초고반발이라고 하던데... 맞춤 피팅도 해준다고... 비싸긴 한데 효과가 있을까... 동료들이 추천해줬는데..."
-                        value={roughContent}
-                        onChange={(e) => setRoughContent(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent h-32 resize-none"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        💡 두서없이 써도 AI가 제목, 요약, 본문으로 정리해드립니다
-                      </p>
-                    </div>
-                    
-                    <div className="flex space-x-3">
+                  {/* 생성 모드 선택 */}
+                  <div className="mb-6">
+                    <div className="flex space-x-4">
                       <button
-                        onClick={handleRoughContentGenerate}
-                        disabled={isGeneratingFromRough || !roughContent.trim()}
-                        className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                        onClick={() => setGenerationMode('auto')}
+                        className={`px-4 py-2 rounded-lg font-medium ${
+                          generationMode === 'auto'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                       >
-                        {isGeneratingFromRough ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>정리 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>🧹</span>
-                            <span>AI가 정리하기</span>
-                          </>
-                        )}
+                        🚀 완전 자동 생성
+                      </button>
+                      <button
+                        onClick={() => setGenerationMode('manual')}
+                        className={`px-4 py-2 rounded-lg font-medium ${
+                          generationMode === 'manual'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        🎯 브랜드 전략 기반 생성
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {generationMode === 'auto' 
+                        ? '주제만 입력하면 AI가 모든 것을 자동으로 생성합니다'
+                        : '브랜드 전략을 세밀하게 설정한 후 생성합니다'
+                      }
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    {/* 주제 입력 */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">주제 입력</label>
+                      <input 
+                        type="text"
+                        placeholder="예: 60대 골퍼를 위한 비거리 향상 드라이버 선택법"
+                        value={autoGenerateTopic}
+                        onChange={(e) => setAutoGenerateTopic(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* 완전 자동 모드 - 간단한 설정 */}
+                    {generationMode === 'auto' && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 타입</label>
+                          <select 
+                            value={selectedContentType}
+                            onChange={(e) => setSelectedContentType(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="골프 정보">골프 정보</option>
+                            <option value="신제품 소개">신제품 소개</option>
+                            <option value="튜토리얼">튜토리얼</option>
+                            <option value="고객 후기">고객 후기</option>
+                            <option value="고객 스토리">고객 스토리</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">고객 페르소나</label>
+                          <select 
+                            value={selectedPersona}
+                            onChange={(e) => setSelectedPersona(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="중상급 골퍼">중상급 골퍼</option>
+                            <option value="시니어 골퍼">시니어 골퍼</option>
+                            <option value="초보 골퍼">초보 골퍼</option>
+                            <option value="비즈니스 골퍼">비즈니스 골퍼</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">스토리 프레임워크</label>
+                          <select 
+                            value={selectedStoryFramework}
+                            onChange={(e) => setSelectedStoryFramework(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="pixar">픽사 스토리</option>
+                            <option value="cialdini">치알디니</option>
+                            <option value="donald_miller">StoryBrand</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">전환 목표</label>
+                          <select 
+                            value={selectedConversionGoal}
+                            onChange={(e) => setSelectedConversionGoal(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="awareness">홈페이지 방문</option>
+                            <option value="consideration">상담 예약</option>
+                            <option value="decision">구매</option>
+                            <option value="funnel">퍼널 페이지</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 브랜드 전략 모드 - 상세 설정 */}
+                    {generationMode === 'manual' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 타입</label>
+                          <select 
+                            value={selectedContentType}
+                            onChange={(e) => setSelectedContentType(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="골프 정보">골프 정보</option>
+                            <option value="신제품 소개">신제품 소개</option>
+                            <option value="튜토리얼">튜토리얼</option>
+                            <option value="고객 후기">고객 후기</option>
+                            <option value="고객 스토리">고객 스토리</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">고객 페르소나</label>
+                          <select 
+                            value={selectedPersona}
+                            onChange={(e) => setSelectedPersona(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="중상급 골퍼">중상급 골퍼</option>
+                            <option value="시니어 골퍼">시니어 골퍼</option>
+                            <option value="초보 골퍼">초보 골퍼</option>
+                            <option value="비즈니스 골퍼">비즈니스 골퍼</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">스토리 프레임워크</label>
+                          <select 
+                            value={selectedStoryFramework}
+                            onChange={(e) => setSelectedStoryFramework(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="pixar">픽사 스토리</option>
+                            <option value="cialdini">치알디니</option>
+                            <option value="donald_miller">StoryBrand</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">전환 목표</label>
+                          <select 
+                            value={selectedConversionGoal}
+                            onChange={(e) => setSelectedConversionGoal(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="awareness">홈페이지 방문</option>
+                            <option value="consideration">상담 예약</option>
+                            <option value="decision">구매</option>
+                            <option value="funnel">퍼널 페이지</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                      </div>
+                    </div>
+
+                    {/* 생성 버튼 */}
+                    <div className="flex items-center space-x-4">
+                      <button 
+                        type="button"
+                        onClick={handleFullAutoGenerate}
+                        disabled={isGeneratingBlog || !autoGenerateTopic.trim()}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
+                      >
+                        {isGeneratingBlog ? '생성 중...' : '🚀 완전 자동 생성'}
                       </button>
                       
-                      <button
-                        onClick={() => setRoughContent('')}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200"
-                      >
-                        지우기
-                      </button>
+                      {generatedBlog && (
+                        <button 
+                          type="button"
+                          onClick={handlePreviewMultichannel}
+                          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                        >
+                          📱 멀티채널 미리보기
+                        </button>
+                      )}
                     </div>
+
+                    {/* 진행상황 표시 */}
+                    {isGeneratingBlog && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span className="text-sm text-blue-700">{generationProgress}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 생성된 블로그 미리보기 */}
+                    {generatedBlog && (
+                      <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <h4 className="text-lg font-semibold text-green-800 mb-2">✅ 생성 완료!</h4>
+                        <div className="space-y-2 text-sm">
+                          <p><strong>제목:</strong> {generatedBlog.title}</p>
+                          <p><strong>요약:</strong> {generatedBlog.summary}</p>
+                          <p><strong>전환 목표:</strong> {AUDIENCE_STAGES[generatedBlog.conversionGoal]?.name}</p>
+                          <p><strong>랜딩 페이지:</strong> 
+                            <a href={generatedBlog.landingUrl} target="_blank" className="text-blue-600 hover:underline ml-1">
+                              {generatedBlog.landingUrl}
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* 마쓰구 브랜드 전략 섹션 */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">🎯 마쓰구 브랜드 전략</h3>
-                    <span className="text-sm text-gray-500">페르소나와 오디언스 온도에 맞춘 맞춤형 콘텐츠 생성</span>
+                {/* 통합된 생성 버튼 */}
+                <div className="flex justify-center space-x-4 mb-6">
+                  <button
+                    onClick={generationMode === 'auto' ? handleFullAutoGenerate : handleManualGenerate}
+                    disabled={isGeneratingBlog || !autoGenerateTopic.trim()}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {isGeneratingBlog ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>생성 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🚀</span>
+                        <span>{generationMode === 'auto' ? '완전 자동 생성' : '브랜드 전략 기반 생성'}</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  {generatedBlog && (
+                    <>
+                      <button
+                        onClick={handlePreviewMultichannel}
+                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 flex items-center space-x-2"
+                      >
+                        <span>📱</span>
+                        <span>멀티채널 미리보기</span>
+                      </button>
+                      <a
+                        href="/admin/content-calendar"
+                        target="_blank"
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 flex items-center space-x-2"
+                      >
+                        <span>📅</span>
+                        <span>콘텐츠 캘린더</span>
+                      </a>
+                    </>
+                  )}
                 </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -3259,40 +3290,6 @@ export default function BlogAdmin() {
                         </optgroup>
                       </select>
                       <p className="text-xs text-gray-500 mt-1">온도 가중치: {getAudienceWeight(audienceTemperature)}</p>
-                    </div>
-
-                    {/* 스토리텔링 프레임워크 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">스토리텔링 프레임워크</label>
-                      <select 
-                        value={selectedStoryFramework}
-                        onChange={(e) => setSelectedStoryFramework(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="pixar">픽사 스토리 (영웅의 여정)</option>
-                        <option value="cialdini">치알디니 (설득의 6가지 원칙)</option>
-                        <option value="donald_miller">StoryBrand (7단계 스토리)</option>
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {selectedStoryFramework === 'pixar' && '옛날 옛적에... 매일매일... 그러던 어느 날...'}
-                        {selectedStoryFramework === 'cialdini' && '상호성, 일관성, 사회적 증거, 호감, 권위, 희귀성'}
-                        {selectedStoryFramework === 'donald_miller' && '고객이 영웅, 브랜드는 가이드'}
-                      </p>
-                    </div>
-
-                    {/* 전환 목표 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">전환 목표</label>
-                      <select 
-                        value={selectedConversionGoal}
-                        onChange={(e) => setSelectedConversionGoal(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="awareness">인지 단계 (홈페이지 방문)</option>
-                        <option value="consideration">고려 단계 (상담 예약)</option>
-                        <option value="decision">결정 단계 (구매)</option>
-                        <option value="funnel">퍼널 페이지 (25-10 등)</option>
-                      </select>
                     </div>
 
                     {/* 브랜드 강도 표시 */}

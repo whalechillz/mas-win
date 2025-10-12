@@ -7,18 +7,30 @@ export default async function handler(req, res) {
   try {
     const supabase = createServerSupabase();
     
-    // 관리자 권한 확인 (쿠키에서 확인)
-    const isAdmin = req.headers.cookie?.includes('admin-auth=true') || 
-                   req.headers['x-admin-auth'] === 'true' ||
-                   req.headers.referer?.includes('/admin/');
+    // 관리자 권한 확인 (관리자 페이지에서 온 요청은 모두 허용)
+    const isAdmin = req.headers.referer?.includes('/admin/') || 
+                   req.headers.cookie?.includes('admin-auth=true') || 
+                   req.headers['x-admin-auth'] === 'true';
     
-    console.log('🔍 게시물 조회 요청:', { slug, isAdmin });
+    console.log('🔍 게시물 조회 요청:', { 
+      slug, 
+      isAdmin,
+      cookie: req.headers.cookie,
+      referer: req.headers.referer,
+      xAdminAuth: req.headers['x-admin-auth']
+    });
     
-    // Get the specific post
+    // Get the specific post (ID 또는 slug로 조회)
     let postQuery = supabase
       .from('blog_posts')
-      .select('*')
-      .eq('slug', slug);
+      .select('*');
+    
+    // 숫자인 경우 ID로 조회, 그렇지 않으면 slug로 조회
+    if (/^\d+$/.test(slug)) {
+      postQuery = postQuery.eq('id', parseInt(slug));
+    } else {
+      postQuery = postQuery.eq('slug', slug);
+    }
     
     // 관리자가 아닌 경우 발행된 게시물만 조회
     if (!isAdmin) {
@@ -46,17 +58,31 @@ export default async function handler(req, res) {
       id: post.id,
       title: post.title,
       slug: post.slug,
-      excerpt: post.excerpt,
+      summary: post.summary || post.excerpt,
       content: post.content,
       featured_image: post.featured_image,
-      publishedAt: post.published_at,
+      published_at: post.published_at,
       category: post.category,
       tags: post.tags,
       meta_title: post.meta_title,
       meta_description: post.meta_description,
       meta_keywords: post.meta_keywords,
-      status: post.status
+      status: post.status,
+      customer_persona: post.customer_persona,
+      brand_weight: post.brand_weight,
+      pain_point: post.pain_point,
+      conversion_goal: post.conversion_goal,
+      storytelling_framework: post.storytelling_framework,
+      target_audience: post.target_audience,
+      seo_meta: post.seo_meta,
+      published_channels: post.published_channels,
+      content_type: post.content_type
     };
+
+    // 관리자 요청인 경우 단일 포스트만 반환 (편집용)
+    if (isAdmin && /^\d+$/.test(slug)) {
+      return res.status(200).json(transformedPost);
+    }
 
     const transformedRelatedPosts = (relatedPosts || []).map(relatedPost => ({
       id: relatedPost.id,
