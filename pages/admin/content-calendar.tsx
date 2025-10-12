@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
+import { useSession } from 'next-auth/react';
 
 interface ContentCalendarItem {
   id: string;
@@ -42,6 +43,7 @@ interface ContentCalendarItem {
 }
 
 export default function ContentCalendar() {
+  const { data: session, status } = useSession();
   const [contents, setContents] = useState<ContentCalendarItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'calendar' | 'tree' | 'tab' | 'table'>('list');
@@ -77,10 +79,23 @@ export default function ContentCalendar() {
   const [uploadedMdFiles, setUploadedMdFiles] = useState<any[]>([]);
   const [showUploadedFiles, setShowUploadedFiles] = useState(false);
 
+  // 인증 체크
   useEffect(() => {
-    fetchContentCalendar();
-    loadMdFiles(); // MD 파일 로드
-  }, []);
+    if (status === 'loading') return; // 로딩 중이면 대기
+    
+    if (!session) {
+      // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+      window.location.href = '/admin/login';
+      return;
+    }
+  }, [session, status]);
+
+  useEffect(() => {
+    if (session) { // 인증된 경우에만 데이터 로드
+      fetchContentCalendar();
+      loadMdFiles(); // MD 파일 로드
+    }
+  }, [session]);
 
   // 트리 구조로 변환하는 함수
   const convertToTreeStructure = (contents: ContentCalendarItem[]): ContentCalendarItem[] => {
@@ -745,6 +760,22 @@ export default function ContentCalendar() {
         </div>
       </div>
     );
+  }
+
+  // 로딩 중이거나 인증되지 않은 경우
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!session) {
+    return null; // 리다이렉트 중
   }
 
   return (
