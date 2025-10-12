@@ -1,12 +1,10 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin, checkSupabaseConfig } from '../../../lib/supabase-admin'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key'
-)
+// Supabase 설정 확인
+checkSupabaseConfig()
 
 export default NextAuth({
   providers: [
@@ -32,7 +30,7 @@ export default NextAuth({
         let user
         if (isPhone) {
           // 전화번호로 로그인
-          const { data, error } = await supabase
+          const { data, error } = await supabaseAdmin
             .from('admin_users')
             .select('*')
             .eq('phone', cleanPhone)
@@ -48,7 +46,7 @@ export default NextAuth({
           user = data
         } else {
           // 아이디로 로그인
-          const { data, error } = await supabase
+          const { data, error } = await supabaseAdmin
             .from('admin_users')
             .select('*')
             .eq('username', login)
@@ -84,7 +82,7 @@ export default NextAuth({
         if (user && (isValidPassword || isSimplePassword)) {
           // 마지막 로그인 시간 업데이트
           try {
-            await supabase
+            await supabaseAdmin
               .from('admin_users')
               .update({ last_login: new Date().toISOString() })
               .eq('id', user.id)
