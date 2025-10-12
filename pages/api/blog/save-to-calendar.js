@@ -23,6 +23,22 @@ export default async function handler(req, res) {
       publishedDate = new Date().toISOString().split('T')[0]
     } = req.body;
 
+    // 먼저 기존에 등록된 항목이 있는지 확인
+    const { data: existingContent } = await supabase
+      .from('cc_content_calendar')
+      .select('id')
+      .eq('blog_post_id', blogPostId)
+      .single();
+
+    if (existingContent) {
+      console.log('이미 캘린더에 등록된 블로그 포스트:', blogPostId);
+      return res.json({
+        success: true,
+        calendarContentId: existingContent.id,
+        message: '이미 콘텐츠 캘린더에 등록되어 있습니다.'
+      });
+    }
+
     // 콘텐츠 캘린더에 등록
     const { data: calendarContent, error } = await supabase
       .from('cc_content_calendar')
@@ -33,27 +49,28 @@ export default async function handler(req, res) {
         theme: title,
         content_type: 'blog',
         title: title,
-        description: content.substring(0, 200),
-        content_body: content,
+        description: content ? content.substring(0, 200) : '',
+        content_body: content || '',
         target_audience: {
-          persona: customerPersona,
-          stage: conversionGoal
+          persona: customerPersona || '시니어 골퍼',
+          stage: conversionGoal || 'awareness'
         },
         conversion_tracking: {
-          landingPage: landingPage,
-          goal: conversionGoal,
+          landingPage: landingPage || 'https://win.masgolf.co.kr',
+          goal: conversionGoal || '홈페이지 방문',
           utmParams: {
             source: 'blog',
             medium: 'organic',
-            campaign: contentType
+            campaign: contentType || '일반'
           }
         },
         status: 'published',
         published_channels: ['blog'],
         blog_post_id: blogPostId,
+        is_root_content: true,
         seo_meta: {
           title: title,
-          description: content.substring(0, 160),
+          description: content ? content.substring(0, 160) : '',
           keywords: extractKeywords(title)
         }
       })
