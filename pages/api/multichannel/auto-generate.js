@@ -477,6 +477,36 @@ async function saveMultichannelContent(parentId, multichannelContent) {
 
     console.log('📝 삽입할 데이터:', insertData.map(item => ({ title: item.title, channel: item.channel_type, target: item.target_audience_type })));
     console.log('📝 최종 삽입 데이터 상세:', JSON.stringify(insertData, null, 2));
+    
+    // 중복 확인 로직 추가
+    console.log('🔍 중복 확인 시작...');
+    const duplicates = [];
+    for (let i = 0; i < insertData.length; i++) {
+      for (let j = i + 1; j < insertData.length; j++) {
+        if (insertData[i].year === insertData[j].year &&
+            insertData[i].month === insertData[j].month &&
+            insertData[i].content_date === insertData[j].content_date &&
+            insertData[i].title === insertData[j].title) {
+          duplicates.push({
+            index1: i,
+            index2: j,
+            data1: insertData[i],
+            data2: insertData[j]
+          });
+        }
+      }
+    }
+    
+    if (duplicates.length > 0) {
+      console.error('❌ 중복 발견:', duplicates);
+      return res.status(400).json({
+        error: '중복 데이터 발견',
+        duplicates: duplicates,
+        message: '삽입하려는 데이터에 중복이 있습니다.'
+      });
+    } else {
+      console.log('✅ 중복 없음');
+    }
 
     // 삽입 전에 중복 확인
     for (const item of insertData) {
