@@ -455,7 +455,7 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       return {
         parent_content_id: parentId,
         title: uniqueTitle,
-        content_type: 'multichannel',
+        content_type: 'social',
         target_audience_type: content.target_audience,
         channel_type: content.channel,
         content_body: content.content || content.description || content.post,
