@@ -8,6 +8,7 @@ import { ContactManagement } from '../components/admin/contacts/ContactManagemen
 import { BookingManagement } from '../components/admin/bookings/BookingManagement';
 import MarketingDashboardComplete from '../components/admin/marketing/MarketingDashboardComplete';
 import { TeamMemberManagement } from '../components/admin/team/TeamMemberManagement';
+import AccountManagement from '../components/admin/AccountManagement';
 import GA4RealtimeDashboard from '../components/admin/dashboard/GA4RealtimeDashboard';
 import IntegratedMarketingHub from '../components/admin/marketing/integrated/IntegratedMarketingHub';
 import MonthlyCampaignAnalytics from '../components/admin/campaigns/MonthlyCampaignAnalytics';
@@ -105,10 +106,10 @@ export default function Admin() {
 
   const tabs = [
     { id: 'dashboard', name: '대시보드', icon: '📊' },
+    { id: 'team', name: '계정 관리', icon: '👨‍💼' },
     { id: 'marketing', name: '마케팅', icon: '📈' },
     { id: 'bookings', name: '예약 관리', icon: '📅' },
     { id: 'contacts', name: '연락처 관리', icon: '👥' },
-    { id: 'team', name: '팀 관리', icon: '👨‍💼' },
     { id: 'analytics', name: '분석', icon: '📊' },
     { id: 'funnel', name: '퍼널 관리', icon: '🔄' },
     { id: 'google-ads', name: '구글 광고', icon: '🎯' }
@@ -125,7 +126,7 @@ export default function Admin() {
       case 'contacts':
         return <ContactManagement contacts={contacts} onUpdate={loadData} />;
       case 'team':
-        return <TeamMemberManagement />;
+        return <AccountManagement session={session} />;
       case 'analytics':
         return (
           <div className="space-y-6">
