@@ -1,44 +1,54 @@
+import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host') || ''
-  const pathname = request.nextUrl.pathname
-  
-  // 정적 파일과 API 라우트는 제외
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/static') ||
-    pathname.includes('.')
-  ) {
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token
+    const { pathname } = req.nextUrl
+
+    // 관리자 페이지 접근 권한 체크
+    if (pathname.startsWith('/admin')) {
+      if (!token) {
+        return NextResponse.redirect(new URL('/admin/login', req.url))
+      }
+
+      // 권한별 접근 제어
+      if (pathname.startsWith('/admin/users') && token.role !== 'admin') {
+        return NextResponse.redirect(new URL('/admin', req.url))
+      }
+
+      if (pathname.startsWith('/admin/system') && token.role !== 'admin') {
+        return NextResponse.redirect(new URL('/admin', req.url))
+      }
+    }
+
     return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl
+
+        // 관리자 페이지 접근 권한 체크
+        if (pathname.startsWith('/admin')) {
+          // 로그인 페이지는 인증 없이 접근 가능
+          if (pathname === '/admin/login') {
+            return true
+          }
+
+          // 인증된 사용자만 접근 가능
+          return !!token && (token.role === 'admin' || token.role === 'editor')
+        }
+
+        // 다른 페이지는 자유롭게 접근 가능
+        return true
+      }
+    }
   }
-  
-  // 도메인별 라우팅
-  if (hostname === 'masgolf.co.kr') {
-    // www가 없으면 www로 리다이렉트
-    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`)
-  }
-  
-  // muziik.masgolf.co.kr 도메인 라우팅
-  if (hostname === 'muziik.masgolf.co.kr') {
-    return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url))
-  }
-  
-  // 모든 도메인은 기본 라우트 사용 (pages/index.js)
-  return NextResponse.next()
-}
+)
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+    '/admin/:path*'
+  ]
 }
