@@ -398,10 +398,16 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       // 삭제 실패해도 계속 진행 (새로 생성)
     }
 
-    // 각 콘텐츠에 고유한 제목 생성 (중복 방지)
+    // 각 콘텐츠에 고유한 제목과 날짜 생성 (중복 방지)
+    const currentDate = new Date();
     const insertData = multichannelContent.map((content, index) => {
       const baseTitle = content.title || content.headline || content.headline1 || content.caption || content.post || content.content;
       const uniqueTitle = `${baseTitle} [${content.channel}-${content.target_audience}-${index}]`;
+      
+      // 각 콘텐츠마다 다른 날짜로 설정 (중복 방지)
+      const contentDate = new Date(currentDate);
+      contentDate.setDate(contentDate.getDate() + index);
+      const dateString = contentDate.toISOString().split('T')[0];
       
       return {
         parent_content_id: parentId,
@@ -411,9 +417,9 @@ async function saveMultichannelContent(parentId, multichannelContent) {
         channel_type: content.channel,
         content_body: content.content || content.description || content.post,
         status: content.status || 'draft',
-        content_date: content.schedule_date ? new Date(content.schedule_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1,
+        content_date: dateString,
+        year: contentDate.getFullYear(),
+        month: contentDate.getMonth() + 1,
         is_root_content: false,
         multichannel_status: 'completed',
         naver_blog_account: content.naver_blog_account,
