@@ -603,7 +603,7 @@ export default function ContentCalendar() {
   const getContentForDate = (date: Date) => {
     const dateStr = formatDate(date);
     return contents.filter(content => {
-      const contentDate = content.content_date || content.published_at;
+      const contentDate = content.content_date;
       return contentDate && contentDate.startsWith(dateStr);
     });
   };
@@ -1136,8 +1136,6 @@ export default function ContentCalendar() {
               )}
             </div>
           )}
-              </div>
-            )}
           </div>
 
           {/* 리스트 뷰 */}
@@ -1427,7 +1425,10 @@ export default function ContentCalendar() {
                               key={idx}
                               className={`
                                 text-xs p-1 rounded truncate
-                                ${getAudienceStageColor(content.target_audience?.stage || 'awareness')}
+                                ${content.target_audience?.stage === 'awareness' ? 'bg-blue-100 text-blue-800' : 
+                                  content.target_audience?.stage === 'consideration' ? 'bg-yellow-100 text-yellow-800' :
+                                  content.target_audience?.stage === 'conversion' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'}
                               `}
                               title={content.title}
                             >
