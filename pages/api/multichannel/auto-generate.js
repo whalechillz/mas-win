@@ -422,6 +422,16 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       console.error('❌ 제목 패턴으로 삭제 오류:', deleteError3);
     }
 
+    // 4. 모든 멀티채널 콘텐츠 삭제 (강제 삭제)
+    const { error: deleteError4 } = await supabase
+      .from('cc_content_calendar')
+      .delete()
+      .eq('content_type', 'multichannel');
+
+    if (deleteError4) {
+      console.error('❌ 모든 멀티채널 콘텐츠 삭제 오류:', deleteError4);
+    }
+
     console.log('✅ 기존 멀티채널 콘텐츠 삭제 완료');
 
     // 각 콘텐츠에 고유한 제목과 날짜 생성 (중복 방지)
