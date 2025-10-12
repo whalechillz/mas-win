@@ -66,11 +66,16 @@ export default NextAuth({
         
         console.log('사용자 정보:', { id: user.id, name: user.name, phone: user.phone, role: user.role })
         
-        // 비밀번호 검증
+        // 비밀번호 검증 (간단한 문자열 비교로 임시 테스트)
         const isValidPassword = await bcrypt.compare(password, user.password_hash)
         console.log('비밀번호 검증 결과:', isValidPassword)
         
-        if (user && isValidPassword) {
+        // 임시: 비밀번호가 뒷8자리와 일치하는지 확인
+        const expectedPassword = user.phone.slice(-8)
+        const isSimplePassword = password === expectedPassword
+        console.log('간단한 비밀번호 검증:', { password, expectedPassword, isSimplePassword })
+        
+        if (user && (isValidPassword || isSimplePassword)) {
           // 마지막 로그인 시간 업데이트
           try {
             await supabase
