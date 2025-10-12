@@ -436,9 +436,10 @@ async function saveMultichannelContent(parentId, multichannelContent) {
 
     // 각 콘텐츠에 고유한 제목과 날짜 생성 (중복 방지)
     const currentDate = new Date();
+    const timestamp = Date.now();
     const insertData = multichannelContent.map((content, index) => {
       const baseTitle = content.title || content.headline || content.headline1 || content.caption || content.post || content.content;
-      const uniqueTitle = `${baseTitle} [${content.channel}-${content.target_audience}-${index}]`;
+      const uniqueTitle = `${baseTitle} [${content.channel}-${content.target_audience}-${timestamp}-${index}]`;
       
       // 각 콘텐츠마다 다른 날짜로 설정 (중복 방지)
       const contentDate = new Date(currentDate);
