@@ -31,8 +31,8 @@ async function generateKakaoMessage(blogPost, targetAudience, trackingUrl) {
   const cta = CTA_STRATEGY[targetAudience];
   
   const prompt = `
-블로그 제목: ${blogPost.title}
-요약: ${blogPost.summary}
+블로그 제목: ${blogPost.meta_title || blogPost.title || '제목 없음'}
+요약: ${blogPost.meta_description || blogPost.meta_description || blogPost.summary || '요약 없음' || '요약 없음'}
 타겟 오디언스: ${target.name}
 페르소나: ${target.personas.join(', ')}
 톤앤매너: ${target.tone}
@@ -61,7 +61,7 @@ CTA: ${cta.primary}
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      title: blogPost.title,
+      title: blogPost.meta_title || blogPost.title || '제목 없음',
       contentType: blogPost.contentType,
       customerPersona: blogPost.customerPersona,
       brandWeight: blogPost.brandWeight,
@@ -73,7 +73,7 @@ CTA: ${cta.primary}
   });
 
   const data = await response.json();
-  const content = data.summary || blogPost.summary;
+  const content = data.summary || blogPost.meta_description || blogPost.summary || '요약 없음';
   
   return {
     channel: 'kakao',
@@ -96,9 +96,10 @@ async function generateSMS(blogPost, targetAudience, trackingUrl) {
   const cta = CTA_STRATEGY[targetAudience];
   
   // SMS는 80자 제한
-  const shortContent = blogPost.title.length > 50 
-    ? blogPost.title.substring(0, 47) + '...'
-    : blogPost.title;
+  const title = blogPost.meta_title || blogPost.title || '제목 없음';
+  const shortContent = title.length > 50 
+    ? title.substring(0, 47) + '...'
+    : title;
   
   return {
     channel: 'sms',
@@ -130,10 +131,10 @@ async function generateNaverBlogPost(blogPost, targetAudience, trackingUrl) {
   
   for (const account of blogAccounts) {
     const title = account.style === 'formal' 
-      ? blogPost.title
+      ? (blogPost.meta_title || blogPost.title || '제목 없음')
       : account.style === 'review'
-      ? `[리뷰] ${blogPost.title}`
-      : `[연구] ${blogPost.title}`;
+      ? `[리뷰] ${blogPost.meta_title || blogPost.title || '제목 없음'}`
+      : `[연구] ${blogPost.meta_title || blogPost.title || '제목 없음'}`;
     
     blogPosts.push({
       channel: 'naver_blog',
@@ -142,7 +143,7 @@ async function generateNaverBlogPost(blogPost, targetAudience, trackingUrl) {
       naver_blog_account_name: account.name,
       title: title,
       content: blogPost.content,
-      excerpt: blogPost.summary,
+      excerpt: blogPost.meta_description || blogPost.summary || '요약 없음',
       cta_banner: {
         text: cta.primary,
         url: trackingUrl,
@@ -174,10 +175,10 @@ async function generateNaverAd(blogPost, targetAudience, trackingUrl) {
   const powerlinkAd = {
     channel: 'naver_powerlink',
     target_audience: targetAudience,
-    headline: blogPost.title.substring(0, 30),
-    description: blogPost.summary.substring(0, 45),
+    headline: (blogPost.meta_title || blogPost.title || '제목 없음').substring(0, 30),
+    description: blogPost.meta_description || blogPost.summary || '요약 없음'.substring(0, 45),
     landing_page: trackingUrl,
-    target_keywords: extractKeywords(blogPost.title),
+    target_keywords: extractKeywords(blogPost.meta_title || blogPost.title || '제목 없음'),
     schedule_date: getNaverAdScheduleDate(),
     conversion_tracking: {
       url: trackingUrl,
@@ -191,10 +192,10 @@ async function generateNaverAd(blogPost, targetAudience, trackingUrl) {
   const shoppingAd = targetAudience === 'new_customer' ? {
     channel: 'naver_shopping',
     target_audience: targetAudience,
-    title: blogPost.title.substring(0, 50),
-    description: blogPost.summary.substring(0, 100),
+    title: (blogPost.meta_title || blogPost.title || '제목 없음').substring(0, 50),
+    description: blogPost.meta_description || blogPost.summary || '요약 없음'.substring(0, 100),
     landing_page: 'https://smartstore.naver.com/masgolf',
-    target_keywords: extractKeywords(blogPost.title),
+    target_keywords: extractKeywords(blogPost.meta_title || blogPost.title || '제목 없음'),
     schedule_date: getNaverAdScheduleDate(),
     conversion_tracking: {
       url: 'https://smartstore.naver.com/masgolf',
@@ -218,11 +219,11 @@ async function generateGoogleAd(blogPost, targetAudience, trackingUrl) {
       channel: 'google_ads',
       target_audience: targetAudience,
       ad_type: 'square',
-      headline1: blogPost.title.substring(0, 30),
+      headline1: (blogPost.meta_title || blogPost.title || '제목 없음').substring(0, 30),
       headline2: cta.primary,
-      description: blogPost.summary.substring(0, 90),
+      description: blogPost.meta_description || blogPost.summary || '요약 없음'.substring(0, 90),
       landing_page: trackingUrl,
-      target_keywords: extractKeywords(blogPost.title),
+      target_keywords: extractKeywords(blogPost.meta_title || blogPost.title || '제목 없음'),
       schedule_date: getGoogleAdScheduleDate(),
       conversion_tracking: {
         url: trackingUrl,
@@ -235,11 +236,11 @@ async function generateGoogleAd(blogPost, targetAudience, trackingUrl) {
       channel: 'google_ads',
       target_audience: targetAudience,
       ad_type: 'landscape',
-      headline1: blogPost.title.substring(0, 30),
+      headline1: (blogPost.meta_title || blogPost.title || '제목 없음').substring(0, 30),
       headline2: cta.primary,
-      description: blogPost.summary.substring(0, 90),
+      description: blogPost.meta_description || blogPost.summary || '요약 없음'.substring(0, 90),
       landing_page: trackingUrl,
-      target_keywords: extractKeywords(blogPost.title),
+      target_keywords: extractKeywords(blogPost.meta_title || blogPost.title || '제목 없음'),
       schedule_date: getGoogleAdScheduleDate(),
       conversion_tracking: {
         url: trackingUrl,
@@ -263,7 +264,7 @@ async function generateInstagramPost(blogPost, targetAudience, trackingUrl) {
       channel: 'instagram',
       target_audience: targetAudience,
       post_type: 'feed',
-      caption: `${blogPost.title}\n\n${blogPost.summary}\n\n${cta.primary} 👉 ${trackingUrl}`,
+      caption: `${blogPost.meta_title || blogPost.title || '제목 없음'}\n\n${blogPost.meta_description || blogPost.summary || '요약 없음'}\n\n${cta.primary} 👉 ${trackingUrl}`,
       hashtags: generateHashtags(blogPost, targetAudience),
       schedule_date: getInstagramScheduleDate(),
       conversion_tracking: {
@@ -303,7 +304,7 @@ async function generateFacebookPost(blogPost, targetAudience, trackingUrl) {
   return {
     channel: 'facebook',
     target_audience: targetAudience,
-    post: `${blogPost.title}\n\n${blogPost.summary}\n\n${cta.primary} 👉 ${trackingUrl}`,
+    post: `${blogPost.meta_title || blogPost.title || '제목 없음'}\n\n${blogPost.meta_description || blogPost.summary || '요약 없음'}\n\n${cta.primary} 👉 ${trackingUrl}`,
     hashtags: generateHashtags(blogPost, targetAudience),
     schedule_date: getFacebookScheduleDate(),
     conversion_tracking: {
@@ -608,7 +609,7 @@ export default async function handler(req, res) {
       const { data: newRootContent, error: rootError } = await supabase
         .from('cc_content_calendar')
         .insert({
-          title: blogPost.title,
+          title: blogPost.meta_title || blogPost.title || '제목 없음',
           content_type: 'blog',
           target_audience_type: 'new_customer',
           channel_type: 'blog',
@@ -647,7 +648,7 @@ export default async function handler(req, res) {
         targetAudience: targetAudience,
         source: 'multichannel',
         campaign: blogPost.id,
-        content: blogPost.title
+        content: blogPost.meta_title || blogPost.title || '제목 없음'
       });
       
       // 채널별 콘텐츠 생성
