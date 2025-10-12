@@ -9,8 +9,6 @@ const supabase = createClient(
 )
 
 export default NextAuth({
-  // 환경 변수가 없어도 작동하도록 기본값 설정
-  url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   providers: [
     CredentialsProvider({
       name: 'credentials',

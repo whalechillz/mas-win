@@ -71,13 +71,13 @@ export default function Admin() {
     
     if (!session) {
       // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-      router.push('/admin/login');
+      window.location.href = '/admin/login';
       return;
     }
     
     // 인증된 경우 데이터 로드
     loadData();
-  }, [session, status, router]);
+  }, [session, status]);
 
   const handleLogout = async () => {
     try {
