@@ -32,7 +32,7 @@ async function generateKakaoMessage(blogPost, targetAudience, trackingUrl) {
   
   const prompt = `
 블로그 제목: ${blogPost.meta_title || blogPost.title || '제목 없음'}
-요약: ${blogPost.meta_description || blogPost.meta_description || blogPost.summary || blogPost.content || '요약 없음' || '요약 없음'}
+요약: ${blogPost.meta_description || blogPost.summary || blogPost.content || '요약 없음'}
 타겟 오디언스: ${target.name}
 페르소나: ${target.personas.join(', ')}
 톤앤매너: ${target.tone}
