@@ -395,14 +395,14 @@ async function saveMultichannelContent(parentId, multichannelContent) {
       .from('cc_content_calendar')
       .select('id, title, parent_content_id, blog_post_id, year, month, content_date')
       .eq('parent_content_id', parentId)
-      .eq('content_type', 'multichannel');
+      .eq('content_type', 'social');
 
     // 2. 추가로 같은 blog_post_id를 가진 모든 멀티채널 콘텐츠도 조회
     const { data: existingByBlogId, error: selectByBlogIdError } = await supabase
       .from('cc_content_calendar')
       .select('id, title, parent_content_id, blog_post_id, year, month, content_date')
       .eq('blog_post_id', parentId)
-      .eq('content_type', 'multichannel');
+      .eq('content_type', 'social');
 
     // 두 조회 결과를 합쳐서 중복 제거
     const allExistingData = [...(existingData || []), ...(existingByBlogId || [])];
@@ -646,7 +646,7 @@ export default async function handler(req, res) {
       const trackingUrl = generateTrackingUrl({
         channel: channels[0], // 첫 번째 채널 기준
         targetAudience: targetAudience,
-        source: 'multichannel',
+        source: 'ai_generated',
         campaign: blogPost.id,
         content: blogPost.meta_title || blogPost.title || '제목 없음'
       });
