@@ -6,11 +6,14 @@ export default withAuth(
     const token = req.nextauth.token
     const { pathname } = req.nextUrl
 
-    // 관리자 페이지 접근 권한 체크
-    if (pathname.startsWith('/admin')) {
-      if (!token) {
-        return NextResponse.redirect(new URL('/admin/login', req.url))
-      }
+        // 관리자 페이지 접근 권한 체크
+        if (pathname.startsWith('/admin')) {
+          if (!token) {
+            // 무한 리다이렉트 방지
+            if (pathname !== '/admin/login') {
+              return NextResponse.redirect(new URL('/admin/login', req.url))
+            }
+          }
 
       // 권한별 접근 제어
       if (pathname.startsWith('/admin/users') && token.role !== 'admin') {

@@ -9,6 +9,8 @@ const supabase = createClient(
 )
 
 export default NextAuth({
+  // 환경 변수가 없어도 작동하도록 기본값 설정
+  url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -106,7 +108,7 @@ export default NextAuth({
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30일
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key',
   debug: process.env.NODE_ENV === 'development'
 })
 
@@ -203,6 +205,6 @@ export const authOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30일
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key',
   debug: process.env.NODE_ENV === 'development'
 }
