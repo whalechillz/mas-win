@@ -18,12 +18,12 @@ export default async function handler(req, res) {
   try {
     console.log('🔄 블로그 포스트를 콘텐츠 캘린더에 동기화 시작...');
 
-    // 1. 기존 cc_content_calendar 데이터 삭제
+    // 1. 기존 cc_content_calendar 데이터 삭제 (blog_post_id가 있는 것만)
     console.log('🗑️ 기존 콘텐츠 캘린더 데이터 삭제 중...');
     const { error: deleteError } = await supabase
       .from('cc_content_calendar')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // 모든 데이터 삭제
+      .not('blog_post_id', 'is', null); // blog_post_id가 있는 데이터만 삭제
 
     if (deleteError) {
       console.error('❌ 기존 데이터 삭제 오류:', deleteError);
