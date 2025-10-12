@@ -74,18 +74,14 @@ export default NextAuth({
         const expectedPassword = user.phone.slice(-8)
         const isSimplePassword = password === expectedPassword
         
-        // 기존 ADMIN_PASS 시스템과의 호환성
-        const isOldAdminPass = password === '1234' && user.role === 'admin'
-        
         console.log('비밀번호 검증:', { 
           password, 
           expectedPassword, 
-          isSimplePassword, 
-          isOldAdminPass,
+          isSimplePassword,
           isValidPassword 
         })
         
-        if (user && (isValidPassword || isSimplePassword || isOldAdminPass)) {
+        if (user && (isValidPassword || isSimplePassword)) {
           // 마지막 로그인 시간 업데이트
           try {
             await supabase

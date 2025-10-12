@@ -70,8 +70,7 @@ export default function Admin() {
     if (status === 'loading') return; // 로딩 중이면 대기
     
     if (!session) {
-      // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-      window.location.href = '/admin/login';
+      // 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
       return;
     }
     
