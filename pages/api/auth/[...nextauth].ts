@@ -27,6 +27,8 @@ export default NextAuth({
         const cleanPhone = login.replace(/[^0-9]/g, '')
         const isPhone = /^010\d{8}$/.test(cleanPhone)
         
+        console.log('로그인 시도:', { login, cleanPhone, isPhone, password })
+        
         let user
         if (isPhone) {
           // 전화번호로 로그인
@@ -36,6 +38,8 @@ export default NextAuth({
             .eq('phone', cleanPhone)
             .eq('is_active', true)
             .single()
+          
+          console.log('전화번호 로그인 결과:', { data, error })
           
           if (error || !data) {
             console.log('전화번호 로그인 실패:', error)
@@ -51,6 +55,8 @@ export default NextAuth({
             .eq('is_active', true)
             .single()
           
+          console.log('아이디 로그인 결과:', { data, error })
+          
           if (error || !data) {
             console.log('아이디 로그인 실패:', error)
             return null
@@ -58,13 +64,22 @@ export default NextAuth({
           user = data
         }
         
+        console.log('사용자 정보:', { id: user.id, name: user.name, phone: user.phone, role: user.role })
+        
         // 비밀번호 검증
-        if (user && await bcrypt.compare(password, user.password_hash)) {
+        const isValidPassword = await bcrypt.compare(password, user.password_hash)
+        console.log('비밀번호 검증 결과:', isValidPassword)
+        
+        if (user && isValidPassword) {
           // 마지막 로그인 시간 업데이트
-          await supabase
-            .from('admin_users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', user.id)
+          try {
+            await supabase
+              .from('admin_users')
+              .update({ last_login: new Date().toISOString() })
+              .eq('id', user.id)
+          } catch (updateError) {
+            console.log('로그인 시간 업데이트 실패:', updateError)
+          }
           
           console.log('로그인 성공:', user.name, user.role)
           
