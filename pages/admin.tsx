@@ -70,7 +70,8 @@ export default function Admin() {
     if (status === 'loading') return; // 로딩 중이면 대기
     
     if (!session) {
-      // 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+      // 미들웨어 비활성화로 인한 임시 클라이언트 사이드 보호
+      window.location.href = '/admin/login';
       return;
     }
     

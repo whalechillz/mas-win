@@ -126,7 +126,6 @@ export default NextAuth({
   },
   pages: {
     signIn: '/admin/login',
-    error: '/admin/login'
   },
   session: {
     strategy: 'jwt',
@@ -223,7 +222,6 @@ export const authOptions = {
   },
   pages: {
     signIn: '/admin/login',
-    error: '/admin/login'
   },
   session: {
     strategy: 'jwt',
