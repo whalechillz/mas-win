@@ -2837,7 +2837,17 @@ export default function BlogAdmin() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">블로그 관리</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-gray-900">블로그 관리</h1>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/admin" 
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  ← 메인 대시보드로 돌아가기
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* 탭 네비게이션 */}
