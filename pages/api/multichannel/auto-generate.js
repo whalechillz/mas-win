@@ -444,8 +444,13 @@ async function saveMultichannelContent(parentId, multichannelContent) {
     const timestamp = Date.now();
     const insertData = multichannelContent.map((content, index) => {
       const baseTitle = content.title || content.headline || content.headline1 || content.caption || content.post || content.content;
-      // 완전히 고유한 제목 생성 (타임스탬프 + 인덱스 + 랜덤)
-      const uniqueTitle = `${baseTitle} [${content.channel}-${content.target_audience}-${timestamp}-${index}-${Math.random().toString(36).substr(2, 9)}]`;
+      // 간결하고 고유한 제목 생성 (채널과 타겟만 포함)
+      const channelPrefix = content.channel === 'naver_blog' ? '[블로그]' : 
+                           content.channel === 'kakao' ? '[카카오]' :
+                           content.channel === 'sms' ? '[SMS]' :
+                           content.channel === 'naver_powerlink' ? '[파워링크]' :
+                           content.channel === 'naver_shopping' ? '[쇼핑]' : `[${content.channel}]`;
+      const uniqueTitle = `${channelPrefix} ${baseTitle}`;
       
       // 각 콘텐츠마다 다른 날짜로 설정 (중복 방지)
       const contentDate = new Date(currentDate);
@@ -458,7 +463,7 @@ async function saveMultichannelContent(parentId, multichannelContent) {
         content_type: 'social',
         target_audience_type: content.target_audience,
         channel_type: content.channel,
-        content_body: content.content || content.description || content.post,
+        content_body: content.content || content.description || content.post || content.caption || '콘텐츠 내용이 없습니다.',
         status: content.status || 'draft',
         content_date: dateString,
         year: contentDate.getFullYear(),

@@ -54,8 +54,8 @@ export default async function handler(req, res) {
       theme: content.title,
       content_type: 'blog',
       title: content.title,
-      description: content.description,
-      content_body: content.description,
+      description: content.description || content.title || '설명이 없습니다.',
+      content_body: content.description || content.title || '콘텐츠 내용이 없습니다.',
       target_audience: content.target_audience || {
         persona: content.targetAudience || '시니어 골퍼',
         stage: content.conversionGoal || 'awareness'
@@ -122,12 +122,12 @@ export default async function handler(req, res) {
           .insert({
             title: content.title,
             slug: generateSlug(content.title),
-            summary: content.description,
-            content: content.description,
+            summary: content.description || content.title || '요약이 없습니다.',
+            content: content.description || content.title || '콘텐츠 내용이 없습니다.',
             category: content.campaignType || '일반',
             status: 'draft',
             meta_title: content.title,
-            meta_description: content.description,
+            meta_description: content.description || content.title || '메타 설명이 없습니다.',
             meta_keywords: content.keywords ? content.keywords.join(', ') : '',
             target_audience: content.targetAudience || 'new_customer',
             conversion_goal: content.conversionGoal || 'awareness',
