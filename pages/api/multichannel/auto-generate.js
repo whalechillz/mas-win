@@ -1,7 +1,7 @@
-import { CONTENT_STRATEGY, AUDIENCE_STAGES } from '../../../lib/masgolf-brand-data';
-import { AUDIENCE_TARGETS, CHANNEL_PRIORITY, CONTENT_LENGTH_GUIDE, CTA_STRATEGY } from '../../../lib/audience-targets';
-import { IMAGE_SPECS, TARGET_IMAGE_SPECS } from '../../../lib/image-specs';
-import { LANDING_PAGE_STRATEGY, generateLandingUrl } from '../../../lib/landing-page-strategy';
+import { CONTENT_STRATEGY, AUDIENCE_STAGES } from '../../lib/masgolf-brand-data';
+import { AUDIENCE_TARGETS, CHANNEL_PRIORITY, CONTENT_LENGTH_GUIDE, CTA_STRATEGY } from '../../lib/audience-targets';
+import { IMAGE_SPECS, TARGET_IMAGE_SPECS } from '../../lib/image-specs';
+import { LANDING_PAGE_STRATEGY, generateLandingUrl } from '../../lib/landing-page-strategy';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase 클라이언트 초기화
