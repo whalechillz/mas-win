@@ -2504,7 +2504,7 @@ export default function BlogAdmin() {
     setMigratedPosts([]);
       
     try {
-      const response = await fetch('/api/migrate-blog-professional', {
+      const response = await fetch('/api/migrate-naver-blog-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2516,37 +2516,36 @@ export default function BlogAdmin() {
         const data = await response.json();
         
         if (data.success && data.data) {
-          // professional API 응답 형식: data.data로 처리
+          // simple API 응답 형식: data.data로 처리
           const post = data.data;
-          console.log('=== API 응답 전체 ===');
+          console.log('=== Simple API 응답 전체 ===');
           console.log('success:', data.success);
           console.log('data 존재:', !!data.data);
           console.log('post 전체:', post);
           console.log('post.title:', post.title);
           console.log('post.content length:', post.content?.length);
           console.log('post.images:', post.images);
-          console.log('post.tags:', post.tags);
-          console.log('post.excerpt:', post.excerpt);
-          console.log('=====================');
+          console.log('post.imageCount:', post.imageCount);
+          console.log('============================');
           
-          // professional API는 이미 데이터베이스에 저장하므로
+          // simple API는 이미 데이터베이스에 저장하므로
           // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
           setMigratedPosts([{
             id: post.id,
             title: post.title,
             content: post.content,
-            excerpt: post.excerpt || (post.content ? post.content.substring(0, 200) + '...' : '요약 없음'),
+            excerpt: post.content ? post.content.substring(0, 200) + '...' : '요약 없음',
             featured_image: post.featured_image,
             slug: post.slug,
             images: post.images || [],
-            tags: post.tags || [],
-            category: post.category || 'migrated',
+            tags: ['네이버 블로그', '마이그레이션'],
+            category: 'migrated',
             status: 'migrated'
           }]);
           setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
           
-          // professional API의 상세 정보 표시
-          alert(`🎉 네이버 블로그 포스트를 성공적으로 가져왔습니다!\n\n📝 제목: ${post.title}\n📄 콘텐츠: ${post.content ? post.content.length : 0}자\n🖼️ 이미지: ${post.imageCount || 0}개\n🏷️ 태그: ${post.tagCount || 0}개\n\n💡 포스트가 이미 데이터베이스에 저장되었습니다!`);
+          // simple API의 상세 정보 표시
+          alert(`🎉 네이버 블로그 포스트를 성공적으로 가져왔습니다!\n\n📝 제목: ${post.title}\n📄 콘텐츠: ${post.content ? post.content.length : 0}자\n🖼️ 이미지: ${post.imageCount || 0}개\n\n💡 포스트가 이미 데이터베이스에 저장되었습니다!`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
