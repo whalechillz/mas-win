@@ -94,6 +94,39 @@ export default async function handler(req, res) {
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : '제목 없음';
 
+    // 2.1. 날짜 추출 (다양한 형식 지원) - professional 버전에서 가져옴
+    let publishedDate = new Date();
+    
+    // 메타 태그에서 날짜 추출
+    const metaDateMatch = html.match(/<meta[^>]*property="article:published_time"[^>]*content="([^"]+)"/i) ||
+                         html.match(/<meta[^>]*name="date"[^>]*content="([^"]+)"/i) ||
+                         html.match(/<meta[^>]*name="pubdate"[^>]*content="([^"]+)"/i);
+    
+    if (metaDateMatch) {
+      publishedDate = new Date(metaDateMatch[1]);
+    } else {
+      // HTML에서 날짜 패턴 추출
+      const datePatterns = [
+        /(\d{4})[년\-\/](\d{1,2})[월\-\/](\d{1,2})[일]/g,
+        /(\d{4})\-(\d{1,2})\-(\d{1,2})/g,
+        /(\d{1,2})[월\-\/](\d{1,2})[일\-\/](\d{4})/g
+      ];
+      
+      for (const pattern of datePatterns) {
+        const dateMatch = html.match(pattern);
+        if (dateMatch) {
+          const dateStr = dateMatch[0];
+          const parsedDate = new Date(dateStr.replace(/[년월일]/g, '-').replace(/\-$/, ''));
+          if (!isNaN(parsedDate.getTime())) {
+            publishedDate = parsedDate;
+            break;
+          }
+        }
+      }
+    }
+    
+    console.log(`📅 추출된 날짜: ${publishedDate.toISOString()}`);
+
     // 3. 메타 설명 추출
     const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
     const metaDescription = metaDescMatch ? metaDescMatch[1].trim() : '';
@@ -306,7 +339,71 @@ export default async function handler(req, res) {
       } catch { return u; }
     }
 
-    images = uniqueImages.filter(u => !isNoise(u)).map(normalizeNaverImage);
+    // Wix 이미지 URL을 고화질로 변환하는 함수 (professional 버전에서 가져옴)
+    function convertWixToHighQuality(wixUrl) {
+      if (!wixUrl || !wixUrl.includes('static.wixstatic.com')) {
+        return wixUrl;
+      }
+
+      try {
+        // 현재 URL 예시:
+        // https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_120,h_170,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg
+        
+        // 고화질 변환:
+        // https://static.wixstatic.com/media/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg/v1/fill/w_2000,h_2000,al_c,q_95/94f4be_a394473798764e3a8010db94d36b0ad4~mv2.jpg
+        
+        const baseUrl = wixUrl.split('/v1/')[0];
+        const fileName = wixUrl.split('/').pop();
+        
+        return `${baseUrl}/v1/fill/w_2000,h_2000,al_c,q_95/${fileName}`;
+      } catch (error) {
+        console.error('Wix URL 변환 실패:', error);
+        return wixUrl;
+      }
+    }
+
+    // 이미지 필터링 - 로고/네비게이션 이미지 제외 (professional 버전에서 가져옴)
+    function isContentImage(imageUrl, imgTag) {
+      if (!imageUrl) return false;
+      
+      // 로고 관련 키워드 제외
+      const logoKeywords = ['logo', 'nav', 'menu', 'header', 'top', 'brand', 'icon'];
+      const urlLower = imageUrl.toLowerCase();
+      const tagLower = (imgTag || '').toLowerCase();
+      
+      for (const keyword of logoKeywords) {
+        if (urlLower.includes(keyword) || tagLower.includes(keyword)) {
+          return false;
+        }
+      }
+      
+      // 너무 작은 이미지 제외 (로고나 아이콘일 가능성)
+      const sizeMatch = imgTag?.match(/width="(\d+)"|height="(\d+)"/i);
+      if (sizeMatch) {
+        const width = parseInt(sizeMatch[1]) || 0;
+        const height = parseInt(sizeMatch[2]) || 0;
+        if (width < 100 || height < 100) {
+          return false;
+        }
+      }
+      
+      return true;
+    }
+
+    // 콘텐츠 이미지만 필터링 (professional 버전 로직)
+    const contentImages = uniqueImages.filter((url, index) => {
+      const imgTag = imageMatches[index];
+      return isContentImage(url, imgTag);
+    });
+
+    // Wix 이미지를 고화질로 변환하고 네이버 이미지 정규화
+    images = contentImages.map(url => {
+      if (url.includes('static.wixstatic.com')) {
+        return convertWixToHighQuality(url);
+      } else {
+        return normalizeNaverImage(url);
+      }
+    });
 
     // 디버깅 정보 출력
     console.log('🔍 스크래핑 결과:');
@@ -360,9 +457,51 @@ export default async function handler(req, res) {
 
     const featuredProcessed = processedImages.find(i => i.status === 'success')?.processedUrl || images[0] || null;
 
-    // 7. AI로 완전한 콘텐츠 정제 (기존 professional 버전 로직)
+    // 7. 본문에 이미지 삽입 (professional 버전 로직)
+    let contentWithImages = content;
+    const successfulImages = processedImages.filter(img => img.status === 'success');
+    
+    console.log(`🖼️ 성공적으로 처리된 이미지 수: ${successfulImages.length}`);
+    
+    if (successfulImages.length > 0) {
+      // 첫 번째 이미지는 대표 이미지로 사용되므로 본문에는 두 번째부터 삽입
+      const contentImages = successfulImages.slice(1);
+      
+      console.log(`🖼️ 본문에 삽입할 이미지 수: ${contentImages.length}`);
+      
+      // 본문에 이미지 삽입 (단락 사이사이에 배치)
+      const paragraphs = contentWithImages.split('\n\n');
+      let imageIndex = 0;
+      
+      const contentWithImagesArray = [];
+      
+      for (let i = 0; i < paragraphs.length; i++) {
+        contentWithImagesArray.push(paragraphs[i]);
+        
+        // 단락 사이에 이미지 삽입 (2-3단락마다)
+        if (imageIndex < contentImages.length && (i + 1) % 2 === 0) {
+          const image = contentImages[imageIndex];
+          contentWithImagesArray.push(`\n\n![${image.alt}](${image.processedUrl})\n\n`);
+          console.log(`🖼️ 본문에 이미지 삽입: ${imageIndex + 1}/${contentImages.length} - ${image.alt}`);
+          imageIndex++;
+        }
+      }
+      
+      // 마지막에 남은 이미지들 추가
+      while (imageIndex < contentImages.length) {
+        const image = contentImages[imageIndex];
+        contentWithImagesArray.push(`\n\n![${image.alt}](${image.processedUrl})\n\n`);
+        console.log(`🖼️ 마지막에 이미지 추가: ${imageIndex + 1}/${contentImages.length} - ${image.alt}`);
+        imageIndex++;
+      }
+      
+      contentWithImages = contentWithImagesArray.join('');
+      console.log(`🖼️ 최종 본문에 삽입된 이미지 수: ${imageIndex}`);
+    }
+
+    // 8. AI로 완전한 콘텐츠 정제 (기존 professional 버전 로직)
     console.log('🤖 AI 콘텐츠 정제 시작...');
-    const structuredContent = await generateCompleteContent(title, content, extractedTags, processedImages);
+    const structuredContent = await generateCompleteContent(title, contentWithImages, extractedTags, processedImages);
     
     // 7.1. 중복 제목 제거 (추가 안전장치)
     const cleanedContent = removeDuplicateTitles(structuredContent, title);
@@ -392,7 +531,7 @@ export default async function handler(req, res) {
         meta_description: metaDescription,
         meta_keywords: tags.join(', '),
         author: '마쓰구골프',
-        published_at: new Date().toISOString()
+        published_at: publishedDate.toISOString()
       })
       .select()
       .single();
