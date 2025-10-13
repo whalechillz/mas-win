@@ -2504,32 +2504,22 @@ export default function BlogAdmin() {
     setMigratedPosts([]);
       
     try {
-      const response = await fetch('/api/migrate-naver-blog-simple', {
+      const response = await fetch('/api/migrate-naver-blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          url: naverBlogUrl
+          blogUrl: naverBlogUrl
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         
-        if (data.success && data.data) {
-          // 간단한 API 응답 형식에 맞게 수정
-          const migratedPost = {
-            id: data.data.id,
-            title: data.data.title,
-            content: data.data.content,
-            featured_image: data.data.featured_image,
-            slug: data.data.slug,
-            images: data.data.images || [],
-            status: 'migrated'
-          };
-          
-          setMigratedPosts([migratedPost]);
-          setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
-          alert(`네이버 블로그 포스트를 성공적으로 가져왔습니다. 이미지 ${data.data.imageCount}개가 포함되었습니다.`);
+        if (data.posts && data.posts.length > 0) {
+          // 원래 형식: posts 배열로 처리
+          setMigratedPosts(data.posts);
+          setMigrationProgress(`✅ ${data.posts.length}개의 포스트를 성공적으로 가져왔습니다!`);
+          alert(`${data.posts.length}개의 네이버 블로그 포스트를 가져왔습니다. 아래에서 확인하고 저장하세요.`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
@@ -2549,18 +2539,39 @@ export default function BlogAdmin() {
 
   const saveMigratedPost = async (post) => {
     try {
-      // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
-      // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
-      alert(`"${post.title}" 포스트가 이미 데이터베이스에 저장되었습니다!`);
-      
-      // 저장된 포스트를 목록에서 제거
-      setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
-      
-      // 포스트 목록 새로고침
-      fetchPosts();
+      const response = await fetch('/api/admin/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: post.title,
+          slug: post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now(),
+          content: post.content,
+          excerpt: post.excerpt,
+          featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
+          category: 'migrated',
+          tags: ['네이버 블로그', '마이그레이션'],
+          status: 'draft',
+          meta_title: post.title,
+          meta_description: post.excerpt,
+          published_at: null
+        })
+      });
+
+      if (response.ok) {
+        const savedPost = await response.json();
+        alert(`"${post.title}" 포스트가 성공적으로 저장되었습니다!`);
+        
+        // 저장된 포스트를 목록에서 제거
+        setMigratedPosts(prev => prev.filter(p => p.title !== post.title));
+        
+        // 포스트 목록 새로고침
+        fetchPosts();
+      } else {
+        throw new Error('포스트 저장에 실패했습니다.');
+      }
     } catch (error) {
-      console.error('포스트 처리 오류:', error);
-      alert('포스트 처리 중 오류가 발생했습니다: ' + error.message);
+      console.error('포스트 저장 오류:', error);
+      alert('포스트 저장 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
@@ -2570,15 +2581,65 @@ export default function BlogAdmin() {
       return;
     }
 
-    // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
-    // 여기서는 목록에서 제거하고 새로고침만 수행
-    alert(`${migratedPosts.length}개의 포스트가 이미 데이터베이스에 저장되었습니다!`);
-    
-    // 저장된 포스트들을 목록에서 제거
-    setMigratedPosts([]);
-    
-    // 포스트 목록 새로고침
-    fetchPosts();
+    if (!confirm(`${migratedPosts.length}개의 포스트를 모두 저장하시겠습니까?`)) {
+      return;
+    }
+
+    setIsMigrating(true);
+    setMigrationProgress('모든 포스트를 저장하는 중...');
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const post of migratedPosts) {
+        try {
+          const response = await fetch('/api/admin/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              title: post.title,
+              slug: post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now(),
+              content: post.content,
+              excerpt: post.excerpt,
+              featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
+              category: 'migrated',
+              tags: ['네이버 블로그', '마이그레이션'],
+              status: 'draft',
+              meta_title: post.title,
+              meta_description: post.excerpt,
+              published_at: null
+            })
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error(`포스트 "${post.title}" 저장 오류:`, error);
+          failCount++;
+        }
+      }
+
+      setMigrationProgress(`✅ ${successCount}개 성공, ❌ ${failCount}개 실패`);
+      setMigratedPosts([]);
+      
+      if (successCount > 0) {
+        alert(`${successCount}개의 포스트가 성공적으로 저장되었습니다!`);
+        fetchPosts(); // 포스트 목록 새로고침
+      }
+      
+      if (failCount > 0) {
+        alert(`${failCount}개의 포스트 저장에 실패했습니다.`);
+      }
+    } catch (error) {
+      console.error('일괄 저장 오류:', error);
+      alert('일괄 저장 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsMigrating(false);
+    }
   };
 
   // 고급 기능 함수들
