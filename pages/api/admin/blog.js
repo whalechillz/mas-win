@@ -15,6 +15,28 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 export default async function handler(req, res) {
   console.log('🔍 관리자 API 요청:', req.method, req.url);
   
+  // CORS 헤더 설정
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // OPTIONS 요청 처리
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  // 환경 변수 확인
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Supabase 환경 변수 누락');
+    return res.status(500).json({ 
+      error: '서버 설정 오류: 환경 변수가 설정되지 않았습니다.',
+      details: {
+        supabaseUrl: supabaseUrl ? '설정됨' : '없음',
+        supabaseServiceKey: supabaseServiceKey ? '설정됨' : '없음'
+      }
+    });
+  }
+  
   try {
     if (req.method === 'GET') {
       // 게시물 목록 조회
