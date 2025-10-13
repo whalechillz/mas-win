@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     });
 
     // 문의 유형별 제목 설정
-    const getSubject = (type: string, language: string) => {
+    const getSubject = (type, language) => {
       const subjects = {
         ja: {
           general: '[MUZIIK 문의] 일반 문의',
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     };
 
     // 이메일 템플릿 생성
-    const createEmailTemplate = (data: any, language: string) => {
+    const createEmailTemplate = (data, language) => {
       const isJapanese = language === 'ja';
       
       return `
@@ -165,7 +165,7 @@ export default async function handler(req, res) {
     };
 
     // 고객용 자동 응답 이메일 템플릿
-    const createAutoReplyTemplate = (data: any, language: string) => {
+    const createAutoReplyTemplate = (data, language) => {
       const isJapanese = language === 'ja';
       
       return `
