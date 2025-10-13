@@ -3129,6 +3129,7 @@ export default function BlogAdmin() {
               )}
 
               {/* 게시물 목록 */}
+              {console.log('🔍 Debug - loading:', loading, 'filteredPosts.length:', filteredPosts.length, 'activeTab:', activeTab, 'posts.length:', posts.length)}
               {loading ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -3136,7 +3137,20 @@ export default function BlogAdmin() {
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">게시물이 없습니다.</p>
+                  <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
+                    <p className="text-red-800 text-sm">
+                      <strong>❌ 게시물 없음:</strong> 현재 필터링된 게시물이 없습니다.
+                    </p>
+                    <ul className="list-disc list-inside text-red-700 text-xs mt-2">
+                      <li>Loading: {loading ? 'true' : 'false'}</li>
+                      <li>Posts Length: {posts.length}</li>
+                      <li>Filtered Posts Length: {filteredPosts.length}</li>
+                      <li>Active Tab: {activeTab}</li>
+                      <li>Search Term: {searchTerm || '없음'}</li>
+                      <li>Selected Category: {selectedCategory || '전체'}</li>
+                    </ul>
+                  </div>
+                  <p className="mt-2 text-gray-500">게시물이 없습니다.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
