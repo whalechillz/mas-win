@@ -2198,46 +2198,20 @@ export default function BlogAdmin() {
     }
   };
 
-  // AI 콘텐츠 개선 함수들
-  const improveAIContent = async (type) => {
+
+  const applySimpleAIImprovement = async () => {
     if (!simpleAIRequest.trim()) {
       alert('개선 요청사항을 입력해주세요.');
       return;
     }
 
-    setIsImprovingContent(true);
-    setImprovementProcess('AI가 콘텐츠를 분석하고 개선 중입니다...');
-    
-    try {
-      const response = await fetch('/api/improve-content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: formData.content,
-          request: simpleAIRequest,
-          type: type
-        })
-      });
-
-      if (response.ok) {
-      const data = await response.json();
-        setImprovedContent(data.improvedContent);
-        setShowImprovedContent(true);
-        setImprovementProcess('콘텐츠 개선이 완료되었습니다!');
-      } else {
-        throw new Error('콘텐츠 개선에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('콘텐츠 개선 오류:', error);
-      alert('콘텐츠 개선 중 오류가 발생했습니다: ' + error.message);
-    } finally {
-      setIsImprovingContent(false);
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
     }
-  };
 
-  const applySimpleAIImprovement = async () => {
-    if (!simpleAIRequest.trim()) {
-      alert('개선 요청사항을 입력해주세요.');
+    if (!formData.content || formData.content.trim().length < 50) {
+      alert('개선할 내용이 충분하지 않습니다. 먼저 기본 내용을 작성해주세요.');
       return;
     }
 
@@ -2249,8 +2223,11 @@ export default function BlogAdmin() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: formData.content,
-          request: simpleAIRequest
+          title: formData.title,
+          currentContent: formData.content,
+          improvementRequest: simpleAIRequest,
+          keywords: formData.tags?.join(', ') || '',
+          category: formData.category || ''
         })
       });
 
@@ -2260,7 +2237,8 @@ export default function BlogAdmin() {
         setShowImprovedContent(true);
         setImprovementProcess('간단 AI 개선이 완료되었습니다!');
       } else {
-        throw new Error('간단 AI 개선에 실패했습니다.');
+        const errorData = await response.json();
+        throw new Error(errorData.error || '간단 AI 개선에 실패했습니다.');
       }
     } catch (error) {
       console.error('간단 AI 개선 오류:', error);
@@ -4385,27 +4363,8 @@ export default function BlogAdmin() {
                       />
                     </div>
 
-                    {/* AI 개선 버튼들 */}
+                    {/* AI 개선 버튼 */}
                     <div className="flex flex-wrap gap-3">
-                      <button 
-                        type="button"
-                        onClick={() => improveAIContent('comprehensive')}
-                        disabled={isImprovingContent || !simpleAIRequest.trim()}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                      >
-                        {isImprovingContent ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>AI 콘텐츠 개선 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>🤖</span>
-                            <span>AI 콘텐츠 개선</span>
-                          </>
-                        )}
-                      </button>
-
                       <button 
                         type="button"
                         onClick={applySimpleAIImprovement}
