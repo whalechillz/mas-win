@@ -17,16 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity, attachment } = req.body;
 
-    // 이메일 전송 설정
-    const transporter = nodemailer.createTransporter({
-      service: 'gmail',
-      auth: {
-        user: 'massgoogolf@gmail.com',
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
-
-    // Gmail App Password가 설정되지 않은 경우 로그만 기록
+    // Gmail App Password가 설정되지 않은 경우 로그만 기록하고 즉시 응답
     if (!process.env.GMAIL_APP_PASSWORD) {
       console.log('Gmail App Password가 설정되지 않음. 문의 내용:', {
         type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
@@ -37,6 +28,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: language === 'ja' ? 'お問い合わせを受け付けました' : '문의가 접수되었습니다' 
       });
     }
+
+    // 이메일 전송 설정 (Gmail App Password가 있을 때만)
+    const transporter = nodemailer.createTransporter({
+      service: 'gmail',
+      auth: {
+        user: 'massgoogolf@gmail.com',
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
 
     // 문의 유형별 제목 설정
     const getSubject = (type: string, language: string) => {
