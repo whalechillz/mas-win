@@ -258,7 +258,7 @@ export default async function handler(req, res) {
       const noiseKeywords = [
         'profile', 'favicon', 'sprite', 'icon', 'ico_', 'btn', 'button', 'comment', 'reply',
         'like', 'share', 'logo', 'nav', 'menu', 'header', 'footer', 'top', 'thumb', 'thumbnail',
-        'toolbar', 'emoji', 'sticker', 'badge', 'banner', 'widget', 'spstatic.net/static/",
+        'toolbar', 'emoji', 'sticker', 'badge', 'banner', 'widget', 'spstatic.net/static/'
       ];
       if (noiseKeywords.some(k => u.includes(k))) return true;
       // 도메인 기반 노이즈: 블로그 기본 리소스

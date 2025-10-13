@@ -47,8 +47,44 @@ export default async function handler(req, res) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const html = await response.text();
+    let html = await response.text();
     
+    // 1-1. iframe(mainFrame) 내부 실제 본문으로 이동 시도
+    try {
+      const iframeMatch = html.match(/<iframe[^>]*id=["']mainFrame["'][^>]*src=["']([^"']+)["']/i);
+      if (iframeMatch && iframeMatch[1]) {
+        let iframeSrc = iframeMatch[1];
+        if (iframeSrc.startsWith('/')) {
+          iframeSrc = `https://blog.naver.com${iframeSrc}`;
+        } else if (iframeSrc.startsWith('./')) {
+          iframeSrc = `https://blog.naver.com/${iframeSrc.replace('./', '')}`;
+        }
+        const iframeRes = await fetch(iframeSrc, { headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': url } });
+        if (iframeRes.ok) {
+          html = await iframeRes.text();
+        }
+      }
+    } catch {}
+
+    // 1-2. 모바일 뷰(m.blog.naver.com) 재시도
+    try {
+      if (!/m\.blog\.naver\.com/.test(url)) {
+        const ogUrlMatch = html.match(/<meta[^>]*property=["']og:url["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+        let mobileUrl = ogUrlMatch ? ogUrlMatch[1] : '';
+        if (!mobileUrl || !/m\.blog\.naver\.com/.test(mobileUrl)) {
+          const pathMatch = url.match(/blog\.naver\.com\/(.+)/);
+          if (pathMatch) mobileUrl = `https://m.blog.naver.com/${pathMatch[1]}`;
+        }
+        if (mobileUrl) {
+          const mRes = await fetch(mobileUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)', 'Referer': url } });
+          if (mRes.ok) {
+            const mHtml = await mRes.text();
+            if (mHtml && mHtml.length > html.length * 0.5) html = mHtml;
+          }
+        }
+      }
+    } catch {}
+
     // 2. 제목 추출
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : '제목 없음';
