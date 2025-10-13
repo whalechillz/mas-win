@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. 웹 스크래핑
+    // 2. 웹 스크래핑 (1차: 데스크톱 뷰)
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -54,8 +54,69 @@ export default async function handler(req, res) {
       });
     }
 
-    const html = await response.text();
-    console.log('📄 HTML 길이:', html.length);
+    let html = await response.text();
+    console.log('📄 1차 HTML 길이:', html.length);
+
+    // 2-1. iframe(mainFrame) 내부 실제 본문 페이지로 이동
+    try {
+      const iframeMatch = html.match(/<iframe[^>]*id=["']mainFrame["'][^>]*src=["']([^"']+)["']/i);
+      if (iframeMatch && iframeMatch[1]) {
+        let iframeSrc = iframeMatch[1];
+        if (iframeSrc.startsWith('/')) {
+          iframeSrc = `https://blog.naver.com${iframeSrc}`;
+        } else if (iframeSrc.startsWith('./')) {
+          iframeSrc = `https://blog.naver.com/${iframeSrc.replace('./', '')}`;
+        }
+        console.log('🔗 mainFrame URL 감지:', iframeSrc);
+        const iframeRes = await fetch(iframeSrc, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Referer': url
+          }
+        });
+        if (iframeRes.ok) {
+          html = await iframeRes.text();
+          console.log('📄 2차 iframe HTML 길이:', html.length);
+        }
+      }
+    } catch (e) {
+      console.log('iframe 추적 스킵:', e.message);
+    }
+
+    // 2-2. 모바일 뷰(m.blog.naver.com)로 재시도
+    try {
+      // 이미 모바일 뷰가 아니라면 meta og:url에서 모바일 본문 링크 추적
+      if (!/m\.blog\.naver\.com/.test(url)) {
+        const ogUrlMatch = html.match(/<meta[^>]*property=["']og:url["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+        let mobileUrl = ogUrlMatch ? ogUrlMatch[1] : '';
+        if (!mobileUrl || !/m\.blog\.naver\.com/.test(mobileUrl)) {
+          // 일반 글 주소를 모바일로 변환 시도
+          const pathMatch = url.match(/blog\.naver\.com\/(.+)/);
+          if (pathMatch) {
+            mobileUrl = `https://m.blog.naver.com/${pathMatch[1]}`;
+          }
+        }
+        if (mobileUrl) {
+          console.log('📱 모바일 뷰 재시도 URL:', mobileUrl);
+          const mRes = await fetch(mobileUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+              'Referer': url
+            }
+          });
+          if (mRes.ok) {
+            const mHtml = await mRes.text();
+            // 모바일 문서가 본문을 더 잘 포함하면 교체
+            if (mHtml && mHtml.length > html.length * 0.5) {
+              html = mHtml;
+              console.log('📄 3차 모바일 HTML 사용:', html.length);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log('모바일 뷰 재시도 스킵:', e.message);
+    }
 
     // 3. 강력한 제목 추출
     let title = '';
@@ -171,11 +232,11 @@ export default async function handler(req, res) {
       return srcMatch ? srcMatch[1] : null;
     }).filter(Boolean);
     
-    // 패턴 2: 네이버 블로그 특화 이미지 (data-src 속성)
-    const dataSrcMatches = html.match(/<img[^>]*data-src=["']([^"']+)["'][^>]*>/gi) || [];
+    // 패턴 2: 네이버 블로그 특화 이미지 (data-src, data-original, data-lazy)
+    const dataSrcMatches = html.match(/<img[^>]*(data-src|data-original|data-lazy)=["']([^"']+)["'][^>]*>/gi) || [];
     const dataSrcImages = dataSrcMatches.map(img => {
-      const srcMatch = img.match(/data-src=["']([^"']+)["']/i);
-      return srcMatch ? srcMatch[1] : null;
+      const srcMatch = img.match(/(data-src|data-original|data-lazy)=["']([^"']+)["']/i);
+      return srcMatch ? srcMatch[2] : null;
     }).filter(Boolean);
     
     // 패턴 3: 배경 이미지
@@ -187,7 +248,54 @@ export default async function handler(req, res) {
     
     // 모든 이미지 합치기 (중복 제거)
     const allImages = [...images, ...dataSrcImages, ...bgImages];
-    images = [...new Set(allImages)]; // 중복 제거
+    let uniqueImages = [...new Set(allImages)];
+
+    // 네이버 특화: 콘텐츠 이미지 선별 및 원본 변환
+    function isNoise(url) {
+      if (!url) return true;
+      const u = url.toLowerCase();
+      // 프로필/아이콘/스프라이트/버튼 등 노이즈 제거
+      const noiseKeywords = [
+        'profile', 'favicon', 'sprite', 'icon', 'ico_', 'btn', 'button', 'comment', 'reply',
+        'like', 'share', 'logo', 'nav', 'menu', 'header', 'footer', 'top', 'thumb', 'thumbnail',
+        'toolbar', 'emoji', 'sticker', 'badge', 'banner', 'widget', 'spstatic.net/static/",
+      ];
+      if (noiseKeywords.some(k => u.includes(k))) return true;
+      // 도메인 기반 노이즈: 블로그 기본 리소스
+      if (u.includes('blogimgs.naver.net') || u.includes('blogpfthumb-phinf.pstatic.net')) return true;
+      return false;
+    }
+
+    function convertNaverToOriginal(url) {
+      if (!url) return url;
+      try {
+        let out = url;
+        // //로 시작하면 https 추가
+        if (out.startsWith('//')) out = 'https:' + out;
+        // 포스트파일: ?type=.. 파라미터 최적화 (원본/고해상도)
+        if (out.includes('postfiles.pstatic.net')) {
+          const [base, query] = out.split('?');
+          const params = new URLSearchParams(query || '');
+          // blur 제거
+          const type = (params.get('type') || '').replace(/_blur$/i, '');
+          // 가장 큰 사이즈로 시도
+          params.set('type', type || 'w2000');
+          out = base + '?' + params.toString();
+        }
+        // blogfiles.pstatic.net 썸네일 경로 보정 (m_ or t_ 접두 제거)
+        out = out.replace(/\/(m_|t_|s_)/g, '/');
+        // 모바일 리사이즈 파라미터 제거
+        out = out.replace(/(&|\?)w=\d+(&|$)/, '$1').replace(/(&|\?)h=\d+(&|$)/, '$1');
+        return out;
+      } catch {
+        return url;
+      }
+    }
+
+    // 필터링 및 변환 적용
+    images = uniqueImages
+      .filter(u => !isNoise(u))
+      .map(convertNaverToOriginal);
 
     console.log('🖼️ 추출된 이미지 개수:', images.length);
     console.log('🖼️ 이미지 URL들:', images.slice(0, 3)); // 처음 3개만 로그

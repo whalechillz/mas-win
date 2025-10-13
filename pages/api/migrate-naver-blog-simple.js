@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -55,6 +56,37 @@ export default async function handler(req, res) {
     // 3. 메타 설명 추출
     const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
     const metaDescription = metaDescMatch ? metaDescMatch[1].trim() : '';
+
+    // 3.1. 태그 추출 (네이버 전용 + 일반 메타)
+    const tags = (() => {
+      const results = new Set();
+      // meta keywords
+      const metaKeywordsMatch = html.match(/<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']+)["']/i);
+      if (metaKeywordsMatch) {
+        metaKeywordsMatch[1].split(/,|\s+/).forEach(k => {
+          const t = k.replace(/^#/, '').trim();
+          if (t) results.add(t);
+        });
+      }
+      // se_tag, tag-search 링크 등
+      const tagAnchorMatches = html.match(/<a[^>]*(class=["'][^"']*tag[^"']*["']|href=["'][^"']*SearchTag[^"']*["'])[^>]*>(.*?)<\/a>/gi) || [];
+      tagAnchorMatches.forEach(a => {
+        const textMatch = a.match(/>(.*?)<\/a>/i);
+        const raw = textMatch ? textMatch[1] : '';
+        const clean = raw.replace(/<[^>]+>/g, '').replace(/^#/, '').trim();
+        if (clean) results.add(clean);
+      });
+      // se_tag span
+      const spanTagMatches = html.match(/<span[^>]*class=["'][^"']*se_tag[^"']*["'][^>]*>(.*?)<\/span>/gi) || [];
+      spanTagMatches.forEach(s => {
+        const clean = s.replace(/<[^>]+>/g, '').replace(/^#/, '').trim();
+        if (clean) results.add(clean);
+      });
+      // 본문 내 해시태그
+      const hashMatches = html.match(/#([가-힣A-Za-z0-9_]{2,30})/g) || [];
+      hashMatches.forEach(h => results.add(h.replace('#','')));
+      return Array.from(results).slice(0, 20);
+    })();
 
     // 4. 강력한 본문 콘텐츠 추출
     let content = '';
@@ -119,33 +151,54 @@ export default async function handler(req, res) {
         .trim();
     }
 
-    // 5. 강력한 이미지 URL 추출
+    // 5. 이미지 URL 추출 + 네이버 특화 정규화/필터링
     let images = [];
-    
-    // 패턴 1: 모든 img 태그
     const imageMatches = html.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi) || [];
-    images = imageMatches.map(img => {
+    const srcImages = imageMatches.map(img => {
       const srcMatch = img.match(/src=["']([^"']+)["']/i);
       return srcMatch ? srcMatch[1] : null;
     }).filter(Boolean);
-    
-    // 패턴 2: 네이버 블로그 특화 이미지 (data-src 속성)
-    const dataSrcMatches = html.match(/<img[^>]*data-src=["']([^"']+)["'][^>]*>/gi) || [];
+    const dataSrcMatches = html.match(/<img[^>]*(data-src|data-original|data-lazy)=["']([^"']+)["'][^>]*>/gi) || [];
     const dataSrcImages = dataSrcMatches.map(img => {
-      const srcMatch = img.match(/data-src=["']([^"']+)["']/i);
-      return srcMatch ? srcMatch[1] : null;
+      const srcMatch = img.match(/(data-src|data-original|data-lazy)=["']([^"']+)["']/i);
+      return srcMatch ? srcMatch[2] : null;
     }).filter(Boolean);
-    
-    // 패턴 3: 배경 이미지
     const bgImageMatches = html.match(/background-image:\s*url\(["']?([^"')]+)["']?\)/gi) || [];
     const bgImages = bgImageMatches.map(bg => {
       const urlMatch = bg.match(/url\(["']?([^"')]+)["']?\)/i);
       return urlMatch ? urlMatch[1] : null;
     }).filter(Boolean);
-    
-    // 모든 이미지 합치기 (중복 제거)
-    const allImages = [...images, ...dataSrcImages, ...bgImages];
-    images = [...new Set(allImages)]; // 중복 제거
+    const allImages = [...srcImages, ...dataSrcImages, ...bgImages];
+    let uniqueImages = [...new Set(allImages)];
+
+    function isNoise(u) {
+      if (!u) return true;
+      const url = u.toLowerCase();
+      const noise = ['profile', 'favicon', 'sprite', 'icon', 'ico_', 'btn', 'button', 'comment', 'reply', 'like', 'share', 'logo', 'nav', 'menu', 'header', 'footer', 'top', 'toolbar', 'emoji', 'sticker', 'badge', 'banner', 'widget'];
+      if (noise.some(k => url.includes(k))) return true;
+      if (url.includes('blogimgs.naver.net') || url.includes('blogpfthumb-phinf.pstatic.net')) return true;
+      return false;
+    }
+
+    function normalizeNaverImage(u) {
+      if (!u) return u;
+      try {
+        let out = u;
+        if (out.startsWith('//')) out = 'https:' + out;
+        if (out.includes('postfiles.pstatic.net')) {
+          const [base, query] = out.split('?');
+          const params = new URLSearchParams(query || '');
+          const type = (params.get('type') || '').replace(/_blur$/i, '');
+          params.set('type', type || 'w2000');
+          out = base + '?' + params.toString();
+        }
+        out = out.replace(/\/(m_|t_|s_)/g, '/');
+        out = out.replace(/(&|\?)w=\d+(&|$)/, '$1').replace(/(&|\?)h=\d+(&|$)/, '$1');
+        return out;
+      } catch { return u; }
+    }
+
+    images = uniqueImages.filter(u => !isNoise(u)).map(normalizeNaverImage);
 
     // 디버깅 정보 출력
     console.log('🔍 스크래핑 결과:');
@@ -154,7 +207,52 @@ export default async function handler(req, res) {
     console.log('- 이미지 개수:', images.length);
     console.log('- 이미지 URL들:', images.slice(0, 3)); // 처음 3개만 출력
 
-    // 6. 고유 slug 생성
+    // 6. 이미지 다운로드 → Sharp 최적화 → Supabase Storage 업로드
+    const processedImages = [];
+    function getOriginalFileName(u) {
+      try {
+        let x = u.startsWith('//') ? 'https:' + u : u;
+        const p = new URL(x).pathname;
+        return decodeURIComponent(p.split('/').pop() || 'image');
+      } catch { return 'image'; }
+    }
+    const toProcess = images.slice(0, 15);
+    for (let i = 0; i < toProcess.length; i++) {
+      let imageUrl = toProcess[i];
+      try {
+        if (!imageUrl.startsWith('http')) continue;
+        if (imageUrl.startsWith('//')) imageUrl = 'https:' + imageUrl;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const imgRes = await fetch(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'image/*' }, signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!imgRes.ok) continue;
+        const arr = await imgRes.arrayBuffer();
+        const buffer = Buffer.from(arr);
+        if (buffer.length < 1000) continue;
+        const optimized = await sharp(buffer)
+          .resize(1200, 800, { fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 90 })
+          .toBuffer();
+        const base = getOriginalFileName(imageUrl).replace(/\.[a-zA-Z0-9]+$/, '');
+        const fileName = `naver-${base}-${Date.now()}-${i + 1}.webp`;
+        const { error: upErr } = await supabase.storage.from('blog-images').upload(fileName, optimized, { contentType: 'image/webp', cacheControl: '3600' });
+        if (upErr) {
+          console.error('업로드 실패:', upErr);
+          processedImages.push({ originalUrl: imageUrl, processedUrl: imageUrl, alt: `이미지 ${i + 1}`, originalFileName: getOriginalFileName(imageUrl), status: 'upload-failed' });
+          continue;
+        }
+        const publicUrl = supabase.storage.from('blog-images').getPublicUrl(fileName).data.publicUrl;
+        processedImages.push({ originalUrl: imageUrl, processedUrl: publicUrl, alt: `이미지 ${i + 1}`, fileName, originalFileName: getOriginalFileName(imageUrl), status: 'success' });
+      } catch (e) {
+        console.error('이미지 처리 실패:', e.message);
+        processedImages.push({ originalUrl: imageUrl, processedUrl: imageUrl, alt: `이미지 ${i + 1}`, originalFileName: getOriginalFileName(imageUrl), status: 'error' });
+      }
+    }
+
+    const featuredProcessed = processedImages.find(i => i.status === 'success')?.processedUrl || images[0] || null;
+
+    // 7. 고유 slug 생성
     const baseSlug = title.toLowerCase()
       .replace(/[^a-z0-9가-힣\s]/g, '')
       .replace(/\s+/g, '-')
@@ -170,13 +268,13 @@ export default async function handler(req, res) {
         slug: slug,
         content: content || '콘텐츠를 추출할 수 없습니다.',
         excerpt: metaDescription || title,
-        featured_image: images[0] || null,
+        featured_image: featuredProcessed,
         category: 'migrated',
-        tags: ['네이버 블로그', '마이그레이션'],
+        tags: tags,
         status: 'draft',
         meta_title: title,
         meta_description: metaDescription,
-        meta_keywords: '네이버 블로그, 마이그레이션',
+        meta_keywords: tags.join(', '),
         author: '마쓰구골프',
         published_at: new Date().toISOString()
       })
@@ -198,8 +296,9 @@ export default async function handler(req, res) {
         slug: post.slug,
         content: post.content,
         featured_image: post.featured_image,
-        images: images,
-        imageCount: images.length,
+        images: processedImages.length > 0 ? processedImages : images.map(u => ({ originalUrl: u, processedUrl: u })),
+        imageCount: processedImages.length > 0 ? processedImages.filter(i => i.status === 'success').length : images.length,
+        tags: tags,
         status: 'migration-success'
       }
     });
