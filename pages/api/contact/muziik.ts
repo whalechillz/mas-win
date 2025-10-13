@@ -21,17 +21,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
     });
 
-    // Gmail App Password가 설정되지 않은 경우 로그만 기록하고 즉시 응답
-    if (!process.env.GMAIL_APP_PASSWORD) {
-      console.log('Gmail App Password가 설정되지 않음. 문의 내용:', {
-        type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
-      });
-      
-      return res.status(200).json({ 
-        success: true, 
-        message: language === 'ja' ? 'お問い合わせを受け付けました' : '문의가 접수되었습니다' 
-      });
-    }
+    // 간단한 테스트 응답
+    return res.status(200).json({ 
+      success: true, 
+      message: language === 'ja' ? 'お問い合わせを受け付けました' : '문의가 접수되었습니다' 
+    });
 
     // 이메일 전송 로직 (Gmail App Password가 있을 때만)
     const nodemailer = require('nodemailer');
