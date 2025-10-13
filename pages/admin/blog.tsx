@@ -2507,7 +2507,10 @@ export default function BlogAdmin() {
     setMigratedPosts([]);
       
     try {
+      console.log('🚀 네이버 블로그 마이그레이션 시작:', naverBlogUrl);
+      
       // 1단계: 미리보기 API로 데이터 추출 (저장하지 않음)
+      console.log('📡 미리보기 API 요청 시작');
       const previewResponse = await fetch('/api/migrate-naver-blog-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2515,6 +2518,9 @@ export default function BlogAdmin() {
           url: naverBlogUrl
         })
       });
+
+      console.log('📡 미리보기 API 응답 상태:', previewResponse.status, previewResponse.statusText);
+      console.log('📡 미리보기 API 응답 헤더:', Object.fromEntries(previewResponse.headers.entries()));
 
       if (previewResponse.ok) {
         const previewData = await previewResponse.json();
@@ -2562,7 +2568,12 @@ export default function BlogAdmin() {
         throw new Error(error.error || '네이버 블로그 미리보기 생성에 실패했습니다.');
       }
     } catch (error) {
-      console.error('네이버 블로그 미리보기 오류:', error);
+      console.error('❌ 네이버 블로그 미리보기 오류:', error);
+      console.error('❌ 에러 타입:', typeof error);
+      console.error('❌ 에러 메시지:', error.message);
+      console.error('❌ 에러 스택:', error.stack);
+      console.error('❌ 전체 에러 객체:', error);
+      
       setMigrationProgress('❌ 미리보기 생성 중 오류가 발생했습니다.');
       alert('네이버 블로그 미리보기 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {

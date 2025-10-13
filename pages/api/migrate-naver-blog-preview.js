@@ -13,23 +13,38 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
+  // 디버깅 로그 추가
+  console.log('🔍 API 요청 받음:', {
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    body: req.body
+  });
+
   // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
+    console.log('✅ OPTIONS 요청 처리');
     return res.status(200).end();
   }
 
   if (req.method !== "POST") {
+    console.log('❌ 잘못된 메소드:', req.method);
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  console.log('✅ POST 요청 확인됨');
+
   try {
+    console.log('📝 요청 body 파싱 시작');
     const { url } = req.body;
+    console.log('📝 추출된 URL:', url);
 
     if (!url) {
+      console.log('❌ URL이 없음');
       return res.status(400).json({ 
         success: false, 
         error: "URL이 필요합니다" 
@@ -47,19 +62,24 @@ export default async function handler(req, res) {
     }
 
     // 2. 웹 스크래핑 (1차: 데스크톱 뷰)
+    console.log('🌐 웹 스크래핑 시작:', url);
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
 
+    console.log('📡 응답 상태:', response.status, response.statusText);
+
     if (!response.ok) {
+      console.log('❌ 웹 스크래핑 실패:', response.status);
       return res.status(400).json({ 
         success: false, 
         error: `블로그 접근 실패: ${response.status}` 
       });
     }
 
+    console.log('📄 HTML 다운로드 시작');
     let html = await response.text();
     console.log('📄 1차 HTML 길이:', html.length);
 
@@ -569,9 +589,14 @@ ${extractedTags.join(", ")}
 
   } catch (error) {
     console.error('❌ 미리보기 API 오류:', error);
+    console.error('❌ 에러 스택:', error.stack);
+    console.error('❌ 에러 타입:', typeof error);
+    console.error('❌ 에러 메시지:', error.message);
+    
     return res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
