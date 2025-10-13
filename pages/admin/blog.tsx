@@ -2517,9 +2517,18 @@ export default function BlogAdmin() {
         
         if (data.posts && data.posts.length > 0) {
           // 원래 형식: posts 배열로 처리
+          const post = data.posts[0];
+          console.log('🔍 가져온 포스트 정보:', post);
+          
           setMigratedPosts(data.posts);
           setMigrationProgress(`✅ ${data.posts.length}개의 포스트를 성공적으로 가져왔습니다!`);
-          alert(`${data.posts.length}개의 네이버 블로그 포스트를 가져왔습니다. 아래에서 확인하고 저장하세요.`);
+          
+          // 디버깅 정보와 함께 알림
+          const debugInfo = post.debug ? 
+            `\n- 제목: ${post.title}\n- 콘텐츠 길이: ${post.debug.contentLength}자\n- 이미지 개수: ${post.debug.imageCount}개` : 
+            `\n- 제목: ${post.title}`;
+          
+          alert(`${data.posts.length}개의 네이버 블로그 포스트를 가져왔습니다.${debugInfo}\n\n아래에서 확인하고 저장하세요.`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
