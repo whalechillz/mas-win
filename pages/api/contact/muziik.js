@@ -40,6 +40,12 @@ export default async function handler(req, res) {
     // Slack 알림 발송 (새로운 01-ma-op 채널 웹훅 사용)
     const SLACK_WEBHOOK_URL_01_MA_OP = process.env.SLACK_WEBHOOK_URL_01_MA_OP;
     
+    console.log('=== 환경 변수 디버깅 ===');
+    console.log('SLACK_WEBHOOK_URL_01_MA_OP 존재 여부:', !!SLACK_WEBHOOK_URL_01_MA_OP);
+    console.log('SLACK_WEBHOOK_URL_01_MA_OP 길이:', SLACK_WEBHOOK_URL_01_MA_OP ? SLACK_WEBHOOK_URL_01_MA_OP.length : 0);
+    console.log('SLACK_WEBHOOK_URL_01_MA_OP 시작 부분:', SLACK_WEBHOOK_URL_01_MA_OP ? SLACK_WEBHOOK_URL_01_MA_OP.substring(0, 20) + '...' : 'undefined');
+    console.log('========================');
+    
     if (SLACK_WEBHOOK_URL_01_MA_OP) {
       console.log('Slack 웹훅 URL 확인됨, 메시지 생성 시작...');
       try {
@@ -117,6 +123,62 @@ export default async function handler(req, res) {
       }
     } else {
       console.log('SLACK_WEBHOOK_URL_01_MA_OP이 설정되지 않음');
+      
+      // 대안: 기존 SLACK_WEBHOOK_URL 사용
+      const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+      if (SLACK_WEBHOOK_URL) {
+        console.log('대안 Slack 웹훅 사용:', SLACK_WEBHOOK_URL.substring(0, 20) + '...');
+        
+        try {
+          const fallbackMessage = {
+            username: 'MUZIIK 문의봇',
+            icon_emoji: ':golf:',
+            text: `🚨 새로운 MUZIIK 문의 접수 - ${name}`,
+            attachments: [
+              {
+                color: '#36a64f',
+                title: `📋 ${type === 'general' ? '일반 문의' : type === 'partnership' ? '파트너십 문의' : '마쓰구 콜라보 문의'}`,
+                fields: [
+                  {
+                    title: '이름',
+                    value: name,
+                    short: true
+                  },
+                  {
+                    title: '이메일',
+                    value: email,
+                    short: true
+                  },
+                  {
+                    title: '문의 내용',
+                    value: message ? (message.length > 200 ? message.substring(0, 200) + '...' : message) : '내용 없음',
+                    short: false
+                  }
+                ],
+                footer: 'MUZIIK DOGATTI GENERATION 샤프트 문의 시스템',
+                ts: Math.floor(Date.now() / 1000)
+              }
+            ]
+          };
+          
+          const response = await fetch(SLACK_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fallbackMessage)
+          });
+          
+          console.log('대안 Slack 응답 상태:', response.status);
+          if (response.ok) {
+            console.log('대안 Slack 알림 발송 완료');
+          } else {
+            console.log('대안 Slack 알림 발송 실패');
+          }
+        } catch (error) {
+          console.error('대안 Slack 알림 발송 실패:', error);
+        }
+      } else {
+        console.log('대안 Slack 웹훅도 설정되지 않음');
+      }
     }
     
     if (!process.env.GMAIL_APP_PASSWORD) {
