@@ -3199,6 +3199,8 @@ export default function BlogAdmin() {
                               }
 
                               try {
+                                console.log('🔄 이미지 저장 시작...');
+                                
                                 // 선택된 이미지 데이터 수집
                                 const imagesToSave = [];
                                 selectedImages.forEach(checkbox => {
@@ -3212,6 +3214,8 @@ export default function BlogAdmin() {
                                   });
                                 });
 
+                                console.log('📦 저장할 이미지 데이터:', imagesToSave);
+
                                 // API 호출
                                 const response = await fetch('/api/save-images-to-storage', {
                                   method: 'POST',
@@ -3224,35 +3228,48 @@ export default function BlogAdmin() {
                                   })
                                 });
 
+                                console.log('📡 API 응답 상태:', response.status);
+
+                                if (!response.ok) {
+                                  const errorText = await response.text();
+                                  console.error('❌ API 오류 응답:', errorText);
+                                  throw new Error(`API 오류: ${response.status} - ${errorText}`);
+                                }
+
                                 const result = await response.json();
+                                console.log('✅ API 응답 데이터:', result);
 
                                 if (result.success) {
-                                  alert(`✅ ${result.totalSaved}개 이미지가 성공적으로 저장되었습니다!`);
+                                  // 성공 메시지
+                                  let successMessage = `✅ ${result.totalSaved}개 이미지가 성공적으로 저장되었습니다!`;
                                   if (result.totalErrors > 0) {
-                                    alert(`⚠️ ${result.totalErrors}개 이미지 저장에 실패했습니다.`);
+                                    successMessage += `\n⚠️ ${result.totalErrors}개 이미지 저장에 실패했습니다.`;
                                   }
+                                  alert(successMessage);
                                   
-                                  // 갤러리 새로고침 (선택된 체크박스 해제)
-                                  const selectedImages = document.querySelectorAll('input[name="selectedImages"]:checked');
+                                  // 선택된 체크박스 해제
                                   selectedImages.forEach(checkbox => {
                                     (checkbox as HTMLInputElement).checked = false;
                                   });
                                   
-                                  // 저장된 이미지들을 갤러리에서 제거하거나 표시 업데이트
-                                  if (result.galleryUpdate) {
-                                    console.log('갤러리 업데이트:', result.galleryUpdate);
-                                    // 저장된 이미지들을 시각적으로 표시
-                                    result.galleryUpdate.savedUrls.forEach((url, index) => {
-                                      console.log(`저장된 이미지 ${index + 1}:`, url);
-                                    });
+                                  // 저장된 이미지들을 시각적으로 표시
+                                  if (result.savedImageUrls && result.savedImageUrls.length > 0) {
+                                    console.log('🖼️ 저장된 이미지 URLs:', result.savedImageUrls);
                                   }
+                                  
+                                  // 페이지 새로고침으로 갤러리 업데이트
+                                  setTimeout(() => {
+                                    window.location.reload();
+                                  }, 1000);
+                                  
                                 } else {
-                                  alert(`❌ 이미지 저장에 실패했습니다: ${result.message}`);
+                                  console.error('❌ 저장 실패:', result);
+                                  alert(`❌ 이미지 저장에 실패했습니다: ${result.error || result.message || '알 수 없는 오류'}`);
                                 }
 
                               } catch (error) {
-                                console.error('이미지 저장 오류:', error);
-                                alert('❌ 이미지 저장 중 오류가 발생했습니다.');
+                                console.error('❌ 이미지 저장 오류:', error);
+                                alert(`❌ 이미지 저장 중 오류가 발생했습니다: ${error.message}`);
                               }
                             }}
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -3306,39 +3323,6 @@ export default function BlogAdmin() {
                                 </div>
                               </div>
                               
-                              {/* 호버 액션 버튼들 */}
-                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(image.src);
-                                      alert('이미지 URL이 클립보드에 복사되었습니다.');
-                                    }}
-                                    className="p-2 bg-white text-gray-800 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
-                                    title="URL 복사"
-                                  >
-                                    📋
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      if (confirm('이미지를 삭제하시겠습니까?')) {
-                                        // 이미지 삭제 로직 수정
-                                        const imageContainer = (e.target as HTMLElement).closest('.relative.group') as HTMLElement;
-                                        if (imageContainer) {
-                                          imageContainer.style.display = 'none';
-                                          // 체크박스도 함께 제거
-                                          const checkbox = imageContainer.querySelector('input[type="checkbox"]') as HTMLInputElement;
-                                          if (checkbox) checkbox.checked = false;
-                                        }
-                                      }
-                                    }}
-                                    className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
-                                    title="삭제"
-                                  >
-                                    🗑️
-                                  </button>
-                                </div>
-                              </div>
                               
                               {/* 파일명 */}
                               <div className="p-2 bg-white">
@@ -3351,21 +3335,12 @@ export default function BlogAdmin() {
                         )}
                       </div>
                       
-                      <div className="mt-6 p-4 bg-white rounded-lg border border-blue-200">
-                        <div className="flex items-center space-x-2 text-blue-800">
-                          <span className="text-lg">💡</span>
-                          <div className="text-sm">
-                            <strong>사용법:</strong> 이미지를 체크박스로 선택한 후 "선택된 이미지 저장" 버튼을 클릭하면 Supabase 스토리지에 저장됩니다. 
-                            마우스 오버 시 확대(🔍) 및 삭제(🗑️) 버튼이 나타납니다.
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   )}
                 
                   <div className="grid gap-4 max-h-96 overflow-y-auto">
                     {scrapedNaverPosts.map((post, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
                         <div className="flex items-start space-x-3">
                           <input
                             type="checkbox"
@@ -3379,31 +3354,40 @@ export default function BlogAdmin() {
                               }
                               setSelectedNaverPosts(newSelected);
                             }}
-                            className="mt-1"
+                            className="mt-1 w-4 h-4 text-blue-600"
                           />
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 text-base leading-tight">{post.title}</h4>
-                            <div className="text-sm text-gray-600 mt-2 space-y-1">
-                              <p><strong>URL:</strong> {post.url || post.originalUrl || 'URL 없음'}</p>
-                              <p><strong>발행일:</strong> {post.publishDate || post.published_at || post.pubDate || '날짜 없음'}</p>
-                              <p><strong>이미지:</strong> {post.images ? post.images.length : 0}개</p>
+                            {/* 제목 */}
+                            <h4 className="font-semibold text-gray-900 text-lg leading-tight mb-3">{post.title}</h4>
+                            
+                            {/* 메타 정보 */}
+                            <div className="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
+                              <div>
+                                <span className="font-medium text-gray-700">📅 발행일:</span>
+                                <div className="text-gray-600">{post.publishDate || post.published_at || post.pubDate || '날짜 없음'}</div>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">🖼️ 이미지:</span>
+                                <div className="text-gray-600">{post.images ? post.images.length : 0}개</div>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">🔗 URL:</span>
+                                <div className="text-gray-600 truncate" title={post.url || post.originalUrl || 'URL 없음'}>
+                                  {post.url || post.originalUrl || 'URL 없음'}
+                                </div>
+                              </div>
                             </div>
                             
-                            {/* 내용 미리보기 추가 */}
+                            {/* 내용 미리보기 */}
                             {post.content && (
                               <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
-                                <h5 className="text-sm font-medium text-gray-700 mb-2">📄 내용 미리보기:</h5>
-                                <div className="text-sm text-gray-600 max-h-32 overflow-y-auto">
-                                  {post.content.length > 200 
-                                    ? post.content.substring(0, 200) + '...' 
+                                <div className="text-sm text-gray-700 leading-relaxed">
+                                  {post.content.length > 300 
+                                    ? post.content.substring(0, 300) + '...' 
                                     : post.content
                                   }
                                 </div>
                               </div>
-                            )}
-                            
-                            {post.featuredImage && (
-                              <img src={post.featuredImage} alt={post.title} className="mt-2 w-32 h-20 object-cover rounded" />
                             )}
                           </div>
                         </div>
