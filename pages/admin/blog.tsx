@@ -3196,6 +3196,9 @@ export default function BlogAdmin() {
                         </h4>
                         <div className="text-sm text-gray-500">
                           총 {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0)}개 이미지
+                          {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0) === 0 && (
+                            <span className="text-red-500 ml-2">(이미지 없음)</span>
+                          )}
                         </div>
                       </div>
                       
@@ -3212,22 +3215,51 @@ export default function BlogAdmin() {
                                     e.target.style.display = 'none';
                                     e.target.nextSibling.style.display = 'flex';
                                   }}
+                                  onLoad={(e) => {
+                                    e.target.style.display = 'block';
+                                    e.target.nextSibling.style.display = 'none';
+                                  }}
+                                  loading="lazy"
                                 />
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
-                                  이미지 로드 실패
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm" style={{display: 'flex'}}>
+                                  <div className="text-center">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-2"></div>
+                                    <div>이미지 로딩 중...</div>
+                                    <button
+                                      onClick={(e) => {
+                                        const img = e.target.closest('.aspect-square').querySelector('img');
+                                        img.src = img.src.split('?')[0] + '?t=' + Date.now();
+                                        img.style.display = 'block';
+                                        e.target.closest('.bg-gray-100').style.display = 'flex';
+                                      }}
+                                      className="mt-2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                                    >
+                                      재시도
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(image.src);
-                                      alert('이미지 URL이 클립보드에 복사되었습니다.');
-                                    }}
-                                    className="bg-white text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-100"
-                                  >
-                                    URL 복사
-                                  </button>
+                                  <div className="flex flex-col space-y-1">
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(image.src);
+                                        alert('이미지 URL이 클립보드에 복사되었습니다.');
+                                      }}
+                                      className="bg-white text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-100"
+                                    >
+                                      URL 복사
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        window.open(image.src, '_blank');
+                                      }}
+                                      className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
+                                    >
+                                      새 창에서 보기
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                               <div className="mt-1 text-xs text-gray-500 truncate">
