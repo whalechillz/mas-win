@@ -169,11 +169,19 @@ export default async function handler(req, res) {
     console.log('문의 이메일 옵션:', mailOptions);
     console.log('자동 응답 이메일 옵션:', autoReplyOptions);
     
-    await transporter.sendMail(mailOptions);
-    console.log('문의 이메일 발송 완료');
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('문의 이메일 발송 완료');
+    } catch (error) {
+      console.error('문의 이메일 발송 실패:', error);
+    }
     
-    await transporter.sendMail(autoReplyOptions);
-    console.log('자동 응답 이메일 발송 완료');
+    try {
+      await transporter.sendMail(autoReplyOptions);
+      console.log('자동 응답 이메일 발송 완료');
+    } catch (error) {
+      console.error('자동 응답 이메일 발송 실패:', error);
+    }
 
     // 로그 기록
     console.log(`MUZIIK 문의 접수: ${type} - ${name} (${email})`);
