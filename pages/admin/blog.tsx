@@ -3129,6 +3129,7 @@ export default function BlogAdmin() {
               )}
 
               {/* 게시물 목록 */}
+              {console.log('🔍 Debug - loading:', loading, 'filteredPosts.length:', filteredPosts.length, 'activeTab:', activeTab, 'posts.length:', posts.length)}
               {loading ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -3136,10 +3137,26 @@ export default function BlogAdmin() {
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">게시물이 없습니다.</p>
+                  <p className="text-gray-500">게시물이 없습니다. (filteredPosts.length: {filteredPosts.length}, posts.length: {posts.length})</p>
+                  <div className="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg">
+                    <p className="text-red-800 text-sm">
+                      <strong>디버그 정보:</strong><br/>
+                      - loading: {loading.toString()}<br/>
+                      - posts.length: {posts.length}<br/>
+                      - filteredPosts.length: {filteredPosts.length}<br/>
+                      - activeTab: {activeTab}<br/>
+                      - searchTerm: "{searchTerm}"<br/>
+                      - selectedCategory: {selectedCategory}
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
+                  <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg">
+                    <p className="text-green-800 text-sm">
+                      <strong>✅ 게시물 렌더링 중:</strong> {filteredPosts.length}개 게시물 표시
+                    </p>
+                  </div>
                   {filteredPosts.map((post) => (
                     <div 
                       key={post.id} 
