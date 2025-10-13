@@ -512,18 +512,32 @@ export default function BlogAdmin() {
         sortOrder: currentSortOrder
       });
       
-      const response = await fetch(`/api/admin/blog?${sortParams}`);
-      const data = await response.json();
+      const response = await fetch(`/api/admin/blog?${sortParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-cache'
+      });
       
-      if (response.ok) {
-        console.log('✅ 게시물 목록 로드 성공:', data.posts?.length || 0, '개');
-        setPosts(data.posts || []);
-      } else {
-        console.error('❌ 게시물 목록 로드 실패:', data.error);
-        alert('게시물을 불러올 수 없습니다: ' + data.error);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+      
+      const data = await response.json();
+      console.log('✅ 게시물 목록 로드 성공:', data.posts?.length || 0, '개');
+      setPosts(data.posts || []);
+      
     } catch (error) {
       console.error('❌ 게시물 목록 로드 에러:', error);
+      // 네트워크 오류인 경우 재시도
+      if (error.message.includes('Failed to fetch')) {
+        console.log('🔄 네트워크 오류로 인한 재시도...');
+        setTimeout(() => {
+          fetchPosts(currentSortBy, currentSortOrder);
+        }, 2000);
+        return;
+      }
       alert('게시물을 불러올 수 없습니다: ' + error.message);
     } finally {
       setLoading(false);
@@ -779,8 +793,11 @@ export default function BlogAdmin() {
 
       const response = await fetch('/api/naver-blog-scraper', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        cache: 'no-cache'
       });
 
       if (!response.ok) {
@@ -828,7 +845,9 @@ export default function BlogAdmin() {
         // 각 포스트를 블로그 포스트로 변환
         const response = await fetch('/api/admin/blog', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             title: post.title,
             content: post.content || post.description || '',
@@ -839,7 +858,8 @@ export default function BlogAdmin() {
             meta_title: post.title,
             meta_description: post.description || '',
             author: '마쓰구골프'
-          })
+          }),
+          cache: 'no-cache'
         });
 
         if (!response.ok) {
