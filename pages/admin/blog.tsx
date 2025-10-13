@@ -425,10 +425,9 @@ export default function BlogAdmin() {
   const [editingPromptId, setEditingPromptId] = useState(null);
   const [editingKoreanPrompt, setEditingKoreanPrompt] = useState('');
   
-  // 네이버 블로그 마이그레이션 관련 상태
+  // 네이버 블로그 마이그레이션 관련 상태 (기존 네이버 블로그용)
   const [showNaverMigration, setShowNaverMigration] = useState(false);
   const [naverBlogUrl, setNaverBlogUrl] = useState('');
-  const [isMigrating, setIsMigrating] = useState(false);
   const [migrationProgress, setMigrationProgress] = useState('');
   const [migratedPosts, setMigratedPosts] = useState([]);
 
