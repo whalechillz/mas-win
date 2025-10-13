@@ -2518,7 +2518,16 @@ export default function BlogAdmin() {
         if (data.success && data.data) {
           // professional API 응답 형식: data.data로 처리
           const post = data.data;
-          console.log('🔍 가져온 포스트 정보:', post);
+          console.log('=== API 응답 전체 ===');
+          console.log('success:', data.success);
+          console.log('data 존재:', !!data.data);
+          console.log('post 전체:', post);
+          console.log('post.title:', post.title);
+          console.log('post.content length:', post.content?.length);
+          console.log('post.images:', post.images);
+          console.log('post.tags:', post.tags);
+          console.log('post.excerpt:', post.excerpt);
+          console.log('=====================');
           
           // professional API는 이미 데이터베이스에 저장하므로
           // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
@@ -2526,9 +2535,12 @@ export default function BlogAdmin() {
             id: post.id,
             title: post.title,
             content: post.content,
+            excerpt: post.excerpt || (post.content ? post.content.substring(0, 200) + '...' : '요약 없음'),
             featured_image: post.featured_image,
             slug: post.slug,
             images: post.images || [],
+            tags: post.tags || [],
+            category: post.category || 'migrated',
             status: 'migrated'
           }]);
           setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
