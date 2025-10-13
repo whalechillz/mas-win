@@ -3184,36 +3184,114 @@ export default function BlogAdmin() {
                     </div>
                   </div>
 
-                  {/* 스크래핑 이미지 갤러리 */}
+                  {/* 스크래핑 이미지 갤러리 - 새 디자인 */}
                   {scrapedNaverPosts.some(post => post.images && post.images.length > 0) && (
-                    <div className="mb-8 p-6 bg-gray-50 rounded-lg border">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                          🖼️ 스크래핑 이미지 갤러리
-                          <span className="ml-2 text-sm text-gray-600">
-                            (저장 전 미리보기)
-                          </span>
-                        </h4>
-                        <div className="text-sm text-gray-500">
-                          총 {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0)}개 이미지
-                          {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0) === 0 && (
-                            <span className="text-red-500 ml-2">(이미지 없음)</span>
-                          )}
+                    <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-lg">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <span className="text-2xl">🖼️</span>
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-bold text-gray-900">
+                              스크래핑 이미지 갤러리
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              저장 전 미리보기 • Supabase 스토리지 저장 가능
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <div className="text-lg font-semibold text-blue-600">
+                              총 {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0)}개
+                            </div>
+                            <div className="text-xs text-gray-500">이미지</div>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              const selectedImages = document.querySelectorAll('input[name="selectedImages"]:checked');
+                              if (selectedImages.length === 0) {
+                                alert('저장할 이미지를 선택해주세요.');
+                                return;
+                              }
+
+                              if (!confirm(`${selectedImages.length}개 이미지를 Supabase 스토리지에 저장하시겠습니까?`)) {
+                                return;
+                              }
+
+                              try {
+                                // 선택된 이미지 데이터 수집
+                                const imagesToSave = [];
+                                selectedImages.forEach(checkbox => {
+                                  const [postIndex, imageIndex] = checkbox.value.split('-').map(Number);
+                                  const post = scrapedNaverPosts[postIndex];
+                                  const image = post.images[imageIndex];
+                                  imagesToSave.push({
+                                    src: image.src,
+                                    fileName: image.fileName || `image_${postIndex}_${imageIndex}.jpg`,
+                                    alt: image.alt || ''
+                                  });
+                                });
+
+                                // API 호출
+                                const response = await fetch('/api/save-images-to-storage', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    images: imagesToSave,
+                                    postTitle: scrapedNaverPosts[0]?.title || 'untitled'
+                                  })
+                                });
+
+                                const result = await response.json();
+
+                                if (result.success) {
+                                  alert(`✅ ${result.totalSaved}개 이미지가 성공적으로 저장되었습니다!`);
+                                  if (result.totalErrors > 0) {
+                                    alert(`⚠️ ${result.totalErrors}개 이미지 저장에 실패했습니다.`);
+                                  }
+                                } else {
+                                  alert(`❌ 이미지 저장에 실패했습니다: ${result.message}`);
+                                }
+
+                              } catch (error) {
+                                console.error('이미지 저장 오류:', error);
+                                alert('❌ 이미지 저장 중 오류가 발생했습니다.');
+                              }
+                            }}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            선택된 이미지 저장
+                          </button>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-96 overflow-y-auto">
                         {scrapedNaverPosts.map((post, postIndex) => 
                           post.images?.map((image, imageIndex) => (
-                            <div key={`${postIndex}-${imageIndex}`} className="relative group">
-                              <div className="aspect-square bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
+                            <div key={`${postIndex}-${imageIndex}`} className="relative group bg-white rounded-lg border-2 border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+                              {/* 체크박스 */}
+                              <div className="absolute top-2 left-2 z-10">
+                                <input
+                                  type="checkbox"
+                                  name="selectedImages"
+                                  value={`${postIndex}-${imageIndex}`}
+                                  className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                                />
+                              </div>
+                              
+                              {/* 이미지 */}
+                              <div className="aspect-square overflow-hidden">
                                 <img
                                   src={`/api/image-proxy?url=${encodeURIComponent(image.src)}`}
                                   alt={image.alt || `이미지 ${imageIndex + 1}`}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                                   onError={(e) => {
                                     console.log('이미지 로드 실패, 원본 URL로 재시도:', image.src);
-                                    e.target.src = image.src; // 원본 URL로 재시도
+                                    e.target.src = image.src;
                                     e.target.onerror = () => {
                                       e.target.style.display = 'none';
                                       e.target.nextSibling.style.display = 'flex';
@@ -3228,58 +3306,68 @@ export default function BlogAdmin() {
                                 <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm" style={{display: 'flex'}}>
                                   <div className="text-center">
                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-2"></div>
-                                    <div>이미지 로딩 중...</div>
-                                    <button
-                                      onClick={(e) => {
-                                        const img = e.target.closest('.aspect-square').querySelector('img');
-                                        const originalUrl = image.src;
-                                        img.src = `/api/image-proxy?url=${encodeURIComponent(originalUrl)}&t=${Date.now()}`;
-                                        img.style.display = 'block';
-                                        e.target.closest('.bg-gray-100').style.display = 'flex';
-                                      }}
-                                      className="mt-2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                                    >
-                                      재시도
-                                    </button>
+                                    <div>로딩 중...</div>
                                   </div>
                                 </div>
                               </div>
-                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  <div className="flex flex-col space-y-1">
-                                    <button
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(image.src);
-                                        alert('이미지 URL이 클립보드에 복사되었습니다.');
-                                      }}
-                                      className="bg-white text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-100"
-                                    >
-                                      URL 복사
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        window.open(image.src, '_blank');
-                                      }}
-                                      className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
-                                    >
-                                      새 창에서 보기
-                                    </button>
-                                  </div>
+                              
+                              {/* 호버 액션 버튼들 */}
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      // 이미지 확대 모달 열기
+                                      const modal = document.getElementById('imageModal');
+                                      const modalImg = document.getElementById('modalImage');
+                                      const modalCaption = document.getElementById('modalCaption');
+                                      if (modal && modalImg && modalCaption) {
+                                        modalImg.src = image.src;
+                                        modalCaption.textContent = image.fileName || `이미지 ${imageIndex + 1}`;
+                                        modal.style.display = 'block';
+                                      }
+                                    }}
+                                    className="p-2 bg-white text-gray-800 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
+                                    title="확대"
+                                  >
+                                    🔍
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (confirm('이미지를 삭제하시겠습니까?')) {
+                                        // 이미지 삭제 로직
+                                        const imageElement = document.querySelector(`[data-image-id="${postIndex}-${imageIndex}"]`);
+                                        if (imageElement) {
+                                          imageElement.style.display = 'none';
+                                        }
+                                      }
+                                    }}
+                                    className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                                    title="삭제"
+                                  >
+                                    🗑️
+                                  </button>
                                 </div>
                               </div>
-                              <div className="mt-1 text-xs text-gray-500 truncate">
-                                {image.fileName || `이미지 ${imageIndex + 1}`}
+                              
+                              {/* 파일명 */}
+                              <div className="p-2 bg-white">
+                                <div className="text-xs text-gray-600 truncate" title={image.fileName || `이미지 ${imageIndex + 1}`}>
+                                  {image.fileName || `이미지 ${imageIndex + 1}`}
+                                </div>
                               </div>
                             </div>
                           ))
                         )}
                       </div>
                       
-                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-blue-800 text-sm">
-                          <strong>💡 사용법:</strong> 이미지를 마우스 오버하면 URL 복사 버튼이 나타납니다. 
-                          복사한 URL을 블로그 작성 시 이미지 삽입에 사용하세요.
-                        </p>
+                      <div className="mt-6 p-4 bg-white rounded-lg border border-blue-200">
+                        <div className="flex items-center space-x-2 text-blue-800">
+                          <span className="text-lg">💡</span>
+                          <div className="text-sm">
+                            <strong>사용법:</strong> 이미지를 체크박스로 선택한 후 "선택된 이미지 저장" 버튼을 클릭하면 Supabase 스토리지에 저장됩니다. 
+                            마우스 오버 시 확대(🔍) 및 삭제(🗑️) 버튼이 나타납니다.
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -5651,6 +5739,26 @@ export default function BlogAdmin() {
         </div>
       )}
 
+      {/* 이미지 확대 모달 */}
+      <div id="imageModal" className="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+        <div className="relative max-w-4xl max-h-full">
+          <button
+            onClick={() => {
+              const modal = document.getElementById('imageModal');
+              if (modal) modal.style.display = 'none';
+            }}
+            className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
+          >
+            ✕
+          </button>
+          <img
+            id="modalImage"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            alt="확대된 이미지"
+          />
+          <div id="modalCaption" className="text-white text-center mt-4 text-lg"></div>
+        </div>
+      </div>
     </>
   );
 }
