@@ -390,9 +390,11 @@ export default async function handler(req, res) {
         title: post.title,
         slug: post.slug,
         content: post.content,
+        excerpt: post.content ? post.content.substring(0, 200) + '...' : '',
         featured_image: post.featured_image,
         images: processedImages,
         tags: extractedTags,
+        category: 'migrated',
         imageCount: processedImages.length,
         tagCount: extractedTags.length,
         status: "complete-migration-success"
