@@ -3208,12 +3208,16 @@ export default function BlogAdmin() {
                             <div key={`${postIndex}-${imageIndex}`} className="relative group">
                               <div className="aspect-square bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
                                 <img
-                                  src={image.src}
+                                  src={`/api/image-proxy?url=${encodeURIComponent(image.src)}`}
                                   alt={image.alt || `이미지 ${imageIndex + 1}`}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'flex';
+                                    console.log('이미지 로드 실패, 원본 URL로 재시도:', image.src);
+                                    e.target.src = image.src; // 원본 URL로 재시도
+                                    e.target.onerror = () => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    };
                                   }}
                                   onLoad={(e) => {
                                     e.target.style.display = 'block';
@@ -3228,7 +3232,8 @@ export default function BlogAdmin() {
                                     <button
                                       onClick={(e) => {
                                         const img = e.target.closest('.aspect-square').querySelector('img');
-                                        img.src = img.src.split('?')[0] + '?t=' + Date.now();
+                                        const originalUrl = image.src;
+                                        img.src = `/api/image-proxy?url=${encodeURIComponent(originalUrl)}&t=${Date.now()}`;
                                         img.style.display = 'block';
                                         e.target.closest('.bg-gray-100').style.display = 'flex';
                                       }}
