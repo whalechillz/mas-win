@@ -2503,15 +2503,15 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationProgress('네이버 블로그를 분석하고 미리보기를 생성하는 중...');
+    setMigrationProgress('Playwright로 네이버 블로그를 강력하게 분석하는 중...');
     setMigratedPosts([]);
       
     try {
-      console.log('🚀 네이버 블로그 마이그레이션 시작:', naverBlogUrl);
+      console.log('🚀 Playwright 네이버 블로그 마이그레이션 시작:', naverBlogUrl);
       
-      // 1단계: 미리보기 API로 데이터 추출 (저장하지 않음)
-      console.log('📡 미리보기 API 요청 시작');
-      const previewResponse = await fetch('/api/migrate-naver-blog-preview', {
+      // Playwright API로 강력한 데이터 추출 (저장함)
+      console.log('📡 Playwright API 요청 시작');
+      const previewResponse = await fetch('/api/migrate-naver-blog-playwright', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
