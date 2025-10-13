@@ -530,15 +530,24 @@ export default function BlogAdmin() {
       
     } catch (error) {
       console.error('❌ 게시물 목록 로드 에러:', error);
-      // 네트워크 오류인 경우 재시도
+      // 네트워크 오류인 경우 재시도 (최대 3회)
       if (error.message.includes('Failed to fetch')) {
         console.log('🔄 네트워크 오류로 인한 재시도...');
-        setTimeout(() => {
-          fetchPosts(currentSortBy, currentSortOrder);
-        }, 2000);
-        return;
+        // 재시도 횟수 제한
+        const retryCount = parseInt(sessionStorage.getItem('fetchRetryCount') || '0');
+        if (retryCount < 3) {
+          sessionStorage.setItem('fetchRetryCount', (retryCount + 1).toString());
+          setTimeout(() => {
+            fetchPosts(currentSortBy, currentSortOrder);
+          }, 2000);
+          return;
+        } else {
+          sessionStorage.removeItem('fetchRetryCount');
+          console.error('❌ 최대 재시도 횟수 초과');
+        }
       }
-      alert('게시물을 불러올 수 없습니다: ' + error.message);
+      // 에러 메시지를 콘솔에만 출력하고 alert는 제거
+      console.error('게시물을 불러올 수 없습니다:', error.message);
     } finally {
       setLoading(false);
     }
@@ -801,7 +810,9 @@ export default function BlogAdmin() {
       });
 
       if (!response.ok) {
-        throw new Error(`스크래핑 실패: HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ 스크래핑 API 응답 오류:', response.status, errorText);
+        throw new Error(`스크래핑 실패: HTTP ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -863,7 +874,9 @@ export default function BlogAdmin() {
         });
 
         if (!response.ok) {
-          throw new Error(`포스트 "${post.title}" 마이그레이션 실패`);
+          const errorText = await response.text();
+          console.error('❌ 마이그레이션 API 응답 오류:', response.status, errorText);
+          throw new Error(`포스트 "${post.title}" 마이그레이션 실패: HTTP ${response.status} - ${errorText}`);
         }
       }
 
