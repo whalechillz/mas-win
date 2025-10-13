@@ -3247,23 +3247,6 @@ export default function BlogAdmin() {
                                   }
                                   alert(successMessage);
                                   
-                                  // 저장된 이미지들을 상태에서 제거
-                                  const savedImageIndices = new Set();
-                                  selectedImages.forEach(checkbox => {
-                                    const [postIndex, imageIndex] = (checkbox as HTMLInputElement).value.split('-').map(Number);
-                                    savedImageIndices.add(`${postIndex}-${imageIndex}`);
-                                  });
-                                  
-                                  // scrapedNaverPosts 상태 업데이트 (저장된 이미지 제거)
-                                  setScrapedNaverPosts(prevPosts => 
-                                    prevPosts.map((post, postIndex) => ({
-                                      ...post,
-                                      images: post.images?.filter((_, imageIndex) => 
-                                        !savedImageIndices.has(`${postIndex}-${imageIndex}`)
-                                      ) || []
-                                    }))
-                                  );
-                                  
                                   // 선택된 체크박스 해제
                                   selectedImages.forEach(checkbox => {
                                     (checkbox as HTMLInputElement).checked = false;
@@ -3274,14 +3257,10 @@ export default function BlogAdmin() {
                                     console.log('🖼️ 저장된 이미지 URLs:', result.savedImageUrls);
                                   }
                                   
-                                  // 갤러리 이미지 새로고침 (저장된 이미지가 갤러리에 표시되도록)
-                                  await fetchGalleryImages();
-                                  
-                                  // 저장된 이미지를 generatedImages에 추가 (블로그 게시물에서 바로 사용 가능)
-                                  if (result.savedImageUrls && result.savedImageUrls.length > 0) {
-                                    setGeneratedImages(prev => [...result.savedImageUrls, ...prev]);
-                                    setShowGeneratedImages(true);
-                                  }
+                                  // 페이지 새로고침으로 갤러리 업데이트
+                                  setTimeout(() => {
+                                    window.location.reload();
+                                  }, 1000);
                                   
                                 } else {
                                   console.error('❌ 저장 실패:', result);
@@ -3345,23 +3324,11 @@ export default function BlogAdmin() {
                               </div>
                               
                               
-                              {/* 파일명 및 액션 버튼 */}
+                              {/* 파일명 */}
                               <div className="p-2 bg-white">
-                                <div className="text-xs text-gray-600 truncate mb-2" title={image.fileName || `이미지 ${imageIndex + 1}`}>
+                                <div className="text-xs text-gray-600 truncate" title={image.fileName || `이미지 ${imageIndex + 1}`}>
                                   {image.fileName || `이미지 ${imageIndex + 1}`}
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedExistingImage(image.src);
-                                    setShowExistingImageModal(true);
-                                    setActiveImageTab('url');
-                                  }}
-                                  className="w-full px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
-                                  title="기존 이미지 변형으로 사용"
-                                >
-                                  🔄 변형
-                                </button>
                               </div>
                             </div>
                           ))
@@ -3414,9 +3381,11 @@ export default function BlogAdmin() {
                             {/* 내용 미리보기 */}
                             {post.content && (
                               <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
-                                <h5 className="text-sm font-medium text-gray-700 mb-2">📄 내용 미리보기:</h5>
-                                <div className="text-sm text-gray-700 leading-relaxed max-h-96 overflow-y-auto">
-                                  {post.content}
+                                <div className="text-sm text-gray-700 leading-relaxed">
+                                  {post.content.length > 300 
+                                    ? post.content.substring(0, 300) + '...' 
+                                    : post.content
+                                  }
                                 </div>
                               </div>
                             )}
@@ -4303,30 +4272,9 @@ export default function BlogAdmin() {
                                   }}
                                     onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                // 네이버 이미지인 경우 프록시 시도
-                                if (imageUrl.includes('pstatic.net') && !imageUrl.includes('/api/image-proxy')) {
-                                  console.log('🔄 네이버 이미지 프록시 시도:', imageUrl);
-                                  target.src = `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
-                                  return;
-                                }
-                                // 프록시도 실패한 경우 플레이스홀더 사용
-                                target.style.display = 'none';
-                                const nextSibling = target.nextSibling as HTMLElement;
-                                if (nextSibling) nextSibling.style.display = 'flex';
-                              }}
-                              onLoad={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'block';
-                                const nextSibling = target.nextSibling as HTMLElement;
-                                if (nextSibling) nextSibling.style.display = 'none';
+                                target.src = '/placeholder-image.jpg';
                               }}
                             />
-                            <div className="w-full h-32 bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded-lg" style={{display: 'none'}}>
-                              <div className="text-center">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400 mx-auto mb-1"></div>
-                                <div>로딩 중...</div>
-                              </div>
-                            </div>
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center p-2">
                                   <button
@@ -4822,30 +4770,9 @@ export default function BlogAdmin() {
                                 className="w-24 h-24 object-cover rounded-lg"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
-                                  // 네이버 이미지인 경우 프록시 시도
-                                  if (selectedExistingImage.includes('pstatic.net') && !selectedExistingImage.includes('/api/image-proxy')) {
-                                    console.log('🔄 네이버 이미지 프록시 시도:', selectedExistingImage);
-                                    target.src = `/api/image-proxy?url=${encodeURIComponent(selectedExistingImage)}`;
-                                    return;
-                                  }
-                                  // 프록시도 실패한 경우 플레이스홀더 사용
-                                  target.style.display = 'none';
-                                  const nextSibling = target.nextSibling as HTMLElement;
-                                  if (nextSibling) nextSibling.style.display = 'flex';
-                                }}
-                                onLoad={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'block';
-                                  const nextSibling = target.nextSibling as HTMLElement;
-                                  if (nextSibling) nextSibling.style.display = 'none';
+                                  target.src = '/placeholder-image.jpg';
                                 }}
                               />
-                              <div className="w-24 h-24 bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded-lg" style={{display: 'none'}}>
-                                <div className="text-center">
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400 mx-auto mb-1"></div>
-                                  <div>로딩 중...</div>
-                                </div>
-                              </div>
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-800">이미지가 선택되었습니다</p>
                                 <p className="text-xs text-gray-600 truncate">{selectedExistingImage}</p>
@@ -4934,30 +4861,9 @@ export default function BlogAdmin() {
                               className="w-full h-24 object-cover rounded-lg border-2 border-transparent group-hover:border-blue-500 transition-colors"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                // 네이버 이미지인 경우 프록시 시도
-                                if (image.url.includes('pstatic.net') && !image.url.includes('/api/image-proxy')) {
-                                  console.log('🔄 네이버 이미지 프록시 시도:', image.url);
-                                  target.src = `/api/image-proxy?url=${encodeURIComponent(image.url)}`;
-                                  return;
-                                }
-                                // 프록시도 실패한 경우 플레이스홀더 사용
-                                target.style.display = 'none';
-                                const nextSibling = target.nextSibling as HTMLElement;
-                                if (nextSibling) nextSibling.style.display = 'flex';
-                              }}
-                              onLoad={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'block';
-                                const nextSibling = target.nextSibling as HTMLElement;
-                                if (nextSibling) nextSibling.style.display = 'none';
+                                target.src = '/placeholder-image.jpg';
                               }}
                             />
-                            <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded-lg" style={{display: 'none'}}>
-                              <div className="text-center">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400 mx-auto mb-1"></div>
-                                <div>로딩 중...</div>
-                              </div>
-                            </div>
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
                               <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                                 선택
