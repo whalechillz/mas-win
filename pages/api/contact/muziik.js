@@ -36,10 +36,10 @@ export default async function handler(req, res) {
     console.log('수량:', quantity);
     console.log('========================');
     
-    // Slack 알림 발송 (기존 작동하는 시스템 적용)
-    const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+    // Slack 알림 발송 (새로운 01-ma-op 채널 웹훅 사용)
+    const SLACK_WEBHOOK_URL_01_MA_OP = process.env.SLACK_WEBHOOK_URL_01_MA_OP;
     
-    if (SLACK_WEBHOOK_URL) {
+    if (SLACK_WEBHOOK_URL_01_MA_OP) {
       try {
         const slackMessage = {
           username: 'MUZIIK 문의봇',
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
           ]
         };
         
-        const response = await fetch(SLACK_WEBHOOK_URL, {
+        const response = await fetch(SLACK_WEBHOOK_URL_01_MA_OP, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(slackMessage)
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
         console.error('Slack 알림 발송 실패:', error);
       }
     } else {
-      console.log('SLACK_WEBHOOK_URL이 설정되지 않음');
+      console.log('SLACK_WEBHOOK_URL_01_MA_OP이 설정되지 않음');
     }
     
     if (!process.env.GMAIL_APP_PASSWORD) {

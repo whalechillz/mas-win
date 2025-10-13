@@ -1,8 +1,8 @@
 async function testMuziikSlackWebhook() {
   const fetch = (await import('node-fetch')).default;
   
-  // 기존 Slack 웹훅 URL 사용 (Vercel 환경 변수에서 확인)
-  const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+  // 새로운 01-ma-op 채널 Slack 웹훅 URL (환경 변수에서 가져옴)
+  const SLACK_WEBHOOK_URL_01_MA_OP = process.env.SLACK_WEBHOOK_URL_01_MA_OP;
   
   const testMessage = {
     username: 'MUZIIK 문의봇',
@@ -61,7 +61,7 @@ async function testMuziikSlackWebhook() {
     console.log('📤 메시지 전송 중...');
     console.log('🎯 대상 채널: #01-ma-op');
     
-    const response = await fetch(SLACK_WEBHOOK_URL, {
+    const response = await fetch(SLACK_WEBHOOK_URL_01_MA_OP, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
