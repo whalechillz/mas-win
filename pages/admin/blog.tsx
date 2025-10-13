@@ -2500,11 +2500,12 @@ export default function BlogAdmin() {
     }
 
     setIsMigrating(true);
-    setMigrationProgress('네이버 블로그를 분석하고 포스트를 가져오는 중...');
+    setMigrationProgress('네이버 블로그를 분석하고 미리보기를 생성하는 중...');
     setMigratedPosts([]);
       
     try {
-      const response = await fetch('/api/migrate-naver-blog-simple', {
+      // 1단계: 미리보기 API로 데이터 추출 (저장하지 않음)
+      const previewResponse = await fetch('/api/migrate-naver-blog-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2512,52 +2513,53 @@ export default function BlogAdmin() {
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (previewResponse.ok) {
+        const previewData = await previewResponse.json();
         
-        if (data.success && data.data) {
-          // simple API 응답 형식: data.data로 처리
-          const post = data.data;
-          console.log('=== Simple API 응답 전체 ===');
-          console.log('success:', data.success);
-          console.log('data 존재:', !!data.data);
+        if (previewData.success && previewData.data) {
+          const post = previewData.data;
+          console.log('=== Preview API 응답 전체 ===');
+          console.log('success:', previewData.success);
+          console.log('data 존재:', !!previewData.data);
           console.log('post 전체:', post);
           console.log('post.title:', post.title);
           console.log('post.content length:', post.content?.length);
           console.log('post.images:', post.images);
           console.log('post.imageCount:', post.imageCount);
+          console.log('post.status:', post.status);
           console.log('============================');
           
-          // simple API는 이미 데이터베이스에 저장하므로
-          // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
+          // 미리보기 데이터를 화면에 표시 (저장하지 않음)
           setMigratedPosts([{
-            id: post.id,
+            id: post.slug, // 임시 ID로 slug 사용
             title: post.title,
             content: post.content,
-            excerpt: post.content ? post.content.substring(0, 200) + '...' : '요약 없음',
+            excerpt: post.excerpt,
             featured_image: post.featured_image,
             slug: post.slug,
             images: post.images || [],
-            tags: ['네이버 블로그', '마이그레이션'],
-            category: 'migrated',
-            status: 'migrated'
+            tags: post.tags || ['네이버 블로그', '마이그레이션'],
+            category: post.category || 'migrated',
+            status: 'preview', // 미리보기 상태
+            url: post.url // 원본 URL 저장
           }]);
-          setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
           
-          // simple API의 상세 정보 표시
-          alert(`🎉 네이버 블로그 포스트를 성공적으로 가져왔습니다!\n\n📝 제목: ${post.title}\n📄 콘텐츠: ${post.content ? post.content.length : 0}자\n🖼️ 이미지: ${post.imageCount || 0}개\n\n💡 포스트가 이미 데이터베이스에 저장되었습니다!`);
+          setMigrationProgress(`✅ 미리보기 데이터를 성공적으로 추출했습니다!`);
+          
+          // 미리보기 정보 표시
+          alert(`🎉 네이버 블로그 미리보기를 성공적으로 생성했습니다!\n\n📝 제목: ${post.title}\n📄 콘텐츠: ${post.content ? post.content.length : 0}자\n🖼️ 이미지: ${post.imageCount || 0}개\n\n💡 아래에서 내용을 확인하고 "저장" 버튼을 클릭하여 실제 저장하세요!`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
         }
       } else {
-        const error = await response.json();
-        throw new Error(error.error || '네이버 블로그 마이그레이션에 실패했습니다.');
+        const error = await previewResponse.json();
+        throw new Error(error.error || '네이버 블로그 미리보기 생성에 실패했습니다.');
       }
     } catch (error) {
-      console.error('네이버 블로그 마이그레이션 오류:', error);
-      setMigrationProgress('❌ 마이그레이션 중 오류가 발생했습니다.');
-      alert('네이버 블로그 마이그레이션 중 오류가 발생했습니다: ' + error.message);
+      console.error('네이버 블로그 미리보기 오류:', error);
+      setMigrationProgress('❌ 미리보기 생성 중 오류가 발생했습니다.');
+      alert('네이버 블로그 미리보기 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsMigrating(false);
     }
@@ -2565,18 +2567,51 @@ export default function BlogAdmin() {
 
   const saveMigratedPost = async (post) => {
     try {
-      // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
-      // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
-      alert(`"${post.title}" 포스트가 이미 데이터베이스에 저장되었습니다!`);
-      
-      // 저장된 포스트를 목록에서 제거
-      setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
-      
-      // 포스트 목록 새로고침
-      fetchPosts();
+      // 미리보기 상태인 경우에만 실제 저장
+      if (post.status === 'preview') {
+        console.log('💾 미리보기 포스트를 실제 저장 중:', post.title);
+        
+        // 실제 저장 API 호출
+        const saveResponse = await fetch('/api/migrate-naver-blog-simple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            url: post.url // 원본 URL 사용
+          })
+        });
+
+        if (saveResponse.ok) {
+          const saveData = await saveResponse.json();
+          
+          if (saveData.success && saveData.data) {
+            const savedPost = saveData.data;
+            alert(`🎉 "${post.title}" 포스트를 성공적으로 저장했습니다!\n\n📝 제목: ${savedPost.title}\n📄 콘텐츠: ${savedPost.content ? savedPost.content.length : 0}자\n🖼️ 이미지: ${savedPost.imageCount || 0}개`);
+            
+            // 저장된 포스트를 목록에서 제거
+            setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+            
+            // 포스트 목록 새로고침
+            fetchPosts();
+          } else {
+            throw new Error('저장 응답 데이터가 올바르지 않습니다.');
+          }
+        } else {
+          const error = await saveResponse.json();
+          throw new Error(error.error || '저장에 실패했습니다.');
+        }
+      } else {
+        // 이미 저장된 포스트인 경우
+        alert(`"${post.title}" 포스트가 이미 데이터베이스에 저장되어 있습니다!`);
+        
+        // 저장된 포스트를 목록에서 제거
+        setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+        
+        // 포스트 목록 새로고침
+        fetchPosts();
+      }
     } catch (error) {
-      console.error('포스트 처리 오류:', error);
-      alert('포스트 처리 중 오류가 발생했습니다: ' + error.message);
+      console.error('포스트 저장 오류:', error);
+      alert('포스트 저장 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
@@ -2586,15 +2621,28 @@ export default function BlogAdmin() {
       return;
     }
 
-    // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
-    // 여기서는 목록에서 제거하고 새로고침만 수행
-    alert(`${migratedPosts.length}개의 포스트가 이미 데이터베이스에 저장되었습니다!`);
+    // 미리보기 상태인 포스트들만 필터링
+    const previewPosts = migratedPosts.filter(post => post.status === 'preview');
     
-    // 저장된 포스트들을 목록에서 제거
-    setMigratedPosts([]);
-    
-    // 포스트 목록 새로고침
-    fetchPosts();
+    if (previewPosts.length === 0) {
+      alert('저장할 미리보기 포스트가 없습니다.');
+      return;
+    }
+
+    try {
+      console.log(`💾 ${previewPosts.length}개의 미리보기 포스트를 저장 중...`);
+      
+      // 각 미리보기 포스트를 순차적으로 저장
+      for (const post of previewPosts) {
+        await saveMigratedPost(post);
+      }
+      
+      alert(`🎉 ${previewPosts.length}개의 포스트를 모두 저장했습니다!`);
+      
+    } catch (error) {
+      console.error('일괄 저장 오류:', error);
+      alert('일괄 저장 중 오류가 발생했습니다: ' + error.message);
+    }
   };
 
   // 고급 기능 함수들
@@ -3863,51 +3911,88 @@ export default function BlogAdmin() {
                               disabled={isMigrating}
                               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       >
-                              {isMigrating ? '저장 중...' : '모두 저장'}
+                              {isMigrating ? '저장 중...' : 
+                               migratedPosts.some(p => p.status === 'preview') ? '미리보기 모두 저장' : '모두 저장'}
                         </button>
                     </div>
 
                           <div className="space-y-3 max-h-96 overflow-y-auto">
                             {migratedPosts.map((post) => (
-                              <div key={post.id} className="border border-gray-200 rounded-lg p-4">
+                              <div key={post.id} className={`border rounded-lg p-4 ${
+                                post.status === 'preview' 
+                                  ? 'border-yellow-300 bg-yellow-50' 
+                                  : 'border-green-300 bg-green-50'
+                              }`}>
+                                {/* 상태 표시 배지 */}
+                                <div className="mb-3">
+                                  {post.status === 'preview' ? (
+                                    <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center">
+                                      📋 미리보기 모드 - 저장 버튼을 클릭하여 실제 저장하세요
+                                    </div>
+                                  ) : (
+                                    <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center">
+                                      ✅ 데이터베이스에 저장됨
+                                    </div>
+                                  )}
+                                </div>
+
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
                                     <h5 className="font-medium text-gray-900 mb-2">{post.title}</h5>
                                     <div className="text-sm text-gray-600 mb-2">
                                       <p className="line-clamp-2">{post.excerpt || '요약이 없습니다.'}</p>
-                  </div>
+                                    </div>
                                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                                       <span>카테고리: {post.category || 'migrated'}</span>
                                       <span>태그: {post.tags ? post.tags.join(', ') : '없음'}</span>
                                       {post.featured_image && (
                                         <span className="text-green-600">이미지 포함</span>
-                        )}
-                      </div>
-                    </div>
+                                      )}
+                                      {post.images && post.images.length > 0 && (
+                                        <span className="text-blue-600">이미지 {post.images.length}개</span>
+                                      )}
+                                    </div>
+                                  </div>
 
                                   <div className="flex flex-col space-y-2 ml-4">
-                      <button 
-                        type="button"
-                                      onClick={() => saveMigratedPost(post)}
-                className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
-              >
-                                      💾 저장
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => {
-                                        if (confirm('이 포스트를 제거하시겠습니까?')) {
-                                          setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
-                  }
-                        }}
-                className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
-                      >
-                                      🗑️ 제거
-                      </button>
-                    </div>
-                  </div>
-                      </div>
-                    ))}
+                                    {post.status === 'preview' ? (
+                                      <>
+                                        <button 
+                                          type="button"
+                                          onClick={() => saveMigratedPost(post)}
+                                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                                        >
+                                          💾 저장
+                                        </button>
+                                        <button 
+                                          type="button"
+                                          onClick={() => {
+                                            if (confirm('이 포스트를 제거하시겠습니까?')) {
+                                              setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+                                            }
+                                          }}
+                                          className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                                        >
+                                          🗑️ 제거
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                          if (confirm('이 포스트를 목록에서 제거하시겠습니까?')) {
+                                            setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+                                          }
+                                        }}
+                                        className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+                                      >
+                                        🗑️ 목록에서 제거
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                       </div>
                     </div>
                   )}
