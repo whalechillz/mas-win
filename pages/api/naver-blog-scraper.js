@@ -11,23 +11,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { blogId, postUrls, options = {} } = req.body;
+  const { blogId, postUrls, urls, options = {} } = req.body;
+  
+  // 프론트엔드에서 urls로 전송하는 경우 postUrls로 변환
+  const finalPostUrls = postUrls || urls;
 
-  if (!blogId && !postUrls) {
+  if (!blogId && !finalPostUrls) {
     return res.status(400).json({ error: '블로그 ID 또는 포스트 URL이 필요합니다.' });
   }
 
   try {
-    console.log('🔵 네이버 블로그 스크래핑 시작:', { blogId, postUrls });
+    console.log('🔵 네이버 블로그 스크래핑 시작:', { blogId, finalPostUrls });
 
     let posts = [];
 
     if (blogId) {
       // 1. 블로그 ID로 RSS 피드에서 포스트 목록 가져오기
       posts = await getBlogPostsFromRSS(blogId);
-    } else if (postUrls && Array.isArray(postUrls)) {
+    } else if (finalPostUrls && Array.isArray(finalPostUrls)) {
       // 2. 직접 제공된 포스트 URL들 처리
-      posts = await scrapeMultiplePosts(postUrls);
+      posts = await scrapeMultiplePosts(finalPostUrls);
     }
 
     console.log(`📊 총 ${posts.length}개 포스트 처리 완료`);
