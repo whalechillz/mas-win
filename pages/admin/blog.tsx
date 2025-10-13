@@ -5494,7 +5494,14 @@ export default function BlogAdmin() {
                         />
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900">{post.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{post.description || '설명 없음'}</p>
+                          <div className="text-sm text-gray-600 mt-1 space-y-1">
+                            <p><strong>URL:</strong> {post.url || post.originalUrl || 'URL 없음'}</p>
+                            <p><strong>발행일:</strong> {post.publishDate || post.published_at || post.pubDate || '날짜 없음'}</p>
+                            <p><strong>이미지:</strong> {post.images ? post.images.length : 0}개</p>
+                            {post.description && (
+                              <p className="text-gray-500 mt-2">{post.description}</p>
+                            )}
+                          </div>
                           {post.featuredImage && (
                             <img src={post.featuredImage} alt={post.title} className="mt-2 w-32 h-20 object-cover rounded" />
                           )}
