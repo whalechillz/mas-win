@@ -150,7 +150,15 @@ export default async function handler(req, res) {
     const mailOptions = {
       from: 'massgoogolf@gmail.com',
       to: 'massgoogolf@gmail.com',
-      subject: `${getSubject(type, language)} - ${name}`,
+      subject: `[MUZIIK 문의] ${name} - ${inquiryType}`,
+      text: `
+문의 유형: ${type}
+이름: ${name}
+이메일: ${email}
+전화번호: ${phone || '없음'}
+문의 유형: ${inquiryType}
+문의 내용: ${message}
+      `,
       html: createEmailTemplate(req.body, language),
     };
 
