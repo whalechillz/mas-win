@@ -22,10 +22,22 @@ export default async function handler(req, res) {
     // Gmail App Password 확인
     console.log('Gmail App Password 설정 상태:', process.env.GMAIL_APP_PASSWORD ? '설정됨' : '설정되지 않음');
     
+    // 임시로 이메일 발송 없이 로그만 기록
+    console.log('=== MUZIIK 문의 접수 ===');
+    console.log('문의 유형:', type);
+    console.log('언어:', language);
+    console.log('이름:', name);
+    console.log('이메일:', email);
+    console.log('전화번호:', phone);
+    console.log('회사명:', company);
+    console.log('사업자번호:', businessNumber);
+    console.log('문의 유형:', inquiryType);
+    console.log('문의 내용:', message);
+    console.log('수량:', quantity);
+    console.log('========================');
+    
     if (!process.env.GMAIL_APP_PASSWORD) {
-      console.log('Gmail App Password가 설정되지 않음. 문의 내용:', {
-        type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
-      });
+      console.log('Gmail App Password가 설정되지 않음. 이메일 발송 건너뜀.');
       
       return res.status(200).json({ 
         success: true, 
