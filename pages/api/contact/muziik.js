@@ -36,6 +36,34 @@ export default async function handler(req, res) {
     console.log('수량:', quantity);
     console.log('========================');
     
+    // Slack 알림 발송 (대안)
+    if (process.env.SLACK_WEBHOOK_URL) {
+      try {
+        const slackMessage = {
+          text: `🚨 MUZIIK 문의 접수`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*새로운 MUZIIK 문의가 접수되었습니다!*\n\n*이름:* ${name}\n*이메일:* ${email}\n*전화번호:* ${phone || '없음'}\n*문의 유형:* ${inquiryType}\n*문의 내용:* ${message}`
+              }
+            }
+          ]
+        };
+        
+        await fetch(process.env.SLACK_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(slackMessage)
+        });
+        
+        console.log('Slack 알림 발송 완료');
+      } catch (error) {
+        console.error('Slack 알림 발송 실패:', error);
+      }
+    }
+    
     if (!process.env.GMAIL_APP_PASSWORD) {
       console.log('Gmail App Password가 설정되지 않음. 이메일 발송 건너뜀.');
       
