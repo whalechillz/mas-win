@@ -8,8 +8,6 @@ import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
-import PostList from '../../components/admin/PostList';
-import PostGrid from '../../components/admin/PostGrid';
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
@@ -3135,33 +3133,83 @@ export default function BlogAdmin() {
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                   <p className="mt-2 text-gray-500">게시물을 불러오는 중...</p>
-              </div>
+                </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-500">게시물이 없습니다.</p>
                 </div>
-                    ) : (
-                      <>
-                  {viewMode === 'list' ? (
-                    <PostList
-                      posts={filteredPosts}
-                      selectedPosts={selectedPosts}
-                      onPostSelect={handlePostSelect}
-                      onSelectAll={handleSelectAll}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ) : (
-                    <PostGrid
-                      posts={filteredPosts}
-                      selectedPosts={selectedPosts}
-                      onPostSelect={handlePostSelect}
-                      onSelectAll={handleSelectAll}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  )}
-                </>
+              ) : (
+                <div className="space-y-4">
+                  {filteredPosts.map((post) => (
+                    <div 
+                      key={post.id} 
+                      className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                        selectedPosts.includes(post.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start space-x-3 flex-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedPosts.includes(post.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handlePostSelect(post.id);
+                            }}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                              {post.title}
+                            </h3>
+                            <p className="text-gray-600 text-sm mb-2">
+                              {post.excerpt}
+                            </p>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                              <span>카테고리: {post.category}</span>
+                              <span>작성자: {post.author}</span>
+                              <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
+                              <span>조회수: {post.view_count || 0}</span>
+                              {post.is_featured && (
+                                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                                  추천
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            post.status === 'published' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
+                          </span>
+                          <button
+                            onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                            className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors flex items-center space-x-1"
+                          >
+                            <span>👁️</span>
+                            <span>보기</span>
+                          </button>
+                          <button
+                            onClick={() => handleEdit(post)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDelete(post.id)}
+                            className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
