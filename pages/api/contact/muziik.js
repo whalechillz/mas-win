@@ -19,7 +19,9 @@ export default async function handler(req, res) {
       type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
     });
 
-    // Gmail App Password가 설정되지 않은 경우 로그만 기록하고 즉시 응답
+    // Gmail App Password 확인
+    console.log('Gmail App Password 설정 상태:', process.env.GMAIL_APP_PASSWORD ? '설정됨' : '설정되지 않음');
+    
     if (!process.env.GMAIL_APP_PASSWORD) {
       console.log('Gmail App Password가 설정되지 않음. 문의 내용:', {
         type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
@@ -163,8 +165,15 @@ export default async function handler(req, res) {
     };
 
     // 이메일 발송
+    console.log('이메일 발송 시작...');
+    console.log('문의 이메일 옵션:', mailOptions);
+    console.log('자동 응답 이메일 옵션:', autoReplyOptions);
+    
     await transporter.sendMail(mailOptions);
+    console.log('문의 이메일 발송 완료');
+    
     await transporter.sendMail(autoReplyOptions);
+    console.log('자동 응답 이메일 발송 완료');
 
     // 로그 기록
     console.log(`MUZIIK 문의 접수: ${type} - ${name} (${email})`);
