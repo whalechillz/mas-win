@@ -107,7 +107,12 @@ export default async function handler(req, res) {
       savedImages: savedImages,
       errors: errors,
       totalSaved: savedImages.length,
-      totalErrors: errors.length
+      totalErrors: errors.length,
+      // 갤러리 업데이트를 위한 정보 추가
+      galleryUpdate: {
+        message: `${savedImages.length}개 이미지가 갤러리에 저장되었습니다.`,
+        savedUrls: savedImages.map(img => img.publicUrl)
+      }
     });
 
   } catch (error) {
