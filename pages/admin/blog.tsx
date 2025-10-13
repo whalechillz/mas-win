@@ -3070,6 +3070,228 @@ export default function BlogAdmin() {
           </div>
 
           {/* 탭별 콘텐츠 */}
+          {activeTab === 'naver-scraper' && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              🔵 네이버 블로그 스크래퍼
+            </h2>
+            <p className="text-gray-600 mb-6">
+              RSS 피드 기반으로 네이버 블로그의 모든 포스트를 자동으로 수집하고 스크래핑합니다.
+            </p>
+            
+            {/* 모드 선택 */}
+            <div className="mb-6">
+              <div className="flex justify-center space-x-6">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="urls"
+                    checked={naverScraperMode === 'urls'}
+                    onChange={(e) => setNaverScraperMode(e.target.value)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium">📝 URL 직접 입력</span>
+                  <span className="ml-2 text-xs text-gray-500">(개별 포스트)</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="blogId"
+                    checked={naverScraperMode === 'blogId'}
+                    onChange={(e) => setNaverScraperMode(e.target.value)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium">📚 블로그 ID로 수집</span>
+                  <span className="ml-2 text-xs text-gray-500">(전체 블로그)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 입력 필드 */}
+            <div className="space-y-4">
+              {naverScraperMode === 'blogId' ? (
+                <div className="max-w-md mx-auto">
+                  <input
+                    type="text"
+                    value={naverBlogId}
+                    onChange={(e) => setNaverBlogId(e.target.value)}
+                    placeholder="massgoogolf (블로그 ID만 입력)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isScrapingNaver}
+                  />
+                  <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800 font-medium mb-1">📚 블로그 ID로 수집 기능</p>
+                    <p className="text-xs text-blue-600">
+                      • RSS 피드에서 최근 10개 포스트를 자동으로 가져옵니다<br/>
+                      • 예: https://blog.naver.com/massgoogolf → massgoogolf<br/>
+                      • 전체 블로그의 모든 포스트를 한 번에 처리합니다
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="max-w-2xl mx-auto">
+                  <textarea
+                    value={naverPostUrls}
+                    onChange={(e) => setNaverPostUrls(e.target.value)}
+                    placeholder="네이버 블로그 포스트 URL들을 한 줄씩 입력하세요&#10;https://blog.naver.com/massgoogolf/223958579134&#10;https://blog.naver.com/massgoogolf/223958579135"
+                    rows={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isScrapingNaver}
+                  />
+                  <div className="mt-2 p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800 font-medium mb-1">📝 URL 직접 입력 기능</p>
+                    <p className="text-xs text-green-600">
+                      • 개별 포스트 URL을 직접 입력하여 정확하게 가져옵니다<br/>
+                      • 여러 포스트를 한 번에 처리할 수 있습니다<br/>
+                      • 우선적으로 이 방법을 사용하세요
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <button 
+                onClick={handleNaverBlogScrape}
+                disabled={isScrapingNaver || (!naverBlogId && !naverPostUrls)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isScrapingNaver ? '스크래핑 중...' : '🔍 네이버 블로그 스크래핑 시작'}
+              </button>
+            </div>
+
+              {/* 스크래핑 결과 */}
+              {scrapedNaverPosts.length > 0 && (
+                <div className="mt-8 text-left">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      스크래핑 결과 ({scrapedNaverPosts.length}개 포스트)
+                    </h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handleSelectAllNaverPosts}
+                        className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                      >
+                        {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
+                      </button>
+                      {selectedNaverPosts.size > 0 && (
+                        <button
+                          onClick={handleNaverPostMigration}
+                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          선택된 {selectedNaverPosts.size}개 마이그레이션
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 스크래핑 이미지 갤러리 */}
+                  {scrapedNaverPosts.some(post => post.images && post.images.length > 0) && (
+                    <div className="mb-8 p-6 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                          🖼️ 스크래핑 이미지 갤러리
+                          <span className="ml-2 text-sm text-gray-600">
+                            (저장 전 미리보기)
+                          </span>
+                        </h4>
+                        <div className="text-sm text-gray-500">
+                          총 {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0)}개 이미지
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+                        {scrapedNaverPosts.map((post, postIndex) => 
+                          post.images?.map((image, imageIndex) => (
+                            <div key={`${postIndex}-${imageIndex}`} className="relative group">
+                              <div className="aspect-square bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
+                                <img
+                                  src={image.src}
+                                  alt={image.alt || `이미지 ${imageIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
+                                  이미지 로드 실패
+                                </div>
+                              </div>
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(image.src);
+                                      alert('이미지 URL이 클립보드에 복사되었습니다.');
+                                    }}
+                                    className="bg-white text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-100"
+                                  >
+                                    URL 복사
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="mt-1 text-xs text-gray-500 truncate">
+                                {image.fileName || `이미지 ${imageIndex + 1}`}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-blue-800 text-sm">
+                          <strong>💡 사용법:</strong> 이미지를 마우스 오버하면 URL 복사 버튼이 나타납니다. 
+                          복사한 URL을 블로그 작성 시 이미지 삽입에 사용하세요.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                
+                <div className="grid gap-4 max-h-96 overflow-y-auto">
+                  {scrapedNaverPosts.map((post, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedNaverPosts.has(index)}
+                          onChange={() => {
+                            const newSelected = new Set(selectedNaverPosts);
+                            if (newSelected.has(index)) {
+                              newSelected.delete(index);
+                            } else {
+                              newSelected.add(index);
+                            }
+                            setSelectedNaverPosts(newSelected);
+                          }}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 text-base leading-tight">{post.title}</h4>
+                          <div className="text-sm text-gray-600 mt-2 space-y-1">
+                            <p><strong>URL:</strong> {post.url || post.originalUrl || 'URL 없음'}</p>
+                            <p><strong>발행일:</strong> {post.publishDate || post.published_at || post.pubDate || '날짜 없음'}</p>
+                            <p><strong>이미지:</strong> {post.images ? post.images.length : 0}개</p>
+                          </div>
+                          {post.featuredImage && (
+                            <img src={post.featuredImage} alt={post.title} className="mt-2 w-32 h-20 object-cover rounded" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {naverScrapingStatus && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-blue-800 text-sm">{naverScrapingStatus}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
           {activeTab === 'list' && (
             <div className="bg-white rounded-lg shadow-md p-6">
               {/* 검색 및 필터 */}
@@ -5392,232 +5614,6 @@ export default function BlogAdmin() {
         </div>
       )}
 
-      {/* 네이버 블로그 스크래퍼 탭 */}
-      {activeTab === 'naver-scraper' && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              🔵 네이버 블로그 스크래퍼
-            </h2>
-            <p className="text-gray-600 mb-6">
-              RSS 피드 기반으로 네이버 블로그의 모든 포스트를 자동으로 수집하고 스크래핑합니다.
-            </p>
-            
-            {/* 모드 선택 */}
-            <div className="mb-6">
-              <div className="flex justify-center space-x-6">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="urls"
-                    checked={naverScraperMode === 'urls'}
-                    onChange={(e) => setNaverScraperMode(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium">📝 URL 직접 입력</span>
-                  <span className="ml-2 text-xs text-gray-500">(개별 포스트)</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="blogId"
-                    checked={naverScraperMode === 'blogId'}
-                    onChange={(e) => setNaverScraperMode(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium">📚 블로그 ID로 수집</span>
-                  <span className="ml-2 text-xs text-gray-500">(전체 블로그)</span>
-                </label>
-              </div>
-            </div>
-
-            {/* 입력 필드 */}
-            <div className="space-y-4">
-              {naverScraperMode === 'blogId' ? (
-                <div className="max-w-md mx-auto">
-                  <input
-                    type="text"
-                    value={naverBlogId}
-                    onChange={(e) => setNaverBlogId(e.target.value)}
-                    placeholder="massgoogolf (블로그 ID만 입력)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={isScrapingNaver}
-                  />
-                  <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800 font-medium mb-1">📚 블로그 ID로 수집 기능</p>
-                    <p className="text-xs text-blue-600">
-                      • RSS 피드에서 최근 10개 포스트를 자동으로 가져옵니다<br/>
-                      • 예: https://blog.naver.com/massgoogolf → massgoogolf<br/>
-                      • 전체 블로그의 모든 포스트를 한 번에 처리합니다
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="max-w-2xl mx-auto">
-                  <textarea
-                    value={naverPostUrls}
-                    onChange={(e) => setNaverPostUrls(e.target.value)}
-                    placeholder="네이버 블로그 포스트 URL들을 한 줄씩 입력하세요&#10;https://blog.naver.com/massgoogolf/223958579134&#10;https://blog.naver.com/massgoogolf/223958579135"
-                    rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={isScrapingNaver}
-                  />
-                  <div className="mt-2 p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800 font-medium mb-1">📝 URL 직접 입력 기능</p>
-                    <p className="text-xs text-green-600">
-                      • 개별 포스트 URL을 직접 입력하여 정확하게 가져옵니다<br/>
-                      • 여러 포스트를 한 번에 처리할 수 있습니다<br/>
-                      • 우선적으로 이 방법을 사용하세요
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              <button 
-                onClick={handleNaverBlogScrape}
-                disabled={isScrapingNaver || (!naverBlogId && !naverPostUrls)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isScrapingNaver ? '스크래핑 중...' : '🔍 네이버 블로그 스크래핑 시작'}
-              </button>
-            </div>
-
-              {/* 스크래핑 결과 */}
-              {scrapedNaverPosts.length > 0 && (
-                <div className="mt-8 text-left">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      스크래핑 결과 ({scrapedNaverPosts.length}개 포스트)
-                    </h3>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={handleSelectAllNaverPosts}
-                        className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                      >
-                        {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
-                      </button>
-                      {selectedNaverPosts.size > 0 && (
-                        <button
-                          onClick={handleNaverPostMigration}
-                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                          선택된 {selectedNaverPosts.size}개 마이그레이션
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 스크래핑 이미지 갤러리 */}
-                  {scrapedNaverPosts.some(post => post.images && post.images.length > 0) && (
-                    <div className="mb-8 p-6 bg-gray-50 rounded-lg border">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                          🖼️ 스크래핑 이미지 갤러리
-                          <span className="ml-2 text-sm text-gray-600">
-                            (저장 전 미리보기)
-                          </span>
-                        </h4>
-                        <div className="text-sm text-gray-500">
-                          총 {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0)}개 이미지
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
-                        {scrapedNaverPosts.map((post, postIndex) => 
-                          post.images?.map((image, imageIndex) => (
-                            <div key={`${postIndex}-${imageIndex}`} className="relative group">
-                              <div className="aspect-square bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
-                                <img
-                                  src={image.src}
-                                  alt={image.alt || `이미지 ${imageIndex + 1}`}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'flex';
-                                  }}
-                                />
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
-                                  이미지 로드 실패
-                                </div>
-                              </div>
-                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  <button
-                                    onClick={() => {
-                                      // 이미지를 클립보드에 복사하거나 다운로드
-                                      navigator.clipboard.writeText(image.src);
-                                      alert('이미지 URL이 클립보드에 복사되었습니다.');
-                                    }}
-                                    className="bg-white text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-100"
-                                  >
-                                    URL 복사
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="mt-1 text-xs text-gray-500 truncate">
-                                {image.fileName || `이미지 ${imageIndex + 1}`}
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      
-                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-blue-800 text-sm">
-                          <strong>💡 사용법:</strong> 이미지를 마우스 오버하면 URL 복사 버튼이 나타납니다. 
-                          복사한 URL을 블로그 작성 시 이미지 삽입에 사용하세요.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                
-                <div className="grid gap-4 max-h-96 overflow-y-auto">
-                  {scrapedNaverPosts.map((post, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedNaverPosts.has(index)}
-                          onChange={() => {
-                            const newSelected = new Set(selectedNaverPosts);
-                            if (newSelected.has(index)) {
-                              newSelected.delete(index);
-                            } else {
-                              newSelected.add(index);
-                            }
-                            setSelectedNaverPosts(newSelected);
-                          }}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{post.title}</h4>
-                          <div className="text-sm text-gray-600 mt-1 space-y-1">
-                            <p><strong>URL:</strong> {post.url || post.originalUrl || 'URL 없음'}</p>
-                            <p><strong>발행일:</strong> {post.publishDate || post.published_at || post.pubDate || '날짜 없음'}</p>
-                            <p><strong>이미지:</strong> {post.images ? post.images.length : 0}개</p>
-                            {post.description && (
-                              <p className="text-gray-500 mt-2">{post.description}</p>
-                            )}
-                          </div>
-                          {post.featuredImage && (
-                            <img src={post.featuredImage} alt={post.title} className="mt-2 w-32 h-20 object-cover rounded" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {naverScrapingStatus && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-800 text-sm">{naverScrapingStatus}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
