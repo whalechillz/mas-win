@@ -3187,7 +3187,10 @@ export default function BlogAdmin() {
                             {post.status === 'published' ? '📢 발행됨' : '📝 초안'}
                           </span>
                           <button
-                            onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                            onClick={() => {
+                              const slug = post.slug || post.id || 'unknown';
+                              window.open(`/blog/${slug}`, '_blank');
+                            }}
                             className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors flex items-center space-x-1"
                           >
                             <span>👁️</span>

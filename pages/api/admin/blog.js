@@ -52,7 +52,13 @@ export default async function handler(req, res) {
       console.log('📝 새 게시물 생성 중...');
       
       const postData = req.body;
-      console.log('게시물 데이터:', postData);
+      console.log('게시물 데이터:', JSON.stringify(postData, null, 2));
+      
+      // 필수 필드 검증
+      if (!postData.title) {
+        console.error('❌ 제목이 없습니다:', postData);
+        return res.status(400).json({ error: '제목은 필수입니다.' });
+      }
       
       const { data: newPost, error } = await supabase
         .from('blog_posts')
