@@ -1,10 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
+import OpenAI from "openai";
 
 // Supabase 클라이언트 생성
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export default async function handler(req, res) {
   // CORS 헤더 설정
@@ -362,16 +367,83 @@ export default async function handler(req, res) {
     console.log('🖼️ 추출된 이미지 개수:', images.length);
     console.log('🖼️ 이미지 URL들:', images.slice(0, 3)); // 처음 3개만 로그
 
-    // 6. 슬러그 생성 (저장하지 않으므로 임시)
+    // 6. AI로 콘텐츠 정제 (미리보기용)
+    console.log('🤖 AI 콘텐츠 정제 시작...');
+    let aiProcessedContent = content;
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `당신은 전문적인 블로그 콘텐츠 편집자입니다. 
+            
+다음 작업을 수행해주세요:
+1. 원본 텍스트에서 실제 블로그 콘텐츠만 추출 (메뉴, 네비게이션 제외)
+2. **절대 중복 제목을 만들지 마세요** - 원본 제목과 유사한 제목은 모두 제거
+3. 본문을 논리적인 단락으로 구성 (H2, H3 제목 포함)
+4. 모든 실제 콘텐츠를 포함 (하단 내용 누락 방지)
+5. 메뉴나 네비게이션 텍스트는 완전히 제거
+6. 마크다운 형식으로 출력
+
+**제목 처리 규칙:**
+- 원본 제목과 유사한 모든 제목은 제거
+- 소제목은 원본 제목과 완전히 다른 내용만 사용
+
+중요: 다음 텍스트들은 제거하세요:
+- "시리즈", "제품 모아보기", "시타신청", "이벤트", "더 보기"
+- "top of page" 같은 네비게이션 텍스트
+- 메뉴 관련 모든 텍스트
+- 원본 제목과 유사한 모든 제목
+
+출력 형식:
+# 제목 (원본 제목만 사용)
+
+## 소제목 (원본 제목과 완전히 다른 내용)
+
+본문 내용...
+
+## 소제목 (원본 제목과 완전히 다른 내용)
+
+본문 내용...
+
+### 태그
+태그1, 태그2, 태그3`
+          },
+          {
+            role: "user",
+            content: `원본 제목: ${title}
+
+원본 텍스트:
+${content}
+
+원본 태그:
+${extractedTags.join(", ")}
+
+위 내용을 전문적인 블로그 포스트로 정제해주세요.`
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.3
+      });
+
+      aiProcessedContent = response.choices[0].message.content;
+      console.log('✅ AI 콘텐츠 정제 완료');
+    } catch (error) {
+      console.error('AI 콘텐츠 정제 오류:', error);
+      // AI 실패 시 원본 콘텐츠 사용
+    }
+
+    // 7. 슬러그 생성 (저장하지 않으므로 임시)
     const timestamp = Date.now();
     const slug = `${title.replace(/[^a-zA-Z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}-${timestamp}`;
 
-    // 7. 미리보기 데이터 반환 (저장하지 않음)
+    // 8. 미리보기 데이터 반환 (저장하지 않음)
     const previewData = {
       title: title,
       slug: slug,
-      content: content,
-      excerpt: content.length > 200 ? content.substring(0, 200) + '...' : content,
+      content: aiProcessedContent,
+      excerpt: aiProcessedContent.length > 200 ? aiProcessedContent.substring(0, 200) + '...' : aiProcessedContent,
       featured_image: images.length > 0 ? images[0] : null,
       images: images,
       imageCount: images.length,

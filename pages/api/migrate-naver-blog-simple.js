@@ -5,11 +5,16 @@
 
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
+import OpenAI from 'openai';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export default async function handler(req, res) {
   // CORS 헤더 설정
@@ -355,7 +360,15 @@ export default async function handler(req, res) {
 
     const featuredProcessed = processedImages.find(i => i.status === 'success')?.processedUrl || images[0] || null;
 
-    // 7. 고유 slug 생성
+    // 7. AI로 완전한 콘텐츠 정제 (기존 professional 버전 로직)
+    console.log('🤖 AI 콘텐츠 정제 시작...');
+    const structuredContent = await generateCompleteContent(title, content, extractedTags, processedImages);
+    
+    // 7.1. 중복 제목 제거 (추가 안전장치)
+    const cleanedContent = removeDuplicateTitles(structuredContent, title);
+    console.log(`📝 중복 제목 제거 완료`);
+
+    // 8. 고유 slug 생성
     const baseSlug = title.toLowerCase()
       .replace(/[^a-z0-9가-힣\s]/g, '')
       .replace(/\s+/g, '-')
@@ -363,13 +376,13 @@ export default async function handler(req, res) {
     const timestamp = Date.now();
     const slug = `${baseSlug}-${timestamp}`;
 
-    // 7. 데이터베이스에 저장
+    // 9. 데이터베이스에 저장
     const { data: post, error: insertError } = await supabase
       .from('blog_posts')
       .insert({
         title: title,
         slug: slug,
-        content: content || '콘텐츠를 추출할 수 없습니다.',
+        content: cleanedContent || '콘텐츠를 추출할 수 없습니다.',
         excerpt: metaDescription || title,
         featured_image: featuredProcessed,
         category: 'migrated',
@@ -412,5 +425,154 @@ export default async function handler(req, res) {
       success: false,
       error: error.message
     });
+  }
+}
+
+// 중복 제목 제거 함수 (기존 professional 버전에서 가져옴)
+function removeDuplicateTitles(content, originalTitle) {
+  try {
+    // 원본 제목에서 핵심 키워드 추출 (공백으로 분리)
+    const originalKeywords = originalTitle.split(/[\s,]+/).filter(word => word.length > 2);
+    
+    // 마크다운 제목 패턴 찾기 (# ## ###)
+    const titlePattern = /^(#{1,3})\s+(.+)$/gm;
+    const lines = content.split('\n');
+    const cleanedLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const titleMatch = line.match(titlePattern);
+      
+      if (titleMatch) {
+        const titleText = titleMatch[2];
+        
+        // 원본 제목과 유사도 검사
+        const titleKeywords = titleText.split(/[\s,]+/).filter(word => word.length > 2);
+        const commonKeywords = originalKeywords.filter(keyword => 
+          titleKeywords.some(titleKeyword => 
+            titleKeyword.includes(keyword) || keyword.includes(titleKeyword)
+          )
+        );
+        
+        // 유사도가 50% 이상이면 제거 (중복 제목으로 판단)
+        const similarity = commonKeywords.length / Math.max(originalKeywords.length, titleKeywords.length);
+        
+        if (similarity > 0.5) {
+          console.log(`🗑️ 중복 제목 제거: "${titleText}" (유사도: ${(similarity * 100).toFixed(1)}%)`);
+          continue; // 이 라인은 건너뛰기
+        }
+      }
+      
+      cleanedLines.push(line);
+    }
+    
+    return cleanedLines.join('\n');
+  } catch (error) {
+    console.error('중복 제목 제거 오류:', error);
+    return content; // 오류 시 원본 반환
+  }
+}
+
+// GPT-4o-mini로 완전한 콘텐츠 정제 (기존 professional 버전에서 가져옴)
+async function generateCompleteContent(title, fullText, tags, images) {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `당신은 전문적인 블로그 콘텐츠 편집자입니다. 
+          
+다음 작업을 수행해주세요:
+1. 원본 텍스트에서 실제 블로그 콘텐츠만 추출 (메뉴, 네비게이션 제외)
+2. **절대 중복 제목을 만들지 마세요** - 원본 제목과 유사한 제목은 모두 제거
+3. 본문을 논리적인 단락으로 구성 (H2, H3 제목 포함)
+4. 모든 실제 콘텐츠를 포함 (하단 내용 누락 방지)
+5. 메뉴나 네비게이션 텍스트는 완전히 제거
+6. 마크다운 형식으로 출력
+7. **중요: 이미지 마크다운(![alt](url))은 절대 제거하지 말고 그대로 유지하세요**
+
+**제목 처리 규칙:**
+- 원본 제목과 유사한 모든 제목은 제거
+- "MBC 표준FM의 싱글벙글쇼 MC 강석" 같은 반복 제목 금지
+- 소제목은 원본 제목과 완전히 다른 내용만 사용
+
+중요: 다음 텍스트들은 제거하세요:
+- "시리즈", "제품 모아보기", "시타신청", "이벤트", "더 보기"
+- "시크리트포스", "시크리트웨폰" 등의 제품명 나열
+- "top of page" 같은 네비게이션 텍스트
+- 메뉴 관련 모든 텍스트
+- 원본 제목과 유사한 모든 제목
+
+**이미지 처리 규칙:**
+- 이미지 마크다운(![alt](url))은 그대로 유지
+- 이미지 위치는 적절히 조정 가능
+- 이미지 alt 텍스트는 의미있게 유지
+
+출력 형식:
+# 제목 (원본 제목만 사용)
+
+## 소제목 (원본 제목과 완전히 다른 내용)
+
+본문 내용...
+
+![이미지 설명](이미지URL)
+
+본문 내용...
+
+## 소제목 (원본 제목과 완전히 다른 내용)
+
+본문 내용...
+
+![이미지 설명](이미지URL)
+
+### 태그
+태그1, 태그2, 태그3`
+        },
+        {
+          role: "user",
+          content: `원본 제목: ${title}
+
+원본 텍스트:
+${fullText}
+
+원본 태그:
+${tags.join(", ")}
+
+위 내용을 전문적인 블로그 포스트로 정제해주세요.`
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.3
+    });
+
+    let structuredContent = response.choices[0].message.content;
+
+    // 이미지 URL을 실제 처리된 URL로 교체
+    images.forEach((image, index) => {
+      const imageMarkdown = `![${image.alt}](${image.processedUrl})`;
+      structuredContent = structuredContent.replace(
+        new RegExp(`!\[이미지 ${index + 1}\]\([^)]+\)`, "g"),
+        imageMarkdown
+      );
+    });
+
+    return structuredContent;
+
+  } catch (error) {
+    console.error("콘텐츠 정제 오류:", error);
+    // 기본 구조로 폴백
+    let fallbackContent = `# ${title}
+
+`;
+    images.forEach((image, index) => {
+      fallbackContent += `![${image.alt}](${image.processedUrl})
+
+`;
+    });
+    fallbackContent += `
+### 태그
+${tags.join(", ")}`;
+    return fallbackContent;
   }
 }
