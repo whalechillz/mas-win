@@ -36,32 +36,79 @@ export default async function handler(req, res) {
     console.log('수량:', quantity);
     console.log('========================');
     
-    // Slack 알림 발송 (대안)
-    if (process.env.SLACK_WEBHOOK_URL) {
+    // Slack 알림 발송 (기존 작동하는 시스템 적용)
+    const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+    
+    if (SLACK_WEBHOOK_URL) {
       try {
         const slackMessage = {
-          text: `🚨 MUZIIK 문의 접수`,
-          blocks: [
+          username: 'MUZIIK 문의봇',
+          icon_emoji: ':golf:',
+          text: `🚨 새로운 MUZIIK 문의 접수 - ${name}`,
+          attachments: [
             {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*새로운 MUZIIK 문의가 접수되었습니다!*\n\n*이름:* ${name}\n*이메일:* ${email}\n*전화번호:* ${phone || '없음'}\n*문의 유형:* ${inquiryType}\n*문의 내용:* ${message}`
-              }
+              color: '#36a64f',
+              title: `📋 ${type === 'general' ? '일반 문의' : type === 'partnership' ? '파트너십 문의' : '마쓰구 콜라보 문의'}`,
+              title_link: 'https://muziik.masgolf.co.kr/contact',
+              fields: [
+                {
+                  title: '문의 유형',
+                  value: type === 'general' ? '일반 문의' : type === 'partnership' ? '파트너십 문의' : '마쓰구 콜라보 문의',
+                  short: true
+                },
+                {
+                  title: '이름',
+                  value: name,
+                  short: true
+                },
+                {
+                  title: '이메일',
+                  value: email,
+                  short: true
+                },
+                {
+                  title: '전화번호',
+                  value: phone || '없음',
+                  short: true
+                },
+                {
+                  title: '문의 분류',
+                  value: inquiryType || '없음',
+                  short: true
+                },
+                {
+                  title: '회사명',
+                  value: company || '없음',
+                  short: true
+                },
+                {
+                  title: '문의 내용',
+                  value: message ? (message.length > 200 ? message.substring(0, 200) + '...' : message) : '내용 없음',
+                  short: false
+                }
+              ],
+              footer: 'MUZIIK DOGATTI GENERATION 샤프트 문의 시스템',
+              ts: Math.floor(Date.now() / 1000)
             }
           ]
         };
         
-        await fetch(process.env.SLACK_WEBHOOK_URL, {
+        const response = await fetch(SLACK_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(slackMessage)
         });
         
+        if (!response.ok) {
+          throw new Error(`Slack API error: ${response.status}`);
+        }
+        
         console.log('Slack 알림 발송 완료');
       } catch (error) {
         console.error('Slack 알림 발송 실패:', error);
       }
+    } else {
+      console.log('SLACK_WEBHOOK_URL이 설정되지 않음');
     }
     
     if (!process.env.GMAIL_APP_PASSWORD) {
@@ -212,24 +259,32 @@ export default async function handler(req, res) {
       html: createAutoReplyTemplate(req.body, language),
     };
 
-    // 이메일 발송
-    console.log('이메일 발송 시작...');
-    console.log('문의 이메일 옵션:', mailOptions);
-    console.log('자동 응답 이메일 옵션:', autoReplyOptions);
-    
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log('문의 이메일 발송 완료');
-    } catch (error) {
-      console.error('문의 이메일 발송 실패:', error);
-    }
-    
-    try {
-      await transporter.sendMail(autoReplyOptions);
-      console.log('자동 응답 이메일 발송 완료');
-    } catch (error) {
-      console.error('자동 응답 이메일 발송 실패:', error);
-    }
+        // 이메일 발송 (개선된 에러 처리)
+        console.log('이메일 발송 시작...');
+        console.log('Gmail App Password 상태:', process.env.GMAIL_APP_PASSWORD ? '설정됨' : '설정되지 않음');
+        
+        let emailSent = false;
+        let autoReplySent = false;
+        
+        try {
+          const result = await transporter.sendMail(mailOptions);
+          console.log('문의 이메일 발송 완료:', result.messageId);
+          emailSent = true;
+        } catch (error) {
+          console.error('문의 이메일 발송 실패:', error);
+          console.error('에러 상세:', error.message);
+        }
+        
+        try {
+          const result = await transporter.sendMail(autoReplyOptions);
+          console.log('자동 응답 이메일 발송 완료:', result.messageId);
+          autoReplySent = true;
+        } catch (error) {
+          console.error('자동 응답 이메일 발송 실패:', error);
+          console.error('에러 상세:', error.message);
+        }
+        
+        console.log('이메일 발송 결과:', { emailSent, autoReplySent });
 
     // 로그 기록
     console.log(`MUZIIK 문의 접수: ${type} - ${name} (${email})`);
