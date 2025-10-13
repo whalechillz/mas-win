@@ -158,10 +158,12 @@ export default function ContactPage() {
         }
       });
 
+      console.log('Contact 폼에서 API 호출 시작...');
       const response = await fetch('/api/contact/muziik/', {
         method: 'POST',
         body: formDataToSend
       });
+      console.log('API 응답 상태:', response.status);
 
       if (response.ok) {
         setSubmitStatus('success');
