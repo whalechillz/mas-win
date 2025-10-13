@@ -89,28 +89,6 @@ export default async function handler(req, res) {
           contentType: contentType
         });
 
-        // 이미지 메타데이터 저장 (기존 이미지 변형 소스와 동일한 방식)
-        const { error: metadataError } = await supabase
-          .from('image_metadata')
-          .insert({
-            image_url: publicUrl,
-            original_url: src,
-            prompt: `스크래핑된 이미지: ${postTitle || 'untitled'}`,
-            title: postTitle || '스크래핑된 이미지',
-            excerpt: alt || '네이버 블로그에서 스크래핑된 이미지',
-            content_type: 'scraped',
-            brand_strategy: 'naver-blog',
-            created_at: new Date().toISOString(),
-            usage_count: 0,
-            is_featured: false
-          });
-
-        if (metadataError) {
-          console.warn('⚠️ 메타데이터 저장 실패:', metadataError);
-        } else {
-          console.log('✅ 메타데이터 저장 완료');
-        }
-
         console.log(`✅ 이미지 저장 성공:`, safeFileName);
 
       } catch (error) {
