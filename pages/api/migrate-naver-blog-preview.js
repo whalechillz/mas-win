@@ -177,6 +177,8 @@ export default async function handler(req, res) {
     // 4. 강력한 본문 콘텐츠 추출 (다단계 패턴 매칭)
     let content = '';
     
+    console.log('🔍 콘텐츠 추출 시작 - HTML 길이:', html.length);
+    
     // 패턴 1: 네이버 블로그 신형 구조 (se-main-container)
     const seMainMatch = html.match(/<div[^>]*class="[^"]*se-main-container[^"]*"[^>]*>(.*?)<\/div>/s);
     if (seMainMatch) {
@@ -227,6 +229,50 @@ export default async function handler(req, res) {
               }
             }
           }
+        }
+      }
+    }
+    
+    // 추가 패턴: 더 강력한 콘텐츠 추출
+    if (!content || content.length < 50) {
+      console.log('🔍 추가 콘텐츠 추출 시도...');
+      
+      // 패턴 7: 모든 p 태그 추출
+      const pMatches = html.match(/<p[^>]*>(.*?)<\/p>/gs);
+      if (pMatches && pMatches.length > 0) {
+        content = pMatches.map(p => p.replace(/<[^>]*>/g, '').trim()).filter(text => text.length > 10).join('\n\n');
+        console.log('✅ p 태그 패턴으로 콘텐츠 추출:', pMatches.length, '개');
+      }
+      
+      // 패턴 8: 모든 div 태그에서 텍스트 추출
+      if (!content || content.length < 50) {
+        const divMatches = html.match(/<div[^>]*>(.*?)<\/div>/gs);
+        if (divMatches && divMatches.length > 0) {
+          const textContent = divMatches
+            .map(div => div.replace(/<[^>]*>/g, '').trim())
+            .filter(text => text.length > 20 && !text.includes('네이버') && !text.includes('블로그'))
+            .join('\n\n');
+          if (textContent.length > content.length) {
+            content = textContent;
+            console.log('✅ div 태그 패턴으로 콘텐츠 추출');
+          }
+        }
+      }
+      
+      // 패턴 9: 전체 HTML에서 텍스트만 추출
+      if (!content || content.length < 50) {
+        const allText = html
+          .replace(/<script[^>]*>.*?<\/script>/gis, '')
+          .replace(/<style[^>]*>.*?<\/style>/gis, '')
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        // 의미있는 텍스트 부분만 추출 (너무 짧거나 긴 부분 제외)
+        const sentences = allText.split(/[.!?]\s+/).filter(s => s.length > 20 && s.length < 500);
+        if (sentences.length > 0) {
+          content = sentences.slice(0, 10).join('. ') + '.';
+          console.log('✅ 전체 텍스트 패턴으로 콘텐츠 추출:', sentences.length, '개 문장');
         }
       }
     }
