@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
+import sharp from "sharp";
 
 // Supabase 클라이언트 생성
 const supabase = createClient(
@@ -367,7 +368,105 @@ export default async function handler(req, res) {
     console.log('🖼️ 추출된 이미지 개수:', images.length);
     console.log('🖼️ 이미지 URL들:', images.slice(0, 3)); // 처음 3개만 로그
 
-    // 6. AI로 콘텐츠 정제 (미리보기용)
+    // 6. 이미지 처리 (미리보기용 - 실제 이미지 다운로드 및 처리)
+    const processedImages = [];
+    const imagesToProcess = images.slice(0, 10); // 미리보기용으로 최대 10개만 처리
+    
+    console.log(`🖼️ 미리보기용 이미지 처리 시작: ${imagesToProcess.length}개`);
+
+    for (let i = 0; i < imagesToProcess.length; i++) {
+      const imageUrl = imagesToProcess[i];
+      
+      try {
+        console.log(`🖼️ 이미지 ${i + 1} 처리 시작: ${imageUrl}`);
+        
+        if (!imageUrl || (!imageUrl.startsWith("http") && !imageUrl.startsWith("//"))) {
+          continue;
+        }
+
+        // 상대 URL을 절대 URL로 변환
+        let absoluteImageUrl = imageUrl;
+        if (imageUrl.startsWith("//")) {
+          absoluteImageUrl = "https:" + imageUrl;
+        } else if (imageUrl.startsWith("/")) {
+          const urlObj = new URL(url);
+          absoluteImageUrl = urlObj.origin + imageUrl;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const imageResponse = await fetch(absoluteImageUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "image/*"
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (imageResponse.ok) {
+          const imageBuffer = await imageResponse.arrayBuffer();
+          const buffer = Buffer.from(imageBuffer);
+          
+          if (buffer.length < 1000) {
+            continue;
+          }
+
+          const optimizedBuffer = await sharp(buffer)
+            .resize(1200, 800, { fit: "inside", withoutEnlargement: true })
+            .webp({ quality: 90 })
+            .toBuffer();
+
+          const fileName = `preview-${Date.now()}-${i + 1}.webp`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("blog-images")
+            .upload(fileName, optimizedBuffer, {
+              contentType: "image/webp",
+              cacheControl: "3600"
+            });
+
+          if (uploadError) {
+            console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, uploadError);
+            processedImages.push({
+              originalUrl: absoluteImageUrl,
+              processedUrl: absoluteImageUrl,
+              alt: `이미지 ${i + 1}`,
+              status: "upload-failed"
+            });
+            continue;
+          }
+
+          const publicUrl = supabase.storage
+            .from("blog-images")
+            .getPublicUrl(fileName).data.publicUrl;
+
+          processedImages.push({
+            originalUrl: absoluteImageUrl,
+            processedUrl: publicUrl,
+            alt: `이미지 ${i + 1}`,
+            fileName: fileName,
+            status: "success"
+          });
+
+          console.log(`✅ 이미지 ${i + 1} 처리 완료: ${fileName}`);
+        }
+        
+      } catch (error) {
+        console.error(`❌ 이미지 ${i + 1} 처리 실패:`, error.message);
+        processedImages.push({
+          originalUrl: imageUrl,
+          processedUrl: imageUrl,
+          alt: `이미지 ${i + 1}`,
+          status: "error"
+        });
+      }
+    }
+
+    console.log(`🖼️ 미리보기 이미지 처리 완료: ${processedImages.length}개`);
+
+    // 7. AI로 콘텐츠 정제 (미리보기용)
     console.log('🤖 AI 콘텐츠 정제 시작...');
     let aiProcessedContent = content;
     try {
@@ -439,14 +538,16 @@ ${extractedTags.join(", ")}
     const slug = `${title.replace(/[^a-zA-Z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}-${timestamp}`;
 
     // 8. 미리보기 데이터 반환 (저장하지 않음)
+    const successfulImages = processedImages.filter(img => img.status === 'success');
     const previewData = {
       title: title,
       slug: slug,
       content: aiProcessedContent,
       excerpt: aiProcessedContent.length > 200 ? aiProcessedContent.substring(0, 200) + '...' : aiProcessedContent,
-      featured_image: images.length > 0 ? images[0] : null,
-      images: images,
-      imageCount: images.length,
+      featured_image: successfulImages.length > 0 ? successfulImages[0].processedUrl : null,
+      images: successfulImages.map(img => img.processedUrl), // 처리된 이미지 URL들
+      processedImages: processedImages, // 전체 처리 정보
+      imageCount: successfulImages.length,
       tags: ['네이버 블로그', '마이그레이션'],
       category: 'migrated',
       status: 'preview', // 미리보기 상태
