@@ -3028,6 +3028,19 @@ export default function BlogAdmin() {
             </button>
               <button
                 onClick={() => {
+                  setActiveTab('naver-scraper');
+                  setShowForm(false);
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'naver-scraper'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                🔵 네이버 블로그 스크래퍼
+              </button>
+              <button
+                onClick={() => {
                   setActiveTab('create');
                   setShowForm(true);
                 }}
@@ -3051,19 +3064,6 @@ export default function BlogAdmin() {
                 }`}
               >
                 🔄 블로그 마이그레이션
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('naver-scraper');
-                  setShowForm(false);
-                }}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'naver-scraper'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                🔵 네이버 블로그 스크래퍼
               </button>
               {/* AI 관리는 상단 AdminNav의 단일 진입점으로 통합되어 이 영역에서는 제거 */}
             </nav>
