@@ -1,21 +1,25 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import nodemailer from 'nodemailer';
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // CORS 헤더 설정
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity, attachment } = req.body;
+    const { type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity } = req.body;
+
+    console.log('MUZIIK 문의 접수:', {
+      type, language, name, email, phone, company, businessNumber, inquiryType, message, quantity
+    });
 
     // Gmail App Password가 설정되지 않은 경우 로그만 기록하고 즉시 응답
     if (!process.env.GMAIL_APP_PASSWORD) {
@@ -29,7 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 이메일 전송 설정 (Gmail App Password가 있을 때만)
+    // 이메일 전송 로직 (Gmail App Password가 있을 때만)
+    const nodemailer = require('nodemailer');
+    
     const transporter = nodemailer.createTransporter({
       service: 'gmail',
       auth: {
@@ -63,100 +69,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #1a1a1a; color: white; padding: 20px; text-align: center; }
-    .content { background: #f9f9f9; padding: 20px; }
-    .field { margin-bottom: 15px; }
-    .label { font-weight: bold; color: #2c3e50; }
-    .value { margin-top: 5px; padding: 10px; background: white; border-left: 3px solid #3498db; }
-    .footer { background: #34495e; color: white; padding: 15px; text-align: center; font-size: 12px; }
-    .priority { background: #e74c3c; color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+    .header { background-color: #f4f4f4; padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
+    .content { padding: 20px 0; }
+    .footer { font-size: 0.9em; text-align: center; color: #777; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
+    .data-row { margin-bottom: 10px; }
+    .data-label { font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>MUZIIK DOGATTI GENERATION</h1>
-      <p>${isJapanese ? 'お問い合わせ受付' : '문의 접수'}</p>
+      <h2>${isJapanese ? 'MUZIIK お問い合わせ' : 'MUZIIK 문의 접수'}</h2>
     </div>
-    
     <div class="content">
-      <div class="field">
-        <div class="label">${isJapanese ? 'お問い合わせ種別' : '문의 유형'}</div>
-        <div class="value">
-          ${data.type === 'general' ? (isJapanese ? '一般お問い合わせ' : '일반 문의') : 
-            data.type === 'partnership' ? (isJapanese ? 'パートナーシップ' : '파트너십') : 
-            (isJapanese ? 'マツグコラボ' : '마쓰구 콜라보')}
-          <span class="priority">${data.type === 'partnership' ? 'HIGH' : 'NORMAL'}</span>
-        </div>
-      </div>
-
-      <div class="field">
-        <div class="label">${isJapanese ? 'お名前' : '이름'}</div>
-        <div class="value">${data.name}</div>
-      </div>
-
-      <div class="field">
-        <div class="label">${isJapanese ? 'メールアドレス' : '이메일'}</div>
-        <div class="value">${data.email}</div>
-      </div>
-
-      ${data.phone ? `
-      <div class="field">
-        <div class="label">${isJapanese ? '電話番号' : '전화번호'}</div>
-        <div class="value">${data.phone}</div>
-      </div>
-      ` : ''}
-
-      ${data.company ? `
-      <div class="field">
-        <div class="label">${isJapanese ? '会社名' : '업체명'}</div>
-        <div class="value">${data.company}</div>
-      </div>
-      ` : ''}
-
-      ${data.businessNumber ? `
-      <div class="field">
-        <div class="label">${isJapanese ? '事業者登録番号' : '사업자등록번호'}</div>
-        <div class="value">${data.businessNumber}</div>
-      </div>
-      ` : ''}
-
-      <div class="field">
-        <div class="label">${isJapanese ? 'お問い合わせ種別' : '문의 유형'}</div>
-        <div class="value">${data.inquiryType}</div>
-      </div>
-
-      ${data.quantity ? `
-      <div class="field">
-        <div class="label">${isJapanese ? '希望取引数量' : '희망 거래 수량'}</div>
-        <div class="value">${data.quantity}</div>
-      </div>
-      ` : ''}
-
-      <div class="field">
-        <div class="label">${isJapanese ? 'メッセージ' : '문의 내용'}</div>
-        <div class="value">${data.message.replace(/\n/g, '<br>')}</div>
-      </div>
-
-      <div class="field">
-        <div class="label">${isJapanese ? '受信日時' : '수신 시간'}</div>
-        <div class="value">${new Date().toLocaleString('ko-KR', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric', 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })}</div>
-      </div>
+      <p>${isJapanese ? '新しいお問い合わせが届きました。' : '새로운 문의가 접수되었습니다.'}</p>
+      <div class="data-row"><span class="data-label">${isJapanese ? 'お問い合わせタイプ' : '문의 유형'}:</span> ${data.type}</div>
+      <div class="data-row"><span class="data-label">${isJapanese ? '言語' : '언어'}:</span> ${data.language === 'ja' ? '日本語' : '한국어'}</div>
+      <div class="data-row"><span class="data-label">${isJapanese ? '名前' : '이름'}:</span> ${data.name}</div>
+      <div class="data-row"><span class="data-label">${isJapanese ? 'メール' : '이메일'}:</span> ${data.email}</div>
+      ${data.phone ? `<div class="data-row"><span class="data-label">${isJapanese ? '電話番号' : '전화번호'}:</span> ${data.phone}</div>` : ''}
+      ${data.company ? `<div class="data-row"><span class="data-label">${isJapanese ? '会社名' : '회사명'}:</span> ${data.company}</div>` : ''}
+      ${data.businessNumber ? `<div class="data-row"><span class="data-label">${isJapanese ? '事業者登録番号' : '사업자등록번호'}:</span> ${data.businessNumber}</div>` : ''}
+      ${data.inquiryType ? `<div class="data-row"><span class="data-label">${isJapanese ? '詳細お問い合わせタイプ' : '세부 문의 유형'}:</span> ${data.inquiryType}</div>` : ''}
+      ${data.quantity ? `<div class="data-row"><span class="data-label">${isJapanese ? '数量' : '수량'}:</span> ${data.quantity}</div>` : ''}
+      <div class="data-row"><span class="data-label">${isJapanese ? 'お問い合わせ内容' : '문의 내용'}:</span><br>${data.message}</div>
     </div>
-
     <div class="footer">
-      <p>${isJapanese ? 'このメールは自動送信されています。' : '이 이메일은 자동으로 발송되었습니다.'}</p>
-      <p>MUZIIK DOGATTI GENERATION - ${isJapanese ? '日本製プレミアムゴルフシャフト' : '일본제 프리미엄 골프 샤프트'}</p>
+      <p>Email: massgoogolf@gmail.com</p>
     </div>
   </div>
 </body>
@@ -167,45 +109,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 고객용 자동 응답 이메일 템플릿
     const createAutoReplyTemplate = (data: any, language: string) => {
       const isJapanese = language === 'ja';
-      
       return `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #1a1a1a; color: white; padding: 20px; text-align: center; }
-    .content { background: #f9f9f9; padding: 20px; }
-    .footer { background: #34495e; color: white; padding: 15px; text-align: center; font-size: 12px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+    .header { background-color: #f4f4f4; padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
+    .content { padding: 20px 0; }
+    .footer { font-size: 0.9em; text-align: center; color: #777; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>MUZIIK DOGATTI GENERATION</h1>
-      <p>${isJapanese ? 'お問い合わせありがとうございます' : '문의해주셔서 감사합니다'}</p>
+      <h2>${isJapanese ? 'お問い合わせありがとうございます' : '문의해주셔서 감사합니다'}</h2>
     </div>
-    
     <div class="content">
-      <p>${data.name}${isJapanese ? '様' : '님'},</p>
-      
-      <p>${isJapanese ? 
-        'この度は、MUZIIK DOGATTI GENERATION シャフトにお問い合わせいただき、誠にありがとうございます。' :
-        'MUZIIK DOGATTI GENERATION 샤프트에 문의해주셔서 진심으로 감사합니다.'
-      }</p>
-      
-      <p>${isJapanese ? 
-        'お問い合わせ内容を確認いたしました。担当者より2営業日以内にご連絡いたします。' :
-        '문의 내용을 확인했습니다. 담당자가 영업일 기준 2일 이내에 연락드리겠습니다.'
-      }</p>
-      
-      <p>${isJapanese ? 
-        'ご質問がございましたら、お気軽にお問い合わせください。' :
-        '추가 문의사항이 있으시면 언제든 연락주세요.'
-      }</p>
-      
+      <p>${isJapanese ? `${data.name}様、` : `${data.name}님,`}</p>
+      <p>${isJapanese ? 'お問い合わせいただきありがとうございます。' : '문의해주셔서 감사합니다.'}</p>
+      <p>${isJapanese ? 'お問い合わせ内容を確認後、24時間以内にご返信いたします。' : '문의 내용을 확인 후 24시간 이내에 답변드리겠습니다.'}</p>
       <p>${isJapanese ? 'よろしくお願いいたします。' : '감사합니다.'}</p>
       
       <p><strong>MUZIIK DOGATTI GENERATION</strong><br>
@@ -256,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('MUZIIK 문의 처리 오류:', error);
     res.status(500).json({ 
       success: false, 
-      message: language === 'ja' ? '送信に失敗しました' : '전송에 실패했습니다' 
+      message: language === 'ja' ? '送信に失敗しました。しばらくしてからもう一度お試しください。' : '전송에 실패했습니다. 잠시 후 다시 시도해주세요.' 
     });
   }
 }
