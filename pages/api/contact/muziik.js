@@ -21,6 +21,7 @@ export default async function handler(req, res) {
 
     // Gmail App Password 확인
     console.log('Gmail App Password 설정 상태:', process.env.GMAIL_APP_PASSWORD ? '설정됨' : '설정되지 않음');
+    console.log('SLACK_WEBHOOK_URL_01_MA_OP 설정 상태:', process.env.SLACK_WEBHOOK_URL_01_MA_OP ? '설정됨' : '설정되지 않음');
     
     // 임시로 이메일 발송 없이 로그만 기록
     console.log('=== MUZIIK 문의 접수 ===');
