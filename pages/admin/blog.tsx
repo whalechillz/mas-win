@@ -512,7 +512,7 @@ export default function BlogAdmin() {
         sortOrder: currentSortOrder
       });
       
-      const response = await fetch(`/api/admin/blog?${sortParams}`, {
+      const response = await fetch(`/api/admin/blog/?${sortParams}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -626,7 +626,7 @@ export default function BlogAdmin() {
         }
       } else {
         // 새 게시물 생성
-        const response = await fetch('/api/admin/blog', {
+        const response = await fetch('/api/admin/blog/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -854,7 +854,7 @@ export default function BlogAdmin() {
     try {
       for (const post of selectedPosts) {
         // 각 포스트를 블로그 포스트로 변환
-        const response = await fetch('/api/admin/blog', {
+        const response = await fetch('/api/admin/blog/', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
