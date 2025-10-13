@@ -685,6 +685,180 @@ export default function BlogAdmin() {
     }
   };
 
+  // 블로그 마이그레이션 함수
+  const handleMigration = async () => {
+    if (!migrationUrl) {
+      alert('URL을 입력해주세요.');
+      return;
+    }
+
+    setIsMigrating(true);
+    setMigrationStatus('GPT-4o-mini로 전문적인 콘텐츠 구조화 및 고화질 이미지 처리 중...');
+    
+    try {
+      // 향상된 고화질 마이그레이션 (강석님 블로그 방식)
+      const migrationResponse = await fetch('/api/migrate-blog-professional/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: migrationUrl })
+      });
+
+      // 응답 상태 확인
+      if (!migrationResponse.ok) {
+        throw new Error(`마이그레이션 실패: HTTP ${migrationResponse.status}`);
+      }
+
+      // 응답 텍스트로 먼저 받기
+      const migrationText = await migrationResponse.text();
+      console.log('마이그레이션 응답:', migrationText.substring(0, 200));
+
+      // JSON 파싱 시도
+      let migrationResult;
+      try {
+        migrationResult = JSON.parse(migrationText);
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError);
+        throw new Error('마이그레이션 응답을 파싱할 수 없습니다.');
+      }
+
+      if (migrationResult.success && migrationResult.data) {
+        setScrapedData(migrationResult.data);
+        setMigrationStatus('마이그레이션 성공! 블로그 포스트가 생성되었습니다.');
+        
+        // 폼에 데이터 자동 입력
+        setFormData({
+          ...formData,
+          title: migrationResult.data.title || '',
+          content: migrationResult.data.content || '',
+          category: migrationResult.data.category || 'migrated',
+          tags: migrationResult.data.tags ? migrationResult.data.tags.join(', ') : '',
+          featuredImage: migrationResult.data.featured_image || '',
+          status: 'draft'
+        });
+        
+        // 새 게시물 작성 탭으로 이동
+        setActiveTab('create');
+        setShowForm(true);
+        
+        alert(`마이그레이션 성공!\n제목: ${migrationResult.data.title}\n이미지: ${migrationResult.data.imageCount}개\n태그: ${migrationResult.data.tagCount}개`);
+      } else {
+        throw new Error(migrationResult.error || '마이그레이션에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ 마이그레이션 오류:', error);
+      setMigrationStatus(`마이그레이션 실패: ${error.message}`);
+      alert(`마이그레이션 실패: ${error.message}`);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  // 네이버 블로그 스크래핑 함수
+  const handleNaverBlogScrape = async () => {
+    if (!naverBlogId && !naverPostUrls) {
+      alert('블로그 ID 또는 포스트 URL을 입력해주세요.');
+      return;
+    }
+
+    setIsScrapingNaver(true);
+    try {
+      const requestBody: any = {
+        options: {
+          includeImages: true,
+          includeContent: true,
+          includeMetadata: true
+        }
+      };
+
+      if (naverScraperMode === 'blogId') {
+        requestBody.blogId = naverBlogId;
+        setNaverScrapingStatus('RSS 피드에서 블로그 포스트를 수집하는 중...');
+      } else {
+        const urls = naverPostUrls.split('\n').filter(url => url.trim());
+        requestBody.urls = urls;
+        setNaverScrapingStatus('개별 포스트 URL을 스크래핑하는 중...');
+      }
+
+      const response = await fetch('/api/naver-blog-scraper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`스크래핑 실패: HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.posts) {
+        setScrapedNaverPosts(result.posts);
+        setNaverScrapingStatus(`스크래핑 완료! ${result.posts.length}개 포스트를 찾았습니다.`);
+        setSelectedNaverPosts(new Set());
+      } else {
+        throw new Error(result.error || '스크래핑에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ 네이버 블로그 스크래핑 오류:', error);
+      setNaverScrapingStatus(`스크래핑 실패: ${error.message}`);
+      alert(`스크래핑 실패: ${error.message}`);
+    } finally {
+      setIsScrapingNaver(false);
+    }
+  };
+
+  // 네이버 포스트 전체 선택/해제
+  const handleSelectAllNaverPosts = () => {
+    if (selectedNaverPosts.size === scrapedNaverPosts.length) {
+      setSelectedNaverPosts(new Set());
+    } else {
+      setSelectedNaverPosts(new Set(scrapedNaverPosts.map((_, index) => index)));
+    }
+  };
+
+  // 네이버 포스트 마이그레이션
+  const handleNaverPostMigration = async () => {
+    if (selectedNaverPosts.size === 0) {
+      alert('마이그레이션할 포스트를 선택해주세요.');
+      return;
+    }
+
+    const selectedPosts = Array.from(selectedNaverPosts).map((index: number) => scrapedNaverPosts[index]);
+    
+    try {
+      for (const post of selectedPosts) {
+        // 각 포스트를 블로그 포스트로 변환
+        const response = await fetch('/api/admin/blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: post.title,
+            content: post.content || post.description || '',
+            category: 'migrated',
+            tags: post.tags ? post.tags.join(', ') : '',
+            featuredImage: post.featuredImage || '',
+            status: 'draft',
+            meta_title: post.title,
+            meta_description: post.description || '',
+            author: '마쓰구골프'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`포스트 "${post.title}" 마이그레이션 실패`);
+        }
+      }
+
+      alert(`성공적으로 ${selectedPosts.length}개 포스트를 마이그레이션했습니다!`);
+      setScrapedNaverPosts([]);
+      setSelectedNaverPosts(new Set());
+      fetchPosts(); // 포스트 목록 새로고침
+    } catch (error) {
+      console.error('❌ 네이버 포스트 마이그레이션 오류:', error);
+      alert(`마이그레이션 실패: ${error.message}`);
+    }
+  };
+
   // 체크박스 선택/해제
   const handlePostSelect = (postId) => {
     const id = Array.isArray(postId) ? postId[0] : postId;
