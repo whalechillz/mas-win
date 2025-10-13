@@ -2504,7 +2504,7 @@ export default function BlogAdmin() {
     setMigratedPosts([]);
       
     try {
-      const response = await fetch('/api/migrate-blog-professional', {
+      const response = await fetch('/api/migrate-naver-blog-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2516,7 +2516,7 @@ export default function BlogAdmin() {
         const data = await response.json();
         
         if (data.success && data.data) {
-          // migrate-blog-professional.js 응답 형식에 맞게 수정
+          // 간단한 API 응답 형식에 맞게 수정
           const migratedPost = {
             id: data.data.id,
             title: data.data.title,
@@ -2524,13 +2524,12 @@ export default function BlogAdmin() {
             featured_image: data.data.featured_image,
             slug: data.data.slug,
             images: data.data.images || [],
-            tags: data.data.tags || [],
             status: 'migrated'
           };
           
           setMigratedPosts([migratedPost]);
           setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
-          alert(`네이버 블로그 포스트를 성공적으로 가져왔습니다. 이미지 ${data.data.imageCount}개, 태그 ${data.data.tagCount}개가 포함되었습니다.`);
+          alert(`네이버 블로그 포스트를 성공적으로 가져왔습니다. 이미지 ${data.data.imageCount}개가 포함되었습니다.`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
