@@ -158,7 +158,7 @@ export default function ContactPage() {
         }
       });
 
-      const response = await fetch('/api/contact/muziik', {
+      const response = await fetch('/api/contact/muziik/', {
         method: 'POST',
         body: formDataToSend
       });
