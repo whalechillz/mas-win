@@ -5449,30 +5449,94 @@ export default function BlogAdmin() {
               </button>
             </div>
 
-            {/* 스크래핑 결과 */}
-            {scrapedNaverPosts.length > 0 && (
-              <div className="mt-8 text-left">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    스크래핑 결과 ({scrapedNaverPosts.length}개 포스트)
-                  </h3>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={handleSelectAllNaverPosts}
-                      className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                    >
-                      {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
-                    </button>
-                    {selectedNaverPosts.size > 0 && (
-                      <button 
-                        onClick={handleNaverPostMigration}
-                        className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+              {/* 스크래핑 결과 */}
+              {scrapedNaverPosts.length > 0 && (
+                <div className="mt-8 text-left">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      스크래핑 결과 ({scrapedNaverPosts.length}개 포스트)
+                    </h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handleSelectAllNaverPosts}
+                        className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                       >
-                        선택된 {selectedNaverPosts.size}개 마이그레이션
+                        {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
                       </button>
-                    )}
+                      {selectedNaverPosts.size > 0 && (
+                        <button
+                          onClick={handleNaverPostMigration}
+                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          선택된 {selectedNaverPosts.size}개 마이그레이션
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
+
+                  {/* 스크래핑 이미지 갤러리 */}
+                  {scrapedNaverPosts.some(post => post.images && post.images.length > 0) && (
+                    <div className="mb-8 p-6 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                          🖼️ 스크래핑 이미지 갤러리
+                          <span className="ml-2 text-sm text-gray-600">
+                            (저장 전 미리보기)
+                          </span>
+                        </h4>
+                        <div className="text-sm text-gray-500">
+                          총 {scrapedNaverPosts.reduce((total, post) => total + (post.images?.length || 0), 0)}개 이미지
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+                        {scrapedNaverPosts.map((post, postIndex) => 
+                          post.images?.map((image, imageIndex) => (
+                            <div key={`${postIndex}-${imageIndex}`} className="relative group">
+                              <div className="aspect-square bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
+                                <img
+                                  src={image.src}
+                                  alt={image.alt || `이미지 ${imageIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
+                                  이미지 로드 실패
+                                </div>
+                              </div>
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  <button
+                                    onClick={() => {
+                                      // 이미지를 클립보드에 복사하거나 다운로드
+                                      navigator.clipboard.writeText(image.src);
+                                      alert('이미지 URL이 클립보드에 복사되었습니다.');
+                                    }}
+                                    className="bg-white text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-100"
+                                  >
+                                    URL 복사
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="mt-1 text-xs text-gray-500 truncate">
+                                {image.fileName || `이미지 ${imageIndex + 1}`}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-blue-800 text-sm">
+                          <strong>💡 사용법:</strong> 이미지를 마우스 오버하면 URL 복사 버튼이 나타납니다. 
+                          복사한 URL을 블로그 작성 시 이미지 삽입에 사용하세요.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 
                 <div className="grid gap-4 max-h-96 overflow-y-auto">
                   {scrapedNaverPosts.map((post, index) => (
