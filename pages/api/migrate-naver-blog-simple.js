@@ -124,33 +124,57 @@ export default async function handler(req, res) {
       return Array.from(results).slice(0, 20);
     })();
 
-    // 4. 강력한 본문 콘텐츠 추출
+    // 4. 강력한 본문 콘텐츠 추출 (다단계 패턴 매칭)
     let content = '';
     
     // 패턴 1: 네이버 블로그 신형 구조 (se-main-container)
     const seMainMatch = html.match(/<div[^>]*class="[^"]*se-main-container[^"]*"[^>]*>(.*?)<\/div>/s);
     if (seMainMatch) {
       content = seMainMatch[1];
+      console.log('✅ se-main-container 패턴으로 콘텐츠 추출');
     } else {
       // 패턴 2: 네이버 블로그 구형 구조 (postViewArea)
       const postViewMatch = html.match(/<div[^>]*id="postViewArea"[^>]*>(.*?)<\/div>/s);
       if (postViewMatch) {
         content = postViewMatch[1];
+        console.log('✅ postViewArea 패턴으로 콘텐츠 추출');
       } else {
-        // 패턴 3: 전체 콘텐츠 영역 (se-text-paragraph)
+        // 패턴 3: se-text-paragraph 개별 추출
         const textParagraphs = html.match(/<div[^>]*class="[^"]*se-text-paragraph[^"]*"[^>]*>(.*?)<\/div>/gs);
-        if (textParagraphs) {
+        if (textParagraphs && textParagraphs.length > 0) {
           content = textParagraphs.join('\n');
+          console.log('✅ se-text-paragraph 패턴으로 콘텐츠 추출:', textParagraphs.length, '개');
         } else {
-          // 패턴 4: 일반적인 콘텐츠 영역
+          // 패턴 4: post-content 영역
           const generalMatch = html.match(/<div[^>]*class="[^"]*post-content[^"]*"[^>]*>(.*?)<\/div>/s);
           if (generalMatch) {
             content = generalMatch[1];
+            console.log('✅ post-content 패턴으로 콘텐츠 추출');
           } else {
-            // 패턴 5: body 태그 내 모든 텍스트
-            const bodyMatch = html.match(/<body[^>]*>(.*?)<\/body>/s);
-            if (bodyMatch) {
-              content = bodyMatch[1];
+            // 패턴 5: 네이버 블로그 특화 패턴들
+            const patterns = [
+              /<div[^>]*class="[^"]*se-component[^"]*"[^>]*>(.*?)<\/div>/gs,
+              /<div[^>]*class="[^"]*se-text[^"]*"[^>]*>(.*?)<\/div>/gs,
+              /<div[^>]*class="[^"]*se-module[^"]*"[^>]*>(.*?)<\/div>/gs,
+              /<div[^>]*class="[^"]*se-section[^"]*"[^>]*>(.*?)<\/div>/gs
+            ];
+            
+            for (let i = 0; i < patterns.length; i++) {
+              const matches = html.match(patterns[i]);
+              if (matches && matches.length > 0) {
+                content = matches.join('\n');
+                console.log(`✅ 네이버 특화 패턴 ${i+1}으로 콘텐츠 추출:`, matches.length, '개');
+                break;
+              }
+            }
+            
+            // 패턴 6: 최후의 수단 - body 태그 내 모든 텍스트
+            if (!content) {
+              const bodyMatch = html.match(/<body[^>]*>(.*?)<\/body>/s);
+              if (bodyMatch) {
+                content = bodyMatch[1];
+                console.log('⚠️ body 태그 전체로 콘텐츠 추출 (노이즈 포함 가능)');
+              }
             }
           }
         }
@@ -204,8 +228,31 @@ export default async function handler(req, res) {
       const urlMatch = bg.match(/url\(["']?([^"')]+)["']?\)/i);
       return urlMatch ? urlMatch[1] : null;
     }).filter(Boolean);
-    const allImages = [...srcImages, ...dataSrcImages, ...bgImages];
+    // 패턴 4: 네이버 블로그 특화 이미지 URL 패턴들
+    const naverImagePatterns = [
+      /https:\/\/postfiles\.pstatic\.net\/[^"'\s]+/gi,
+      /https:\/\/blogfiles\.pstatic\.net\/[^"'\s]+/gi,
+      /https:\/\/storep-phinf\.pstatic\.net\/[^"'\s]+/gi,
+      /https:\/\/ssl\.pstatic\.net\/[^"'\s]+/gi
+    ];
+    
+    const naverImages = [];
+    naverImagePatterns.forEach(pattern => {
+      const matches = html.match(pattern);
+      if (matches) {
+        naverImages.push(...matches);
+      }
+    });
+    
+    const allImages = [...srcImages, ...dataSrcImages, ...bgImages, ...naverImages];
     let uniqueImages = [...new Set(allImages)];
+    
+    console.log('🔍 이미지 추출 결과:');
+    console.log('  - src 속성:', srcImages.length);
+    console.log('  - data-* 속성:', dataSrcImages.length);
+    console.log('  - 배경 이미지:', bgImages.length);
+    console.log('  - 네이버 패턴:', naverImages.length);
+    console.log('  - 총 고유 이미지:', uniqueImages.length);
 
     function isNoise(u) {
       if (!u) return true;
@@ -221,15 +268,35 @@ export default async function handler(req, res) {
       try {
         let out = u;
         if (out.startsWith('//')) out = 'https:' + out;
+        
+        // 포스트파일: ?type=.. 파라미터 최적화 (원본/고해상도)
         if (out.includes('postfiles.pstatic.net')) {
           const [base, query] = out.split('?');
           const params = new URLSearchParams(query || '');
+          // blur 제거하고 고해상도로 설정
           const type = (params.get('type') || '').replace(/_blur$/i, '');
-          params.set('type', type || 'w2000');
+          // 가장 큰 사이즈로 시도 (w2000, w1024, w800 순서)
+          if (!type || type === 'w80' || type === 'w150') {
+            params.set('type', 'w2000');
+          }
           out = base + '?' + params.toString();
         }
-        out = out.replace(/\/(m_|t_|s_)/g, '/');
+        
+        // blogfiles.pstatic.net 썸네일 경로 보정 (m_, t_, s_ 접두 제거)
+        out = out.replace(/\/(m_|t_|s_|thumb_)/g, '/');
+        
+        // storep-phinf.pstatic.net 고해상도 변환
+        if (out.includes('storep-phinf.pstatic.net')) {
+          // 썸네일 파라미터 제거하고 원본으로
+          out = out.replace(/[?&]type=w\d+/, '').replace(/[?&]type=h\d+/, '');
+        }
+        
+        // 모바일 리사이즈 파라미터 제거
         out = out.replace(/(&|\?)w=\d+(&|$)/, '$1').replace(/(&|\?)h=\d+(&|$)/, '$1');
+        
+        // 불필요한 파라미터 정리
+        out = out.replace(/[?&]$/, '');
+        
         return out;
       } catch { return u; }
     }
