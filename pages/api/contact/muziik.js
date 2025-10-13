@@ -41,6 +41,7 @@ export default async function handler(req, res) {
     const SLACK_WEBHOOK_URL_01_MA_OP = process.env.SLACK_WEBHOOK_URL_01_MA_OP;
     
     if (SLACK_WEBHOOK_URL_01_MA_OP) {
+      console.log('Slack 웹훅 URL 확인됨, 메시지 생성 시작...');
       try {
         const slackMessage = {
           username: 'MUZIIK 문의봇',
@@ -94,14 +95,20 @@ export default async function handler(req, res) {
           ]
         };
         
+        console.log('Slack 메시지 전송 시작...', JSON.stringify(slackMessage, null, 2));
+        
         const response = await fetch(SLACK_WEBHOOK_URL_01_MA_OP, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(slackMessage)
         });
         
+        console.log('Slack 응답 상태:', response.status);
+        const responseText = await response.text();
+        console.log('Slack 응답 내용:', responseText);
+        
         if (!response.ok) {
-          throw new Error(`Slack API error: ${response.status}`);
+          throw new Error(`Slack API error: ${response.status} - ${responseText}`);
         }
         
         console.log('Slack 알림 발송 완료');
