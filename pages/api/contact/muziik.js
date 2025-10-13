@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     }
     
     if (!process.env.GMAIL_APP_PASSWORD) {
-      console.log('Gmail App Password가 설정되지 않음. 이메일 발송 건너뜀.');
+      console.log('Gmail App Password가 설정되지 않음. Slack 알림만 발송.');
       
       return res.status(200).json({ 
         success: true, 
