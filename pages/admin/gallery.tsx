@@ -1444,6 +1444,54 @@ export default function GalleryAdmin() {
                         >
                           💾
                         </button>
+                        {image.folder_path && image.folder_path !== '' && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm(`"${image.name}" 이미지를 루트 폴더로 이동하시겠습니까?`)) {
+                                try {
+                                  const response = await fetch('/api/admin/move-image-to-root', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ 
+                                      imageId: image.id,
+                                      currentPath: image.name
+                                    })
+                                  });
+
+                                  const result = await response.json();
+
+                                  if (result.success) {
+                                    alert(`이미지가 루트로 이동되었습니다!\n\n"${result.data.oldPath}" → "${result.data.newPath}"`);
+                                    // 갤러리 새로고침
+                                    fetchImages(1, true);
+                                  } else {
+                                    alert(`이미지 이동 실패: ${result.error}`);
+                                  }
+                                } catch (error) {
+                                  console.error('❌ 이미지 이동 오류:', error);
+                                  alert('이미지 이동 중 오류가 발생했습니다.');
+                                }
+                              }
+                            }}
+                            className="p-1 bg-yellow-100 rounded shadow-sm hover:bg-yellow-200"
+                            title="루트로 이동"
+                          >
+                            📁
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`"${image.name}" 이미지를 삭제하시겠습니까?`)) {
+                              handleDeleteImage(image.name);
+                            }
+                          }}
+                          className="p-1 bg-red-100 rounded shadow-sm hover:bg-red-200"
+                          title="삭제"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </div>
                     );
