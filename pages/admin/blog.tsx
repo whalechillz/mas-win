@@ -5151,7 +5151,7 @@ export default function BlogAdmin() {
                                   {baseName}
                             </div>
                                 <div className="text-[11px] text-gray-500 flex items-center justify-between gap-2">
-                                  <span className="truncate">ALT: {representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
+                                  <span className="truncate">ALT: {representativeImage.alt_text || representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
                                   <button
                                     type="button"
                                     title="빠른 수정"
