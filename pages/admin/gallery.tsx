@@ -1948,10 +1948,29 @@ export default function GalleryAdmin() {
                           이름 변경
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm(`"${folder}" 폴더를 삭제하시겠습니까? 폴더 내 모든 이미지가 삭제됩니다.`)) {
-                              // 폴더 삭제 로직 (향후 구현)
-                              alert('폴더 삭제 기능은 향후 구현 예정입니다.');
+                              try {
+                                const response = await fetch('/api/admin/delete-folder', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ folderPath: folder })
+                                });
+
+                                const result = await response.json();
+
+                                if (result.success) {
+                                  alert(`폴더 삭제 완료!\n\n${result.deletedFiles}개 파일과 ${result.metadataDeleted}개 메타데이터가 삭제되었습니다.`);
+                                  setFolderModalOpen(false);
+                                  // 갤러리 새로고침
+                                  fetchImages(1, true);
+                                } else {
+                                  alert(`폴더 삭제 실패: ${result.error}`);
+                                }
+                              } catch (error) {
+                                console.error('❌ 폴더 삭제 오류:', error);
+                                alert('폴더 삭제 중 오류가 발생했습니다.');
+                              }
                             }
                           }}
                           className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
@@ -1976,12 +1995,34 @@ export default function GalleryAdmin() {
                       placeholder="새 폴더명 입력"
                     />
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (newFolderName.trim() && newFolderName !== editingFolder) {
-                          // 폴더명 변경 로직 (향후 구현)
-                          alert(`폴더명 변경 기능은 향후 구현 예정입니다.\n"${editingFolder}" → "${newFolderName}"`);
-                          setEditingFolder(null);
-                          setNewFolderName('');
+                          try {
+                            const response = await fetch('/api/admin/rename-folder', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                oldFolderPath: editingFolder,
+                                newFolderPath: newFolderName.trim()
+                              })
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                              alert(`폴더명 변경 완료!\n\n"${editingFolder}" → "${newFolderName}"\n\n${result.movedFiles}개 파일 이동, ${result.metadataUpdated}개 메타데이터 업데이트`);
+                              setEditingFolder(null);
+                              setNewFolderName('');
+                              setFolderModalOpen(false);
+                              // 갤러리 새로고침
+                              fetchImages(1, true);
+                            } else {
+                              alert(`폴더명 변경 실패: ${result.error}`);
+                            }
+                          } catch (error) {
+                            console.error('❌ 폴더명 변경 오류:', error);
+                            alert('폴더명 변경 중 오류가 발생했습니다.');
+                          }
                         }
                       }}
                       className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
