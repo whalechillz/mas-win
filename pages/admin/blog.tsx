@@ -4032,36 +4032,6 @@ export default function BlogAdmin() {
                   />
                 </div>
 
-                {/* 연간 콘텐츠 생성 안내 */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">📅 연간 콘텐츠 계획</h3>
-                    <span className="text-sm text-gray-500">퍼널 캠페인 기반 연간 콘텐츠 자동생성</span>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-6">
-                    <div className="text-center">
-                      <h4 className="text-lg font-semibold text-purple-800 mb-2">🎯 퍼널 캠페인 기반 연간 콘텐츠 생성</h4>
-                      <p className="text-gray-600 mb-4">
-                        아까 제공해주신 마케팅 캠페인 퍼널 내용을 기반으로<br/>
-                        계절과 시즌에 맞는 고품질 콘텐츠를 자동 생성하고 선별할 수 있습니다.
-                      </p>
-                      <div className="flex justify-center space-x-4">
-                        <a
-                          href="/admin/content-calendar"
-                          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 flex items-center space-x-2"
-                        >
-                          <span>📅</span>
-                          <span>콘텐츠 캘린더에서 생성하기</span>
-                        </a>
-                      </div>
-                      <div className="mt-4 text-sm text-gray-500">
-                        <p>✨ 퍼널 캠페인 10개 + 스토리텔링 프레임워크 + 계절별 테마</p>
-                        <p>🎯 선별하여 캘린더에 추가하는 방식으로 개선되었습니다</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* 러프 콘텐츠 입력 섹션 (기존 기능 복원) */}
                 <div className="border-t border-gray-200 pt-8">
