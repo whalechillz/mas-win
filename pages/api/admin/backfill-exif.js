@@ -68,7 +68,8 @@ export default async function handler(req, res) {
     }
 
     const successCount = results.filter(r => r.success).length;
-    return res.status(200).json({ success: true, successCount, results });
+    // count 필드도 함께 반환(프론트 호환)
+    return res.status(200).json({ success: true, successCount, count: successCount, results });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
