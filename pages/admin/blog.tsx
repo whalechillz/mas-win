@@ -3837,6 +3837,26 @@ export default function BlogAdmin() {
                     </div>
                     </div>
                     </div>
+
+                {/* 갤러리 열기/닫기 버튼 */}
+                <div className="flex justify-center py-4">
+                  <button
+                    type="button"
+                    onClick={toggleGallery}
+                    className={`px-6 py-3 rounded-lg font-medium text-sm transition-colors ${
+                      isGalleryOpen
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
+                    {totalImagesCount > 0 && (
+                      <span className="ml-2 text-xs opacity-75">
+                        ({totalImagesCount}개)
+                      </span>
+                    )}
+                  </button>
+                </div>
                     
                 {/* 내용 - TipTap 에디터로 교체 */}
                 <div>
@@ -3846,21 +3866,6 @@ export default function BlogAdmin() {
                     valueMarkdown={formData.content}
                     onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
                   />
-                  
-                  {/* 갤러리 열기/닫기 아코디언 버튼 */}
-                  <div className="mt-4 flex justify-center">
-                    <button
-                      type="button"
-                      onClick={toggleGallery}
-                      className={`px-6 py-3 rounded-lg font-medium text-sm transition-colors ${
-                        isGalleryOpen
-                          ? 'bg-blue-500 text-white hover:bg-blue-600'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
-                    </button>
-                  </div>
                 </div>
 
                 {/* 연간 콘텐츠 생성 안내 */}
@@ -4892,32 +4897,6 @@ export default function BlogAdmin() {
 
                 {/* 이미지 갤러리 섹션 - 아코디언 */}
                 <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                      <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
-                      <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
-                            </div>
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        href="/admin/gallery"
-                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm"
-                      >
-                        📚 갤러리 관리
-                      </Link>
-                <button
-                  type="button"
-                        onClick={toggleGallery}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                                  >
-                        {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
-                </button>
-                      {totalImagesCount > 0 && (
-                        <span className="text-sm text-gray-600">
-                          총 {totalImagesCount}개
-                        </span>
-                      )}
-              </div>
-                  </div>
                   
                   {/* 갤러리 내용 - 아코디언 */}
                   {isGalleryOpen && (
