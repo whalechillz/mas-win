@@ -3965,20 +3965,6 @@ export default function BlogAdmin() {
                               </span>
                             </label>
                           </div>
-                          {selectedImages.size > 0 && (
-                            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <span className="text-sm text-blue-700">
-                                {selectedImages.size}개 이미지 선택됨
-                              </span>
-                              <button
-                                type="button"
-                                onClick={insertMultipleImagesToContent}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                              >
-                                ➕ 선택된 이미지 삽입 ({selectedImages.size}개)
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
@@ -4100,24 +4086,6 @@ export default function BlogAdmin() {
                                     className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                                   >
                                     📋 복사
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      selectBaseImage(forceHttps(representativeImage.url));
-                                    }}
-                                    className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
-                                  >
-                                    🎨 변형
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      selectImageForImprovement(forceHttps(representativeImage.url));
-                                    }}
-                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
-                                  >
-                                    ✨ 개선
                                   </button>
                                 </div>
                               </div>
