@@ -31,6 +31,7 @@ export default async function handler(req, res) {
       file_size = null,
       gps_lat = null,
       gps_lng = null,
+      taken_at = null,
     } = req.body || {};
 
     if (!file_name || !image_url) {
@@ -54,6 +55,7 @@ export default async function handler(req, res) {
       file_size,
       gps_lat,
       gps_lng,
+      taken_at,
       updated_at: new Date().toISOString(),
     };
 

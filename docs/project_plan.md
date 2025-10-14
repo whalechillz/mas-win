@@ -297,6 +297,25 @@ public/uploads/           # 임시 이미지 업로드 경로
   - `lib/channel-presets.ts`
   - `lib/path-builder.ts`
 
+### 2025-10-14 MASSGOO 전용화 및 EXIF 메타 파이프라인 추가
+
+- 무엇을 했나
+  - 브랜드 오버라이드 제거, MASSGOO 기준 프리셋만 유지 (`lib/channel-presets.ts`)
+  - 경로 빌더에서 brand 세그먼트 제거 (`lib/path-builder.ts`)
+  - 서버 EXIF 추출 API 추가: `pages/api/admin/extract-exif.js`
+    - exifr 우선, sharp 보조. GPS/촬영일시/가로세로 추출
+  - 메타데이터 업서트 API 추가: `pages/api/admin/upsert-image-metadata.js`
+    - 파일명 기준 upsert, `gps_lat/gps_lng/width/height/taken_at` 저장 지원
+
+- 왜 했나
+  - 네이버 스크래퍼 수준의 정밀 EXIF 파싱 필요
+  - iPhone(HEIC 포함)·대용량 업로드 후 자동 메타 수집/저장 파이프라인 구축
+
+- 남은 작업
+  - 갤러리 관리 업로드 모달(파일/URL 탭) 연동
+  - 업로드 직후: `extract-exif` → `upsert-image-metadata` 자동 호출
+  - 위치 권한 동의 시 브라우저 위치 보조 저장 옵션
+
 - 남은 작업
   - 공통 업로드/변형 모달에서 프리셋 선택과 경로 미리보기 연동
   - `image_metadata` 스키마 확장(`source/channel/size_key/date_folder`) 및 인덱스 추가
