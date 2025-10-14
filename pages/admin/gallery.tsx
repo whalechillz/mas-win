@@ -225,6 +225,11 @@ export default function GalleryAdmin() {
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
+  // 이미지 추가 모달
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeAddTab, setActiveAddTab] = useState<'upload' | 'url'>('upload');
+  const [pending, setPending] = useState(false);
+  const [addUrl, setAddUrl] = useState('');
   
   // 동적 카테고리 로드 함수
   const loadDynamicCategories = async () => {
@@ -1147,6 +1152,12 @@ export default function GalleryAdmin() {
                 >
                   📝 블로그 관리로 돌아가기
                 </Link>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+                >
+                  ➕ 이미지 추가
+                </button>
               <button onClick={()=>{
                 setCategoryModalOpen(true);
                 loadDynamicCategories(); // 카테고리 새로고침
@@ -2264,6 +2275,121 @@ export default function GalleryAdmin() {
               >
                 닫기
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 이미지 추가 모달 */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">이미지 추가</h3>
+              <button onClick={()=>setShowAddModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div className="px-4 pt-4">
+              <div className="flex space-x-6 border-b">
+                <button
+                  className={`px-2 pb-2 text-sm ${activeAddTab==='upload' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={()=>setActiveAddTab('upload')}
+                >📁 파일 업로드</button>
+                <button
+                  className={`px-2 pb-2 text-sm ${activeAddTab==='url' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={()=>setActiveAddTab('url')}
+                >🔗 URL 입력</button>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {activeAddTab==='upload' && (
+                <div className="space-y-3">
+                  <input
+                    id="gallery-file-upload"
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    onChange={async (e)=>{
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        setPending(true);
+                        // 1) 서명 URL 발급
+                        const dateStr = new Date().toISOString().slice(0,10);
+                        const res = await fetch('/api/admin/storage-signed-upload',{
+                          method:'POST', headers:{'Content-Type':'application/json'},
+                          body: JSON.stringify({
+                            fileName: file.name,
+                            folder: `originals/${dateStr}`,
+                            contentType: file.type || 'application/octet-stream'
+                          })
+                        });
+                        const json = await res.json();
+                        if(!res.ok) throw new Error(json.error||'서명 URL 발급 실패');
+                        const { signedUrl, objectPath, publicUrl } = json;
+                        // 2) 업로드
+                        const put = await fetch(signedUrl,{ method:'PUT', headers:{'Content-Type': file.type||'application/octet-stream'}, body:file });
+                        if(!put.ok) throw new Error('업로드 실패');
+                        // 3) 메타 업서트
+                        await fetch('/api/admin/upsert-image-metadata',{
+                          method:'POST', headers:{'Content-Type':'application/json'},
+                          body: JSON.stringify({
+                            file_name: file.name,
+                            image_url: publicUrl,
+                            date_folder: dateStr,
+                            width: null, height: null, file_size: file.size
+                          })
+                        });
+                        // 4) EXIF 백필 비동기
+                        fetch('/api/admin/backfill-exif',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paths:[objectPath] })});
+                        setShowAddModal(false);
+                        fetchImages(1, true);
+                        alert('이미지 업로드 완료');
+                      } catch(e:any){
+                        alert(`업로드 실패: ${e.message}`);
+                      } finally { setPending(false); }
+                    }}
+                  />
+                  <p className="text-xs text-gray-500">HEIC/JPG/PNG 지원. 업로드 후 자동으로 메타데이터가 보강됩니다.</p>
+                </div>
+              )}
+
+              {activeAddTab==='url' && (
+                <div className="space-y-3">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-3 py-2 border rounded"
+                    value={addUrl}
+                    onChange={(e)=>setAddUrl(e.target.value)}
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      disabled={!addUrl || pending}
+                      onClick={async()=>{
+                        if(!addUrl) return;
+                        try{
+                          setPending(true);
+                          const dateStr = new Date().toISOString().slice(0,10);
+                          const resp = await fetch('/api/admin/duplicate-images',{
+                            method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({ images:[{ url: addUrl }], targetFolder: `duplicated/${dateStr}` })
+                          });
+                          const j = await resp.json();
+                          if(!resp.ok) throw new Error(j.error||'URL 가져오기 실패');
+                          setShowAddModal(false);
+                          fetchImages(1, true);
+                          alert('URL 이미지가 갤러리에 추가되었습니다.');
+                        }catch(e:any){ alert(`실패: ${e.message}`); } finally{ setPending(false);} 
+                      }}
+                      className={`px-4 py-2 rounded text-white ${pending? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                    >가져오기</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t flex justify-end">
+              <button onClick={()=>setShowAddModal(false)} className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">닫기</button>
             </div>
           </div>
         </div>
