@@ -476,7 +476,7 @@ export default function BlogAdmin() {
           content: post.content || '',
           category: post.category || 'blog',
           status: post.status || 'draft',
-          featuredImage: post.featured_image || '',
+          featured_image: post.featured_image || '',
           tags: post.tags || [],
           metaTitle: post.meta_title || '',
           metaDescription: post.meta_description || '',
@@ -753,7 +753,7 @@ export default function BlogAdmin() {
           content: migrationResult.data.content || '',
           category: migrationResult.data.category || 'migrated',
           tags: migrationResult.data.tags ? migrationResult.data.tags.join(', ') : '',
-          featuredImage: migrationResult.data.featured_image || '',
+          featured_image: migrationResult.data.featured_image || '',
           status: 'draft'
         });
         
@@ -864,7 +864,7 @@ export default function BlogAdmin() {
             content: post.content || post.description || '',
             category: 'migrated',
             tags: post.tags ? post.tags.join(', ') : '',
-            featuredImage: post.featuredImage || '',
+            featured_image: post.featuredImage || '',
             status: 'draft',
             meta_title: post.title,
             meta_description: post.description || '',
