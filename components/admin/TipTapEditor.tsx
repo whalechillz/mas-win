@@ -120,7 +120,6 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         <ToolbarButton label="I" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
         <ToolbarButton label="H2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
         {/* 안정화 단계: 링크/테이블 등은 후속 브랜치에서 재도입 */}
-        <ToolbarButton label="이미지 업로드" onClick={handleUploadImage} />
         <ToolbarButton label="갤러리" onClick={handleInsertFromGallery} />
         <ToolbarButton
           label="대표로"
