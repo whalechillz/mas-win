@@ -2427,6 +2427,13 @@ export default function BlogAdmin() {
       const derivedBlob = await createDerivedBlob(processedFile);
 
       // 3) Supabase Storage로 직접 업로드
+      // Supabase 클라이언트 (익명키)
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase 환경변수가 설정되지 않았습니다');
+      const sb = createClient(supabaseUrl, supabaseAnonKey);
+
       const today = new Date();
       const y = today.getFullYear();
       const m = String(today.getMonth() + 1).padStart(2, '0');
@@ -2445,15 +2452,12 @@ export default function BlogAdmin() {
       });
       if (!signRes1.ok) throw new Error('서명 URL 발급 실패(원본)');
       const { token: token1 } = await signRes1.json();
-      // 서명 URL로 업로드
+      // 서명 URL로 업로드 (공식 SDK 사용)
       {
-        const form = new FormData();
-        form.append('token', token1);
-        form.append('file', processedFile);
-        const up = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/upload/sign/${encodeURIComponent(originalPath)}`, {
-          method: 'POST', body: form
-        });
-        if (!up.ok) throw new Error('원본 업로드 실패(RLS)');
+        const { error } = await sb.storage
+          .from('blog-images')
+          .uploadToSignedUrl(originalPath, token1, processedFile);
+        if (error) throw new Error(`원본 업로드 실패: ${error.message}`);
       }
 
       // derived (리사이즈본)
@@ -2466,19 +2470,16 @@ export default function BlogAdmin() {
       if (!signRes2.ok) throw new Error('서명 URL 발급 실패(파생본)');
       const { token: token2 } = await signRes2.json();
       {
-        const form = new FormData();
-        form.append('token', token2);
-        form.append('file', new File([derivedBlob], 'derived.jpg', { type: 'image/jpeg' }));
-        const up = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/upload/sign/${encodeURIComponent(derivedPath)}`, {
-          method: 'POST', body: form
-        });
-        if (!up.ok) throw new Error('파생본 업로드 실패(RLS)');
+        const derivedFile = new File([derivedBlob], 'derived.jpg', { type: 'image/jpeg' });
+        const { error } = await sb.storage
+          .from('blog-images')
+          .uploadToSignedUrl(derivedPath, token2, derivedFile);
+        if (error) throw new Error(`파생본 업로드 실패: ${error.message}`);
       }
 
       // 공개 URL 구성
-      const publicBase = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images`;
-      const pub1 = { publicUrl: `${publicBase}/${originalPath}` };
-      const pub2 = { publicUrl: `${publicBase}/${derivedPath}` };
+      const { data: pub1 } = sb.storage.from('blog-images').getPublicUrl(originalPath);
+      const { data: pub2 } = sb.storage.from('blog-images').getPublicUrl(derivedPath);
 
       console.log('✅ 업로드 완료', { original: pub1?.publicUrl, derived: pub2?.publicUrl });
 
