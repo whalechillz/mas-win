@@ -89,7 +89,7 @@ export default async function handler(req, res) {
           contentType: contentType
         });
 
-        // 이미지 메타데이터 저장 (기존 이미지 변형 소스와 동일한 방식)
+        // 이미지 메타데이터 저장 (기존 갤러리 관리와 동일한 방식)
         const { error: metadataError } = await supabase
           .from('image_metadata')
           .insert({
@@ -102,13 +102,27 @@ export default async function handler(req, res) {
             brand_strategy: 'naver-blog',
             created_at: new Date().toISOString(),
             usage_count: 0,
-            is_featured: false
+            is_featured: false,
+            // 추가 필드들 (기존 갤러리 관리와 동일하게)
+            alt_text: alt || '',
+            keywords: '',
+            category: 'scraped',
+            file_name: safeFileName
           });
 
         if (metadataError) {
-          console.warn('⚠️ 메타데이터 저장 실패:', metadataError);
+          console.error('❌ 메타데이터 저장 실패:', {
+            error: metadataError,
+            imageUrl: publicUrl,
+            fileName: safeFileName,
+            postTitle: postTitle
+          });
+          // 메타데이터 저장 실패해도 이미지는 저장되었으므로 계속 진행
         } else {
-          console.log('✅ 메타데이터 저장 완료');
+          console.log('✅ 메타데이터 저장 완료:', {
+            imageUrl: publicUrl,
+            fileName: safeFileName
+          });
         }
 
         console.log(`✅ 이미지 저장 성공:`, safeFileName);
