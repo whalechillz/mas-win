@@ -73,6 +73,30 @@ export default async function handler(req, res) {
             }
           }
           
+          // 방법 1-1: 폴더 경로가 잘못된 경우 재귀적 검색
+          if (!fileFound && folderPath.includes('/')) {
+            const pathSegments = folderPath.split('/');
+            for (let i = pathSegments.length; i > 0; i--) {
+              const partialPath = pathSegments.slice(0, i).join('/');
+              console.log('🔍 부분 경로 검색:', partialPath);
+              
+              const { data: partialFiles, error: partialError } = await supabase.storage
+                .from('blog-images')
+                .list(partialPath, { search: fileName });
+              
+              if (!partialError && partialFiles && partialFiles.length > 0) {
+                const exactFile = partialFiles.find(file => file.name === fileName);
+                if (exactFile) {
+                  const correctedPath = `${partialPath}/${fileName}`;
+                  existingFiles.push(correctedPath);
+                  fileFound = true;
+                  console.log('✅ 부분 경로에서 파일 발견 (방법1-1):', correctedPath);
+                  break;
+                }
+              }
+            }
+          }
+          
           // 방법 2: 파일명만으로 전체 검색 (폴더 경로 무시)
           if (!fileFound) {
             console.log('🔍 전체 검색 시도:', fileName);
@@ -114,6 +138,37 @@ export default async function handler(req, res) {
               }
             } catch (error) {
               console.log('⚠️ 직접 확인 실패:', error.message);
+            }
+          }
+          
+          // 방법 4: 모든 가능한 경로 조합 시도
+          if (!fileFound) {
+            console.log('🔍 모든 경로 조합 시도:', fileName);
+            const possiblePaths = [
+              targetWithExtension,
+              fileName,
+              `duplicated/${fileName}`,
+              `scraped-images/${fileName}`,
+              `duplicated/2025-10-14/${fileName}`,
+              `scraped-images/2025-10-14/${fileName}`
+            ];
+            
+            for (const testPath of possiblePaths) {
+              try {
+                const { data: urlData } = supabase.storage
+                  .from('blog-images')
+                  .getPublicUrl(testPath);
+                
+                const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
+                if (response.ok) {
+                  existingFiles.push(testPath);
+                  fileFound = true;
+                  console.log('✅ 경로 조합에서 파일 발견 (방법4):', testPath);
+                  break;
+                }
+              } catch (error) {
+                console.log('⚠️ 경로 조합 실패:', testPath, error.message);
+              }
             }
           }
         }
