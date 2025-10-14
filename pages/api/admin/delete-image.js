@@ -31,21 +31,51 @@ export default async function handler(req, res) {
       console.log('🗑️ 일괄 이미지 삭제 중:', targets.length, '개');
       console.log('🗑️ 삭제 대상 파일들:', targets);
 
-      // 실제 존재하는 파일들만 필터링
+      // 실제 존재하는 파일들만 필터링 (폴더 경로 포함)
       const existingFiles = [];
       for (const target of targets) {
-        // 파일명 그대로 사용 (확장자 자동 추가 제거)
+        // 파일명 그대로 사용 (폴더 경로 포함)
         const targetWithExtension = target;
         
-        // 파일 존재 여부 확인
-        const { data: fileData, error: checkError } = await supabase.storage
+        // 폴더 경로가 포함된 경우와 루트의 경우 모두 확인
+        let fileFound = false;
+        
+        // 1. 루트에서 검색
+        const { data: rootFiles, error: rootError } = await supabase.storage
           .from('blog-images')
           .list('', { search: targetWithExtension });
         
-        if (!checkError && fileData && fileData.length > 0) {
+        if (!rootError && rootFiles && rootFiles.length > 0) {
           existingFiles.push(targetWithExtension);
-          console.log('✅ 파일 존재 확인:', targetWithExtension);
-        } else {
+          fileFound = true;
+          console.log('✅ 루트에서 파일 존재 확인:', targetWithExtension);
+        }
+        
+        // 2. 폴더 내에서도 검색 (파일명만으로)
+        if (!fileFound) {
+          const fileNameOnly = targetWithExtension.split('/').pop();
+          const { data: folderFiles, error: folderError } = await supabase.storage
+            .from('blog-images')
+            .list('', { search: fileNameOnly });
+          
+          if (!folderError && folderFiles && folderFiles.length > 0) {
+            // 정확한 경로 찾기
+            const exactFile = folderFiles.find(file => 
+              file.name === fileNameOnly || 
+              file.name === targetWithExtension ||
+              targetWithExtension.endsWith(file.name)
+            );
+            
+            if (exactFile) {
+              const fullPath = exactFile.name.includes('/') ? exactFile.name : targetWithExtension;
+              existingFiles.push(fullPath);
+              fileFound = true;
+              console.log('✅ 폴더에서 파일 존재 확인:', fullPath);
+            }
+          }
+        }
+        
+        if (!fileFound) {
           console.warn('⚠️ 파일이 존재하지 않음:', targetWithExtension);
         }
       }
@@ -62,7 +92,7 @@ export default async function handler(req, res) {
         });
       }
 
-      // 실제 존재하는 파일들만 삭제
+      // 1. Supabase Storage에서 파일 삭제
       const { data, error } = await supabase.storage
         .from('blog-images')
         .remove(existingFiles);
@@ -78,12 +108,32 @@ export default async function handler(req, res) {
 
       console.log('✅ 이미지 일괄 삭제 성공:', existingFiles.length, '개');
       console.log('✅ 삭제된 파일들:', data);
+
+      // 2. image_metadata 테이블에서 메타데이터 삭제
+      let metadataDeletedCount = 0;
+      for (const fileName of existingFiles) {
+        // 파일명으로 메타데이터 검색 및 삭제
+        const { error: metadataError } = await supabase
+          .from('image_metadata')
+          .delete()
+          .like('file_name', `%${fileName}%`);
+
+        if (metadataError) {
+          console.warn('⚠️ 메타데이터 삭제 실패:', fileName, metadataError);
+        } else {
+          metadataDeletedCount++;
+          console.log('✅ 메타데이터 삭제 성공:', fileName);
+        }
+      }
+
+      console.log('✅ 메타데이터 삭제 완료:', metadataDeletedCount, '개');
       
       return res.status(200).json({
         success: true,
         deletedImages: existingFiles,
         originalTargets: targets,
-        deletionResult: data
+        deletionResult: data,
+        metadataDeletedCount: metadataDeletedCount
       });
 
     } else if (req.method === 'DELETE') {
@@ -116,7 +166,7 @@ export default async function handler(req, res) {
 
       console.log('✅ 파일 존재 확인:', targetWithExtension);
 
-      // Supabase Storage에서 이미지 삭제
+      // 1. Supabase Storage에서 이미지 삭제
       const { data, error } = await supabase.storage
         .from('blog-images')
         .remove([targetWithExtension]);
@@ -131,6 +181,18 @@ export default async function handler(req, res) {
 
       console.log('✅ 이미지 삭제 성공:', targetWithExtension);
       console.log('✅ 삭제 결과:', data);
+
+      // 2. image_metadata 테이블에서 메타데이터 삭제
+      const { error: metadataError } = await supabase
+        .from('image_metadata')
+        .delete()
+        .like('file_name', `%${targetWithExtension}%`);
+
+      if (metadataError) {
+        console.warn('⚠️ 메타데이터 삭제 실패:', targetWithExtension, metadataError);
+      } else {
+        console.log('✅ 메타데이터 삭제 성공:', targetWithExtension);
+      }
       
       return res.status(200).json({
         success: true,
