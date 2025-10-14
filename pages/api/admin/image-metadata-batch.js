@@ -26,9 +26,9 @@ export default async function handler(req, res) {
       const bucket = process.env.NEXT_PUBLIC_IMAGE_BUCKET || 'blog-images';
       const updates = paths.map((p) => {
         const folder = p.includes('/') ? p.substring(0, p.lastIndexOf('/')) : '';
-        const base = p.includes('/') ? p.substring(p.lastIndexOf('/') + 1) : p;
         const url = `${supabaseUrl}/storage/v1/object/public/${bucket}/${p}`;
-        return { file_name: base, image_url: url, folder_path: folder };
+        // 테이블에 file_name 컬럼이 없으므로 image_url + folder_path만 보정
+        return { image_url: url, folder_path: folder };
       });
       const { error } = await supabase
         .from('image_metadata')
