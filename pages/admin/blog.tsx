@@ -3898,6 +3898,76 @@ export default function BlogAdmin() {
                   </button>
                 </div>
 
+                {/* 갤러리 필터 및 검색 */}
+                {isGalleryOpen && (
+                  <div className="p-4 bg-gray-50 rounded-lg mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-700">필터:</span>
+                        <button
+                          type="button"
+                          className={`px-3 py-1 rounded text-sm ${
+                            galleryFilter === 'all' 
+                              ? 'bg-blue-500 text-white' 
+                              : 'bg-white text-gray-700 border'
+                          }`}
+                          onClick={() => setGalleryFilter('all')}
+                        >
+                          전체
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-3 py-1 rounded text-sm ${
+                            galleryFilter === 'featured' 
+                              ? 'bg-yellow-500 text-white' 
+                              : 'bg-white text-gray-700 border'
+                          }`}
+                          onClick={() => setGalleryFilter('featured')}
+                        >
+                          ⭐ 대표 이미지만
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-3 py-1 rounded text-sm ${
+                            galleryFilter === 'search' 
+                              ? 'bg-green-500 text-white' 
+                              : 'bg-white text-gray-700 border'
+                          }`}
+                          onClick={() => setGalleryFilter('search')}
+                        >
+                          🔍 검색
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => fetchImageGallery(1, true)}
+                        className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                      >
+                        🔄 새로고침
+                      </button>
+                    </div>
+                    
+                    {galleryFilter === 'search' && (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={gallerySearchQuery}
+                          onChange={(e) => setGallerySearchQuery(e.target.value)}
+                          placeholder="이미지 이름으로 검색..."
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setGallerySearchQuery('')}
+                          className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                        >
+                          지우기
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* AI 콘텐츠 개선 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
@@ -4901,73 +4971,6 @@ export default function BlogAdmin() {
                   {/* 갤러리 내용 - 아코디언 */}
                   {isGalleryOpen && (
                     <div className="space-y-4">
-                      {/* 갤러리 필터 및 검색 */}
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-gray-700">필터:</span>
-                      <button
-                        type="button"
-                              className={`px-3 py-1 rounded text-sm ${
-                                galleryFilter === 'all' 
-                                  ? 'bg-blue-500 text-white' 
-                                  : 'bg-white text-gray-700 border'
-                              }`}
-                              onClick={() => setGalleryFilter('all')}
-                            >
-                              전체
-                      </button>
-                            <button
-                              type="button"
-                              className={`px-3 py-1 rounded text-sm ${
-                                galleryFilter === 'featured' 
-                                  ? 'bg-yellow-500 text-white' 
-                                  : 'bg-white text-gray-700 border'
-                              }`}
-                              onClick={() => setGalleryFilter('featured')}
-                            >
-                              ⭐ 대표 이미지만
-                            </button>
-                      <button
-                        type="button"
-                              className={`px-3 py-1 rounded text-sm ${
-                                galleryFilter === 'search' 
-                                  ? 'bg-green-500 text-white' 
-                                  : 'bg-white text-gray-700 border'
-                              }`}
-                              onClick={() => setGalleryFilter('search')}
-                            >
-                              🔍 검색
-                      </button>
-                    </div>
-                          <button
-                            type="button"
-                            onClick={() => fetchImageGallery(1, true)}
-                            className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
-                                  >
-                            🔄 새로고침
-                          </button>
-                        </div>
-                        
-                        {galleryFilter === 'search' && (
-                          <div className="flex items-center space-x-2">
-          <input
-                              type="text"
-                              value={gallerySearchQuery}
-                              onChange={(e) => setGallerySearchQuery(e.target.value)}
-                              placeholder="이미지 이름으로 검색..."
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
-                    />
-                    <button
-                      type="button"
-                              onClick={() => setGallerySearchQuery('')}
-                              className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
-                              >
-                              지우기
-                    </button>
-                  </div>
-                            )}
-                </div>
                 
                       {/* 이미지 갤러리 컨트롤 */}
                       {getFilteredImages().length > 0 && (
