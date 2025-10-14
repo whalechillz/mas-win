@@ -4066,16 +4066,6 @@ export default function BlogAdmin() {
                         </div>
                       </div>
 
-                      {/* 고급 기능 안내 */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="text-sm font-medium text-gray-800 mb-2">💡 고급 기능 안내</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          <li>• SEO 메타 태그 자동 생성</li>
-                          <li>• 콘텐츠 구조 최적화</li>
-                          <li>• 키워드 밀도 분석</li>
-                          <li>• 읽기 쉬운 문장 구조 개선</li>
-                        </ul>
-                      </div>
                     </div>
                   )}
                 </div>
