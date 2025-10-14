@@ -3217,7 +3217,7 @@ export default function BlogAdmin() {
                                 console.log('📦 저장할 이미지 데이터:', imagesToSave);
 
                                 // API 호출
-                                const response = await fetch('/api/save-images-to-storage', {
+                                const response = await fetch('/api/save-images-to-storage/', {
                                   method: 'POST',
                                   headers: {
                                     'Content-Type': 'application/json',
