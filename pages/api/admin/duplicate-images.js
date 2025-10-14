@@ -34,11 +34,19 @@ export default async function handler(req, res) {
       
       try {
         console.log(`📋 복제 중 (${i + 1}/${images.length}):`, image.name);
+        console.log(`📋 이미지 URL:`, image.url);
 
-        // 1. 원본 이미지 다운로드
-        const imageResponse = await fetch(image.url);
+        // 1. 원본 이미지 다운로드 (헤더 추가)
+        const imageResponse = await fetch(image.url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Referer': 'https://www.masgolf.co.kr/',
+            'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
+          }
+        });
+        
         if (!imageResponse.ok) {
-          throw new Error(`이미지 다운로드 실패: ${imageResponse.status}`);
+          throw new Error(`이미지 다운로드 실패: ${imageResponse.status} ${imageResponse.statusText}`);
         }
 
         const imageBuffer = await imageResponse.arrayBuffer();
@@ -108,8 +116,10 @@ export default async function handler(req, res) {
 
       } catch (error) {
         console.error(`❌ 복제 실패 (${image.name}):`, error);
+        console.error(`❌ 실패한 URL:`, image.url);
         errors.push({
           originalName: image.name,
+          originalUrl: image.url,
           error: error.message
         });
       }
