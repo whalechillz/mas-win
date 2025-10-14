@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      const { limit = 1000, offset = 0, page = 1 } = req.query;
+      const { limit = 1000, offset = 0, page = 1, prefix = '', includeChildren = 'true' } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         let allFiles = [];
         
         // 재귀적으로 모든 폴더의 이미지 조회
-        const getAllImagesRecursively = async (folderPath = '') => {
+      const getAllImagesRecursively = async (folderPath = '') => {
           console.log(`📁 폴더 조회 중: ${folderPath || '루트'}`);
           
           const { data: files, error } = await supabase.storage
@@ -72,7 +72,8 @@ export default async function handler(req, res) {
           }
         };
 
-        await getAllImagesRecursively();
+        // prefix 기반 시작 폴더만 조회(하위 포함)
+        await getAllImagesRecursively(prefix || '');
         
         totalCount = allFiles.length;
         totalCountCache = totalCount;
@@ -121,7 +122,25 @@ export default async function handler(req, res) {
         }
       };
 
-      await getAllImagesForPagination();
+      if (includeChildren === 'true') {
+        await getAllImagesForPagination(prefix || '');
+      } else {
+        // 현재 폴더만(하위 미포함)
+        const { data: files, error } = await supabase.storage
+          .from('blog-images')
+          .list(prefix || '', { sortBy: { column: 'created_at', order: 'desc' } });
+        if (!error && files) {
+          for (const file of files) {
+            if (file.id) {
+              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              if (isImage) {
+                allFilesForPagination.push({ ...file, folderPath: prefix || '' });
+              }
+            }
+          }
+        }
+      }
       
       // 생성일 기준으로 정렬
       allFilesForPagination.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

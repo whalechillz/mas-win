@@ -77,6 +77,7 @@ export default function GalleryAdmin() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
+  const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -123,7 +124,9 @@ export default function GalleryAdmin() {
         // 특정 폴더
         const beforeCount = filtered.length;
         filtered = filtered.filter(img => {
-          const matches = img.folder_path === folderFilter;
+          const matches = includeChildren
+            ? (img.folder_path === folderFilter || (img.folder_path && img.folder_path.startsWith(folderFilter + '/')))
+            : img.folder_path === folderFilter;
           if (!matches) {
             console.log('🔍 폴더 불일치:', img.folder_path, 'vs', folderFilter);
           }
@@ -415,7 +418,8 @@ export default function GalleryAdmin() {
       }
       
       const offset = (page - 1) * imagesPerPage;
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}`);
+      const prefix = folderFilter === 'all' ? '' : (folderFilter === 'root' ? '' : encodeURIComponent(folderFilter));
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1211,6 +1215,10 @@ export default function GalleryAdmin() {
                     </option>
                   ))}
                 </select>
+                <label className="mt-2 inline-flex items-center space-x-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={includeChildren} onChange={(e)=>{ setIncludeChildren(e.target.checked); setCurrentPage(1); fetchImages(1, true); }} />
+                  <span>하위 폴더 포함</span>
+                </label>
               </div>
               
               {/* 정렬 기준 */}
