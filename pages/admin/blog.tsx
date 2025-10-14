@@ -586,7 +586,6 @@ export default function BlogAdmin() {
       // 추가 필드들
       summary: '',
       customerPersona: '',
-      conversionGoal: '',
       published_at: ''
     });
     setEditingPost(null);

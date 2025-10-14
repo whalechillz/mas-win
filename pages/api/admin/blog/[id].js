@@ -18,19 +18,35 @@ export default async function handler(req, res) {
       const updateData = req.body;
       console.log('수정 데이터:', JSON.stringify(updateData, null, 2));
       
+      // 데이터베이스에 존재하는 필드만 허용
+      const allowedFields = [
+        'title', 'slug', 'excerpt', 'content', 'featured_image', 'category', 
+        'tags', 'status', 'meta_title', 'meta_description', 'meta_keywords',
+        'view_count', 'is_featured', 'is_scheduled', 'scheduled_at', 'author',
+        'summary', 'customerPersona', 'published_at'
+      ];
+      
+      // 허용된 필드만 추출
+      const filteredData = {};
+      allowedFields.forEach(field => {
+        if (updateData.hasOwnProperty(field)) {
+          filteredData[field] = updateData[field];
+        }
+      });
+      
       // 데이터 검증 및 정리
       const cleanedData = {
-        ...updateData,
+        ...filteredData,
         // tags가 문자열인 경우 배열로 변환
-        tags: Array.isArray(updateData.tags) ? updateData.tags : 
-              typeof updateData.tags === 'string' ? updateData.tags.split(',').map(t => t.trim()).filter(t => t) : 
+        tags: Array.isArray(filteredData.tags) ? filteredData.tags : 
+              typeof filteredData.tags === 'string' ? filteredData.tags.split(',').map(t => t.trim()).filter(t => t) : 
               [],
         // 숫자 필드 검증
-        view_count: parseInt(updateData.view_count) || 0,
-        is_featured: Boolean(updateData.is_featured),
-        is_scheduled: Boolean(updateData.is_scheduled),
+        view_count: parseInt(filteredData.view_count) || 0,
+        is_featured: Boolean(filteredData.is_featured),
+        is_scheduled: Boolean(filteredData.is_scheduled),
         // 날짜 필드 검증
-        scheduled_at: updateData.scheduled_at || null
+        scheduled_at: filteredData.scheduled_at || null
       };
       
       console.log('정리된 데이터:', JSON.stringify(cleanedData, null, 2));
