@@ -6,6 +6,28 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// 한글 파일명을 영어로 변환하는 함수
+function convertKoreanToEnglish(filename) {
+  // 한글을 제거하고 영어/숫자/특수문자만 남기기
+  const englishOnly = filename.replace(/[가-힣]/g, '');
+  
+  // 연속된 언더스코어나 점 정리
+  const cleaned = englishOnly.replace(/[._]+/g, '_');
+  
+  // 파일 확장자 분리
+  const parts = cleaned.split('.');
+  const extension = parts.pop();
+  const nameWithoutExt = parts.join('.');
+  
+  // 빈 이름인 경우 기본값 사용
+  const finalName = nameWithoutExt.trim() || 'image';
+  
+  // 타임스탬프 추가로 고유성 보장
+  const timestamp = Date.now();
+  
+  return `${finalName}_${timestamp}.${extension}`;
+}
+
 export default async function handler(req, res) {
   // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -62,10 +84,21 @@ export default async function handler(req, res) {
         const imageBuffer = await imageResponse.buffer();
         const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
 
-        // 파일명 생성 (안전한 파일명으로 변환)
-        const safeFileName = fileName
-          ? fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
-          : `image_${Date.now()}_${i}.jpg`;
+        // 파일명 생성 (한글 파일명을 영어로 변환)
+        let safeFileName;
+        if (fileName) {
+          // 한글이 포함된 파일명인지 확인
+          if (/[가-힣]/.test(fileName)) {
+            console.log('🔄 한글 파일명 감지, 영어로 변환:', fileName);
+            safeFileName = convertKoreanToEnglish(fileName);
+            console.log('✅ 변환된 파일명:', safeFileName);
+          } else {
+            // 한글이 없으면 기존 방식으로 안전한 파일명 생성
+            safeFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+          }
+        } else {
+          safeFileName = `image_${Date.now()}_${i}.jpg`;
+        }
 
         // Supabase 스토리지에 업로드
         const filePath = `scraped-images/${postTitle ? postTitle.replace(/[^a-zA-Z0-9.-]/g, '_') : 'untitled'}/${safeFileName}`;
