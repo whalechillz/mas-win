@@ -26,17 +26,33 @@ export default async function handler(req, res) {
     console.log('📁 이미지 루트 이동 시작:', { imageId, currentPath });
 
     // 1. 현재 이미지 메타데이터 조회
+    console.log('🔍 메타데이터 조회 시도:', imageId);
     const { data: currentImage, error: fetchError } = await supabase
       .from('image_metadata')
       .select('*')
       .eq('id', imageId)
       .single();
 
+    console.log('📊 메타데이터 조회 결과:', { 
+      found: !!currentImage, 
+      error: fetchError?.message,
+      imageData: currentImage ? {
+        id: currentImage.id,
+        file_name: currentImage.file_name,
+        image_url: currentImage.image_url
+      } : null
+    });
+
     if (fetchError || !currentImage) {
       console.error('❌ 이미지 메타데이터 조회 실패:', fetchError);
       return res.status(404).json({
         error: '이미지를 찾을 수 없습니다.',
-        details: fetchError?.message
+        details: fetchError?.message,
+        debug: {
+          imageId,
+          currentPath,
+          errorType: 'metadata_not_found'
+        }
       });
     }
 
@@ -57,15 +73,26 @@ export default async function handler(req, res) {
     });
 
     // 3. 파일 다운로드
+    console.log('🔍 스토리지 파일 다운로드 시도:', currentPath);
     const { data: downloadData, error: downloadError } = await supabase.storage
       .from('blog-images')
       .download(currentPath);
+
+    console.log('📊 스토리지 다운로드 결과:', {
+      success: !!downloadData,
+      error: downloadError?.message,
+      filePath: currentPath
+    });
 
     if (downloadError) {
       console.error('❌ 파일 다운로드 실패:', downloadError);
       return res.status(500).json({
         error: '파일을 다운로드할 수 없습니다.',
-        details: downloadError.message
+        details: downloadError.message,
+        debug: {
+          currentPath,
+          errorType: 'storage_file_not_found'
+        }
       });
     }
 
