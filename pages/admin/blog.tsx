@@ -3858,27 +3858,6 @@ export default function BlogAdmin() {
                   </div>
                 </div>
 
-                {/* 슬러그 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">슬러그</label>
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="url-friendly-slug"
-                    />
-                          <button
-                            type="button"
-                      onClick={generateAISlug}
-                      className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                      title="AI로 SEO 최적화된 슬러그 생성"
-                          >
-                      🤖 AI
-                          </button>
-                        </div>
-                    </div>
 
 
                 {/* 요약 */}
@@ -3894,7 +3873,7 @@ export default function BlogAdmin() {
                     placeholder="게시물 요약을 입력하세요"
             />
                       </div>
-
+                      
                 {/* 카테고리와 상태 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -3995,8 +3974,8 @@ export default function BlogAdmin() {
                                 <h5 className="text-sm font-medium text-green-800 mb-3">📈 SEO 최적화 결과</h5>
                                 <div className="text-sm text-green-700 whitespace-pre-wrap">
                                   {seoOptimizationResult}
-                                </div>
-                              </div>
+                        </div>
+                      </div>
                               
                               {/* SEO 메타 필드들 */}
                               <div className="space-y-4">
@@ -4049,26 +4028,36 @@ export default function BlogAdmin() {
                                   <label className="block text-sm font-medium text-gray-700 mb-2">
                                     URL 슬러그
                                   </label>
-                                  <input
-                                    type="text"
-                                    value={formData.slug}
-                                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="URL에 사용될 슬러그"
-                                  />
+                                  <div className="flex gap-2 items-center">
+                                    <input
+                                      type="text"
+                                      value={formData.slug}
+                                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="URL에 사용될 슬러그"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={generateAISlug}
+                                      className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+                                      title="AI로 SEO 최적화된 슬러그 생성"
+                                    >
+                                      🤖 AI
+                                    </button>
+                                  </div>
                                   <p className="text-xs text-gray-500 mt-1">
                                     예: /blog/{formData.slug || 'your-slug-here'}
                                   </p>
                                 </div>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
+                      )}
+                    </div>
+                    </div>
 
                     </div>
                   )}
-                </div>
+                    </div>
 
                 {/* 갤러리 열기/닫기 버튼 */}
                 <div className="flex justify-center py-4">
@@ -4137,8 +4126,8 @@ export default function BlogAdmin() {
                       >
                         🔄 새로고침
                       </button>
-                    </div>
-                    
+                  </div>
+
                     {galleryFilter === 'search' && (
                       <div className="flex items-center space-x-2">
                         <input
@@ -4179,7 +4168,7 @@ export default function BlogAdmin() {
                                 전체 선택 ({selectedImages.size}/{getFilteredImages().length}개 표시)
                               </span>
                             </label>
-                          </div>
+                    </div>
                         </div>
                       </div>
                     )}
@@ -4225,10 +4214,10 @@ export default function BlogAdmin() {
                                         ⭐ 대표
                                       </span>
                                     )}
-                                  </div>
-                                </div>
-                              </div>
-                        
+                    </div>
+                  </div>
+                </div>
+
                               {/* 개별 이미지 선택 체크박스 */}
                               <div className="absolute top-2 left-2">
                                 <input
@@ -4252,13 +4241,13 @@ export default function BlogAdmin() {
                                   className="rounded border-gray-300"
                                   onClick={(e) => e.stopPropagation()}
                                 />
-                              </div>
+                    </div>
                         
                               {/* 호버 액션 */}
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center">
-                                  <button
-                                    type="button"
+                    <button 
+                      type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       if (isFeaturedImage(representativeImage.url)) {
@@ -4301,13 +4290,13 @@ export default function BlogAdmin() {
                                     className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                                   >
                                     📋 복사
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+                    </button>
+                  </div>
+                      </div>
+                    </div>
                           );
                         })}
-                      </div>
+                </div>
                     ) : (
                       <div className="text-center py-12 text-gray-500">
                         <div className="text-4xl mb-4">🖼️</div>
@@ -4363,7 +4352,7 @@ export default function BlogAdmin() {
                               </button>
                             );
                           })}
-                        </div>
+                    </div>
 
                         <button
                           type="button"
@@ -4381,7 +4370,7 @@ export default function BlogAdmin() {
                         >
                           마지막 페이지
                         </button>
-                      </div>
+                    </div>
                     )}
 
                     {/* 로딩 상태 표시 */}
@@ -4390,8 +4379,8 @@ export default function BlogAdmin() {
                         <div className="inline-flex items-center space-x-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                           <span className="text-sm text-gray-600">이미지 로딩 중...</span>
-                        </div>
-                      </div>
+                  </div>
+                </div>
                     )}
                   </div>
                 )}
@@ -4412,14 +4401,14 @@ export default function BlogAdmin() {
                     <h3 className="text-lg font-semibold text-gray-900">🤖 AI 콘텐츠 개선</h3>
                     <span className="text-sm text-gray-500">AI로 콘텐츠를 분석하고 개선할 수 있습니다</span>
                   </div>
-
+                  
                   <div className="space-y-4">
                     {/* 개선 요청 입력 */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         개선 요청사항
                       </label>
-                      <textarea 
+                      <textarea
                         value={simpleAIRequest}
                         onChange={(e) => setSimpleAIRequest(e.target.value)}
                         placeholder="예: 더 매력적인 제목으로 바꿔주세요, SEO를 고려한 내용으로 개선해주세요, 더 읽기 쉽게 만들어주세요..."
@@ -4427,10 +4416,10 @@ export default function BlogAdmin() {
                         rows={3}
                       />
                     </div>
-
+                    
                     {/* AI 개선 버튼 */}
                     <div className="flex flex-wrap gap-3">
-                      <button 
+                      <button
                         type="button"
                         onClick={applySimpleAIImprovement}
                         disabled={isImprovingContent || !simpleAIRequest.trim()}
@@ -5187,8 +5176,8 @@ export default function BlogAdmin() {
                                   <p className="text-sm">먼저 이미지를 업로드하거나 생성해주세요</p>
                                 </div>
                               )}
-                            </div>
                           </div>
+                        </div>
                         )}
                         
                         {/* URL 입력 섹션 */}
