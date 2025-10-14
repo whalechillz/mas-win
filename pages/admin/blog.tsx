@@ -1165,32 +1165,60 @@ export default function BlogAdmin() {
   const generateAITitle = async () => {
     // 러프 소스가 있는 경우 우선 사용: 없으면 요약/제목으로 대체
     const contentSource = `${formData.excerpt}\n\n${formData.content?.slice(0, 500) || ''}`;
+    console.log('🔍 제목 생성 시작 - 콘텐츠 소스:', contentSource);
+    
     if (!contentSource.trim()) {
       alert('제목/요약 또는 내용 일부를 먼저 입력해주세요.');
       return;
     }
+    
     setIsGeneratingTitle(true);
+    console.log('🚀 제목 생성 API 호출 시작...');
+    
     try {
+      const requestBody = { 
+        contentSource,
+        contentType: formData.category,
+        customerPersona: brandPersona,
+        customerChannel: 'local_customers',
+        brandWeight: getBrandWeight(brandContentType)
+      };
+      
+      console.log('📤 요청 데이터:', requestBody);
+      
       const response = await fetch('/api/generate-blog-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          contentSource,
-          contentType: formData.category,
-          customerPersona: brandPersona,
-          customerChannel: 'local_customers',
-          brandWeight: getBrandWeight(brandContentType)
-        })
+        body: JSON.stringify(requestBody)
       });
-      if (!response.ok) throw new Error('제목 생성 실패');
+      
+      console.log('📥 응답 상태:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API 오류 응답:', errorText);
+        throw new Error(`제목 생성 실패 (${response.status}): ${errorText}`);
+      }
+      
       const data = await response.json();
-      setGeneratedTitles(Array.isArray(data.titles) ? data.titles : []);
-      setShowTitleOptions(true);
+      console.log('✅ API 응답 데이터:', data);
+      
+      if (data.success && Array.isArray(data.titles)) {
+        console.log('📝 생성된 제목들:', data.titles);
+        setGeneratedTitles(data.titles);
+        setShowTitleOptions(true);
+        console.log('🎉 제목 생성 완료, 모달 표시');
+      } else {
+        console.error('❌ 잘못된 응답 형식:', data);
+        throw new Error('제목 생성 응답 형식이 올바르지 않습니다.');
+      }
     } catch (error: any) {
-      console.error('AI 제목 생성 오류:', error);
+      console.error('❌ AI 제목 생성 오류:', error);
+      console.error('❌ 오류 스택:', error.stack);
       alert(`AI 제목 생성 실패: ${error.message}`);
     } finally {
       setIsGeneratingTitle(false);
+      console.log('🏁 제목 생성 프로세스 완료');
     }
   };
 
