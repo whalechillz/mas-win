@@ -2897,21 +2897,40 @@ export default function BlogAdmin() {
 
       if (response.ok) {
         const data = await response.json();
-        setSeoOptimizationResult(data.optimization || 'SEO 최적화 결과가 없습니다.');
+        
+        // SEO 분석 결과를 포맷팅하여 표시
+        const analysis = data.optimization;
+        const suggestions = data.suggestions;
+        
+        let resultText = `🎯 SEO 점수: ${analysis.seoScore}/100\n\n`;
+        resultText += `📊 상세 분석:\n`;
+        resultText += `• 제목 점수: ${analysis.titleScore}/100 (${analysis.titleLength}자)\n`;
+        resultText += `• 내용 점수: ${analysis.contentScore}/100 (${analysis.contentLength}자)\n\n`;
+        
+        if (analysis.recommendations && analysis.recommendations.length > 0) {
+          resultText += `💡 개선 권장사항:\n`;
+          analysis.recommendations.forEach((rec, index) => {
+            resultText += `${index + 1}. ${rec}\n`;
+          });
+        }
+        
+        setSeoOptimizationResult(resultText);
         
         // SEO 최적화 결과를 폼에 적용
-        if (data.suggestions) {
+        if (suggestions) {
           setFormData(prev => ({
             ...prev,
-            meta_title: data.suggestions.meta_title || prev.meta_title,
-            meta_description: data.suggestions.meta_description || prev.meta_description,
-            slug: data.suggestions.slug || prev.slug
+            meta_title: suggestions.meta_title || prev.meta_title,
+            meta_description: suggestions.meta_description || prev.meta_description,
+            slug: suggestions.slug || prev.slug,
+            meta_keywords: suggestions.keywords || prev.meta_keywords
           }));
         }
         
-        alert('SEO 최적화가 완료되었습니다!');
+        alert('SEO 최적화가 완료되었습니다! 메타 정보가 자동으로 입력되었습니다.');
         } else {
-        throw new Error('SEO 최적화에 실패했습니다.');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'SEO 최적화에 실패했습니다.');
       }
     } catch (error) {
       console.error('SEO 최적화 오류:', error);
@@ -3971,10 +3990,76 @@ export default function BlogAdmin() {
 
                           {/* SEO 최적화 결과 */}
                           {seoOptimizationResult && (
-                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                              <h5 className="text-sm font-medium text-blue-800 mb-2">📈 SEO 최적화 결과</h5>
-                              <div className="text-sm text-blue-700 whitespace-pre-wrap">
-                                {seoOptimizationResult}
+                            <div className="space-y-4">
+                              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <h5 className="text-sm font-medium text-green-800 mb-3">📈 SEO 최적화 결과</h5>
+                                <div className="text-sm text-green-700 whitespace-pre-wrap">
+                                  {seoOptimizationResult}
+                                </div>
+                              </div>
+                              
+                              {/* SEO 메타 필드들 */}
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    메타 제목 (SEO)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.meta_title}
+                                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="검색 결과에 표시될 제목"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {formData.meta_title.length}/60자 (권장: 30-60자)
+                                  </p>
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    메타 설명 (SEO)
+                                  </label>
+                                  <textarea
+                                    value={formData.meta_description}
+                                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    rows={3}
+                                    placeholder="검색 결과에 표시될 설명"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {formData.meta_description.length}/155자 (권장: 120-155자)
+                                  </p>
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    메타 키워드 (SEO)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.meta_keywords}
+                                    onChange={(e) => setFormData({ ...formData, meta_keywords: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="콤마로 구분된 키워드 (예: 골프, 라운딩, CC)"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    URL 슬러그
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.slug}
+                                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="URL에 사용될 슬러그"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    예: /blog/{formData.slug || 'your-slug-here'}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           )}
