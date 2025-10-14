@@ -112,12 +112,24 @@ export default function GalleryAdmin() {
     
     // 폴더 필터
     if (folderFilter !== 'all') {
+      console.log('🔍 폴더 필터 적용:', folderFilter);
+      console.log('🔍 필터링 전 이미지 수:', filtered.length);
+      
       if (folderFilter === 'root') {
         // 루트 폴더 (폴더 경로가 없는 이미지들)
         filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
+        console.log('🔍 루트 폴더 필터링 후:', filtered.length);
       } else {
         // 특정 폴더
-        filtered = filtered.filter(img => img.folder_path === folderFilter);
+        const beforeCount = filtered.length;
+        filtered = filtered.filter(img => {
+          const matches = img.folder_path === folderFilter;
+          if (!matches) {
+            console.log('🔍 폴더 불일치:', img.folder_path, 'vs', folderFilter);
+          }
+          return matches;
+        });
+        console.log('🔍 특정 폴더 필터링 후:', filtered.length, '(이전:', beforeCount, ')');
       }
     }
     

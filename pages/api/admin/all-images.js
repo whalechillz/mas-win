@@ -146,7 +146,7 @@ export default async function handler(req, res) {
           .eq('image_url', urlData.publicUrl)
           .single();
         
-        return {
+        const imageData = {
           id: file.id,
           name: file.name,
           size: file.metadata?.size || 0,
@@ -163,6 +163,13 @@ export default async function handler(req, res) {
           brand_strategy: metadata?.brand_strategy || '',
           usage_count: metadata?.usage_count || 0
         };
+        
+        // 폴더 경로 디버깅
+        if (file.folderPath) {
+          console.log('📁 폴더 경로:', file.folderPath, '파일명:', file.name);
+        }
+        
+        return imageData;
       }));
 
       console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개 (총', totalCount, '개 중)');
