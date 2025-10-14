@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       });
       const { error } = await supabase
         .from('image_metadata')
-        .upsert(updates, { onConflict: 'file_name' });
+        .upsert(updates, { onConflict: 'file_name,folder_path' });
       if (error) return res.status(500).json({ error: error.message, details: { updates } });
       return res.status(200).json({ success: true, count: updates.length });
     }
