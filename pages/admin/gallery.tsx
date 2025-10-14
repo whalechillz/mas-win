@@ -821,6 +821,71 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 일괄 복제 실행
+  const handleBulkDuplicate = async () => {
+    if (selectedImages.size === 0) {
+      alert('복제할 이미지를 선택해주세요.');
+      return;
+    }
+    
+    setIsBulkWorking(true);
+    
+    try {
+      const selectedIds = Array.from(selectedImages);
+      console.log('📋 일괄 복제 시작:', selectedIds.length, '개');
+      
+      // 선택된 이미지들의 정보 수집
+      const imagesToDuplicate = selectedIds.map(id => {
+        const image = images.find(img => getImageUniqueId(img) === id);
+        return image;
+      }).filter(Boolean);
+      
+      console.log('📋 복제할 이미지들:', imagesToDuplicate);
+      
+      // 일괄 복제 API 호출
+      const response = await fetch('/api/admin/duplicate-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          images: imagesToDuplicate.map(img => ({
+            name: img.name,
+            url: img.url,
+            alt_text: img.alt_text || '',
+            title: img.title || '',
+            description: img.description || '',
+            keywords: img.keywords || [],
+            category: img.category || ''
+          }))
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.error || errorData.details || '일괄 복제에 실패했습니다.';
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      console.log('✅ 일괄 복제 성공:', result);
+      
+      // 선택 해제
+      setSelectedImages(new Set());
+      
+      // 갤러리 새로고침
+      setTimeout(() => {
+        fetchImages(1, true);
+      }, 500);
+      
+      alert(`일괄 복제 완료: ${result.duplicatedCount}개 이미지가 복제되었습니다.`);
+      
+    } catch (error) {
+      console.error('❌ 일괄 복제 오류:', error);
+      alert(`일괄 복제에 실패했습니다: ${error.message}`);
+    } finally {
+      setIsBulkWorking(false);
+    }
+  };
+
   // 일괄 삭제 실행
   // 개별 이미지 삭제 핸들러
   const handleDeleteImage = async (imageName: string) => {
@@ -1099,13 +1164,20 @@ export default function GalleryAdmin() {
                 >
                   📁 카테고리 이동
                 </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowBulkDeleteConfirm(true)}
-                    className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
-                  >
-                    🗑️ 일괄 삭제
-                  </button>
+                <button
+                  type="button"
+                  onClick={handleBulkDuplicate}
+                  className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
+                >
+                  📋 일괄 복제
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkDeleteConfirm(true)}
+                  className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                >
+                  🗑️ 일괄 삭제
+                </button>
                 </div>
               </div>
             </div>
