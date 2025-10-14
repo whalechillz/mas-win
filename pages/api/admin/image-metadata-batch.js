@@ -32,8 +32,8 @@ export default async function handler(req, res) {
       });
       const { error } = await supabase
         .from('image_metadata')
-        .upsert(updates, { onConflict: 'file_name,folder_path' });
-      if (error) return res.status(500).json({ error: error.message, details: { updates } });
+        .upsert(updates, { onConflict: 'file_name' });
+      if (error) return res.status(500).json({ error: error.message, where: 'upsert paths', count: updates.length });
       return res.status(200).json({ success: true, count: updates.length });
     }
 
@@ -42,11 +42,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'imageUrls or paths is required' });
     }
 
+    const normalized = Array.from(new Set(imageUrls.filter((u) => typeof u === 'string' && u.length > 0)));
+    if (normalized.length === 0) return res.status(200).json({ metadata: {} });
+
     const { data, error } = await supabase
       .from('image_metadata')
       .select('*')
-      .in('image_url', imageUrls);
-    if (error) return res.status(500).json({ error: error.message, where: 'select by imageUrls', count: imageUrls.length });
+      .in('image_url', normalized);
+    if (error) return res.status(500).json({ error: error.message, where: 'select by imageUrls', count: normalized.length });
 
     const map = {};
     for (const row of data || []) {
