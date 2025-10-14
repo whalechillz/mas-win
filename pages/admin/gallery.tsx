@@ -477,19 +477,45 @@ export default function GalleryAdmin() {
         const metaRes = await fetch('/api/admin/image-metadata-batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrls: list.map((i: any)=> i.url) }) });
         const metaJson = metaRes.ok ? await metaRes.json() : { metadata: {} };
         const metaMap = metaJson.metadata || {};
-        const imagesWithMetadata = list.map((img: any) => ({
-          ...img,
-          id: metaMap[img.url]?.id || img.id || `temp-${Date.now()}-${Math.random()}`, // ID 필드 추가
-          alt_text: metaMap[img.url]?.alt_text || '',
-          keywords: metaMap[img.url]?.tags || [],
-          title: metaMap[img.url]?.title || '',
-          description: metaMap[img.url]?.description || '',
-          category: metaMap[img.url]?.category_id || '',
-          is_featured: false,
-          usage_count: metaMap[img.url]?.usage_count || 0,
-          used_in_posts: []
-        }));
+        const imagesWithMetadata = list.map((img: any) => {
+          // 폴더 경로 추론(메타데이터가 없을 때 name에서 유추)
+          const inferredFolder = img.folder_path
+            || (typeof img.name === 'string' && img.name.includes('/')
+              ? img.name.substring(0, img.name.lastIndexOf('/'))
+              : '');
+          const meta = metaMap[img.url] || {};
+          return {
+            ...img,
+            id: meta.id || img.id || `temp-${Date.now()}-${Math.random()}`,
+            alt_text: meta.alt_text || '',
+            keywords: meta.tags || [],
+            title: meta.title || '',
+            description: meta.description || '',
+            category: meta.category_id || '',
+            folder_path: meta.folder_path || inferredFolder,
+            is_featured: false,
+            usage_count: meta.usage_count || 0,
+            used_in_posts: []
+          };
+        });
         
+        // 메타데이터가 비어 있는 파일(예: derived/2025-10-14/image_...)을 발견하면 즉시 서버에 upsert 요청
+        try {
+          const missingMetaPaths = imagesWithMetadata
+            .filter((img: any) => !img.folder_path || img.folder_path === '')
+            .map((img: any) => img.name)
+            .filter(Boolean);
+          if (missingMetaPaths.length > 0) {
+            await fetch('/api/admin/image-metadata-batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paths: missingMetaPaths })
+            });
+          }
+        } catch (e) {
+          console.warn('메타데이터 보정 실패:', e);
+        }
+
         if (reset || page === 1) {
           setImages(imagesWithMetadata);
           setCurrentPage(1);
