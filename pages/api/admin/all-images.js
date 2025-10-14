@@ -100,10 +100,13 @@ export default async function handler(req, res) {
         });
       }
 
-      // 이미지 파일만 필터링 (폴더 제외)
+      // 이미지 파일만 필터링 (폴더 제외) - 디버깅용 완화
+      console.log(`📁 원본 파일 목록:`, files.map(f => ({ name: f.name, id: f.id, size: f.size })));
+      
       const imageFiles = files.filter(file => {
         // 폴더는 제외 (id가 null이고 size가 0인 경우)
         if (!file.id || file.size === 0) {
+          console.log(`📁 폴더 제외:`, file.name, 'id:', file.id, 'size:', file.size);
           return false;
         }
         // 이미지 확장자만 허용
@@ -111,6 +114,9 @@ export default async function handler(req, res) {
         const hasImageExtension = imageExtensions.some(ext => 
           file.name.toLowerCase().endsWith(ext)
         );
+        if (!hasImageExtension) {
+          console.log(`📁 확장자 제외:`, file.name);
+        }
         return hasImageExtension;
       });
 
