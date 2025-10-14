@@ -281,3 +281,22 @@ public/uploads/           # 임시 이미지 업로드 경로
 - **메인**: https://muziik.masgolf.co.kr
 - **Sapphire**: https://muziik.masgolf.co.kr/sapphire
 - **Beryl**: https://muziik.masgolf.co.kr/beryl
+
+## 2025-10-14 이미지 폴더/채널 표준화 추가
+
+- 무엇을 했나
+  - 채널별 이미지 사이즈 프리셋 정의: `lib/channel-presets.ts`
+  - 스토리지 경로 빌더/파일명 정규화 유틸: `lib/path-builder.ts`
+  - 표준 폴더 규칙: `source/channel/date/sizeKey/fileName`
+
+- 왜 했나
+  - 콘텐츠 캘린더 멀티채널 사이즈와 갤러리/블로그/스크래퍼의 일관된 경로/메타 기준 수립
+  - 고급 필터(채널/사이즈/날짜/소스)와 배치 작업(이동/리네임) 구현 용이성 확보
+
+- 변경 파일
+  - `lib/channel-presets.ts`
+  - `lib/path-builder.ts`
+
+- 남은 작업
+  - 공통 업로드/변형 모달에서 프리셋 선택과 경로 미리보기 연동
+  - `image_metadata` 스키마 확장(`source/channel/size_key/date_folder`) 및 인덱스 추가
