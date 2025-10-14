@@ -14,6 +14,13 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
+/* 모바일 전용 터치 스크롤 */
+@media (max-width: 768px) {
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* 골드 버튼 애니메이션 */
 .gold-button {
   position: relative;
