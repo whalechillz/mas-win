@@ -3968,6 +3968,274 @@ export default function BlogAdmin() {
                   </div>
                 )}
 
+                {/* 갤러리 썸네일 이미지 섹션 */}
+                {isGalleryOpen && (
+                  <div className="space-y-4">
+                    {/* 이미지 갤러리 컨트롤 */}
+                    {getFilteredImages().length > 0 && (
+                      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={getFilteredImages().length > 0 && selectedImages.size === getFilteredImages().length}
+                                onChange={handleSelectAllImages}
+                                className="rounded border-gray-300"
+                              />
+                              <span className="text-sm text-gray-700">
+                                전체 선택 ({selectedImages.size}/{getFilteredImages().length}개 표시)
+                              </span>
+                            </label>
+                          </div>
+                          {selectedImages.size > 0 && (
+                            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <span className="text-sm text-blue-700">
+                                {selectedImages.size}개 이미지 선택됨
+                              </span>
+                              <button
+                                type="button"
+                                onClick={insertMultipleImagesToContent}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                              >
+                                ➕ 선택된 이미지 삽입 ({selectedImages.size}개)
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 이미지 그룹 갤러리 */}
+                    {getFilteredImages().length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {Object.entries(groupImagesByBaseName(getFilteredImages())).map(([baseName, imageGroup]) => {
+                          const group = imageGroup as any[];
+                          const representativeImage = getRepresentativeImage(group);
+                          if (!representativeImage) return null;
+                          
+                          return (
+                            <div key={baseName} className="relative group">
+                              <div
+                                className={`cursor-pointer border-2 rounded-lg overflow-hidden transition-colors ${
+                                  isFeaturedImage(representativeImage.url) 
+                                    ? 'border-yellow-400 bg-yellow-50' 
+                                    : 'border-gray-200 hover:border-blue-500'
+                                }`}
+                                onClick={() => handleImageGroupClick(group)}
+                              >
+                                <img
+                                  src={forceHttps(representativeImage.url)}
+                                  alt={representativeImage.name}
+                                  className="w-full h-32 object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/placeholder-image.jpg';
+                                  }}
+                                />
+                                <div className="p-2 bg-white">
+                                  <div className="text-xs text-gray-600 truncate" title={baseName}>
+                                    {baseName}
+                                  </div>
+                                  <div className="text-[11px] text-gray-500 flex items-center justify-between gap-2">
+                                    <span className="truncate">ALT: {representativeImage.alt_text || representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
+                                  </div>
+                                  <div className="text-[11px] text-gray-400 flex items-center justify-between">
+                                    <span>버전 {group.length}</span>
+                                    {isFeaturedImage(representativeImage.url) && (
+                                      <span className="px-1 py-0.5 bg-yellow-500 text-white text-[10px] rounded">
+                                        ⭐ 대표
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                        
+                              {/* 개별 이미지 선택 체크박스 */}
+                              <div className="absolute top-2 left-2">
+                                <input
+                                  type="checkbox"
+                                  checked={group.some((img: any) => selectedImages.has(img.name))}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      group.forEach((img: any) => {
+                                        setSelectedImages(prev => new Set([...Array.from(prev), img.name]));
+                                      });
+                                    } else {
+                                      group.forEach((img: any) => {
+                                        setSelectedImages(prev => {
+                                          const newSet = new Set(prev);
+                                          newSet.delete(img.name);
+                                          return newSet;
+                                        });
+                                      });
+                                    }
+                                  }}
+                                  className="rounded border-gray-300"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                        
+                              {/* 호버 액션 */}
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (isFeaturedImage(representativeImage.url)) {
+                                        setFormData({ ...formData, featured_image: '' });
+                                        alert('대표 이미지가 해제되었습니다!');
+                                      } else {
+                                        setFormData({ ...formData, featured_image: forceHttps(representativeImage.url) });
+                                        alert('대표 이미지로 설정되었습니다!');
+                                      }
+                                    }}
+                                    className={`px-2 py-1 text-white text-xs rounded ${
+                                      isFeaturedImage(representativeImage.url) 
+                                        ? 'bg-yellow-500 hover:bg-yellow-600' 
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                    }`}
+                                  >
+                                    {isFeaturedImage(representativeImage.url) ? '⭐ 해제' : '⭐ 대표'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const preferredUrl = forceHttps(representativeImage.url);
+                                      if (typeof window !== 'undefined') {
+                                        window.dispatchEvent(new CustomEvent('tiptap:insert-image', { detail: { url: preferredUrl, alt: representativeImage.name } }));
+                                      } else {
+                                        insertImageToContent(preferredUrl);
+                                      }
+                                    }}
+                                    className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                  >
+                                    ➕ 삽입
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyImageUrl(forceHttps(representativeImage.url));
+                                    }}
+                                    className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                                  >
+                                    📋 복사
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      selectBaseImage(forceHttps(representativeImage.url));
+                                    }}
+                                    className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                                  >
+                                    🎨 변형
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      selectImageForImprovement(forceHttps(representativeImage.url));
+                                    }}
+                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                  >
+                                    ✨ 개선
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <div className="text-4xl mb-4">🖼️</div>
+                        <p className="text-lg mb-2">
+                          {galleryFilter === 'featured' ? '대표 이미지가 없습니다' : 
+                           galleryFilter === 'search' ? '검색 결과가 없습니다' : 
+                           '이미지가 없습니다'}
+                        </p>
+                        <p className="text-sm">
+                          {galleryFilter === 'featured' ? '다른 이미지를 대표 이미지로 설정하세요' :
+                           galleryFilter === 'search' ? '다른 검색어를 시도해보세요' :
+                           '위의 AI 이미지 생성 기능을 사용하거나 이미지를 업로드하세요'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 페이지네이션 컨트롤 */}
+                    {getFilteredImages().length > 0 && galleryFilter === 'all' && (
+                      <div className="mt-6 flex items-center justify-center space-x-4">
+                        <button
+                          type="button"
+                          onClick={() => handlePageChange(1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          첫 페이지
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          이전
+                        </button>
+                      
+                        <div className="flex items-center space-x-2">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                            if (pageNum > totalPages) return null;
+                            return (
+                              <button
+                                key={pageNum}
+                                type="button"
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`px-3 py-2 text-sm border rounded-lg ${
+                                  currentPage === pageNum
+                                    ? 'bg-blue-500 text-white border-blue-500'
+                                    : 'border-gray-300 hover:bg-gray-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          다음
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePageChange(totalPages)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          마지막 페이지
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 로딩 상태 표시 */}
+                    {isLoadingImages && (
+                      <div className="text-center py-4">
+                        <div className="inline-flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                          <span className="text-sm text-gray-600">이미지 로딩 중...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* AI 콘텐츠 개선 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
@@ -4965,275 +5233,6 @@ export default function BlogAdmin() {
                 )}
 
 
-                {/* 이미지 갤러리 섹션 - 아코디언 */}
-                <div className="border-t border-gray-200 pt-8">
-                  
-                  {/* 갤러리 내용 - 아코디언 */}
-                  {isGalleryOpen && (
-                    <div className="space-y-4">
-                
-                      {/* 이미지 갤러리 컨트롤 */}
-                      {getFilteredImages().length > 0 && (
-                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                                  checked={getFilteredImages().length > 0 && selectedImages.size === getFilteredImages().length}
-                          onChange={handleSelectAllImages}
-                                  className="rounded border-gray-300"
-                        />
-                                <span className="text-sm text-gray-700">
-                                  전체 선택 ({selectedImages.size}/{getFilteredImages().length}개 표시)
-                          </span>
-            </label>
-                      </div>
-                    {selectedImages.size > 0 && (
-                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <span className="text-sm text-blue-700">
-                          {selectedImages.size}개 이미지 선택됨
-                        </span>
-                        <button
-                          type="button"
-                          onClick={insertMultipleImagesToContent}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                        >
-                          ➕ 선택된 이미지 삽입 ({selectedImages.size}개)
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                            </div>
-                      )}
-
-                      {/* 이미지 그룹 갤러리 */}
-                      {getFilteredImages().length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {Object.entries(groupImagesByBaseName(getFilteredImages())).map(([baseName, imageGroup]) => {
-                        const group = imageGroup as any[];
-                        const representativeImage = getRepresentativeImage(group);
-                        if (!representativeImage) return null;
-                        
-                        return (
-                          <div key={baseName} className="relative group">
-                            <div
-                              className={`cursor-pointer border-2 rounded-lg overflow-hidden transition-colors ${
-                                isFeaturedImage(representativeImage.url) 
-                                  ? 'border-yellow-400 bg-yellow-50' 
-                                  : 'border-gray-200 hover:border-blue-500'
-                              }`}
-                              onClick={() => handleImageGroupClick(group)}
-                              >
-                                <img
-                                src={forceHttps(representativeImage.url)}
-                                alt={representativeImage.name}
-                                className="w-full h-32 object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = '/placeholder-image.jpg';
-                              }}
-                            />
-                              <div className="p-2 bg-white">
-                                <div className="text-xs text-gray-600 truncate" title={baseName}>
-                                  {baseName}
-                            </div>
-                                <div className="text-[11px] text-gray-500 flex items-center justify-between gap-2">
-                                  <span className="truncate">ALT: {representativeImage.alt_text || representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
-                          </div>
-                                <div className="text-[11px] text-gray-400 flex items-center justify-between">
-                                  <span>버전 {group.length}</span>
-                                  {isFeaturedImage(representativeImage.url) && (
-                                    <span className="px-1 py-0.5 bg-yellow-500 text-white text-[10px] rounded">
-                                      ⭐ 대표
-                                </span>
-                                  )}
-                              </div>
-                          </div>
-                        </div>
-                  
-                            {/* 개별 이미지 선택 체크박스 */}
-                            <div className="absolute top-2 left-2">
-                              <input
-                                type="checkbox"
-                                checked={group.some((img: any) => selectedImages.has(img.name))}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    group.forEach((img: any) => {
-                                      setSelectedImages(prev => new Set([...Array.from(prev), img.name]));
-                                    });
-                        } else {
-                                    group.forEach((img: any) => {
-                                      setSelectedImages(prev => {
-                                        const newSet = new Set(prev);
-                                        newSet.delete(img.name);
-                                        return newSet;
-                                      });
-                                    });
-                                  }
-                                }}
-                                className="rounded border-gray-300"
-                                onClick={(e) => e.stopPropagation()}
-                    />
-            </div>
-                  
-                            {/* 호버 액션 */}
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center">
-                    <button
-                      type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (isFeaturedImage(representativeImage.url)) {
-                                      setFormData({ ...formData, featured_image: '' });
-                                      alert('대표 이미지가 해제되었습니다!');
-                        } else {
-                                      setFormData({ ...formData, featured_image: forceHttps(representativeImage.url) });
-                                      alert('대표 이미지로 설정되었습니다!');
-                                    }
-                      }}
-                                  className={`px-2 py-1 text-white text-xs rounded ${
-                                    isFeaturedImage(representativeImage.url) 
-                                      ? 'bg-yellow-500 hover:bg-yellow-600' 
-                                      : 'bg-blue-500 hover:bg-blue-600'
-                                  }`}
-                    >
-                                  {isFeaturedImage(representativeImage.url) ? '⭐ 해제' : '⭐ 대표'}
-                    </button>
-                    <button
-                      type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const preferredUrl = forceHttps(representativeImage.url);
-                                    if (typeof window !== 'undefined') {
-                                      window.dispatchEvent(new CustomEvent('tiptap:insert-image', { detail: { url: preferredUrl, alt: representativeImage.name } }));
-                                    } else {
-                                      insertImageToContent(preferredUrl);
-                                    }
-                                  }}
-                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                                >
-                                  ➕ 삽입
-                    </button>
-                    <button
-                      type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    copyImageUrl(forceHttps(representativeImage.url));
-                                  }}
-                                  className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
-                                >
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    selectBaseImage(forceHttps(representativeImage.url));
-                                  }}
-                                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
-                                >
-                                </button>
-                                  <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    selectImageForImprovement(forceHttps(representativeImage.url));
-                                    }}
-                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
-                                  >
-                                  </button>
-            </div>
-          </div>
-              </div>
-                          );
-                        })}
-            </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500">
-                            <div className="text-4xl mb-4">🖼️</div>
-                            <p className="text-lg mb-2">
-                              {galleryFilter === 'featured' ? '대표 이미지가 없습니다' : 
-                               galleryFilter === 'search' ? '검색 결과가 없습니다' : 
-                               '이미지가 없습니다'}
-                            </p>
-                            <p className="text-sm">
-                              {galleryFilter === 'featured' ? '다른 이미지를 대표 이미지로 설정하세요' :
-                               galleryFilter === 'search' ? '다른 검색어를 시도해보세요' :
-                               '위의 AI 이미지 생성 기능을 사용하거나 이미지를 업로드하세요'}
-                </p>
-                </div>
-                        )}
-
-                      {/* 페이지네이션 컨트롤 */}
-                      {getFilteredImages().length > 0 && galleryFilter === 'all' && (
-                    <div className="mt-6 flex items-center justify-center space-x-4">
-                      <button
-                        type="button"
-                        onClick={() => handlePageChange(1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        첫 페이지
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        이전
-                      </button>
-                    
-                      <div className="flex items-center space-x-2">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                          if (pageNum > totalPages) return null;
-                          return (
-                      <button
-                              key={pageNum}
-                        type="button"
-                              onClick={() => handlePageChange(pageNum)}
-                              className={`px-3 py-2 text-sm border rounded-lg ${
-                                currentPage === pageNum
-                                  ? 'bg-blue-500 text-white border-blue-500'
-                                  : 'border-gray-300 hover:bg-gray-50'
-                              }`}
-                            >
-                              {pageNum}
-                      </button>
-                          );
-                        })}
-                    </div>
-
-                        <button
-                          type="button"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        다음
-                        </button>
-                        <button
-                          type="button"
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        마지막 페이지
-                        </button>
-        </div>
-                  )}
-
-                      {/* 로딩 상태 표시 */}
-                      {isLoadingImages && (
-                        <div className="text-center py-4">
-                          <div className="inline-flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                            <span className="text-sm text-gray-600">이미지 로딩 중...</span>
-                        </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-        </div>
 
                 {/* 카테고리 */}
                   <div>
