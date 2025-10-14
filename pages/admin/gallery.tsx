@@ -78,7 +78,7 @@ export default function GalleryAdmin() {
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
+  const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // 동적 카테고리 상태 (useMemo보다 먼저 정의)
@@ -173,6 +173,16 @@ export default function GalleryAdmin() {
           aValue = a.usage_count || 0;
           bValue = b.usage_count || 0;
           break;
+        case 'folder_path':
+          // 폴더 경로 정렬 (루트 폴더가 먼저, 그 다음 알파벳 순)
+          aValue = a.folder_path || '';
+          bValue = b.folder_path || '';
+          // 루트 폴더(빈 문자열)를 가장 앞에 배치
+          if (aValue === '' && bValue !== '') return sortOrder === 'asc' ? -1 : 1;
+          if (aValue !== '' && bValue === '') return sortOrder === 'asc' ? 1 : -1;
+          if (aValue === '' && bValue === '') return 0;
+          const comparison = aValue.localeCompare(bValue);
+          return sortOrder === 'asc' ? comparison : -comparison;
         case 'created_at':
         default:
           aValue = new Date(a.created_at).getTime();
@@ -1121,6 +1131,7 @@ export default function GalleryAdmin() {
                   <option value="name">파일명</option>
                   <option value="size">파일 크기</option>
                   <option value="usage_count">사용 횟수</option>
+                  <option value="folder_path">📁 폴더 경로</option>
                 </select>
               </div>
               
