@@ -5820,6 +5820,9 @@ export default function BlogAdmin() {
         </div>
       )}
 
+      {/* 제목 추천 모달 */}
+      <TitleSelectModal />
+
     </>
   );
 }
