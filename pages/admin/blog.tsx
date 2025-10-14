@@ -1204,33 +1204,105 @@ export default function BlogAdmin() {
     setShowTitleOptions(false);
   };
 
+  // 제목 스타일 분석 함수
+  const analyzeTitleStyle = (title) => {
+    const styles = [];
+    
+    // 호기심 격차
+    if (title.includes('아무도 모르는') || title.includes('숨겨진') || title.includes('비밀') || title.includes('놀라운 진실')) {
+      styles.push({ type: '호기심 격차', color: 'bg-purple-100 text-purple-800' });
+    }
+    
+    // 사회적 증명
+    if (title.includes('%') || title.includes('많은') || title.includes('인기') || title.includes('추천') || title.includes('후기')) {
+      styles.push({ type: '사회적 증명', color: 'bg-blue-100 text-blue-800' });
+    }
+    
+    // 본능적 생존
+    if (title.includes('위험') || title.includes('구할') || title.includes('안전') || title.includes('보호')) {
+      styles.push({ type: '본능적 생존', color: 'bg-red-100 text-red-800' });
+    }
+    
+    // 희소성/특별함
+    if (title.includes('한정') || title.includes('특별') || title.includes('독점') || title.includes('마감')) {
+      styles.push({ type: '희소성', color: 'bg-orange-100 text-orange-800' });
+    }
+    
+    // 권위/전문성
+    if (title.includes('전문가') || title.includes('교수') || title.includes('연구') || title.includes('데이터')) {
+      styles.push({ type: '권위', color: 'bg-green-100 text-green-800' });
+    }
+    
+    // 상호성/혜택
+    if (title.includes('무료') || title.includes('혜택') || title.includes('선물') || title.includes('감사')) {
+      styles.push({ type: '상호성', color: 'bg-yellow-100 text-yellow-800' });
+    }
+    
+    // 구체적 숫자
+    if (/\d+/.test(title)) {
+      styles.push({ type: '구체적 수치', color: 'bg-indigo-100 text-indigo-800' });
+    }
+    
+    // 질문형
+    if (title.includes('?') || title.includes('왜') || title.includes('어떻게') || title.includes('무엇')) {
+      styles.push({ type: '질문형', color: 'bg-pink-100 text-pink-800' });
+    }
+    
+    return styles.length > 0 ? styles : [{ type: '일반형', color: 'bg-gray-100 text-gray-800' }];
+  };
+
   // 제목 추천 모달
   const TitleSelectModal = () => {
     if (!showTitleOptions) return null;
     return (
       <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-xl">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
           <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">추천 제목 선택</h3>
+            <h3 className="text-lg font-semibold text-gray-900">🧠 심리학 기반 제목 추천</h3>
             <button type="button" className="text-gray-500" onClick={() => setShowTitleOptions(false)}>✕</button>
           </div>
-          <div className="p-4 space-y-2 max-h-[60vh] overflow-auto">
+          <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
             {generatedTitles.length === 0 && (
               <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
             )}
-            {generatedTitles.map((t, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => selectGeneratedTitle(t)}
-                className="w-full text-left p-3 border rounded hover:bg-gray-50"
-              >
-                {t}
-              </button>
-            ))}
+            {generatedTitles.map((title, i) => {
+              const styles = analyzeTitleStyle(title);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => selectGeneratedTitle(title)}
+                  className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900 mb-2">{title}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {styles.map((style, idx) => (
+                          <span
+                            key={idx}
+                            className={`px-2 py-1 text-xs rounded-full ${style.color}`}
+                          >
+                            {style.type}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {title.length}자
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
-          <div className="p-4 border-t flex justify-end">
-            <button type="button" onClick={() => setShowTitleOptions(false)} className="px-4 py-2 bg-gray-600 text-white rounded">닫기</button>
+          <div className="p-4 border-t bg-gray-50">
+            <div className="text-xs text-gray-600 mb-2">
+              💡 각 제목은 로버트 치알디니의 6가지 영향력 원칙과 뇌과학 기반 후킹 기법을 적용했습니다.
+            </div>
+            <div className="flex justify-end">
+              <button type="button" onClick={() => setShowTitleOptions(false)} className="px-4 py-2 bg-gray-600 text-white rounded">닫기</button>
+            </div>
           </div>
         </div>
       </div>
