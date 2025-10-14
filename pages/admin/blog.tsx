@@ -633,7 +633,8 @@ export default function BlogAdmin() {
           resetForm();
         } else {
           const error = await response.json();
-          alert('수정 실패: ' + error.error);
+          console.error('❌ 수정 실패 상세:', error);
+          alert(`수정 실패: ${error.error}\n세부사항: ${error.details || '알 수 없는 오류'}`);
         }
       } else {
         // 새 게시물 생성
