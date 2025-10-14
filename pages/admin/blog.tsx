@@ -3845,8 +3845,22 @@ export default function BlogAdmin() {
                   <TipTapEditor
                     valueMarkdown={formData.content}
                     onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
-                    onRequestImageFromGallery={(insert) => openGalleryPicker(insert)}
                   />
+                  
+                  {/* 갤러리 열기/닫기 아코디언 버튼 */}
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={toggleGallery}
+                      className={`px-6 py-3 rounded-lg font-medium text-sm transition-colors ${
+                        isGalleryOpen
+                          ? 'bg-blue-500 text-white hover:bg-blue-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* 연간 콘텐츠 생성 안내 */}
