@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     }
 
     console.log('📋 일괄 복제 시작:', images.length, '개 이미지');
+    console.log('📋 요청 데이터:', JSON.stringify(req.body, null, 2));
 
     const duplicatedImages = [];
     const errors = [];
