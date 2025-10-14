@@ -216,6 +216,11 @@ export default function GalleryAdmin() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryMoveModalOpen, setCategoryMoveModalOpen] = useState(false);
   
+  // 폴더 관리 UI 상태
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<string | null>(null);
+  const [newFolderName, setNewFolderName] = useState('');
+  
   // 동적 카테고리 로드 함수
   const loadDynamicCategories = async () => {
     try {
@@ -1056,6 +1061,9 @@ export default function GalleryAdmin() {
                 setCategoryModalOpen(true);
                 loadDynamicCategories(); // 카테고리 새로고침
               }} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
+              <button onClick={()=>{
+                setFolderModalOpen(true);
+              }} className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm">📁 폴더 관리</button>
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
             </div>
@@ -1899,6 +1907,132 @@ export default function GalleryAdmin() {
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 이동
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 폴더 관리 모달 */}
+      {folderModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">📁 폴더 관리</h3>
+              <button
+                onClick={() => setFolderModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-lg font-semibold mb-3">현재 폴더 목록</h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {availableFolders.map((folder) => (
+                    <div key={folder} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-lg">📁</span>
+                        <span className="font-medium">{folder}</span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingFolder(folder);
+                            setNewFolderName(folder);
+                          }}
+                          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                        >
+                          이름 변경
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`"${folder}" 폴더를 삭제하시겠습니까? 폴더 내 모든 이미지가 삭제됩니다.`)) {
+                              // 폴더 삭제 로직 (향후 구현)
+                              alert('폴더 삭제 기능은 향후 구현 예정입니다.');
+                            }
+                          }}
+                          className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {editingFolder && (
+                <div className="border-t pt-4">
+                  <h4 className="text-lg font-semibold mb-3">폴더명 변경</h4>
+                  <div className="flex space-x-3">
+                    <input
+                      type="text"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="새 폴더명 입력"
+                    />
+                    <button
+                      onClick={() => {
+                        if (newFolderName.trim() && newFolderName !== editingFolder) {
+                          // 폴더명 변경 로직 (향후 구현)
+                          alert(`폴더명 변경 기능은 향후 구현 예정입니다.\n"${editingFolder}" → "${newFolderName}"`);
+                          setEditingFolder(null);
+                          setNewFolderName('');
+                        }
+                      }}
+                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                    >
+                      변경
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingFolder(null);
+                        setNewFolderName('');
+                      }}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="border-t pt-4">
+                <h4 className="text-lg font-semibold mb-3">새 폴더 생성</h4>
+                <div className="flex space-x-3">
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="새 폴더명 입력 (예: scraped-images/2025-01-15)"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newFolderName.trim()) {
+                        // 새 폴더 생성 로직 (향후 구현)
+                        alert(`새 폴더 생성 기능은 향후 구현 예정입니다.\n폴더명: "${newFolderName}"`);
+                        setNewFolderName('');
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  >
+                    생성
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setFolderModalOpen(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                닫기
               </button>
             </div>
           </div>
