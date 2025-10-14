@@ -1,191 +1,149 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const { oldName, newName } = req.body;
+    const { imageId, newFileName, currentFileName } = req.body;
 
-    if (!oldName || !newName) {
-      return res.status(400).json({ error: 'oldName and newName are required' });
-    }
-
-    // 한글-영문 변환 라이브러리 사용
-    const { translateKoreanToEnglish } = require('../../../lib/korean-to-english-translator');
-    
-    // 파일명 검증: 한글을 영문으로 변환하고 특수문자 제거
-    let sanitizedNewName = newName;
-    
-    // 한글이 포함된 경우 영문으로 변환
-    if (/[가-힣]/.test(newName)) {
-      sanitizedNewName = translateKoreanToEnglish(newName);
-      console.log('🔧 한글 파일명 영문 변환:', newName, '→', sanitizedNewName);
-    } else {
-      // 한글이 없는 경우 기존 정리 로직 적용
-      sanitizedNewName = newName
-        .replace(/[^a-zA-Z0-9\-_.]/g, '-')  // 특수문자를 하이픈으로 변경
-        .replace(/-+/g, '-')                // 연속 하이픈을 하나로
-        .replace(/^-|-$/g, '')              // 앞뒤 하이픈 제거
-        .toLowerCase();                     // 소문자로 변환
-    }
-
-    if (sanitizedNewName !== newName) {
-      console.log('🔧 파일명 정리:', newName, '→', sanitizedNewName);
-    }
-
-    if (oldName === sanitizedNewName) {
-      return res.status(200).json({ message: 'No change needed' });
-    }
-
-    console.log('📝 파일명 변경 요청:', oldName, '→', sanitizedNewName);
-
-    // 1. 먼저 Supabase Storage에서 파일 존재 확인
-    console.log('🔍 Storage에서 파일 검색 중:', oldName);
-    
-    const bucketName = 'blog-images'; // 갤러리에서 사용하는 버킷명
-    console.log('🪣 사용할 버킷명:', bucketName);
-    
-    // Storage에서 파일 존재 확인
-    const { data: storageFiles, error: storageError } = await supabase.storage
-      .from(bucketName)
-      .list('', {
-        search: oldName
-      });
-
-    if (storageError) {
-      console.error('❌ Storage 조회 오류:', storageError);
-      return res.status(500).json({ error: 'Storage access error' });
-    }
-
-    // 정확한 파일명으로 찾기
-    const targetFile = storageFiles?.find(file => file.name === oldName);
-    
-    if (!targetFile) {
-      console.error('❌ Storage에서 파일을 찾을 수 없음:', oldName);
-      
-      // 디버깅: 비슷한 파일명들을 찾아보기
-      console.log('🔍 비슷한 파일명 검색 중...');
-      const { data: allFiles, error: allError } = await supabase.storage
-        .from(bucketName)
-        .list('', {
-          limit: 10,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-      
-      if (!allError && allFiles) {
-        console.log('📋 최근 10개 파일명들:', allFiles.map(f => f.name));
-      }
-      
-      return res.status(404).json({ 
-        error: 'File not found in storage',
-        searchedName: oldName,
-        similarFiles: allFiles?.map(f => f.name) || []
+    if (!imageId || !newFileName) {
+      return res.status(400).json({ 
+        error: 'imageId와 newFileName이 필요합니다.' 
       });
     }
 
-    console.log('📁 Storage에서 찾은 파일:', targetFile);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // 3. Supabase Storage에서 파일 다운로드
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      throw new Error('Supabase environment variables are not set.');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    console.log('📝 이미지 파일명 변경 시작:', { imageId, newFileName, currentFileName });
+
+    // 1. 현재 이미지 메타데이터 조회
+    const { data: currentImage, error: fetchError } = await supabase
+      .from('image_metadata')
+      .select('*')
+      .eq('id', imageId)
+      .single();
+
+    if (fetchError || !currentImage) {
+      console.error('❌ 이미지 메타데이터 조회 실패:', fetchError);
+      return res.status(404).json({
+        error: '이미지를 찾을 수 없습니다.',
+        details: fetchError?.message
+      });
+    }
+
+    console.log('✅ 현재 이미지 정보:', {
+      currentFileName: currentImage.file_name,
+      currentUrl: currentImage.image_url
+    });
+
+    // 2. 현재 파일 경로에서 새 파일 경로 생성
+    const currentPath = currentImage.file_name;
+    const pathParts = currentPath.split('/');
+    const folderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
+    const fileExtension = pathParts[pathParts.length - 1].split('.').pop();
+    const newFilePath = folderPath ? `${folderPath}/${newFileName}.${fileExtension}` : `${newFileName}.${fileExtension}`;
+
+    console.log('📁 파일 경로 정보:', {
+      currentPath,
+      folderPath,
+      newFilePath,
+      fileExtension
+    });
+
+    // 3. 파일 다운로드
     const { data: downloadData, error: downloadError } = await supabase.storage
-      .from(bucketName)
-      .download(oldName);
+      .from('blog-images')
+      .download(currentPath);
 
     if (downloadError) {
-      console.error('❌ 파일 다운로드 오류:', downloadError);
-      return res.status(404).json({ error: `File not found in storage bucket: ${bucketName}` });
+      console.error('❌ 파일 다운로드 실패:', downloadError);
+      return res.status(500).json({
+        error: '파일을 다운로드할 수 없습니다.',
+        details: downloadError.message
+      });
     }
 
-    // 4. 새 파일명으로 업로드 (같은 버킷에)
-    // 확장자 처리: 원본 파일에 확장자가 없으면 새 파일명에서 확장자를 제거
-    let finalNewName = sanitizedNewName;
-    const originalExtension = oldName.split('.').pop();
-    const newExtension = sanitizedNewName.split('.').pop();
-    
-    // 원본에 확장자가 없고 새 파일명에 확장자가 있으면 확장자 제거
-    if (!originalExtension || originalExtension === oldName) {
-      if (newExtension && newExtension !== sanitizedNewName) {
-        finalNewName = sanitizedNewName.replace(`.${newExtension}`, '');
-        console.log('🔧 확장자 제거:', sanitizedNewName, '→', finalNewName);
-      }
-    }
-    
+    console.log('✅ 파일 다운로드 완료');
+
+    // 4. 새 경로에 파일 업로드
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(finalNewName, downloadData, {
-        cacheControl: '3600',
-        upsert: true
+      .from('blog-images')
+      .upload(newFilePath, downloadData, {
+        contentType: downloadData.type || 'image/jpeg',
+        upsert: false
       });
 
     if (uploadError) {
-      console.error('❌ 파일 업로드 오류:', uploadError);
-      return res.status(500).json({ error: 'Failed to upload renamed file' });
+      console.error('❌ 파일 업로드 실패:', uploadError);
+      return res.status(500).json({
+        error: '새 파일명으로 업로드할 수 없습니다.',
+        details: uploadError.message
+      });
     }
 
-    // 5. 기존 파일 삭제
+    console.log('✅ 새 경로에 파일 업로드 완료');
+
+    // 5. 새 공개 URL 생성
+    const { data: urlData } = supabase.storage
+      .from('blog-images')
+      .getPublicUrl(newFilePath);
+
+    // 6. 기존 파일 삭제
     const { error: deleteError } = await supabase.storage
-      .from(bucketName)
-      .remove([oldName]);
+      .from('blog-images')
+      .remove([currentPath]);
 
     if (deleteError) {
-      console.error('❌ 기존 파일 삭제 오류:', deleteError);
-      // 새 파일은 업로드되었으므로 계속 진행
-    }
-
-    // 6. 데이터베이스에서 메타데이터 업데이트 (새 URL 포함)
-    const newUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${finalNewName}`;
-    
-    // 먼저 기존 메타데이터가 있는지 확인
-    const { data: existingMetadata, error: checkError } = await supabase
-      .from('image_metadata')
-      .select('*')
-      .eq('name', oldName)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('❌ 메타데이터 확인 오류:', checkError);
-      // 메타데이터가 없어도 파일명 변경은 성공으로 처리
-    } else if (existingMetadata) {
-      // 메타데이터가 있으면 업데이트
-      const { error: updateError } = await supabase
-        .from('image_metadata')
-        .update({ 
-          name: finalNewName,
-          url: newUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('name', oldName);
-
-      if (updateError) {
-        console.error('❌ 메타데이터 업데이트 오류:', updateError);
-        // 메타데이터 업데이트 실패해도 파일명 변경은 성공으로 처리
-      } else {
-        console.log('✅ 메타데이터 업데이트 완료');
-      }
+      console.warn('⚠️ 기존 파일 삭제 실패:', deleteError);
     } else {
-      console.log('ℹ️ 메타데이터가 없어서 업데이트 건너뜀');
+      console.log('✅ 기존 파일 삭제 완료');
     }
 
-    console.log('✅ 파일명 변경 완료:', oldName, '→', finalNewName);
+    // 7. 메타데이터 업데이트
+    const { error: updateError } = await supabase
+      .from('image_metadata')
+      .update({
+        file_name: newFilePath,
+        image_url: urlData.publicUrl,
+        title: newFileName // 제목도 새 파일명으로 업데이트
+      })
+      .eq('id', imageId);
 
-    res.status(200).json({ 
-      message: 'File renamed successfully',
-      oldName,
-      newName: finalNewName,
-      originalNewName: newName,
-      sanitizedNewName: sanitizedNewName,
-      newUrl: newUrl,
-      bucketName: bucketName
+    if (updateError) {
+      console.error('❌ 메타데이터 업데이트 실패:', updateError);
+      return res.status(500).json({
+        error: '메타데이터를 업데이트할 수 없습니다.',
+        details: updateError.message
+      });
+    }
+
+    console.log('✅ 메타데이터 업데이트 완료');
+
+    return res.status(200).json({
+      success: true,
+      message: '파일명이 성공적으로 변경되었습니다.',
+      data: {
+        oldFileName: currentPath,
+        newFileName: newFilePath,
+        newUrl: urlData.publicUrl,
+        imageId: imageId
+      }
     });
 
   } catch (error) {
-    console.error('❌ 파일명 변경 오류:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Rename Image API Error:', error);
+    return res.status(500).json({
+      error: '파일명 변경 중 오류가 발생했습니다.',
+      details: error.message
+    });
   }
 }
