@@ -3300,7 +3300,14 @@ export default function BlogAdmin() {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-96 overflow-y-auto">
+                      <div 
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-[500px] overflow-y-auto" 
+                        style={{
+                          scrollbarWidth: 'thin', 
+                          scrollbarColor: '#cbd5e0 #f7fafc',
+                          WebkitOverflowScrolling: 'touch'
+                        }}
+                      >
                         {scrapedNaverPosts.map((post, postIndex) => 
                           post.images?.map((image, imageIndex) => (
                             <div key={`${postIndex}-${imageIndex}`} className="relative group bg-white rounded-lg border-2 border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
@@ -3345,23 +3352,11 @@ export default function BlogAdmin() {
                               </div>
                               
                               
-                              {/* 파일명 및 액션 버튼 */}
+                              {/* 파일명 */}
                               <div className="p-2 bg-white">
-                                <div className="text-xs text-gray-600 truncate mb-2" title={image.fileName || `이미지 ${imageIndex + 1}`}>
+                                <div className="text-xs text-gray-600 truncate" title={image.fileName || `이미지 ${imageIndex + 1}`}>
                                   {image.fileName || `이미지 ${imageIndex + 1}`}
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedExistingImage(image.src);
-                                    setShowExistingImageModal(true);
-                                    setActiveImageTab('url');
-                                  }}
-                                  className="w-full px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
-                                  title="기존 이미지 변형으로 사용"
-                                >
-                                  🔄 변형
-                                </button>
                               </div>
                             </div>
                           ))
