@@ -26,7 +26,9 @@ export default async function handler(req, res) {
     }
 
     console.log('🤖 AI 제목 생성 시작...');
-    console.log('콘텐츠 소스:', contentSource);
+    console.log('📝 요청 데이터:', req.body);
+    console.log('📄 콘텐츠 소스:', contentSource);
+    console.log('📊 콘텐츠 길이:', contentSource.length);
 
     // 브랜드 전략에 따른 프롬프트 구성
     const brandContext = `
