@@ -1951,32 +1951,6 @@ export default function BlogAdmin() {
     alert('이미지가 내용에 삽입되었습니다!');
   };
 
-  // 여러 이미지를 내용에 삽입
-  const insertMultipleImagesToContent = () => {
-    if (selectedImages.size === 0) {
-      alert('삽입할 이미지를 선택해주세요.');
-      return;
-    }
-
-    const selectedImageUrls = Array.from(selectedImages);
-    let imageMarkdowns = '';
-    
-    selectedImageUrls.forEach(imageUrl => {
-      const httpsUrl = forceHttps(imageUrl);
-      imageMarkdowns += `\n\n![이미지](${httpsUrl})\n\n`;
-    });
-
-    setFormData({ 
-      ...formData, 
-      content: formData.content + imageMarkdowns 
-    });
-    
-    // 선택 상태 초기화
-    setSelectedImages(new Set());
-    
-    alert(`${selectedImageUrls.length}개의 이미지가 내용에 삽입되었습니다!`);
-  };
-
   // 이미지 관리 관련 함수들
   const fetchImageGallery = async (page = 1, reset = false) => {
     try {
@@ -2102,6 +2076,65 @@ export default function BlogAdmin() {
     }
   };
 
+  const deleteSelectedImages = async () => {
+    if (selectedImages.size === 0) {
+      alert('삭제할 이미지를 선택해주세요.');
+      return;
+    }
+
+    const confirmMessage = `선택된 ${selectedImages.size}개의 이미지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const imageName of Array.from(selectedImages)) {
+        try {
+          const response = await fetch('/api/admin/delete-image', {
+            method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageName })
+          });
+
+          if (response.ok) {
+            successCount++;
+            // 로컬 상태에서 제거
+            setAllImages(prev => prev.filter(img => img.name !== imageName));
+            setPostImages(prev => prev.filter(img => img.name !== imageName));
+            
+            // 대표 이미지가 삭제된 경우 초기화
+            if (formData.featured_image && formData.featured_image.includes(imageName as string)) {
+              setFormData(prev => ({ ...prev, featured_image: '' }));
+            }
+    } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error(`이미지 ${imageName} 삭제 오류:`, error);
+          failCount++;
+        }
+      }
+
+      // 선택 상태 초기화
+      setSelectedImages(new Set());
+      
+      // 결과 알림
+      if (successCount > 0 && failCount === 0) {
+        alert(`✅ ${successCount}개의 이미지가 성공적으로 삭제되었습니다!`);
+      } else if (successCount > 0 && failCount > 0) {
+        alert(`⚠️ ${successCount}개 성공, ${failCount}개 실패했습니다.`);
+      } else {
+        alert(`❌ 이미지 삭제에 실패했습니다.`);
+      }
+
+    } catch (error) {
+      console.error('일괄 삭제 오류:', error);
+      alert('일괄 삭제 중 오류가 발생했습니다.');
+    }
+  };
 
   const handleImageGroupClick = (imageGroup) => {
     setSelectedImageGroup(imageGroup);
@@ -2236,10 +2269,28 @@ export default function BlogAdmin() {
   };
 
   // 갤러리 이미지 목록 상태
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [showGallerySelection, setShowGallerySelection] = useState(false);
   
   // 기존 이미지 변형 모달 탭 상태
   const [activeImageTab, setActiveImageTab] = useState<'upload' | 'gallery' | 'url'>('upload');
 
+  // 갤러리 이미지 목록 가져오기
+  const fetchGalleryImages = async () => {
+    try {
+      const response = await fetch('/api/admin/all-images');
+      if (response.ok) {
+        const data = await response.json();
+        setGalleryImages(data.images || []);
+        setShowGallerySelection(true);
+      } else {
+        alert('갤러리 이미지를 불러오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('갤러리 이미지 로드 오류:', error);
+      alert('갤러리 이미지를 불러오는데 오류가 발생했습니다.');
+    }
+  };
 
   // 기존 이미지 변형 관련 함수들
   const handleLoadExistingImageAndPromptWithPrompt = async (improvedPrompt) => {
@@ -3128,16 +3179,6 @@ export default function BlogAdmin() {
               >
                 🔄 블로그 마이그레이션
               </button>
-              <button
-                onClick={toggleGallery}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  isGalleryOpen
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
-              </button>
               {/* AI 관리는 상단 AdminNav의 단일 진입점으로 통합되어 이 영역에서는 제거 */}
             </nav>
           </div>
@@ -3370,6 +3411,7 @@ export default function BlogAdmin() {
                                   }
                                   
                                   // 갤러리 이미지 새로고침 (저장된 이미지가 갤러리에 표시되도록)
+                                  await fetchGalleryImages();
                                   
                                   // 저장된 이미지를 generatedImages에 추가 (블로그 게시물에서 바로 사용 가능)
                                   if (result.savedImageUrls && result.savedImageUrls.length > 0) {
@@ -4681,6 +4723,7 @@ export default function BlogAdmin() {
                             type="button"
                             onClick={() => {
                               setActiveImageTab('gallery');
+                              fetchGalleryImages();
                             }}
                             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                               activeImageTab === 'gallery'
@@ -4886,6 +4929,166 @@ export default function BlogAdmin() {
                 </div>
                 )}
 
+                {/* 갤러리 선택 모달 */}
+                {showGallerySelection && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">🖼️ 갤러리에서 이미지 선택</h3>
+                                  <button
+                          type="button"
+                          onClick={() => {
+                            setShowGallerySelection(false);
+                            setGalleryImages([]);
+                          }}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          ✕
+                                  </button>
+                                </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {galleryImages.map((image, index) => (
+                          <div
+                            key={index}
+                            className="relative group cursor-pointer"
+                            onClick={() => {
+                              setSelectedExistingImage(image.url);
+                              setShowGallerySelection(false);
+                              setGalleryImages([]);
+                            }}
+                          >
+                            <img
+                              src={image.url}
+                              alt={image.alt_text || `갤러리 이미지 ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg border-2 border-transparent group-hover:border-blue-500 transition-colors"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                // 네이버 이미지인 경우 프록시 시도
+                                if (image.url.includes('pstatic.net') && !image.url.includes('/api/image-proxy')) {
+                                  console.log('🔄 네이버 이미지 프록시 시도:', image.url);
+                                  target.src = `/api/image-proxy?url=${encodeURIComponent(image.url)}`;
+                                  return;
+                                }
+                                // 프록시도 실패한 경우 플레이스홀더 사용
+                                target.style.display = 'none';
+                                const nextSibling = target.nextSibling as HTMLElement;
+                                if (nextSibling) nextSibling.style.display = 'flex';
+                              }}
+                              onLoad={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'block';
+                                const nextSibling = target.nextSibling as HTMLElement;
+                                if (nextSibling) nextSibling.style.display = 'none';
+                              }}
+                            />
+                            <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded-lg" style={{display: 'none'}}>
+                              <div className="text-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400 mx-auto mb-1"></div>
+                                <div>로딩 중...</div>
+                              </div>
+                            </div>
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                              <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                선택
+                              </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                      
+                      {galleryImages.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          갤러리에 이미지가 없습니다.
+              </div>
+                      )}
+                      
+                      <div className="flex justify-end mt-6">
+                      <button
+                        type="button"
+                                onClick={() => {
+                            setShowGallerySelection(false);
+                            setGalleryImages([]);
+                          }}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                        >
+                          취소
+                        </button>
+                              </div>
+                              </div>
+                              </div>
+                )}
+
+                {/* 이미지 갤러리 섹션 - 아코디언 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">🖼️ 이미지 갤러리</h3>
+                      <span className="text-sm text-gray-500">전체 이미지를 관리하고 선택할 수 있습니다</span>
+                            </div>
+                    <div className="flex items-center space-x-2">
+                      <Link
+                        href="/admin/gallery"
+                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm"
+                      >
+                        📚 갤러리 관리
+                      </Link>
+                <button
+                  type="button"
+                        onClick={toggleGallery}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                                  >
+                        {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
+                </button>
+                      {totalImagesCount > 0 && (
+                        <span className="text-sm text-gray-600">
+                          총 {totalImagesCount}개
+                        </span>
+                      )}
+              </div>
+                  </div>
+                  
+                  {/* 갤러리 내용 - 아코디언 */}
+                  {isGalleryOpen && (
+                    <div className="space-y-4">
+                      {/* 갤러리 필터 및 검색 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-700">필터:</span>
+                      <button
+                        type="button"
+                              className={`px-3 py-1 rounded text-sm ${
+                                galleryFilter === 'all' 
+                                  ? 'bg-blue-500 text-white' 
+                                  : 'bg-white text-gray-700 border'
+                              }`}
+                              onClick={() => setGalleryFilter('all')}
+                            >
+                              전체
+                      </button>
+                            <button
+                              type="button"
+                              className={`px-3 py-1 rounded text-sm ${
+                                galleryFilter === 'featured' 
+                                  ? 'bg-yellow-500 text-white' 
+                                  : 'bg-white text-gray-700 border'
+                              }`}
+                              onClick={() => setGalleryFilter('featured')}
+                            >
+                              ⭐ 대표 이미지만
+                            </button>
+                      <button
+                        type="button"
+                              className={`px-3 py-1 rounded text-sm ${
+                                galleryFilter === 'search' 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-white text-gray-700 border'
+                              }`}
+                              onClick={() => setGalleryFilter('search')}
+                            >
+                              🔍 검색
+                      </button>
                     </div>
                           <button
                             type="button"
@@ -4934,18 +5137,13 @@ export default function BlogAdmin() {
             </label>
                       </div>
                     {selectedImages.size > 0 && (
-                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <span className="text-sm text-blue-700">
-                          {selectedImages.size}개 이미지 선택됨
-                        </span>
                         <button
                           type="button"
-                          onClick={insertMultipleImagesToContent}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                        >
-                          ➕ 선택된 이미지 삽입 ({selectedImages.size}개)
+                                onClick={deleteSelectedImages}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+                              >
+                                🗑️ 선택된 이미지 삭제 ({selectedImages.size}개)
                         </button>
-                      </div>
                     )}
                   </div>
                             </div>
@@ -4984,6 +5182,12 @@ export default function BlogAdmin() {
                             </div>
                                 <div className="text-[11px] text-gray-500 flex items-center justify-between gap-2">
                                   <span className="truncate">ALT: {representativeImage.alt_text || representativeImage.altText || representativeImage.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i,'').split(/[-_.]/).slice(0,2).join(' ') || '미지정'}</span>
+                                  <button
+                                    type="button"
+                                    title="빠른 수정"
+                                    onClick={(e) => { e.stopPropagation(); const newAlt = window.prompt('ALT 텍스트를 입력하세요', representativeImage.altText || representativeImage.name); if (newAlt !== null) updateImageMetadata(representativeImage.name, { altText: newAlt }); }}
+                                    className="px-1 py-0.5 text-[11px] bg-gray-100 hover:bg-gray-200 rounded"
+                                  >✎ 수정</button>
                           </div>
                                 <div className="text-[11px] text-gray-400 flex items-center justify-between">
                                   <span>버전 {group.length}</span>
@@ -5059,6 +5263,34 @@ export default function BlogAdmin() {
                                 >
                                   ➕ 삽입
                     </button>
+                    <button
+                      type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyImageUrl(forceHttps(representativeImage.url));
+                                  }}
+                                  className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                                >
+                                  📋 복사
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectBaseImage(forceHttps(representativeImage.url));
+                                  }}
+                                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                                >
+                                  🎨 변형
+                                </button>
+                                  <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    selectImageForImprovement(forceHttps(representativeImage.url));
+                                    }}
+                                    className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                  >
+                                  ✨ 개선
+                                  </button>
             </div>
           </div>
               </div>
@@ -5444,6 +5676,15 @@ export default function BlogAdmin() {
                           className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                     >
                           ➕ 삽입
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                            copyImageUrl(forceHttps(image.url));
+                      }}
+                          className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                    >
+                      📋 복사
                     </button>
                         <button
                           type="button"
