@@ -3858,6 +3858,123 @@ export default function BlogAdmin() {
                     )}
                   </button>
                 </div>
+
+                {/* AI 콘텐츠 개선 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">🤖 AI 콘텐츠 개선</h3>
+                    <span className="text-sm text-gray-500">AI로 콘텐츠를 분석하고 개선할 수 있습니다</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* 개선 요청 입력 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        개선 요청사항
+                      </label>
+                      <textarea 
+                        value={simpleAIRequest}
+                        onChange={(e) => setSimpleAIRequest(e.target.value)}
+                        placeholder="예: 더 매력적인 제목으로 바꿔주세요, SEO를 고려한 내용으로 개선해주세요, 더 읽기 쉽게 만들어주세요..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* AI 개선 버튼 */}
+                    <div className="flex flex-wrap gap-3">
+                      <button 
+                        type="button"
+                        onClick={applySimpleAIImprovement}
+                        disabled={isImprovingContent || !simpleAIRequest.trim()}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        {isImprovingContent ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>개선 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>⚡</span>
+                            <span>간단 AI 개선</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 고급 기능 섹션 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
+                      <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm"
+                    >
+                      {showAdvancedFeatures ? '숨기기' : '고급 기능 열기'}
+                    </button>
+                  </div>
+                  
+                  {showAdvancedFeatures && (
+                    <div className="space-y-6">
+                      {/* 고급 기능 안내 */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-gray-800 mb-2">💡 고급 기능 안내</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• SEO 메타 태그 자동 생성</li>
+                          <li>• 콘텐츠 구조 최적화</li>
+                          <li>• 키워드 밀도 분석</li>
+                          <li>• 읽기 쉬운 문장 구조 개선</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 카테고리와 상태 */}
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 카테고리 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        카테고리
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="고객 후기">고객 후기</option>
+                        <option value="제품 정보">제품 정보</option>
+                        <option value="골프 팁">골프 팁</option>
+                        <option value="이벤트">이벤트</option>
+                        <option value="공지사항">공지사항</option>
+                      </select>
+                    </div>
+
+                    {/* 상태 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        상태
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="draft">초안</option>
+                        <option value="published">발행</option>
+                        <option value="archived">보관</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
                     
                 {/* 내용 - TipTap 에디터로 교체 */}
                 <div>
@@ -4516,63 +4633,6 @@ export default function BlogAdmin() {
                         )}
                     </div>
 
-                {/* AI 콘텐츠 개선 섹션 */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">🤖 AI 콘텐츠 개선</h3>
-                    <span className="text-sm text-gray-500">AI로 콘텐츠를 분석하고 개선할 수 있습니다</span>
-                    </div>
-
-                  <div className="space-y-4">
-                    {/* 개선 요청 입력 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        개선 요청사항
-                      </label>
-                      <textarea 
-                        value={simpleAIRequest}
-                        onChange={(e) => setSimpleAIRequest(e.target.value)}
-                        placeholder="예: 더 매력적인 제목으로 바꿔주세요, SEO를 고려한 내용으로 개선해주세요, 더 읽기 쉽게 만들어주세요..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        rows={3}
-                      />
-                    </div>
-
-                    {/* AI 개선 버튼 */}
-                    <div className="flex flex-wrap gap-3">
-                      <button 
-                        type="button"
-                        onClick={applySimpleAIImprovement}
-                        disabled={isImprovingContent || !simpleAIRequest.trim()}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                      >
-                        {isImprovingContent ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>간단 AI 개선 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>⚡</span>
-                            <span>간단 AI 개선</span>
-                          </>
-                        )}
-                    </button>
-                    </div>
-
-                    {/* 개선 과정 표시 */}
-                    {isImprovingContent && improvementProcess && (
-                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="text-sm font-medium text-blue-800 mb-2">
-                          🤖 AI 콘텐츠 개선 과정
-                    </h4>
-                        <div className="text-sm text-blue-700">
-                        {improvementProcess}
-                            </div>
-                            </div>
-                  )}
-                          </div>
-                        </div>
 
                 {/* 네이버 블로그 마이그레이션 섹션 — 상단 스크래퍼와 중복이라 비활성화됨 */}
                 {/* 고급 기능 섹션 */}
