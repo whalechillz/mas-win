@@ -40,37 +40,35 @@ export default async function handler(req, res) {
         // 폴더 경로가 포함된 경우와 루트의 경우 모두 확인
         let fileFound = false;
         
-        // 1. 루트에서 검색
-        const { data: rootFiles, error: rootError } = await supabase.storage
-          .from('blog-images')
-          .list('', { search: targetWithExtension });
-        
-        if (!rootError && rootFiles && rootFiles.length > 0) {
-          existingFiles.push(targetWithExtension);
-          fileFound = true;
-          console.log('✅ 루트에서 파일 존재 확인:', targetWithExtension);
-        }
-        
-        // 2. 폴더 내에서도 검색 (파일명만으로)
-        if (!fileFound) {
-          const fileNameOnly = targetWithExtension.split('/').pop();
+        // 1. 루트에서 검색 (폴더 경로가 없는 경우)
+        if (!targetWithExtension.includes('/')) {
+          const { data: rootFiles, error: rootError } = await supabase.storage
+            .from('blog-images')
+            .list('', { search: targetWithExtension });
+          
+          if (!rootError && rootFiles && rootFiles.length > 0) {
+            existingFiles.push(targetWithExtension);
+            fileFound = true;
+            console.log('✅ 루트에서 파일 존재 확인:', targetWithExtension);
+          }
+        } else {
+          // 2. 폴더 경로가 있는 경우 - 폴더별로 검색
+          const pathParts = targetWithExtension.split('/');
+          const folderPath = pathParts.slice(0, -1).join('/');
+          const fileName = pathParts[pathParts.length - 1];
+          
+          console.log('🔍 폴더 경로 검색:', { folderPath, fileName, fullPath: targetWithExtension });
+          
           const { data: folderFiles, error: folderError } = await supabase.storage
             .from('blog-images')
-            .list('', { search: fileNameOnly });
+            .list(folderPath, { search: fileName });
           
           if (!folderError && folderFiles && folderFiles.length > 0) {
-            // 정확한 경로 찾기
-            const exactFile = folderFiles.find(file => 
-              file.name === fileNameOnly || 
-              file.name === targetWithExtension ||
-              targetWithExtension.endsWith(file.name)
-            );
-            
+            const exactFile = folderFiles.find(file => file.name === fileName);
             if (exactFile) {
-              const fullPath = exactFile.name.includes('/') ? exactFile.name : targetWithExtension;
-              existingFiles.push(fullPath);
+              existingFiles.push(targetWithExtension);
               fileFound = true;
-              console.log('✅ 폴더에서 파일 존재 확인:', fullPath);
+              console.log('✅ 폴더에서 파일 존재 확인:', targetWithExtension);
             }
           }
         }
