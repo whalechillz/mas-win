@@ -2337,54 +2337,156 @@ export default function BlogAdmin() {
     }
   };
 
-  // 파일 업로드 처리 함수 (HEIC 변환 및 Supabase 업로드)
+  // 파일 업로드 처리 함수 (HEIC 변환 + 리사이즈 후 Supabase Storage 직접 업로드)
   const handleFileUpload = async (file) => {
     try {
+      // 1) HEIC → JPEG 변환 (필요 시)
       let processedFile = file;
-      
-      // HEIC 파일인 경우 JPG로 변환
-      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+      if (
+        file.type === 'image/heic' ||
+        file.type === 'image/heif' ||
+        file.name.toLowerCase().endsWith('.heic') ||
+        file.name.toLowerCase().endsWith('.heif')
+      ) {
         console.log('🔄 HEIC 파일 변환 중...');
-        
-        // 동적 import로 heic2any 로드
         const heic2any = (await import('heic2any')).default;
-        
-        const convertedBlob = await heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.8
-        });
+        const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
         processedFile = new File([convertedBlob[0]], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
           type: 'image/jpeg'
         });
         console.log('✅ HEIC → JPG 변환 완료');
       }
 
-      // Supabase에 업로드
-      console.log('🔄 Supabase 업로드 중...');
-      const formData = new FormData();
-      formData.append('file', processedFile);
-      
-      const uploadResponse = await fetch('/api/upload-image-supabase', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!uploadResponse.ok) {
-        throw new Error(`업로드 실패: ${uploadResponse.status}`);
+      // 2) 리사이즈(긴 변 기준 2000px) 파생본 생성
+      const createDerivedBlob = async (inputFile: File): Promise<Blob> => {
+        const toImageBitmap = (blob: Blob) => new Promise<ImageBitmap>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => {
+            const url = String(r.result);
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const maxSide = 2000;
+              let { width, height } = img;
+              if (width > height && width > maxSide) {
+                height = Math.round((height * maxSide) / width);
+                width = maxSide;
+              } else if (height >= width && height > maxSide) {
+                width = Math.round((width * maxSide) / height);
+                height = maxSide;
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return reject(new Error('canvas context 실패'));
+              ctx.drawImage(img, 0, 0, width, height);
+              canvas.toBlob((b) => {
+                if (!b) return reject(new Error('리사이즈 실패'));
+                resolve(createImageBitmap(img));
+              });
+            };
+            img.onerror = reject;
+            img.src = url;
+          };
+          r.onerror = reject;
+          r.readAsDataURL(inputFile);
+        });
+        // 위의 toImageBitmap는 그리는 용도로만 사용되므로 다시 그려 Blob을 얻는다.
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(String(fr.result));
+          fr.onerror = reject;
+          fr.readAsDataURL(inputFile);
+        });
+        const baseImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = dataUrl;
+        });
+        const canvas = document.createElement('canvas');
+        const maxSide = 2000;
+        let { width, height } = baseImg;
+        if (width > height && width > maxSide) {
+          height = Math.round((height * maxSide) / width);
+          width = maxSide;
+        } else if (height >= width && height > maxSide) {
+          width = Math.round((width * maxSide) / height);
+          height = maxSide;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('canvas context 실패');
+        ctx.drawImage(baseImg, 0, 0, width, height);
+        return await new Promise<Blob>((resolve, reject) =>
+          canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('리사이즈 실패'))), 'image/jpeg', 0.85)
+        );
+      };
+
+      const derivedBlob = await createDerivedBlob(processedFile);
+
+      // 3) Supabase Storage로 직접 업로드
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase 환경변수가 설정되지 않았습니다');
+      const sb = createClient(supabaseUrl, supabaseAnonKey);
+
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const dateFolder = `${y}-${m}-${d}`;
+      const baseName = (processedFile.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
+      const ts = Date.now();
+
+      // originals
+      const originalPath = `originals/${dateFolder}/${ts}_${baseName}`;
+      const { error: upErr1 } = await sb.storage
+        .from('blog-images')
+        .upload(originalPath, processedFile, { contentType: processedFile.type || 'image/jpeg' });
+      if (upErr1) throw upErr1;
+
+      // derived (리사이즈본)
+      const derivedPath = `derived/${dateFolder}/${ts}_${baseName.replace(/\.[^.]+$/, '.jpg')}`;
+      const { error: upErr2 } = await sb.storage
+        .from('blog-images')
+        .upload(derivedPath, derivedBlob, { contentType: 'image/jpeg' });
+      if (upErr2) throw upErr2;
+
+      const { data: pub1 } = sb.storage.from('blog-images').getPublicUrl(originalPath);
+      const { data: pub2 } = sb.storage.from('blog-images').getPublicUrl(derivedPath);
+
+      console.log('✅ 업로드 완료', { original: pub1?.publicUrl, derived: pub2?.publicUrl });
+
+      // 4) 메타데이터 저장 (파생본 우선 표시)
+      try {
+        await fetch('/api/admin/image-metadata', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageName: derivedPath,
+            imageUrl: pub2?.publicUrl,
+            original_url: pub1?.publicUrl,
+            file_name: derivedPath,
+            folder_path: `derived/${dateFolder}`,
+            content_type: 'derived',
+            title: baseName,
+            alt_text: '',
+            keywords: [],
+          })
+        });
+      } catch (e) {
+        console.warn('메타데이터 저장 경고:', e);
       }
-      
-      const uploadData = await uploadResponse.json();
-      const supabaseUrl = uploadData.url;
-      
-      console.log('✅ Supabase 업로드 완료:', supabaseUrl);
-      
-      // 선택된 이미지로 설정
-      setSelectedExistingImage(supabaseUrl);
-      
+
+      // 에디터/미리보기에는 파생본 URL을 기본 선택
+      setSelectedExistingImage(pub2?.publicUrl || '');
+
     } catch (error) {
       console.error('❌ 파일 업로드 오류:', error);
-      alert('파일 업로드 중 오류가 발생했습니다: ' + error.message);
+      alert('파일 업로드 중 오류가 발생했습니다: ' + (error as any).message);
     }
   };
 
