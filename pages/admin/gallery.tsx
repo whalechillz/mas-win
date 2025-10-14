@@ -210,7 +210,7 @@ export default function GalleryAdmin() {
     });
     
     return filtered;
-  }, [images, searchQuery, filterType, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
+  }, [images, searchQuery, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
   
   // 카테고리 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);

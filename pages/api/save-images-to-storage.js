@@ -100,8 +100,15 @@ export default async function handler(req, res) {
           safeFileName = `image_${Date.now()}_${i}.jpg`;
         }
 
-        // Supabase 스토리지에 업로드
-        const filePath = `scraped-images/${postTitle ? postTitle.replace(/[^a-zA-Z0-9.-]/g, '_') : 'untitled'}/${safeFileName}`;
+        // 체계적인 폴더 구조 생성
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateFolder = `${year}-${month}-${day}`;
+        
+        // 폴더 경로: scraped-images/YYYY-MM-DD/파일명
+        const filePath = `scraped-images/${dateFolder}/${safeFileName}`;
         
         const { data, error: uploadError } = await supabase.storage
           .from('blog-images')

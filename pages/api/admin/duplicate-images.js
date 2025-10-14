@@ -73,12 +73,23 @@ export default async function handler(req, res) {
         const baseName = image.name.replace(/\.[^/.]+$/, ''); // 확장자 제거
         const newFileName = `${baseName}_copy_${timestamp}.${fileExtension}`;
 
-        console.log(`📋 새 파일명: ${newFileName}`);
+        // 3. 체계적인 폴더 구조 생성
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateFolder = `${year}-${month}-${day}`;
+        
+        // 폴더 경로: duplicated/YYYY-MM-DD/파일명
+        const fullPath = `duplicated/${dateFolder}/${newFileName}`;
 
-        // 3. Supabase Storage에 업로드
+        console.log(`📋 새 파일명: ${newFileName}`);
+        console.log(`📋 폴더 경로: ${fullPath}`);
+
+        // 4. Supabase Storage에 업로드
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('blog-images')
-          .upload(newFileName, imageBlob, {
+          .upload(fullPath, imageBlob, {
             contentType: mimeType,
             upsert: false
           });
@@ -87,12 +98,12 @@ export default async function handler(req, res) {
           throw new Error(`업로드 실패: ${uploadError.message}`);
         }
 
-        // 4. 공개 URL 생성
+        // 5. 공개 URL 생성
         const { data: urlData } = supabase.storage
           .from('blog-images')
-          .getPublicUrl(newFileName);
+          .getPublicUrl(fullPath);
 
-        // 5. 메타데이터 저장
+        // 6. 메타데이터 저장
         const metadata = {
           image_url: urlData.publicUrl,
           original_url: image.url,
