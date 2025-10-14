@@ -3923,6 +3923,52 @@ export default function BlogAdmin() {
                   
                   {showAdvancedFeatures && (
                     <div className="space-y-6">
+                      {/* SEO 최적화 기능 */}
+                      <div className="border border-gray-200 rounded-lg p-6">
+                        <h4 className="text-md font-semibold text-gray-900 mb-4">📈 SEO 최적화</h4>
+                        
+                        <div className="space-y-4">
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h5 className="text-sm font-medium text-blue-800 mb-2">📋 SEO 최적화 안내</h5>
+                            <ul className="text-sm text-blue-700 space-y-1">
+                              <li>• 제목과 내용을 기반으로 SEO 최적화 제안</li>
+                              <li>• 메타 제목, 메타 설명, 슬러그 자동 생성</li>
+                              <li>• 검색 엔진 최적화를 위한 키워드 제안</li>
+                              <li>• 최적화된 내용을 자동으로 폼에 적용</li>
+                            </ul>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={optimizeSEO}
+                            disabled={isOptimizingSEO || !formData.title || !formData.content}
+                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                          >
+                            {isOptimizingSEO ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>SEO 최적화 중...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📈</span>
+                                <span>SEO 최적화 시작</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* SEO 최적화 결과 */}
+                          {seoOptimizationResult && (
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <h5 className="text-sm font-medium text-blue-800 mb-2">📈 SEO 최적화 결과</h5>
+                              <div className="text-sm text-blue-700 whitespace-pre-wrap">
+                                {seoOptimizationResult}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       {/* 고급 기능 안내 */}
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <h4 className="text-sm font-medium text-gray-800 mb-2">💡 고급 기능 안내</h4>
@@ -4634,84 +4680,6 @@ export default function BlogAdmin() {
                     </div>
 
 
-                {/* 네이버 블로그 마이그레이션 섹션 — 상단 스크래퍼와 중복이라 비활성화됨 */}
-                {/* 고급 기능 섹션 */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
-                      <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
-                                  </div>
-                                    <button 
-                  type="button"
-                      onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
-                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm"
-              >
-                      {showAdvancedFeatures ? '숨기기' : '고급 기능 열기'}
-                                    </button>
-                                  </div>
-                  
-                  {showAdvancedFeatures && (
-                    <div className="space-y-8">
-              
-                      {/* SEO 최적화 기능 */}
-                      <div className="border border-gray-200 rounded-lg p-6">
-                        <h4 className="text-md font-semibold text-gray-900 mb-4">📈 SEO 최적화</h4>
-                        
-                        <div className="space-y-4">
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h5 className="text-sm font-medium text-blue-800 mb-2">📋 SEO 최적화 안내</h5>
-                            <ul className="text-sm text-blue-700 space-y-1">
-                              <li>• 제목과 내용을 기반으로 SEO 최적화 제안</li>
-                              <li>• 메타 제목, 메타 설명, 슬러그 자동 생성</li>
-                              <li>• 검색 엔진 최적화를 위한 키워드 제안</li>
-                              <li>• 최적화된 내용을 자동으로 폼에 적용</li>
-                            </ul>
-                    </div>
-                    
-                                        <button
-                        type="button"
-                            onClick={optimizeSEO}
-                            disabled={isOptimizingSEO || !formData.title || !formData.content}
-                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                          >
-                            {isOptimizingSEO ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                <span>SEO 최적화 중...</span>
-                          </>
-                        ) : (
-                          <>
-                                <span>📈</span>
-                                <span>SEO 최적화 시작</span>
-                          </>
-                        )}
-                      </button>
-
-                          {/* SEO 최적화 결과 */}
-                          {seoOptimizationResult && (
-                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                              <h5 className="text-sm font-medium text-blue-800 mb-2">📈 SEO 최적화 결과</h5>
-                              <div className="text-sm text-blue-700 whitespace-pre-wrap">
-                                {seoOptimizationResult}
-                                    </div>
-                                  </div>
-                                )}
-                                        </div>
-                                        </div>
-
-                      {/* 고급 기능 안내 */}
-                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-800 mb-2">💡 고급 기능 안내</h4>
-                        <ul className="text-sm text-gray-700 space-y-1">
-                          <li>• <strong>SEO 최적화:</strong> 검색 엔진 최적화를 위한 메타데이터와 키워드를 자동 생성합니다</li>
-                          <li>• <strong>자동 적용:</strong> 최적화된 결과를 자동으로 폼에 적용하여 편리하게 사용할 수 있습니다</li>
-                          <li>• <strong>실시간 피드백:</strong> 최적화 과정을 실시간으로 확인할 수 있습니다</li>
-                        </ul>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
 
                 {/* 기존 이미지 변형 모달 */}
                 {showExistingImageModal && (
