@@ -58,7 +58,14 @@ export default async function handler(req, res) {
             break; // 더 이상 파일이 없음
           }
 
-          allFiles = allFiles.concat(batchFiles);
+          // 이미지 파일만 필터링 (폴더 제외)
+          const imageFiles = batchFiles.filter(file => {
+            if (!file.id || file.size === 0) return false;
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+            return imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+          });
+
+          allFiles = allFiles.concat(imageFiles);
           offset += batchSize;
 
           // 배치 크기보다 적게 반환되면 마지막 배치
@@ -93,8 +100,24 @@ export default async function handler(req, res) {
         });
       }
 
+      // 이미지 파일만 필터링 (폴더 제외)
+      const imageFiles = files.filter(file => {
+        // 폴더는 제외 (id가 null이고 size가 0인 경우)
+        if (!file.id || file.size === 0) {
+          return false;
+        }
+        // 이미지 확장자만 허용
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const hasImageExtension = imageExtensions.some(ext => 
+          file.name.toLowerCase().endsWith(ext)
+        );
+        return hasImageExtension;
+      });
+
+      console.log(`📁 폴더 제외: ${files.length}개 → ${imageFiles.length}개 이미지 파일`);
+
       // 이미지 URL 생성 및 메타데이터 조회
-      const imagesWithUrl = await Promise.all(files.map(async (file) => {
+      const imagesWithUrl = await Promise.all(imageFiles.map(async (file) => {
         const { data: urlData } = supabase.storage
           .from('blog-images')
           .getPublicUrl(file.name);
