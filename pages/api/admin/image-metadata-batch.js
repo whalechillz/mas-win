@@ -2,7 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+let supabase;
+if (supabaseUrl && supabaseServiceKey) {
+  supabase = createClient(supabaseUrl, supabaseServiceKey);
+}
 
 // 단일 핸들러: 두 모드 지원
 // 1) { imageUrls: string[] } → 메타데이터 조회
@@ -13,19 +16,24 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Supabase env not configured' });
+    }
     const { imageUrls, paths } = req.body || {};
 
     // 모드 2: paths upsert
     if (Array.isArray(paths) && paths.length > 0) {
+      const bucket = process.env.NEXT_PUBLIC_IMAGE_BUCKET || 'blog-images';
       const updates = paths.map((p) => {
         const folder = p.includes('/') ? p.substring(0, p.lastIndexOf('/')) : '';
-        const url = `${supabaseUrl}/storage/v1/object/public/blog-images/${p}`;
-        return { file_name: p, image_url: url, folder_path: folder };
+        const base = p.includes('/') ? p.substring(p.lastIndexOf('/') + 1) : p;
+        const url = `${supabaseUrl}/storage/v1/object/public/${bucket}/${p}`;
+        return { file_name: base, image_url: url, folder_path: folder };
       });
       const { error } = await supabase
         .from('image_metadata')
         .upsert(updates, { onConflict: 'file_name' });
-      if (error) return res.status(500).json({ error: error.message });
+      if (error) return res.status(500).json({ error: error.message, details: { updates } });
       return res.status(200).json({ success: true, count: updates.length });
     }
 
@@ -38,7 +46,7 @@ export default async function handler(req, res) {
       .from('image_metadata')
       .select('*')
       .in('image_url', imageUrls);
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: error.message, where: 'select by imageUrls', count: imageUrls.length });
 
     const map = {};
     for (const row of data || []) {
@@ -58,7 +66,7 @@ export default async function handler(req, res) {
     }
     return res.status(200).json({ metadata: map });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message, stack: e.stack });
   }
 }
 
