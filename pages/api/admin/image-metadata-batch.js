@@ -25,10 +25,9 @@ export default async function handler(req, res) {
     if (Array.isArray(paths) && paths.length > 0) {
       const bucket = process.env.NEXT_PUBLIC_IMAGE_BUCKET || 'blog-images';
       const updates = paths.map((p) => {
-        const folder = p.includes('/') ? p.substring(0, p.lastIndexOf('/')) : '';
         const url = `${supabaseUrl}/storage/v1/object/public/${bucket}/${p}`;
-        // 테이블에 file_name 컬럼이 없으므로 image_url + folder_path만 보정
-        return { image_url: url, folder_path: folder };
+        // prod 스키마에 folder_path가 없으므로 image_url만 보정
+        return { image_url: url };
       });
       const { error } = await supabase
         .from('image_metadata')
