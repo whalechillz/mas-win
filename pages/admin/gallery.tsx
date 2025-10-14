@@ -977,12 +977,22 @@ export default function GalleryAdmin() {
       console.log('🗑️ 일괄 삭제 시작:', selectedIds.length, '개');
       console.log('🔍 선택된 ID들:', selectedIds);
       
-      // 선택된 ID에서 실제 파일명 추출
+      // 선택된 ID에서 실제 파일명 추출 (폴더 경로 포함)
       const names = selectedIds.map(id => {
         const image = images.find(img => getImageUniqueId(img) === id);
         if (image) {
-          console.log('📝 ID 매칭:', { id, actualName: image.name });
-          return image.name;
+          // 폴더 경로가 있는 경우 전체 경로 사용, 없는 경우 파일명만 사용
+          const fullPath = image.folder_path && image.folder_path !== '' 
+            ? `${image.folder_path}/${image.name}` 
+            : image.name;
+          
+          console.log('📝 ID 매칭:', { 
+            id, 
+            actualName: image.name, 
+            folderPath: image.folder_path,
+            fullPath: fullPath
+          });
+          return fullPath;
         }
         console.warn('⚠️ 매칭되지 않은 ID:', id);
         return id; // 매칭되지 않으면 ID 그대로 사용
@@ -1508,8 +1518,11 @@ export default function GalleryAdmin() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            const fullPath = image.folder_path && image.folder_path !== '' 
+                              ? `${image.folder_path}/${image.name}` 
+                              : image.name;
                             if (confirm(`"${image.name}" 이미지를 삭제하시겠습니까?`)) {
-                              handleDeleteImage(image.name);
+                              handleDeleteImage(fullPath);
                             }
                           }}
                           className="p-1 bg-red-100 rounded shadow-sm hover:bg-red-200"
