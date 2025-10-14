@@ -51,11 +51,25 @@ export default async function handler(req, res) {
         }
 
         const imageBuffer = await imageResponse.arrayBuffer();
-        const imageBlob = new Blob([imageBuffer]);
+        
+        // MIME 타입을 파일 확장자에서 추정
+        const fileExtension = image.name.split('.').pop()?.toLowerCase() || 'jpg';
+        let mimeType = 'image/jpeg'; // 기본값
+        
+        switch (fileExtension) {
+          case 'png': mimeType = 'image/png'; break;
+          case 'gif': mimeType = 'image/gif'; break;
+          case 'webp': mimeType = 'image/webp'; break;
+          case 'svg': mimeType = 'image/svg+xml'; break;
+          case 'jpg':
+          case 'jpeg': mimeType = 'image/jpeg'; break;
+        }
+        
+        const imageBlob = new Blob([imageBuffer], { type: mimeType });
+        console.log(`📋 MIME 타입 설정: ${mimeType} (확장자: ${fileExtension})`);
 
         // 2. 새로운 파일명 생성 (타임스탬프 추가)
         const timestamp = Date.now();
-        const fileExtension = image.name.split('.').pop() || 'jpg';
         const baseName = image.name.replace(/\.[^/.]+$/, ''); // 확장자 제거
         const newFileName = `${baseName}_copy_${timestamp}.${fileExtension}`;
 
@@ -65,7 +79,7 @@ export default async function handler(req, res) {
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('blog-images')
           .upload(newFileName, imageBlob, {
-            contentType: imageBlob.type || 'image/jpeg',
+            contentType: mimeType,
             upsert: false
           });
 
