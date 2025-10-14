@@ -636,8 +636,12 @@ export default function GalleryAdmin() {
     try {
       // 메타데이터 저장 시작
       // 🔧 keywords 안전하게 처리
-      const keywords = editForm.keywords && typeof editForm.keywords === 'string' 
-        ? editForm.keywords.split(',').map(k => k.trim()).filter(k => k)
+      const keywords = editForm.keywords 
+        ? (typeof editForm.keywords === 'string' 
+            ? editForm.keywords.split(',').map(k => String(k).trim()).filter(k => k)
+            : Array.isArray(editForm.keywords) 
+              ? editForm.keywords.map(k => String(k).trim()).filter(k => k)
+              : [])
         : [];
       
       const image = images.find(img => img.name === editingImage);
@@ -801,9 +805,9 @@ export default function GalleryAdmin() {
     setIsBulkWorking(true);
     try {
       const names = Array.from(selectedImages);
-      const keywordList = bulkEditForm.keywords
+      const keywordList = String(bulkEditForm.keywords || '')
         .split(',')
-        .map(k => k.trim())
+        .map(k => String(k).trim())
         .filter(Boolean);
 
       for (const name of names) {
@@ -1475,8 +1479,12 @@ export default function GalleryAdmin() {
         onClose={() => setEditingImage(null)}
         onSave={async (metadata) => {
           // 기존 saveEdit 로직 사용
-          const keywords = metadata.keywords && typeof metadata.keywords === 'string' 
-            ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
+          const keywords = metadata.keywords 
+            ? (typeof metadata.keywords === 'string' 
+                ? metadata.keywords.split(',').map(k => String(k).trim()).filter(k => k)
+                : Array.isArray(metadata.keywords) 
+                  ? metadata.keywords.map(k => String(k).trim()).filter(k => k)
+                  : [])
             : [];
           
           const image = images.find(img => img.name === editingImage);
