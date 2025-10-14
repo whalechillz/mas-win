@@ -40,13 +40,19 @@ export default async function handler(req, res) {
       try {
         console.log(`🖼️ 이미지 ${i + 1}/${images.length} 저장 중:`, fileName);
 
-        // 이미지 다운로드
-        const imageResponse = await fetch(src, {
+        // 이미지 다운로드 (네이버 이미지는 프록시 사용)
+        let imageUrl = src;
+        if (src.includes('pstatic.net') || src.includes('naver.net')) {
+          // 이미지 프록시를 통해 다운로드
+          imageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.masgolf.co.kr'}/api/image-proxy?url=${encodeURIComponent(src)}`;
+          console.log('🔄 네이버 이미지 프록시 사용:', imageUrl);
+        }
+        
+        const imageResponse = await fetch(imageUrl, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Referer': 'https://blog.naver.com/',
-          },
-          timeout: 10000
+          }
         });
 
         if (!imageResponse.ok) {
