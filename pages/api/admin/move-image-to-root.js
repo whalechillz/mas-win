@@ -72,16 +72,64 @@ export default async function handler(req, res) {
       newPath
     });
 
-    // 3. 파일 다운로드
-    console.log('🔍 스토리지 파일 다운로드 시도:', currentPath);
+    // 3. 파일 존재 여부 확인 (여러 경로 시도)
+    console.log('🔍 파일 존재 여부 확인 시작');
+    let actualFilePath = null;
+    
+    // 가능한 경로들 시도
+    const possiblePaths = [
+      currentPath,
+      currentImage.file_name,
+      `duplicated/2025/${fileName}`,
+      `duplicated/2025-10-14/${fileName}`,
+      `duplicated/2025-10-14-1/${fileName}`
+    ];
+    
+    for (const testPath of possiblePaths) {
+      try {
+        console.log(`🔍 경로 테스트: ${testPath}`);
+        const { data: urlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(testPath);
+        
+        const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
+        if (response.ok) {
+          actualFilePath = testPath;
+          console.log(`✅ 파일 발견: ${testPath}`);
+          break;
+        } else {
+          console.log(`❌ 파일 없음: ${testPath} (${response.status})`);
+        }
+      } catch (error) {
+        console.log(`❌ 경로 테스트 실패: ${testPath}`, error.message);
+      }
+    }
+    
+    if (!actualFilePath) {
+      console.error('❌ 모든 경로에서 파일을 찾을 수 없습니다');
+      return res.status(404).json({
+        error: '파일을 찾을 수 없습니다.',
+        details: '모든 가능한 경로에서 파일을 찾을 수 없습니다.',
+        debug: {
+          currentPath,
+          fileName,
+          testedPaths: possiblePaths
+        }
+      });
+    }
+    
+    console.log(`✅ 실제 파일 경로 확인: ${actualFilePath}`);
+
+    // 4. 파일 다운로드 (실제 경로 사용)
+    console.log('🔍 스토리지 파일 다운로드 시도:', actualFilePath);
     const { data: downloadData, error: downloadError } = await supabase.storage
       .from('blog-images')
-      .download(currentPath);
+      .download(actualFilePath);
 
     console.log('📊 스토리지 다운로드 결과:', {
       success: !!downloadData,
       error: downloadError?.message,
-      filePath: currentPath
+      filePath: actualFilePath
     });
 
     if (downloadError) {
@@ -90,7 +138,7 @@ export default async function handler(req, res) {
         error: '파일을 다운로드할 수 없습니다.',
         details: downloadError.message,
         debug: {
-          currentPath,
+          actualFilePath,
           errorType: 'storage_file_not_found'
         }
       });
@@ -124,7 +172,7 @@ export default async function handler(req, res) {
     // 6. 기존 파일 삭제
     const { error: deleteError } = await supabase.storage
       .from('blog-images')
-      .remove([currentPath]);
+      .remove([actualFilePath]);
 
     if (deleteError) {
       console.warn('⚠️ 기존 파일 삭제 실패:', deleteError);
