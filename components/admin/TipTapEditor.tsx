@@ -109,6 +109,15 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="flex flex-wrap gap-2 p-2 border-b bg-gray-50">
+        <ToolbarButton 
+          label="↶" 
+          onClick={() => editor.chain().focus().undo().run()} 
+        />
+        <ToolbarButton 
+          label="↷" 
+          onClick={() => editor.chain().focus().redo().run()} 
+        />
+        <div className="w-px h-6 bg-gray-300 mx-1"></div>
         <ToolbarButton label="B" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
         <ToolbarButton label="I" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
         <ToolbarButton label="H2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
