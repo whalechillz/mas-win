@@ -3356,6 +3356,50 @@ export default function BlogAdmin() {
                                 <div className="text-xs text-gray-600 truncate" title={image.fileName || `이미지 ${imageIndex + 1}`}>
                                   {image.fileName || `이미지 ${imageIndex + 1}`}
                                 </div>
+                                {/* 링크 복사 버튼 */}
+                                <div className="mt-2 flex items-center space-x-2">
+                                  <button
+                                    type="button"
+                                    className="px-2 py-1 text-[11px] bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      const originalUrl = image.src;
+                                      const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(image.src)}`;
+                                      const tryCopy = async (text: string) => {
+                                        try {
+                                          await navigator.clipboard.writeText(text);
+                                          return true;
+                                        } catch {
+                                          try {
+                                            const ta = document.createElement('textarea');
+                                            ta.value = text;
+                                            document.body.appendChild(ta);
+                                            ta.select();
+                                            document.execCommand('copy');
+                                            document.body.removeChild(ta);
+                                            return true;
+                                          } catch {
+                                            return false;
+                                          }
+                                        }
+                                      };
+                                      const copiedOriginal = await tryCopy(originalUrl);
+                                      if (!copiedOriginal) {
+                                        const copiedProxy = await tryCopy(proxyUrl);
+                                        if (copiedProxy) {
+                                          alert('프록시 URL이 클립보드에 복사되었습니다.');
+                                        } else {
+                                          alert('클립보드 복사에 실패했습니다.');
+                                        }
+                                      } else {
+                                        alert('이미지 원본 URL이 클립보드에 복사되었습니다.');
+                                      }
+                                    }}
+                                    title="이미지 링크 복사"
+                                  >
+                                    🔗 링크 복사
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))
