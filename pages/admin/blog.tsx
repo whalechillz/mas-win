@@ -2014,6 +2014,13 @@ export default function BlogAdmin() {
     setIsGalleryOpen(!isGalleryOpen);
   };
 
+  // 기존 이미지 변형 모달이 열릴 때 이미지 로드
+  useEffect(() => {
+    if (showExistingImageModal && allImages.length === 0) {
+      fetchImageGallery(1, true);
+    }
+  }, [showExistingImageModal]);
+
   // 필터링된 이미지 목록
   const getFilteredImages = () => {
     let filtered = allImages;
