@@ -639,9 +639,9 @@ export default function GalleryAdmin() {
       // 🔧 keywords 안전하게 처리
       const keywords = editForm.keywords 
         ? (typeof editForm.keywords === 'string' 
-            ? editForm.keywords.split(',').map(k => String(k).trim()).filter(k => k)
+            ? editForm.keywords.split(',').map(k => String(k || '').trim()).filter(k => k)
             : Array.isArray(editForm.keywords) 
-              ? editForm.keywords.map(k => String(k).trim()).filter(k => k)
+              ? editForm.keywords.map(k => String(k || '').trim()).filter(k => k)
               : [])
         : [];
       
@@ -662,8 +662,9 @@ export default function GalleryAdmin() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            oldName: image.name,  // 실제 데이터베이스의 파일명 사용
-            newName: editForm.filename
+            imageId: image.id,  // API가 기대하는 파라미터
+            newFileName: editForm.filename,
+            currentFileName: image.name
           })
         });
         
@@ -1567,9 +1568,9 @@ export default function GalleryAdmin() {
           // 기존 saveEdit 로직 사용
           const keywords = metadata.keywords 
             ? (typeof metadata.keywords === 'string' 
-                ? metadata.keywords.split(',').map(k => String(k).trim()).filter(k => k)
+                ? metadata.keywords.split(',').map(k => String(k || '').trim()).filter(k => k)
                 : Array.isArray(metadata.keywords) 
-                  ? metadata.keywords.map(k => String(k).trim()).filter(k => k)
+                  ? metadata.keywords.map(k => String(k || '').trim()).filter(k => k)
                   : [])
             : [];
           
@@ -1667,9 +1668,9 @@ export default function GalleryAdmin() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                oldName: image.name,
-                newName: newFilename,
-                imageUrl: image.url
+                imageId: image.id,
+                newFileName: newFilename,
+                currentFileName: image.name
               })
             });
             
