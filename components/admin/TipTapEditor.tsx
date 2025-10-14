@@ -10,7 +10,6 @@ import { Markdown } from 'tiptap-markdown';
 type TipTapEditorProps = {
   valueMarkdown: string;
   onChangeMarkdown: (markdown: string) => void;
-  onRequestImageFromGallery?: (insert: (url: string, options?: { alt?: string; title?: string }) => void) => void;
 };
 
 const ToolbarButton: React.FC<{ onClick: () => void; active?: boolean; label: string }> = ({ onClick, active, label }) => (
@@ -23,12 +22,10 @@ const ToolbarButton: React.FC<{ onClick: () => void; active?: boolean; label: st
   </button>
 );
 
-export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onChangeMarkdown, onRequestImageFromGallery }) => {
+export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onChangeMarkdown }) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const GalleryPicker = dynamic(() => import('./GalleryPicker'), { ssr: false });
-  const [showPicker, setShowPicker] = useState(false);
 
   if (typeof window === 'undefined') return null;
 
@@ -106,10 +103,6 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
     input.click();
   }, [editor]);
 
-  const handleInsertFromGallery = useCallback(() => {
-    if (!editor) return;
-    setShowPicker(true);
-  }, [editor]);
 
   if (!mounted || !editor) return null;
 
@@ -120,7 +113,6 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         <ToolbarButton label="I" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
         <ToolbarButton label="H2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
         {/* 안정화 단계: 링크/테이블 등은 후속 브랜치에서 재도입 */}
-        <ToolbarButton label="갤러리" onClick={handleInsertFromGallery} />
         <ToolbarButton
           label="대표로"
           active={editor.isActive('image')}
@@ -142,16 +134,6 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
       <div className="p-3">
         <EditorContent editor={editor} />
       </div>
-      {showPicker && (
-        <GalleryPicker
-          isOpen={showPicker}
-          onClose={() => setShowPicker(false)}
-          onSelect={(url, options) => {
-            editor.chain().focus().setImage({ src: url, alt: options?.alt }).run();
-            setShowPicker(false);
-          }}
-        />
-      )}
     </div>
   );
 };
