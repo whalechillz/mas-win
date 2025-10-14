@@ -52,13 +52,14 @@ export default async function handler(req, res) {
             console.log('✅ 루트에서 파일 존재 확인:', targetWithExtension);
           }
         } else {
-          // 2. 폴더 경로가 있는 경우 - 폴더별로 검색
+          // 2. 폴더 경로가 있는 경우 - 여러 방법으로 검색
           const pathParts = targetWithExtension.split('/');
           const folderPath = pathParts.slice(0, -1).join('/');
           const fileName = pathParts[pathParts.length - 1];
           
           console.log('🔍 폴더 경로 검색:', { folderPath, fileName, fullPath: targetWithExtension });
           
+          // 방법 1: 정확한 폴더 경로로 검색
           const { data: folderFiles, error: folderError } = await supabase.storage
             .from('blog-images')
             .list(folderPath, { search: fileName });
@@ -68,7 +69,51 @@ export default async function handler(req, res) {
             if (exactFile) {
               existingFiles.push(targetWithExtension);
               fileFound = true;
-              console.log('✅ 폴더에서 파일 존재 확인:', targetWithExtension);
+              console.log('✅ 폴더에서 파일 존재 확인 (방법1):', targetWithExtension);
+            }
+          }
+          
+          // 방법 2: 파일명만으로 전체 검색 (폴더 경로 무시)
+          if (!fileFound) {
+            console.log('🔍 전체 검색 시도:', fileName);
+            const { data: allFiles, error: allError } = await supabase.storage
+              .from('blog-images')
+              .list('', { search: fileName });
+            
+            if (!allError && allFiles && allFiles.length > 0) {
+              const matchingFile = allFiles.find(file => 
+                file.name === fileName || 
+                file.name.includes(fileName) ||
+                fileName.includes(file.name)
+              );
+              
+              if (matchingFile) {
+                // 실제 경로 재구성
+                const actualPath = matchingFile.name.includes('/') ? matchingFile.name : targetWithExtension;
+                existingFiles.push(actualPath);
+                fileFound = true;
+                console.log('✅ 전체 검색에서 파일 발견 (방법2):', actualPath);
+              }
+            }
+          }
+          
+          // 방법 3: 직접 파일 존재 확인 (getPublicUrl로 테스트)
+          if (!fileFound) {
+            console.log('🔍 직접 파일 존재 확인:', targetWithExtension);
+            try {
+              const { data: urlData } = supabase.storage
+                .from('blog-images')
+                .getPublicUrl(targetWithExtension);
+              
+              // URL로 HEAD 요청하여 파일 존재 확인
+              const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
+              if (response.ok) {
+                existingFiles.push(targetWithExtension);
+                fileFound = true;
+                console.log('✅ 직접 확인으로 파일 존재 확인 (방법3):', targetWithExtension);
+              }
+            } catch (error) {
+              console.log('⚠️ 직접 확인 실패:', error.message);
             }
           }
         }
