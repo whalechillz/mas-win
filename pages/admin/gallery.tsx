@@ -479,6 +479,7 @@ export default function GalleryAdmin() {
         const metaMap = metaJson.metadata || {};
         const imagesWithMetadata = list.map((img: any) => ({
           ...img,
+          id: metaMap[img.url]?.id || img.id || `temp-${Date.now()}-${Math.random()}`, // ID 필드 추가
           alt_text: metaMap[img.url]?.alt_text || '',
           keywords: metaMap[img.url]?.tags || [],
           title: metaMap[img.url]?.title || '',
@@ -1450,6 +1451,17 @@ export default function GalleryAdmin() {
                               e.stopPropagation();
                               if (confirm(`"${image.name}" 이미지를 루트 폴더로 이동하시겠습니까?`)) {
                                 try {
+                                  console.log('🔍 이미지 이동 요청 데이터:', {
+                                    imageId: image.id,
+                                    currentPath: image.name,
+                                    imageUrl: image.url
+                                  });
+                                  
+                                  if (!image.id || image.id.startsWith('temp-')) {
+                                    alert('이미지 ID가 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+                                    return;
+                                  }
+                                  
                                   const response = await fetch('/api/admin/move-image-to-root', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
