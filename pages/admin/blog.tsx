@@ -3854,29 +3854,6 @@ export default function BlogAdmin() {
                   </div>
                 </div>
                       
-                {/* 대표 프리뷰를 요약과 내용 사이로 이동 */}
-                {/* 대표 이미지 프리뷰 (요약 아래) */}
-                <div className="mb-6">
-                  <div className="bg-white border rounded-lg p-4 flex items-center gap-4">
-                    <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden flex items-center justify-center border">
-                      {formData.featured_image ? (
-                        <img src={formData.featured_image} alt="대표 이미지" className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-xs text-gray-400">대표 이미지 없음</span>
-                      )}
-                        </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-gray-700 font-medium">대표 이미지</div>
-                      <div className="text-xs text-gray-500 break-all">{formData.featured_image || '미설정'}</div>
-                      </div>
-                    <div className="flex items-center gap-2">
-                      <button type="button" className="px-3 py-2 bg-blue-500 text-white rounded" onClick={()=>setShowUnifiedPicker(true)}>변경</button>
-                      {formData.featured_image && (
-                        <button type="button" className="px-3 py-2 bg-gray-200 rounded" onClick={()=>setFormData({...formData, featured_image: ''})}>해제</button>
-                      )}
-                    </div>
-                    </div>
-                    </div>
 
                 {/* 갤러리 열기/닫기 버튼 */}
                 <div className="flex justify-center py-4">
