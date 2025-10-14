@@ -5052,6 +5052,60 @@ export default function BlogAdmin() {
                         </div>
                         )}
                         
+                        {/* 갤러리에서 선택 섹션 */}
+                        {activeImageTab === 'gallery' && (
+                          <div className="space-y-4">
+                            <label className="block text-sm font-medium text-gray-700">
+                              갤러리에서 이미지 선택
+                            </label>
+                            <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                              {allImages.length > 0 ? (
+                                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                  {allImages.map((image, index) => (
+                                    <div
+                                      key={index}
+                                      className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-colors ${
+                                        selectedExistingImage === image.url
+                                          ? 'border-blue-500 bg-blue-50'
+                                          : 'border-gray-200 hover:border-blue-300'
+                                      }`}
+                                      onClick={() => setSelectedExistingImage(image.url)}
+                                    >
+                                      <img
+                                        src={forceHttps(image.url)}
+                                        alt={image.name}
+                                        className="w-full h-20 object-cover"
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.src = '/placeholder-image.jpg';
+                                        }}
+                                      />
+                                      <div className="p-1 bg-white">
+                                        <div className="text-xs text-gray-600 truncate" title={image.name}>
+                                          {image.name}
+                                        </div>
+                                      </div>
+                                      {selectedExistingImage === image.url && (
+                                        <div className="absolute top-1 right-1">
+                                          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <span className="text-white text-xs">✓</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                  <div className="text-4xl mb-2">🖼️</div>
+                                  <p>갤러리에 이미지가 없습니다</p>
+                                  <p className="text-sm">먼저 이미지를 업로드하거나 생성해주세요</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* URL 입력 섹션 */}
                         {activeImageTab === 'url' && (
                         <div className="space-y-4">
