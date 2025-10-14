@@ -12,6 +12,7 @@ interface ImageMetadata {
   size: number;
   created_at: string;
   updated_at: string;
+  folder_path?: string; // 폴더 경로 추가
   alt_text?: string;
   keywords?: string[];
   title?: string;
@@ -75,12 +76,24 @@ export default function GalleryAdmin() {
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
+  const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // 동적 카테고리 상태 (useMemo보다 먼저 정의)
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  
+  // 폴더 목록 계산
+  const availableFolders = useMemo(() => {
+    const folders = new Set<string>();
+    images.forEach(img => {
+      if (img.folder_path && img.folder_path !== '') {
+        folders.add(img.folder_path);
+      }
+    });
+    return Array.from(folders).sort();
+  }, [images]);
   
   // 필터링된 이미지 계산 (useMemo로 최적화)
   const filteredImages = useMemo(() => {
@@ -95,6 +108,17 @@ export default function GalleryAdmin() {
         img.keywords?.some((k: string) => k.toLowerCase().includes(query)) ||
         img.title?.toLowerCase().includes(query)
       );
+    }
+    
+    // 폴더 필터
+    if (folderFilter !== 'all') {
+      if (folderFilter === 'root') {
+        // 루트 폴더 (폴더 경로가 없는 이미지들)
+        filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
+      } else {
+        // 특정 폴더
+        filtered = filtered.filter(img => img.folder_path === folderFilter);
+      }
     }
     
     // 타입 필터
@@ -1019,7 +1043,7 @@ export default function GalleryAdmin() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* 검색 및 필터 */}
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* 검색 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">검색</label>
@@ -1066,6 +1090,24 @@ export default function GalleryAdmin() {
                   </select>
                 </div>
               )}
+              
+              {/* 폴더 필터 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">폴더</label>
+                <select
+                  value={folderFilter}
+                  onChange={(e) => setFolderFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">전체 폴더</option>
+                  <option value="root">📁 루트 폴더</option>
+                  {availableFolders.map((folder) => (
+                    <option key={folder} value={folder}>
+                      📁 {folder}
+                    </option>
+                  ))}
+                </select>
+              </div>
               
               {/* 정렬 기준 */}
               <div>
@@ -1264,6 +1306,13 @@ export default function GalleryAdmin() {
                       
                       {/* 이미지 정보 */}
                       <div className="p-3">
+                        {/* 폴더 경로 표시 */}
+                        {image.folder_path && (
+                          <div className="text-xs text-blue-600 mb-1 truncate" title={`폴더: ${image.folder_path}`}>
+                            📁 {image.folder_path}
+                          </div>
+                        )}
+                        
                         <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
                           {image.name}
                         </div>

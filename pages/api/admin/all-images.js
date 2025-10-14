@@ -27,106 +27,117 @@ export default async function handler(req, res) {
       
       console.log('📝 전체 이미지 목록 조회 중...', { limit: pageSize, offset: currentOffset, page: currentPage });
       
-      // 전체 개수 조회 (캐싱 적용)
+      // 전체 개수 조회 (캐싱 적용) - 폴더 포함
       let totalCount = totalCountCache;
       const now = Date.now();
       
       if (!totalCountCache || (now - cacheTimestamp) > CACHE_DURATION) {
-        console.log('📊 전체 이미지 개수 조회 중...');
+        console.log('📊 전체 이미지 개수 조회 중 (폴더 포함)...');
         let allFiles = [];
-        let offset = 0;
-        const batchSize = 1000;
         
-        while (true) {
-          const { data: batchFiles, error: batchError } = await supabase.storage
+        // 재귀적으로 모든 폴더의 이미지 조회
+        const getAllImagesRecursively = async (folderPath = '') => {
+          console.log(`📁 폴더 조회 중: ${folderPath || '루트'}`);
+          
+          const { data: files, error } = await supabase.storage
             .from('blog-images')
-            .list('', {
-              limit: batchSize,
-              offset: offset,
+            .list(folderPath, {
               sortBy: { column: 'created_at', order: 'desc' }
             });
 
-          if (batchError) {
-            console.error('❌ 배치 조회 에러:', batchError);
-            return res.status(500).json({
-              error: '이미지 목록을 불러올 수 없습니다.',
-              details: batchError.message
-            });
+          if (error) {
+            console.error(`❌ 폴더 조회 에러 (${folderPath}):`, error);
+            return;
           }
 
-          if (!batchFiles || batchFiles.length === 0) {
-            break; // 더 이상 파일이 없음
+          if (!files) return;
+
+          for (const file of files) {
+            if (!file.id) {
+              // 폴더인 경우 재귀적으로 조회
+              const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+              await getAllImagesRecursively(subFolderPath);
+            } else {
+              // 이미지 파일인 경우
+              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              
+              if (isImage) {
+                allFiles.push({
+                  ...file,
+                  folderPath: folderPath // 폴더 경로 추가
+                });
+              }
+            }
           }
+        };
 
-          // 이미지 파일만 필터링 (폴더 제외)
-          const imageFiles = batchFiles.filter(file => {
-            if (!file.id) return false; // id가 null인 폴더만 제외
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-            return imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-          });
-
-          allFiles = allFiles.concat(imageFiles);
-          offset += batchSize;
-
-          // 배치 크기보다 적게 반환되면 마지막 배치
-          if (batchFiles.length < batchSize) {
-            break;
-          }
-        }
+        await getAllImagesRecursively();
         
         totalCount = allFiles.length;
         totalCountCache = totalCount;
         cacheTimestamp = now;
-        console.log('✅ 전체 이미지 개수 조회 완료:', totalCount, '개');
+        console.log('✅ 전체 이미지 개수 조회 완료 (폴더 포함):', totalCount, '개');
       } else {
         console.log('📊 캐시된 전체 이미지 개수 사용:', totalCount, '개');
       }
       const totalPages = Math.ceil(totalCount / pageSize);
       
-      // 페이지네이션된 이미지 조회
-      const { data: files, error } = await supabase.storage
-        .from('blog-images')
-        .list('', {
-          limit: pageSize,
-          offset: currentOffset,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-
-      if (error) {
-        console.error('❌ 스토리지 조회 에러:', error);
-        return res.status(500).json({
-          error: '이미지 목록을 불러올 수 없습니다.',
-          details: error.message
-        });
-      }
-
-      // 이미지 파일만 필터링 (폴더 제외) - 디버깅용 완화
-      console.log(`📁 원본 파일 목록:`, files.map(f => ({ name: f.name, id: f.id, size: f.size })));
+      // 페이지네이션된 이미지 조회 (폴더 포함)
+      let allFilesForPagination = [];
       
-      const imageFiles = files.filter(file => {
-        // 폴더는 제외 (id가 null인 경우만)
-        if (!file.id) {
-          console.log(`📁 폴더 제외:`, file.name, 'id:', file.id);
-          return false;
-        }
-        // 이미지 확장자만 허용
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        const hasImageExtension = imageExtensions.some(ext => 
-          file.name.toLowerCase().endsWith(ext)
-        );
-        if (!hasImageExtension) {
-          console.log(`📁 확장자 제외:`, file.name);
-        }
-        return hasImageExtension;
-      });
+      // 재귀적으로 모든 폴더의 이미지 조회 (페이지네이션용)
+      const getAllImagesForPagination = async (folderPath = '') => {
+        const { data: files, error } = await supabase.storage
+          .from('blog-images')
+          .list(folderPath, {
+            sortBy: { column: 'created_at', order: 'desc' }
+          });
 
-      console.log(`📁 폴더 제외: ${files.length}개 → ${imageFiles.length}개 이미지 파일`);
+        if (error) {
+          console.error(`❌ 폴더 조회 에러 (${folderPath}):`, error);
+          return;
+        }
+
+        if (!files) return;
+
+        for (const file of files) {
+          if (!file.id) {
+            // 폴더인 경우 재귀적으로 조회
+            const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+            await getAllImagesForPagination(subFolderPath);
+          } else {
+            // 이미지 파일인 경우
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+            const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+            
+            if (isImage) {
+              allFilesForPagination.push({
+                ...file,
+                folderPath: folderPath // 폴더 경로 추가
+              });
+            }
+          }
+        }
+      };
+
+      await getAllImagesForPagination();
+      
+      // 생성일 기준으로 정렬
+      allFilesForPagination.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      
+      // 페이지네이션 적용
+      const imageFiles = allFilesForPagination.slice(currentOffset, currentOffset + pageSize);
+      
+      console.log(`📁 폴더 포함 조회: 총 ${allFilesForPagination.length}개 → 페이지 ${imageFiles.length}개 이미지 파일`);
 
       // 이미지 URL 생성 및 메타데이터 조회
       const imagesWithUrl = await Promise.all(imageFiles.map(async (file) => {
+        // 폴더 경로를 포함한 전체 경로로 URL 생성
+        const fullPath = file.folderPath ? `${file.folderPath}/${file.name}` : file.name;
         const { data: urlData } = supabase.storage
           .from('blog-images')
-          .getPublicUrl(file.name);
+          .getPublicUrl(fullPath);
         
         // image_metadata 테이블에서 추가 정보 조회
         const { data: metadata } = await supabase
@@ -142,6 +153,7 @@ export default async function handler(req, res) {
           created_at: file.created_at,
           updated_at: file.updated_at,
           url: urlData.publicUrl,
+          folder_path: file.folderPath || '', // 폴더 경로 추가
           is_featured: metadata?.is_featured || false,
           // 메타데이터가 있으면 추가 정보 포함
           alt_text: metadata?.alt_text || '',
