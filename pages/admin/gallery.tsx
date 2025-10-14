@@ -17,7 +17,7 @@ interface ImageMetadata {
   keywords?: string[];
   title?: string;
   description?: string;
-  category?: string;
+  category?: string | number; // 숫자 ID 또는 이름
   is_featured?: boolean;
   usage_count?: number;
   used_in_posts?: string[];
@@ -84,6 +84,8 @@ export default function GalleryAdmin() {
   
   // 동적 카테고리 상태 (useMemo보다 먼저 정의)
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
   
   // 폴더 목록 계산
   const availableFolders = useMemo(() => {
@@ -258,7 +260,14 @@ export default function GalleryAdmin() {
   
   // 편집 상태
   const [editingImage, setEditingImage] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<{
+    alt_text: string;
+    keywords: string | string[];
+    title: string;
+    description: string;
+    category: string | number | undefined | null;
+    filename: string;
+  }>({
     alt_text: '',
     keywords: '',
     title: '',
@@ -667,7 +676,7 @@ export default function GalleryAdmin() {
     try {
       // 메타데이터 저장 시작
       // 🔧 keywords 안전하게 처리
-      const keywords = editForm.keywords 
+      const keywords: string[] = (editForm.keywords as any) 
         ? (typeof editForm.keywords === 'string' 
             ? editForm.keywords.split(',').map(k => String(k || '').trim()).filter(k => k)
             : Array.isArray(editForm.keywords) 
@@ -775,18 +784,21 @@ export default function GalleryAdmin() {
         const responseData = await response.json();
         console.log('✅ 저장 API 응답 데이터:', responseData);
         // 로컬 상태 업데이트 (파일명 변경 시 URL도 함께 업데이트)
-        setImages(prev => prev.map(img => 
-          img.name === image.name 
-            ? { 
-                ...img, 
-                ...editForm, 
-                keywords, 
-                name: editForm.filename || image.name,
-                url: editForm.filename && editForm.filename !== image.name ? 
-                  `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/${editForm.filename}` : img.url
-              }
-            : img
-        ));
+        setImages(prev => prev.map(img => {
+          if (img.name !== image.name) return img as ImageMetadata;
+          const updated: ImageMetadata = {
+            ...img,
+            alt_text: editForm.alt_text,
+            title: editForm.title,
+            description: editForm.description,
+            category: editForm.category as any,
+            keywords,
+            name: editForm.filename || image.name,
+            url: editForm.filename && editForm.filename !== image.name ? 
+              `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/${editForm.filename}` : img.url
+          };
+          return updated;
+        }));
         setEditingImage(null);
         alert('메타데이터가 저장되었습니다!');
         console.log('✅ 메타데이터 저장 완료');
@@ -1197,6 +1209,7 @@ export default function GalleryAdmin() {
                     ))}
                   </select>
                 </div>
+                
               )}
               
               {/* 폴더 필터 */}
@@ -1334,6 +1347,29 @@ export default function GalleryAdmin() {
                   🗑️ 일괄 삭제
                 </button>
                 </div>
+                <button
+                  onClick={async()=>{
+                    if (selectedImages.size === 0){ alert('메타를 채울 이미지를 선택하세요.'); return; }
+                    const names = Array.from(selectedImages).map(id=>{
+                      const image = images.find(img=> (img.id||img.name)===id || img.name===id);
+                      if (!image) return null;
+                      return image.folder_path && image.folder_path !== '' ? `${image.folder_path}/${image.name}` : image.name;
+                    }).filter(Boolean) as string[];
+                    if (names.length===0){ alert('선택된 이미지 경로를 찾을 수 없습니다.'); return; }
+                    try{
+                      const res = await fetch('/api/admin/backfill-exif',{
+                        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paths: names })
+                      });
+                      const json = await res.json();
+                      if (!res.ok){ throw new Error(json.error||'백필 실패'); }
+                      alert(`메타 다시 채우기 완료: ${json.successCount}/${names.length}`);
+                      fetchImages(1, true);
+                    }catch(e:any){ alert(`메타 다시 채우기 실패: ${e.message}`); }
+                  }}
+                  className="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700"
+                >
+                  🔄 메타 다시 채우기
+                </button>
               </div>
             </div>
           )}
@@ -1615,17 +1651,20 @@ export default function GalleryAdmin() {
       {/* 새로운 이미지 메타데이터 편집 모달 */}
       <ImageMetadataModal
         isOpen={!!editingImage}
-        image={editingImage ? images.find(img => img.name === editingImage) || null : null}
+        image={(() => {
+          if (!editingImage) return null;
+          const found = images.find(img => img.name === editingImage) || null;
+          return found ? { ...found, category: String(found.category ?? '') } as any : null;
+        })()}
         onClose={() => setEditingImage(null)}
         onSave={async (metadata) => {
           // 기존 saveEdit 로직 사용
-          const keywords = metadata.keywords 
-            ? (typeof metadata.keywords === 'string' 
-                ? metadata.keywords.split(',').map(k => String(k || '').trim()).filter(k => k)
-                : Array.isArray(metadata.keywords) 
-                  ? metadata.keywords.map(k => String(k || '').trim()).filter(k => k)
-                  : [])
-            : [];
+          const rawKw: any = metadata.keywords as any;
+          const keywords: string[] = Array.isArray(rawKw)
+            ? rawKw.map((k:any)=> String(k || '').trim()).filter((k:string)=>k)
+            : typeof rawKw === 'string'
+              ? rawKw.split(',').map(k=> String(k||'').trim()).filter(k=>k)
+              : [];
           
           const image = images.find(img => img.name === editingImage);
           if (!image) {
@@ -1770,8 +1809,7 @@ export default function GalleryAdmin() {
                 <button
                   onClick={() => {
                     // 편집 기능 - 메타데이터 편집 모달 열기
-                    setEditingImage(selectedImageForZoom);
-                    setShowEditModal(true);
+                    setEditingImage(selectedImageForZoom.name);
                   }}
                   className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
                   title="메타데이터 편집"
