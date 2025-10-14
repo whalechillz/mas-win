@@ -1006,6 +1006,21 @@ export default function GalleryAdmin() {
       const result = await response.json();
       console.log('✅ 일괄 삭제 성공:', result);
       
+      // 삭제 검증 결과 확인
+      const verification = result.deletionVerification;
+      if (verification) {
+        console.log('🔍 삭제 검증 결과:', verification);
+        
+        if (!verification.deletionSuccess) {
+          console.warn('⚠️ 일부 파일이 삭제되지 않음:', verification.stillExisting);
+          alert(`삭제 완료: ${verification.actuallyDeleted}개 삭제됨\n\n⚠️ 삭제되지 않은 파일: ${verification.stillExisting.length}개\n${verification.stillExisting.join(', ')}`);
+        } else {
+          alert(`일괄 삭제 완료: ${verification.actuallyDeleted}개 이미지가 삭제되었습니다.`);
+        }
+      } else {
+        alert(`일괄 삭제 완료: ${result.deletedImages.length}개 이미지가 삭제되었습니다.`);
+      }
+      
       // 삭제된 이미지들을 상태에서 제거
       setImages(prev => prev.filter(img => !selectedImages.has(getImageUniqueId(img))));
       
@@ -1022,8 +1037,6 @@ export default function GalleryAdmin() {
       setTimeout(() => {
         fetchImages(1, true);
       }, 500);
-      
-      alert(`일괄 삭제 완료: ${names.length}개 이미지가 삭제되었습니다.`);
       
     } catch (error) {
       console.error('❌ 일괄 삭제 오류:', error);
