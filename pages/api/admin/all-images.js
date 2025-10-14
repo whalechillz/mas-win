@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
           // 이미지 파일만 필터링 (폴더 제외)
           const imageFiles = batchFiles.filter(file => {
-            if (!file.id || file.size === 0) return false;
+            if (!file.id) return false; // id가 null인 폴더만 제외
             const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
             return imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
           });
@@ -104,9 +104,9 @@ export default async function handler(req, res) {
       console.log(`📁 원본 파일 목록:`, files.map(f => ({ name: f.name, id: f.id, size: f.size })));
       
       const imageFiles = files.filter(file => {
-        // 폴더는 제외 (id가 null이고 size가 0인 경우)
-        if (!file.id || file.size === 0) {
-          console.log(`📁 폴더 제외:`, file.name, 'id:', file.id, 'size:', file.size);
+        // 폴더는 제외 (id가 null인 경우만)
+        if (!file.id) {
+          console.log(`📁 폴더 제외:`, file.name, 'id:', file.id);
           return false;
         }
         // 이미지 확장자만 허용
