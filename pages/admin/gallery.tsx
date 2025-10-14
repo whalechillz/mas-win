@@ -1752,9 +1752,12 @@ export default function GalleryAdmin() {
                 </button>
                 <button
                   onClick={() => {
+                    const fullPath = selectedImageForZoom.folder_path && selectedImageForZoom.folder_path !== '' 
+                      ? `${selectedImageForZoom.folder_path}/${selectedImageForZoom.name}` 
+                      : selectedImageForZoom.name;
                     if (confirm(`"${selectedImageForZoom.name}" 이미지를 삭제하시겠습니까?`)) {
-                      // 개별 이미지 삭제
-                      handleDeleteImage(selectedImageForZoom.name);
+                      // 개별 이미지 삭제 (폴더 경로 포함)
+                      handleDeleteImage(fullPath);
                       setSelectedImageForZoom(null);
                     }
                   }}
