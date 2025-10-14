@@ -3301,11 +3301,10 @@ export default function BlogAdmin() {
                       </div>
                       
                       <div 
-                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-[500px] overflow-y-auto" 
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-[500px] overflow-y-auto touch-scroll" 
                         style={{
                           scrollbarWidth: 'thin', 
-                          scrollbarColor: '#cbd5e0 #f7fafc',
-                          WebkitOverflowScrolling: 'touch'
+                          scrollbarColor: '#cbd5e0 #f7fafc'
                         }}
                       >
                         {scrapedNaverPosts.map((post, postIndex) => 
