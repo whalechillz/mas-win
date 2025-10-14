@@ -64,6 +64,11 @@ export default function BlogAdmin() {
   const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
   const [generatedBlog, setGeneratedBlog] = useState(null);
   const [generationProgress, setGenerationProgress] = useState('');
+
+  // 인라인 갤러리 모달 관련 상태
+  const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
+  const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
   const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
   const [multichannelPreview, setMultichannelPreview] = useState(null);
 
@@ -2063,7 +2068,7 @@ export default function BlogAdmin() {
     let imageMarkdowns = '';
     
     selectedImageUrls.forEach(imageUrl => {
-      const httpsUrl = forceHttps(imageUrl);
+      const httpsUrl = forceHttps(imageUrl as string);
       imageMarkdowns += `\n\n![이미지](${httpsUrl})\n\n`;
     });
 
@@ -3141,6 +3146,30 @@ export default function BlogAdmin() {
       window.removeEventListener('tiptap:set-featured-image', handleSetFeaturedImage as EventListener);
     };
   }, [formData]);
+
+  // TipTap 에디터에서 갤러리 모달 열기 이벤트 리스너
+  useEffect(() => {
+    const handleOpenGallery = (event: CustomEvent) => {
+      const { cursorPosition, editor } = event.detail;
+      // 커서 위치와 에디터 인스턴스를 저장
+      setEditorCursorPosition(cursorPosition);
+      setEditorInstance(editor);
+      // 인라인 갤러리 모달 열기
+      setShowInlineGalleryModal(true);
+    };
+
+    window.addEventListener('tiptap:open-gallery', handleOpenGallery as EventListener);
+    return () => {
+      window.removeEventListener('tiptap:open-gallery', handleOpenGallery as EventListener);
+    };
+  }, []);
+
+  // 인라인 갤러리 모달이 열릴 때 이미지 로드
+  useEffect(() => {
+    if (showInlineGalleryModal && allImages.length === 0) {
+      fetchImageGallery(1, true);
+    }
+  }, [showInlineGalleryModal]);
 
   // 확대 모달 포커스 관리
   useEffect(() => {
@@ -5822,6 +5851,103 @@ export default function BlogAdmin() {
 
       {/* 제목 추천 모달 */}
       <TitleSelectModal />
+
+      {/* 인라인 갤러리 모달 */}
+      {showInlineGalleryModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+            {/* 모달 헤더 */}
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">갤러리에서 이미지 선택</h3>
+              <button
+                onClick={() => {
+                  setShowInlineGalleryModal(false);
+                  setEditorCursorPosition(null);
+                  setEditorInstance(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* 갤러리 이미지 그리드 */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid grid-cols-6 gap-3">
+                {allImages.map((image: any) => (
+                  <div key={image.id} className="relative group">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                      <img
+                        src={image.url}
+                        alt={image.alt || '갤러리 이미지'}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    
+                    {/* 호버 시 선택 버튼 표시 */}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                      <button
+                        onClick={() => {
+                          // 이미지를 에디터의 커서 위치에 삽입
+                          if (editorInstance && editorCursorPosition !== null) {
+                            const httpsUrl = forceHttps(image.url);
+                            editorInstance.chain()
+                              .focus()
+                              .setTextSelection(editorCursorPosition)
+                              .setImage({ 
+                                src: httpsUrl, 
+                                alt: image.alt || '갤러리 이미지',
+                                title: image.title || ''
+                              })
+                              .run();
+                          }
+                          
+                          // 모달 닫기
+                          setShowInlineGalleryModal(false);
+                          setEditorCursorPosition(null);
+                          setEditorInstance(null);
+                        }}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        선택
+                      </button>
+                    </div>
+                    
+                    {/* 대표 이미지 설정 버튼 */}
+                    <div className="absolute top-2 right-2">
+                      <button
+                        onClick={() => {
+                          const httpsUrl = forceHttps(image.url);
+                          if (isFeaturedImage(httpsUrl)) {
+                            setFormData({ ...formData, featured_image: '' });
+                            alert('대표 이미지가 해제되었습니다!');
+                          } else {
+                            setFormData({ ...formData, featured_image: httpsUrl });
+                            alert('대표 이미지로 설정되었습니다!');
+                          }
+                        }}
+                        className={`px-2 py-1 text-xs rounded ${
+                          isFeaturedImage(forceHttps(image.url))
+                            ? 'bg-yellow-500 text-white'
+                            : 'bg-white/80 text-gray-700 hover:bg-yellow-500 hover:text-white'
+                        } transition-colors`}
+                      >
+                        {isFeaturedImage(forceHttps(image.url)) ? '★ 대표' : '대표로'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {allImages.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <p>갤러리에 이미지가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   );

@@ -139,6 +139,20 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
             } catch {}
           }}
         />
+        <ToolbarButton
+          label="🖼️"
+          onClick={() => {
+            // 현재 커서 위치를 저장하고 갤러리 모달 열기
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('tiptap:open-gallery', { 
+                detail: { 
+                  cursorPosition: editor.state.selection.from,
+                  editor: editor 
+                } 
+              }));
+            }
+          }}
+        />
       </div>
       <div className="p-3">
         <EditorContent editor={editor} />
