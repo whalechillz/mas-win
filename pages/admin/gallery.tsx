@@ -651,12 +651,31 @@ export default function GalleryAdmin() {
         return;
       }
       
+      console.log('🔍 편집할 이미지 정보:', {
+        editingImage,
+        foundImage: image,
+        imageId: image.id,
+        imageName: image.name
+      });
+      
       // 편집 중인 이미지 정보 확인
 
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
       if (editForm.filename && editForm.filename !== image.name) {
         // 파일명 변경 처리
         
+        // imageId 검증
+        if (!image.id || image.id.startsWith('temp-')) {
+          alert('이미지 ID가 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+          console.error('❌ 유효하지 않은 imageId:', image.id);
+          return;
+        }
+        
+        console.log('📝 파일명 변경 요청:', {
+          imageId: image.id,
+          newFileName: editForm.filename,
+          currentFileName: image.name
+        });
         
         const renameResponse = await fetch('/api/admin/rename-image/', {
           method: 'POST',
