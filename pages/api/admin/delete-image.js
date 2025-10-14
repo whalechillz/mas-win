@@ -191,6 +191,7 @@ export default async function handler(req, res) {
       }
 
       // 1. Supabase Storage에서 파일 삭제
+      console.log('🗑️ 스토리지 삭제 시도:', existingFiles);
       const { data, error } = await supabase.storage
         .from('blog-images')
         .remove(existingFiles);
@@ -206,6 +207,31 @@ export default async function handler(req, res) {
 
       console.log('✅ 이미지 일괄 삭제 성공:', existingFiles.length, '개');
       console.log('✅ 삭제된 파일들:', data);
+
+      // 1-1. 삭제 결과 검증 (실제로 삭제되었는지 확인)
+      console.log('🔍 삭제 결과 검증 시작');
+      const stillExistingFiles = [];
+      for (const filePath of existingFiles) {
+        try {
+          const { data: urlData } = supabase.storage
+            .from('blog-images')
+            .getPublicUrl(filePath);
+          
+          const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
+          if (response.ok) {
+            stillExistingFiles.push(filePath);
+            console.log('⚠️ 파일이 여전히 존재:', filePath);
+          } else {
+            console.log('✅ 파일 삭제 확인:', filePath);
+          }
+        } catch (error) {
+          console.log('✅ 파일 삭제 확인 (접근 불가):', filePath);
+        }
+      }
+
+      if (stillExistingFiles.length > 0) {
+        console.warn('⚠️ 일부 파일이 삭제되지 않음:', stillExistingFiles);
+      }
 
       // 2. image_metadata 테이블에서 메타데이터 삭제
       let metadataDeletedCount = 0;
@@ -231,7 +257,14 @@ export default async function handler(req, res) {
         deletedImages: existingFiles,
         originalTargets: targets,
         deletionResult: data,
-        metadataDeletedCount: metadataDeletedCount
+        metadataDeletedCount: metadataDeletedCount,
+        // 삭제 검증 결과 추가
+        deletionVerification: {
+          totalAttempted: existingFiles.length,
+          stillExisting: stillExistingFiles,
+          actuallyDeleted: existingFiles.length - stillExistingFiles.length,
+          deletionSuccess: stillExistingFiles.length === 0
+        }
       });
 
     } else if (req.method === 'DELETE') {
