@@ -3876,44 +3876,6 @@ export default function BlogAdmin() {
             />
                       </div>
 
-                {/* 카테고리와 상태 */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 카테고리 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        카테고리
-                      </label>
-                      <select
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="고객 후기">고객 후기</option>
-                        <option value="제품 정보">제품 정보</option>
-                        <option value="골프 팁">골프 팁</option>
-                        <option value="이벤트">이벤트</option>
-                        <option value="공지사항">공지사항</option>
-                      </select>
-                    </div>
-
-                    {/* 상태 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        상태
-                      </label>
-                      <select
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="draft">초안</option>
-                        <option value="published">발행</option>
-                        <option value="archived">보관</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
                       
 
                 {/* 갤러리 열기/닫기 버튼 */}
