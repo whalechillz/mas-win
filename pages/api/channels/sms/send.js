@@ -1,15 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { SolapiMessageService } from 'solapi';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
-// 솔라피 메시지 서비스 초기화
-const messageService = new SolapiMessageService(
-  process.env.SOLAPI_API_KEY,
-  process.env.SOLAPI_API_SECRET
-);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -52,7 +45,13 @@ export default async function handler(req, res) {
       finalMessage += `\n\n링크: ${shortLink}`;
     }
 
-    // 솔라피 API로 발송
+    // 솔라피 API로 발송 (동적 import 사용)
+    const { SolapiMessageService } = await import('solapi');
+    const messageService = new SolapiMessageService(
+      process.env.SOLAPI_API_KEY,
+      process.env.SOLAPI_API_SECRET
+    );
+
     const messages = validNumbers.map(to => {
       const message = {
         to: to.replace(/-/g, ''), // 하이픈 제거
