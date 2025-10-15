@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import BaseChannelEditor from '@/components/shared/BaseChannelEditor';
+import dynamic from 'next/dynamic';
+
+const BaseChannelEditor = dynamic(() => import('@/components/shared/BaseChannelEditor'), { ssr: false });
 
 export default function NaverBlogEditor() {
   const router = useRouter();
