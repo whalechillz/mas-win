@@ -1291,6 +1291,19 @@ export default function BlogAdmin() {
   // 제목 추천 모달
   const TitleSelectModal = () => {
     if (!showTitleOptions) return null;
+    // 현재 제목 점수 계산
+    let currentTitleBreakdown: any = null;
+    try {
+      const { scoreTitle } = require('../../lib/titleScoring');
+      currentTitleBreakdown = scoreTitle({
+        title: formData.title || '',
+        persona: (brandPersona as any) || 'unknown',
+        contentType: formData.category || '',
+        targetProduct: (formData as any).target_product || 'all',
+        brandWeight: (getBrandWeight as any)(brandContentType || 'blog_post') || 'medium',
+        conversionGoal: (formData as any).conversiongoal || 'homepage_visit',
+      });
+    } catch {}
     return (
       <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
@@ -1299,6 +1312,33 @@ export default function BlogAdmin() {
             <button type="button" className="text-gray-500" onClick={() => setShowTitleOptions(false)}>✕</button>
           </div>
           <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
+            {/* 현재 제목 점수 카드 */}
+            {formData.title && (
+              <div className="border rounded-lg p-4 bg-blue-50/40">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="text-xs text-blue-700 mb-1">현재 제목</div>
+                    <div className="text-sm font-medium text-gray-900 mb-1">{formData.title}</div>
+                  </div>
+                  <div className="text-right">
+                    {currentTitleBreakdown && (
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700">{currentTitleBreakdown.total}점</span>
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400 mt-1">{formData.title.length}자</div>
+                  </div>
+                </div>
+                {currentTitleBreakdown && (
+                  <div className="mt-2 text-xs text-gray-600 flex gap-2 flex-wrap">
+                    <span>오디언스 {currentTitleBreakdown.audienceMatch}</span>
+                    <span>심리 {currentTitleBreakdown.psychEffect}</span>
+                    <span>브랜드 {currentTitleBreakdown.brandFit}</span>
+                    <span>전환 {currentTitleBreakdown.conversionPotential}</span>
+                  </div>
+                )}
+              </div>
+            )}
             {generatedTitles.length === 0 && (
               <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
             )}
