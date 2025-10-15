@@ -1855,6 +1855,65 @@ export default function ContentCalendar() {
                               >
                                 편집
                               </button>
+                              
+                              {/* 채널별 생성 드롭다운 */}
+                              <div className="relative inline-block text-left">
+                                <div>
+                                  <button
+                                    type="button"
+                                    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    onClick={() => {
+                                      const dropdown = document.getElementById(`channel-dropdown-${content.id}`);
+                                      if (dropdown) {
+                                        dropdown.classList.toggle('hidden');
+                                      }
+                                    }}
+                                  >
+                                    채널 생성
+                                    <svg className="-mr-1 ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                  </button>
+                                </div>
+                                
+                                <div
+                                  id={`channel-dropdown-${content.id}`}
+                                  className="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                                >
+                                  <div className="py-1" role="menu">
+                                    <button
+                                      onClick={() => {
+                                        window.open(`/admin/sms?calendarId=${content.id}`, '_blank');
+                                        document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
+                                      }}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      📱 SMS/MMS 생성
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        // 카카오 에디터는 추후 구현
+                                        alert('카카오 채널 에디터는 준비 중입니다.');
+                                        document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
+                                      }}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      💬 카카오 채널 생성
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        // 네이버 블로그 에디터는 추후 구현
+                                        alert('네이버 블로그 에디터는 준비 중입니다.');
+                                        document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
+                                      }}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      📝 네이버 블로그 생성
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                              
                               {content.is_root_content && (
                                 <button
                                   onClick={() => handleMultichannelGeneration(content.id)}

@@ -15,6 +15,7 @@ const AdminNav = () => {
             <Link href="/admin" className={`px-2 py-1 rounded font-semibold ${isActive('/admin') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>관리자</Link>
             <span className="text-gray-300">|</span>
             <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>블로그 관리</Link>
+            <Link href="/admin/sms" className={`px-2 py-1 rounded ${isActive('/admin/sms') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📱 SMS 관리</Link>
             <Link href="/admin/gallery" className={`px-2 py-1 rounded ${isActive('/admin/gallery') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>갤러리 관리</Link>
             <Link href="/admin/content-calendar" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📅 콘텐츠 캘린더</Link>
             <Link href="/admin/multichannel-dashboard" className={`px-2 py-1 rounded ${isActive('/admin/multichannel-dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📊 멀티채널 대시보드</Link>
