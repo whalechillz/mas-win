@@ -464,8 +464,8 @@ export default function BlogAdmin() {
     author: '마쓰구골프',
     // 추가 필드들
     summary: '',
-    customerPersona: '',
-    conversionGoal: '',
+    customerpersona: '',
+    conversiongoal: '',
     published_at: ''
   });
 
@@ -498,8 +498,8 @@ export default function BlogAdmin() {
           author: post.author || '마쓰구골프',
           // 추가 필드들
           summary: post.summary || '',
-          customerPersona: post.customer_persona || '',
-          conversionGoal: post.conversion_goal || 'awareness',
+          customerpersona: post.customer_persona || '',
+          conversiongoal: post.conversion_goal || 'awareness',
           published_at: post.published_at || ''
         });
       } else {
@@ -585,7 +585,7 @@ export default function BlogAdmin() {
       author: '마쓰구골프',
       // 추가 필드들
       summary: '',
-      customerPersona: '',
+      customerpersona: '',
       published_at: ''
     });
     setEditingPost(null);
@@ -662,8 +662,8 @@ export default function BlogAdmin() {
                 title: formData.title,
                 content: formData.content,
                 contentType: formData.category,
-                customerPersona: formData.customerPersona || '시니어 골퍼',
-                conversionGoal: formData.conversionGoal || 'awareness',
+                customerpersona: formData.customerpersona || '시니어 골퍼',
+                conversiongoal: formData.conversiongoal || 'awareness',
                 landingPage: 'https://win.masgolf.co.kr',
                 publishedDate: formData.published_at ? formData.published_at.split('T')[0] : new Date().toISOString().split('T')[0]
               })
@@ -993,8 +993,8 @@ export default function BlogAdmin() {
         author: post.author || '마쓰구골프',
         // 추가 필드들
         summary: post.summary || '',
-        customerPersona: post.customer_persona || '',
-        conversionGoal: post.conversion_goal || '',
+        customerpersona: post.customer_persona || '',
+        conversiongoal: post.conversion_goal || '',
         published_at: post.published_at || ''
       });
       
@@ -1047,11 +1047,11 @@ export default function BlogAdmin() {
           frequency: annualPublishFrequency,
           brandStrategy: {
             contentType: brandContentType,
-            customerPersona: brandPersona,
+            customerpersona: brandPersona,
             audienceTemp: audienceTemperature,
             brandWeight: getBrandWeight(brandContentType),
             storyFramework: selectedStoryFramework,
-            conversionGoal: selectedConversionGoal
+            conversiongoal: selectedConversionGoal
           }
         })
       });
@@ -1088,7 +1088,7 @@ export default function BlogAdmin() {
         body: JSON.stringify({ 
           contentSource: roughContent,
           contentType: formData.category || '골프 정보',
-          customerPersona: brandPersona,
+          customerpersona: brandPersona,
           customerChannel: 'local_customers',
           brandWeight: getBrandWeight(brandContentType)
         })
@@ -1111,7 +1111,7 @@ export default function BlogAdmin() {
             brandWeight: getBrandWeight(brandContentType),
             customerChannel: 'local_customers',
             painPoint: null,
-            customerPersona: brandPersona,
+            customerpersona: brandPersona,
             enableWebSearch: true,
             excerpt: roughContent
           })
@@ -1133,7 +1133,7 @@ export default function BlogAdmin() {
               brandWeight: getBrandWeight(brandContentType),
               customerChannel: 'local_customers',
               painPoint: null,
-              customerPersona: brandPersona,
+              customerpersona: brandPersona,
               enableWebSearch: true,
               excerpt: summaryData.content
             })
@@ -1183,7 +1183,7 @@ export default function BlogAdmin() {
       const requestBody = { 
         contentSource,
         contentType: formData.category,
-        customerPersona: brandPersona,
+        customerpersona: brandPersona,
         customerChannel: 'local_customers',
         brandWeight: getBrandWeight(brandContentType)
       };
@@ -1371,7 +1371,7 @@ export default function BlogAdmin() {
           contentType: formData.category,
           imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
           brandStrategy: { 
-            customerPersona: brandPersona, 
+            customerpersona: brandPersona, 
             customerChannel: 'local_customers', 
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
@@ -1493,7 +1493,7 @@ export default function BlogAdmin() {
           imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
           blogPostId: editingPost?.id || null,
           brandStrategy: { 
-            customerPersona: brandPersona, 
+            customerpersona: brandPersona, 
             customerChannel: 'local_customers', 
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
@@ -1563,7 +1563,7 @@ export default function BlogAdmin() {
             contentType: formData.category,
             brandStrategy: {
               contentType: formData.category,
-              customerPersona: brandPersona,
+              customerpersona: brandPersona,
               customerChannel: '',
               brandWeight: getBrandWeight(brandContentType),
               audienceTemperature,
@@ -1593,7 +1593,7 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: brandPersona,
+            customerpersona: brandPersona,
             customerChannel: '',
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
@@ -1730,7 +1730,7 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: brandPersona,
+            customerpersona: brandPersona,
             customerChannel: '',
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
@@ -1760,7 +1760,7 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: brandPersona,
+            customerpersona: brandPersona,
             customerChannel: '',
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
@@ -1892,7 +1892,7 @@ export default function BlogAdmin() {
             contentType: formData.category,
             brandStrategy: {
               contentType: formData.category,
-              customerPersona: brandPersona,
+              customerpersona: brandPersona,
               customerChannel: '',
               brandWeight: getBrandWeight(brandContentType),
               audienceTemperature,
@@ -1921,7 +1921,7 @@ export default function BlogAdmin() {
           contentType: formData.category,
           brandStrategy: {
             contentType: formData.category,
-            customerPersona: brandPersona,
+            customerpersona: brandPersona,
             customerChannel: '',
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
