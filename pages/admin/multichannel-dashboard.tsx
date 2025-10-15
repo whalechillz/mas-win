@@ -125,12 +125,24 @@ export default function MultichannelDashboard() {
                 >
                   블로그 관리
                 </Link>
-                <Link
-                  href="/admin/sms"
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  SMS 관리
-                </Link>
+       <Link
+         href="/admin/sms"
+         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+       >
+         SMS 관리
+       </Link>
+       <Link
+         href="/admin/kakao"
+         className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+       >
+         카카오 채널 관리
+       </Link>
+       <Link
+         href="/admin/naver-blog"
+         className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800"
+       >
+         네이버 블로그 관리
+       </Link>
               </div>
             </div>
           </div>
