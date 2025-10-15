@@ -1890,26 +1890,24 @@ export default function ContentCalendar() {
                                     >
                                       📱 SMS/MMS 생성
                                     </button>
-                                    <button
-                                      onClick={() => {
-                                        // 카카오 에디터는 추후 구현
-                                        alert('카카오 채널 에디터는 준비 중입니다.');
-                                        document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
-                                      }}
-                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                      💬 카카오 채널 생성
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        // 네이버 블로그 에디터는 추후 구현
-                                        alert('네이버 블로그 에디터는 준비 중입니다.');
-                                        document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
-                                      }}
-                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                      📝 네이버 블로그 생성
-                                    </button>
+             <button
+               onClick={() => {
+                 window.open(`/admin/kakao?calendarId=${content.id}`, '_blank');
+                 document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
+               }}
+               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+             >
+               💬 카카오 채널 생성
+             </button>
+             <button
+               onClick={() => {
+                 window.open(`/admin/naver-blog?calendarId=${content.id}`, '_blank');
+                 document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
+               }}
+               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+             >
+               📝 네이버 블로그 생성
+             </button>
                                   </div>
                                 </div>
                               </div>
