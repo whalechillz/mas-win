@@ -465,7 +465,8 @@ export default function BlogAdmin() {
     // 추가 필드들
     summary: '',
     customerpersona: '',
-    conversiongoal: '',
+    conversiongoal: 'homepage_visit',
+    target_product: 'all',
     published_at: ''
   });
 
@@ -500,6 +501,7 @@ export default function BlogAdmin() {
           summary: post.summary || '',
           customerpersona: post.customer_persona || '',
           conversiongoal: post.conversion_goal || 'awareness',
+          target_product: post.target_product || 'all',
           published_at: post.published_at || ''
         });
       } else {
@@ -586,6 +588,8 @@ export default function BlogAdmin() {
       // 추가 필드들
       summary: '',
       customerpersona: '',
+      conversiongoal: 'homepage_visit',
+      target_product: 'all',
       published_at: ''
     });
     setEditingPost(null);
@@ -994,7 +998,8 @@ export default function BlogAdmin() {
         // 추가 필드들
         summary: post.summary || '',
         customerpersona: post.customer_persona || '',
-        conversiongoal: post.conversion_goal || '',
+        conversiongoal: post.conversion_goal || 'homepage_visit',
+        target_product: post.target_product || 'all',
         published_at: post.published_at || ''
       });
       
@@ -1297,9 +1302,27 @@ export default function BlogAdmin() {
             {generatedTitles.length === 0 && (
               <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
             )}
-            {generatedTitles.map((title, i) => {
-              const styles = analyzeTitleStyle(title);
-              return (
+            {generatedTitles
+              .map((title, i) => {
+                const styles = analyzeTitleStyle(title);
+                // 점수 계산 (클라이언트 측)
+                try {
+                  const { scoreTitle } = require('../../lib/titleScoring');
+                  const breakdown = scoreTitle({
+                    title,
+                    persona: (brandPersona as any) || 'unknown',
+                    contentType: formData.category || '',
+                    targetProduct: formData.target_product || 'all',
+                    brandWeight: (getBrandWeight as any)(brandContentType || 'blog_post') || 'medium',
+                    conversionGoal: (formData.conversiongoal as any) || 'homepage_visit',
+                  });
+                  return { title, styles, breakdown };
+                } catch {
+                  return { title, styles, breakdown: null } as any;
+                }
+              })
+              .sort((a: any, b: any) => (b.breakdown?.total || 0) - (a.breakdown?.total || 0))
+              .map(({ title, styles, breakdown }: any, i: number) => (
                 <button
                   key={i}
                   type="button"
@@ -1320,13 +1343,25 @@ export default function BlogAdmin() {
                         ))}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {title.length}자
+                    <div className="text-right">
+                      {breakdown && (
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700">{breakdown.total}점</span>
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-400 mt-1">{title.length}자</div>
                     </div>
                   </div>
+                  {breakdown && (
+                    <div className="mt-2 text-xs text-gray-500 flex gap-2 flex-wrap">
+                      <span>오디언스 {breakdown.audienceMatch}</span>
+                      <span>심리 {breakdown.psychEffect}</span>
+                      <span>브랜드 {breakdown.brandFit}</span>
+                      <span>전환 {breakdown.conversionPotential}</span>
+                    </div>
+                  )}
                 </button>
-              );
-            })}
+              ))}
           </div>
           <div className="p-4 border-t bg-gray-50">
             <div className="text-xs text-gray-600 mb-2">
