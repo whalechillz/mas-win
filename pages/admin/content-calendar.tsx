@@ -398,23 +398,26 @@ export default function ContentCalendar() {
   };
 
   // 편집 버튼 - 블로그 편집기로 이동
-  const handleEditContent = (content: any) => {
-    console.log('편집 버튼 클릭:', content);
-    
-    if (content.blog_post_id) {
-      // 기존 블로그 포스트 편집
-      console.log('기존 블로그 포스트 편집:', content.blog_post_id);
-      window.open(`/admin/blog?edit=${content.blog_post_id}`, '_blank');
-    } else {
-      // 새 블로그 포스트 생성 (캘린더 아이템 기반)
-      console.log('새 블로그 포스트 생성');
-      const params = new URLSearchParams({
-        title: content.title,
-        content: content.content_body || content.description,
-        category: content.content_type || 'blog',
-        status: 'draft'
+  const handleEditContent = async (content: any) => {
+    try {
+      // 연결되어 있으면 바로 편집기로 이동
+      if (content.blog_post_id) {
+        window.open(`/admin/blog?edit=${content.blog_post_id}`, '_blank');
+        return;
+      }
+      // 연결 없으면 API 호출로 초안 생성 후 연결
+      const resp = await fetch('/api/admin/calendar/attach-to-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calendarId: content.id })
       });
-      window.open(`/admin/blog?new=true&${params.toString()}`, '_blank');
+      if (!resp.ok) throw new Error('Attach failed');
+      const { blogPostId } = await resp.json();
+      window.open(`/admin/blog?edit=${blogPostId}`, '_blank');
+      fetchContentCalendar();
+    } catch (e) {
+      console.error('편집 연결 오류:', e);
+      alert('블로그 편집기로 연결 중 오류가 발생했습니다.');
     }
   };
 
