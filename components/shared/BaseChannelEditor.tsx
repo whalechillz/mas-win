@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useChannelEditor } from '@/lib/hooks/useChannelEditor';
-import TitleScorer from './TitleScorer';
-import SEOOptimizer from './SEOOptimizer';
-import ShortLinkGenerator from './ShortLinkGenerator';
-import AIImagePicker from './AIImagePicker';
+import { TitleScorer } from './TitleScorer';
+import { SEOOptimizer } from './SEOOptimizer';
+import { ShortLinkGenerator } from './ShortLinkGenerator';
+import { AIImagePicker } from './AIImagePicker';
 
 interface BaseChannelEditorProps {
   channelType: 'sms' | 'kakao' | 'naver';
@@ -31,12 +31,12 @@ export default function BaseChannelEditor({
 
   const {
     formData,
-    setFormData,
-    loading,
+    updateFormData,
+    isLoading,
     error,
     saveDraft,
     sendMessage,
-    fetchBlogSource
+    loadFromBlog
   } = useChannelEditor(channelType, calendarId, initialData);
 
   // 블로그 소스에서 내용 가져오기
@@ -56,10 +56,7 @@ export default function BaseChannelEditor({
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setFormData(prev => ({
-            ...prev,
-            ...result.data.optimizedContent
-          }));
+          updateFormData(result.data.optimizedContent);
         }
       }
     } catch (error) {
@@ -70,11 +67,12 @@ export default function BaseChannelEditor({
   // 저장
   const handleSave = async () => {
     try {
-      const result = await saveDraft({
-        ...formData,
-        imageUrl: selectedImage,
+      updateFormData({
+        imageUrl: selectedImage || '',
         shortLink
       });
+      
+      const result = await saveDraft();
       
       if (result.success && onSave) {
         onSave(result.data);
@@ -87,11 +85,12 @@ export default function BaseChannelEditor({
   // 발송
   const handleSend = async () => {
     try {
-      const result = await sendMessage({
-        ...formData,
-        imageUrl: selectedImage,
+      updateFormData({
+        imageUrl: selectedImage || '',
         shortLink
       });
+      
+      const result = await sendMessage();
       
       if (result.success && onSend) {
         onSend(result.data);
@@ -140,13 +139,18 @@ export default function BaseChannelEditor({
           <input
             type="text"
             value={formData.title || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => updateFormData({ title: e.target.value })}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="제목을 입력하세요"
           />
           <TitleScorer
             title={formData.title || ''}
-            onScoreChange={setTitleScore}
+            persona="unknown"
+            contentType="marketing"
+            targetProduct="service"
+            brandWeight="medium"
+            conversionGoal="homepage_visit"
+            onScoreChange={(score) => setTitleScore(score.total)}
           />
         </div>
         {titleScore > 0 && (
@@ -162,16 +166,15 @@ export default function BaseChannelEditor({
           메시지 내용
         </label>
         <textarea
-          value={formData.messageText || ''}
-          onChange={(e) => setFormData(prev => ({ ...prev, messageText: e.target.value }))}
+          value={formData.content || ''}
+          onChange={(e) => updateFormData({ content: e.target.value })}
           rows={6}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="메시지 내용을 입력하세요"
         />
-        {formData.characterCount && (
+        {formData.content && (
           <p className="text-sm text-gray-600 mt-1">
-            글자 수: {formData.characterCount}
-            {formData.maxLength && ` / ${formData.maxLength}`}
+            글자 수: {formData.content.length}
           </p>
         )}
       </div>
@@ -212,8 +215,8 @@ export default function BaseChannelEditor({
       {/* 짧은 링크 생성 */}
       <div className="mb-6">
         <ShortLinkGenerator
+          originalUrl="https://masgolf.co.kr"
           onLinkGenerated={setShortLink}
-          initialLink={shortLink}
         />
       </div>
 
@@ -222,12 +225,17 @@ export default function BaseChannelEditor({
         <div className="mb-6">
           <SEOOptimizer
             title={formData.title || ''}
-            content={formData.messageText || ''}
+            content={formData.content || ''}
+            metaTitle={formData.metaTitle || formData.title || ''}
+            metaDescription={formData.metaDescription || formData.content?.substring(0, 160) || ''}
+            metaKeywords={formData.metaKeywords || ''}
+            slug={formData.slug || formData.title?.toLowerCase().replace(/\s+/g, '-') || ''}
+            onMetaTitleChange={(value) => updateFormData({ metaTitle: value })}
+            onMetaDescriptionChange={(value) => updateFormData({ metaDescription: value })}
+            onMetaKeywordsChange={(value) => updateFormData({ metaKeywords: value })}
+            onSlugChange={(value) => updateFormData({ slug: value })}
             onOptimize={(optimized) => {
-              setFormData(prev => ({
-                ...prev,
-                ...optimized
-              }));
+              updateFormData(optimized);
             }}
           />
         </div>
@@ -237,17 +245,17 @@ export default function BaseChannelEditor({
       <div className="flex gap-4">
         <button
           onClick={handleSave}
-          disabled={loading}
+          disabled={isLoading}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? '저장 중...' : '초안 저장'}
+          {isLoading ? '저장 중...' : '초안 저장'}
         </button>
         <button
           onClick={handleSend}
-          disabled={loading}
+          disabled={isLoading}
           className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
         >
-          {loading ? '발송 중...' : '발송하기'}
+          {isLoading ? '발송 중...' : '발송하기'}
         </button>
       </div>
 
@@ -261,11 +269,12 @@ export default function BaseChannelEditor({
       {/* 이미지 갤러리 */}
       {showGallery && (
         <AIImagePicker
-          onSelect={(imageUrl) => {
+          selectedImage={selectedImage || ''}
+          onImageSelect={(imageUrl) => {
             setSelectedImage(imageUrl);
             setShowGallery(false);
           }}
-          onClose={() => setShowGallery(false)}
+          channelType={channelType}
         />
       )}
     </div>
