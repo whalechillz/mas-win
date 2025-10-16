@@ -18,6 +18,42 @@ export default async function handler(req, res) {
 
     // 합쳐진 포스트 데이터 생성
     const combinedTitle = `[합쳐진 글] ${posts[0].title}`;
+
+    // 슬러그 생성 유틸
+    const slugify = (text) => {
+      if (!text) return `combined-${Date.now()}`;
+      const base = text
+        .toString()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9가-힣\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .toLowerCase();
+      return base.length > 0 ? base : `combined-${Date.now()}`;
+    };
+
+    const ensureUniqueSlug = async (baseSlug) => {
+      let candidate = baseSlug;
+      let suffix = 1;
+      // 중복 확인 루프 (최대 50회 안전장치)
+      // maybeSingle은 존재하지 않을 때 data가 null
+      for (let i = 0; i < 50; i += 1) {
+        const { data: existing } = await supabase
+          .from('blog_posts')
+          .select('id')
+          .eq('slug', candidate)
+          .maybeSingle();
+        if (!existing) return candidate;
+        candidate = `${baseSlug}-${suffix}`;
+        suffix += 1;
+      }
+      // 비상 fallback
+      return `${baseSlug}-${Date.now()}`;
+    };
+
+    const baseSlug = slugify(`${posts[0].title || 'combined'}-combined`);
+    const uniqueSlug = await ensureUniqueSlug(baseSlug);
     
     // 각 포스트의 내용을 구조화하여 합치기
     const combinedContent = posts.map((post, index) => {
@@ -56,6 +92,7 @@ export default async function handler(req, res) {
       title: combinedTitle,
       content: combinedContent,
       excerpt: metaDescription,
+      slug: uniqueSlug,
       category: 'combined',
       tags: allTags,
       featured_image: posts[0].featured_image || allImages[0] || '',
