@@ -959,6 +959,54 @@ export default function BlogAdmin() {
     }
   };
 
+  // 네이버 포스트 합치기
+  const handleCombineNaverPosts = async () => {
+    if (selectedNaverPosts.size < 2) {
+      alert('합치려면 최소 2개 이상의 포스트를 선택해주세요.');
+      return;
+    }
+
+    const selectedPosts = Array.from(selectedNaverPosts).map((index: number) => scrapedNaverPosts[index]);
+    
+    try {
+      // 전용 합치기 API 호출
+      const response = await fetch('/api/admin/blog/combine-posts', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          posts: selectedPosts
+        }),
+        cache: 'no-cache'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ 합치기 API 응답 오류:', response.status, errorData);
+        throw new Error(`포스트 합치기 실패: ${errorData.error || '알 수 없는 오류'}`);
+      }
+
+      const result = await response.json();
+      
+      // 성공 메시지 표시
+      alert(`✅ 성공적으로 ${result.combined_count}개 포스트를 합쳐서 새로운 글을 생성했습니다!\n\n📝 제목: ${result.post.title}\n🖼️ 이미지: ${result.total_images}개 포함`);
+      
+      // 스크래핑 결과 초기화
+      setScrapedNaverPosts([]);
+      setSelectedNaverPosts(new Set());
+      fetchPosts(); // 포스트 목록 새로고침
+      
+      // 새로 생성된 글의 편집 페이지로 이동
+      if (result.post && result.post.id) {
+        window.location.href = `/admin/blog/${result.post.id}`;
+      }
+    } catch (error) {
+      console.error('❌ 네이버 포스트 합치기 오류:', error);
+      alert(`❌ 포스트 합치기 실패: ${error.message}`);
+    }
+  };
+
   // 체크박스 선택/해제
   const handlePostSelect = (postId) => {
     const id = Array.isArray(postId) ? postId[0] : postId;
@@ -3518,12 +3566,22 @@ export default function BlogAdmin() {
                         {selectedNaverPosts.size === scrapedNaverPosts.length ? '전체 해제' : '전체 선택'}
                       </button>
                       {selectedNaverPosts.size > 0 && (
-                        <button
-                          onClick={handleNaverPostMigration}
-                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                          선택된 {selectedNaverPosts.size}개 마이그레이션
-                        </button>
+                        <>
+                          <button
+                            onClick={handleNaverPostMigration}
+                            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                          >
+                            선택된 {selectedNaverPosts.size}개 마이그레이션
+                          </button>
+                          {selectedNaverPosts.size > 1 && (
+                            <button
+                              onClick={handleCombineNaverPosts}
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              선택된 {selectedNaverPosts.size}개 합치기
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
