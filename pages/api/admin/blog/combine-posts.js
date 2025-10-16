@@ -74,15 +74,8 @@ export default async function handler(req, res) {
     // 모든 태그를 수집하고 중복 제거
     const allTags = [...new Set(posts.flatMap(post => post.tags || []))];
     
-    // 모든 이미지 URL 수집
-    const allImages = [...new Set(posts.flatMap(post => {
-      const images = [];
-      if (post.featured_image) images.push(post.featured_image);
-      if (post.images && Array.isArray(post.images)) {
-        images.push(...post.images);
-      }
-      return images;
-    }))];
+    // 이미지 수집하지 않음 (텍스트 콘텐츠만 합치기)
+    const allImages = [];
 
     // 메타 설명 생성
     const metaDescription = `여러 포스트를 합친 종합 글입니다. ${posts.length}개의 포스트가 포함되어 있으며, ${allTags.slice(0, 3).join(', ')} 등의 주제를 다룹니다.`;
@@ -95,7 +88,7 @@ export default async function handler(req, res) {
       slug: uniqueSlug,
       category: 'combined',
       tags: allTags,
-      featured_image: posts[0].featured_image || allImages[0] || '',
+      featured_image: posts[0].featured_image || '',
       status: 'draft',
       meta_title: combinedTitle,
       meta_description: metaDescription,
@@ -120,20 +113,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 이미지 정보도 별도로 저장 (선택사항)
-    if (allImages.length > 0) {
-      const imageRecords = allImages.map((imageUrl, index) => ({
-        post_id: data.id,
-        image_url: imageUrl,
-        alt_text: `합쳐진 글 이미지 ${index + 1}`,
-        order_index: index,
-        is_featured: index === 0
-      }));
-
-      await supabase
-        .from('blog_images')
-        .insert(imageRecords);
-    }
+    // 이미지 저장하지 않음 (텍스트 콘텐츠만 합치기)
 
     console.log(`✅ ${posts.length}개 포스트를 성공적으로 합쳐서 새 글 생성:`, data.id);
 
@@ -142,7 +122,7 @@ export default async function handler(req, res) {
       message: `${posts.length}개 포스트를 성공적으로 합쳤습니다.`,
       post: data,
       combined_count: posts.length,
-      total_images: allImages.length
+      total_images: 0
     });
 
   } catch (error) {
