@@ -252,7 +252,15 @@ const GalleryPicker: React.FC<Props> = ({
                   )}
                   {/* 선택 체크박스 */}
                   <label className="absolute top-2 left-2 z-10 bg-white/90 rounded px-1 py-0.5 shadow">
-                    <input type="checkbox" checked={selected.has(img.name)} onChange={()=>toggleSelect(img.name)} />
+                    <input 
+                      type="checkbox" 
+                      checked={selected.has(img.name)} 
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(img.name);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </label>
                   <button type="button" className="w-full" onClick={() => handleSingleSelect(img)}>
                     <img src={img.url} alt={img.name} className="w-full h-44 object-contain bg-gray-50" />
