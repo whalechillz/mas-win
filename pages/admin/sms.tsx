@@ -213,8 +213,13 @@ export default function SMSAdmin() {
               📝 블로그 소스에서 가져오기
             </h3>
             <p className="text-blue-700 mb-3">
-              기존 블로그 포스트를 SMS에 최적화된 형태로 변환합니다.
+              기존 블로그 포스트를 선택한 메시지 타입에 최적화된 형태로 변환합니다.
             </p>
+            <div className="bg-blue-100 p-3 rounded-lg mb-3">
+              <p className="text-sm text-blue-800">
+                💡 <strong>사용법:</strong> 먼저 메시지 타입을 선택한 후 블로그를 가져오면 해당 타입에 맞게 자동 최적화됩니다.
+              </p>
+            </div>
             <div className="flex gap-4 items-center">
               <select
                 value={selectedBlogId}
@@ -232,8 +237,9 @@ export default function SMSAdmin() {
                 onClick={async () => {
                   if (selectedBlogId) {
                     try {
-                      await loadFromBlog(parseInt(selectedBlogId));
-                      alert('블로그 내용이 SMS에 최적화되어 로드되었습니다!');
+                      // 현재 선택된 메시지 타입을 전달하여 해당 타입에 맞게 최적화
+                      await loadFromBlog(parseInt(selectedBlogId), formData.messageType);
+                      alert(`블로그 내용이 ${formData.messageType || 'SMS'}에 최적화되어 로드되었습니다!`);
                     } catch (error) {
                       console.error('블로그 로드 실패:', error);
                       alert('블로그 내용 로드에 실패했습니다.');

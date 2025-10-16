@@ -48,7 +48,7 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
   }, []);
 
   // 블로그 소스에서 데이터 가져오기
-  const loadFromBlog = useCallback(async (blogPostId: number) => {
+  const loadFromBlog = useCallback(async (blogPostId: number, targetMessageType?: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -59,7 +59,8 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           blogPostId,
-          channelType
+          channelType,
+          targetMessageType
         })
       });
 
