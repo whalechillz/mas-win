@@ -435,7 +435,7 @@ export default function BlogAdmin() {
   const [migratedPosts, setMigratedPosts] = useState([]);
 
   // 고급 기능 관련 상태
-  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false); // 기본적으로 접혀있음
+  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(true); // 항상 표시
   const [isOptimizingSEO, setIsOptimizingSEO] = useState(false);
   const [seoOptimizationResult, setSeoOptimizationResult] = useState('');
 
@@ -4606,79 +4606,6 @@ export default function BlogAdmin() {
                         </div>
                       </div>
                               
-                              {/* SEO 메타 필드들 */}
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    메타 제목 (SEO)
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={formData.meta_title}
-                                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="검색 결과에 표시될 제목"
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {formData.meta_title.length}/60자 (권장: 30-60자)
-                                  </p>
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    메타 설명 (SEO)
-                                  </label>
-                                  <textarea
-                                    value={formData.meta_description}
-                                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    rows={3}
-                                    placeholder="검색 결과에 표시될 설명"
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {formData.meta_description.length}/155자 (권장: 120-155자)
-                                  </p>
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    메타 키워드 (SEO)
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={formData.meta_keywords}
-                                    onChange={(e) => setFormData({ ...formData, meta_keywords: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="콤마로 구분된 키워드 (예: 골프, 라운딩, CC)"
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    URL 슬러그
-                                  </label>
-                                  <div className="flex gap-2 items-center">
-                                    <input
-                                      type="text"
-                                      value={formData.slug}
-                                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                      placeholder="URL에 사용될 슬러그"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={generateAISlug}
-                                      className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                                      title="AI로 SEO 최적화된 슬러그 생성"
-                                    >
-                                      🤖 AI
-                                    </button>
-                                  </div>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    예: /blog/{formData.slug || 'your-slug-here'}
-                                  </p>
-                                </div>
-                              </div>
                             </div>
                       )}
                     </div>
