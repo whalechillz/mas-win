@@ -139,6 +139,38 @@ const GalleryPicker: React.FC<Props> = ({
     }
   };
 
+  // 일괄 삭제 처리
+  const handleBulkDelete = async () => {
+    const names = Array.from(selected);
+    if (names.length === 0) return;
+    
+    const confirmMessage = `선택한 ${names.length}개의 이미지를 정말 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`;
+    if (!confirm(confirmMessage)) return;
+    
+    try {
+      setIsLoading(true);
+      const deletePromises = names.map(name => 
+        fetch('/api/admin/delete-image', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageName: name })
+        })
+      );
+      
+      await Promise.all(deletePromises);
+      alert(`✅ ${names.length}개의 이미지가 성공적으로 삭제되었습니다.`);
+      
+      // 선택 해제 및 이미지 목록 새로고침
+      setSelected(new Set());
+      await fetchImages(true);
+    } catch (error) {
+      console.error('일괄 삭제 오류:', error);
+      alert('❌ 일부 이미지 삭제에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBulkEdit = async () => {
     const names = Array.from(selected);
     if (names.length === 0) return setShowBulkEdit(false);
@@ -202,32 +234,44 @@ const GalleryPicker: React.FC<Props> = ({
         </div>
         {/* 선택 액션 바 */}
         {selected.size > 0 && (
-          <div className="px-4 py-3 border-b bg-blue-50 text-sm flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-blue-700 font-medium">✅ {selected.size}개 선택됨</span>
-              <span className="text-gray-600 text-xs">체크박스로 여러 이미지를 선택하세요</span>
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="px-4 py-3 border-b bg-blue-50 text-sm">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <span className="text-blue-700 font-medium">✅ {selected.size}개 선택됨</span>
+                <span className="text-gray-600 text-xs">체크박스로 여러 이미지를 선택하세요</span>
+              </div>
               <button 
                 type="button" 
-                className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-1" 
-                onClick={handleMultipleSelect}
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm" 
+                onClick={()=>setSelected(new Set())}
               >
-                ➕ 선택한 이미지들 삽입
+                선택 해제
+              </button>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button 
+                type="button" 
+                className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-2 font-medium" 
+                onClick={handleMultipleSelect}
+                disabled={isLoading}
+              >
+                ➕ 일괄 삽입 ({selected.size}개)
               </button>
               <button 
                 type="button" 
-                className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600" 
+                className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 flex items-center gap-2" 
                 onClick={()=>setShowBulkEdit(true)}
+                disabled={isLoading}
               >
                 📝 일괄 편집
               </button>
               <button 
                 type="button" 
-                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300" 
-                onClick={()=>setSelected(new Set())}
+                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 flex items-center gap-2" 
+                onClick={handleBulkDelete}
+                disabled={isLoading}
               >
-                선택 해제
+                🗑️ 일괄 삭제
               </button>
             </div>
           </div>
@@ -236,7 +280,36 @@ const GalleryPicker: React.FC<Props> = ({
           {isLoading ? (
             <div className="text-center text-gray-600">로딩 중...</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <>
+              {/* 전체 선택 체크박스 */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={selected.size > 0 && selected.size === filtered.length}
+                    ref={(input) => {
+                      if (input) {
+                        input.indeterminate = selected.size > 0 && selected.size < filtered.length;
+                      }
+                    }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        // 전체 선택
+                        const allNames = new Set(filtered.map(img => img.name));
+                        setSelected(allNames);
+                      } else {
+                        // 전체 해제
+                        setSelected(new Set());
+                      }
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <span>
+                    전체 선택 ({selected.size}/{filtered.length}개 표시)
+                  </span>
+                </label>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filtered.map((img) => (
                 <div
                   key={img.name}
@@ -298,7 +371,8 @@ const GalleryPicker: React.FC<Props> = ({
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
         <div className="flex items-center justify-between p-3 border-t text-sm text-gray-600 bg-gray-50">
