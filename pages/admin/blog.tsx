@@ -726,6 +726,56 @@ export default function BlogAdmin() {
     }
   };
 
+  // 게시물 다운로드 (PDF + 이미지 ZIP)
+  const handleDownload = async (postId, slug) => {
+    try {
+      console.log('📥 다운로드 시작...', { postId, slug });
+      
+      // 로딩 상태 표시
+      const downloadButton = document.querySelector(`[data-post-id="${postId}"] .download-button`) as HTMLButtonElement;
+      if (downloadButton) {
+        downloadButton.disabled = true;
+        downloadButton.innerHTML = '<span>⏳</span><span>생성 중...</span>';
+      }
+      
+      const response = await fetch('/api/admin/blog-download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId })
+      });
+      
+      if (response.ok) {
+        // ZIP 파일 다운로드
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${slug}_download.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        alert('✅ 다운로드가 완료되었습니다!\n\n📄 HTML 파일과 이미지들이 ZIP으로 압축되어 다운로드되었습니다.\n\n💡 HTML 파일을 브라우저에서 열고 Ctrl+P로 PDF 저장 가능합니다!');
+      } else {
+        const error = await response.json();
+        alert('다운로드 실패: ' + error.message);
+      }
+    } catch (error) {
+      console.error('❌ 다운로드 에러:', error);
+      alert('다운로드 실패: ' + error.message);
+    } finally {
+      // 로딩 상태 해제
+      const downloadButton = document.querySelector(`[data-post-id="${postId}"] .download-button`) as HTMLButtonElement;
+      if (downloadButton) {
+        downloadButton.disabled = false;
+        downloadButton.innerHTML = '<span>📥</span><span>다운로드</span>';
+      }
+    }
+  };
+
   // 블로그 마이그레이션 함수
   const handleMigration = async () => {
     if (!migrationUrl) {
@@ -1186,11 +1236,11 @@ export default function BlogAdmin() {
     
     try {
       const requestBody = { 
-        contentSource,
-        contentType: formData.category,
+          contentSource,
+          contentType: formData.category,
         customerpersona: brandPersona,
-        customerChannel: 'local_customers',
-        brandWeight: getBrandWeight(brandContentType)
+          customerChannel: 'local_customers',
+          brandWeight: getBrandWeight(brandContentType)
       };
       
       console.log('📤 요청 데이터:', requestBody);
@@ -1215,7 +1265,7 @@ export default function BlogAdmin() {
       if (data.success && Array.isArray(data.titles)) {
         console.log('📝 생성된 제목들:', data.titles);
         setGeneratedTitles(data.titles);
-        setShowTitleOptions(true);
+      setShowTitleOptions(true);
         console.log('🎉 제목 생성 완료, 모달 표시');
       } else {
         console.error('❌ 잘못된 응답 형식:', data);
@@ -1363,9 +1413,9 @@ export default function BlogAdmin() {
               })
               .sort((a: any, b: any) => (b.breakdown?.total || 0) - (a.breakdown?.total || 0))
               .map(({ title, styles, breakdown }: any, i: number) => (
-                <button
-                  key={i}
-                  type="button"
+              <button
+                key={i}
+                type="button"
                   onClick={() => selectGeneratedTitle(title)}
                   className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -1400,15 +1450,15 @@ export default function BlogAdmin() {
                       <span>전환 {breakdown.conversionPotential}</span>
                     </div>
                   )}
-                </button>
-              ))}
+              </button>
+            ))}
           </div>
           <div className="p-4 border-t bg-gray-50">
             <div className="text-xs text-gray-600 mb-2">
               💡 각 제목은 로버트 치알디니의 6가지 영향력 원칙과 뇌과학 기반 후킹 기법을 적용했습니다.
             </div>
             <div className="flex justify-end">
-              <button type="button" onClick={() => setShowTitleOptions(false)} className="px-4 py-2 bg-gray-600 text-white rounded">닫기</button>
+            <button type="button" onClick={() => setShowTitleOptions(false)} className="px-4 py-2 bg-gray-600 text-white rounded">닫기</button>
             </div>
           </div>
         </div>
@@ -3957,6 +4007,14 @@ export default function BlogAdmin() {
                             className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                           >
                             삭제
+                          </button>
+                          <button
+                            onClick={() => handleDownload(post.id, post.slug || post.id)}
+                            className="download-button bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition-colors flex items-center space-x-1"
+                            data-post-id={post.id}
+                          >
+                            <span>📥</span>
+                            <span>다운로드</span>
                           </button>
                         </div>
                       </div>
