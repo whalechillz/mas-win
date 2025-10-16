@@ -39,8 +39,8 @@ async function improveTextWithAI(text, channelType, messageType) {
   // 1. HTML 태그 제거
   improvedText = improvedText.replace(/<[^>]*>/g, '');
   
-  // 2. 불필요한 공백 정리
-  improvedText = improvedText.replace(/\s+/g, ' ').trim();
+  // 2. 불필요한 공백 정리 (줄바꿈 유지)
+  improvedText = improvedText.replace(/[ \t]+/g, ' ').trim(); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
   
   // 3. 채널별 개선 로직
   if (channelType === 'sms') {

@@ -175,14 +175,19 @@ function extractKeyContent(text, maxLength) {
     return { sentence, score };
   }).sort((a, b) => b.score - a.score);
 
-  // 목표 길이에 맞게 문장 선택
+  // 목표 길이에 맞게 문장 선택 (줄바꿈 고려)
   let result = '';
   let currentLength = 0;
   
   for (const { sentence } of rankedSentences) {
     const sentenceWithPunctuation = sentence.trim() + '.';
     if (currentLength + sentenceWithPunctuation.length <= maxLength - 10) {
-      result += (result ? ' ' : '') + sentenceWithPunctuation;
+      // 첫 번째 문장이 아니면 줄바꿈 추가
+      if (result) {
+        result += '\n' + sentenceWithPunctuation;
+      } else {
+        result = sentenceWithPunctuation;
+      }
       currentLength = result.length;
     } else {
       break;
@@ -193,7 +198,7 @@ function extractKeyContent(text, maxLength) {
   if (result.length < maxLength - 20 && sentences.length > 0) {
     const firstSentence = sentences[0].trim() + '.';
     if (result.length + firstSentence.length <= maxLength) {
-      result = firstSentence + (result ? ' ' + result : '');
+      result = firstSentence + (result ? '\n' + result : '');
     }
   }
   
@@ -223,10 +228,11 @@ function cleanTextForSMS(text) {
   cleaned = cleaned.replace(/!\[([^\]]*)\]\([^)]*\)/g, ''); // ![alt](url) 제거
   cleaned = cleaned.replace(/Jpg\)##/g, ''); // Jpg)## 제거
   
-  // 4. 불필요한 공백 정리
+  // 4. 불필요한 공백 정리 (줄바꿈 유지)
   cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
   cleaned = cleaned.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
-  cleaned = cleaned.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나로
+  cleaned = cleaned.replace(/[ \t]+/g, ' '); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
+  cleaned = cleaned.trim();
   
   // 5. 추가 정리
   cleaned = cleaned.replace(/^-\s*/gm, ''); // - 리스트 마커 제거
@@ -287,9 +293,10 @@ function enhanceForCallToAction(text, maxLength) {
     enhanced = enhanced.replace(/패키지/g, '특별 패키지');
   }
   
-  // 6. 최종 정리
+  // 6. 최종 정리 (줄바꿈 유지)
   enhanced = enhanced.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
   enhanced = enhanced.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
+  enhanced = enhanced.replace(/[ \t]+/g, ' '); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
   enhanced = enhanced.trim();
   
   // 7. 마지막 점검 - 전화번호가 없으면 추가
