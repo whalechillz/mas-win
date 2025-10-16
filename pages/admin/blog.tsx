@@ -5924,11 +5924,19 @@ export default function BlogAdmin() {
           isOpen={showUnifiedPicker}
           onClose={() => setShowUnifiedPicker(false)}
           featuredUrl={formData.featured_image}
-          onSelect={(url) => {
+          keepOpenAfterSelect={true} // 선택 후 모달 유지
+          onSelect={(url, options) => {
             const preferredUrl = forceHttps(url);
-            if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, {});
-            setShowUnifiedPicker(false);
-            setPendingEditorImageInsert(null);
+            if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, options || {});
+            // 모달을 닫지 않음 (keepOpenAfterSelect=true)
+          }}
+          onSelectMultiple={(urls, options) => {
+            // 다중 이미지 삽입
+            urls.forEach(url => {
+              const preferredUrl = forceHttps(url);
+              if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, options || {});
+            });
+            // 모달을 닫지 않음 (keepOpenAfterSelect=true)
           }}
         />
       )}
