@@ -29,6 +29,24 @@ export default function SMSAdmin() {
 
   const [showPreview, setShowPreview] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [selectedBlogId, setSelectedBlogId] = useState('');
+
+  // 블로그 포스트 목록 로드
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      try {
+        const response = await fetch('/api/admin/blog');
+        if (response.ok) {
+          const data = await response.json();
+          setBlogPosts(data.posts || []);
+        }
+      } catch (error) {
+        console.error('블로그 포스트 로드 실패:', error);
+      }
+    };
+    fetchBlogPosts();
+  }, []);
 
   // 페이지 로드 시 데이터 로드
   useEffect(() => {
@@ -90,7 +108,7 @@ export default function SMSAdmin() {
   const handleSaveDraft = async () => {
     try {
       await saveDraft(
-        calendarId ? calendarId as string : undefined,
+        calendarId ? parseInt(calendarId as string) : undefined,
         blogPostId ? parseInt(blogPostId as string) : undefined
       );
       alert('초안이 저장되었습니다.');
@@ -118,7 +136,7 @@ export default function SMSAdmin() {
     setIsSending(true);
     try {
       const channelPostId = id ? parseInt(id as string) : await saveDraft(
-        calendarId ? calendarId as string : undefined,
+        calendarId ? parseInt(calendarId as string) : undefined,
         blogPostId ? parseInt(blogPostId as string) : undefined
       );
 
@@ -174,6 +192,47 @@ export default function SMSAdmin() {
               <p className="text-red-600">{error}</p>
             </div>
           )}
+
+          {/* 블로그 소스에서 가져오기 */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              📝 블로그 소스에서 가져오기
+            </h3>
+            <p className="text-blue-700 mb-3">
+              기존 블로그 포스트를 SMS에 최적화된 형태로 변환합니다.
+            </p>
+            <div className="flex gap-4 items-center">
+              <select
+                value={selectedBlogId}
+                onChange={(e) => setSelectedBlogId(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">블로그 포스트를 선택하세요</option>
+                {blogPosts.map((post) => (
+                  <option key={post.id} value={post.id}>
+                    {post.title} ({post.status === 'published' ? '발행됨' : '초안'})
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={async () => {
+                  if (selectedBlogId) {
+                    try {
+                      await loadFromBlog(parseInt(selectedBlogId));
+                      alert('블로그 내용이 SMS에 최적화되어 로드되었습니다!');
+                    } catch (error) {
+                      console.error('블로그 로드 실패:', error);
+                      alert('블로그 내용 로드에 실패했습니다.');
+                    }
+                  }
+                }}
+                disabled={!selectedBlogId || isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isLoading ? '로딩 중...' : '가져오기'}
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* 왼쪽: 편집 영역 */}

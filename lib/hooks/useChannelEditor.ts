@@ -52,20 +52,29 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
     setError(null);
     
     try {
-      const response = await fetch('/api/channels/import-from-blog', {
+      // 공통소스 변환 API 사용
+      const response = await fetch('/api/channels/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           blogPostId,
-          targetChannel: channelType
+          channelType
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setFormData(data.formData);
-          return data.channelPostId;
+          // 변환된 내용을 formData에 적용
+          const optimizedContent = data.data.optimizedContent;
+          setFormData({
+            title: optimizedContent.messageText || '',
+            content: optimizedContent.messageText || '',
+            messageType: optimizedContent.messageType || 'SMS',
+            characterCount: optimizedContent.characterCount || 0,
+            maxLength: optimizedContent.maxLength || 90
+          });
+          return blogPostId;
         } else {
           throw new Error(data.message || '블로그 소스 가져오기 실패');
         }
