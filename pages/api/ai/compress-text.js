@@ -38,8 +38,8 @@ async function compressTextWithAI(text, targetLength, preserveKeywords) {
   // 1. HTML 태그 제거
   let cleanText = text.replace(/<[^>]*>/g, '');
   
-  // 2. 불필요한 공백 정리
-  cleanText = cleanText.replace(/\s+/g, ' ').trim();
+  // 2. 불필요한 공백 정리 (줄바꿈 유지)
+  cleanText = cleanText.replace(/[ \t]+/g, ' ').trim(); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
   
   // 3. 핵심 키워드 추출 (골프, 여행, 할인, 이벤트 등)
   const keywords = extractKeywords(cleanText);
@@ -50,14 +50,19 @@ async function compressTextWithAI(text, targetLength, preserveKeywords) {
   // 5. 중요도 기반 문장 정렬
   const rankedSentences = rankSentences(sentences, keywords);
   
-  // 6. 목표 길이에 맞게 문장 선택
+  // 6. 목표 길이에 맞게 문장 선택 (줄바꿈 고려)
   let result = '';
   let currentLength = 0;
   
   for (const sentence of rankedSentences) {
     const sentenceWithPunctuation = sentence.trim() + '.';
     if (currentLength + sentenceWithPunctuation.length <= targetLength - 10) { // 여유분 10자
-      result += (result ? ' ' : '') + sentenceWithPunctuation;
+      // 첫 번째 문장이 아니면 줄바꿈 추가
+      if (result) {
+        result += '\n' + sentenceWithPunctuation;
+      } else {
+        result = sentenceWithPunctuation;
+      }
       currentLength = result.length;
     } else {
       break;
@@ -69,7 +74,7 @@ async function compressTextWithAI(text, targetLength, preserveKeywords) {
     const remainingSpace = targetLength - result.length - 20;
     const keywordText = keywords.slice(0, 3).join(' ');
     if (keywordText.length <= remainingSpace) {
-      result += ` ${keywordText}`;
+      result += `\n${keywordText}`;
     }
   }
   
