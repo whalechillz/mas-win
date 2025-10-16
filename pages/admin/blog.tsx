@@ -435,7 +435,7 @@ export default function BlogAdmin() {
   const [migratedPosts, setMigratedPosts] = useState([]);
 
   // 고급 기능 관련 상태
-  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(true); // 항상 표시
+  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false); // 기본적으로 접혀있음
   const [isOptimizingSEO, setIsOptimizingSEO] = useState(false);
   const [seoOptimizationResult, setSeoOptimizationResult] = useState('');
 
@@ -3567,11 +3567,11 @@ export default function BlogAdmin() {
                       </button>
                       {selectedNaverPosts.size > 0 && (
                         <>
-                          <button
-                            onClick={handleNaverPostMigration}
-                            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                          >
-                            선택된 {selectedNaverPosts.size}개 마이그레이션
+                        <button
+                          onClick={handleNaverPostMigration}
+                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          선택된 {selectedNaverPosts.size}개 마이그레이션
                           </button>
                           {selectedNaverPosts.size > 1 && (
                             <button
@@ -3579,7 +3579,7 @@ export default function BlogAdmin() {
                               className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                             >
                               선택된 {selectedNaverPosts.size}개 합치기
-                            </button>
+                        </button>
                           )}
                         </>
                       )}
@@ -4194,6 +4194,32 @@ export default function BlogAdmin() {
                     placeholder="게시물 요약을 입력하세요"
             />
                       </div>
+
+                {/* 슬러그 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    슬러그 (URL)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="url-friendly-slug"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, slug: generateSlug(formData.title) })}
+                      className="px-3 whitespace-nowrap rounded bg-gray-600 text-white text-sm hover:bg-gray-700"
+                    >
+                      🔄 재생성
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    URL에 사용될 슬러그입니다. 공백은 하이픈(-)으로 변환됩니다.
+                  </p>
+                </div>
                       
                 {/* 카테고리와 상태 */}
                 <div className="border-t border-gray-200 pt-8">
@@ -4238,13 +4264,24 @@ export default function BlogAdmin() {
 
                 {/* 고급 기능 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
-                    <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
+                      <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm flex items-center space-x-2"
+                    >
+                      <span>{showAdvancedFeatures ? '접기' : '펼치기'}</span>
+                      <span>{showAdvancedFeatures ? '▲' : '▼'}</span>
+                    </button>
                   </div>
                   
-                  <div className="space-y-6">
-                    {/* SEO 최적화 기능 */}
+                  {showAdvancedFeatures && (
+                    <div className="space-y-6">
+                      {/* SEO 최적화 기능 */}
                     <div className="border border-gray-200 rounded-lg p-6">
                         <h4 className="text-md font-semibold text-gray-900 mb-4">📈 SEO 최적화</h4>
                         
@@ -4366,7 +4403,8 @@ export default function BlogAdmin() {
                       )}
                     </div>
                     </div>
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 갤러리 열기/닫기 버튼 */}
