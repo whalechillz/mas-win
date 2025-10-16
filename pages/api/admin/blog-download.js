@@ -28,42 +28,46 @@ export default async function handler(req, res) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    // 2. 포스트의 이미지들 가져오기
-    const { data: images, error: imagesError } = await supabase
-      .from('blog_images')
-      .select('*')
-      .eq('post_id', postId);
-
-    if (imagesError) {
-      console.error('이미지 조회 오류:', imagesError);
-    }
+    // 2. 블로그 포스트 내용에서 이미지 URL 추출
+    const imageUrls = extractImageUrls(post.content);
+    console.log(`포스트 ${postId}에서 발견된 이미지 URL 개수: ${imageUrls.length}`);
+    console.log('이미지 URL들:', imageUrls);
 
     // 3. ZIP 파일 생성
     const zip = new JSZip();
 
-    // 4. HTML 파일 생성 (PDF 대신)
-    const htmlContent = generateHTML(post);
+    // 4. HTML 파일 생성 (이미지 경로를 로컬로 변경)
+    const htmlContent = generateHTML(post, imageUrls);
     zip.file(`${post.slug || post.id}.html`, htmlContent);
 
     // 5. 이미지들 ZIP에 추가
-    if (images && images.length > 0) {
+    if (imageUrls.length > 0) {
       const imagesFolder = zip.folder('images');
       
-      for (const image of images) {
+      for (let i = 0; i < imageUrls.length; i++) {
+        const imageUrl = imageUrls[i];
         try {
-          // Supabase 스토리지에서 이미지 다운로드
-          const { data: imageData, error: downloadError } = await supabase.storage
-            .from('blog-images')
-            .download(image.image_name);
-
-          if (!downloadError && imageData) {
-            const arrayBuffer = await imageData.arrayBuffer();
-            imagesFolder.file(image.image_name, arrayBuffer);
+          console.log(`이미지 다운로드 시도: ${imageUrl}`);
+          
+          // 이미지 파일명 생성 (순서대로)
+          const fileExtension = getFileExtension(imageUrl);
+          const fileName = `image_${i + 1}${fileExtension}`;
+          
+          // 이미지 다운로드
+          const imageResponse = await fetch(imageUrl);
+          if (imageResponse.ok) {
+            const imageBuffer = await imageResponse.arrayBuffer();
+            imagesFolder.file(fileName, imageBuffer);
+            console.log(`✅ 이미지 다운로드 성공: ${fileName} (${imageBuffer.byteLength} bytes)`);
+          } else {
+            console.error(`❌ 이미지 다운로드 실패: ${imageUrl} (상태: ${imageResponse.status})`);
           }
         } catch (error) {
-          console.error(`이미지 다운로드 오류 (${image.image_name}):`, error);
+          console.error(`❌ 이미지 다운로드 오류 (${imageUrl}):`, error);
         }
       }
+    } else {
+      console.log('포스트에 이미지가 없습니다.');
     }
 
     // 6. ZIP 파일 생성
@@ -88,8 +92,68 @@ export default async function handler(req, res) {
   }
 }
 
-// HTML 생성 함수
-function generateHTML(post) {
+// 이미지 URL 추출 함수
+function extractImageUrls(content) {
+  if (!content) return [];
+  
+  const imageUrls = [];
+  
+  // <img> 태그에서 src 추출
+  const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  let match;
+  while ((match = imgRegex.exec(content)) !== null) {
+    const url = match[1];
+    if (url && !imageUrls.includes(url)) {
+      imageUrls.push(url);
+    }
+  }
+  
+  // 마크다운 이미지 문법 ![alt](url) 추출
+  const markdownImgRegex = /!\[[^\]]*\]\(([^)]+)\)/gi;
+  while ((match = markdownImgRegex.exec(content)) !== null) {
+    const url = match[1];
+    if (url && !imageUrls.includes(url)) {
+      imageUrls.push(url);
+    }
+  }
+  
+  return imageUrls;
+}
+
+// 파일 확장자 추출 함수
+function getFileExtension(url) {
+  try {
+    const pathname = new URL(url).pathname;
+    const extension = pathname.split('.').pop();
+    return extension ? `.${extension}` : '.jpg';
+  } catch {
+    return '.jpg';
+  }
+}
+
+// HTML 생성 함수 (이미지 경로를 로컬로 변경)
+function generateHTML(post, imageUrls) {
+  let content = post.content || '';
+  
+  // 이미지 경로를 로컬 경로로 변경
+  for (let i = 0; i < imageUrls.length; i++) {
+    const originalUrl = imageUrls[i];
+    const fileExtension = getFileExtension(originalUrl);
+    const localPath = `images/image_${i + 1}${fileExtension}`;
+    
+    // HTML img 태그의 src 변경
+    content = content.replace(
+      new RegExp(`src=["']${originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`, 'gi'),
+      `src="${localPath}"`
+    );
+    
+    // 마크다운 이미지 문법 변경
+    content = content.replace(
+      new RegExp(`!\\[[^\\]]*\\]\\(${originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'gi'),
+      `![이미지 ${i + 1}](${localPath})`
+    );
+  }
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -143,6 +207,14 @@ function generateHTML(post) {
         .content li {
           margin-bottom: 5px;
         }
+        .content img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 20px auto;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
         .footer {
           margin-top: 50px;
           padding-top: 20px;
@@ -180,7 +252,7 @@ function generateHTML(post) {
       </div>
       
       <div class="content">
-        ${post.content || ''}
+        ${content}
       </div>
       
       <div class="footer">
