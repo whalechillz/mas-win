@@ -6,10 +6,19 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (url: string, options?: { alt?: string; title?: string }) => void;
+  onSelectMultiple?: (urls: string[], options?: { alt?: string; title?: string }) => void;
   featuredUrl?: string;
+  keepOpenAfterSelect?: boolean; // 선택 후 모달 유지 여부
 };
 
-const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl }) => {
+const GalleryPicker: React.FC<Props> = ({ 
+  isOpen, 
+  onClose, 
+  onSelect, 
+  onSelectMultiple,
+  featuredUrl,
+  keepOpenAfterSelect = true // 기본값: 선택 후 모달 유지
+}) => {
   const [allImages, setAllImages] = useState<ImageItem[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
@@ -24,22 +33,26 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
   const [bulkForm, setBulkForm] = useState({ alt: '', keywords: '', replaceAlt: false, appendKeywords: true, removeKeywordsOnly: false });
   const pageSize = 24;
 
+  // 이미지 로드 함수
+  const fetchImages = async (resetPage = false) => {
+    try {
+      setIsLoading(true);
+      const currentPage = resetPage ? 1 : page;
+      const offset = (currentPage - 1) * pageSize;
+      const res = await fetch(`/api/admin/all-images?limit=${pageSize}&offset=${offset}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAllImages(data.images || []);
+        setTotal(data.total || 0);
+        if (resetPage) setPage(1);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
-    const fetchImages = async () => {
-      try {
-        setIsLoading(true);
-        const offset = (page - 1) * pageSize;
-        const res = await fetch(`/api/admin/all-images?limit=${pageSize}&offset=${offset}`);
-        const data = await res.json();
-        if (res.ok) {
-          setAllImages(data.images || []);
-          setTotal(data.total || 0);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchImages();
   }, [isOpen, page]);
 
@@ -93,6 +106,39 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
     });
   };
 
+  // 단일 이미지 선택 처리
+  const handleSingleSelect = (img: ImageItem) => {
+    onSelect(img.url, { alt: altText || img.name });
+    if (!keepOpenAfterSelect) {
+      onClose();
+    }
+  };
+
+  // 다중 이미지 선택 처리
+  const handleMultipleSelect = () => {
+    const names = Array.from(selected);
+    if (names.length === 0) return;
+    
+    const selectedImages = names.map(name => {
+      const img = allImages.find(i => i.name === name);
+      return img?.url;
+    }).filter(Boolean) as string[];
+
+    if (onSelectMultiple) {
+      onSelectMultiple(selectedImages, { alt: altText });
+    } else {
+      // 단일 선택 함수를 여러 번 호출
+      selectedImages.forEach(url => {
+        onSelect(url, { alt: altText });
+      });
+    }
+    
+    setSelected(new Set());
+    if (!keepOpenAfterSelect) {
+      onClose();
+    }
+  };
+
   const handleBulkEdit = async () => {
     const names = Array.from(selected);
     if (names.length === 0) return setShowBulkEdit(false);
@@ -125,8 +171,18 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">이미지 선택하여 본문에 삽입</h3>
-          <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+          <h3 className="text-lg font-semibold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button" 
+              onClick={() => fetchImages(true)} 
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-1"
+              disabled={isLoading}
+            >
+              {isLoading ? '⏳' : '🔄'} 새로고침
+            </button>
+            <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+          </div>
         </div>
         <div className="p-3 border-b flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-2 text-sm">
@@ -146,21 +202,33 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
         </div>
         {/* 선택 액션 바 */}
         {selected.size > 0 && (
-          <div className="px-4 py-2 border-b bg-blue-50 text-sm flex items-center justify-between">
-            <span className="text-blue-700">{selected.size}개 선택됨</span>
+          <div className="px-4 py-3 border-b bg-blue-50 text-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-blue-700 font-medium">✅ {selected.size}개 선택됨</span>
+              <span className="text-gray-600 text-xs">체크박스로 여러 이미지를 선택하세요</span>
+            </div>
             <div className="flex items-center gap-2">
-              <button type="button" className="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" onClick={()=>{
-                const names = Array.from(selected);
-                // 다중 삽입: 선택된 순서대로 onSelect 호출
-                for (const name of names) {
-                  const img = allImages.find(i=>i.name===name);
-                  if (img) onSelect(img.url, { alt: altText || img.name });
-                }
-                setSelected(new Set());
-                onClose();
-              }}>➕ 선택 삽입</button>
-              <button type="button" className="px-2 py-1 rounded bg-blue-500 text-white" onClick={()=>setShowBulkEdit(true)}>📝 일괄 편집</button>
-              <button type="button" className="px-2 py-1 rounded bg-gray-200" onClick={()=>setSelected(new Set())}>선택 해제</button>
+              <button 
+                type="button" 
+                className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-1" 
+                onClick={handleMultipleSelect}
+              >
+                ➕ 선택한 이미지들 삽입
+              </button>
+              <button 
+                type="button" 
+                className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600" 
+                onClick={()=>setShowBulkEdit(true)}
+              >
+                📝 일괄 편집
+              </button>
+              <button 
+                type="button" 
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300" 
+                onClick={()=>setSelected(new Set())}
+              >
+                선택 해제
+              </button>
             </div>
           </div>
         )}
@@ -186,7 +254,7 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                   <label className="absolute top-2 left-2 z-10 bg-white/90 rounded px-1 py-0.5 shadow">
                     <input type="checkbox" checked={selected.has(img.name)} onChange={()=>toggleSelect(img.name)} />
                   </label>
-                  <button type="button" className="w-full" onClick={() => onSelect(img.url, { alt: altText || img.name })}>
+                  <button type="button" className="w-full" onClick={() => handleSingleSelect(img)}>
                     <img src={img.url} alt={img.name} className="w-full h-44 object-contain bg-gray-50" />
                     {isFeatured(img) && (
                       <div className="pointer-events-none absolute inset-0 rounded-lg border-2 border-amber-500 shadow-[0_0_0_2px_rgba(255,193,7,0.6)_inset]"></div>
@@ -207,15 +275,15 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
                   </button>
                   {/* 퀵액션 (호버 시 노출) */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                    <button type="button" title="삽입" className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
-                      onClick={(e)=>{ e.stopPropagation(); onSelect(img.url, { alt: altText || img.name }); }}>
+                    <button type="button" title="빠른 삽입" className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
+                      onClick={(e)=>{ e.stopPropagation(); handleSingleSelect(img); }}>
                       ➕ 삽입
                     </button>
-                    <button type="button" title="대표로" className="px-3 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
+                    <button type="button" title="대표 이미지로 설정" className="px-3 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
                       onClick={(e)=>{ e.stopPropagation(); setCurrentFeatured(img.url); if (typeof window!== 'undefined') { window.dispatchEvent(new CustomEvent('tiptap:set-featured-image',{ detail:{ url: img.url } })); } }}>
                       ⭐ 대표
                     </button>
-                    <button type="button" title="확대" className="px-3 py-1 text-xs rounded bg-white text-gray-800 hover:bg-gray-100"
+                    <button type="button" title="이미지 확대 보기" className="px-3 py-1 text-xs rounded bg-white text-gray-800 hover:bg-gray-100"
                       onClick={(e)=>{ e.stopPropagation(); setPreviewUrl(img.url); }}>
                       🔍 확대
                     </button>
@@ -225,14 +293,43 @@ const GalleryPicker: React.FC<Props> = ({ isOpen, onClose, onSelect, featuredUrl
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between p-3 border-t text-sm text-gray-600">
-          <div>총 {total}개</div>
-          <div className="flex items-center gap-2">
-            <button type="button" className="px-2 py-1 border rounded" onClick={()=>setPage(Math.max(1, page-1))}>이전</button>
-            <span>{page}</span>
-            <button type="button" className="px-2 py-1 border rounded" onClick={()=>setPage(page+1)}>다음</button>
+        <div className="flex items-center justify-between p-3 border-t text-sm text-gray-600 bg-gray-50">
+          <div className="flex items-center gap-4">
+            <span className="font-medium">📊 총 {total}개 이미지</span>
+            <span className="text-gray-500">페이지 {page}</span>
           </div>
-          <button type="button" className="px-3 py-1 bg-blue-500 text-white rounded" onClick={onClose}>닫기</button>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button" 
+              className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50" 
+              onClick={()=>setPage(Math.max(1, page-1))}
+              disabled={page <= 1}
+            >
+              ← 이전
+            </button>
+            <span className="px-3 py-1 bg-white border rounded">{page}</span>
+            <button 
+              type="button" 
+              className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50" 
+              onClick={()=>setPage(page+1)}
+              disabled={page * pageSize >= total}
+            >
+              다음 →
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button" 
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300" 
+              onClick={() => fetchImages(true)}
+              disabled={isLoading}
+            >
+              {isLoading ? '⏳' : '🔄'} 새로고침
+            </button>
+            <button type="button" className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={onClose}>
+              ✕ 닫기
+            </button>
+          </div>
         </div>
         {/* 미리보기 모달 */}
         {previewUrl && (
