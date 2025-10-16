@@ -32,6 +32,13 @@ export default function SMSAdmin() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
 
+  // 메시지 타입 초기값 설정
+  useEffect(() => {
+    if (!formData.messageType) {
+      updateFormData({ messageType: 'SMS' });
+    }
+  }, [formData.messageType, updateFormData]);
+
   // 블로그 포스트 목록 로드
   useEffect(() => {
     const fetchBlogPosts = async () => {
@@ -239,12 +246,20 @@ export default function SMSAdmin() {
             <div className="space-y-6">
               {/* 메시지 타입 선택 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">메시지 타입</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-800">메시지 타입</h3>
+                  <span className="text-sm text-blue-600 font-medium">
+                    현재: {formData.messageType || 'SMS'}
+                  </span>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   {['SMS', 'LMS', 'MMS'].map((type) => (
                     <button
                       key={type}
-                      onClick={() => updateFormData({ messageType: type })}
+                      onClick={() => {
+                        console.log('메시지 타입 변경:', type);
+                        updateFormData({ messageType: type });
+                      }}
                       className={`p-3 border rounded-lg text-center ${
                         formData.messageType === type
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
