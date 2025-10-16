@@ -33,6 +33,8 @@ export default function SMSAdmin() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
   const [contentScore, setContentScore] = useState(0);
+  const [psychologyMessages, setPsychologyMessages] = useState([]);
+  const [showPsychologyModal, setShowPsychologyModal] = useState(false);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -358,6 +360,36 @@ export default function SMSAdmin() {
                         >
                           AI 개선
                         </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/ai/psychology-messages', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  text: formData.content,
+                                  channelType: 'sms',
+                                  messageType: formData.messageType,
+                                  targetLength: formData.messageType === 'SMS' ? 90 : 
+                                               formData.messageType === 'SMS300' ? 300 : 
+                                               formData.messageType === 'LMS' ? 2000 : 2000
+                                })
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                setPsychologyMessages(data.messages);
+                                setShowPsychologyModal(true);
+                              }
+                            } catch (error) {
+                              console.error('심리학 기반 메시지 생성 오류:', error);
+                              alert('심리학 기반 메시지 생성에 실패했습니다.');
+                            }
+                          }}
+                          className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                        >
+                          🧠 심리학 추천
+                        </button>
                       </div>
                     )}
                   </div>
@@ -518,6 +550,118 @@ export default function SMSAdmin() {
           </div>
         </div>
       </div>
+
+      {/* 심리학 기반 메시지 추천 모달 */}
+      {showPsychologyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">🧠 심리학 기반 메시지 추천</h2>
+              <button
+                onClick={() => setShowPsychologyModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-blue-800 text-sm">
+                💡 <strong>로버트 치알디니의 6가지 영향력 원칙</strong>과 <strong>뇌과학 기반 후킹 기법</strong>을 적용하여 3가지 심리학 기반 메시지를 생성했습니다.
+              </p>
+            </div>
+
+            <div className="grid gap-6">
+              {psychologyMessages.map((message, index) => (
+                <div key={message.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {index + 1}. {message.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-2">{message.description}</p>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {message.tags.map((tag, tagIndex) => (
+                          <span key={tagIndex} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                        {message.score.total}점
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {message.characterCount}/{message.targetLength}자
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 상세 점수 */}
+                  <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
+                    <div>
+                      <div className="text-gray-600">타겟 매칭</div>
+                      <div className="font-semibold text-blue-600">{message.score.audienceMatch}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">심리 효과</div>
+                      <div className="font-semibold text-green-600">{message.score.psychEffect}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">브랜드 적합성</div>
+                      <div className="font-semibold text-purple-600">{message.score.brandFit}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">전환 잠재력</div>
+                      <div className="font-semibold text-orange-600">{message.score.conversionPotential}</div>
+                    </div>
+                  </div>
+
+                  {/* 메시지 내용 */}
+                  <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                    <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                      {message.message}
+                    </div>
+                  </div>
+
+                  {/* 선택 버튼 */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        updateFormData({ content: message.message });
+                        setShowPsychologyModal(false);
+                        alert(`${message.title} 메시지가 적용되었습니다!`);
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                    >
+                      이 메시지 선택
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(message.message);
+                        alert('메시지가 클립보드에 복사되었습니다!');
+                      }}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+                    >
+                      복사
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowPsychologyModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
