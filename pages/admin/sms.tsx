@@ -5,6 +5,7 @@ import { TitleScorer } from '../../components/shared/TitleScorer';
 import { ShortLinkGenerator } from '../../components/shared/ShortLinkGenerator';
 import { AIImagePicker } from '../../components/shared/AIImagePicker';
 import { MessageOptimizer } from '../../components/shared/MessageOptimizer';
+import { TextCompressor } from '../../components/shared/TextCompressor';
 import { useChannelEditor } from '../../lib/hooks/useChannelEditor';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -33,6 +34,7 @@ export default function SMSAdmin() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
   const [contentScore, setContentScore] = useState(0);
+  const [showTextCompressor, setShowTextCompressor] = useState(false);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -96,6 +98,7 @@ export default function SMSAdmin() {
     console.log('getMaxLength - messageType:', messageType);
     switch (messageType) {
       case 'SMS': return 90;
+      case 'SMS300': return 300;
       case 'LMS': return 2000;
       case 'MMS': return 2000;
       default: return 90;
@@ -256,8 +259,13 @@ export default function SMSAdmin() {
                     현재: {formData.messageType || 'SMS'}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {['SMS', 'LMS', 'MMS'].map((type) => (
+                <div className="grid grid-cols-4 gap-3">
+                  {[
+                    { type: 'SMS', limit: '90자' },
+                    { type: 'SMS300', limit: '300자' },
+                    { type: 'LMS', limit: '2000자' },
+                    { type: 'MMS', limit: '2000자' }
+                  ].map(({ type, limit }) => (
                     <button
                       key={type}
                       onClick={() => {
@@ -271,9 +279,7 @@ export default function SMSAdmin() {
                       }`}
                     >
                       <div className="font-medium">{type}</div>
-                      <div className="text-sm text-gray-500">
-                        {type === 'SMS' ? '90자' : '2000자'}
-                      </div>
+                      <div className="text-sm text-gray-500">{limit}</div>
                     </button>
                   ))}
                 </div>
@@ -283,11 +289,21 @@ export default function SMSAdmin() {
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-800">메시지 내용</h3>
-                  <div className={`text-sm ${getLengthStatus().color}`}>
-                    {messageLength}/{maxLength}자
-                    <span className="ml-2 text-xs text-gray-500">
-                      ({formData.messageType || 'SMS'})
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className={`text-sm ${getLengthStatus().color}`}>
+                      {messageLength}/{maxLength}자
+                      <span className="ml-2 text-xs text-gray-500">
+                        ({formData.messageType || 'SMS'})
+                      </span>
+                    </div>
+                    {formData.content && formData.content.length > 90 && (
+                      <button
+                        onClick={() => setShowTextCompressor(true)}
+                        className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
+                      >
+                        AI 압축
+                      </button>
+                    )}
                   </div>
                 </div>
                 <textarea
@@ -362,6 +378,24 @@ export default function SMSAdmin() {
                   onImageSelect={(imageUrl) => updateFormData({ imageUrl })}
                   channelType="sms"
                 />
+              )}
+
+              {/* AI 텍스트 압축 */}
+              {showTextCompressor && (
+                <div className="mt-4">
+                  <TextCompressor
+                    originalText={formData.content}
+                    targetLength={90}
+                    onCompressed={(compressedText) => {
+                      updateFormData({ 
+                        content: compressedText,
+                        messageType: 'SMS'
+                      });
+                      setShowTextCompressor(false);
+                    }}
+                    onCancel={() => setShowTextCompressor(false)}
+                  />
+                </div>
               )}
             </div>
 
