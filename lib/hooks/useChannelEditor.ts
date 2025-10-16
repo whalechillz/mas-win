@@ -36,7 +36,7 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
     imageUrl: '',
     shortLink: '',
     status: 'draft',
-    messageType: channelType === 'sms' ? 'SMS' : undefined
+    messageType: channelType === 'sms' ? 'MMS' : undefined
   });
 
   const [isLoading, setIsLoading] = useState(false);

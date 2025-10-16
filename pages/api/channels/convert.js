@@ -65,28 +65,37 @@ async function generateChannelContent(blogPost, channelType) {
 }
 
 function generateSMSContent(title, content, excerpt) {
-  // SMS는 90자 제한, 간결한 메시지
-  const maxLength = 90;
-  let smsText = title;
-
+  // 전체 내용을 하나의 메시지로 구성
+  let fullText = title;
+  
   if (excerpt && excerpt.length > 0) {
-    smsText += `\n\n${excerpt}`;
+    fullText += `\n\n${excerpt}`;
   } else {
-    // excerpt가 없으면 content에서 첫 50자 추출
-    const shortContent = content.replace(/<[^>]*>/g, '').substring(0, 50);
-    smsText += `\n\n${shortContent}`;
+    // excerpt가 없으면 content에서 HTML 태그 제거 후 사용
+    const cleanContent = content.replace(/<[^>]*>/g, '').trim();
+    fullText += `\n\n${cleanContent}`;
   }
 
-  // 90자 제한 적용
-  if (smsText.length > maxLength) {
-    smsText = smsText.substring(0, maxLength - 3) + '...';
+  // 내용 길이에 따라 메시지 타입 결정
+  let messageType = 'SMS';
+  let maxLength = 90;
+  
+  if (fullText.length > 90) {
+    messageType = 'LMS';
+    maxLength = 2000;
+  }
+
+  // SMS인 경우에만 90자로 자르기
+  let finalText = fullText;
+  if (messageType === 'SMS' && fullText.length > 90) {
+    finalText = fullText.substring(0, 87) + '...';
   }
 
   return {
-    messageText: smsText,
-    messageType: 'SMS',
-    characterCount: smsText.length,
-    maxLength
+    messageText: finalText,
+    messageType: messageType,
+    characterCount: finalText.length,
+    maxLength: maxLength
   };
 }
 

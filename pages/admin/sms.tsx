@@ -421,18 +421,6 @@ export default function SMSAdmin() {
                 )}
               </div>
 
-              {/* 제목 점수 (메시지 내용 기반) */}
-              {formData.content && (
-                <TitleScorer
-                  title={formData.content.substring(0, 50)}
-                  persona="local_customers"
-                  contentType="sms"
-                  targetProduct="all"
-                  brandWeight="medium"
-                  conversionGoal="phone_consultation"
-                  showRecommendations={false}
-                />
-              )}
             </div>
           </div>
         </div>
