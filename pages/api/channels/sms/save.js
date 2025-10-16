@@ -30,10 +30,10 @@ export default async function handler(req, res) {
     }
 
     // 메시지 타입 검증
-    if (!['SMS', 'LMS', 'MMS'].includes(messageType)) {
+    if (!['SMS', 'SMS300', 'LMS', 'MMS'].includes(messageType)) {
       return res.status(400).json({ 
         success: false, 
-        message: '메시지 타입은 SMS, LMS, MMS 중 하나여야 합니다.' 
+        message: '메시지 타입은 SMS, SMS300, LMS, MMS 중 하나여야 합니다.' 
       });
     }
 
@@ -42,6 +42,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ 
         success: false, 
         message: 'SMS는 90자를 초과할 수 없습니다.' 
+      });
+    }
+
+    if (messageType === 'SMS300' && messageText.length > 300) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'SMS300은 300자를 초과할 수 없습니다.' 
       });
     }
 

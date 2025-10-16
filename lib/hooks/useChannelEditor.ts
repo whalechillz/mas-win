@@ -8,7 +8,7 @@ export interface ChannelFormData {
   status: 'draft' | 'scheduled' | 'sent' | 'published';
   scheduledAt?: string;
   // 채널별 특화 필드
-  messageType?: string; // SMS: 'SMS'|'LMS'|'MMS', 카카오: 'alimtalk'|'friendtalk'
+  messageType?: string; // SMS: 'SMS'|'SMS300'|'LMS'|'MMS', 카카오: 'alimtalk'|'friendtalk'
   templateId?: string; // 카카오 알림톡 템플릿 ID
   buttonText?: string; // 카카오 버튼 텍스트
   buttonLink?: string; // 카카오 버튼 링크
