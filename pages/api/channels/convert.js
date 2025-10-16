@@ -256,55 +256,59 @@ function cleanTextForSMS(text) {
   return cleaned;
 }
 
-// 새로운 함수: 전화/문자 유도 메시지 강화
+// 새로운 함수: 전화/문자 유도 메시지 강화 (기존 메시지 패턴 반영)
 function enhanceForCallToAction(text, maxLength) {
   let enhanced = text;
   
-  // 1. 전화번호 강조
-  enhanced = enhanced.replace(/(\d{3}-\d{3,4}-\d{4})/g, '📞 $1');
+  // 1. 전화번호 강조 (기존 패턴 반영)
+  enhanced = enhanced.replace(/(\d{3}-\d{3,4}-\d{4})/g, '☎ $1');
   
-  // 2. 행동 유도 문구 강화
+  // 2. 행동 유도 문구 강화 (기존 패턴 반영)
   enhanced = enhanced.replace(/예약/g, '지금 예약');
   enhanced = enhanced.replace(/문의/g, '📞문의');
   enhanced = enhanced.replace(/상담/g, '📞상담');
   
-  // 3. 긴급성 표현 추가
+  // 3. 긴급성 표현 추가 (기존 패턴 반영)
   enhanced = enhanced.replace(/기회/g, '지금 기회');
   enhanced = enhanced.replace(/할인/g, '한정 할인');
   
-  // 4. 강력한 행동 유도 문구 추가 (길이 허용 시)
+  // 4. 시각적 구분자 추가 (기존 패턴 반영)
+  enhanced = enhanced.replace(/(최저가|특가|할인)/g, '▶$1');
+  enhanced = enhanced.replace(/(선착순|한정|이벤트)/g, '※$1');
+  
+  // 5. 강력한 행동 유도 문구 추가 (길이 허용 시, 기존 패턴 반영)
   if (enhanced.length < maxLength - 50) {
     // 전화번호가 이미 있으면 간단하게, 없으면 강력하게
-    if (enhanced.includes('📞')) {
-      enhanced += '\n\n🔥 지금 전화하세요!';
+    if (enhanced.includes('☎')) {
+      enhanced += '\n\n→ 지금 바로 전화주세요!';
     } else {
-      enhanced += '\n\n🔥 지금 전화하세요! 📞 031-215-3990';
+      enhanced += '\n\n→ 지금 바로 전화주세요!\n☎ 031-215-3990';
     }
   } else if (enhanced.length < maxLength - 20) {
     // 길이가 부족하면 간단하게
-    enhanced += '\n\n📞 지금 전화!';
+    enhanced += '\n\n☎ 지금 전화!';
   }
   
-  // 5. 추가 강화 (길이 여유가 있을 때)
+  // 6. 추가 강화 (길이 여유가 있을 때)
   if (enhanced.length < maxLength - 30) {
     enhanced = enhanced.replace(/투어/g, '특별 투어');
-    enhanced = enhanced.replace(/여행/g, '특별 여행');
-    enhanced = enhanced.replace(/골프/g, '프리미엄 골프');
+    enhanced = enhanced.replace(/여행/g, '프리미엄 여행');
+    enhanced = enhanced.replace(/골프/g, '⛳골프');
     enhanced = enhanced.replace(/패키지/g, '특별 패키지');
   }
   
-  // 6. 최종 정리 (줄바꿈 유지)
+  // 7. 최종 정리 (줄바꿈 유지)
   enhanced = enhanced.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
   enhanced = enhanced.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
   enhanced = enhanced.replace(/[ \t]+/g, ' '); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
   enhanced = enhanced.trim();
   
-  // 7. 마지막 점검 - 전화번호가 없으면 추가
-  if (!enhanced.includes('📞') && enhanced.length < maxLength - 20) {
-    enhanced += '\n\n📞 031-215-3990';
+  // 8. 마지막 점검 - 전화번호가 없으면 추가
+  if (!enhanced.includes('☎') && enhanced.length < maxLength - 20) {
+    enhanced += '\n\n☎ 031-215-3990';
   }
   
-  // 8. 최종 길이 조정
+  // 9. 최종 길이 조정
   if (enhanced.length > maxLength) {
     enhanced = enhanced.substring(0, maxLength - 3) + '...';
   }
