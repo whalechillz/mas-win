@@ -103,8 +103,8 @@ export default async function handler(req, res) {
 콘텐츠 유형: ${contentType}
 오디언스 온도: ${audienceTemp}
 브랜드 강도: ${brandWeight}
-고객 채널: ${channel.name}
-고객 페르소나: ${persona.name}`;
+고객 채널: ${channel?.name || customerChannel || 'local_customers'}
+고객 페르소나: ${persona?.name || customerPersona || 'performance_maintainer'}`;
 
         if (brandSearchResults) {
           prompt += `
@@ -117,12 +117,12 @@ ${brandSearchResults}`;
           prompt += `
 
 고객 페르소나 정보:
-- 특성: ${persona.characteristics}
-- 핵심 관심사: ${persona.core_concerns?.join(', ')}
-- 동기: ${persona.motivations?.join(', ')}
-- 페인 포인트: ${persona.pain_points?.join(', ')}
-- 마쓰구 포커스: ${persona.masgolf_focus}
-- 매슬로 욕구: ${persona.maslow_needs?.join(', ')}
+- 특성: ${persona?.characteristics || '일반 골퍼'}
+- 핵심 관심사: ${persona?.core_concerns?.join(', ') || '비거리, 정확성'}
+- 동기: ${persona?.motivations?.join(', ') || '성능 향상'}
+- 페인 포인트: ${persona?.pain_points?.join(', ') || '비거리 부족'}
+- 마쓰구 포커스: ${persona?.masgolf_focus || '비거리 향상'}
+- 매슬로 욕구: ${persona?.maslow_needs?.join(', ') || '자아실현, 존중'}
 
 고객 채널 정보:
 - 위치: ${channel.location}
@@ -152,11 +152,11 @@ ${brandSearchResults}`;
           prompt += `
 
 고객 페르소나 정보:
-- 특성: ${persona.characteristics}
-- 핵심 관심사: ${persona.core_concerns?.join(', ')}
-- 동기: ${persona.motivations?.join(', ')}
-- 페인 포인트: ${persona.pain_points?.join(', ')}
-- 매슬로 욕구: ${persona.maslow_needs?.join(', ')}
+- 특성: ${persona?.characteristics || '일반 골퍼'}
+- 핵심 관심사: ${persona?.core_concerns?.join(', ') || '비거리, 정확성'}
+- 동기: ${persona?.motivations?.join(', ') || '성능 향상'}
+- 페인 포인트: ${persona?.pain_points?.join(', ') || '비거리 부족'}
+- 매슬로 욕구: ${persona?.maslow_needs?.join(', ') || '자아실현, 존중'}
 
 브랜드 메시지:
 - 강조 방향: ${brandMessage.emphasis}`;
@@ -175,8 +175,8 @@ ${brandSearchResults}`;
 콘텐츠 유형: ${contentType}
 오디언스 온도: ${audienceTemp}
 브랜드 강도: ${brandWeight}
-고객 채널: ${channel.name}
-고객 페르소나: ${persona.name}`;
+고객 채널: ${channel?.name || customerChannel || 'local_customers'}
+고객 페르소나: ${persona?.name || customerPersona || 'performance_maintainer'}`;
 
         // 고객 스토리인 경우 특별한 프롬프트 추가
         if (contentType === 'customer_story') {
@@ -237,12 +237,12 @@ ${excerpt}`;
           prompt += `
 
 고객 페르소나 정보:
-- 특성: ${persona.characteristics}
-- 핵심 관심사: ${persona.core_concerns?.join(', ')}
-- 동기: ${persona.motivations?.join(', ')}
-- 페인 포인트: ${persona.pain_points?.join(', ')}
-- 마쓰구 포커스: ${persona.masgolf_focus}
-- 매슬로 욕구: ${persona.maslow_needs?.join(', ')}
+- 특성: ${persona?.characteristics || '일반 골퍼'}
+- 핵심 관심사: ${persona?.core_concerns?.join(', ') || '비거리, 정확성'}
+- 동기: ${persona?.motivations?.join(', ') || '성능 향상'}
+- 페인 포인트: ${persona?.pain_points?.join(', ') || '비거리 부족'}
+- 마쓰구 포커스: ${persona?.masgolf_focus || '비거리 향상'}
+- 매슬로 욕구: ${persona?.maslow_needs?.join(', ') || '자아실현, 존중'}
 
 고객 채널 정보:
 - 위치: ${channel.location}
@@ -276,11 +276,11 @@ ${excerpt ? '기존 요약 내용을 바탕으로 더 자세하고 구체적인 
           prompt += `
 
 고객 페르소나 정보:
-- 특성: ${persona.characteristics}
-- 핵심 관심사: ${persona.core_concerns?.join(', ')}
-- 동기: ${persona.motivations?.join(', ')}
-- 페인 포인트: ${persona.pain_points?.join(', ')}
-- 매슬로 욕구: ${persona.maslow_needs?.join(', ')}
+- 특성: ${persona?.characteristics || '일반 골퍼'}
+- 핵심 관심사: ${persona?.core_concerns?.join(', ') || '비거리, 정확성'}
+- 동기: ${persona?.motivations?.join(', ') || '성능 향상'}
+- 페인 포인트: ${persona?.pain_points?.join(', ') || '비거리 부족'}
+- 매슬로 욕구: ${persona?.maslow_needs?.join(', ') || '자아실현, 존중'}
 
 브랜드 메시지:
 - 강조 방향: ${brandMessage.emphasis}
@@ -299,8 +299,8 @@ ${excerpt ? '기존 요약 내용을 바탕으로 더 자세하고 구체적인 
 콘텐츠 유형: ${contentType}
 오디언스 온도: ${audienceTemp}
 브랜드 강도: ${brandWeight}
-고객 채널: ${channel.name}
-고객 페르소나: ${persona.name}`;
+고객 채널: ${channel?.name || customerChannel || 'local_customers'}
+고객 페르소나: ${persona?.name || customerPersona || 'performance_maintainer'}`;
 
         // 고객 스토리인 경우 특별한 프롬프트 추가
         if (contentType === 'customer_story') {
