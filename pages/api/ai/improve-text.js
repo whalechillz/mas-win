@@ -39,15 +39,32 @@ async function improveTextWithAI(text, channelType, messageType) {
   // 1. HTML 태그 제거
   improvedText = improvedText.replace(/<[^>]*>/g, '');
   
-  // 2. 불필요한 공백 정리 (줄바꿈 유지)
-  improvedText = improvedText.replace(/[ \t]+/g, ' ').trim(); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
+  // 2. 마크다운 문법 제거
+  improvedText = improvedText.replace(/^#{1,6}\s*/gm, ''); // #, ##, ### 등 제거
+  improvedText = improvedText.replace(/^---+\s*$/gm, ''); // --- 구분선 제거
+  improvedText = improvedText.replace(/^\*\*\s*/gm, ''); // ** 제거
+  improvedText = improvedText.replace(/\*\*([^*]+)\*\*/g, '$1'); // **텍스트** → 텍스트
+  improvedText = improvedText.replace(/^-\s*/gm, ''); // - 리스트 마커 제거
+  improvedText = improvedText.replace(/^\d+\.\s*/gm, ''); // 1. 번호 리스트 마커 제거
+  improvedText = improvedText.replace(/^•\s*/gm, ''); // • 불릿 포인트 제거
   
-  // 3. 채널별 개선 로직
+  // 3. 이상한 문자 제거
+  improvedText = improvedText.replace(/🎉\\/g, '🎉'); // 🎉\ → 🎉
+  improvedText = improvedText.replace(/\\/g, ''); // 백슬래시 제거
+  improvedText = improvedText.replace(/"/g, ''); // 따옴표 제거
+  
+  // 4. 불필요한 공백 정리 (줄바꿈 유지)
+  improvedText = improvedText.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
+  improvedText = improvedText.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
+  improvedText = improvedText.replace(/[ \t]+/g, ' '); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
+  improvedText = improvedText.trim();
+  
+  // 5. 채널별 개선 로직
   if (channelType === 'sms') {
     improvedText = improveForSMS(improvedText, messageType);
   }
 
-  // 4. 일반적인 개선
+  // 6. 일반적인 개선
   improvedText = applyGeneralImprovements(improvedText);
 
   return improvedText;
