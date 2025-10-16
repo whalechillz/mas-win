@@ -57,6 +57,7 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
 
   // 점수 계산
   useEffect(() => {
+    console.log('MessageOptimizer - content changed:', content);
     if (content.trim()) {
       const config = getChannelConfig();
       const input: ScoreInput = {
@@ -68,8 +69,12 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
         conversionGoal: config.conversionGoal
       };
       const newScore = scoreTitle(input);
+      console.log('MessageOptimizer - calculated score:', newScore);
       setScore(newScore);
       onScoreChange?.(newScore);
+    } else {
+      console.log('MessageOptimizer - no content, clearing score');
+      setScore(null);
     }
   }, [content, channelType, onScoreChange]);
 

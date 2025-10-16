@@ -69,7 +69,7 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
         if (data.success) {
           // 변환된 내용을 formData에 적용
           const optimizedContent = data.data.optimizedContent;
-          setFormData({
+          updateFormData({
             title: optimizedContent.messageText || '',
             content: optimizedContent.messageText || '',
             messageType: optimizedContent.messageType || 'SMS'
