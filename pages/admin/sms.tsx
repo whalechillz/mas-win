@@ -5,7 +5,6 @@ import { TitleScorer } from '../../components/shared/TitleScorer';
 import { ShortLinkGenerator } from '../../components/shared/ShortLinkGenerator';
 import { AIImagePicker } from '../../components/shared/AIImagePicker';
 import { MessageOptimizer } from '../../components/shared/MessageOptimizer';
-import { TextCompressor } from '../../components/shared/TextCompressor';
 import { useChannelEditor } from '../../lib/hooks/useChannelEditor';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -34,7 +33,6 @@ export default function SMSAdmin() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
   const [contentScore, setContentScore] = useState(0);
-  const [showTextCompressor, setShowTextCompressor] = useState(false);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -305,7 +303,30 @@ export default function SMSAdmin() {
                     {formData.content && formData.content.length > 90 && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setShowTextCompressor(true)}
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/ai/compress-text', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  text: formData.content,
+                                  targetLength: formData.messageType === 'SMS' ? 90 : 
+                                               formData.messageType === 'SMS300' ? 300 : 
+                                               formData.messageType === 'LMS' ? 2000 : 2000,
+                                  preserveKeywords: true
+                                })
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                updateFormData({ content: data.compressedText });
+                                alert('AI가 메시지를 압축했습니다!');
+                              }
+                            } catch (error) {
+                              console.error('AI 압축 오류:', error);
+                              alert('AI 압축에 실패했습니다.');
+                            }
+                          }}
                           className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
                         >
                           AI 압축
@@ -415,24 +436,6 @@ export default function SMSAdmin() {
                 />
               )}
 
-              {/* AI 텍스트 압축 */}
-              {showTextCompressor && (
-                <div className="mt-4">
-                  <TextCompressor
-                    originalText={formData.content}
-                    targetLength={formData.messageType === 'SMS' ? 90 : 
-                                 formData.messageType === 'SMS300' ? 300 : 
-                                 formData.messageType === 'LMS' ? 2000 : 2000}
-                    onCompressed={(compressedText) => {
-                      updateFormData({ 
-                        content: compressedText
-                      });
-                      setShowTextCompressor(false);
-                    }}
-                    onCancel={() => setShowTextCompressor(false)}
-                  />
-                </div>
-              )}
             </div>
 
             {/* 오른쪽: 미리보기 및 도구 */}
