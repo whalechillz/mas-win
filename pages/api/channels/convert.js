@@ -76,6 +76,9 @@ function generateSMSContent(title, content, excerpt, targetMessageType = null) {
     fullText += `\n\n${cleanContent}`;
   }
 
+  // 텍스트 정리 강화
+  fullText = cleanTextForSMS(fullText);
+
   // 선택된 메시지 타입이 있으면 해당 타입에 맞게 최적화
   if (targetMessageType) {
     return optimizeForMessageType(fullText, targetMessageType);
@@ -125,12 +128,12 @@ function optimizeForMessageType(fullText, targetMessageType) {
       messageType = 'SMS';
   }
 
-  // 타겟 길이에 맞게 텍스트 최적화
-  let optimizedText = fullText;
+  // 전화/문자 유도 메시지로 강화
+  let optimizedText = enhanceForCallToAction(fullText, maxLength);
   
-  if (fullText.length > maxLength) {
+  if (optimizedText.length > maxLength) {
     // 타겟 길이보다 길면 핵심 내용만 추출
-    optimizedText = extractKeyContent(fullText, maxLength);
+    optimizedText = extractKeyContent(optimizedText, maxLength);
   }
 
   return {
@@ -145,20 +148,26 @@ function extractKeyContent(text, maxLength) {
   // 문장 단위로 분리
   const sentences = text.split(/[.!?]\s*/).filter(s => s.trim().length > 0);
   
-  // 핵심 키워드 추출
-  const keywords = ['골프', '여행', '투어', '할인', '특가', '이벤트', '예약', '문의', '상담'];
+  // 핵심 키워드 추출 (전화/문자 유도 키워드 우선)
+  const keywords = ['예약', '문의', '상담', '전화', '골프', '여행', '투어', '할인', '특가', '이벤트'];
   
   // 키워드가 포함된 문장 우선 선택
   const rankedSentences = sentences.map(sentence => {
     let score = 0;
     keywords.forEach(keyword => {
       if (sentence.toLowerCase().includes(keyword.toLowerCase())) {
-        score += 10;
+        // 전화/문자 유도 키워드는 더 높은 점수
+        if (['예약', '문의', '상담', '전화'].includes(keyword)) {
+          score += 20;
+        } else {
+          score += 10;
+        }
       }
     });
     
-    // 숫자 포함 점수
-    if (/\d+/.test(sentence)) score += 5;
+    // 숫자 포함 점수 (전화번호 등)
+    if (/\d{3}-\d{3,4}-\d{4}/.test(sentence)) score += 15; // 전화번호 패턴
+    else if (/\d+/.test(sentence)) score += 5; // 일반 숫자
     
     // 물음표나 느낌표 포함 점수
     if (/[!?]/.test(sentence)) score += 3;
@@ -194,6 +203,106 @@ function extractKeyContent(text, maxLength) {
   }
   
   return result.trim();
+}
+
+// 새로운 함수: SMS용 텍스트 정리
+function cleanTextForSMS(text) {
+  let cleaned = text;
+  
+  // 1. 마크다운 문법 제거
+  cleaned = cleaned.replace(/^#{1,6}\s*/gm, ''); // #, ##, ### 등 제거
+  cleaned = cleaned.replace(/^---+\s*$/gm, ''); // --- 구분선 제거
+  cleaned = cleaned.replace(/^\*\*\s*/gm, ''); // ** 제거
+  cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1'); // **텍스트** → 텍스트
+  
+  // 2. 불완전한 링크 제거
+  cleaned = cleaned.replace(/\(https?:\/\/[^)]*$/gm, ''); // 불완전한 링크 제거
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1'); // [텍스트](링크) → 텍스트
+  
+  // 3. 이미지 마크다운 제거
+  cleaned = cleaned.replace(/!\[([^\]]*)\]\([^)]*\)/g, ''); // ![alt](url) 제거
+  cleaned = cleaned.replace(/Jpg\)##/g, ''); // Jpg)## 제거
+  
+  // 4. 불필요한 공백 정리
+  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
+  cleaned = cleaned.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
+  cleaned = cleaned.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나로
+  
+  // 5. 추가 정리
+  cleaned = cleaned.replace(/^-\s*/gm, ''); // - 리스트 마커 제거
+  cleaned = cleaned.replace(/^\d+\.\s*/gm, ''); // 1. 번호 리스트 마커 제거
+  cleaned = cleaned.replace(/^•\s*/gm, ''); // • 불릿 포인트 제거
+  
+  // 6. 불필요한 문구 제거
+  cleaned = cleaned.replace(/해시태그\s*#/g, ''); // 해시태그 제거
+  cleaned = cleaned.replace(/#[가-힣\w]+/g, ''); // #태그 제거
+  
+  // 7. 추가 정리
+  cleaned = cleaned.replace(/^투어 정보\s*-\s*/gm, ''); // "투어 정보 -" 제거
+  cleaned = cleaned.replace(/^포함 내역\s*-\s*/gm, ''); // "포함 내역 -" 제거
+  cleaned = cleaned.replace(/^불포함 내역\s*-\s*/gm, ''); // "불포함 내역 -" 제거
+  cleaned = cleaned.replace(/^예약 안내\s*/gm, ''); // "예약 안내" 제거
+  
+  // 8. 불필요한 설명 제거
+  cleaned = cleaned.replace(/^안녕하세요[^.]*\./gm, ''); // "안녕하세요..." 제거
+  cleaned = cleaned.replace(/^여러분의 소중한 추억[^.]*\./gm, ''); // 불필요한 문구 제거
+  
+  return cleaned;
+}
+
+// 새로운 함수: 전화/문자 유도 메시지 강화
+function enhanceForCallToAction(text, maxLength) {
+  let enhanced = text;
+  
+  // 1. 전화번호 강조
+  enhanced = enhanced.replace(/(\d{3}-\d{3,4}-\d{4})/g, '📞 $1');
+  
+  // 2. 행동 유도 문구 강화
+  enhanced = enhanced.replace(/예약/g, '지금 예약');
+  enhanced = enhanced.replace(/문의/g, '📞문의');
+  enhanced = enhanced.replace(/상담/g, '📞상담');
+  
+  // 3. 긴급성 표현 추가
+  enhanced = enhanced.replace(/기회/g, '지금 기회');
+  enhanced = enhanced.replace(/할인/g, '한정 할인');
+  
+  // 4. 강력한 행동 유도 문구 추가 (길이 허용 시)
+  if (enhanced.length < maxLength - 50) {
+    // 전화번호가 이미 있으면 간단하게, 없으면 강력하게
+    if (enhanced.includes('📞')) {
+      enhanced += '\n\n🔥 지금 전화하세요!';
+    } else {
+      enhanced += '\n\n🔥 지금 전화하세요! 📞 031-215-3990';
+    }
+  } else if (enhanced.length < maxLength - 20) {
+    // 길이가 부족하면 간단하게
+    enhanced += '\n\n📞 지금 전화!';
+  }
+  
+  // 5. 추가 강화 (길이 여유가 있을 때)
+  if (enhanced.length < maxLength - 30) {
+    enhanced = enhanced.replace(/투어/g, '특별 투어');
+    enhanced = enhanced.replace(/여행/g, '특별 여행');
+    enhanced = enhanced.replace(/골프/g, '프리미엄 골프');
+    enhanced = enhanced.replace(/패키지/g, '특별 패키지');
+  }
+  
+  // 6. 최종 정리
+  enhanced = enhanced.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
+  enhanced = enhanced.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
+  enhanced = enhanced.trim();
+  
+  // 7. 마지막 점검 - 전화번호가 없으면 추가
+  if (!enhanced.includes('📞') && enhanced.length < maxLength - 20) {
+    enhanced += '\n\n📞 031-215-3990';
+  }
+  
+  // 8. 최종 길이 조정
+  if (enhanced.length > maxLength) {
+    enhanced = enhanced.substring(0, maxLength - 3) + '...';
+  }
+  
+  return enhanced;
 }
 
 function generateKakaoContent(title, content, excerpt, tags) {
