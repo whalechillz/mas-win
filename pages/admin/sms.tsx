@@ -69,13 +69,10 @@ export default function SMSAdmin() {
     console.log('이전 mobilePreviewText:', mobilePreviewText);
     console.log('새로운 mobilePreviewText:', newPreviewText);
     
-    if (newPreviewText !== mobilePreviewText) {
-      console.log('모바일 미리보기 텍스트 변경됨, 업데이트');
-      setMobilePreviewText(newPreviewText);
-    } else {
-      console.log('모바일 미리보기 텍스트 동일함, 업데이트 스킵');
-    }
-  }, [formData.content, formData.shortLink, formData.imageUrl, mobilePreviewText]);
+    // 항상 업데이트 (React가 내부적으로 변경사항을 감지)
+    console.log('모바일 미리보기 텍스트 업데이트');
+    setMobilePreviewText(newPreviewText);
+  }, [formData.content, formData.shortLink, formData.imageUrl]);
 
   // 블로그 포스트 목록 로드
   useEffect(() => {
