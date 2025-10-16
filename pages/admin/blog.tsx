@@ -435,7 +435,7 @@ export default function BlogAdmin() {
   const [migratedPosts, setMigratedPosts] = useState([]);
 
   // 고급 기능 관련 상태
-  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
+  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(true); // 항상 표시
   const [isOptimizingSEO, setIsOptimizingSEO] = useState(false);
   const [seoOptimizationResult, setSeoOptimizationResult] = useState('');
 
@@ -3152,7 +3152,9 @@ export default function BlogAdmin() {
             meta_title: suggestions.meta_title || prev.meta_title,
             meta_description: suggestions.meta_description || prev.meta_description,
             slug: suggestions.slug || prev.slug,
-            meta_keywords: suggestions.keywords || prev.meta_keywords
+            meta_keywords: suggestions.keywords || prev.meta_keywords,
+            // 요약이 없으면 메타 설명을 요약으로도 사용
+            excerpt: prev.excerpt || suggestions.meta_description || prev.excerpt
           }));
         }
         
@@ -4178,24 +4180,14 @@ export default function BlogAdmin() {
 
                 {/* 고급 기능 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
-                      <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
-                    </div>
-                    <button 
-                      type="button"
-                      onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
-                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm"
-                    >
-                      {showAdvancedFeatures ? '숨기기' : '고급 기능 열기'}
-                    </button>
+                  <div className="flex items-center space-x-2 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
+                    <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
                   </div>
                   
-                  {showAdvancedFeatures && (
-                    <div className="space-y-6">
-                      {/* SEO 최적화 기능 */}
-                      <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="space-y-6">
+                    {/* SEO 최적화 기능 */}
+                    <div className="border border-gray-200 rounded-lg p-6">
                         <h4 className="text-md font-semibold text-gray-900 mb-4">📈 SEO 최적화</h4>
                         
                         <div className="space-y-4">
@@ -4204,6 +4196,7 @@ export default function BlogAdmin() {
                             <ul className="text-sm text-blue-700 space-y-1">
                               <li>• 제목과 내용을 기반으로 SEO 최적화 제안</li>
                               <li>• 메타 제목, 메타 설명, 슬러그 자동 생성</li>
+                              <li>• <strong>요약이 없으면 자동으로 요약 생성</strong></li>
                               <li>• 검색 엔진 최적화를 위한 키워드 제안</li>
                               <li>• 최적화된 내용을 자동으로 폼에 적용</li>
                             </ul>
@@ -4223,7 +4216,7 @@ export default function BlogAdmin() {
                             ) : (
                               <>
                                 <span>📈</span>
-                                <span>SEO 최적화 시작</span>
+                                <span>SEO 최적화 시작 (요약 자동 생성)</span>
                               </>
                             )}
                           </button>
@@ -4315,10 +4308,8 @@ export default function BlogAdmin() {
                       )}
                     </div>
                     </div>
-
-                    </div>
-                  )}
-                    </div>
+                  </div>
+                </div>
 
                 {/* 갤러리 열기/닫기 버튼 */}
                 <div className="flex justify-center py-4">
