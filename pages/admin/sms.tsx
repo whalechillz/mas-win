@@ -35,11 +35,35 @@ export default function SMSAdmin() {
   const [contentScore, setContentScore] = useState(0);
   const [psychologyMessages, setPsychologyMessages] = useState([]);
   const [showPsychologyModal, setShowPsychologyModal] = useState(false);
+  const [mobilePreviewText, setMobilePreviewText] = useState('');
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
     console.log('SMS 에디터 - 현재 messageType:', formData.messageType);
   }, [formData.messageType]);
+
+  // 모바일 미리보기 텍스트 추출 및 업데이트
+  useEffect(() => {
+    const extractMobilePreviewText = () => {
+      let previewText = formData.content || '';
+      
+      // 짧은 링크가 있으면 추가
+      if (formData.shortLink) {
+        previewText += `\n\n링크: ${formData.shortLink}`;
+      }
+      
+      // 이미지가 있으면 이미지 표시 텍스트 추가
+      if (formData.imageUrl) {
+        previewText += '\n\n[이미지 첨부]';
+      }
+      
+      return previewText.trim();
+    };
+    
+    const newPreviewText = extractMobilePreviewText();
+    setMobilePreviewText(newPreviewText);
+    console.log('모바일 미리보기 텍스트 업데이트:', newPreviewText);
+  }, [formData.content, formData.shortLink, formData.imageUrl]);
 
   // 블로그 포스트 목록 로드
   useEffect(() => {
@@ -493,7 +517,7 @@ export default function SMSAdmin() {
                     </div>
                   </div>
                   <MessageOptimizer
-                    content={formData.content}
+                    content={mobilePreviewText || formData.content}
                     channelType="sms"
                     onScoreChange={(score) => setContentScore(score.total)}
                     showDetails={true}
