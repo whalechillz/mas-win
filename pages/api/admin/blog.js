@@ -12,6 +12,37 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// 고유 slug 생성 함수
+async function generateUniqueSlug(title) {
+  let baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .substring(0, 80);
+  
+  let slug = baseSlug;
+  
+  // 중복 확인 및 고유 slug 생성
+  while (true) {
+    const { data: existing } = await supabase
+      .from('blog_posts')
+      .select('id')
+      .eq('slug', slug)
+      .single();
+    
+    if (!existing) {
+      break;
+    }
+    
+    slug = `${baseSlug}-${Date.now()}`;
+    break;
+  }
+  
+  return slug;
+}
+
 export default async function handler(req, res) {
   console.log('🔍 관리자 API 요청:', req.method, req.url);
   
@@ -80,6 +111,12 @@ export default async function handler(req, res) {
       if (!postData.title) {
         console.error('❌ 제목이 없습니다:', postData);
         return res.status(400).json({ error: '제목은 필수입니다.' });
+      }
+      
+      // slug가 없으면 자동 생성
+      if (!postData.slug) {
+        postData.slug = await generateUniqueSlug(postData.title);
+        console.log('🔗 자동 생성된 slug:', postData.slug);
       }
       
       const { data: newPost, error } = await supabase
