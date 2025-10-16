@@ -57,12 +57,16 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
 
   // 점수 계산
   useEffect(() => {
+    console.log('=== MessageOptimizer useEffect 트리거 ===');
     console.log('MessageOptimizer - content changed:', content);
     console.log('MessageOptimizer - content length:', content.length);
     console.log('MessageOptimizer - channelType:', channelType);
+    console.log('MessageOptimizer - previous score:', score);
     
     if (content.trim()) {
       const config = getChannelConfig();
+      console.log('MessageOptimizer - config:', config);
+      
       const input: ScoreInput = {
         title: content,
         persona: config.persona,
@@ -71,6 +75,8 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
         brandWeight: config.brandWeight,
         conversionGoal: config.conversionGoal
       };
+      console.log('MessageOptimizer - input:', input);
+      
       const newScore = scoreTitle(input);
       console.log('MessageOptimizer - calculated score:', newScore);
       console.log('MessageOptimizer - score breakdown:', {
@@ -80,8 +86,15 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
         conversionPotential: newScore.conversionPotential,
         total: newScore.total
       });
-      setScore(newScore);
-      onScoreChange?.(newScore);
+      
+      // 점수가 실제로 변경되었는지 확인
+      if (!score || score.total !== newScore.total) {
+        console.log('MessageOptimizer - 점수 변경됨:', score?.total, '→', newScore.total);
+        setScore(newScore);
+        onScoreChange?.(newScore);
+      } else {
+        console.log('MessageOptimizer - 점수 동일함, 업데이트 스킵');
+      }
     } else {
       console.log('MessageOptimizer - no content, clearing score');
       setScore(null);

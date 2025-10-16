@@ -44,6 +44,11 @@ export default function SMSAdmin() {
 
   // 모바일 미리보기 텍스트 추출 및 업데이트
   useEffect(() => {
+    console.log('=== 모바일 미리보기 텍스트 useEffect 트리거 ===');
+    console.log('formData.content:', formData.content);
+    console.log('formData.shortLink:', formData.shortLink);
+    console.log('formData.imageUrl:', formData.imageUrl);
+    
     const extractMobilePreviewText = () => {
       let previewText = formData.content || '';
       
@@ -61,9 +66,16 @@ export default function SMSAdmin() {
     };
     
     const newPreviewText = extractMobilePreviewText();
-    setMobilePreviewText(newPreviewText);
-    console.log('모바일 미리보기 텍스트 업데이트:', newPreviewText);
-  }, [formData.content, formData.shortLink, formData.imageUrl]);
+    console.log('이전 mobilePreviewText:', mobilePreviewText);
+    console.log('새로운 mobilePreviewText:', newPreviewText);
+    
+    if (newPreviewText !== mobilePreviewText) {
+      console.log('모바일 미리보기 텍스트 변경됨, 업데이트');
+      setMobilePreviewText(newPreviewText);
+    } else {
+      console.log('모바일 미리보기 텍스트 동일함, 업데이트 스킵');
+    }
+  }, [formData.content, formData.shortLink, formData.imageUrl, mobilePreviewText]);
 
   // 블로그 포스트 목록 로드
   useEffect(() => {
@@ -519,7 +531,17 @@ export default function SMSAdmin() {
                   <MessageOptimizer
                     content={mobilePreviewText || formData.content}
                     channelType="sms"
-                    onScoreChange={(score) => setContentScore(score.total)}
+                    onScoreChange={(score) => {
+                      console.log('=== MessageOptimizer onScoreChange 콜백 ===');
+                      console.log('이전 contentScore:', contentScore);
+                      console.log('새로운 score.total:', score.total);
+                      if (contentScore !== score.total) {
+                        console.log('contentScore 변경됨:', contentScore, '→', score.total);
+                        setContentScore(score.total);
+                      } else {
+                        console.log('contentScore 동일함, 업데이트 스킵');
+                      }
+                    }}
                     showDetails={true}
                   />
                 </div>
