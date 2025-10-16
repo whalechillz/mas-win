@@ -64,12 +64,6 @@ export default async function handler(req, res) {
       meta_description: metaDescription,
       meta_keywords: allTags.slice(0, 10).join(', '),
       author: '마쓰구골프',
-      combined_from: posts.map(post => ({
-        title: post.title,
-        url: post.url,
-        original_id: post.id
-      })),
-      combined_count: posts.length,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
