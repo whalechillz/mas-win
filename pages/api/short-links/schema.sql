@@ -23,3 +23,4 @@ $$;
 create index if not exists idx_short_links_code on public.short_links(code);
 
 
+
