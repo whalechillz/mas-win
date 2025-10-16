@@ -38,25 +38,46 @@ async function compressTextWithAI(text, targetLength, preserveKeywords) {
   // 1. HTML 태그 제거
   let cleanText = text.replace(/<[^>]*>/g, '');
   
-  // 2. 불필요한 공백 정리 (줄바꿈 유지)
-  cleanText = cleanText.replace(/[ \t]+/g, ' ').trim(); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
+  // 2. 마크다운 문법 제거
+  cleanText = cleanText.replace(/^#{1,6}\s*/gm, ''); // #, ##, ### 등 제거
+  cleanText = cleanText.replace(/^---+\s*$/gm, ''); // --- 구분선 제거
+  cleanText = cleanText.replace(/^\*\*\s*/gm, ''); // ** 제거
+  cleanText = cleanText.replace(/\*\*([^*]+)\*\*/g, '$1'); // **텍스트** → 텍스트
+  cleanText = cleanText.replace(/^-\s*/gm, ''); // - 리스트 마커 제거
+  cleanText = cleanText.replace(/^\d+\.\s*/gm, ''); // 1. 번호 리스트 마커 제거
+  cleanText = cleanText.replace(/^•\s*/gm, ''); // • 불릿 포인트 제거
   
-  // 3. 핵심 키워드 추출 (골프, 여행, 할인, 이벤트 등)
+  // 3. 이상한 문자 제거
+  cleanText = cleanText.replace(/🎉\\/g, '🎉'); // 🎉\ → 🎉
+  cleanText = cleanText.replace(/\\/g, ''); // 백슬래시 제거
+  cleanText = cleanText.replace(/"/g, ''); // 따옴표 제거
+  
+  // 4. 불필요한 공백 정리 (줄바꿈 유지)
+  cleanText = cleanText.replace(/\n\s*\n\s*\n/g, '\n\n'); // 연속된 줄바꿈 정리
+  cleanText = cleanText.replace(/^\s+|\s+$/gm, ''); // 각 줄의 앞뒤 공백 제거
+  cleanText = cleanText.replace(/[ \t]+/g, ' '); // 탭과 연속된 공백만 하나로 (줄바꿈은 유지)
+  cleanText = cleanText.trim();
+  
+  // 5. 핵심 키워드 추출 (골프, 여행, 할인, 이벤트 등)
   const keywords = extractKeywords(cleanText);
   
-  // 4. 문장 단위로 분리
-  const sentences = cleanText.split(/[.!?]\s*/).filter(s => s.trim().length > 0);
+  // 6. 문장 단위로 분리 (완전한 문장만)
+  const sentences = cleanText.split(/[.!?]\s*/)
+    .filter(s => s.trim().length > 5) // 너무 짧은 문장 제거
+    .filter(s => !s.match(/^[가-힣]*[장\.]$/)) // "장." 같은 불완전한 문장 제거
+    .filter(s => !s.match(/^[0-9\-\s]*$/)) // 숫자만 있는 문장 제거
+    .map(s => s.trim());
   
-  // 5. 중요도 기반 문장 정렬
+  // 7. 중요도 기반 문장 정렬
   const rankedSentences = rankSentences(sentences, keywords);
   
-  // 6. 목표 길이에 맞게 문장 선택 (줄바꿈 고려)
+  // 8. 목표 길이에 맞게 문장 선택 (줄바꿈 고려)
   let result = '';
   let currentLength = 0;
   
   for (const sentence of rankedSentences) {
     const sentenceWithPunctuation = sentence.trim() + '.';
-    if (currentLength + sentenceWithPunctuation.length <= targetLength - 10) { // 여유분 10자
+    if (currentLength + sentenceWithPunctuation.length <= targetLength - 20) { // 여유분 20자
       // 첫 번째 문장이 아니면 줄바꿈 추가
       if (result) {
         result += '\n' + sentenceWithPunctuation;
@@ -69,16 +90,16 @@ async function compressTextWithAI(text, targetLength, preserveKeywords) {
     }
   }
   
-  // 7. 목표 길이보다 짧으면 핵심 키워드 추가
-  if (result.length < targetLength - 20) {
-    const remainingSpace = targetLength - result.length - 20;
-    const keywordText = keywords.slice(0, 3).join(' ');
+  // 9. 목표 길이보다 짧으면 핵심 키워드 추가
+  if (result.length < targetLength - 30) {
+    const remainingSpace = targetLength - result.length - 30;
+    const keywordText = keywords.slice(0, 2).join(' ');
     if (keywordText.length <= remainingSpace) {
       result += `\n${keywordText}`;
     }
   }
   
-  // 8. 최종 길이 조정
+  // 10. 최종 길이 조정
   if (result.length > targetLength) {
     result = result.substring(0, targetLength - 3) + '...';
   }
