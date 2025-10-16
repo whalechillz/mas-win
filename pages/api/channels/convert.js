@@ -68,7 +68,13 @@ function generateSMSContent(title, content, excerpt, targetMessageType = null) {
   // 전체 내용을 하나의 메시지로 구성
   let fullText = title;
   
-  if (excerpt && excerpt.length > 0) {
+  // LMS/MMS (2000자)의 경우 전체 본문 사용, SMS/SMS300의 경우 excerpt 우선 사용
+  if (targetMessageType === 'LMS' || targetMessageType === 'MMS') {
+    // LMS/MMS는 전체 본문 사용
+    const cleanContent = content.replace(/<[^>]*>/g, '').trim();
+    fullText += `\n\n${cleanContent}`;
+  } else if (excerpt && excerpt.length > 0) {
+    // SMS/SMS300은 excerpt 우선 사용 (짧은 요약본)
     fullText += `\n\n${excerpt}`;
   } else {
     // excerpt가 없으면 content에서 HTML 태그 제거 후 사용
