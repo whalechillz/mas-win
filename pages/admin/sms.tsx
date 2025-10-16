@@ -303,12 +303,41 @@ export default function SMSAdmin() {
                       </span>
                     </div>
                     {formData.content && formData.content.length > 90 && (
-                      <button
-                        onClick={() => setShowTextCompressor(true)}
-                        className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
-                      >
-                        AI 압축
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowTextCompressor(true)}
+                          className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
+                        >
+                          AI 압축
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/ai/improve-text', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  text: formData.content,
+                                  channelType: 'sms',
+                                  messageType: formData.messageType
+                                })
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                updateFormData({ content: data.improvedText });
+                                alert('AI가 메시지를 개선했습니다!');
+                              }
+                            } catch (error) {
+                              console.error('AI 개선 오류:', error);
+                              alert('AI 개선에 실패했습니다.');
+                            }
+                          }}
+                          className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          AI 개선
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -391,11 +420,12 @@ export default function SMSAdmin() {
                 <div className="mt-4">
                   <TextCompressor
                     originalText={formData.content}
-                    targetLength={90}
+                    targetLength={formData.messageType === 'SMS' ? 90 : 
+                                 formData.messageType === 'SMS300' ? 300 : 
+                                 formData.messageType === 'LMS' ? 2000 : 2000}
                     onCompressed={(compressedText) => {
                       updateFormData({ 
-                        content: compressedText,
-                        messageType: 'SMS'
+                        content: compressedText
                       });
                       setShowTextCompressor(false);
                     }}
@@ -409,11 +439,31 @@ export default function SMSAdmin() {
             <div className="space-y-6">
               {/* 메시지 내용 최적화 점수 */}
               {formData.content && (
-                <MessageOptimizer
-                  content={formData.content}
-                  channelType="sms"
-                  onScoreChange={(score) => setContentScore(score.total)}
-                />
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-800">SMS/MMS 최적화 점수</h3>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                        contentScore >= 80 ? 'bg-green-500' : 
+                        contentScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}>
+                        {contentScore}
+                      </div>
+                      <span className={`text-sm font-medium ${
+                        contentScore >= 80 ? 'text-green-600' : 
+                        contentScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {contentScore >= 80 ? '우수' : contentScore >= 60 ? '양호' : '개선 필요'}
+                      </span>
+                    </div>
+                  </div>
+                  <MessageOptimizer
+                    content={formData.content}
+                    channelType="sms"
+                    onScoreChange={(score) => setContentScore(score.total)}
+                    showDetails={true}
+                  />
+                </div>
               )}
 
               {/* 모바일 미리보기 */}
