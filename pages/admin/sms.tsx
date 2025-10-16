@@ -32,12 +32,10 @@ export default function SMSAdmin() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
 
-  // 메시지 타입 초기값 설정
+  // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
-    if (!formData.messageType) {
-      updateFormData({ messageType: 'SMS' });
-    }
-  }, [formData.messageType, updateFormData]);
+    console.log('SMS 에디터 - 현재 messageType:', formData.messageType);
+  }, [formData.messageType]);
 
   // 블로그 포스트 목록 로드
   useEffect(() => {
@@ -92,7 +90,9 @@ export default function SMSAdmin() {
 
   // 메시지 타입별 최대 길이
   const getMaxLength = () => {
-    switch (formData.messageType) {
+    const messageType = formData.messageType || 'SMS';
+    console.log('getMaxLength - messageType:', messageType);
+    switch (messageType) {
       case 'SMS': return 90;
       case 'LMS': return 2000;
       case 'MMS': return 2000;
@@ -281,6 +281,9 @@ export default function SMSAdmin() {
                   <h3 className="font-semibold text-gray-800">메시지 내용</h3>
                   <div className={`text-sm ${getLengthStatus().color}`}>
                     {getMessageLength()}/{getMaxLength()}자
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({formData.messageType || 'SMS'})
+                    </span>
                   </div>
                 </div>
                 <textarea
