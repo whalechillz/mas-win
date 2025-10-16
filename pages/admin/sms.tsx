@@ -4,6 +4,7 @@ import AdminNav from '../../components/admin/AdminNav';
 import { TitleScorer } from '../../components/shared/TitleScorer';
 import { ShortLinkGenerator } from '../../components/shared/ShortLinkGenerator';
 import { AIImagePicker } from '../../components/shared/AIImagePicker';
+import { MessageOptimizer } from '../../components/shared/MessageOptimizer';
 import { useChannelEditor } from '../../lib/hooks/useChannelEditor';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -31,6 +32,7 @@ export default function SMSAdmin() {
   const [isSending, setIsSending] = useState(false);
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
+  const [contentScore, setContentScore] = useState(0);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -100,11 +102,13 @@ export default function SMSAdmin() {
     }
   };
 
+  // 문자 길이 상태 (실시간 업데이트)
+  const messageLength = getMessageLength();
+  const maxLength = getMaxLength();
+
   // 문자 길이 상태
   const getLengthStatus = () => {
-    const length = getMessageLength();
-    const maxLength = getMaxLength();
-    const percentage = (length / maxLength) * 100;
+    const percentage = (messageLength / maxLength) * 100;
     
     if (percentage > 100) return { color: 'text-red-600', bg: 'bg-red-500' };
     if (percentage > 80) return { color: 'text-yellow-600', bg: 'bg-yellow-500' };
@@ -280,7 +284,7 @@ export default function SMSAdmin() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-800">메시지 내용</h3>
                   <div className={`text-sm ${getLengthStatus().color}`}>
-                    {getMessageLength()}/{getMaxLength()}자
+                    {messageLength}/{maxLength}자
                     <span className="ml-2 text-xs text-gray-500">
                       ({formData.messageType || 'SMS'})
                     </span>
@@ -363,6 +367,15 @@ export default function SMSAdmin() {
 
             {/* 오른쪽: 미리보기 및 도구 */}
             <div className="space-y-6">
+              {/* 메시지 내용 최적화 점수 */}
+              {formData.content && (
+                <MessageOptimizer
+                  content={formData.content}
+                  channelType="sms"
+                  onScoreChange={(score) => setContentScore(score.total)}
+                />
+              )}
+
               {/* 모바일 미리보기 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
