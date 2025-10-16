@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import AdminNav from '@/components/admin/AdminNav';
 
 const BaseChannelEditor = dynamic(() => import('@/components/shared/BaseChannelEditor'), { ssr: false });
 
@@ -119,23 +120,26 @@ export default function NaverBlogEditor() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <BaseChannelEditor
-        channelType="naver"
-        channelName="네이버 블로그"
-        calendarId={calendarId as string}
-        initialData={formData}
-        onSave={(data) => {
-          console.log('Naver blog saved:', data);
-          // 성공 메시지 표시
-        }}
-        onSend={(data) => {
-          console.log('Naver blog sent:', data);
-          // 성공 메시지 표시
-        }}
-      >
-        <NaverSpecificComponents />
-      </BaseChannelEditor>
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav />
+      <div className="py-8">
+        <BaseChannelEditor
+          channelType="naver"
+          channelName="네이버 블로그"
+          calendarId={calendarId as string}
+          initialData={formData}
+          onSave={(data) => {
+            console.log('Naver blog saved:', data);
+            // 성공 메시지 표시
+          }}
+          onSend={(data) => {
+            console.log('Naver blog sent:', data);
+            // 성공 메시지 표시
+          }}
+        >
+          <NaverSpecificComponents />
+        </BaseChannelEditor>
+      </div>
     </div>
   );
 }

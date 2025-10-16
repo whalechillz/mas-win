@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import AdminNav from '@/components/admin/AdminNav';
 
 const BaseChannelEditor = dynamic(() => import('@/components/shared/BaseChannelEditor'), { ssr: false });
 
@@ -121,23 +122,26 @@ export default function KakaoChannelEditor() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <BaseChannelEditor
-        channelType="kakao"
-        channelName="카카오 채널"
-        calendarId={calendarId as string}
-        initialData={formData}
-        onSave={(data) => {
-          console.log('Kakao channel saved:', data);
-          // 성공 메시지 표시
-        }}
-        onSend={(data) => {
-          console.log('Kakao channel sent:', data);
-          // 성공 메시지 표시
-        }}
-      >
-        <KakaoSpecificComponents />
-      </BaseChannelEditor>
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav />
+      <div className="py-8">
+        <BaseChannelEditor
+          channelType="kakao"
+          channelName="카카오 채널"
+          calendarId={calendarId as string}
+          initialData={formData}
+          onSave={(data) => {
+            console.log('Kakao channel saved:', data);
+            // 성공 메시지 표시
+          }}
+          onSend={(data) => {
+            console.log('Kakao channel sent:', data);
+            // 성공 메시지 표시
+          }}
+        >
+          <KakaoSpecificComponents />
+        </BaseChannelEditor>
+      </div>
     </div>
   );
 }
