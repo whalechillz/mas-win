@@ -58,6 +58,9 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
   // 점수 계산
   useEffect(() => {
     console.log('MessageOptimizer - content changed:', content);
+    console.log('MessageOptimizer - content length:', content.length);
+    console.log('MessageOptimizer - channelType:', channelType);
+    
     if (content.trim()) {
       const config = getChannelConfig();
       const input: ScoreInput = {
@@ -70,6 +73,13 @@ export const MessageOptimizer: React.FC<MessageOptimizerProps> = ({
       };
       const newScore = scoreTitle(input);
       console.log('MessageOptimizer - calculated score:', newScore);
+      console.log('MessageOptimizer - score breakdown:', {
+        audienceMatch: newScore.audienceMatch,
+        psychEffect: newScore.psychEffect,
+        brandFit: newScore.brandFit,
+        conversionPotential: newScore.conversionPotential,
+        total: newScore.total
+      });
       setScore(newScore);
       onScoreChange?.(newScore);
     } else {
