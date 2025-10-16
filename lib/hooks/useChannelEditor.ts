@@ -70,9 +70,7 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
           setFormData({
             title: optimizedContent.messageText || '',
             content: optimizedContent.messageText || '',
-            messageType: optimizedContent.messageType || 'SMS',
-            characterCount: optimizedContent.characterCount || 0,
-            maxLength: optimizedContent.maxLength || 90
+            messageType: optimizedContent.messageType || 'SMS'
           });
           return blogPostId;
         } else {
@@ -96,14 +94,31 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/channels/${channelType}/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // 채널별 데이터 매핑
+      let requestData;
+      if (channelType === 'sms') {
+        requestData = {
+          calendarId,
+          blogPostId,
+          messageType: formData.messageType || 'SMS',
+          messageText: formData.content || formData.title || '',
+          shortLink: formData.shortLink,
+          imageUrl: formData.imageUrl,
+          recipientNumbers: formData.recipientNumbers || [],
+          status: formData.status || 'draft'
+        };
+      } else {
+        requestData = {
           ...formData,
           calendarId,
           blogPostId
-        })
+        };
+      }
+
+      const response = await fetch(`/api/channels/${channelType}/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
       });
 
       if (response.ok) {
