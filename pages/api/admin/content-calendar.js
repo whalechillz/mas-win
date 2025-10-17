@@ -28,12 +28,26 @@ export default async function handler(req, res) {
   try {
     console.log('🔍 콘텐츠 캘린더 API 시작');
     
-    // cc_content_calendar 테이블에서 데이터 가져오기
+    // 쿼리 파라미터 추출
+    const { page = 1, limit = 50, status, content_type } = req.query;
+    const offset = (page - 1) * limit;
+    
+    console.log('📊 페이지네이션 파라미터:', { page, limit, offset, status, content_type });
+    
+    // cc_content_calendar 테이블에서 데이터 가져오기 (최적화된 쿼리)
     console.log('📅 cc_content_calendar 테이블 조회 시작...');
-    const { data: calendarData, error: calendarError } = await supabase
+    
+    let query = supabase
       .from('cc_content_calendar')
-      .select('*')
-      .order('content_date', { ascending: false });
+      .select('id, title, content_type, content_date, status, blog_post_id, published_channels, target_audience, seo_meta, content_body', { count: 'exact' })
+      .order('content_date', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // 필터 적용
+    if (status) query = query.eq('status', status);
+    if (content_type) query = query.eq('content_type', content_type);
+
+    const { data: calendarData, error: calendarError, count } = await query;
     
     console.log('📅 cc_content_calendar 조회 결과:', {
       dataLength: calendarData ? calendarData.length : 0,
@@ -50,13 +64,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // blog_posts 테이블에서도 데이터 가져오기 (연동된 블로그 포스트)
+    // blog_posts 테이블에서도 데이터 가져오기 (연동된 블로그 포스트) - 최적화
     console.log('📝 blog_posts 테이블 조회 시작...');
     const { data: blogData, error: blogError } = await supabase
       .from('blog_posts')
-      .select('*')
+      .select('id, title, slug, published_at, status, category, meta_title, meta_description, meta_keywords, target_audience, conversion_tracking, published_channels, content, summary')
       .order('published_at', { ascending: false })
-      .limit(100); // 최대 100개까지 가져오기
+      .limit(50); // 페이지네이션으로 인해 50개로 줄임
     
     console.log('📝 blog_posts 조회 결과:', {
       dataLength: blogData ? blogData.length : 0,
@@ -162,7 +176,13 @@ export default async function handler(req, res) {
     res.status(200).json({ 
       success: true, 
       contents,
-      total: contents.length,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || contents.length,
+        totalPages: Math.ceil((count || contents.length) / limit),
+        hasMore: offset + limit < (count || contents.length)
+      },
       calendarCount: calendarData ? calendarData.length : 0,
       blogCount: blogData ? blogData.length : 0,
       debug: {

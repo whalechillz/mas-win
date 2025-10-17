@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import AdminNav from '../../components/admin/AdminNav';
 import { useSession } from 'next-auth/react';
+import { useContentCalendar } from '../../hooks/useContentCalendar';
 
 interface ContentCalendarItem {
   id: string;
@@ -45,8 +46,7 @@ interface ContentCalendarItem {
 
 export default function ContentCalendar() {
   const { data: session, status } = useSession();
-  const [contents, setContents] = useState<ContentCalendarItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { contents, loading, pagination, fetchContentCalendar } = useContentCalendar();
   const [view, setView] = useState<'list' | 'calendar' | 'tree' | 'tab' | 'table'>('list');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -721,37 +721,14 @@ export default function ContentCalendar() {
     }
   };
 
-  const fetchContentCalendar = async () => {
-    try {
-      setLoading(true);
-      
-      // 실제 Supabase에서 콘텐츠 캘린더 데이터 가져오기
-      const response = await fetch('/api/admin/content-calendar');
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('📊 콘텐츠 캘린더 API 응답:', data);
-        console.log('📝 받은 콘텐츠:', data.contents ? data.contents.length : 0, '개');
-        console.log('🔍 디버그 정보:', data.debug);
-        console.log('📅 캘린더 데이터:', data.calendarCount, '개');
-        console.log('📄 블로그 데이터:', data.blogCount, '개');
-        
-        if (data.contents) {
-          data.contents.forEach((content, index) => {
-            console.log(`📋 콘텐츠 ${index + 1}: "${content.title}" (${content.content_date})`);
-          });
-        }
-        
-        setContents(data.contents || []);
-      } else {
-        console.error('❌ 콘텐츠 캘린더 API 호출 실패');
-        setContents([]);
-      }
-    } catch (error) {
-      console.error('콘텐츠 캘린더 데이터 로드 오류:', error);
-    } finally {
-      setLoading(false);
-    }
+  // 페이지네이션 핸들러
+  const handlePageChange = (page: number) => {
+    fetchContentCalendar(page);
+  };
+
+  // 필터 핸들러
+  const handleFilterChange = (filters: any) => {
+    fetchContentCalendar(1, filters);
   };
 
   const getStatusColor = (status: string) => {
@@ -1355,6 +1332,82 @@ export default function ContentCalendar() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* 페이지네이션 */}
+              {pagination && pagination.totalPages > 1 && (
+                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page <= 1}
+                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      이전
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={pagination.page >= pagination.totalPages}
+                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      다음
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">{pagination.page}</span> / <span className="font-medium">{pagination.totalPages}</span> 페이지
+                        <span className="ml-2">총 {pagination.total}개</span>
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={pagination.page <= 1}
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="sr-only">이전</span>
+                          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                        
+                        {/* 페이지 번호들 */}
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                          const startPage = Math.max(1, pagination.page - 2);
+                          const pageNum = startPage + i;
+                          if (pageNum > pagination.totalPages) return null;
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                pageNum === pagination.page
+                                  ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                        
+                        <button
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={pagination.page >= pagination.totalPages}
+                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="sr-only">다음</span>
+                          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
