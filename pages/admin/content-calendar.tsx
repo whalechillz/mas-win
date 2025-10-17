@@ -104,8 +104,25 @@ export default function ContentCalendar() {
 
   // 트리 구조로 변환하는 함수
   const convertToTreeStructure = (contents: ContentCalendarItem[]): ContentCalendarItem[] => {
-    const rootContents = contents.filter(content => content.is_root_content);
-    const derivedContents = contents.filter(content => !content.is_root_content);
+    // is_root_content가 설정되지 않은 경우, 모든 콘텐츠를 루트로 표시
+    const rootContents = contents.filter(content => 
+      content.is_root_content === true || 
+      (content.is_root_content === undefined && !content.parent_content_id)
+    );
+    const derivedContents = contents.filter(content => 
+      content.is_root_content === false || 
+      (content.is_root_content === undefined && content.parent_content_id)
+    );
+    
+    // 루트 콘텐츠가 없는 경우, 모든 콘텐츠를 루트로 표시
+    if (rootContents.length === 0) {
+      return contents.map(content => ({
+        ...content,
+        children: [],
+        level: 0,
+        is_root_content: true
+      }));
+    }
     
     return rootContents.map(root => {
       const children = derivedContents.filter(derived => derived.parent_content_id === root.id);
@@ -398,26 +415,23 @@ export default function ContentCalendar() {
   };
 
   // 편집 버튼 - 블로그 편집기로 이동
-  const handleEditContent = async (content: any) => {
-    try {
-      // 연결되어 있으면 바로 편집기로 이동
-      if (content.blog_post_id) {
-        window.open(`/admin/blog?edit=${content.blog_post_id}`, '_blank');
-        return;
-      }
-      // 연결 없으면 API 호출로 초안 생성 후 연결
-      const resp = await fetch('/api/admin/calendar/attach-to-blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ calendarId: content.id })
+  const handleEditContent = (content: any) => {
+    console.log('편집 버튼 클릭:', content);
+    
+    if (content.blog_post_id) {
+      // 기존 블로그 포스트 편집
+      console.log('기존 블로그 포스트 편집:', content.blog_post_id);
+      window.open(`/admin/blog?edit=${content.blog_post_id}`, '_blank');
+    } else {
+      // 새 블로그 포스트 생성 (캘린더 아이템 기반)
+      console.log('새 블로그 포스트 생성');
+      const params = new URLSearchParams({
+        title: content.title,
+        content: content.content_body || content.description,
+        category: content.content_type || 'blog',
+        status: 'draft'
       });
-      if (!resp.ok) throw new Error('Attach failed');
-      const { blogPostId } = await resp.json();
-      window.open(`/admin/blog?edit=${blogPostId}`, '_blank');
-      fetchContentCalendar();
-    } catch (e) {
-      console.error('편집 연결 오류:', e);
-      alert('블로그 편집기로 연결 중 오류가 발생했습니다.');
+      window.open(`/admin/blog?new=true&${params.toString()}`, '_blank');
     }
   };
 
@@ -1855,63 +1869,6 @@ export default function ContentCalendar() {
                               >
                                 편집
                               </button>
-                              
-                              {/* 채널별 생성 드롭다운 */}
-                              <div className="relative inline-block text-left">
-                                <div>
-                                  <button
-                                    type="button"
-                                    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                    onClick={() => {
-                                      const dropdown = document.getElementById(`channel-dropdown-${content.id}`);
-                                      if (dropdown) {
-                                        dropdown.classList.toggle('hidden');
-                                      }
-                                    }}
-                                  >
-                                    채널 생성
-                                    <svg className="-mr-1 ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                  </button>
-                                </div>
-                                
-                                <div
-                                  id={`channel-dropdown-${content.id}`}
-                                  className="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
-                                >
-                                  <div className="py-1" role="menu">
-                                    <button
-                                      onClick={() => {
-                                        window.open(`/admin/sms?calendarId=${content.id}`, '_blank');
-                                        document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
-                                      }}
-                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                      📱 SMS/MMS 생성
-                                    </button>
-             <button
-               onClick={() => {
-                 window.open(`/admin/kakao?calendarId=${content.id}`, '_blank');
-                 document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
-               }}
-               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-             >
-               💬 카카오 채널 생성
-             </button>
-             <button
-               onClick={() => {
-                 window.open(`/admin/naver-blog?calendarId=${content.id}`, '_blank');
-                 document.getElementById(`channel-dropdown-${content.id}`)?.classList.add('hidden');
-               }}
-               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-             >
-               📝 네이버 블로그 생성
-             </button>
-                                  </div>
-                                </div>
-                              </div>
-                              
                               {content.is_root_content && (
                                 <button
                                   onClick={() => handleMultichannelGeneration(content.id)}

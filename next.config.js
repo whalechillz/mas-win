@@ -64,6 +64,21 @@ module.exports = {
   experimental: {
     serverMinification: false,
   },
+  // 빌드 최적화 설정
+  webpack: (config, { isServer }) => {
+    // 불필요한 모듈 제거
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
+  // 빌드 성능 최적화
+  swcMinify: true,
   // 정적 생성 설정 (Vercel 호환)
   trailingSlash: true,
   // 정적 HTML 내보내기 비활성화 (Vercel 서버리스 함수 사용)
