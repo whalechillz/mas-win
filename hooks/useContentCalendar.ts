@@ -50,9 +50,20 @@ export const useContentCalendar = () => {
     refreshing: false,
     action: false
   });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    totalPages: 0,
+    hasMore: true
+  });
 
-  const fetchContentCalendar = useCallback(async (showInitialLoading = true) => {
-    console.log('🚀 fetchContentCalendar 호출됨', { showInitialLoading, currentLoading: loading });
+  const fetchContentCalendar = useCallback(async (
+    page = 1,
+    filters = {},
+    showInitialLoading = true
+  ) => {
+    console.log('🚀 fetchContentCalendar 호출됨', { page, filters, showInitialLoading, currentLoading: loading });
     
     try {
       if (showInitialLoading) {
@@ -66,14 +77,22 @@ export const useContentCalendar = () => {
         setLoading(prev => ({ ...prev, refreshing: true }));
       }
       
-      console.log('🌐 API 호출 시작: /api/admin/content-calendar');
-      const response = await fetch('/api/admin/content-calendar');
+      // 쿼리 파라미터 구성
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '50',
+        ...filters
+      });
+      
+      console.log('🌐 API 호출 시작: /api/admin/content-calendar?' + params.toString());
+      const response = await fetch(`/api/admin/content-calendar?${params}`);
       console.log('📡 API 응답 받음:', { ok: response.ok, status: response.status });
       
       if (response.ok) {
         const data = await response.json();
         console.log('📊 콘텐츠 캘린더 API 응답:', data);
         setContents(data.contents || []);
+        setPagination(data.pagination || {});
         
         // 데이터 로드 완료 후 즉시 로딩 상태 해제
         if (showInitialLoading) {
@@ -108,6 +127,7 @@ export const useContentCalendar = () => {
   return {
     contents,
     loading,
+    pagination,
     fetchContentCalendar,
     refreshContent,
     setActionLoading

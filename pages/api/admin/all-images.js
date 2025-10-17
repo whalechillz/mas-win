@@ -158,10 +158,10 @@ export default async function handler(req, res) {
           .from('blog-images')
           .getPublicUrl(fullPath);
         
-        // image_metadata 테이블에서 추가 정보 조회
+        // image_metadata 테이블에서 추가 정보 조회 (필요한 컬럼만)
         const { data: metadata } = await supabase
           .from('image_metadata')
-          .select('*')
+          .select('id, alt_text, title, excerpt, content_type, brand_strategy, usage_count, is_featured, category_id')
           .eq('image_url', urlData.publicUrl)
           .single();
         
