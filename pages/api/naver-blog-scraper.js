@@ -175,6 +175,7 @@ async function scrapeNaverPost(url) {
     const content = await extractNaverContentWithAI(html, title, url);
     const images = extractNaverImages(html);
     const publishDate = extractNaverPublishDate(html);
+    const category = extractNaverCategory(html);
     
     // 첫 번째 실제 포스트 이미지를 대표 이미지로 설정
     const featuredImage = images.length > 0 ? images[0] : null;
@@ -186,6 +187,7 @@ async function scrapeNaverPost(url) {
       images,
       featuredImage,
       publishDate,
+      category,
       naverPostId: url.match(/\/(\d+)$/)?.[1] || '',
       originalUrl: url,
       scrapedAt: new Date().toISOString()
@@ -951,6 +953,32 @@ function extractNaverPublishDate(html) {
   const dateRegex = /<span[^>]*class="[^"]*date[^"]*"[^>]*>([^<]+)<\/span>/i;
   const match = html.match(dateRegex);
   return match ? match[1].trim() : '';
+}
+
+// 네이버 블로그 카테고리 추출
+function extractNaverCategory(html) {
+  // 네이버 블로그의 카테고리 추출 시도
+  const categoryRegexes = [
+    /<span[^>]*class="[^"]*category[^"]*"[^>]*>([^<]+)<\/span>/i,
+    /<a[^>]*class="[^"]*category[^"]*"[^>]*>([^<]+)<\/a>/i,
+    /<div[^>]*class="[^"]*category[^"]*"[^>]*>([^<]+)<\/div>/i,
+    /카테고리[:\s]*([^<\n]+)/i
+  ];
+  
+  for (const regex of categoryRegexes) {
+    const match = html.match(regex);
+    if (match && match[1]) {
+      const category = match[1].trim();
+      // 골프 관련 키워드가 포함된 경우 골프 카테고리로 분류
+      if (category.includes('골프') || category.includes('golf') || category.includes('드라이버') || category.includes('클럽')) {
+        return '골프';
+      }
+      return category;
+    }
+  }
+  
+  // 기본값: 골프 (마쓰구골프 블로그이므로)
+  return '골프';
 }
 
 // 파일명 추출 (URL 디코딩 포함)

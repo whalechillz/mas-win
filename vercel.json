@@ -1,8 +1,12 @@
 {
-  "crons": [
-    {
-      "path": "/api/admin/schedule-publish",
-      "schedule": "0 * * * *"
+  "functions": {
+    "pages/api/**/*.js": {
+      "maxDuration": 30
     }
-  ]
+  },
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=4096"
+    }
+  }
 }

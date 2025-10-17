@@ -89,6 +89,11 @@ export default function BlogAdmin() {
   const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
   const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
 
+  // 콘텐츠 캘린더 상태
+  const [calendarContents, setCalendarContents] = useState([]);
+  const [selectedCalendarPosts, setSelectedCalendarPosts] = useState(new Set());
+  const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
+
   // 블로그 마이그레이션 상태
   const [migrationUrl, setMigrationUrl] = useState('');
   const [isMigrating, setIsMigrating] = useState(false);
@@ -201,6 +206,51 @@ export default function BlogAdmin() {
 
   // SEO 최적화: 한국어 제목을 영어 슬러그로 변환
   const generateSlug = (title) => {
+    if (!title) return '';
+    
+    // 제목에서 핵심 키워드 추출
+    const extractKeywords = (title) => {
+      const keywords = [];
+      
+      // 나이 관련 키워드
+      if (title.includes('70대') || title.includes('70세')) keywords.push('70s');
+      if (title.includes('60대') || title.includes('60세')) keywords.push('60s');
+      if (title.includes('50대') || title.includes('50세')) keywords.push('50s');
+      
+      // 골프 관련 키워드
+      if (title.includes('골퍼')) keywords.push('golfer');
+      if (title.includes('드라이버')) keywords.push('driver');
+      if (title.includes('비거리')) keywords.push('distance');
+      if (title.includes('스윙')) keywords.push('swing');
+      if (title.includes('피팅')) keywords.push('fitting');
+      if (title.includes('초고반발')) keywords.push('ultra-rebound');
+      if (title.includes('고반발')) keywords.push('high-rebound');
+      
+      // 숫자 관련 키워드
+      const numberMatch = title.match(/(\d+)미터|(\d+)m/);
+      if (numberMatch) {
+        const number = numberMatch[1] || numberMatch[2];
+        keywords.push(`${number}m`);
+      }
+      
+      // 특별한 키워드들
+      if (title.includes('도전')) keywords.push('challenge');
+      if (title.includes('노하우')) keywords.push('knowhow');
+      if (title.includes('비밀')) keywords.push('secret');
+      if (title.includes('특별')) keywords.push('special');
+      if (title.includes('숨겨진')) keywords.push('hidden');
+      
+      return keywords;
+    };
+    
+    const keywords = extractKeywords(title);
+    
+    // 키워드가 있으면 조합하여 슬러그 생성
+    if (keywords.length > 0) {
+      return keywords.join('-');
+    }
+    
+    // 기존 매핑 테이블
     const slugMap = {
       // 골프 기법 관련
       '골프 드라이버 스윙 기법': 'golf-driver-swing-technique',
@@ -434,10 +484,6 @@ export default function BlogAdmin() {
   const [migrationProgress, setMigrationProgress] = useState('');
   const [migratedPosts, setMigratedPosts] = useState([]);
 
-  // 고급 기능 관련 상태
-  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(true); // 항상 표시
-  const [isOptimizingSEO, setIsOptimizingSEO] = useState(false);
-  const [seoOptimizationResult, setSeoOptimizationResult] = useState('');
 
   // 하이브리드 SEO 관련 상태
   const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
@@ -446,7 +492,14 @@ export default function BlogAdmin() {
   const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
   const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
   const [isAnalyzingSEO, setIsAnalyzingSEO] = useState(false);
+  const [isGeneratingAllSEO, setIsGeneratingAllSEO] = useState(false);
   const [seoQualityResult, setSeoQualityResult] = useState('');
+  const [seoAnalysisSuggestions, setSeoAnalysisSuggestions] = useState({
+    meta_title: '',
+    meta_description: '',
+    slug: '',
+    keywords: ''
+  });
 
   // 제목/슬러그 AI 관련 상태
   const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
@@ -483,7 +536,7 @@ export default function BlogAdmin() {
   const loadPostForEdit = useCallback(async (postId: string) => {
     try {
       console.log('🔍 포스트 로드 중:', postId);
-      const response = await fetch(`/api/blog/${postId}`);
+      const response = await fetch(`/api/admin/blog?id=${postId}`);
       
       if (response.ok) {
         const post = await response.json();
@@ -514,12 +567,13 @@ export default function BlogAdmin() {
           published_at: post.published_at || ''
         });
       } else {
-        console.error('❌ 포스트 로드 실패:', response.status);
-        alert('포스트를 불러올 수 없습니다.');
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        console.error('❌ 포스트 로드 실패:', response.status, errorData);
+        alert(`포스트를 불러올 수 없습니다: ${errorData.error || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('❌ 포스트 로드 오류:', error);
-      alert('포스트 로드 중 오류가 발생했습니다.');
+      alert(`포스트 로드 중 오류가 발생했습니다: ${error.message}`);
     }
   }, []);
 
@@ -575,6 +629,67 @@ export default function BlogAdmin() {
     }
   }, [sortBy, sortOrder]);
 
+  // 콘텐츠 캘린더에서 데이터 불러오기
+  const fetchCalendarContents = useCallback(async () => {
+    try {
+      setIsLoadingCalendar(true);
+      const response = await fetch('/api/admin/content-calendar');
+      if (response.ok) {
+        const data = await response.json();
+        // 블로그 포스트가 없는 콘텐츠만 필터링
+        const availableContents = data.contents.filter(content => !content.blog_post_id);
+        setCalendarContents(availableContents);
+      } else {
+        console.error('콘텐츠 캘린더 데이터를 불러오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('콘텐츠 캘린더 데이터를 불러오는 중 오류가 발생했습니다:', error);
+    } finally {
+      setIsLoadingCalendar(false);
+    }
+  }, []);
+
+  // 콘텐츠 캘린더에서 블로그 초안 생성
+  const createBlogFromCalendar = useCallback(async (selectedIds) => {
+    try {
+      setIsSubmitting(true);
+      const selectedContents = calendarContents.filter(content => selectedIds.has(content.id));
+      
+      for (const content of selectedContents) {
+        const response = await fetch('/api/admin/create-blog-from-calendar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            calendarId: content.id,
+            title: content.title,
+            content: content.content_body || '',
+            category: content.content_type === 'blog' ? '골프' : '일반',
+            targetAudience: content.target_audience?.persona || 'all',
+            conversionGoal: content.conversion_tracking?.goal || '홈페이지 방문'
+          }),
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || '블로그 초안 생성 실패');
+        }
+      }
+      
+      alert(`${selectedContents.length}개의 블로그 초안이 성공적으로 생성되었습니다!`);
+      setSelectedCalendarPosts(new Set());
+      fetchPosts();
+      fetchCalendarContents();
+      
+    } catch (error) {
+      console.error('블로그 초안 생성 에러:', error);
+      alert(`블로그 초안 생성 실패: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [calendarContents, fetchPosts, fetchCalendarContents]);
+
   // 폼 초기화
   const resetForm = () => {
     setFormData({
@@ -601,6 +716,19 @@ export default function BlogAdmin() {
       target_product: 'all',
       published_at: ''
     });
+    
+    // SEO 분석 관련 상태 초기화
+    setSeoQualityResult('');
+    setSeoAnalysisSuggestions({
+      meta_title: '',
+      meta_description: '',
+      slug: '',
+      keywords: ''
+    });
+    
+    // 러프 콘텐츠 초기화
+    setRoughContent('');
+    
     setEditingPost(null);
     setShowForm(false);
   };
@@ -648,6 +776,9 @@ export default function BlogAdmin() {
           alert('게시물이 수정되었습니다!');
           fetchPosts();
           resetForm();
+          
+          // 블로그 목록으로 리디렉션
+          setActiveTab('list');
         } else {
           const error = await response.json();
           console.error('❌ 수정 실패 상세:', error);
@@ -697,6 +828,9 @@ export default function BlogAdmin() {
           alert('게시물이 생성되었습니다! 콘텐츠 캘린더에도 자동 등록되었습니다.');
           fetchPosts();
           resetForm();
+          
+          // 블로그 목록으로 리디렉션
+          setActiveTab('list');
         } else {
           const error = await response.json();
           alert('생성 실패: ' + error.error);
@@ -940,13 +1074,14 @@ export default function BlogAdmin() {
           body: JSON.stringify({
             title: post.title,
             content: post.content || post.description || '',
-            category: 'migrated',
+            category: post.category || '골프', // 네이버에서 추출한 카테고리 사용
             tags: post.tags || [],
             featured_image: post.featured_image || '',
             status: 'draft',
             meta_title: post.title,
             meta_description: post.description || '',
-            author: '마쓰구골프'
+            author: '마쓰구골프',
+            published_at: post.publishDate ? new Date(post.publishDate).toISOString() : null // 네이버에서 추출한 날짜 사용
           }),
           cache: 'no-cache'
         });
@@ -1193,6 +1328,9 @@ export default function BlogAdmin() {
     setIsGeneratingFromRough(true);
     
     try {
+      console.log('🚀 러프 콘텐츠 처리 시작...');
+      console.log('📝 입력된 콘텐츠:', roughContent);
+      
       // 1단계: 제목 생성
       const titleResponse = await fetch('/api/generate-blog-title', {
         method: 'POST',
@@ -1206,9 +1344,23 @@ export default function BlogAdmin() {
         })
       });
       
-      if (titleResponse.ok) {
+      if (!titleResponse.ok) {
+        const errorData = await titleResponse.json();
+        console.error('❌ 제목 생성 실패:', errorData);
+        alert(`제목 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
+      }
+      
         const titleData = await titleResponse.json();
+      console.log('✅ 제목 생성 성공:', titleData);
+      
+      if (!titleData.titles || titleData.titles.length === 0) {
+        alert('생성된 제목이 없습니다. 다시 시도해주세요.');
+        return;
+      }
+      
         const selectedTitle = titleData.titles[0]; // 첫 번째 제목 선택
+      console.log('📌 선택된 제목:', selectedTitle);
         
         // 2단계: 요약 생성
         const summaryResponse = await fetch('/api/generate-enhanced-content', {
@@ -1223,14 +1375,21 @@ export default function BlogAdmin() {
             brandWeight: getBrandWeight(brandContentType),
             customerChannel: 'local_customers',
             painPoint: null,
-            customerpersona: brandPersona,
+          customerpersona: brandPersona,
             enableWebSearch: true,
             excerpt: roughContent
           })
         });
         
-        if (summaryResponse.ok) {
+      if (!summaryResponse.ok) {
+        const errorData = await summaryResponse.json();
+        console.error('❌ 요약 생성 실패:', errorData);
+        alert(`요약 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
+      }
+      
           const summaryData = await summaryResponse.json();
+      console.log('✅ 요약 생성 성공:', summaryData);
           
           // 3단계: 본문 생성
           const contentResponse = await fetch('/api/generate-enhanced-content', {
@@ -1245,14 +1404,21 @@ export default function BlogAdmin() {
               brandWeight: getBrandWeight(brandContentType),
               customerChannel: 'local_customers',
               painPoint: null,
-              customerpersona: brandPersona,
+          customerpersona: brandPersona,
               enableWebSearch: true,
               excerpt: summaryData.content
             })
           });
           
-          if (contentResponse.ok) {
+      if (!contentResponse.ok) {
+        const errorData = await contentResponse.json();
+        console.error('❌ 본문 생성 실패:', errorData);
+        alert(`본문 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
+      }
+      
             const contentData = await contentResponse.json();
+      console.log('✅ 본문 생성 성공:', contentData);
             
             // 폼 데이터에 자동 입력
             setFormData({
@@ -1266,12 +1432,10 @@ export default function BlogAdmin() {
             
             alert('✅ 러프 콘텐츠가 제목, 요약, 본문으로 정리되었습니다!');
             setRoughContent(''); // 입력창 초기화
-          }
-        }
-      }
+      
     } catch (error) {
-      console.error('러프 콘텐츠 처리 오류:', error);
-      alert('러프 콘텐츠 처리 중 오류가 발생했습니다.');
+      console.error('❌ 러프 콘텐츠 처리 오류:', error);
+      alert(`러프 콘텐츠 처리 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       setIsGeneratingFromRough(false);
     }
@@ -3169,24 +3333,35 @@ export default function BlogAdmin() {
 
     setIsGeneratingExcerpt(true);
     try {
-      const response = await fetch('/api/generate-blog-excerpt', {
+      const response = await fetch('/api/generate-enhanced-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
-          content: formData.content
+          type: 'excerpt',
+          keywords: formData.content,
+          contentType: formData.category || brandContentType,
+          audienceTemp: audienceTemperature,
+          brandWeight: getBrandWeight(brandContentType),
+          customerChannel: 'local_customers',
+          painPoint: null,
+          customerpersona: brandPersona,
+          enableWebSearch: true,
+          excerpt: formData.content
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        setFormData({ ...formData, excerpt: data.excerpt });
+        setFormData({ ...formData, excerpt: data.content || '' });
+        alert('✅ AI 요약이 생성되었습니다!');
       } else {
-        alert('요약 생성에 실패했습니다.');
+        const errorData = await response.json();
+        alert(`요약 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('요약 생성 오류:', error);
-      alert('요약 생성 중 오류가 발생했습니다.');
+      alert('요약 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingExcerpt(false);
     }
@@ -3205,21 +3380,30 @@ export default function BlogAdmin() {
       const response = await fetch('/api/generate-blog-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: formData.content,
-          currentTitle: formData.title
+        body: JSON.stringify({ 
+          contentSource: formData.content,
+          contentType: formData.category || brandContentType,
+          customerpersona: brandPersona,
+          customerChannel: 'local_customers',
+          brandWeight: getBrandWeight(brandContentType)
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        setFormData({ ...formData, meta_title: data.title });
+        if (data.titles && data.titles.length > 0) {
+          setFormData({ ...formData, meta_title: data.titles[0] });
+          alert('✅ AI 메타 제목이 생성되었습니다!');
+        } else {
+          alert('생성된 메타 제목이 없습니다.');
+        }
       } else {
-        alert('메타 제목 생성에 실패했습니다.');
+        const errorData = await response.json();
+        alert(`메타 제목 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('메타 제목 생성 오류:', error);
-      alert('메타 제목 생성 중 오류가 발생했습니다.');
+      alert('메타 제목 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingMetaTitle(false);
     }
@@ -3234,24 +3418,35 @@ export default function BlogAdmin() {
 
     setIsGeneratingMetaDescription(true);
     try {
-      const response = await fetch('/api/generate-blog-excerpt', {
+      const response = await fetch('/api/generate-enhanced-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
-          content: formData.content
+          type: 'excerpt',
+          keywords: formData.content,
+          contentType: formData.category || brandContentType,
+          audienceTemp: audienceTemperature,
+          brandWeight: getBrandWeight(brandContentType),
+          customerChannel: 'local_customers',
+          painPoint: null,
+          customerpersona: brandPersona,
+          enableWebSearch: true,
+          excerpt: formData.content
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        setFormData({ ...formData, meta_description: data.excerpt });
+        setFormData({ ...formData, meta_description: data.content || '' });
+        alert('✅ AI 메타 설명이 생성되었습니다!');
       } else {
-        alert('메타 설명 생성에 실패했습니다.');
+        const errorData = await response.json();
+        alert(`메타 설명 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('메타 설명 생성 오류:', error);
-      alert('메타 설명 생성 중 오류가 발생했습니다.');
+      alert('메타 설명 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingMetaDescription(false);
     }
@@ -3269,21 +3464,72 @@ export default function BlogAdmin() {
       const response = await fetch('/api/optimize-seo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           title: formData.title,
-          content: formData.content
+          content: formData.content,
+          category: formData.category || brandContentType,
+          excerpt: formData.excerpt,
+          existingKeywords: formData.meta_keywords || '' // 기존 키워드 전달
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        setFormData({ ...formData, meta_keywords: data.keywords || '' });
+        if (data.suggestions && data.suggestions.keywords) {
+          setFormData({ ...formData, meta_keywords: data.suggestions.keywords });
+          alert('✅ AI 메타 키워드가 생성되었습니다!');
+        } else {
+          alert('생성된 메타 키워드가 없습니다.');
+        }
       } else {
-        alert('메타 키워드 생성에 실패했습니다.');
+        const errorData = await response.json();
+        alert(`메타 키워드 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('메타 키워드 생성 오류:', error);
-      alert('메타 키워드 생성 중 오류가 발생했습니다.');
+      alert('메타 키워드 생성 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingMetaKeywords(false);
+    }
+  };
+
+  // 브랜드 키워드 강화 메타 키워드 생성
+  const generateBrandEnhancedKeywords = async () => {
+    if (!formData.title || !formData.content) {
+      alert('제목과 내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingMetaKeywords(true);
+    try {
+      const response = await fetch('/api/optimize-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          category: formData.category || brandContentType,
+          excerpt: formData.excerpt,
+          existingKeywords: formData.meta_keywords || '', // 기존 키워드 전달
+          enhanceBrandKeywords: true // 브랜드 키워드 강화 모드
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.suggestions && data.suggestions.keywords) {
+          setFormData({ ...formData, meta_keywords: data.suggestions.keywords });
+          alert('✅ 브랜드 키워드가 강화된 메타 키워드가 생성되었습니다!');
+        } else {
+          alert('생성된 메타 키워드가 없습니다.');
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`브랜드 키워드 강화에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('브랜드 키워드 강화 오류:', error);
+      alert('브랜드 키워드 강화 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingMetaKeywords(false);
     }
@@ -3313,7 +3559,40 @@ export default function BlogAdmin() {
 
       if (response.ok) {
         const data = await response.json();
-        setSeoQualityResult(data.analysis || 'SEO 분석 결과가 없습니다.');
+        
+        // SEO 분석 결과를 포맷팅하여 표시
+        if (data.optimization && data.optimization.seoScore) {
+          const analysis = data.optimization;
+          
+          // 제안사항을 상태에 저장 (적용 버튼용)
+          setSeoAnalysisSuggestions({
+            meta_title: data.suggestions?.meta_title || '',
+            meta_description: data.suggestions?.meta_description || '',
+            slug: data.suggestions?.slug || '',
+            keywords: data.suggestions?.keywords || ''
+          });
+          
+          const formattedResult = `
+📊 SEO 품질 분석 결과
+
+🎯 전체 SEO 점수: ${analysis.seoScore}/100
+📝 제목 점수: ${analysis.titleScore}/100 (${analysis.titleLength}자)
+📄 내용 점수: ${analysis.contentScore}/100 (${analysis.contentLength}자)
+
+💡 개선 권장사항:
+${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
+
+🔧 제안된 메타데이터:
+• 메타 제목: ${data.suggestions?.meta_title || 'N/A'}
+• 메타 설명: ${data.suggestions?.meta_description || 'N/A'}
+• 슬러그: ${data.suggestions?.slug || 'N/A'} ${data.suggestions?.slug && /[가-힣]/.test(data.suggestions.slug) ? '⚠️ (한글 슬러그 - 영문 권장)' : ''}
+• 키워드: ${data.suggestions?.keywords || 'N/A'}
+          `.trim();
+          
+          setSeoQualityResult(formattedResult);
+        } else {
+          setSeoQualityResult('SEO 분석 결과를 가져올 수 없습니다.');
+        }
       } else {
         alert('SEO 품질 분석에 실패했습니다.');
       }
@@ -3325,75 +3604,181 @@ export default function BlogAdmin() {
     }
   };
 
-  const optimizeSEO = async () => {
+  // AI 전체 최적화 (모든 메타데이터 한번에 생성)
+  const generateAllSEO = async () => {
     if (!formData.title || !formData.content) {
       alert('제목과 내용을 먼저 입력해주세요.');
       return;
     }
 
-    setIsOptimizingSEO(true);
-    setSeoOptimizationResult('SEO를 최적화하는 중...');
-      
+    setIsGeneratingAllSEO(true);
     try {
-      const response = await fetch('/api/optimize-seo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          content: formData.content,
-          category: formData.category,
-          excerpt: formData.excerpt
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      let updatedFormData = { ...formData };
+      
+      // 1. 요약 생성
+      if (!updatedFormData.excerpt) {
+        const excerptResponse = await fetch('/api/generate-enhanced-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            title: updatedFormData.title,
+            type: 'excerpt',
+            keywords: updatedFormData.content,
+            contentType: updatedFormData.category || brandContentType,
+            audienceTemp: audienceTemperature,
+            brandWeight: getBrandWeight(brandContentType),
+            customerChannel: 'local_customers',
+            painPoint: null,
+            customerpersona: brandPersona,
+            enableWebSearch: true,
+            excerpt: updatedFormData.content
+          })
+        });
         
-        // SEO 분석 결과를 포맷팅하여 표시
-        const analysis = data.optimization;
-        const suggestions = data.suggestions;
-        
-        let resultText = `🎯 SEO 점수: ${analysis.seoScore}/100\n\n`;
-        resultText += `📊 상세 분석:\n`;
-        resultText += `• 제목 점수: ${analysis.titleScore}/100 (${analysis.titleLength}자)\n`;
-        resultText += `• 내용 점수: ${analysis.contentScore}/100 (${analysis.contentLength}자)\n\n`;
-        
-        if (analysis.recommendations && analysis.recommendations.length > 0) {
-          resultText += `💡 개선 권장사항:\n`;
-          analysis.recommendations.forEach((rec, index) => {
-            resultText += `${index + 1}. ${rec}\n`;
-          });
+        if (excerptResponse.ok) {
+          const excerptData = await excerptResponse.json();
+          updatedFormData.excerpt = excerptData.content || '';
         }
-        
-        setSeoOptimizationResult(resultText);
-        
-        // SEO 최적화 결과를 폼에 적용
-        if (suggestions) {
-          setFormData(prev => ({
-            ...prev,
-            meta_title: suggestions.meta_title || prev.meta_title,
-            meta_description: suggestions.meta_description || prev.meta_description,
-            slug: suggestions.slug || prev.slug,
-            meta_keywords: suggestions.keywords || prev.meta_keywords,
-            // 요약이 없으면 메타 설명을 요약으로도 사용
-            excerpt: prev.excerpt || suggestions.meta_description || prev.excerpt
-          }));
-        }
-        
-        alert('SEO 최적화가 완료되었습니다! 메타 정보가 자동으로 입력되었습니다.');
-        } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'SEO 최적화에 실패했습니다.');
       }
+      
+      // 2. 슬러그 생성
+      if (!updatedFormData.slug) {
+        const slugResponse = await fetch('/api/generate-slug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: updatedFormData.title })
+        });
+        
+        if (slugResponse.ok) {
+          const { slug } = await slugResponse.json();
+          updatedFormData.slug = slug;
+        }
+      }
+      
+      // 3. 메타 제목 생성
+      if (!updatedFormData.meta_title) {
+        const metaTitleResponse = await fetch('/api/generate-blog-title', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            contentSource: updatedFormData.content,
+            contentType: updatedFormData.category || brandContentType,
+            customerpersona: brandPersona,
+            customerChannel: 'local_customers',
+            brandWeight: getBrandWeight(brandContentType)
+          })
+        });
+        
+        if (metaTitleResponse.ok) {
+          const metaTitleData = await metaTitleResponse.json();
+          if (metaTitleData.titles && metaTitleData.titles.length > 0) {
+            updatedFormData.meta_title = metaTitleData.titles[0];
+          }
+        }
+      }
+      
+      // 4. 메타 설명 생성
+      if (!updatedFormData.meta_description) {
+        const metaDescResponse = await fetch('/api/generate-enhanced-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            title: updatedFormData.title,
+            type: 'excerpt',
+            keywords: updatedFormData.content,
+            contentType: updatedFormData.category || brandContentType,
+            audienceTemp: audienceTemperature,
+            brandWeight: getBrandWeight(brandContentType),
+            customerChannel: 'local_customers',
+            painPoint: null,
+            customerpersona: brandPersona,
+            enableWebSearch: true,
+            excerpt: updatedFormData.content
+          })
+        });
+        
+        if (metaDescResponse.ok) {
+          const metaDescData = await metaDescResponse.json();
+          updatedFormData.meta_description = metaDescData.content || '';
+        }
+      }
+      
+      // 5. 메타 키워드 생성
+      if (!updatedFormData.meta_keywords) {
+        const metaKeywordsResponse = await fetch('/api/optimize-seo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: updatedFormData.title,
+            content: updatedFormData.content,
+            category: updatedFormData.category || brandContentType,
+            excerpt: updatedFormData.excerpt,
+            existingKeywords: updatedFormData.meta_keywords || ''
+          })
+        });
+        
+        if (metaKeywordsResponse.ok) {
+          const metaKeywordsData = await metaKeywordsResponse.json();
+          if (metaKeywordsData.suggestions && metaKeywordsData.suggestions.keywords) {
+            updatedFormData.meta_keywords = metaKeywordsData.suggestions.keywords;
+          }
+        }
+      }
+      
+      // 모든 업데이트를 한번에 적용
+      setFormData(updatedFormData);
+      
+      alert('✅ 모든 SEO 메타데이터가 생성되었습니다!');
+      
     } catch (error) {
-      console.error('SEO 최적화 오류:', error);
-      setSeoOptimizationResult('SEO 최적화 중 오류가 발생했습니다: ' + error.message);
-      alert('SEO 최적화 중 오류가 발생했습니다: ' + error.message);
+      console.error('전체 SEO 최적화 오류:', error);
+      alert('전체 SEO 최적화 중 오류가 발생했습니다: ' + error.message);
     } finally {
-      setIsOptimizingSEO(false);
+      setIsGeneratingAllSEO(false);
     }
   };
 
+  // SEO 제안사항 조심스럽게 적용
+  const applySeoSuggestions = () => {
+    if (!seoAnalysisSuggestions.meta_title && !seoAnalysisSuggestions.meta_description && 
+        !seoAnalysisSuggestions.slug && !seoAnalysisSuggestions.keywords) {
+      alert('적용할 제안사항이 없습니다. 먼저 SEO 품질 분석을 실행해주세요.');
+      return;
+    }
+
+    const confirmMessage = `다음 제안사항을 적용하시겠습니까?\n\n` +
+      `${seoAnalysisSuggestions.meta_title ? `• 메타 제목: ${seoAnalysisSuggestions.meta_title}\n` : ''}` +
+      `${seoAnalysisSuggestions.meta_description ? `• 메타 설명: ${seoAnalysisSuggestions.meta_description.substring(0, 50)}...\n` : ''}` +
+      `${seoAnalysisSuggestions.slug ? `• 슬러그: ${seoAnalysisSuggestions.slug}\n` : ''}` +
+      `${seoAnalysisSuggestions.keywords ? `• 키워드: ${seoAnalysisSuggestions.keywords}\n` : ''}` +
+      `\n⚠️ 기존 내용이 덮어씌워집니다.`;
+
+    if (confirm(confirmMessage)) {
+      const updatedFormData = { ...formData };
+      
+      // 빈 필드만 적용 (기존 내용 보호)
+      if (!updatedFormData.meta_title && seoAnalysisSuggestions.meta_title) {
+        updatedFormData.meta_title = seoAnalysisSuggestions.meta_title;
+      }
+      if (!updatedFormData.meta_description && seoAnalysisSuggestions.meta_description) {
+        updatedFormData.meta_description = seoAnalysisSuggestions.meta_description;
+      }
+      if (!updatedFormData.slug && seoAnalysisSuggestions.slug) {
+        // 한글 슬러그는 영문으로 변환
+        if (/[가-힣]/.test(seoAnalysisSuggestions.slug)) {
+          updatedFormData.slug = generateSlug(formData.title);
+        } else {
+          updatedFormData.slug = seoAnalysisSuggestions.slug;
+        }
+      }
+      if (!updatedFormData.meta_keywords && seoAnalysisSuggestions.keywords) {
+        updatedFormData.meta_keywords = seoAnalysisSuggestions.keywords;
+      }
+      
+      setFormData(updatedFormData);
+      alert('✅ 빈 필드에만 제안사항이 적용되었습니다!');
+    }
+  };
 
   // 필터링된 게시물 목록
   const filteredPosts = posts.filter(post => {
@@ -3607,6 +3992,39 @@ export default function BlogAdmin() {
               </button>
               <button
                 onClick={() => {
+                  setActiveTab('calendar-import');
+                  setShowForm(false);
+                  fetchCalendarContents();
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'calendar-import'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📅 콘텐츠 캘린더 불러오기
+              </button>
+              <button
+                onClick={() => {
+                  // 새 게시물 작성 시 formData 초기화
+                  setFormData({
+                    id: null,
+                    title: '',
+                    content: '',
+                    excerpt: '',
+                    slug: '',
+                    category: '고객 후기',
+                    status: 'draft',
+                    featured_image: '',
+                    meta_title: '',
+                    meta_description: '',
+                    meta_keywords: '',
+                    tags: [],
+                    target_audience: 'all',
+                    target_product: 'all',
+                    published_at: ''
+                  });
+                  setEditingPost(null);
                   setActiveTab('create');
                   setShowForm(true);
                 }}
@@ -4336,7 +4754,7 @@ export default function BlogAdmin() {
                       onChange={(e) => setFormData({
                         ...formData,
                         title: e.target.value,
-                        slug: generateSlug(e.target.value)
+                        slug: formData.slug || generateSlug(e.target.value)
                       })}
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="게시물 제목을 입력하세요"
@@ -4377,17 +4795,9 @@ export default function BlogAdmin() {
                         >
                           {isGeneratingExcerpt ? '생성 중…' : '🤖 AI 요약'}
                         </button>
-                        <button
-                          type="button"
-                          onClick={optimizeSEO}
-                          className="px-3 py-2 whitespace-nowrap rounded bg-green-600 text-white text-sm hover:bg-green-700"
-                          disabled={isOptimizingSEO}
-                        >
-                          {isOptimizingSEO ? '최적화 중…' : '📈 SEO 최적화'}
-                        </button>
                       </div>
-                    </div>
-                      </div>
+                  </div>
+                </div>
 
                 {/* 슬러그 */}
                 <div>
@@ -4402,27 +4812,20 @@ export default function BlogAdmin() {
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="url-friendly-slug"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, slug: generateSlug(formData.title) })}
-                      className="px-3 whitespace-nowrap rounded bg-gray-600 text-white text-sm hover:bg-gray-700"
-                    >
-                      🔄 재생성
-                    </button>
-                    <button
-                      type="button"
+                          <button
+                            type="button"
                       onClick={generateAISlug}
                       className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
                       disabled={isGeneratingSlug}
-                    >
+                          >
                       {isGeneratingSlug ? '생성 중…' : '🤖 AI 슬러그'}
-                    </button>
-                  </div>
+                          </button>
+                        </div>
                   <p className="text-xs text-gray-500 mt-1">
                     URL에 사용될 슬러그입니다. 공백은 하이픈(-)으로 변환됩니다.
                   </p>
-                </div>
-                      
+                    </div>
+
                 {/* 카테고리와 상태 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -4445,10 +4848,10 @@ export default function BlogAdmin() {
                     </div>
 
                     {/* 상태 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                         상태
-                      </label>
+            </label>
                       <select
                         value={formData.status}
                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -4496,10 +4899,10 @@ export default function BlogAdmin() {
                         메타 설명 (SEO)
                       </label>
                       <div className="flex gap-2">
-                        <textarea
+                    <textarea 
                           value={formData.meta_description}
                           onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                          rows={3}
+                      rows={3}
                           className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="SEO 최적화된 설명"
                         />
@@ -4512,8 +4915,8 @@ export default function BlogAdmin() {
                           {isGeneratingMetaDescription ? '생성 중…' : '🤖 AI 생성'}
                         </button>
                       </div>
-                    </div>
-
+                      </div>
+                      
                     {/* 메타 키워드 */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -4527,92 +4930,90 @@ export default function BlogAdmin() {
                           className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="키워드1, 키워드2, 키워드3"
                         />
-                        <button
-                          type="button"
-                          onClick={generateAIMetaKeywords}
-                          className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
-                          disabled={isGeneratingMetaKeywords}
-                        >
-                          {isGeneratingMetaKeywords ? '생성 중…' : '🤖 AI 생성'}
-                        </button>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            type="button"
+                            onClick={generateAIMetaKeywords}
+                            className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                            disabled={isGeneratingMetaKeywords}
+                          >
+                            {isGeneratingMetaKeywords ? '생성 중…' : '🤖 AI 생성'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={generateBrandEnhancedKeywords}
+                            className="px-3 whitespace-nowrap rounded bg-orange-600 text-white text-sm hover:bg-orange-700"
+                            disabled={isGeneratingMetaKeywords}
+                          >
+                            {isGeneratingMetaKeywords ? '생성 중…' : '🏷️ 브랜드 강화'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-
-
-                {/* 고급 기능 섹션 */}
+                {/* SEO 품질 분석 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="text-lg font-semibold text-gray-900">🚀 고급 기능</h3>
-                      <span className="text-sm text-gray-500">SEO 최적화 등 고급 기능을 제공합니다</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm flex items-center space-x-2"
-                    >
-                      <span>{showAdvancedFeatures ? '접기' : '펼치기'}</span>
-                      <span>{showAdvancedFeatures ? '▲' : '▼'}</span>
-                    </button>
-                  </div>
-                  
-                  {showAdvancedFeatures && (
-                    <div className="space-y-6">
-                      {/* SEO 최적화 기능 */}
-                    <div className="border border-gray-200 rounded-lg p-6">
-                        <h4 className="text-md font-semibold text-gray-900 mb-4">📈 SEO 최적화</h4>
-                        
-                        <div className="space-y-4">
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h5 className="text-sm font-medium text-blue-800 mb-2">📋 SEO 최적화 안내</h5>
-                            <ul className="text-sm text-blue-700 space-y-1">
-                              <li>• 제목과 내용을 기반으로 SEO 최적화 제안</li>
-                              <li>• 메타 제목, 메타 설명, 슬러그 자동 생성</li>
-                              <li>• <strong>요약이 없으면 자동으로 요약 생성</strong></li>
-                              <li>• 검색 엔진 최적화를 위한 키워드 제안</li>
-                              <li>• 최적화된 내용을 자동으로 폼에 적용</li>
-                            </ul>
-                          </div>
-                          
-                          <button
-                            type="button"
-                            onClick={optimizeSEO}
-                            disabled={isOptimizingSEO || !formData.title || !formData.content}
-                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                          >
-                            {isOptimizingSEO ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                <span>SEO 최적화 중...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>📈</span>
-                                <span>SEO 최적화 시작 (요약 자동 생성)</span>
-                              </>
-                            )}
-                          </button>
-
-                          {/* SEO 최적화 결과 */}
-                          {seoOptimizationResult && (
-                            <div className="space-y-4">
-                              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                <h5 className="text-sm font-medium text-green-800 mb-3">📈 SEO 최적화 결과</h5>
-                                <div className="text-sm text-green-700 whitespace-pre-wrap">
-                                  {seoOptimizationResult}
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">📊 SEO 품질 분석</h3>
+                  <div className="space-y-4">
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={generateAllSEO}
+                        disabled={isGeneratingAllSEO || !formData.title || !formData.content}
+                        className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        {isGeneratingAllSEO ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🚀</span>
+                            <span>AI 전체 최적화</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={analyzeSEOQuality}
+                        disabled={isAnalyzingSEO || !formData.title || !formData.content}
+                        className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        {isAnalyzingSEO ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>분석 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📊</span>
+                            <span>SEO 품질 분석</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      {/* 제안사항 적용 버튼 */}
+                      {seoQualityResult && (
+                        <button
+                          type="button"
+                          onClick={applySeoSuggestions}
+                          className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center space-x-2"
+                        >
+                          <span>✅</span>
+                          <span>제안사항 적용</span>
+                        </button>
+                      )}
                         </div>
+                    {seoQualityResult && (
+                      <div className="p-4 bg-gray-100 border border-gray-200 rounded-lg whitespace-pre-wrap">
+                        {seoQualityResult}
                       </div>
-                              
-                            </div>
                       )}
                     </div>
                     </div>
-                    </div>
-                  )}
-                </div>
 
                 {/* 갤러리 열기/닫기 버튼 */}
                 <div className="flex justify-center py-4">
@@ -6233,6 +6634,93 @@ export default function BlogAdmin() {
             // 모달을 닫지 않음 (keepOpenAfterSelect=true)
           }}
         />
+      )}
+
+      {/* 콘텐츠 캘린더 불러오기 탭 */}
+      {activeTab === 'calendar-import' && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              📅 콘텐츠 캘린더 불러오기
+            </h2>
+            <p className="text-gray-600 mb-6">
+              콘텐츠 캘린더에서 블로그 초안을 생성할 수 있는 콘텐츠를 불러옵니다.
+            </p>
+            
+            {/* 콘텐츠 캘린더 데이터 불러오기 버튼 */}
+            <div className="mb-6">
+              <button
+                onClick={fetchCalendarContents}
+                disabled={isLoadingCalendar}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoadingCalendar ? '불러오는 중...' : '📅 콘텐츠 캘린더 불러오기'}
+              </button>
+            </div>
+
+            {/* 콘텐츠 목록 */}
+            {calendarContents.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4">사용 가능한 콘텐츠 ({calendarContents.length}개)</h3>
+                <div className="space-y-4">
+                  {calendarContents.map((content) => (
+                    <div key={content.id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{content.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            날짜: {content.content_date} | 타입: {content.content_type} | 상태: {content.status}
+                          </p>
+                          {content.content_body && (
+                            <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                              {content.content_body.substring(0, 100)}...
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedCalendarPosts.has(content.id)}
+                            onChange={(e) => {
+                              const newSelected = new Set(selectedCalendarPosts);
+                              if (e.target.checked) {
+                                newSelected.add(content.id);
+                              } else {
+                                newSelected.delete(content.id);
+                              }
+                              setSelectedCalendarPosts(newSelected);
+                            }}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 선택된 콘텐츠로 블로그 초안 생성 */}
+                {selectedCalendarPosts.size > 0 && (
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={() => createBlogFromCalendar(selectedCalendarPosts)}
+                      disabled={isSubmitting}
+                      className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? '생성 중...' : `📝 선택된 ${selectedCalendarPosts.size}개 콘텐츠로 블로그 초안 생성`}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {calendarContents.length === 0 && !isLoadingCalendar && (
+              <div className="text-gray-500 mt-8">
+                <p>사용 가능한 콘텐츠가 없습니다.</p>
+                <p className="text-sm mt-2">콘텐츠 캘린더에서 블로그 포스트가 연결되지 않은 콘텐츠를 확인해보세요.</p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* 블로그 마이그레이션 탭 */}
