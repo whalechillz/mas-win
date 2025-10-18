@@ -80,15 +80,64 @@ async function handleGet(req, res) {
       });
     }
 
-    // 채널별 상태 통계 계산
-    const stats = calculateChannelStats(contents || []);
+    // 전체 통계 계산 (페이지네이션과 별개)
+    const overallStats = {
+      total: count || 0, // 전체 개수 사용
+      blog: { connected: 0, total: count || 0 },
+      sms: { connected: 0, total: count || 0 },
+      naver_blog: { connected: 0, total: count || 0 },
+      kakao: { connected: 0, total: count || 0 }
+    };
 
+    // 각 채널별 연결된 콘텐츠 수 계산
+    try {
+      // 블로그 연결 수 계산
+      const { count: blogConnected } = await supabase
+        .from('cc_content_calendar')
+        .select('*', { count: 'exact', head: true })
+        .not('blog_post_id', 'is', null)
+        .eq('is_hub_content', true);
+      
+      overallStats.blog.connected = blogConnected || 0;
+
+      // SMS 연결 수 계산
+      const { count: smsConnected } = await supabase
+        .from('cc_content_calendar')
+        .select('*', { count: 'exact', head: true })
+        .not('sms_id', 'is', null)
+        .eq('is_hub_content', true);
+      
+      overallStats.sms.connected = smsConnected || 0;
+
+      // 네이버 블로그 연결 수 계산
+      const { count: naverConnected } = await supabase
+        .from('cc_content_calendar')
+        .select('*', { count: 'exact', head: true })
+        .not('naver_blog_id', 'is', null)
+        .eq('is_hub_content', true);
+      
+      overallStats.naver_blog.connected = naverConnected || 0;
+
+      // 카카오 연결 수 계산
+      const { count: kakaoConnected } = await supabase
+        .from('cc_content_calendar')
+        .select('*', { count: 'exact', head: true })
+        .not('kakao_id', 'is', null)
+        .eq('is_hub_content', true);
+      
+      overallStats.kakao.connected = kakaoConnected || 0;
+
+    } catch (statsError) {
+      console.error('❌ 통계 계산 오류:', statsError);
+    }
+
+    console.log('📊 전체 통계:', overallStats);
     console.log('✅ 허브 콘텐츠 조회 완료:', contents ? contents.length : 0, '개');
 
     res.status(200).json({ 
       success: true, 
       data: contents || [],
-      stats,
+      stats: overallStats, // 전체 통계 사용
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -506,41 +555,4 @@ async function createChannelDraft(contentId, channel, res) {
     console.error('❌ 채널 초안 생성 오류:', error);
     throw error;
   }
-}
-
-// 채널별 상태 통계 계산
-function calculateChannelStats(contents) {
-  const stats = {
-    total: contents.length,
-    blog: { connected: 0, total: 0 },
-    sms: { connected: 0, total: 0 },
-    naver_blog: { connected: 0, total: 0 },
-    kakao: { connected: 0, total: 0 }
-  };
-
-  contents.forEach(content => {
-    const channelStatus = content.channel_status || {};
-    
-    // 각 채널별로 상태 확인
-    Object.keys(stats).forEach(channel => {
-      if (channel === 'total') return;
-      
-      stats[channel].total++;
-      
-      // 채널별 연결 상태 확인
-      const channelData = channelStatus[channel];
-      if (channelData) {
-        // 연결됨, 수정중, 발행 상태면 연결된 것으로 간주
-        if (channelData.status === '연결됨' || 
-            channelData.status === '수정중' || 
-            channelData.status === '발행' ||
-            channelData.post_id) {
-          stats[channel].connected++;
-        }
-      }
-    });
-  });
-
-  console.log('📊 통계 계산 결과:', stats);
-  return stats;
 }
