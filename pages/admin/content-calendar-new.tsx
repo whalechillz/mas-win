@@ -13,11 +13,7 @@ export default function ContentCalendarNew() {
     title: '',
     summary: '',
     content_body: '',
-    content_type: 'hub',
-    content_date: new Date().toISOString().split('T')[0],
-    is_hub_content: true,
-    hub_priority: 1,
-    auto_derive_channels: ['blog', 'sms', 'naver_blog']
+    content_date: new Date().toISOString().split('T')[0]
   });
   
   // 편집 상태
@@ -62,11 +58,7 @@ export default function ContentCalendarNew() {
           title: '',
           summary: '',
           content_body: '',
-          content_type: 'hub',
-          content_date: new Date().toISOString().split('T')[0],
-          is_hub_content: true,
-          hub_priority: 1,
-          auto_derive_channels: ['blog', 'sms', 'naver_blog']
+          content_date: new Date().toISOString().split('T')[0]
         });
         fetchContents();
       } else {
@@ -100,7 +92,6 @@ export default function ContentCalendarNew() {
           title: editingContent.title,
           summary: editingContent.summary,
           content_body: editingContent.content_body,
-          content_type: editingContent.content_type,
           content_date: editingContent.content_date
         })
       });

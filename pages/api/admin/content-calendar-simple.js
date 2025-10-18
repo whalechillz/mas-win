@@ -36,20 +36,17 @@ async function handleGet(req, res) {
     console.log('🔍 콘텐츠 캘린더 API 시작 (간소화 버전)');
     
     // 쿼리 파라미터 추출
-    const { page = 1, limit = 50, status, content_type } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
     
-    console.log('📊 페이지네이션 파라미터:', { page, limit, offset, status, content_type });
+    console.log('📊 페이지네이션 파라미터:', { page, limit, offset });
     
-    // 핵심 필드만 조회 (summary 필드 포함, status 제거)
+    // 핵심 필드만 조회 (불필요한 필드 모두 제거)
     let query = supabase
       .from('cc_content_calendar')
-      .select('id, title, summary, content_body, content_type, content_date, blog_post_id, created_at, updated_at', { count: 'exact' })
+      .select('id, title, summary, content_body, content_date, blog_post_id, created_at, updated_at', { count: 'exact' })
       .order('content_date', { ascending: false })
       .range(offset, offset + limit - 1);
-
-    // 필터 적용 (status 필터 제거)
-    if (content_type) query = query.eq('content_type', content_type);
 
     const { data: contents, error, count } = await query;
     
@@ -107,11 +104,7 @@ async function handlePost(req, res) {
       title, 
       summary,
       content_body, 
-      content_type = 'hub',
-      content_date,
-      is_hub_content = true,
-      hub_priority = 1,
-      auto_derive_channels = ['blog', 'sms', 'naver_blog']
+      content_date
     } = req.body;
 
     if (!title || !content_body) {
@@ -121,16 +114,12 @@ async function handlePost(req, res) {
       });
     }
 
-    // 새 콘텐츠 생성 (status 필드 제거)
+    // 새 콘텐츠 생성 (핵심 필드만)
     const insertData = {
       title,
       summary: summary || '',
       content_body,
-      content_type,
       content_date: content_date || new Date().toISOString().split('T')[0],
-      is_hub_content,
-      hub_priority,
-      auto_derive_channels,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -180,7 +169,7 @@ async function handlePut(req, res) {
   try {
     console.log('✏️ 콘텐츠 수정 시작');
     
-    const { id, title, summary, content_body, content_type, content_date } = req.body;
+    const { id, title, summary, content_body, content_date } = req.body;
 
     if (!id || !title || !content_body) {
       return res.status(400).json({ 
@@ -189,12 +178,11 @@ async function handlePut(req, res) {
       });
     }
 
-    // 콘텐츠 수정 (status 필드 제거)
+    // 콘텐츠 수정 (핵심 필드만)
     const updateData = {
       title,
       summary: summary || '',
       content_body,
-      content_type: content_type || 'hub',
       content_date: content_date || new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     };
