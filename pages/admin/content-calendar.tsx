@@ -301,7 +301,7 @@ export default function ContentCalendarSimple() {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => alert(`콘텐츠 ${content.id} 편집 기능을 구현합니다.`)}
+                        onClick={() => editContent(content.id)}
                         className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
                       >
                         편집
