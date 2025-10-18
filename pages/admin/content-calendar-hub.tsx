@@ -39,6 +39,15 @@ export default function ContentCalendarHub() {
   const [stats, setStats] = useState<ChannelStats | null>(null);
   const [loading, setLoading] = useState(false);
   
+  // 페이지네이션 상태
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasMore: false
+  });
+  
   // 새 허브 콘텐츠 생성 상태
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newContent, setNewContent] = useState({
@@ -53,14 +62,21 @@ export default function ContentCalendarHub() {
   const [editingContent, setEditingContent] = useState<HubContent | null>(null);
 
   // 허브 콘텐츠 목록 조회
-  const fetchContents = async () => {
+  const fetchContents = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/content-calendar-hub');
+      const response = await fetch(`/api/admin/content-calendar-hub?page=${page}&limit=20`);
       const data = await response.json();
       if (data.success) {
         setContents(data.data || []);
         setStats(data.stats || null);
+        setPagination(data.pagination || {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+          hasMore: false
+        });
       }
     } catch (error) {
       console.error('허브 콘텐츠 조회 오류:', error);
@@ -93,7 +109,7 @@ export default function ContentCalendarHub() {
           content_body: '',
           content_date: new Date().toISOString().split('T')[0]
         });
-        fetchContents();
+        fetchContents(1);
       } else {
         alert(`생성 실패: ${result.message}`);
       }
@@ -134,7 +150,7 @@ export default function ContentCalendarHub() {
         alert('허브 콘텐츠가 수정되었습니다!');
         setShowEditModal(false);
         setEditingContent(null);
-        fetchContents();
+        fetchContents(pagination.page);
       } else {
         alert(`수정 실패: ${result.message}`);
       }
@@ -160,7 +176,7 @@ export default function ContentCalendarHub() {
       const result = await response.json();
       if (result.success) {
         alert('허브 콘텐츠가 삭제되었습니다!');
-        fetchContents();
+        fetchContents(pagination.page);
       } else {
         alert(`삭제 실패: ${result.message}`);
       }
@@ -186,7 +202,7 @@ export default function ContentCalendarHub() {
       const result = await response.json();
       if (result.success) {
         alert(`${channel} 초안이 생성되었습니다!`);
-        fetchContents();
+        fetchContents(pagination.page);
       } else {
         alert(`초안 생성 실패: ${result.message}`);
       }
@@ -211,9 +227,14 @@ export default function ContentCalendarHub() {
     }
   };
 
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage: number) => {
+    fetchContents(newPage);
+  };
+
   useEffect(() => {
     if (session) {
-      fetchContents();
+      fetchContents(1);
     }
   }, [session]);
 
@@ -341,6 +362,89 @@ export default function ContentCalendarHub() {
               </tbody>
             </table>
           </div>
+          
+          {/* 페이지네이션 */}
+          {pagination.totalPages > 1 && (
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  이전
+                </button>
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={!pagination.hasMore}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  다음
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    총 <span className="font-medium">{pagination.total}</span>개 중{' '}
+                    <span className="font-medium">
+                      {((pagination.page - 1) * pagination.limit) + 1}
+                    </span>
+                    -
+                    <span className="font-medium">
+                      {Math.min(pagination.page * pagination.limit, pagination.total)}
+                    </span>
+                    개 표시
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page <= 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">이전</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    
+                    {/* 페이지 번호들 */}
+                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                      const startPage = Math.max(1, pagination.page - 2);
+                      const pageNum = startPage + i;
+                      if (pageNum > pagination.totalPages) return null;
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            pageNum === pagination.page
+                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                    
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={!pagination.hasMore}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">다음</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 새 허브 콘텐츠 생성 모달 */}

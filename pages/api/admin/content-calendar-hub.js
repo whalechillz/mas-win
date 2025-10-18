@@ -37,7 +37,7 @@ async function handleGet(req, res) {
   try {
     console.log('🔍 허브 콘텐츠 조회 시작');
     
-    const { page = 1, limit = 50, date_from, date_to } = req.query;
+    const { page = 1, limit = 20, date_from, date_to } = req.query;
     const offset = (page - 1) * limit;
     
     console.log('📊 페이지네이션 파라미터:', { page, limit, offset, date_from, date_to });
