@@ -93,6 +93,62 @@ export default function ContentCalendarSimple() {
     }
   };
 
+  // 블로그 동기화 함수
+  const syncToBlog = async (contentId: string) => {
+    try {
+      const response = await fetch('/api/admin/content-calendar', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'sync_calendar_to_blog',
+          contentId: contentId
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('블로그로 동기화되었습니다!');
+        fetchContents(); // 데이터 새로고침
+      } else {
+        alert(`동기화 실패: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('블로그 동기화 오류:', error);
+      alert('동기화 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 블로그 초안 생성 함수
+  const createBlogDraft = async (contentId: string) => {
+    try {
+      const response = await fetch('/api/admin/content-calendar', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create_blog_draft',
+          contentId: contentId
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('블로그 초안이 생성되었습니다!');
+        fetchContents(); // 데이터 새로고침
+      } else {
+        alert(`초안 생성 실패: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('블로그 초안 생성 오류:', error);
+      alert('초안 생성 중 오류가 발생했습니다.');
+    }
+  };
+
   // 콘텐츠 업데이트
   const updateContent = async () => {
     if (!editingContent || !editTitle.trim()) {
@@ -308,7 +364,7 @@ export default function ContentCalendarSimple() {
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={() => deriveToChannel(content.id, 'naver_blog')}
                           className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
@@ -322,10 +378,16 @@ export default function ContentCalendarSimple() {
                           SMS
                         </button>
                         <button
-                          onClick={() => deriveToChannel(content.id, 'blog')}
+                          onClick={() => syncToBlog(content.id)}
                           className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
                         >
-                          블로그
+                          블로그 동기화
+                        </button>
+                        <button
+                          onClick={() => createBlogDraft(content.id)}
+                          className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                        >
+                          블로그 초안
                         </button>
                       </div>
                     </td>
