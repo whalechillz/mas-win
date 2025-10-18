@@ -154,6 +154,9 @@ export default function ContentCalendarSimple() {
   const editContent = (contentId: string) => {
     const content = contents.find(c => c.id === contentId);
     if (content) {
+      console.log('🔍 편집할 콘텐츠 데이터:', content);
+      console.log('🔍 summary 값:', content.summary);
+      console.log('🔍 content_body 값:', content.content_body);
       setEditingContent(content);
       setEditTitle(content.title);
       setEditSummary(content.summary || '');
