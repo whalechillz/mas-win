@@ -253,21 +253,27 @@ async function handlePost(req, res) {
     }
 
     // 허브 콘텐츠 생성
+    const insertData = {
+      title,
+      content_body: content_body || '',
+      content_type,
+      is_hub_content,
+      hub_priority,
+      auto_derive_channels,
+      content_date: new Date().toISOString().split('T')[0],
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // summary 컬럼이 존재하는 경우에만 추가
+    if (summary !== undefined) {
+      insertData.summary = summary || '';
+    }
+
     const { data: newContent, error: createError } = await supabase
       .from('cc_content_calendar')
-      .insert({
-        title,
-        summary: summary || '',
-        content_body: content_body || '',
-        content_type,
-        is_hub_content,
-        hub_priority,
-        auto_derive_channels,
-        content_date: new Date().toISOString().split('T')[0],
-        status: 'draft',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -322,15 +328,21 @@ async function handlePut(req, res) {
     }
 
     // 콘텐츠 수정
+    const updateData = {
+      title,
+      content_body: content_body || '',
+      status: status || 'draft',
+      updated_at: new Date().toISOString()
+    };
+
+    // summary 컬럼이 존재하는 경우에만 추가
+    if (summary !== undefined) {
+      updateData.summary = summary || '';
+    }
+
     const { data: updatedContent, error: updateError } = await supabase
       .from('cc_content_calendar')
-      .update({
-        title,
-        summary: summary || '',
-        content_body: content_body || '',
-        status: status || 'draft',
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
