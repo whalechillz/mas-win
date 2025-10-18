@@ -54,7 +54,8 @@ export default function ContentCalendar() {
     status,
     loading,
     contentsLength: contents.length,
-    session: !!session
+    session: !!session,
+    shouldShowLoading: loading.initial || (loading.initial === false && contents.length === 0)
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -781,8 +782,8 @@ export default function ContentCalendar() {
     );
   }
 
-  // 콘텐츠 로딩 중인 경우 - 조건 단순화 (contents.length 체크 제거)
-  if (loading.initial && contents.length === 0) {
+  // 콘텐츠 로딩 중인 경우 - 안전한 조건 체크
+  if (loading.initial || (loading.initial === false && contents.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

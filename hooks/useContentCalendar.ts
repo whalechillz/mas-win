@@ -66,16 +66,12 @@ export const useContentCalendar = () => {
     console.log('🚀 fetchContentCalendar 호출됨', { page, filters, showInitialLoading, currentLoading: loading });
     
     try {
-      if (showInitialLoading) {
-        console.log('🔄 초기 로딩 시작');
-        setLoading(prev => {
-          console.log('📝 로딩 상태 변경:', { ...prev, initial: true });
-          return { ...prev, initial: true };
-        });
-      } else {
-        console.log('🔄 새로고침 시작');
-        setLoading(prev => ({ ...prev, refreshing: true }));
-      }
+      // 항상 초기 로딩 상태로 설정
+      console.log('🔄 로딩 상태 시작');
+      setLoading(prev => {
+        console.log('📝 로딩 상태 변경:', { ...prev, initial: true });
+        return { ...prev, initial: true };
+      });
       
       // 쿼리 파라미터 구성
       const params = new URLSearchParams({
@@ -96,9 +92,10 @@ export const useContentCalendar = () => {
         
         // 데이터 로드 완료 후 즉시 로딩 상태 해제
         console.log('🔄 데이터 로드 완료, 즉시 로딩 상태 해제');
-        setLoading(prev => {
-          console.log('📝 로딩 상태 완료:', { ...prev, initial: false });
-          return { ...prev, initial: false };
+        setLoading({
+          initial: false,
+          refreshing: false,
+          action: false
         });
       } else {
         console.error('❌ 콘텐츠 캘린더 API 호출 실패');
