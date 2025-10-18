@@ -19,7 +19,7 @@ export default function BlogAdmin() {
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
   const [viewMode, setViewMode] = useState('list');
-  const [sortBy, setSortBy] = useState('published_at');
+  const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -4527,7 +4527,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="published_at">작성일</option>
+                    <option value="created_at">작성일</option>
                     <option value="title">제목</option>
                     <option value="category">카테고리</option>
                     <option value="view_count">조회수</option>
@@ -4786,6 +4786,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       setFormData({ ...formData, created_at: new Date(e.target.value).toISOString() });
                     }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="작성일을 선택하세요"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     작성일을 수정할 수 있습니다. 리스트에서 표시되는 날짜입니다.
