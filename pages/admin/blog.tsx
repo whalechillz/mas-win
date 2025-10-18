@@ -4789,6 +4789,24 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   </p>
                 </div>
 
+                {/* 작성일 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    작성일
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.created_at ? new Date(formData.created_at).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      setFormData({ ...formData, created_at: new Date(e.target.value).toISOString() });
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    작성일을 수정할 수 있습니다. 리스트에서 표시되는 날짜입니다.
+                  </p>
+                </div>
+
                 {/* 요약 */}
                       <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
