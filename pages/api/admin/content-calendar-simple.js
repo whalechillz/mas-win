@@ -41,10 +41,10 @@ async function handleGet(req, res) {
     
     console.log('📊 페이지네이션 파라미터:', { page, limit, offset, status, content_type });
     
-    // 핵심 필드만 조회 (summary 필드 조건부 포함)
+    // 핵심 필드만 조회 (summary 필드 포함)
     let query = supabase
       .from('cc_content_calendar')
-      .select('id, title, content_body, content_type, content_date, status, blog_post_id, created_at, updated_at', { count: 'exact' })
+      .select('id, title, summary, content_body, content_type, content_date, status, blog_post_id, created_at, updated_at', { count: 'exact' })
       .order('content_date', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -125,6 +125,7 @@ async function handlePost(req, res) {
     // 새 콘텐츠 생성
     const insertData = {
       title,
+      summary: summary || '',
       content_body,
       content_type,
       content_date: content_date || new Date().toISOString().split('T')[0],
@@ -135,11 +136,6 @@ async function handlePost(req, res) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-
-    // summary 필드가 존재하는 경우에만 추가
-    if (summary !== undefined) {
-      insertData.summary = summary;
-    }
 
     const { data: newContent, error: createError } = await supabase
       .from('cc_content_calendar')
@@ -198,17 +194,13 @@ async function handlePut(req, res) {
     // 콘텐츠 수정
     const updateData = {
       title,
+      summary: summary || '',
       content_body,
       content_type: content_type || 'hub',
       content_date: content_date || new Date().toISOString().split('T')[0],
       status: status || 'draft',
       updated_at: new Date().toISOString()
     };
-
-    // summary 필드가 존재하는 경우에만 추가
-    if (summary !== undefined) {
-      updateData.summary = summary;
-    }
 
     const { data: updatedContent, error: updateError } = await supabase
       .from('cc_content_calendar')
