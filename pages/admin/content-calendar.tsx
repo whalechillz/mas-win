@@ -199,6 +199,7 @@ export default function ContentCalendarSimple() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">타입</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">날짜</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">편집</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">채널 파생</th>
                 </tr>
               </thead>
@@ -216,6 +217,14 @@ export default function ContentCalendarSimple() {
                       }`}>
                         {content.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => alert(`콘텐츠 ${content.id} 편집 기능을 구현합니다.`)}
+                        className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                      >
+                        편집
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
