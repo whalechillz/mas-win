@@ -53,7 +53,7 @@ async function handleGet(req, res) {
     
     let query = supabase
       .from('cc_content_calendar')
-      .select('id, title, content_type, content_date, status, blog_post_id, published_channels, target_audience, seo_meta, content_body', { count: 'exact' })
+      .select('id, title, content_type, content_date, status, blog_post_id, published_channels, target_audience, seo_meta, content_body, summary', { count: 'exact' })
       .order('content_date', { ascending: false })
       .range(offset, offset + limit - 1);
 
