@@ -48,15 +48,6 @@ export default function ContentCalendar() {
   const { data: session, status } = useSession();
   const { contents, loading, pagination, fetchContentCalendar } = useContentCalendar();
   const [view, setView] = useState<'list' | 'calendar' | 'tree' | 'tab' | 'table'>('list');
-  
-  // 디버깅 로그 추가
-  console.log('🔍 ContentCalendar 렌더링 상태:', {
-    status,
-    loading,
-    contentsLength: contents.length,
-    session: !!session,
-    shouldShowLoading: loading.initial
-  });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
@@ -105,12 +96,11 @@ export default function ContentCalendar() {
   }, [session, status]);
 
   useEffect(() => {
-    if (session && status === 'authenticated') { // 인증 완료된 경우에만 데이터 로드
-      console.log('🔐 인증 완료, 데이터 로드 시작');
+    if (session) { // 인증된 경우에만 데이터 로드
       fetchContentCalendar();
       loadMdFiles(); // MD 파일 로드
     }
-  }, [session, status]);
+  }, [session]);
 
   // 트리 구조로 변환하는 함수
   const convertToTreeStructure = (contents: ContentCalendarItem[]): ContentCalendarItem[] => {
@@ -777,19 +767,7 @@ export default function ContentCalendar() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">인증 확인 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 콘텐츠 로딩 중인 경우 - 단순한 조건
-  if (loading.initial) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">콘텐츠 로딩 중...</p>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
       </div>
     );
