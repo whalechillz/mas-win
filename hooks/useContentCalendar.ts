@@ -95,13 +95,11 @@ export const useContentCalendar = () => {
         setPagination(data.pagination || {});
         
         // 데이터 로드 완료 후 즉시 로딩 상태 해제
-        if (showInitialLoading) {
-          console.log('🔄 데이터 로드 완료, 즉시 로딩 상태 해제');
-          setLoading(prev => {
-            console.log('📝 로딩 상태 완료:', { ...prev, initial: false });
-            return { ...prev, initial: false };
-          });
-        }
+        console.log('🔄 데이터 로드 완료, 즉시 로딩 상태 해제');
+        setLoading(prev => {
+          console.log('📝 로딩 상태 완료:', { ...prev, initial: false });
+          return { ...prev, initial: false };
+        });
       } else {
         console.error('❌ 콘텐츠 캘린더 API 호출 실패');
         setContents([]);
@@ -109,10 +107,13 @@ export const useContentCalendar = () => {
     } catch (error) {
       console.error('콘텐츠 캘린더 데이터 로드 오류:', error);
     } finally {
-      if (!showInitialLoading) {
-        console.log('🔄 새로고침 완료, loading.refreshing을 false로 설정');
-        setLoading(prev => ({ ...prev, refreshing: false }));
-      }
+      // 모든 로딩 상태를 false로 설정
+      console.log('🔄 로딩 완료, 모든 로딩 상태를 false로 설정');
+      setLoading(prev => ({ 
+        ...prev, 
+        initial: false, 
+        refreshing: false 
+      }));
     }
   }, []);
 
