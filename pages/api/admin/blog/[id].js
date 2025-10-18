@@ -46,7 +46,8 @@ export default async function handler(req, res) {
         is_featured: Boolean(filteredData.is_featured),
         is_scheduled: Boolean(filteredData.is_scheduled),
         // 날짜 필드 검증
-        scheduled_at: filteredData.scheduled_at || null
+        scheduled_at: filteredData.scheduled_at || null,
+        published_at: filteredData.published_at || null
       };
       
       console.log('정리된 데이터:', JSON.stringify(cleanedData, null, 2));
