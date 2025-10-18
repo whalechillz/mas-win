@@ -7,6 +7,12 @@ export default function ContentCalendarSimple() {
   const { data: session, status } = useSession();
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  // 허브 기능 상태
+  const [showHubSection, setShowHubSection] = useState(false);
+  const [hubTitle, setHubTitle] = useState('');
+  const [hubContent, setHubContent] = useState('');
+  const [isCreatingHub, setIsCreatingHub] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -29,6 +35,71 @@ export default function ContentCalendarSimple() {
     }
   };
 
+  // 허브 콘텐츠 생성
+  const createHubContent = async () => {
+    if (!hubTitle.trim()) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+
+    setIsCreatingHub(true);
+    try {
+      const response = await fetch('/api/admin/content-calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: hubTitle,
+          content_body: hubContent,
+          content_type: 'hub',
+          is_hub_content: true,
+          hub_priority: 1,
+          auto_derive_channels: ['blog', 'naver_blog', 'sms']
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('허브 콘텐츠가 생성되었습니다!');
+        setHubTitle('');
+        setHubContent('');
+        setShowHubSection(false);
+        fetchContents(); // 목록 새로고침
+      } else {
+        alert('허브 콘텐츠 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('허브 콘텐츠 생성 오류:', error);
+      alert('허브 콘텐츠 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsCreatingHub(false);
+    }
+  };
+
+  // 채널 파생 함수
+  const deriveToChannel = async (contentId: string, channel: string) => {
+    try {
+      const response = await fetch('/api/admin/content-hub/derive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentId,
+          channel,
+          action: 'create'
+        })
+      });
+
+      if (response.ok) {
+        alert(`${channel} 채널로 파생되었습니다!`);
+        fetchContents();
+      } else {
+        alert(`${channel} 채널 파생에 실패했습니다.`);
+      }
+    } catch (error) {
+      console.error('채널 파생 오류:', error);
+      alert('채널 파생 중 오류가 발생했습니다.');
+    }
+  };
+
   if (status === 'loading') {
     return <div className="min-h-screen flex items-center justify-center">인증 확인 중...</div>;
   }
@@ -47,8 +118,71 @@ export default function ContentCalendarSimple() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">콘텐츠 캘린더 (심플 버전)</h1>
+          <h1 className="text-3xl font-bold text-gray-900">콘텐츠 캘린더 (허브 시스템)</h1>
           <p className="mt-2 text-gray-600">총 {contents.length}개 콘텐츠</p>
+        </div>
+
+        {/* 허브 기능 섹션 */}
+        <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-blue-800">🎯 허브 콘텐츠 관리</h2>
+            <button
+              onClick={() => setShowHubSection(!showHubSection)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {showHubSection ? '접기' : '허브 콘텐츠 생성'}
+            </button>
+          </div>
+          
+          {showHubSection && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  허브 콘텐츠 제목
+                </label>
+                <input
+                  type="text"
+                  value={hubTitle}
+                  onChange={(e) => setHubTitle(e.target.value)}
+                  placeholder="허브 콘텐츠 제목을 입력하세요"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  허브 콘텐츠 내용
+                </label>
+                <textarea
+                  value={hubContent}
+                  onChange={(e) => setHubContent(e.target.value)}
+                  placeholder="허브 콘텐츠 내용을 입력하세요"
+                  rows={4}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={createHubContent}
+                  disabled={isCreatingHub}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isCreatingHub ? '생성 중...' : '허브 콘텐츠 생성'}
+                </button>
+                <button
+                  onClick={() => {
+                    setHubTitle('');
+                    setHubContent('');
+                    setShowHubSection(false);
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -65,6 +199,7 @@ export default function ContentCalendarSimple() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">타입</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">날짜</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">채널 파생</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -81,6 +216,28 @@ export default function ContentCalendarSimple() {
                       }`}>
                         {content.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => deriveToChannel(content.id, 'naver_blog')}
+                          className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          네이버
+                        </button>
+                        <button
+                          onClick={() => deriveToChannel(content.id, 'sms')}
+                          className="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                        >
+                          SMS
+                        </button>
+                        <button
+                          onClick={() => deriveToChannel(content.id, 'blog')}
+                          className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          블로그
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
