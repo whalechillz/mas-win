@@ -529,7 +529,8 @@ export default function BlogAdmin() {
     customerpersona: '',
     conversiongoal: 'homepage_visit',
     target_product: 'all',
-    published_at: ''
+    published_at: '',
+    created_at: ''
   });
 
   // 특정 포스트 로드 (편집용)
@@ -564,7 +565,8 @@ export default function BlogAdmin() {
           customerpersona: post.customer_persona || '',
           conversiongoal: post.conversion_goal || 'awareness',
           target_product: post.target_product || 'all',
-          published_at: post.published_at || ''
+          published_at: post.published_at || '',
+          created_at: post.created_at || ''
         });
       } else {
         const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
@@ -714,7 +716,8 @@ export default function BlogAdmin() {
       customerpersona: '',
       conversiongoal: 'homepage_visit',
       target_product: 'all',
-      published_at: ''
+      published_at: '',
+      created_at: ''
     });
     
     // SEO 분석 관련 상태 초기화
@@ -4620,7 +4623,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span>카테고리: {post.category}</span>
                               <span>작성자: {post.author}</span>
-                              <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
+                              <span>작성일: {new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
                               <span>조회수: {post.view_count || 0}</span>
                               {post.is_featured && (
                                 <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
@@ -4771,16 +4774,16 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   </div>
                 </div>
 
-                {/* 작성일 (published_at) */}
+                {/* 작성일 (created_at) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     작성일
                   </label>
                   <input
-                    type="datetime-local"
-                    value={formData.published_at ? new Date(formData.published_at).toISOString().slice(0, 16) : ''}
+                    type="date"
+                    value={formData.created_at ? new Date(formData.created_at).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
-                      setFormData({ ...formData, published_at: new Date(e.target.value).toISOString() });
+                      setFormData({ ...formData, created_at: new Date(e.target.value).toISOString() });
                     }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
