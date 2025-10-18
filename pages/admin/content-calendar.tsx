@@ -105,11 +105,10 @@ export default function ContentCalendarSimple() {
       return;
     }
 
-    // 임시로 summary 검증 비활성화
-    // if (!hubSummary.trim()) {
-    //   alert('요약을 입력해주세요.');
-    //   return;
-    // }
+    if (!hubSummary.trim()) {
+      alert('요약을 입력해주세요.');
+      return;
+    }
 
     if (!hubOverview.trim()) {
       alert('간단한 개요를 입력해주세요.');
@@ -123,7 +122,7 @@ export default function ContentCalendarSimple() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: hubTitle,
-          // summary: hubSummary, // 임시로 비활성화
+          summary: hubSummary,
           content_body: hubOverview,
           content_type: 'hub',
           is_hub_content: true,
@@ -342,11 +341,10 @@ export default function ContentCalendarSimple() {
       return;
     }
 
-    // 임시로 summary 검증 비활성화
-    // if (!editSummary.trim()) {
-    //   alert('요약을 입력해주세요.');
-    //   return;
-    // }
+    if (!editSummary.trim()) {
+      alert('요약을 입력해주세요.');
+      return;
+    }
 
     if (!editOverview.trim()) {
       alert('간단한 개요를 입력해주세요.');
@@ -361,7 +359,7 @@ export default function ContentCalendarSimple() {
         body: JSON.stringify({
           id: editingContent.id,
           title: editTitle,
-          // summary: editSummary, // 임시로 비활성화
+          summary: editSummary,
           content_body: editOverview,
           status: editingContent.status
         })
