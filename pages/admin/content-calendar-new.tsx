@@ -42,8 +42,8 @@ export default function ContentCalendarNew() {
 
   // 새 콘텐츠 생성
   const createContent = async () => {
-    if (!newContent.title.trim() || !newContent.summary.trim() || !newContent.content_body.trim()) {
-      alert('모든 필드를 입력해주세요.');
+    if (!newContent.title.trim() || !newContent.content_body.trim()) {
+      alert('제목과 내용은 필수입니다.');
       return;
     }
 
@@ -86,8 +86,8 @@ export default function ContentCalendarNew() {
 
   // 콘텐츠 수정
   const updateContent = async () => {
-    if (!editingContent.title.trim() || !editingContent.summary.trim() || !editingContent.content_body.trim()) {
-      alert('모든 필드를 입력해주세요.');
+    if (!editingContent.title.trim() || !editingContent.content_body.trim()) {
+      alert('제목과 내용은 필수입니다.');
       return;
     }
 
@@ -209,7 +209,7 @@ export default function ContentCalendarNew() {
                         <div className="text-sm font-medium text-gray-900">{content.title}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate">{content.summary || '요약 없음'}</div>
+                        <div className="text-sm text-gray-900 max-w-xs truncate">{content.summary || content.content_body?.substring(0, 50) + '...' || '내용 없음'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {content.content_type}
