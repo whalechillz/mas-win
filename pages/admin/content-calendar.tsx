@@ -48,6 +48,14 @@ export default function ContentCalendar() {
   const { data: session, status } = useSession();
   const { contents, loading, pagination, fetchContentCalendar } = useContentCalendar();
   const [view, setView] = useState<'list' | 'calendar' | 'tree' | 'tab' | 'table'>('list');
+  
+  // 디버깅 로그 추가
+  console.log('🔍 ContentCalendar 렌더링 상태:', {
+    status,
+    loading,
+    contentsLength: contents.length,
+    session: !!session
+  });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
@@ -773,8 +781,8 @@ export default function ContentCalendar() {
     );
   }
 
-  // 콘텐츠 로딩 중인 경우
-  if (loading.initial && contents.length === 0) {
+  // 콘텐츠 로딩 중인 경우 - 조건 단순화
+  if (loading.initial) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

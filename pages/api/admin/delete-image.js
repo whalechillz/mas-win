@@ -267,7 +267,7 @@ export default async function handler(req, res) {
         }
       });
 
-    } else if (req.method === 'DELETE') {
+    } else if (req.method === 'DELETE' || req.method === 'POST') {
       const { imageName } = req.body;
 
       if (!imageName) {

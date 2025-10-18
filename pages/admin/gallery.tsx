@@ -964,8 +964,10 @@ export default function GalleryAdmin() {
   // 개별 이미지 삭제 핸들러
   const handleDeleteImage = async (imageName: string) => {
     try {
+      console.log('🗑️ 삭제 시도:', imageName);
+      
       const response = await fetch('/api/admin/delete-image', {
-        method: 'POST', // DELETE 대신 POST 사용
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageName: imageName })
       });
