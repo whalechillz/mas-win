@@ -40,7 +40,15 @@ async function handleGet(req, res) {
     const { page = 1, limit = 20, date_from, date_to } = req.query;
     const offset = (page - 1) * limit;
     
-    console.log('📊 페이지네이션 파라미터:', { page, limit, offset, date_from, date_to });
+    console.log('📊 페이지네이션 파라미터:', { 
+      page, 
+      limit, 
+      offset, 
+      rangeStart: offset, 
+      rangeEnd: offset + parseInt(limit) - 1,
+      date_from, 
+      date_to 
+    });
     
     // 허브 콘텐츠 조회 (채널별 상태 포함)
     let query = supabase
@@ -53,7 +61,7 @@ async function handleGet(req, res) {
       `, { count: 'exact' })
       .eq('is_hub_content', true)
       .order('content_date', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + parseInt(limit) - 1);
 
     // 날짜 필터 적용
     if (date_from) query = query.gte('content_date', date_from);
@@ -63,6 +71,8 @@ async function handleGet(req, res) {
     
     console.log('📅 허브 콘텐츠 조회 결과:', {
       dataLength: contents ? contents.length : 0,
+      expectedLength: parseInt(limit),
+      page: parseInt(page),
       error: error
     });
 
