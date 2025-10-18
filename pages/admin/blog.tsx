@@ -19,7 +19,7 @@ export default function BlogAdmin() {
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
   const [viewMode, setViewMode] = useState('list');
-  const [sortBy, setSortBy] = useState('created_at');
+  const [sortBy, setSortBy] = useState('published_at');
   const [sortOrder, setSortOrder] = useState('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -4527,7 +4527,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="created_at">작성일</option>
+                    <option value="published_at">작성일</option>
                     <option value="title">제목</option>
                     <option value="category">카테고리</option>
                     <option value="view_count">조회수</option>
@@ -4623,7 +4623,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span>카테고리: {post.category}</span>
                               <span>작성자: {post.author}</span>
-                              <span>작성일: {new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
+                              <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
                               <span>조회수: {post.view_count || 0}</span>
                               {post.is_featured && (
                                 <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
