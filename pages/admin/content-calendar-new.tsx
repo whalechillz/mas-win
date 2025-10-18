@@ -101,8 +101,7 @@ export default function ContentCalendarNew() {
           summary: editingContent.summary,
           content_body: editingContent.content_body,
           content_type: editingContent.content_type,
-          content_date: editingContent.content_date,
-          status: editingContent.status
+          content_date: editingContent.content_date
         })
       });
 
@@ -370,18 +369,6 @@ export default function ContentCalendarNew() {
                     />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
-                    <select
-                      value={editingContent.status}
-                      onChange={(e) => setEditingContent({...editingContent, status: e.target.value})}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    >
-                      <option value="draft">초안</option>
-                      <option value="published">발행</option>
-                      <option value="archived">보관</option>
-                    </select>
-                  </div>
                 </div>
                 
                 <div className="flex gap-3 mt-6">
