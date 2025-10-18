@@ -16,6 +16,10 @@ export default async function handler(req, res) {
     return handleGet(req, res);
   } else if (req.method === 'POST') {
     return handlePost(req, res);
+  } else if (req.method === 'PUT') {
+    return handlePut(req, res);
+  } else if (req.method === 'DELETE') {
+    return handleDelete(req, res);
   } else {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -285,6 +289,124 @@ async function handlePost(req, res) {
     return res.status(500).json({ 
       success: false, 
       message: '허브 콘텐츠 생성 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// PUT 요청 처리 (콘텐츠 수정)
+async function handlePut(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류',
+      error: 'Supabase 환경 변수가 설정되지 않았습니다'
+    });
+  }
+
+  try {
+    console.log('✏️ 콘텐츠 수정 시작');
+    
+    const { id, title, content_body, status } = req.body;
+
+    if (!id || !title) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID와 제목은 필수입니다.' 
+      });
+    }
+
+    // 콘텐츠 수정
+    const { data: updatedContent, error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update({
+        title,
+        content_body: content_body || '',
+        status: status || 'draft',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('❌ 콘텐츠 수정 오류:', updateError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '콘텐츠 수정에 실패했습니다.',
+        error: updateError.message 
+      });
+    }
+
+    console.log('✅ 콘텐츠 수정 완료:', updatedContent.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '콘텐츠가 수정되었습니다.',
+      content: updatedContent
+    });
+
+  } catch (error) {
+    console.error('❌ 콘텐츠 수정 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '콘텐츠 수정 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// DELETE 요청 처리 (콘텐츠 삭제)
+async function handleDelete(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류',
+      error: 'Supabase 환경 변수가 설정되지 않았습니다'
+    });
+  }
+
+  try {
+    console.log('🗑️ 콘텐츠 삭제 시작');
+    
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID는 필수입니다.' 
+      });
+    }
+
+    // 콘텐츠 삭제
+    const { error: deleteError } = await supabase
+      .from('cc_content_calendar')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('❌ 콘텐츠 삭제 오류:', deleteError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '콘텐츠 삭제에 실패했습니다.',
+        error: deleteError.message 
+      });
+    }
+
+    console.log('✅ 콘텐츠 삭제 완료:', id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '콘텐츠가 삭제되었습니다.'
+    });
+
+  } catch (error) {
+    console.error('❌ 콘텐츠 삭제 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '콘텐츠 삭제 중 오류가 발생했습니다.',
       error: error.message 
     });
   }

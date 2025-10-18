@@ -13,6 +13,13 @@ export default function ContentCalendarSimple() {
   const [hubTitle, setHubTitle] = useState('');
   const [hubContent, setHubContent] = useState('');
   const [isCreatingHub, setIsCreatingHub] = useState(false);
+  
+  // 편집 모달 상태
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingContent, setEditingContent] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContentBody, setEditContentBody] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -72,6 +79,80 @@ export default function ContentCalendarSimple() {
       alert('허브 콘텐츠 생성 중 오류가 발생했습니다.');
     } finally {
       setIsCreatingHub(false);
+    }
+  };
+
+  // 콘텐츠 편집 함수
+  const editContent = (contentId: string) => {
+    const content = contents.find(c => c.id === contentId);
+    if (content) {
+      setEditingContent(content);
+      setEditTitle(content.title);
+      setEditContentBody(content.content_body || '');
+      setShowEditModal(true);
+    }
+  };
+
+  // 콘텐츠 업데이트
+  const updateContent = async () => {
+    if (!editingContent || !editTitle.trim()) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/admin/content-calendar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingContent.id,
+          title: editTitle,
+          content_body: editContentBody,
+          status: editingContent.status
+        })
+      });
+
+      if (response.ok) {
+        alert('콘텐츠가 수정되었습니다!');
+        setShowEditModal(false);
+        setEditingContent(null);
+        setEditTitle('');
+        setEditContentBody('');
+        fetchContents(); // 목록 새로고침
+      } else {
+        alert('콘텐츠 수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('콘텐츠 수정 오류:', error);
+      alert('콘텐츠 수정 중 오류가 발생했습니다.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // 콘텐츠 삭제
+  const deleteContent = async (contentId: string) => {
+    if (!confirm('정말로 이 콘텐츠를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/content-calendar', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: contentId })
+      });
+
+      if (response.ok) {
+        alert('콘텐츠가 삭제되었습니다!');
+        fetchContents(); // 목록 새로고침
+      } else {
+        alert('콘텐츠 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('콘텐츠 삭제 오류:', error);
+      alert('콘텐츠 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -252,6 +333,75 @@ export default function ContentCalendarSimple() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* 편집 모달 */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+              <h3 className="text-lg font-semibold mb-4">콘텐츠 편집</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    제목
+                  </label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="콘텐츠 제목을 입력하세요"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    내용
+                  </label>
+                  <textarea
+                    value={editContentBody}
+                    onChange={(e) => setEditContentBody(e.target.value)}
+                    rows={6}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="콘텐츠 내용을 입력하세요"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={updateContent}
+                  disabled={isUpdating}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isUpdating ? '수정 중...' : '수정'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingContent(null);
+                    setEditTitle('');
+                    setEditContentBody('');
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    if (editingContent) {
+                      deleteContent(editingContent.id);
+                      setShowEditModal(false);
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
