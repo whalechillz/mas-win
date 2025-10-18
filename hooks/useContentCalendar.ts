@@ -46,7 +46,7 @@ interface LoadingState {
 export const useContentCalendar = () => {
   const [contents, setContents] = useState<ContentCalendarItem[]>([]);
   const [loading, setLoading] = useState<LoadingState>({
-    initial: false, // 초기 로딩 상태를 false로 설정
+    initial: false,
     refreshing: false,
     action: false
   });
@@ -60,18 +60,14 @@ export const useContentCalendar = () => {
 
   const fetchContentCalendar = useCallback(async (
     page = 1,
-    filters = {},
-    showInitialLoading = true
+    filters = {}
   ) => {
-    console.log('🚀 fetchContentCalendar 호출됨', { page, filters, showInitialLoading, currentLoading: loading });
+    console.log('🚀 fetchContentCalendar 호출됨', { page, filters });
     
     try {
-      // 항상 초기 로딩 상태로 설정
+      // 로딩 시작
       console.log('🔄 로딩 상태 시작');
-      setLoading(prev => {
-        console.log('📝 로딩 상태 변경:', { ...prev, initial: true });
-        return { ...prev, initial: true };
-      });
+      setLoading(prev => ({ ...prev, initial: true }));
       
       // 쿼리 파라미터 구성
       const params = new URLSearchParams({
@@ -87,11 +83,13 @@ export const useContentCalendar = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('📊 콘텐츠 캘린더 API 응답:', data);
+        
+        // 데이터 설정
         setContents(data.contents || []);
         setPagination(data.pagination || {});
         
-        // 데이터 로드 완료 후 즉시 로딩 상태 해제
-        console.log('🔄 데이터 로드 완료, 즉시 로딩 상태 해제');
+        // 로딩 완료
+        console.log('✅ 데이터 로드 완료, 로딩 상태 해제');
         setLoading({
           initial: false,
           refreshing: false,
@@ -100,22 +98,25 @@ export const useContentCalendar = () => {
       } else {
         console.error('❌ 콘텐츠 캘린더 API 호출 실패');
         setContents([]);
+        setLoading({
+          initial: false,
+          refreshing: false,
+          action: false
+        });
       }
     } catch (error) {
-      console.error('콘텐츠 캘린더 데이터 로드 오류:', error);
-    } finally {
-      // 모든 로딩 상태를 false로 설정
-      console.log('🔄 로딩 완료, 모든 로딩 상태를 false로 설정');
-      setLoading(prev => ({ 
-        ...prev, 
-        initial: false, 
-        refreshing: false 
-      }));
+      console.error('❌ 콘텐츠 캘린더 데이터 로드 오류:', error);
+      setContents([]);
+      setLoading({
+        initial: false,
+        refreshing: false,
+        action: false
+      });
     }
   }, []);
 
   const refreshContent = useCallback(() => {
-    fetchContentCalendar(false);
+    fetchContentCalendar(1);
   }, [fetchContentCalendar]);
 
   const setActionLoading = useCallback((isLoading: boolean) => {
