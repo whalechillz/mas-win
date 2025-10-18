@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       throw new Error('블로그 상태 업데이트 실패');
     }
 
-    // 2. 콘텐츠 캘린더에서 해당 블로그 찾기
+    // 2. 콘텐츠 캘린더에서 해당 블로그 찾기 (허브 시스템에 맞게 수정)
     const { data: calendarItems, error: calendarError } = await supabase
       .from('cc_content_calendar')
       .select('*')
@@ -61,13 +61,20 @@ export default async function handler(req, res) {
       throw new Error('콘텐츠 캘린더 조회 실패');
     }
 
-    // 3. 콘텐츠 캘린더 상태 업데이트
+    // 3. 콘텐츠 캘린더 상태 업데이트 (허브 시스템에 맞게 수정)
     if (calendarItems && calendarItems.length > 0) {
+      // 채널별 상태 업데이트 (허브 시스템 방식)
+      const currentChannelStatus = calendarItems[0].channel_status || {};
+      currentChannelStatus.blog = {
+        status: status === 'published' ? '연결됨' : '미연결',
+        post_id: blogPostId,
+        updated_at: new Date().toISOString()
+      };
+
       const { data: updatedCalendar, error: updateCalendarError } = await supabase
         .from('cc_content_calendar')
         .update({
-          status: status,
-          published_channels: publishedChannels || ['blog'],
+          channel_status: currentChannelStatus,
           updated_at: new Date().toISOString()
         })
         .eq('blog_post_id', blogPostId)
@@ -80,39 +87,28 @@ export default async function handler(req, res) {
 
       console.log(`✅ 콘텐츠 캘린더 상태 업데이트 완료: ${blogPostId} -> ${status}`);
     } else {
-      // 콘텐츠 캘린더에 등록되지 않은 블로그인 경우 새로 등록
+      // 콘텐츠 캘린더에 등록되지 않은 블로그인 경우 새로 등록 (허브 시스템 방식)
       const { data: newCalendarItem, error: insertError } = await supabase
         .from('cc_content_calendar')
         .insert({
-          year: new Date().getFullYear(),
-          month: new Date().getMonth() + 1,
-          content_date: new Date().toISOString().split('T')[0],
-          theme: updatedBlog.title,
-          content_type: 'blog',
           title: updatedBlog.title,
-          description: updatedBlog.excerpt || updatedBlog.content.substring(0, 200),
+          summary: updatedBlog.excerpt || updatedBlog.content.substring(0, 200),
           content_body: updatedBlog.content,
-          status: status,
-          published_channels: publishedChannels || ['blog'],
+          content_date: new Date().toISOString().split('T')[0],
           blog_post_id: blogPostId,
-          target_audience: {
-            persona: '일반',
-            stage: 'awareness'
+          channel_status: {
+            blog: {
+              status: status === 'published' ? '연결됨' : '미연결',
+              post_id: blogPostId,
+              created_at: new Date().toISOString()
+            },
+            sms: { status: '미발행', post_id: null, created_at: null },
+            naver_blog: { status: '미발행', post_id: null, created_at: null },
+            kakao: { status: '미발행', post_id: null, created_at: null }
           },
-          conversion_tracking: {
-            landingPage: 'https://win.masgolf.co.kr',
-            goal: '홈페이지 방문',
-            utmParams: {
-              source: 'blog',
-              medium: 'organic',
-              campaign: updatedBlog.category || '일반'
-            }
-          },
-          seo_meta: {
-            title: updatedBlog.meta_title || updatedBlog.title,
-            description: updatedBlog.meta_description || updatedBlog.excerpt,
-            keywords: updatedBlog.meta_keywords || ''
-          }
+          is_hub_content: true,
+          hub_priority: 1,
+          auto_derive_channels: ['blog', 'sms', 'naver_blog', 'kakao']
         })
         .select()
         .single();
