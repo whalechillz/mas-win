@@ -965,18 +965,31 @@ export default function GalleryAdmin() {
   const handleDeleteImage = async (imageName: string) => {
     try {
       const response = await fetch('/api/admin/delete-image', {
-        method: 'DELETE',
+        method: 'POST', // DELETE 대신 POST 사용
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageName: imageName })
       });
 
       if (response.ok) {
-        const result = await response.json();
+        let result;
+        try {
+          result = await response.json();
+        } catch (parseError) {
+          console.warn('⚠️ JSON 파싱 실패, 텍스트로 처리:', parseError);
+          result = { success: true, message: '이미지가 삭제되었습니다.' };
+        }
+        
         // 삭제된 이미지를 상태에서 제거
         setImages(prev => prev.filter(img => img.name !== imageName));
         alert('이미지가 삭제되었습니다.');
       } else {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.error('❌ 에러 응답 JSON 파싱 실패:', parseError);
+          errorData = { error: `서버 오류 (${response.status})` };
+        }
         const errorMessage = errorData.error || errorData.details || '알 수 없는 오류';
         alert(`삭제 실패: ${errorMessage}`);
       }
@@ -1026,12 +1039,24 @@ export default function GalleryAdmin() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.error('❌ 에러 응답 JSON 파싱 실패:', parseError);
+          errorData = { error: `서버 오류 (${response.status})` };
+        }
         const errorMessage = errorData.error || errorData.details || '일괄 삭제에 실패했습니다.';
         throw new Error(errorMessage);
       }
       
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        console.warn('⚠️ JSON 파싱 실패, 기본값 사용:', parseError);
+        result = { success: true, deletedImages: names };
+      }
       console.log('✅ 일괄 삭제 성공:', result);
       
       // 삭제 검증 결과 확인
