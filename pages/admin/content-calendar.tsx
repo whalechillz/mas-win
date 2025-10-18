@@ -781,8 +781,8 @@ export default function ContentCalendar() {
     );
   }
 
-  // 콘텐츠 로딩 중인 경우 - 조건 단순화
-  if (loading.initial) {
+  // 콘텐츠 로딩 중인 경우 - 조건 단순화 (contents.length 체크 제거)
+  if (loading.initial && contents.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
