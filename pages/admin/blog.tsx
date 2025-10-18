@@ -4771,7 +4771,23 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   </div>
                 </div>
 
-
+                {/* 게시일 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    게시일
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formData.published_at ? new Date(formData.published_at).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => {
+                      setFormData({ ...formData, published_at: new Date(e.target.value).toISOString() });
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    게시일을 수정할 수 있습니다. 비워두면 현재 시간으로 설정됩니다.
+                  </p>
+                </div>
 
                 {/* 요약 */}
                       <div>
