@@ -237,6 +237,7 @@ async function handlePost(req, res) {
     
     const { 
       title, 
+      summary,
       content_body, 
       content_type = 'hub',
       is_hub_content = true,
@@ -256,6 +257,7 @@ async function handlePost(req, res) {
       .from('cc_content_calendar')
       .insert({
         title,
+        summary: summary || '',
         content_body: content_body || '',
         content_type,
         is_hub_content,
@@ -310,7 +312,7 @@ async function handlePut(req, res) {
   try {
     console.log('✏️ 콘텐츠 수정 시작');
     
-    const { id, title, content_body, status } = req.body;
+    const { id, title, summary, content_body, status } = req.body;
 
     if (!id || !title) {
       return res.status(400).json({ 
@@ -324,6 +326,7 @@ async function handlePut(req, res) {
       .from('cc_content_calendar')
       .update({
         title,
+        summary: summary || '',
         content_body: content_body || '',
         status: status || 'draft',
         updated_at: new Date().toISOString()

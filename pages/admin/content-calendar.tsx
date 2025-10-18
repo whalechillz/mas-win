@@ -65,14 +65,16 @@ export default function ContentCalendarSimple() {
   // 허브 기능 상태
   const [showHubSection, setShowHubSection] = useState(false);
   const [hubTitle, setHubTitle] = useState('');
-  const [hubContent, setHubContent] = useState('');
+  const [hubSummary, setHubSummary] = useState('');
+  const [hubOverview, setHubOverview] = useState('');
   const [isCreatingHub, setIsCreatingHub] = useState(false);
   
   // 편집 모달 상태
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingContent, setEditingContent] = useState(null);
   const [editTitle, setEditTitle] = useState('');
-  const [editContentBody, setEditContentBody] = useState('');
+  const [editSummary, setEditSummary] = useState('');
+  const [editOverview, setEditOverview] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
@@ -103,6 +105,16 @@ export default function ContentCalendarSimple() {
       return;
     }
 
+    if (!hubSummary.trim()) {
+      alert('요약을 입력해주세요.');
+      return;
+    }
+
+    if (!hubOverview.trim()) {
+      alert('간단한 개요를 입력해주세요.');
+      return;
+    }
+
     setIsCreatingHub(true);
     try {
       const response = await fetch('/api/admin/content-calendar', {
@@ -110,7 +122,8 @@ export default function ContentCalendarSimple() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: hubTitle,
-          content_body: hubContent,
+          summary: hubSummary,
+          content_body: hubOverview,
           content_type: 'hub',
           is_hub_content: true,
           hub_priority: 1,
@@ -122,7 +135,8 @@ export default function ContentCalendarSimple() {
         const data = await response.json();
         alert('허브 콘텐츠가 생성되었습니다!');
         setHubTitle('');
-        setHubContent('');
+        setHubSummary('');
+        setHubOverview('');
         setShowHubSection(false);
         fetchContents(); // 목록 새로고침
       } else {
@@ -142,7 +156,8 @@ export default function ContentCalendarSimple() {
     if (content) {
       setEditingContent(content);
       setEditTitle(content.title);
-      setEditContentBody(content.content_body || '');
+      setEditSummary(content.summary || '');
+      setEditOverview(content.content_body || '');
       setShowEditModal(true);
     }
   };
@@ -326,6 +341,16 @@ export default function ContentCalendarSimple() {
       return;
     }
 
+    if (!editSummary.trim()) {
+      alert('요약을 입력해주세요.');
+      return;
+    }
+
+    if (!editOverview.trim()) {
+      alert('간단한 개요를 입력해주세요.');
+      return;
+    }
+
     setIsUpdating(true);
     try {
       const response = await fetch('/api/admin/content-calendar', {
@@ -334,7 +359,8 @@ export default function ContentCalendarSimple() {
         body: JSON.stringify({
           id: editingContent.id,
           title: editTitle,
-          content_body: editContentBody,
+          summary: editSummary,
+          content_body: editOverview,
           status: editingContent.status
         })
       });
@@ -344,7 +370,8 @@ export default function ContentCalendarSimple() {
         setShowEditModal(false);
         setEditingContent(null);
         setEditTitle('');
-        setEditContentBody('');
+        setEditSummary('');
+        setEditOverview('');
         fetchContents(); // 목록 새로고침
       } else {
         alert('콘텐츠 수정에 실패했습니다.');
@@ -458,13 +485,29 @@ export default function ContentCalendarSimple() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  허브 콘텐츠 내용
+                  요약 (다른 채널 활용용)
                 </label>
                 <textarea
-                  value={hubContent}
-                  onChange={(e) => setHubContent(e.target.value)}
-                  placeholder="허브 콘텐츠 내용을 입력하세요"
-                  rows={4}
+                  value={hubSummary}
+                  onChange={(e) => setHubSummary(e.target.value)}
+                  placeholder="SMS, 네이버 블로그 등에서 활용할 요약 내용을 입력하세요"
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  이 요약은 SMS, 네이버 블로그 등 다른 채널에서 활용됩니다.
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  간단한 개요
+                </label>
+                <textarea
+                  value={hubOverview}
+                  onChange={(e) => setHubOverview(e.target.value)}
+                  placeholder="허브 콘텐츠의 간단한 개요를 입력하세요"
+                  rows={2}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
               </div>
@@ -583,8 +626,8 @@ export default function ContentCalendarSimple() {
                     요약 (다른 채널 활용용)
                   </label>
                   <textarea
-                    value={editContentBody}
-                    onChange={(e) => setEditContentBody(e.target.value)}
+                    value={editSummary}
+                    onChange={(e) => setEditSummary(e.target.value)}
                     rows={3}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                     placeholder="SMS, 네이버 블로그 등에서 활용할 요약 내용을 입력하세요"
@@ -599,8 +642,8 @@ export default function ContentCalendarSimple() {
                     간단한 개요
                   </label>
                   <textarea
-                    value={editContentBody}
-                    onChange={(e) => setEditContentBody(e.target.value)}
+                    value={editOverview}
+                    onChange={(e) => setEditOverview(e.target.value)}
                     rows={2}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                     placeholder="허브 콘텐츠의 간단한 개요를 입력하세요"
