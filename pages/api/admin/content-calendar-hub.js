@@ -9,338 +9,522 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 채널별 최적화 함수들
-function optimizeForBlog(originalContent) {
-  return {
-    title: originalContent.title,
-    content: originalContent.content,
-    excerpt: originalContent.content.substring(0, 200) + '...',
-    category: originalContent.category || '골프',
-    status: 'draft',
-    meta_title: originalContent.title,
-    meta_description: originalContent.content.substring(0, 160),
-    meta_keywords: extractKeywords(originalContent.content),
-    author: '마쓰구골프',
-    published_at: originalContent.content_date ? new Date(originalContent.content_date).toISOString() : null
-  };
-}
-
-function optimizeForNaverBlog(originalContent) {
-  return {
-    title: addNaverKeywords(originalContent.title),
-    content: formatForNaver(originalContent.content),
-    category: '골프',
-    status: 'draft',
-    tags: extractNaverTags(originalContent.content),
-    author: '마쓰구골프',
-    published_at: originalContent.content_date ? new Date(originalContent.content_date).toISOString() : null
-  };
-}
-
-function optimizeForSMS(originalContent) {
-  const compressedContent = compressTo160Chars(originalContent.content);
-  return {
-    message: compressedContent,
-    call_to_action: extractCTA(originalContent.content),
-    status: 'draft',
-    scheduled_at: originalContent.content_date ? new Date(originalContent.content_date).toISOString() : null
-  };
-}
-
-function optimizeForKakao(originalContent) {
-  return {
-    title: originalContent.title,
-    content: formatForKakao(originalContent.content),
-    status: 'draft',
-    scheduled_at: originalContent.content_date ? new Date(originalContent.content_date).toISOString() : null
-  };
-}
-
-// 유틸리티 함수들
-function extractKeywords(content) {
-  const keywords = ['골프', '드라이버', '비거리', '스윙', '피팅'];
-  return keywords.join(', ');
-}
-
-function addNaverKeywords(title) {
-  return `${title} | 골프 전문점 마쓰구골프`;
-}
-
-function formatForNaver(content) {
-  return content.replace(/\n/g, '<br>');
-}
-
-function extractNaverTags(content) {
-  return ['골프', '드라이버', '비거리', '마쓰구골프'];
-}
-
-function compressTo160Chars(content) {
-  if (content.length <= 160) return content;
-  return content.substring(0, 157) + '...';
-}
-
-function extractCTA(content) {
-  if (content.includes('체험')) return '무료 체험 신청';
-  if (content.includes('할인')) return '할인 혜택 받기';
-  return '자세히 보기';
-}
-
-function formatForKakao(content) {
-  return content.substring(0, 500);
-}
-
 export default async function handler(req, res) {
-  console.log('🔍 콘텐츠 캘린더 허브 API 요청:', req.method, req.url);
-  
-  // CORS 헤더 설정
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  // OPTIONS 요청 처리
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (req.method === 'GET') {
+    return handleGet(req, res);
+  } else if (req.method === 'POST') {
+    return handlePost(req, res);
+  } else if (req.method === 'PUT') {
+    return handlePut(req, res);
+  } else if (req.method === 'DELETE') {
+    return handleDelete(req, res);
+  } else if (req.method === 'PATCH') {
+    return handlePatch(req, res);
+  } else {
+    return res.status(405).json({ message: 'Method Not Allowed' });
   }
-  
-  // 환경 변수 확인
+}
+
+// GET 요청 처리 - 허브 콘텐츠 조회
+async function handleGet(req, res) {
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('❌ Supabase 환경 변수 누락');
     return res.status(500).json({ 
-      error: '서버 설정 오류: 환경 변수가 설정되지 않았습니다.'
+      success: false, 
+      message: '서버 설정 오류'
     });
   }
-  
+
   try {
-    if (req.method === 'POST') {
-      // 원본 콘텐츠 생성 및 모든 채널로 파생
-      console.log('📝 원본 콘텐츠 생성 및 파생 시작...');
-      
-      const { title, content, content_date, target_audience, conversion_goal, autoDerive = true } = req.body;
-      
-      if (!title || !content) {
-        return res.status(400).json({ error: '제목과 내용은 필수입니다.' });
-      }
-      
-      // 1. 원본 콘텐츠를 콘텐츠 캘린더에 생성
-      const originalContentData = {
-        title,
-        content_body: content,
-        content_type: 'original',
-        content_date: content_date || new Date().toISOString().split('T')[0],
-        status: 'draft',
-        target_audience: target_audience || {
-          persona: '시니어 골퍼',
-          stage: 'awareness'
-        },
-        conversion_goal: conversion_goal || '홈페이지 방문',
-        published_channels: [],
-        is_root_content: true,
-        derived_content_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      const { data: originalContent, error: originalError } = await supabase
-        .from('cc_content_calendar')
-        .insert([originalContentData])
-        .select()
-        .single();
-      
-      if (originalError) {
-        console.error('❌ 원본 콘텐츠 생성 에러:', originalError);
-        return res.status(500).json({
-          error: '원본 콘텐츠를 생성할 수 없습니다.',
-          details: originalError.message
-        });
-      }
-      
-      console.log('✅ 원본 콘텐츠 생성 성공:', originalContent.id);
-      
-      const derivedContents = [];
-      
-      if (autoDerive) {
-        // 2. 모든 채널로 파생 콘텐츠 생성
-        const channels = [
-          { name: 'blog', optimize: optimizeForBlog },
-          { name: 'naver_blog', optimize: optimizeForNaverBlog },
-          { name: 'sms', optimize: optimizeForSMS },
-          { name: 'kakao', optimize: optimizeForKakao }
-        ];
-        
-        for (const channel of channels) {
-          try {
-            const optimizedData = channel.optimize(originalContent);
-            
-            // 각 채널별 테이블에 저장
-            let channelData;
-            let tableName;
-            
-            switch (channel.name) {
-              case 'blog':
-                tableName = 'blog_posts';
-                channelData = {
-                  ...optimizedData,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                };
-                break;
-              case 'naver_blog':
-                tableName = 'naver_blog_posts';
-                channelData = {
-                  ...optimizedData,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                };
-                break;
-              case 'sms':
-                tableName = 'sms_messages';
-                channelData = {
-                  ...optimizedData,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                };
-                break;
-              case 'kakao':
-                tableName = 'kakao_messages';
-                channelData = {
-                  ...optimizedData,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                };
-                break;
-            }
-            
-            const { data: channelContent, error: channelError } = await supabase
-              .from(tableName)
-              .insert([channelData])
-              .select()
-              .single();
-            
-            if (channelError) {
-              console.warn(`⚠️ ${channel.name} 채널 생성 실패:`, channelError);
-            } else {
-              console.log(`✅ ${channel.name} 채널 생성 성공:`, channelContent.id);
-              derivedContents.push({
-                channel: channel.name,
-                id: channelContent.id,
-                status: 'created'
-              });
-            }
-            
-          } catch (error) {
-            console.warn(`⚠️ ${channel.name} 채널 최적화 실패:`, error);
-          }
-        }
-        
-        // 3. 원본 콘텐츠에 파생 정보 업데이트
-        const { error: updateError } = await supabase
-          .from('cc_content_calendar')
-          .update({
-            derived_content_count: derivedContents.length,
-            published_channels: derivedContents.map(d => d.channel),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', originalContent.id);
-        
-        if (updateError) {
-          console.warn('⚠️ 원본 콘텐츠 업데이트 실패:', updateError);
-        }
-      }
-      
-      return res.status(201).json({
-        success: true,
-        originalContent,
-        derivedContents,
-        message: `원본 콘텐츠와 ${derivedContents.length}개 채널 파생 콘텐츠가 생성되었습니다.`
-      });
-      
-    } else if (req.method === 'GET') {
-      // 콘텐츠 캘린더 허브 데이터 조회 (원본 + 파생 관계)
-      console.log('📅 콘텐츠 캘린더 허브 데이터 조회...');
-      
-      const { data: contents, error } = await supabase
-        .from('cc_content_calendar')
-        .select('*')
-        .order('content_date', { ascending: false });
-      
-      if (error) {
-        console.error('❌ 콘텐츠 캘린더 조회 에러:', error);
-        return res.status(500).json({
-          error: '콘텐츠 캘린더 데이터를 불러올 수 없습니다.',
-          details: error.message
-        });
-      }
-      
-      // 파생 관계 정보 추가
-      const contentsWithDerivations = await Promise.all(
-        contents.map(async (content) => {
-          const derivations = [];
-          
-          // 각 채널별 파생 콘텐츠 조회
-          if (content.published_channels) {
-            for (const channel of content.published_channels) {
-              try {
-                let tableName;
-                switch (channel) {
-                  case 'blog':
-                    tableName = 'blog_posts';
-                    break;
-                  case 'naver_blog':
-                    tableName = 'naver_blog_posts';
-                    break;
-                  case 'sms':
-                    tableName = 'sms_messages';
-                    break;
-                  case 'kakao':
-                    tableName = 'kakao_messages';
-                    break;
-                  default:
-                    continue;
-                }
-                
-                const { data: channelData } = await supabase
-                  .from(tableName)
-                  .select('id, title, status, created_at')
-                  .eq('parent_content_id', content.id)
-                  .single();
-                
-                if (channelData) {
-                  derivations.push({
-                    channel,
-                    id: channelData.id,
-                    title: channelData.title,
-                    status: channelData.status,
-                    created_at: channelData.created_at
-                  });
-                }
-              } catch (error) {
-                console.warn(`⚠️ ${channel} 채널 데이터 조회 실패:`, error);
-              }
-            }
-          }
-          
-          return {
-            ...content,
-            derivations
-          };
-        })
-      );
-      
-      return res.status(200).json({
-        success: true,
-        contents: contentsWithDerivations,
-        total: contentsWithDerivations.length
-      });
-      
-    } else {
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
+    console.log('🔍 허브 콘텐츠 조회 시작');
     
+    const { page = 1, limit = 50, date_from, date_to } = req.query;
+    const offset = (page - 1) * limit;
+    
+    console.log('📊 페이지네이션 파라미터:', { page, limit, offset, date_from, date_to });
+    
+    // 허브 콘텐츠 조회 (채널별 상태 포함)
+    let query = supabase
+      .from('cc_content_calendar')
+      .select(`
+        id, title, summary, content_body, content_date,
+        blog_post_id, sms_id, naver_blog_id, kakao_id,
+        channel_status, is_hub_content, hub_priority,
+        auto_derive_channels, created_at, updated_at
+      `, { count: 'exact' })
+      .eq('is_hub_content', true)
+      .order('content_date', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // 날짜 필터 적용
+    if (date_from) query = query.gte('content_date', date_from);
+    if (date_to) query = query.lte('content_date', date_to);
+
+    const { data: contents, error, count } = await query;
+    
+    console.log('📅 허브 콘텐츠 조회 결과:', {
+      dataLength: contents ? contents.length : 0,
+      error: error
+    });
+
+    if (error) {
+      console.error('❌ 허브 콘텐츠 조회 오류:', error);
+      return res.status(500).json({
+        success: false,
+        error: '허브 콘텐츠 조회 실패',
+        details: error.message
+      });
+    }
+
+    // 채널별 상태 통계 계산
+    const stats = calculateChannelStats(contents || []);
+
+    console.log('✅ 허브 콘텐츠 조회 완료:', contents ? contents.length : 0, '개');
+
+    res.status(200).json({ 
+      success: true, 
+      data: contents || [],
+      stats,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
+        hasMore: offset + limit < (count || 0)
+      }
+    });
+
   } catch (error) {
-    console.error('❌ 콘텐츠 캘린더 허브 API 오류:', error);
-    return res.status(500).json({
-      error: '서버 오류가 발생했습니다.',
-      details: error.message
+    console.error('❌ 허브 콘텐츠 조회 오류:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '허브 콘텐츠 조회 실패', 
+      error: error.message
     });
   }
+}
+
+// POST 요청 처리 - 새 허브 콘텐츠 생성
+async function handlePost(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류'
+    });
+  }
+
+  try {
+    console.log('🎯 새 허브 콘텐츠 생성 시작');
+    
+    const { 
+      title, 
+      summary,
+      content_body, 
+      content_date,
+      auto_derive_channels = ['blog', 'sms', 'naver_blog', 'kakao']
+    } = req.body;
+
+    if (!title || !content_body) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '제목과 내용은 필수입니다.' 
+      });
+    }
+
+    // 새 허브 콘텐츠 생성
+    const insertData = {
+      title,
+      summary: summary || '',
+      content_body,
+      content_date: content_date || new Date().toISOString().split('T')[0],
+      is_hub_content: true,
+      hub_priority: 1,
+      auto_derive_channels,
+      channel_status: {
+        blog: { status: '미연결', post_id: null, created_at: null },
+        sms: { status: '미발행', post_id: null, created_at: null },
+        naver_blog: { status: '미발행', post_id: null, created_at: null },
+        kakao: { status: '미발행', post_id: null, created_at: null }
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: newContent, error: createError } = await supabase
+      .from('cc_content_calendar')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('❌ 허브 콘텐츠 생성 오류:', createError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '허브 콘텐츠 생성에 실패했습니다.',
+        error: createError.message 
+      });
+    }
+
+    console.log('✅ 허브 콘텐츠 생성 완료:', newContent.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '허브 콘텐츠가 생성되었습니다.',
+      content: newContent
+    });
+
+  } catch (error) {
+    console.error('❌ 허브 콘텐츠 생성 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '허브 콘텐츠 생성 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// PUT 요청 처리 - 허브 콘텐츠 수정
+async function handlePut(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류'
+    });
+  }
+
+  try {
+    console.log('✏️ 허브 콘텐츠 수정 시작');
+    
+    const { id, title, summary, content_body, content_date } = req.body;
+
+    if (!id || !title || !content_body) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID, 제목, 내용은 필수입니다.' 
+      });
+    }
+
+    // 허브 콘텐츠 수정
+    const updateData = {
+      title,
+      summary: summary || '',
+      content_body,
+      content_date: content_date || new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: updatedContent, error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update(updateData)
+      .eq('id', id)
+      .eq('is_hub_content', true)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('❌ 허브 콘텐츠 수정 오류:', updateError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '허브 콘텐츠 수정에 실패했습니다.',
+        error: updateError.message 
+      });
+    }
+
+    console.log('✅ 허브 콘텐츠 수정 완료:', updatedContent.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '허브 콘텐츠가 수정되었습니다.',
+      content: updatedContent
+    });
+
+  } catch (error) {
+    console.error('❌ 허브 콘텐츠 수정 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '허브 콘텐츠 수정 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// DELETE 요청 처리 - 허브 콘텐츠 삭제
+async function handleDelete(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류'
+    });
+  }
+
+  try {
+    console.log('🗑️ 허브 콘텐츠 삭제 시작');
+    
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID는 필수입니다.' 
+      });
+    }
+
+    // 허브 콘텐츠 삭제
+    const { error: deleteError } = await supabase
+      .from('cc_content_calendar')
+      .delete()
+      .eq('id', id)
+      .eq('is_hub_content', true);
+
+    if (deleteError) {
+      console.error('❌ 허브 콘텐츠 삭제 오류:', deleteError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '허브 콘텐츠 삭제에 실패했습니다.',
+        error: deleteError.message 
+      });
+    }
+
+    console.log('✅ 허브 콘텐츠 삭제 완료:', id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '허브 콘텐츠가 삭제되었습니다.'
+    });
+
+  } catch (error) {
+    console.error('❌ 허브 콘텐츠 삭제 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '허브 콘텐츠 삭제 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// PATCH 요청 처리 - 채널별 상태 업데이트
+async function handlePatch(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류'
+    });
+  }
+
+  try {
+    console.log('🔄 채널 상태 업데이트 시작');
+    
+    const { action, contentId, channel, status, postId } = req.body;
+
+    if (!action || !contentId || !channel) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '액션, 콘텐츠 ID, 채널은 필수입니다.' 
+      });
+    }
+
+    switch (action) {
+      case 'update_channel_status':
+        return await updateChannelStatus(contentId, channel, status, postId, res);
+      
+      case 'create_channel_draft':
+        return await createChannelDraft(contentId, channel, res);
+      
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          message: '지원하지 않는 액션입니다.' 
+        });
+    }
+
+  } catch (error) {
+    console.error('❌ 채널 상태 업데이트 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '채널 상태 업데이트 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// 채널별 상태 업데이트
+async function updateChannelStatus(contentId, channel, status, postId, res) {
+  try {
+    console.log('🔄 채널 상태 업데이트:', contentId, channel, status);
+    
+    // 허브 콘텐츠 조회
+    const { data: content, error: fetchError } = await supabase
+      .from('cc_content_calendar')
+      .select('channel_status')
+      .eq('id', contentId)
+      .eq('is_hub_content', true)
+      .single();
+
+    if (fetchError || !content) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '허브 콘텐츠를 찾을 수 없습니다.' 
+      });
+    }
+
+    // 채널별 상태 업데이트
+    const currentChannelStatus = content.channel_status || {};
+    currentChannelStatus[channel] = {
+      status: status,
+      post_id: postId,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update({ 
+        channel_status: currentChannelStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', contentId);
+
+    if (updateError) {
+      console.error('❌ 채널 상태 업데이트 오류:', updateError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '채널 상태 업데이트에 실패했습니다.',
+        error: updateError.message 
+      });
+    }
+
+    console.log('✅ 채널 상태 업데이트 완료:', channel, status);
+    
+    return res.status(200).json({
+      success: true,
+      message: '채널 상태가 업데이트되었습니다.'
+    });
+
+  } catch (error) {
+    console.error('❌ 채널 상태 업데이트 오류:', error);
+    throw error;
+  }
+}
+
+// 채널별 초안 생성
+async function createChannelDraft(contentId, channel, res) {
+  try {
+    console.log('📝 채널 초안 생성:', contentId, channel);
+    
+    // 허브 콘텐츠 조회
+    const { data: content, error: fetchError } = await supabase
+      .from('cc_content_calendar')
+      .select('*')
+      .eq('id', contentId)
+      .eq('is_hub_content', true)
+      .single();
+
+    if (fetchError || !content) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '허브 콘텐츠를 찾을 수 없습니다.' 
+      });
+    }
+
+    // 채널별 초안 생성 로직
+    let newPostId = null;
+    
+    switch(channel) {
+      case 'sms':
+        // SMS 초안 생성
+        const { data: smsDraft, error: smsError } = await supabase
+          .from('sms_campaigns')
+          .insert({
+            title: content.title,
+            content: content.summary || content.content_body,
+            status: 'draft',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (smsError) throw smsError;
+        newPostId = smsDraft.id;
+        break;
+        
+      case 'naver_blog':
+        // 네이버 블로그 초안 생성
+        const { data: naverDraft, error: naverError } = await supabase
+          .from('naver_blog_posts')
+          .insert({
+            title: content.title,
+            content: content.content_body,
+            status: 'draft',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (naverError) throw naverError;
+        newPostId = naverDraft.id;
+        break;
+        
+      case 'kakao':
+        // 카카오톡 초안 생성
+        const { data: kakaoDraft, error: kakaoError } = await supabase
+          .from('kakao_messages')
+          .insert({
+            title: content.title,
+            content: content.summary || content.content_body,
+            status: 'draft',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (kakaoError) throw kakaoError;
+        newPostId = kakaoDraft.id;
+        break;
+        
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          message: '지원하지 않는 채널입니다.' 
+        });
+    }
+
+    // 채널 상태 업데이트
+    await updateChannelStatus(contentId, channel, '수정중', newPostId, res);
+
+    console.log('✅ 채널 초안 생성 완료:', newPostId);
+    
+    return res.status(200).json({
+      success: true,
+      message: `${channel} 초안이 생성되었습니다.`,
+      postId: newPostId
+    });
+
+  } catch (error) {
+    console.error('❌ 채널 초안 생성 오류:', error);
+    throw error;
+  }
+}
+
+// 채널별 상태 통계 계산
+function calculateChannelStats(contents) {
+  const stats = {
+    total: contents.length,
+    blog: { connected: 0, total: 0 },
+    sms: { connected: 0, total: 0 },
+    naver_blog: { connected: 0, total: 0 },
+    kakao: { connected: 0, total: 0 }
+  };
+
+  contents.forEach(content => {
+    const channelStatus = content.channel_status || {};
+    
+    Object.keys(stats).forEach(channel => {
+      if (channel === 'total') return;
+      
+      stats[channel].total++;
+      if (channelStatus[channel]?.status === '연결됨' || channelStatus[channel]?.status === '수정중') {
+        stats[channel].connected++;
+      }
+    });
+  });
+
+  return stats;
 }
