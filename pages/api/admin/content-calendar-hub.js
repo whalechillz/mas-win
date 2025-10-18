@@ -66,6 +66,11 @@ async function handleGet(req, res) {
       error: error
     });
 
+    // 디버깅: 첫 번째 콘텐츠의 채널 상태 확인
+    if (contents && contents.length > 0) {
+      console.log('🔍 첫 번째 콘텐츠 채널 상태:', contents[0].channel_status);
+    }
+
     if (error) {
       console.error('❌ 허브 콘텐츠 조회 오류:', error);
       return res.status(500).json({
@@ -516,15 +521,26 @@ function calculateChannelStats(contents) {
   contents.forEach(content => {
     const channelStatus = content.channel_status || {};
     
+    // 각 채널별로 상태 확인
     Object.keys(stats).forEach(channel => {
       if (channel === 'total') return;
       
       stats[channel].total++;
-      if (channelStatus[channel]?.status === '연결됨' || channelStatus[channel]?.status === '수정중') {
-        stats[channel].connected++;
+      
+      // 채널별 연결 상태 확인
+      const channelData = channelStatus[channel];
+      if (channelData) {
+        // 연결됨, 수정중, 발행 상태면 연결된 것으로 간주
+        if (channelData.status === '연결됨' || 
+            channelData.status === '수정중' || 
+            channelData.status === '발행' ||
+            channelData.post_id) {
+          stats[channel].connected++;
+        }
       }
     });
   });
 
+  console.log('📊 통계 계산 결과:', stats);
   return stats;
 }
