@@ -91,10 +91,10 @@ export default async function handler(req, res) {
       
       // 캐시된 이미지 목록 확인
       const cacheKey = `${prefix || 'root'}_${includeChildren}`;
-      const now = Date.now();
+      const currentTime = Date.now();
       let allFilesForPagination = [];
       
-      if (imagesCache.has(cacheKey) && (now - imagesCacheTimestamp) < IMAGES_CACHE_DURATION) {
+      if (imagesCache.has(cacheKey) && (currentTime - imagesCacheTimestamp) < IMAGES_CACHE_DURATION) {
         console.log('📊 캐시된 이미지 목록 사용:', cacheKey);
         allFilesForPagination = imagesCache.get(cacheKey);
       } else {
@@ -160,7 +160,7 @@ export default async function handler(req, res) {
         
         // 캐시에 저장
         imagesCache.set(cacheKey, allFilesForPagination);
-        imagesCacheTimestamp = now;
+        imagesCacheTimestamp = currentTime;
         console.log('✅ 이미지 목록 캐시 저장:', allFilesForPagination.length, '개');
       }
       
