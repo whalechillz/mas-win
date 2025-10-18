@@ -266,10 +266,10 @@ async function handlePost(req, res) {
       updated_at: new Date().toISOString()
     };
 
-    // summary 컬럼이 존재하는 경우에만 추가 (임시로 비활성화)
-    // if (summary !== undefined) {
-    //   insertData.summary = summary || '';
-    // }
+    // summary 컬럼이 존재하는 경우에만 추가
+    if (summary !== undefined) {
+      insertData.summary = summary || '';
+    }
 
     const { data: newContent, error: createError } = await supabase
       .from('cc_content_calendar')
@@ -335,10 +335,10 @@ async function handlePut(req, res) {
       updated_at: new Date().toISOString()
     };
 
-    // summary 컬럼이 존재하는 경우에만 추가 (임시로 비활성화)
-    // if (summary !== undefined) {
-    //   updateData.summary = summary || '';
-    // }
+    // summary 컬럼이 존재하는 경우에만 추가
+    if (summary !== undefined) {
+      updateData.summary = summary || '';
+    }
 
     const { data: updatedContent, error: updateError } = await supabase
       .from('cc_content_calendar')
