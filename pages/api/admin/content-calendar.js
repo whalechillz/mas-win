@@ -20,6 +20,8 @@ export default async function handler(req, res) {
     return handlePut(req, res);
   } else if (req.method === 'DELETE') {
     return handleDelete(req, res);
+  } else if (req.method === 'PATCH') {
+    return handlePatch(req, res);
   } else {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -409,5 +411,275 @@ async function handleDelete(req, res) {
       message: '콘텐츠 삭제 중 오류가 발생했습니다.',
       error: error.message 
     });
+  }
+}
+
+// PATCH 요청 처리 (블로그 동기화)
+async function handlePatch(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류',
+      error: 'Supabase 환경 변수가 설정되지 않았습니다'
+    });
+  }
+
+  try {
+    console.log('🔄 블로그 동기화 시작');
+    
+    const { action, contentId, blogPostId } = req.body;
+
+    if (!action) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '액션은 필수입니다.' 
+      });
+    }
+
+    switch (action) {
+      case 'sync_blog_to_calendar':
+        return await syncBlogToCalendar(blogPostId, res);
+      
+      case 'sync_calendar_to_blog':
+        return await syncCalendarToBlog(contentId, res);
+      
+      case 'create_blog_draft':
+        return await createBlogDraft(contentId, res);
+      
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          message: '지원하지 않는 액션입니다.' 
+        });
+    }
+
+  } catch (error) {
+    console.error('❌ 블로그 동기화 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '블로그 동기화 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+}
+
+// 블로그 포스트를 콘텐츠 캘린더로 동기화
+async function syncBlogToCalendar(blogPostId, res) {
+  try {
+    console.log('📝 블로그 포스트를 콘텐츠 캘린더로 동기화:', blogPostId);
+    
+    // 블로그 포스트 조회
+    const { data: blogPost, error: blogError } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', blogPostId)
+      .single();
+
+    if (blogError || !blogPost) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '블로그 포스트를 찾을 수 없습니다.' 
+      });
+    }
+
+    // 이미 캘린더에 등록된 블로그인지 확인
+    const { data: existingContent } = await supabase
+      .from('cc_content_calendar')
+      .select('id')
+      .eq('blog_post_id', blogPostId)
+      .single();
+
+    if (existingContent) {
+      return res.status(200).json({
+        success: true,
+        message: '이미 콘텐츠 캘린더에 등록되어 있습니다.',
+        contentId: existingContent.id
+      });
+    }
+
+    // 콘텐츠 캘린더에 등록
+    const { data: newContent, error: createError } = await supabase
+      .from('cc_content_calendar')
+      .insert({
+        title: blogPost.title,
+        content_body: blogPost.content,
+        content_type: 'blog',
+        content_date: blogPost.published_at ? blogPost.published_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        status: blogPost.status === 'published' ? 'published' : 'draft',
+        blog_post_id: blogPostId,
+        source: 'blog_import',
+        published_at: blogPost.published_at,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('❌ 콘텐츠 캘린더 등록 오류:', createError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '콘텐츠 캘린더 등록에 실패했습니다.',
+        error: createError.message 
+      });
+    }
+
+    console.log('✅ 블로그 포스트가 콘텐츠 캘린더에 등록되었습니다:', newContent.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '블로그 포스트가 콘텐츠 캘린더에 등록되었습니다.',
+      content: newContent
+    });
+
+  } catch (error) {
+    console.error('❌ 블로그 동기화 오류:', error);
+    throw error;
+  }
+}
+
+// 콘텐츠 캘린더에서 블로그로 동기화
+async function syncCalendarToBlog(contentId, res) {
+  try {
+    console.log('📅 콘텐츠 캘린더를 블로그로 동기화:', contentId);
+    
+    // 콘텐츠 캘린더 조회
+    const { data: calendarContent, error: calendarError } = await supabase
+      .from('cc_content_calendar')
+      .select('*')
+      .eq('id', contentId)
+      .single();
+
+    if (calendarError || !calendarContent) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '콘텐츠 캘린더 항목을 찾을 수 없습니다.' 
+      });
+    }
+
+    // 이미 블로그에 등록된 콘텐츠인지 확인
+    if (calendarContent.blog_post_id) {
+      return res.status(200).json({
+        success: true,
+        message: '이미 블로그에 등록되어 있습니다.',
+        blogPostId: calendarContent.blog_post_id
+      });
+    }
+
+    // 블로그 포스트 생성
+    const { data: newBlogPost, error: createError } = await supabase
+      .from('blog_posts')
+      .insert({
+        title: calendarContent.title,
+        content: calendarContent.content_body,
+        excerpt: calendarContent.subtitle,
+        status: calendarContent.status === 'published' ? 'published' : 'draft',
+        published_at: calendarContent.published_at,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('❌ 블로그 포스트 생성 오류:', createError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '블로그 포스트 생성에 실패했습니다.',
+        error: createError.message 
+      });
+    }
+
+    // 콘텐츠 캘린더에 블로그 포스트 ID 업데이트
+    const { error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update({ blog_post_id: newBlogPost.id })
+      .eq('id', contentId);
+
+    if (updateError) {
+      console.error('❌ 콘텐츠 캘린더 업데이트 오류:', updateError);
+    }
+
+    console.log('✅ 콘텐츠 캘린더가 블로그로 동기화되었습니다:', newBlogPost.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '콘텐츠 캘린더가 블로그로 동기화되었습니다.',
+      blogPost: newBlogPost
+    });
+
+  } catch (error) {
+    console.error('❌ 캘린더 동기화 오류:', error);
+    throw error;
+  }
+}
+
+// 콘텐츠 캘린더에서 블로그 초안 생성
+async function createBlogDraft(contentId, res) {
+  try {
+    console.log('📝 콘텐츠 캘린더에서 블로그 초안 생성:', contentId);
+    
+    // 콘텐츠 캘린더 조회
+    const { data: calendarContent, error: calendarError } = await supabase
+      .from('cc_content_calendar')
+      .select('*')
+      .eq('id', contentId)
+      .single();
+
+    if (calendarError || !calendarContent) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '콘텐츠 캘린더 항목을 찾을 수 없습니다.' 
+      });
+    }
+
+    // 블로그 초안 생성
+    const { data: newBlogPost, error: createError } = await supabase
+      .from('blog_posts')
+      .insert({
+        title: calendarContent.title,
+        content: calendarContent.content_body || '',
+        excerpt: calendarContent.subtitle || '',
+        status: 'draft',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('❌ 블로그 초안 생성 오류:', createError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '블로그 초안 생성에 실패했습니다.',
+        error: createError.message 
+      });
+    }
+
+    // 콘텐츠 캘린더에 블로그 포스트 ID 업데이트
+    const { error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update({ 
+        blog_post_id: newBlogPost.id,
+        status: 'draft'
+      })
+      .eq('id', contentId);
+
+    if (updateError) {
+      console.error('❌ 콘텐츠 캘린더 업데이트 오류:', updateError);
+    }
+
+    console.log('✅ 블로그 초안이 생성되었습니다:', newBlogPost.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '블로그 초안이 생성되었습니다.',
+      blogPost: newBlogPost
+    });
+
+  } catch (error) {
+    console.error('❌ 블로그 초안 생성 오류:', error);
+    throw error;
   }
 }
