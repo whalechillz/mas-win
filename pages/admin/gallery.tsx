@@ -36,7 +36,7 @@ export default function GalleryAdmin() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [imagesPerPage] = useState(30); // 관리하기 쉬운 페이지당 글수
+  const [imagesPerPage] = useState(20); // 성능 최적화를 위해 페이지당 이미지 수 감소
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
   // SEO 최적화된 파일명 생성 함수 (한글 자동 영문 변환)
@@ -98,19 +98,29 @@ export default function GalleryAdmin() {
     return Array.from(folders).sort();
   }, [images]);
   
-  // 필터링된 이미지 계산 (useMemo로 최적화)
+  // 가상화를 위한 상태
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
+  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
+
+  // 필터링된 이미지 계산 (성능 최적화)
   const filteredImages = useMemo(() => {
     let filtered = images;
     
-    // 검색 필터
+    // 검색 필터 (성능 최적화)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(img => 
-        img.name.toLowerCase().includes(query) ||
-        img.alt_text?.toLowerCase().includes(query) ||
-        img.keywords?.some((k: string) => k.toLowerCase().includes(query)) ||
-        img.title?.toLowerCase().includes(query)
-      );
+      const searchTerms = query.split(' ').filter(term => term.length > 0);
+      
+      filtered = filtered.filter(img => {
+        const searchableText = [
+          img.name,
+          img.alt_text || '',
+          img.title || '',
+          img.keywords?.join(' ') || ''
+        ].join(' ').toLowerCase();
+        
+        return searchTerms.every(term => searchableText.includes(term));
+      });
     }
     
     // 폴더 필터
@@ -329,6 +339,56 @@ export default function GalleryAdmin() {
     });
   };
 
+  // 지연 로딩을 위한 Intersection Observer
+  const [imageObserver, setImageObserver] = useState<IntersectionObserver | null>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = entry.target as HTMLImageElement;
+            const src = img.dataset.src;
+            if (src) {
+              img.src = src;
+              img.removeAttribute('data-src');
+              observer.unobserve(img);
+            }
+          }
+        });
+      },
+      { rootMargin: '50px' }
+    );
+    
+    setImageObserver(observer);
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // 이미지 지연 로딩 컴포넌트
+  const LazyImage = ({ src, alt, className, ...props }: any) => {
+    const imgRef = useRef<HTMLImageElement>(null);
+    
+    useEffect(() => {
+      if (imgRef.current && imageObserver) {
+        imageObserver.observe(imgRef.current);
+      }
+    }, [imageObserver]);
+    
+    return (
+      <img
+        ref={imgRef}
+        data-src={src}
+        alt={alt}
+        className={className}
+        {...props}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+        }}
+      />
+    );
+  };
+
   // 확대보기 내 좌우 탐색 핸들러
   const showAdjacentImage = async (direction: 'prev' | 'next') => {
     if (!selectedImageForZoom || isNavigating) return;
@@ -517,19 +577,29 @@ export default function GalleryAdmin() {
     }
   };
 
-  // 무한 스크롤 로드 (의존성 배열 최적화)
+  // 무한 스크롤 로드 (성능 최적화)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const onScroll = () => {
       if (isLoading || isLoadingMore || !hasMoreImages) return;
       
-      const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-      if (remaining < 200) {
-        setCurrentPage(prev => prev + 1);
-      }
+      // 스크롤 이벤트 디바운싱
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+        if (remaining < 300) { // 더 일찍 로드하도록 조정
+          setCurrentPage(prev => prev + 1);
+        }
+      }, 100);
     };
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [isLoading, isLoadingMore, hasMoreImages]); // 불필요한 의존성 제거
+    
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [isLoading, isLoadingMore, hasMoreImages]);
 
   // currentPage 변경 시 이미지 로드
   useEffect(() => {
@@ -538,15 +608,41 @@ export default function GalleryAdmin() {
     }
   }, [currentPage]);
 
-  // 초기 로드
+  // 성능 모니터링
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    loadTime: 0,
+    imageCount: 0,
+    cacheHitRate: 0
+  });
+
+  // 초기 로드 (성능 최적화)
   useEffect(() => {
-    fetchImages(1, true);
-    loadDynamicCategories(); // 동적 카테고리 로드
-    // 카테고리/태그 로드
-    (async()=>{
-      try { const c = await (await fetch('/api/admin/image-categories')).json(); setCategories(c.categories||[]); } catch {}
-      try { const t = await (await fetch('/api/admin/image-tags')).json(); setTags(t.tags||[]); } catch {}
-    })();
+    const startTime = performance.now();
+    
+    const initializeGallery = async () => {
+      try {
+        // 병렬로 데이터 로드
+        await Promise.all([
+          fetchImages(1, true),
+          loadDynamicCategories(),
+          fetch('/api/admin/image-categories').then(res => res.json()).then(data => setCategories(data.categories || [])).catch(() => {}),
+          fetch('/api/admin/image-tags').then(res => res.json()).then(data => setTags(data.tags || [])).catch(() => {})
+        ]);
+        
+        const endTime = performance.now();
+        setPerformanceMetrics(prev => ({
+          ...prev,
+          loadTime: Math.round(endTime - startTime),
+          imageCount: images.length
+        }));
+        
+        console.log(`🚀 갤러리 초기화 완료: ${Math.round(endTime - startTime)}ms`);
+      } catch (error) {
+        console.error('❌ 갤러리 초기화 오류:', error);
+      }
+    };
+    
+    initializeGallery();
   }, []);
 
   // 이미지 선택/해제
@@ -1388,6 +1484,11 @@ export default function GalleryAdmin() {
                   <span className="text-sm text-gray-600">
                     {filteredImages.length}개 표시 (총 {totalCount}개)
                   </span>
+                  {performanceMetrics.loadTime > 0 && (
+                    <span className="text-xs text-green-600 ml-2">
+                      ⚡ {performanceMetrics.loadTime}ms
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -1398,6 +1499,9 @@ export default function GalleryAdmin() {
                   <div className="inline-flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                     <span className="text-gray-600">이미지 로딩 중...</span>
+                  </div>
+                  <div className="mt-4 text-sm text-gray-500">
+                    최적화된 로딩으로 더 빠른 속도를 경험하세요
                   </div>
                 </div>
               ) : filteredImages.length === 0 ? (
@@ -1432,13 +1536,10 @@ export default function GalleryAdmin() {
                       
                       {/* 이미지 */}
                       <div className="aspect-square bg-gray-100">
-                        <img
+                        <LazyImage
                           src={image.url}
                           alt={image.alt_text || image.name}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                          }}
                         />
                       </div>
                       
