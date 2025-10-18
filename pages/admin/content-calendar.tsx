@@ -3,6 +3,60 @@ import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { useSession } from 'next-auth/react';
 
+// 채널 상태 컴포넌트
+const ChannelStatus = ({ channel, status, postId, onAction }: {
+  channel: string;
+  status: string;
+  postId?: string;
+  onAction: (action: string) => void;
+}) => {
+  const getStatusInfo = (status: string) => {
+    switch(status) {
+      case '미발행': 
+        return { 
+          color: 'bg-gray-100 text-gray-600', 
+          action: '초안생성',
+          actionColor: 'bg-blue-500 hover:bg-blue-600'
+        };
+      case '수정중': 
+        return { 
+          color: 'bg-yellow-100 text-yellow-600', 
+          action: '편집',
+          actionColor: 'bg-yellow-500 hover:bg-yellow-600'
+        };
+      case '발행': 
+        return { 
+          color: 'bg-green-100 text-green-600', 
+          action: '보기',
+          actionColor: 'bg-green-500 hover:bg-green-600'
+        };
+      default: 
+        return { 
+          color: 'bg-gray-100 text-gray-600', 
+          action: '초안생성',
+          actionColor: 'bg-blue-500 hover:bg-blue-600'
+        };
+    }
+  };
+
+  const { color, action, actionColor } = getStatusInfo(status);
+  
+  return (
+    <div className="flex flex-col items-center space-y-2 min-w-[80px]">
+      <span className="text-xs font-medium text-gray-700">{channel}</span>
+      <span className={`px-2 py-1 text-xs rounded-full ${color}`}>
+        {status}
+      </span>
+      <button 
+        onClick={() => onAction(action)}
+        className={`px-2 py-1 text-xs text-white rounded ${actionColor}`}
+      >
+        {action}
+      </button>
+    </div>
+  );
+};
+
 export default function ContentCalendarSimple() {
   const { data: session, status } = useSession();
   const [contents, setContents] = useState([]);
@@ -118,6 +172,122 @@ export default function ContentCalendarSimple() {
     } catch (error) {
       console.error('블로그 동기화 오류:', error);
       alert('동기화 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 채널별 상태 가져오기
+  const getChannelStatus = (content: any, channel: string) => {
+    const channelData = content.channel_status?.[channel];
+    if (!channelData || !channelData.post_id) {
+      return '미발행';
+    }
+    return channelData.status || '미발행';
+  };
+
+  // 채널별 액션 처리
+  const handleChannelAction = async (contentId: string, channel: string, action: string) => {
+    try {
+      switch(action) {
+        case '초안생성':
+          if (channel === 'homepage_blog') {
+            await createBlogDraft(contentId);
+          } else {
+            await createChannelDraft(contentId, channel);
+          }
+          break;
+        case '편집':
+          await openChannelEditor(contentId, channel);
+          break;
+        case '보기':
+          await openChannelView(contentId, channel);
+          break;
+      }
+    } catch (error) {
+      console.error('채널 액션 오류:', error);
+      alert('작업 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 채널 초안 생성
+  const createChannelDraft = async (contentId: string, channel: string) => {
+    try {
+      const response = await fetch('/api/admin/content-calendar', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create_channel_draft',
+          contentId: contentId,
+          channel: channel
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`${channel} 초안이 생성되었습니다!`);
+        fetchContents();
+      } else {
+        alert(`초안 생성 실패: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('채널 초안 생성 오류:', error);
+      alert('초안 생성 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 채널 편집기 열기
+  const openChannelEditor = async (contentId: string, channel: string) => {
+    const content = contents.find(c => c.id === contentId);
+    const channelData = content?.channel_status?.[channel];
+    
+    if (!channelData?.post_id) {
+      alert('먼저 초안을 생성해주세요.');
+      return;
+    }
+
+    // 채널별 편집 페이지로 이동
+    switch(channel) {
+      case 'homepage_blog':
+        window.open(`/admin/blog?edit=${channelData.post_id}`);
+        break;
+      case 'sms':
+        window.open(`/admin/sms?edit=${channelData.post_id}`);
+        break;
+      case 'naver_blog':
+        window.open(`/admin/naver-blog?edit=${channelData.post_id}`);
+        break;
+      case 'kakao':
+        window.open(`/admin/kakao?edit=${channelData.post_id}`);
+        break;
+    }
+  };
+
+  // 채널 보기
+  const openChannelView = async (contentId: string, channel: string) => {
+    const content = contents.find(c => c.id === contentId);
+    const channelData = content?.channel_status?.[channel];
+    
+    if (!channelData?.post_id) {
+      alert('게시된 콘텐츠가 없습니다.');
+      return;
+    }
+
+    // 채널별 보기 페이지로 이동
+    switch(channel) {
+      case 'homepage_blog':
+        window.open(`/blog/${channelData.post_id}`);
+        break;
+      case 'sms':
+        window.open(`/admin/sms/view/${channelData.post_id}`);
+        break;
+      case 'naver_blog':
+        window.open(`/admin/naver-blog/view/${channelData.post_id}`);
+        break;
+      case 'kakao':
+        window.open(`/admin/kakao/view/${channelData.post_id}`);
+        break;
     }
   };
 
@@ -335,9 +505,8 @@ export default function ContentCalendarSimple() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">타입</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">날짜</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">편집</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">채널 파생</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">채널별 상태</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -347,15 +516,6 @@ export default function ContentCalendarSimple() {
                     <td className="px-6 py-4 text-sm text-gray-500">{content.content_type}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{content.content_date}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        content.status === 'published' ? 'bg-green-100 text-green-800' :
-                        content.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {content.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
                       <button
                         onClick={() => editContent(content.id)}
                         className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
@@ -364,31 +524,31 @@ export default function ContentCalendarSimple() {
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2 flex-wrap">
-                        <button
-                          onClick={() => deriveToChannel(content.id, 'naver_blog')}
-                          className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          네이버
-                        </button>
-                        <button
-                          onClick={() => deriveToChannel(content.id, 'sms')}
-                          className="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                        >
-                          SMS
-                        </button>
-                        <button
-                          onClick={() => syncToBlog(content.id)}
-                          className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                          블로그 동기화
-                        </button>
-                        <button
-                          onClick={() => createBlogDraft(content.id)}
-                          className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
-                        >
-                          블로그 초안
-                        </button>
+                      <div className="flex gap-4">
+                        <ChannelStatus 
+                          channel="홈피블로그" 
+                          status={getChannelStatus(content, 'homepage_blog')}
+                          postId={content.channel_status?.homepage_blog?.post_id}
+                          onAction={(action) => handleChannelAction(content.id, 'homepage_blog', action)}
+                        />
+                        <ChannelStatus 
+                          channel="SMS" 
+                          status={getChannelStatus(content, 'sms')}
+                          postId={content.channel_status?.sms?.campaign_id}
+                          onAction={(action) => handleChannelAction(content.id, 'sms', action)}
+                        />
+                        <ChannelStatus 
+                          channel="네이버" 
+                          status={getChannelStatus(content, 'naver_blog')}
+                          postId={content.channel_status?.naver_blog?.post_id}
+                          onAction={(action) => handleChannelAction(content.id, 'naver_blog', action)}
+                        />
+                        <ChannelStatus 
+                          channel="카카오톡" 
+                          status={getChannelStatus(content, 'kakao')}
+                          postId={content.channel_status?.kakao?.post_id}
+                          onAction={(action) => handleChannelAction(content.id, 'kakao', action)}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -414,20 +574,36 @@ export default function ContentCalendarSimple() {
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    placeholder="콘텐츠 제목을 입력하세요"
+                    placeholder="허브 콘텐츠 제목을 입력하세요"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    내용
+                    요약 (다른 채널 활용용)
                   </label>
                   <textarea
                     value={editContentBody}
                     onChange={(e) => setEditContentBody(e.target.value)}
-                    rows={6}
+                    rows={3}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    placeholder="콘텐츠 내용을 입력하세요"
+                    placeholder="SMS, 네이버 블로그 등에서 활용할 요약 내용을 입력하세요"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    이 요약은 SMS, 네이버 블로그 등 다른 채널에서 활용됩니다.
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    간단한 개요
+                  </label>
+                  <textarea
+                    value={editContentBody}
+                    onChange={(e) => setEditContentBody(e.target.value)}
+                    rows={2}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="허브 콘텐츠의 간단한 개요를 입력하세요"
                   />
                 </div>
               </div>

@@ -447,6 +447,12 @@ async function handlePatch(req, res) {
       case 'create_blog_draft':
         return await createBlogDraft(contentId, res);
       
+      case 'create_channel_draft':
+        return await createChannelDraft(contentId, req.body.channel, res);
+      
+      case 'update_channel_status':
+        return await updateChannelStatus(contentId, req.body.channel, req.body.status, req.body.postId, res);
+      
       default:
         return res.status(400).json({ 
           success: false, 
@@ -680,6 +686,178 @@ async function createBlogDraft(contentId, res) {
 
   } catch (error) {
     console.error('❌ 블로그 초안 생성 오류:', error);
+    throw error;
+  }
+}
+
+// 채널 초안 생성
+async function createChannelDraft(contentId, channel, res) {
+  try {
+    console.log('📝 채널 초안 생성:', contentId, channel);
+    
+    // 콘텐츠 캘린더 조회
+    const { data: calendarContent, error: calendarError } = await supabase
+      .from('cc_content_calendar')
+      .select('*')
+      .eq('id', contentId)
+      .single();
+
+    if (calendarError || !calendarContent) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '콘텐츠 캘린더 항목을 찾을 수 없습니다.' 
+      });
+    }
+
+    // 채널별 초안 생성 로직
+    let newPostId = null;
+    
+    switch(channel) {
+      case 'sms':
+        // SMS 초안 생성 (예시)
+        const { data: smsDraft, error: smsError } = await supabase
+          .from('sms_campaigns')
+          .insert({
+            title: calendarContent.title,
+            content: calendarContent.content_body,
+            status: 'draft',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (smsError) throw smsError;
+        newPostId = smsDraft.id;
+        break;
+        
+      case 'naver_blog':
+        // 네이버 블로그 초안 생성 (예시)
+        const { data: naverDraft, error: naverError } = await supabase
+          .from('naver_blog_posts')
+          .insert({
+            title: calendarContent.title,
+            content: calendarContent.content_body,
+            status: 'draft',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (naverError) throw naverError;
+        newPostId = naverDraft.id;
+        break;
+        
+      case 'kakao':
+        // 카카오톡 초안 생성 (예시)
+        const { data: kakaoDraft, error: kakaoError } = await supabase
+          .from('kakao_messages')
+          .insert({
+            title: calendarContent.title,
+            content: calendarContent.content_body,
+            status: 'draft',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (kakaoError) throw kakaoError;
+        newPostId = kakaoDraft.id;
+        break;
+        
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          message: '지원하지 않는 채널입니다.' 
+        });
+    }
+
+    // 채널 상태 업데이트
+    const currentChannelStatus = calendarContent.channel_status || {};
+    currentChannelStatus[channel] = {
+      status: '수정중',
+      post_id: newPostId,
+      created_at: new Date().toISOString()
+    };
+
+    const { error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update({ 
+        channel_status: currentChannelStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', contentId);
+
+    if (updateError) {
+      console.error('❌ 채널 상태 업데이트 오류:', updateError);
+    }
+
+    console.log('✅ 채널 초안이 생성되었습니다:', newPostId);
+    
+    return res.status(200).json({
+      success: true,
+      message: `${channel} 초안이 생성되었습니다.`,
+      postId: newPostId
+    });
+
+  } catch (error) {
+    console.error('❌ 채널 초안 생성 오류:', error);
+    throw error;
+  }
+}
+
+// 채널 상태 업데이트
+async function updateChannelStatus(contentId, channel, status, postId, res) {
+  try {
+    console.log('🔄 채널 상태 업데이트:', contentId, channel, status);
+    
+    // 콘텐츠 캘린더 조회
+    const { data: calendarContent, error: calendarError } = await supabase
+      .from('cc_content_calendar')
+      .select('channel_status')
+      .eq('id', contentId)
+      .single();
+
+    if (calendarError || !calendarContent) {
+      return res.status(404).json({ 
+        success: false, 
+        message: '콘텐츠 캘린더 항목을 찾을 수 없습니다.' 
+      });
+    }
+
+    // 채널 상태 업데이트
+    const currentChannelStatus = calendarContent.channel_status || {};
+    currentChannelStatus[channel] = {
+      status: status,
+      post_id: postId,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error: updateError } = await supabase
+      .from('cc_content_calendar')
+      .update({ 
+        channel_status: currentChannelStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', contentId);
+
+    if (updateError) {
+      console.error('❌ 채널 상태 업데이트 오류:', updateError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '채널 상태 업데이트에 실패했습니다.',
+        error: updateError.message 
+      });
+    }
+
+    console.log('✅ 채널 상태가 업데이트되었습니다:', channel, status);
+    
+    return res.status(200).json({
+      success: true,
+      message: '채널 상태가 업데이트되었습니다.'
+    });
+
+  } catch (error) {
+    console.error('❌ 채널 상태 업데이트 오류:', error);
     throw error;
   }
 }
