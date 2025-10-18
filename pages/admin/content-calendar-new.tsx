@@ -187,20 +187,19 @@ export default function ContentCalendarNew() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요약</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">타입</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">채널별 상태</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">로딩 중...</td>
+                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">로딩 중...</td>
                   </tr>
                 ) : contents.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">콘텐츠가 없습니다.</td>
+                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">콘텐츠가 없습니다.</td>
                   </tr>
                 ) : (
                   contents.map((content) => (
@@ -212,19 +211,23 @@ export default function ContentCalendarNew() {
                         <div className="text-sm text-gray-900 max-w-xs truncate">{content.summary || content.content_body?.substring(0, 50) + '...' || '내용 없음'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {content.content_type}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {content.content_date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          content.status === 'published' ? 'bg-green-100 text-green-800' :
-                          content.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {content.status}
-                        </span>
+                        <div className="flex space-x-2">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            홈피블로그: {content.blog_post_id ? '연결됨' : '미연결'}
+                          </span>
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            SMS: 미발행
+                          </span>
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            네이버: 미발행
+                          </span>
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            카카오: 미발행
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
