@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         'title', 'slug', 'excerpt', 'content', 'featured_image', 'category', 
         'tags', 'status', 'meta_title', 'meta_description', 'meta_keywords',
         'view_count', 'is_featured', 'is_scheduled', 'scheduled_at', 'author',
-        'summary', 'customerPersona', 'published_at', 'content_date'
+        'summary', 'customerPersona', 'published_at'
       ];
       
       // 허용된 필드만 추출
@@ -47,8 +47,7 @@ export default async function handler(req, res) {
         is_scheduled: Boolean(filteredData.is_scheduled),
         // 날짜 필드 검증
         scheduled_at: filteredData.scheduled_at || null,
-        published_at: filteredData.published_at || null,
-        content_date: filteredData.content_date || null
+        published_at: filteredData.published_at || null
       };
       
       console.log('정리된 데이터:', JSON.stringify(cleanedData, null, 2));
@@ -77,13 +76,13 @@ export default async function handler(req, res) {
       
       console.log('✅ 게시물 수정 성공:', updatedPost.id);
       
-      // 작성일이 변경된 경우 콘텐츠 캘린더의 content_date도 업데이트
-      if (filteredData.content_date) {
+      // published_at이 변경된 경우 콘텐츠 캘린더의 content_date도 업데이트
+      if (filteredData.published_at) {
         try {
           const { error: calendarError } = await supabase
             .from('cc_content_calendar')
             .update({
-              content_date: filteredData.content_date
+              content_date: new Date(filteredData.published_at).toISOString().split('T')[0]
             })
             .eq('blog_post_id', id);
           

@@ -529,8 +529,7 @@ export default function BlogAdmin() {
     customerpersona: '',
     conversiongoal: 'homepage_visit',
     target_product: 'all',
-    published_at: '',
-    content_date: ''
+    published_at: ''
   });
 
   // 특정 포스트 로드 (편집용)
@@ -565,8 +564,7 @@ export default function BlogAdmin() {
           customerpersona: post.customer_persona || '',
           conversiongoal: post.conversion_goal || 'awareness',
           target_product: post.target_product || 'all',
-          published_at: post.published_at || '',
-          content_date: post.content_date || ''
+          published_at: post.published_at || ''
         });
       } else {
         const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
@@ -716,8 +714,7 @@ export default function BlogAdmin() {
       customerpersona: '',
       conversiongoal: 'homepage_visit',
       target_product: 'all',
-      published_at: '',
-      content_date: ''
+      published_at: ''
     });
     
     // SEO 분석 관련 상태 초기화
@@ -4527,7 +4524,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="published_at">발행일</option>
+                    <option value="published_at">작성일</option>
                     <option value="title">제목</option>
                     <option value="category">카테고리</option>
                     <option value="view_count">조회수</option>
@@ -4623,7 +4620,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span>카테고리: {post.category}</span>
                               <span>작성자: {post.author}</span>
-                              <span>작성일: {new Date(post.content_date || post.published_at).toLocaleDateString('ko-KR')}</span>
+                              <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
                               <span>조회수: {post.view_count || 0}</span>
                               {post.is_featured && (
                                 <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
@@ -4774,34 +4771,16 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   </div>
                 </div>
 
-                {/* 게시일 */}
+                {/* 작성일 (published_at) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    게시일
+                    작성일
                   </label>
                   <input
                     type="datetime-local"
                     value={formData.published_at ? new Date(formData.published_at).toISOString().slice(0, 16) : ''}
                     onChange={(e) => {
                       setFormData({ ...formData, published_at: new Date(e.target.value).toISOString() });
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    게시일을 수정할 수 있습니다. 비워두면 현재 시간으로 설정됩니다.
-                  </p>
-                </div>
-
-                {/* 작성일 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    작성일
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.content_date || ''}
-                    onChange={(e) => {
-                      setFormData({ ...formData, content_date: e.target.value });
                     }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
