@@ -439,52 +439,6 @@ export default function GalleryAdmin() {
       if (response.ok) {
         const list = data.images || [];
         
-        // 🔍 중복 이미지 디버깅 로그 추가
-        // 이미지 로드 완료
-        
-        // 파일명별 그룹화하여 중복 확인
-        const nameGroups: { [key: string]: any[] } = {};
-        list.forEach((img: any) => {
-          if (!nameGroups[img.name]) {
-            nameGroups[img.name] = [];
-          }
-          nameGroups[img.name].push(img);
-        });
-        
-        // 중복 파일명 찾기
-        const duplicateNames = Object.entries(nameGroups).filter(([name, files]) => files.length > 1);
-        // 중복 파일명 체크 (로그 제거)
-        
-        // URL별 그룹화하여 중복 확인
-        const urlGroups: { [key: string]: any[] } = {};
-        list.forEach((img: any) => {
-          if (!urlGroups[img.url]) {
-            urlGroups[img.url] = [];
-          }
-          urlGroups[img.url].push(img);
-        });
-        
-        const duplicateUrls = Object.entries(urlGroups).filter(([url, files]) => files.length > 1);
-        // 중복 URL 체크 (로그 제거)
-        
-        // 🔍 전체 images 배열 중복 체크 (setImages 후)
-        setTimeout(() => {
-          setImages(currentImages => {
-            const allNameGroups: { [key: string]: any[] } = {};
-            currentImages.forEach((img: any) => {
-              if (!allNameGroups[img.name]) {
-                allNameGroups[img.name] = [];
-              }
-              allNameGroups[img.name].push(img);
-            });
-            
-            const allDuplicateNames = Object.entries(allNameGroups).filter(([name, files]) => files.length > 1);
-            // 전체 배열 중복 체크 (로그 제거)
-            
-            return currentImages;
-          });
-        }, 100);
-        
         // 더 이상 로드할 이미지가 없는지 확인
         if (list.length < imagesPerPage) {
           setHasMoreImages(false);
@@ -492,28 +446,25 @@ export default function GalleryAdmin() {
           setHasMoreImages(true);
         }
         
-        const metaRes = await fetch('/api/admin/image-metadata-batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrls: list.map((i: any)=> i.url) }) });
-        const metaJson = metaRes.ok ? await metaRes.json() : { metadata: {} };
-        const metaMap = metaJson.metadata || {};
+        // 메타데이터는 이미 API에서 포함되어 있으므로 별도 호출 불필요
         const imagesWithMetadata = list.map((img: any) => {
           // 폴더 경로 추론(메타데이터가 없을 때 name에서 유추)
           const inferredFolder = img.folder_path
             || (typeof img.name === 'string' && img.name.includes('/')
               ? img.name.substring(0, img.name.lastIndexOf('/'))
               : '');
-          const meta = metaMap[img.url] || {};
           return {
             ...img,
-            id: meta.id || img.id || `temp-${Date.now()}-${Math.random()}`,
-            alt_text: meta.alt_text || '',
-            keywords: meta.tags || [],
-            title: meta.title || '',
-            description: meta.description || '',
-            category: meta.category_id || '',
-            folder_path: meta.folder_path || inferredFolder,
-            is_featured: false,
-            usage_count: meta.usage_count || 0,
-            used_in_posts: []
+            id: img.id || `temp-${Date.now()}-${Math.random()}`,
+            alt_text: img.alt_text || '',
+            keywords: img.keywords || [],
+            title: img.title || '',
+            description: img.description || '',
+            category: img.category || '',
+            folder_path: img.folder_path || inferredFolder,
+            is_featured: img.is_featured || false,
+            usage_count: img.usage_count || 0,
+            used_in_posts: img.used_in_posts || []
           };
         });
         
