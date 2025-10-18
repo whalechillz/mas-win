@@ -12,9 +12,17 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
+  if (req.method === 'GET') {
+    return handleGet(req, res);
+  } else if (req.method === 'POST') {
+    return handlePost(req, res);
+  } else {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
+}
+
+// GET 요청 처리
+async function handleGet(req, res) {
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
@@ -203,6 +211,81 @@ export default async function handler(req, res) {
       message: '콘텐츠 캘린더 데이터 조회 실패', 
       error: error.message,
       details: error.stack
+    });
+  }
+}
+
+// POST 요청 처리 (허브 콘텐츠 생성)
+async function handlePost(req, res) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+    return res.status(500).json({ 
+      success: false, 
+      message: '서버 설정 오류',
+      error: 'Supabase 환경 변수가 설정되지 않았습니다'
+    });
+  }
+
+  try {
+    console.log('🎯 허브 콘텐츠 생성 시작');
+    
+    const { 
+      title, 
+      content_body, 
+      content_type = 'hub',
+      is_hub_content = true,
+      hub_priority = 1,
+      auto_derive_channels = []
+    } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '제목은 필수입니다.' 
+      });
+    }
+
+    // 허브 콘텐츠 생성
+    const { data: newContent, error: createError } = await supabase
+      .from('cc_content_calendar')
+      .insert({
+        title,
+        content_body: content_body || '',
+        content_type,
+        is_hub_content,
+        hub_priority,
+        auto_derive_channels,
+        content_date: new Date().toISOString().split('T')[0],
+        status: 'draft',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('❌ 허브 콘텐츠 생성 오류:', createError);
+      return res.status(500).json({ 
+        success: false, 
+        message: '허브 콘텐츠 생성에 실패했습니다.',
+        error: createError.message 
+      });
+    }
+
+    console.log('✅ 허브 콘텐츠 생성 완료:', newContent.id);
+    
+    return res.status(200).json({
+      success: true,
+      message: '허브 콘텐츠가 생성되었습니다.',
+      content: newContent
+    });
+
+  } catch (error) {
+    console.error('❌ 허브 콘텐츠 생성 오류:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: '허브 콘텐츠 생성 중 오류가 발생했습니다.',
+      error: error.message 
     });
   }
 }
