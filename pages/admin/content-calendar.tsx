@@ -55,7 +55,7 @@ export default function ContentCalendar() {
     loading,
     contentsLength: contents.length,
     session: !!session,
-    shouldShowLoading: loading.initial || (loading.initial === false && contents.length === 0)
+    shouldShowLoading: loading.initial
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -105,11 +105,12 @@ export default function ContentCalendar() {
   }, [session, status]);
 
   useEffect(() => {
-    if (session) { // 인증된 경우에만 데이터 로드
+    if (session && status === 'authenticated') { // 인증 완료된 경우에만 데이터 로드
+      console.log('🔐 인증 완료, 데이터 로드 시작');
       fetchContentCalendar();
       loadMdFiles(); // MD 파일 로드
     }
-  }, [session]);
+  }, [session, status]);
 
   // 트리 구조로 변환하는 함수
   const convertToTreeStructure = (contents: ContentCalendarItem[]): ContentCalendarItem[] => {
@@ -782,8 +783,8 @@ export default function ContentCalendar() {
     );
   }
 
-  // 콘텐츠 로딩 중인 경우 - 안전한 조건 체크
-  if (loading.initial || (loading.initial === false && contents.length === 0)) {
+  // 콘텐츠 로딩 중인 경우 - 단순한 조건
+  if (loading.initial) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
