@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const { hub_content_id, id } = req.query;
 
     try {
-      let query = supabase.from('sms_messages').select('*');
+      let query = supabase.from('channel_sms').select('*');
 
       if (hub_content_id) {
         // 허브 콘텐츠 ID로 SMS 조회
@@ -54,12 +54,11 @@ export default async function handler(req, res) {
 
     try {
       const { data: newSMS, error } = await supabase
-        .from('sms_messages')
+        .from('channel_sms')
         .insert({
-          message,
-          type: type || 'SMS300',
+          message_text: message,
+          message_type: type || 'SMS300',
           status: status || 'draft',
-          hub_content_id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -75,18 +74,28 @@ export default async function handler(req, res) {
         });
       }
 
-      // 허브 콘텐츠의 SMS 상태 동기화
+      // 허브 콘텐츠의 SMS 상태 동기화 (허브 연동이 있는 경우)
       if (hub_content_id) {
-        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            hubContentId: hub_content_id,
-            channel: 'sms',
-            channelContentId: newSMS.id,
-            status: '수정중'
-          })
-        });
+        try {
+          const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hubContentId: hub_content_id,
+              channel: 'sms',
+              channelContentId: newSMS.id,
+              status: '수정중'
+            })
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ 허브 상태 동기화 완료');
+          } else {
+            console.error('❌ 허브 상태 동기화 실패');
+          }
+        } catch (syncError) {
+          console.error('❌ 허브 상태 동기화 오류:', syncError);
+        }
       }
 
       return res.status(200).json({
@@ -111,18 +120,17 @@ export default async function handler(req, res) {
     const { id, message, type, status, hub_content_id } = req.body;
 
     try {
-      const { data: updatedSMS, error } = await supabase
-        .from('sms_messages')
-        .update({
-          message,
-          type: type || 'SMS300',
-          status: status || 'draft',
-          hub_content_id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-        .select()
-        .single();
+        const { data: updatedSMS, error } = await supabase
+          .from('channel_sms')
+          .update({
+            message_text: message,
+            message_type: type || 'SMS300',
+            status: status || 'draft',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single();
 
       if (error) {
         console.error('❌ SMS 수정 오류:', error);
