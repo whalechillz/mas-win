@@ -204,7 +204,7 @@ async function handlePost(req, res) {
       hub_priority: 1,
       auto_derive_channels,
       channel_status: {
-        blog: { status: '미발행', post_id: null, created_at: null },
+        blog: { status: '미연결', post_id: null, created_at: null },
         sms: { status: '미발행', post_id: null, created_at: null },
         naver_blog: { status: '미발행', post_id: null, created_at: null },
         kakao: { status: '미발행', post_id: null, created_at: null }
@@ -564,78 +564,5 @@ async function createChannelDraft(contentId, channel, res) {
   } catch (error) {
     console.error('❌ 채널 초안 생성 오류:', error);
     throw error;
-  }
-}
-
-// PATCH 요청 처리 - 허브 콘텐츠의 채널 상태 업데이트
-export async function PATCH(req) {
-  try {
-    const { id, channel_status } = await req.json();
-    
-    if (!id) {
-      return res.status(400).json({ 
-        success: false, 
-        message: '허브 콘텐츠 ID가 필요합니다.' 
-      });
-    }
-
-    console.log('🔄 허브 채널 상태 업데이트:', { id, channel_status });
-
-    // 기존 허브 콘텐츠 조회
-    const { data: existingContent, error: fetchError } = await supabase
-      .from('cc_content_calendar')
-      .select('channel_status')
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      console.error('❌ 허브 콘텐츠 조회 오류:', fetchError);
-      return res.status(404).json({ 
-        success: false, 
-        message: '허브 콘텐츠를 찾을 수 없습니다.' 
-      });
-    }
-
-    // 채널 상태 병합
-    const updatedChannelStatus = {
-      ...existingContent.channel_status,
-      ...channel_status
-    };
-
-    // 허브 콘텐츠 업데이트
-    const { data: updatedContent, error: updateError } = await supabase
-      .from('cc_content_calendar')
-      .update({
-        channel_status: updatedChannelStatus,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('❌ 허브 콘텐츠 업데이트 오류:', updateError);
-      return res.status(500).json({ 
-        success: false, 
-        message: '허브 콘텐츠 업데이트에 실패했습니다.',
-        error: updateError.message 
-      });
-    }
-
-    console.log('✅ 허브 채널 상태 업데이트 완료:', updatedContent.id);
-    
-    return res.status(200).json({
-      success: true,
-      message: '허브 콘텐츠가 업데이트되었습니다.',
-      content: updatedContent
-    });
-
-  } catch (error) {
-    console.error('❌ 허브 콘텐츠 업데이트 오류:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: '허브 콘텐츠 업데이트 중 오류가 발생했습니다.',
-      error: error.message 
-    });
   }
 }
