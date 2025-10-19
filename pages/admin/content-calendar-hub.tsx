@@ -413,6 +413,8 @@ export default function ContentCalendarHub() {
         }
         
         alert(`✅ ${channel} 채널 콘텐츠가 생성되었습니다!`);
+        // 허브 콘텐츠 목록 새로고침
+        fetchContents(pagination.page);
         // 채널별 편집기 열기
         await openChannelEditor(content, channel, result.channelContent);
       } else {
