@@ -331,21 +331,37 @@ export default function ContentCalendarHub() {
         );
       case '수정중':
         return (
-          <button
-            onClick={() => handleChannelAction(content, channel, 'edit')}
-            className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
-          >
-            편집
-          </button>
+          <div className="flex space-x-1">
+            <button
+              onClick={() => handleChannelAction(content, channel, 'edit')}
+              className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+            >
+              편집
+            </button>
+            <button
+              onClick={() => handleChannelAction(content, channel, 'view')}
+              className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              보기
+            </button>
+          </div>
         );
       case '연결됨':
         return (
-          <button
-            onClick={() => handleChannelAction(content, channel, 'view')}
-            className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-          >
-            보기
-          </button>
+          <div className="flex space-x-1">
+            <button
+              onClick={() => handleChannelAction(content, channel, 'view')}
+              className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              보기
+            </button>
+            <button
+              onClick={() => handleChannelAction(content, channel, 'edit')}
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              편집
+            </button>
+          </div>
         );
       default:
         return null;
@@ -434,11 +450,14 @@ export default function ContentCalendarHub() {
 
   // 채널별 편집기 열기
   const openChannelEditor = async (content: HubContent, channel: string, generatedContent?: any) => {
+    // 기존 채널 콘텐츠가 있는 경우 해당 ID로 편집기 열기
+    const channelContentId = getChannelContentId(content, channel);
+    
     const channelUrls = {
-      blog: `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
-      sms: `/admin/sms?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
-      naver_blog: `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
-      kakao: `/admin/kakao?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`
+      blog: channelContentId ? `/admin/blog?id=${channelContentId}` : `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
+      sms: channelContentId ? `/admin/sms?id=${channelContentId}&hub=${content.id}` : `/admin/sms?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
+      naver_blog: channelContentId ? `/admin/naver-blog?id=${channelContentId}` : `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
+      kakao: channelContentId ? `/admin/kakao?id=${channelContentId}` : `/admin/kakao?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`
     };
 
     const url = channelUrls[channel];
@@ -446,6 +465,17 @@ export default function ContentCalendarHub() {
       window.open(url, '_blank');
     } else {
       alert(`${channel} 채널 편집기는 준비 중입니다.`);
+    }
+  };
+
+  // 채널별 콘텐츠 ID 가져오기
+  const getChannelContentId = (content: HubContent, channel: string) => {
+    switch (channel) {
+      case 'blog': return content.blog_post_id;
+      case 'sms': return content.sms_id;
+      case 'naver_blog': return content.naver_blog_id;
+      case 'kakao': return content.kakao_id;
+      default: return null;
     }
   };
 

@@ -106,5 +106,63 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === 'PUT') {
+    // SMS 수정
+    const { id, message, type, status, hub_content_id } = req.body;
+
+    try {
+      const { data: updatedSMS, error } = await supabase
+        .from('sms_messages')
+        .update({
+          message,
+          type: type || 'SMS300',
+          status: status || 'draft',
+          hub_content_id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ SMS 수정 오류:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'SMS 수정에 실패했습니다.',
+          error: error.message
+        });
+      }
+
+      // 허브 콘텐츠의 SMS 상태 동기화
+      if (hub_content_id) {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hubContentId: hub_content_id,
+            channel: 'sms',
+            channelContentId: updatedSMS.id,
+            status: '수정중'
+          })
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'SMS가 수정되었습니다.',
+        smsId: updatedSMS.id,
+        smsContent: updatedSMS
+      });
+
+    } catch (error) {
+      console.error('❌ SMS 수정 오류:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'SMS 수정 중 오류가 발생했습니다.',
+        error: error.message
+      });
+    }
+  }
+
   return res.status(405).json({ message: 'Method Not Allowed' });
 }
