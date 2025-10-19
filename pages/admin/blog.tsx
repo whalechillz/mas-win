@@ -631,6 +631,43 @@ export default function BlogAdmin() {
     }
   }, [sortBy, sortOrder]);
 
+  // 허브 연동 상태
+  const [hubData, setHubData] = useState(null);
+  const [isHubMode, setIsHubMode] = useState(false);
+
+  // URL 파라미터 확인 (허브 연동)
+  useEffect(() => {
+    if (router.query.hub && router.query.title && router.query.summary) {
+      setIsHubMode(true);
+      setHubData({
+        hubId: router.query.hub,
+        title: decodeURIComponent(router.query.title as string),
+        summary: decodeURIComponent(router.query.summary as string)
+      });
+      setShowForm(true);
+      setActiveTab('create');
+      
+      // 허브 데이터로 폼 초기화
+      setFormData({
+        title: decodeURIComponent(router.query.title as string),
+        content: '',
+        excerpt: '',
+        slug: '',
+        featured_image: '',
+        category: '고객 후기',
+        tags: [],
+        status: 'draft',
+        meta_title: '',
+        meta_description: '',
+        meta_keywords: '',
+        view_count: 0,
+        is_featured: false,
+        published_at: new Date().toISOString().slice(0, 16),
+        created_at: ''
+      });
+    }
+  }, [router.query]);
+
   // 콘텐츠 캘린더에서 데이터 불러오기
   const fetchCalendarContents = useCallback(async () => {
     try {
@@ -4691,6 +4728,58 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   {editingPost ? '게시물을 수정하세요.' : '새로운 게시물을 작성하세요.'}
                   </p>
                 </div>
+
+                {/* 허브 연동 정보 표시 */}
+                {isHubMode && hubData && (
+                  <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <span className="text-lg">🎯</span>
+                      <h3 className="text-lg font-semibold text-blue-800">허브 콘텐츠 연동</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">제목:</span>
+                        <span className="text-sm text-gray-900">{hubData.title}</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">요약:</span>
+                        <span className="text-sm text-gray-900">{hubData.summary}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsHubMode(false);
+                            setHubData(null);
+                            setFormData({
+                              title: '',
+                              content: '',
+                              excerpt: '',
+                              slug: '',
+                              featured_image: '',
+                              category: '고객 후기',
+                              tags: [],
+                              status: 'draft',
+                              meta_title: '',
+                              meta_description: '',
+                              meta_keywords: '',
+                              view_count: 0,
+                              is_featured: false,
+                              published_at: new Date().toISOString().slice(0, 16),
+                              created_at: ''
+                            });
+                          }}
+                          className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                        >
+                          허브 연동 해제
+                        </button>
+                        <span className="text-xs text-gray-500">
+                          허브 콘텐츠를 기반으로 블로그 포스트를 작성합니다
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                     
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 러프 콘텐츠 입력 섹션 */}
