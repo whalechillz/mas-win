@@ -12,7 +12,7 @@ import { useSession } from 'next-auth/react';
 export default function SMSAdmin() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { id, calendarId, blogPostId } = router.query;
+  const { id, calendarId, blogPostId, hub } = router.query;
 
   const {
     formData,
@@ -154,10 +154,33 @@ export default function SMSAdmin() {
   // 초안 저장
   const handleSaveDraft = async () => {
     try {
-      await saveDraft(
+      const result = await saveDraft(
         calendarId ? parseInt(calendarId as string) : undefined,
         blogPostId ? parseInt(blogPostId as string) : undefined
       );
+      
+      // 허브 연동이 있는 경우 상태 동기화
+      if (hub && result?.id) {
+        try {
+          const syncResponse = await fetch('/api/admin/sync-channel-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hubContentId: hub,
+              channel: 'sms',
+              channelContentId: result.id,
+              status: '수정중'
+            })
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ 허브 상태 동기화 완료');
+          }
+        } catch (syncError) {
+          console.error('❌ 허브 상태 동기화 오류:', syncError);
+        }
+      }
+      
       alert('초안이 저장되었습니다.');
     } catch (error) {
       alert('저장 중 오류가 발생했습니다.');
