@@ -154,36 +154,65 @@ export default function SMSAdmin() {
   // 초안 저장
   const handleSaveDraft = async () => {
     try {
-      const result = await saveDraft(
-        calendarId ? parseInt(calendarId as string) : undefined,
-        blogPostId ? parseInt(blogPostId as string) : undefined
-      );
-      
-      // 허브 연동이 있는 경우 상태 동기화
-      if (hub && result?.id) {
-        try {
-          const syncResponse = await fetch('/api/admin/sync-channel-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              hubContentId: hub,
-              channel: 'sms',
-              channelContentId: result.id,
-              status: '수정중'
-            })
-          });
+      // SMS 데이터 직접 저장 (useChannelEditor 대신 직접 API 호출)
+      const smsData = {
+        message: formData.content || formData.title || '',
+        type: formData.messageType || 'SMS300',
+        status: 'draft',
+        hub_content_id: hub || null
+      };
+
+      console.log('📝 SMS 저장 데이터:', smsData);
+
+      const response = await fetch('/api/admin/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(smsData)
+      });
+
+      const result = await response.json();
+      console.log('📝 SMS 저장 결과:', result);
+
+      if (result.success) {
+        // 허브 연동이 있는 경우 상태 동기화
+        if (hub && result.smsId) {
+          console.log('🔄 허브 상태 동기화 시작:', { hub, smsId: result.smsId });
           
-          if (syncResponse.ok) {
-            console.log('✅ 허브 상태 동기화 완료');
+          try {
+            const syncResponse = await fetch('/api/admin/sync-channel-status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                hubContentId: hub,
+                channel: 'sms',
+                channelContentId: result.smsId,
+                status: '수정중'
+              })
+            });
+
+            const syncResult = await syncResponse.json();
+            console.log('🔄 허브 상태 동기화 결과:', syncResult);
+            
+            if (syncResponse.ok) {
+              console.log('✅ 허브 상태 동기화 완료');
+              alert('초안이 저장되고 허브 상태가 동기화되었습니다!');
+            } else {
+              console.error('❌ 허브 상태 동기화 실패:', syncResult);
+              alert('초안은 저장되었지만 허브 상태 동기화에 실패했습니다.');
+            }
+          } catch (syncError) {
+            console.error('❌ 허브 상태 동기화 오류:', syncError);
+            alert('초안은 저장되었지만 허브 상태 동기화 중 오류가 발생했습니다.');
           }
-        } catch (syncError) {
-          console.error('❌ 허브 상태 동기화 오류:', syncError);
+        } else {
+          alert('초안이 저장되었습니다.');
         }
+      } else {
+        throw new Error(result.message || '저장 실패');
       }
-      
-      alert('초안이 저장되었습니다.');
     } catch (error) {
-      alert('저장 중 오류가 발생했습니다.');
+      console.error('❌ SMS 저장 오류:', error);
+      alert('저장 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
@@ -236,6 +265,18 @@ export default function SMSAdmin() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">SMS/MMS 에디터</h1>
                 <p className="mt-2 text-gray-600">문자 메시지를 작성하고 발송하세요</p>
+                {hub && (
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">🎯</span>
+                      <span className="text-sm font-medium text-blue-800">허브 콘텐츠 연동</span>
+                      <span className="text-xs text-blue-600">(ID: {hub})</span>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">
+                      초안 저장 시 자동으로 허브 상태가 동기화됩니다.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3">
                 <button
