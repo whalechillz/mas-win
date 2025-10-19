@@ -61,6 +61,19 @@ export default function ContentCalendarHub() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingContent, setEditingContent] = useState<HubContent | null>(null);
 
+  // 연간 콘텐츠 자동생성 상태
+  const [showAnnualModal, setShowAnnualModal] = useState(false);
+  const [isGeneratingAnnual, setIsGeneratingAnnual] = useState(false);
+  const [generatedContents, setGeneratedContents] = useState<any[]>([]);
+  const [selectedContents, setSelectedContents] = useState<Set<number>>(new Set());
+  const [annualSettings, setAnnualSettings] = useState({
+    campaignType: '퍼널 캠페인',
+    targetAudience: '시니어 골퍼',
+    contentGoal: '인지',
+    season: 'autumn',
+    count: 12
+  });
+
   // 허브 콘텐츠 목록 조회
   const fetchContents = async (page = 1) => {
     setLoading(true);
@@ -123,6 +136,72 @@ export default function ContentCalendarHub() {
   const editContent = (content: HubContent) => {
     setEditingContent(content);
     setShowEditModal(true);
+  };
+
+  // 연간 콘텐츠 자동생성
+  const generateAnnualContent = async () => {
+    setIsGeneratingAnnual(true);
+    setGeneratedContents([]);
+    setSelectedContents(new Set());
+
+    try {
+      const response = await fetch('/api/content-calendar/generate-hub-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(annualSettings)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setGeneratedContents(result.hubContents);
+        alert(`✅ ${result.hubContents.length}개의 허브 콘텐츠가 생성되었습니다!`);
+      } else {
+        alert(`생성 실패: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('연간 콘텐츠 생성 오류:', error);
+      alert('생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingAnnual(false);
+    }
+  };
+
+  // 선택된 콘텐츠를 허브에 추가
+  const addSelectedContents = async () => {
+    if (selectedContents.size === 0) {
+      alert('추가할 콘텐츠를 선택해주세요.');
+      return;
+    }
+
+    try {
+      const contentsToAdd = Array.from(selectedContents).map(index => generatedContents[index]);
+      
+      for (const content of contentsToAdd) {
+        const response = await fetch('/api/admin/content-calendar-hub', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: content.title,
+            summary: content.summary,
+            content_body: content.overview,
+            content_date: new Date().toISOString().split('T')[0]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`콘텐츠 추가 실패: ${content.title}`);
+        }
+      }
+
+      alert(`✅ ${selectedContents.size}개의 콘텐츠가 허브에 추가되었습니다!`);
+      setShowAnnualModal(false);
+      setGeneratedContents([]);
+      setSelectedContents(new Set());
+      fetchContents(1);
+    } catch (error) {
+      console.error('콘텐츠 추가 오류:', error);
+      alert('콘텐츠 추가 중 오류가 발생했습니다.');
+    }
   };
 
   // 허브 콘텐츠 수정
@@ -252,12 +331,20 @@ export default function ContentCalendarHub() {
               <h1 className="text-3xl font-bold text-gray-900">콘텐츠 허브</h1>
               <p className="mt-2 text-gray-600">멀티 채널 콘텐츠 허브 관리 시스템</p>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              새 허브 콘텐츠 생성
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowAnnualModal(true)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+              >
+                📅 연간 콘텐츠 자동생성
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                새 허브 콘텐츠 생성
+              </button>
+            </div>
           </div>
         </div>
 
@@ -581,6 +668,171 @@ export default function ContentCalendarHub() {
                     취소
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 연간 콘텐츠 자동생성 모달 */}
+        {showAnnualModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">📅 연간 콘텐츠 자동생성</h2>
+                <button
+                  onClick={() => setShowAnnualModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 생성 설정 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">캠페인 유형</label>
+                  <select
+                    value={annualSettings.campaignType}
+                    onChange={(e) => setAnnualSettings({...annualSettings, campaignType: e.target.value})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="퍼널 캠페인">퍼널 캠페인</option>
+                    <option value="스토리텔링 캠페인">스토리텔링 캠페인</option>
+                    <option value="계절별 캠페인">계절별 캠페인</option>
+                    <option value="혼합">혼합 (퍼널 + 스토리 + 계절)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">타겟 오디언스</label>
+                  <select
+                    value={annualSettings.targetAudience}
+                    onChange={(e) => setAnnualSettings({...annualSettings, targetAudience: e.target.value})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="시니어 골퍼">시니어 골퍼</option>
+                    <option value="중급자 골퍼">중급자 골퍼</option>
+                    <option value="초보자 골퍼">초보자 골퍼</option>
+                    <option value="전체">전체</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 목표</label>
+                  <select
+                    value={annualSettings.contentGoal}
+                    onChange={(e) => setAnnualSettings({...annualSettings, contentGoal: e.target.value})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="인지">인지</option>
+                    <option value="고려">고려</option>
+                    <option value="전환">전환</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">계절</label>
+                  <select
+                    value={annualSettings.season}
+                    onChange={(e) => setAnnualSettings({...annualSettings, season: e.target.value})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="spring">봄</option>
+                    <option value="summer">여름</option>
+                    <option value="autumn">가을</option>
+                    <option value="winter">겨울</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">생성 개수</label>
+                  <select
+                    value={annualSettings.count}
+                    onChange={(e) => setAnnualSettings({...annualSettings, count: parseInt(e.target.value)})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value={6}>6개</option>
+                    <option value={12}>12개</option>
+                    <option value={24}>24개</option>
+                    <option value={36}>36개</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 생성 버튼 */}
+              <div className="mb-6">
+                <button
+                  onClick={generateAnnualContent}
+                  disabled={isGeneratingAnnual}
+                  className="w-full px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingAnnual ? '🤖 AI 생성 중...' : '🚀 허브 콘텐츠 생성하기'}
+                </button>
+              </div>
+
+              {/* 생성된 콘텐츠 목록 */}
+              {generatedContents.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    생성된 콘텐츠 ({generatedContents.length}개)
+                  </h3>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {generatedContents.map((content, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedContents.has(index)}
+                            onChange={(e) => {
+                              const newSelected = new Set(selectedContents);
+                              if (e.target.checked) {
+                                newSelected.add(index);
+                              } else {
+                                newSelected.delete(index);
+                              }
+                              setSelectedContents(newSelected);
+                            }}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 mb-2">{content.title}</h4>
+                            <p className="text-sm text-gray-600 mb-2">{content.summary}</p>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                {content.blogCategory}
+                              </span>
+                              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                {content.seasonalTheme}
+                              </span>
+                              <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
+                                {content.storyFramework}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 액션 버튼 */}
+              <div className="flex justify-between">
+                <button
+                  onClick={() => setShowAnnualModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  취소
+                </button>
+                {generatedContents.length > 0 && (
+                  <button
+                    onClick={addSelectedContents}
+                    disabled={selectedContents.size === 0}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    선택된 {selectedContents.size}개 콘텐츠 허브에 추가
+                  </button>
+                )}
               </div>
             </div>
           </div>
