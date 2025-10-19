@@ -573,12 +573,15 @@ export default function ContentCalendarHub() {
       const result = await response.json();
       
       console.log('📱 SMS 조회 결과:', result);
+      console.log('📱 SMS 콘텐츠 상세:', result.smsContent);
       
       if (result.success && result.smsContent) {
         // 모바일 미리보기 모달 표시
         setShowSMSPreview(true);
         setSMSPreviewContent(result.smsContent);
+        console.log('📱 SMS 미리보기 모달 표시됨');
       } else {
+        console.error('📱 SMS 콘텐츠 조회 실패:', result);
         alert('SMS 콘텐츠를 찾을 수 없습니다.');
       }
     } catch (error) {
@@ -1138,12 +1141,12 @@ export default function ContentCalendarHub() {
           </div>
         )}
 
-        {/* SMS 편집기 모달 */}
+        {/* SMS 모바일 미리보기 모달 */}
         {showSMSPreview && smsPreviewContent && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-900">📱 SMS 편집기</h2>
+                <h2 className="text-xl font-bold text-gray-900">📱 SMS 모바일 미리보기</h2>
                 <button
                   onClick={() => setShowSMSPreview(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -1152,91 +1155,38 @@ export default function ContentCalendarHub() {
                 </button>
               </div>
 
-              {/* SMS 편집기 내용 */}
-              <div className="space-y-6">
-                {/* 메시지 타입 선택 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">메시지 타입</label>
-                  <div className="flex space-x-2">
-                    {['SMS', 'SMS300', 'LMS', 'MMS'].map((type) => (
-                      <button
-                        key={type}
-                        className={`px-3 py-2 text-sm rounded-md ${
-                          smsPreviewContent.message_type === type
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 메시지 내용 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">메시지 내용</label>
-                  <textarea
-                    className="w-full h-32 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={smsPreviewContent.message || ''}
-                    readOnly
-                    placeholder="SMS 메시지를 입력하세요..."
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {smsPreviewContent.message?.length || 0}자
-                  </div>
-                </div>
-
-                {/* 모바일 미리보기 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">모바일 미리보기</label>
-                  <div className="bg-gray-100 rounded-lg p-4">
-                    <div className="bg-white rounded-lg p-4 shadow-sm max-w-sm">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">M</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900">마쓰구골프</div>
-                          <div className="text-xs text-gray-500">031-215-3990</div>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm text-gray-800">
-                        {smsPreviewContent.message && (
-                          <div className="whitespace-pre-wrap">{smsPreviewContent.message}</div>
-                        )}
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 mt-3">
-                        {new Date().toLocaleString('ko-KR')}
-                      </div>
+              {/* 심플한 모바일 미리보기 (편집기와 동일) */}
+              <div className="bg-blue-600 rounded-lg p-4 mb-4">
+                <div className="bg-white rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">M</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">마쓰구골프</div>
+                      <div className="text-xs text-gray-500">031-215-3990</div>
                     </div>
                   </div>
-                </div>
-
-                {/* 상태 정보 */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      smsPreviewContent.status === 'draft' 
-                        ? 'bg-yellow-100 text-yellow-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {smsPreviewContent.status === 'draft' ? '초안' : '발송됨'}
-                    </span>
+                  
+                  <div className="text-sm text-gray-800">
+                    {smsPreviewContent.message_text && (
+                      <div className="whitespace-pre-wrap">{smsPreviewContent.message_text}</div>
+                    )}
+                    {!smsPreviewContent.message_text && smsPreviewContent.message && (
+                      <div className="whitespace-pre-wrap">{smsPreviewContent.message}</div>
+                    )}
+                    {!smsPreviewContent.message_text && !smsPreviewContent.message && (
+                      <div className="text-gray-400">메시지 내용이 없습니다.</div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">생성일</label>
-                    <span className="text-sm text-gray-600">
-                      {new Date(smsPreviewContent.created_at).toLocaleDateString('ko-KR')}
-                    </span>
+                  
+                  <div className="text-xs text-gray-500 mt-3">
+                    {new Date().toLocaleString('ko-KR')}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 mt-6">
+              <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setShowSMSPreview(false)}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
