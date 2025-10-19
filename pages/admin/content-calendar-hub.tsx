@@ -74,6 +74,10 @@ export default function ContentCalendarHub() {
     count: 12
   });
 
+  // SMS 미리보기 상태
+  const [showSMSPreview, setShowSMSPreview] = useState(false);
+  const [smsPreviewContent, setSMSPreviewContent] = useState(null);
+
   // 허브 콘텐츠 목록 조회
   const fetchContents = async (page = 1) => {
     setLoading(true);
@@ -293,7 +297,12 @@ export default function ContentCalendarHub() {
 
   // 채널 상태 가져오기
   const getChannelStatus = (content: HubContent, channel: string) => {
-    return content.channel_status?.[channel]?.status || '미발행';
+    const status = content.channel_status?.[channel]?.status;
+    // "미연결" 상태를 "미발행"으로 통일
+    if (status === '미연결') {
+      return '미발행';
+    }
+    return status || '미발행';
   };
 
   // 채널 상태 색상
@@ -382,6 +391,11 @@ export default function ContentCalendarHub() {
 
       const result = await response.json();
       if (result.success) {
+        // SMS인 경우 실제 SMS 테이블에 저장
+        if (channel === 'sms') {
+          await saveSMSContent(result.channelContent, content.id);
+        }
+        
         alert(`✅ ${channel} 채널 콘텐츠가 생성되었습니다!`);
         // 채널별 편집기 열기
         await openChannelEditor(content, channel, result.channelContent);
@@ -391,6 +405,30 @@ export default function ContentCalendarHub() {
     } catch (error) {
       console.error('채널 콘텐츠 생성 오류:', error);
       alert('생성 중 오류가 발생했습니다.');
+    }
+  };
+
+  // SMS 콘텐츠 저장
+  const saveSMSContent = async (smsContent, hubContentId) => {
+    try {
+      const response = await fetch('/api/admin/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: smsContent.message,
+          type: 'SMS300',
+          status: 'draft',
+          hub_content_id: hubContentId
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // 허브 콘텐츠 목록 새로고침
+        fetchContents(pagination.page);
+      }
+    } catch (error) {
+      console.error('SMS 저장 오류:', error);
     }
   };
 
@@ -413,6 +451,12 @@ export default function ContentCalendarHub() {
 
   // 채널별 콘텐츠 보기
   const openChannelView = async (content: HubContent, channel: string) => {
+    if (channel === 'sms') {
+      // SMS의 경우 모바일 미리보기 팝업 표시
+      await showSMSMobilePreview(content);
+      return;
+    }
+
     const channelUrls = {
       blog: content.blog_post_id ? `/blog/${content.blog_post_id}` : null,
       sms: content.sms_id ? `/sms/${content.sms_id}` : null,
@@ -425,6 +469,26 @@ export default function ContentCalendarHub() {
       window.open(url, '_blank');
     } else {
       alert(`${channel} 채널 콘텐츠를 찾을 수 없습니다.`);
+    }
+  };
+
+  // SMS 모바일 미리보기 표시
+  const showSMSMobilePreview = async (content: HubContent) => {
+    try {
+      // SMS 콘텐츠 조회
+      const response = await fetch(`/api/admin/sms?hub_content_id=${content.id}`);
+      const result = await response.json();
+      
+      if (result.success && result.smsContent) {
+        // 모바일 미리보기 모달 표시
+        setShowSMSPreview(true);
+        setSMSPreviewContent(result.smsContent);
+      } else {
+        alert('SMS 콘텐츠를 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('SMS 미리보기 오류:', error);
+      alert('SMS 미리보기를 불러오는 중 오류가 발생했습니다.');
     }
   };
 
@@ -974,6 +1038,69 @@ export default function ContentCalendarHub() {
                     선택된 {selectedContents.size}개 콘텐츠 허브에 추가
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SMS 모바일 미리보기 모달 */}
+        {showSMSPreview && smsPreviewContent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">📱 SMS 모바일 미리보기</h2>
+                <button
+                  onClick={() => setShowSMSPreview(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 모바일 미리보기 */}
+              <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">M</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">마쓰구골프</div>
+                      <div className="text-xs text-gray-500">031-215-3990</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-800">
+                    {smsPreviewContent.message && (
+                      <div className="whitespace-pre-wrap">{smsPreviewContent.message}</div>
+                    )}
+                    {smsPreviewContent.cta && (
+                      <div className="text-blue-600 font-medium">{smsPreviewContent.cta}</div>
+                    )}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 mt-3">
+                    {new Date().toLocaleString('ko-KR')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowSMSPreview(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(`/admin/sms?id=${smsPreviewContent.id}`, '_blank');
+                    setShowSMSPreview(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  편집하기
+                </button>
               </div>
             </div>
           </div>

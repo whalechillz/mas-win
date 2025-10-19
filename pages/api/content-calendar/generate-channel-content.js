@@ -163,33 +163,6 @@ SMS 메시지 생성 요구사항:
       console.log('🔄 Fallback 함수 실행:', targetChannel, '채널 콘텐츠 생성');
     }
 
-    // SMS인 경우 실제 SMS 테이블에 저장
-    if (targetChannel === 'sms') {
-      try {
-        const smsResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/sms`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: channelContent.message,
-            type: 'SMS300',
-            status: 'draft',
-            hub_content_id: hubContentId,
-            created_at: new Date().toISOString()
-          })
-        });
-        
-        if (smsResponse.ok) {
-          const smsResult = await smsResponse.json();
-          console.log('✅ SMS 저장 완료:', smsResult);
-          
-          // 허브 콘텐츠의 SMS 상태 업데이트
-          await updateHubChannelStatus(hubContentId, 'sms', '수정중', smsResult.sms?.id);
-        }
-      } catch (smsError) {
-        console.error('SMS 저장 오류:', smsError);
-      }
-    }
-
     res.status(200).json({
       success: true,
       message: `${targetChannel} 채널 콘텐츠가 생성되었습니다.`,
@@ -206,34 +179,6 @@ SMS 메시지 생성 요구사항:
       message: '채널별 콘텐츠 생성 실패',
       error: error.message
     });
-  }
-}
-
-// 허브 콘텐츠의 채널 상태 업데이트
-async function updateHubChannelStatus(hubContentId, channel, status, channelContentId) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/content-calendar-hub`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: hubContentId,
-        channel_status: {
-          [channel]: {
-            status: status,
-            post_id: channelContentId,
-            created_at: new Date().toISOString()
-          }
-        }
-      })
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      console.log('✅ 허브 채널 상태 업데이트 완료:', result);
-      return result;
-    }
-  } catch (error) {
-    console.error('허브 채널 상태 업데이트 오류:', error);
   }
 }
 
