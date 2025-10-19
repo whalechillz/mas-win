@@ -558,9 +558,21 @@ export default function ContentCalendarHub() {
   // SMS 모바일 미리보기 표시
   const showSMSMobilePreview = async (content: HubContent) => {
     try {
-      // SMS 콘텐츠 조회
-      const response = await fetch(`/api/admin/sms?hub_content_id=${content.id}`);
+      // channel_status에서 SMS ID 가져오기
+      const smsId = content.channel_status?.sms?.post_id;
+      
+      console.log('📱 SMS 미리보기 요청:', { contentId: content.id, smsId, channelStatus: content.channel_status });
+      
+      if (!smsId) {
+        alert('SMS 콘텐츠를 찾을 수 없습니다.');
+        return;
+      }
+      
+      // SMS ID로 직접 조회
+      const response = await fetch(`/api/admin/sms?id=${smsId}`);
       const result = await response.json();
+      
+      console.log('📱 SMS 조회 결과:', result);
       
       if (result.success && result.smsContent) {
         // 모바일 미리보기 모달 표시
