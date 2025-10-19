@@ -164,8 +164,14 @@ export default function SMSAdmin() {
 
       console.log('📝 SMS 저장 데이터:', smsData);
 
-      const response = await fetch('/api/admin/sms', {
-        method: 'POST',
+      // 기존 SMS ID가 있는지 확인하여 POST/PUT 결정
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `/api/admin/sms?id=${id}` : '/api/admin/sms';
+      
+      console.log('📝 SMS 요청 정보:', { method, url, id });
+
+      const response = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(smsData)
       });
