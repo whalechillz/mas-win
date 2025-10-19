@@ -429,6 +429,8 @@ export default function ContentCalendarHub() {
   // SMS 콘텐츠 저장
   const saveSMSContent = async (smsContent, hubContentId) => {
     try {
+      console.log('📱 SMS 콘텐츠 저장 시작:', { smsContent, hubContentId });
+      
       const response = await fetch('/api/admin/sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -439,14 +441,45 @@ export default function ContentCalendarHub() {
           hub_content_id: hubContentId
         })
       });
-      
+
       const result = await response.json();
+      console.log('📱 SMS 저장 결과:', result);
+      
       if (result.success) {
-        // 허브 콘텐츠 목록 새로고침
-        fetchContents(pagination.page);
+        // 허브 상태 동기화
+        console.log('🔄 허브 상태 동기화 시작:', {
+          hubContentId,
+          channel: 'sms',
+          channelContentId: result.smsId,
+          status: '수정중'
+        });
+        
+        const syncResponse = await fetch('/api/admin/sync-channel-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hubContentId: hubContentId,
+            channel: 'sms',
+            channelContentId: result.smsId,
+            status: '수정중'
+          })
+        });
+
+        const syncResult = await syncResponse.json();
+        console.log('🔄 허브 상태 동기화 결과:', syncResult);
+        
+        if (syncResponse.ok) {
+          console.log('✅ SMS 저장 및 허브 상태 동기화 완료');
+          // 허브 콘텐츠 목록 새로고침
+          fetchContents(pagination.page);
+        } else {
+          console.error('❌ 허브 상태 동기화 실패:', syncResult);
+        }
+      } else {
+        console.error('❌ SMS 저장 실패:', result);
       }
     } catch (error) {
-      console.error('SMS 저장 오류:', error);
+      console.error('❌ SMS 저장 오류:', error);
     }
   };
 
@@ -454,6 +487,15 @@ export default function ContentCalendarHub() {
   const openChannelEditor = async (content: HubContent, channel: string, generatedContent?: any) => {
     // 기존 채널 콘텐츠가 있는 경우 해당 ID로 편집기 열기
     const channelContentId = getChannelContentId(content, channel);
+    
+    console.log('🔧 채널 편집기 열기:', {
+      contentId: content.id,
+      channel,
+      channelContentId,
+      channelStatus: content.channel_status?.[channel],
+      blogPostId: content.blog_post_id,
+      smsId: content.sms_id
+    });
     
     const channelUrls = {
       blog: channelContentId ? `/admin/blog?id=${channelContentId}` : `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
@@ -463,6 +505,8 @@ export default function ContentCalendarHub() {
     };
 
     const url = channelUrls[channel];
+    console.log('🔧 생성된 URL:', url);
+    
     if (url) {
       window.open(url, '_blank');
     } else {
@@ -472,6 +516,13 @@ export default function ContentCalendarHub() {
 
   // 채널별 콘텐츠 ID 가져오기
   const getChannelContentId = (content: HubContent, channel: string) => {
+    // channel_status JSONB에서 post_id 가져오기
+    const channelStatus = content.channel_status?.[channel];
+    if (channelStatus?.post_id) {
+      return channelStatus.post_id;
+    }
+    
+    // 기존 방식도 유지 (fallback)
     switch (channel) {
       case 'blog': return content.blog_post_id;
       case 'sms': return content.sms_id;
