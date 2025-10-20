@@ -124,7 +124,7 @@ export default function AboutPage() {
       // 연락처
       contactTitle: '문의하기',
       contactDesc: 'DOGATTI GENERATION 샤프트에 대한 문의사항은 아래로 연락해 주세요.',
-      email: 'info@masgolf.co.kr',
+      email: 'massgoogolf@gmail.com',
       phone: '전화 문의',
       address: '한국 서울'
     }
