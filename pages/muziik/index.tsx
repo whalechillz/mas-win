@@ -168,11 +168,12 @@ export default function MuziikHome() {
                 
                 {/* 원플렉스 설계 */}
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500">
-                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg bg-gray-900">
-                    {/* FAL AI 이미지 플레이스홀더 */}
-                    <div className="w-full h-full flex items-center justify-center text-gray-600">
-                      [원플렉스 설계 이미지]
-                    </div>
+                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg">
+                    <img 
+                      src="/muziik/technology/one-flex-1.png" 
+                      alt="원플렉스 설계"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-3">
                     {language === 'ja' ? 'ワンフレックス設計' : '원플렉스 설계'}
