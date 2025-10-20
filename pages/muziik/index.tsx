@@ -128,11 +128,11 @@ export default function MuziikHome() {
               {/* Technology Highlights */}
               <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
                 <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="aspect-[4/3] w-full overflow-hidden">
+                  <div className="aspect-[16/9] w-full overflow-hidden">
                     <img 
                       src="/muziik/technology/dogatti-nano-resin.webp" 
                       alt="나노레벨 수지"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                   <div className="p-4">
@@ -145,7 +145,7 @@ export default function MuziikHome() {
                   </div>
                 </div>
                 <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="w-full" style={{height: 180}}>
+                  <div className="aspect-[16/9] w-full overflow-hidden">
                     <img 
                       src="/muziik/technology/dogatti-reverse-torque.jpg" 
                       alt="역토크 방지"
@@ -162,11 +162,11 @@ export default function MuziikHome() {
                   </div>
                 </div>
                 <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="aspect-[4/3] w-full overflow-hidden">
+                  <div className="aspect-[16/9] w-full overflow-hidden">
                     <img 
                       src="/muziik/technology/dogatti-titanium-fiber.webp" 
                       alt="티타늄 섬유 전장 사용"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                   <div className="p-4">
