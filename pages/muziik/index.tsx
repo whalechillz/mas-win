@@ -145,7 +145,7 @@ export default function MuziikHome() {
                   </div>
                 </div>
                 <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="aspect-[4/3] w-full overflow-hidden">
+                  <div className="w-full" style={{height: 180}}>
                     <img 
                       src="/muziik/technology/dogatti-reverse-torque.jpg" 
                       alt="역토크 방지"
@@ -227,7 +227,7 @@ export default function MuziikHome() {
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
                 <div className="relative h-64 bg-gradient-to-br from-blue-900 to-blue-700">
                   <img 
-                    src="/muziik/products/sapphire/sapphire_shaft_main.webp" 
+                    src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
                     alt="Sapphire Shaft"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
