@@ -404,7 +404,7 @@ export default function MuziikHome() {
                   {/* Beryl 실제 이미지 */}
                   <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
                     <img
-                      src="/muziik/beryl_40_shaft_main.png"
+                      src="/muziik/products/beryl/beryl_shaft_main.webp"
                       alt="DOGATTI GENERATION Beryl_40 shaft"
                       className="w-full h-32 object-cover object-center"
                     />
