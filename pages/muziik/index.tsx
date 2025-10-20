@@ -149,7 +149,7 @@ export default function MuziikHome() {
                     <img 
                       src="/muziik/technology/dogatti-reverse-torque.webp" 
                       alt="역토크 방지"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                   <div className="p-4">
@@ -225,13 +225,13 @@ export default function MuziikHome() {
               
               {/* Sapphire Product Card */}
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
-                <div className="relative h-64 bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center">
-                  <div className="text-center">
-                    <img 
-                      src="/muziik/products/sapphire/sapphire_shaft_main.webp" 
-                      alt="Sapphire Shaft"
-                      className="w-48 h-48 object-contain mb-4 mx-auto"
-                    />
+                <div className="relative h-64 bg-gradient-to-br from-blue-900 to-blue-700">
+                  <img 
+                    src="/muziik/products/sapphire/sapphire_shaft_main.webp" 
+                    alt="Sapphire Shaft"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center bg-black/20">
                     <h3 className="text-2xl font-bold text-white">Sapphire</h3>
                     <p className="text-blue-200 text-sm mt-2">ONE-FLEX 40</p>
                   </div>
@@ -318,13 +318,13 @@ export default function MuziikHome() {
 
               {/* Beryl Product Card */}
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
-                <div className="relative h-64 bg-gradient-to-br from-emerald-900 to-emerald-700 flex items-center justify-center">
-                  <div className="text-center">
-                    <img 
-                      src="/muziik/products/beryl/beryl_shaft_main.webp" 
-                      alt="Beryl Shaft"
-                      className="w-48 h-48 object-contain mb-4 mx-auto"
-                    />
+                <div className="relative h-64 bg-gradient-to-br from-emerald-900 to-emerald-700">
+                  <img 
+                    src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
+                    alt="Beryl Shaft"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="relative z-10 h-full flex items-end justify-start p-4 bg-black/20">
                     <h3 className="text-2xl font-bold text-white">Beryl</h3>
                   </div>
                   <div className="absolute top-4 left-4">
