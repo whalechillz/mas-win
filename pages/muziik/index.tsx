@@ -128,7 +128,13 @@ export default function MuziikHome() {
               {/* Technology Highlights */}
               <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
                 <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
-                  <div className="text-2xl mb-2">🔬</div>
+                  <div className="mb-2 flex justify-center">
+                    <img 
+                      src="/muziik/technology/dogatti-nano-resin.webp" 
+                      alt="나노레벨 수지"
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
                   <h3 className="text-white font-semibold mb-2">
                     {language === 'ja' ? 'ナノレベル樹脂' : '나노레벨 수지'}
                   </h3>
@@ -137,7 +143,13 @@ export default function MuziikHome() {
                   </p>
                 </div>
                 <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
-                  <div className="text-2xl mb-2">⚡</div>
+                  <div className="mb-2 flex justify-center">
+                    <img 
+                      src="/muziik/technology/dogatti-reverse-torque.webp" 
+                      alt="역토크 방지"
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
                   <h3 className="text-white font-semibold mb-2">
                     {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
                   </h3>
@@ -146,7 +158,13 @@ export default function MuziikHome() {
                   </p>
                 </div>
                 <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
-                  <div className="text-2xl mb-2">💎</div>
+                  <div className="mb-2 flex justify-center">
+                    <img 
+                      src="/muziik/technology/dogatti-titanium-fiber.webp" 
+                      alt="티타늄 섬유 전장 사용"
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
                   <h3 className="text-white font-semibold mb-2">
                     {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
                   </h3>
@@ -206,7 +224,7 @@ export default function MuziikHome() {
                     <img 
                       src="/muziik/products/sapphire/sapphire_shaft_main.webp" 
                       alt="Sapphire Shaft"
-                      className="w-32 h-32 object-contain mb-4 mx-auto"
+                      className="w-48 h-48 object-contain mb-4 mx-auto"
                     />
                     <h3 className="text-2xl font-bold text-white">Sapphire</h3>
                     <p className="text-blue-200 text-sm mt-2">ONE-FLEX 40</p>
@@ -299,7 +317,7 @@ export default function MuziikHome() {
                     <img 
                       src="/muziik/products/beryl/beryl_shaft_main.webp" 
                       alt="Beryl Shaft"
-                      className="w-32 h-32 object-contain mb-4 mx-auto"
+                      className="w-48 h-48 object-contain mb-4 mx-auto"
                     />
                     <h3 className="text-2xl font-bold text-white">Beryl</h3>
                   </div>
@@ -507,7 +525,13 @@ export default function MuziikHome() {
               {/* Technology Features */}
               <div className="grid md:grid-cols-3 gap-8 mb-12">
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="text-4xl mb-4 text-center">🔬</div>
+                  <div className="mb-4 flex justify-center">
+                    <img 
+                      src="/muziik/technology/dogatti-nano-resin.webp" 
+                      alt="나노레벨 수지"
+                      className="w-12 h-12 object-contain"
+                    />
+                  </div>
                   <h3 className="text-xl font-semibold text-white mb-4 text-center">
                     {language === 'ja' ? 'ナノレベル樹脂を採用' : '나노레벨 수지 채택'}
                   </h3>
@@ -520,7 +544,13 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="text-4xl mb-4 text-center">⚡</div>
+                  <div className="mb-4 flex justify-center">
+                    <img 
+                      src="/muziik/technology/dogatti-reverse-torque.webp" 
+                      alt="역토크 방지"
+                      className="w-12 h-12 object-contain"
+                    />
+                  </div>
                   <h3 className="text-xl font-semibold text-white mb-4 text-center">
                     {language === 'ja' ? 'インパクト時の逆トルクを防ぐ' : '임팩트시 역토크 방지'}
                   </h3>
@@ -533,7 +563,13 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="text-4xl mb-4 text-center">💎</div>
+                  <div className="mb-4 flex justify-center">
+                    <img 
+                      src="/muziik/technology/dogatti-titanium-fiber.webp" 
+                      alt="티타늄 섬유 전장 사용"
+                      className="w-12 h-12 object-contain"
+                    />
+                  </div>
                   <h3 className="text-xl font-semibold text-white mb-4 text-center">
                     {language === 'ja' ? 'チタン繊維を全長に使用' : '티타늄 섬유 전장 사용'}
                   </h3>
