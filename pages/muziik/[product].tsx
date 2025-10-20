@@ -174,6 +174,38 @@ export default function ProductPage({ product }: ProductPageProps) {
                 </div>
               </div>
             </div>
+            
+            {/* Additional Product Gallery for Beryl */}
+            {product.id === 'beryl' && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  {language === 'ja' ? '제품 갤러리' : '제품 갤러리'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gray-800 rounded-lg overflow-hidden">
+                    <img
+                      src="/muziik/products/beryl/beryl1.webp"
+                      alt="Beryl Shaft Detail 1"
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                  <div className="bg-gray-800 rounded-lg overflow-hidden">
+                    <img
+                      src="/muziik/products/beryl/beryl2.webp"
+                      alt="Beryl Shaft Detail 2"
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                  <div className="bg-gray-800 rounded-lg overflow-hidden">
+                    <img
+                      src="/muziik/products/beryl/beryl3.webp"
+                      alt="Beryl Shaft Detail 3"
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Technical Description */}
