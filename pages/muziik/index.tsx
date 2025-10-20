@@ -203,7 +203,11 @@ export default function MuziikHome() {
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
                 <div className="relative h-64 bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">💎</div>
+                    <img 
+                      src="/muziik/products/sapphire/sapphire_shaft_main.webp" 
+                      alt="Sapphire Shaft"
+                      className="w-32 h-32 object-contain mb-4 mx-auto"
+                    />
                     <h3 className="text-2xl font-bold text-white">Sapphire</h3>
                     <p className="text-blue-200 text-sm mt-2">ONE-FLEX 40</p>
                   </div>
@@ -270,22 +274,13 @@ export default function MuziikHome() {
                     </div>
                   </div>
                   
-                  {/* Sapphire 실제 이미지 */}
-                  <div className="space-y-3 mb-4">
-                    <div className="bg-gray-800 rounded overflow-hidden border border-gray-700">
-                      <img
-                        src="/muziik/sapphire_one_flex_shaft_main.png"
-                        alt="DOGATTI GENERATION Sapphire one-flex shaft"
-                        className="w-full h-32 object-cover object-center"
-                      />
-                    </div>
-                    <div className="bg-gray-800 rounded overflow-hidden border border-gray-700">
-                      <img
-                        src="/muziik/sapphire_40_50_bending_profile.png"
-                        alt="Sapphire 40/50 E.I. bending profile chart"
-                        className="w-full h-32 object-contain bg-black"
-                      />
-                    </div>
+                  {/* Sapphire 후킹 이미지 */}
+                  <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
+                    <img
+                      src="/muziik/products/sapphire/sapphire_shaft_40.webp"
+                      alt="DOGATTI GENERATION Sapphire one-flex shaft"
+                      className="w-full h-32 object-cover object-center"
+                    />
                   </div>
 
                   <Link 
@@ -301,7 +296,11 @@ export default function MuziikHome() {
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
                 <div className="relative h-64 bg-gradient-to-br from-emerald-900 to-emerald-700 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">💚</div>
+                    <img 
+                      src="/muziik/products/beryl/beryl_shaft_main.webp" 
+                      alt="Beryl Shaft"
+                      className="w-32 h-32 object-contain mb-4 mx-auto"
+                    />
                     <h3 className="text-2xl font-bold text-white">Beryl</h3>
                   </div>
                   <div className="absolute top-4 left-4">
@@ -401,7 +400,7 @@ export default function MuziikHome() {
                     </div>
                   </div>
                   
-                  {/* Beryl 실제 이미지 */}
+                  {/* Beryl 후킹 이미지 */}
                   <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
                     <img
                       src="/muziik/products/beryl/beryl_shaft_main.webp"
