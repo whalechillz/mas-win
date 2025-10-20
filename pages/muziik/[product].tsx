@@ -454,7 +454,7 @@ DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 
         tipDiameter: '8.55',
         buttDiameter: '14.95',
         torque: '5.0',
-        frequency: '215',
+        frequency: '230',
         kickPoint: '先中調子'
       },
       {
@@ -464,7 +464,7 @@ DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 
         tipDiameter: '8.55',
         buttDiameter: '15.1',
         torque: '4.0',
-        frequency: '225',
+        frequency: '240',
         kickPoint: '先中調子'
       },
       {
@@ -474,7 +474,7 @@ DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 
         tipDiameter: '8.55',
         buttDiameter: '15.15',
         torque: '4.0',
-        frequency: '235',
+        frequency: '250',
         kickPoint: '先中調子'
       },
       {
@@ -484,7 +484,7 @@ DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 
         tipDiameter: '8.55',
         buttDiameter: '15.2',
         torque: '4.0',
-        frequency: '245',
+        frequency: '260',
         kickPoint: '先中調子'
       },
       {
@@ -494,7 +494,7 @@ DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 
         tipDiameter: '8.55',
         buttDiameter: '15.3',
         torque: '3.9',
-        frequency: '255',
+        frequency: '270',
         kickPoint: '先中調子'
       }
     ]
