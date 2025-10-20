@@ -127,50 +127,56 @@ export default function MuziikHome() {
               
               {/* Technology Highlights */}
               <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
-                <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
-                  <div className="mb-2 flex justify-center">
+                <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
+                  <div className="aspect-[4/3] w-full overflow-hidden">
                     <img 
                       src="/muziik/technology/dogatti-nano-resin.webp" 
                       alt="나노레벨 수지"
-                      className="w-8 h-8 object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-white font-semibold mb-2">
-                    {language === 'ja' ? 'ナノレベル樹脂' : '나노레벨 수지'}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {language === 'ja' ? '樹脂含有率削減で弾き向上' : '수지 함유율 감소로 반발성 향상'}
-                  </p>
+                  <div className="p-4">
+                    <h3 className="text-white font-semibold mb-1">
+                      {language === 'ja' ? 'ナノレベル樹脂' : '나노레벨 수지'}
+                    </h3>
+                    <p className="text-gray-300 text-sm">
+                      {language === 'ja' ? '樹脂含有率削減で弾き向上' : '수지 함유율 감소로 반발성 향상'}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
-                  <div className="mb-2 flex justify-center">
+                <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
+                  <div className="aspect-[4/3] w-full overflow-hidden">
                     <img 
                       src="/muziik/technology/dogatti-reverse-torque.webp" 
                       alt="역토크 방지"
-                      className="w-8 h-8 object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-white font-semibold mb-2">
-                    {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {language === 'ja' ? 'インパクト時のコントロール向上' : '임팩트시 컨트롤 향상'}
-                  </p>
+                  <div className="p-4">
+                    <h3 className="text-white font-semibold mb-1">
+                      {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
+                    </h3>
+                    <p className="text-gray-300 text-sm">
+                      {language === 'ja' ? 'インパクト時のコントロール向上' : '임팩트시 컨트롤 향상'}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-blue-500">
-                  <div className="mb-2 flex justify-center">
+                <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
+                  <div className="aspect-[4/3] w-full overflow-hidden">
                     <img 
                       src="/muziik/technology/dogatti-titanium-fiber.webp" 
                       alt="티타늄 섬유 전장 사용"
-                      className="w-8 h-8 object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-white font-semibold mb-2">
-                    {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {language === 'ja' ? '軽量で高弾性実現' : '경량으로 고탄성 실현'}
-                  </p>
+                  <div className="p-4">
+                    <h3 className="text-white font-semibold mb-1">
+                      {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
+                    </h3>
+                    <p className="text-gray-300 text-sm">
+                      {language === 'ja' ? '軽量で高弾性実現' : '경량으로 고탄성 실현'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
