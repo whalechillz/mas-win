@@ -268,7 +268,7 @@ export default function AboutPage() {
               <div className="text-center mb-12">
                 <div className="mb-6">
                   <img 
-                    src="/muziik/logos/muziik-logo2.webp" 
+                    src="/muziik/brand/muziik-logo2.webp" 
                     alt="Muziik Golf Logo"
                     className="h-16 mx-auto mb-4"
                   />

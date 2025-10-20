@@ -56,7 +56,7 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             onClick={closeMobileMenu}
           >
             <img 
-              src="/muziik/logos/muziik-logo2.webp" 
+              src="/muziik/brand/muziik-logo2.webp" 
               alt="MUZIIK Logo"
               className="h-8 w-auto"
             />
