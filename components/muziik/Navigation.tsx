@@ -52,10 +52,18 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
         <div className="flex justify-between items-center">
           <Link 
             href="/" 
-            className="text-2xl font-bold text-white hover:text-blue-400 transition-colors"
+            className="flex items-center space-x-3 text-2xl font-bold text-white hover:text-blue-400 transition-colors"
             onClick={closeMobileMenu}
           >
-            MUZIIK
+            <img 
+              src="/muziik/logos/muziik-logo2.webp" 
+              alt="MUZIIK Logo"
+              className="h-8 w-auto"
+            />
+            <div className="flex flex-col">
+              <span>MUZIIK</span>
+              <span className="text-xs text-gray-400">X MASSGOO</span>
+            </div>
           </Link>
           
           <nav className="hidden md:flex space-x-8 items-center">
