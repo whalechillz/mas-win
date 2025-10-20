@@ -17,6 +17,7 @@ interface SMSMessage {
   sent_count?: number;
   success_count?: number;
   fail_count?: number;
+  calendar_id?: string; // 허브 콘텐츠 ID
 }
 
 export default function SMSListAdmin() {
@@ -219,6 +220,9 @@ export default function SMSListAdmin() {
                         발송 결과
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        허브 연동 ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         작업
                       </th>
                     </tr>
@@ -266,6 +270,26 @@ export default function SMSListAdmin() {
                                 실패: {message.fail_count || 0}
                               </div>
                             </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {message.calendar_id ? (
+                            <div className="flex items-center space-x-2">
+                              <span 
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
+                                title={`허브 ID: ${message.calendar_id}`}
+                                onClick={() => {
+                                  // 허브 콘텐츠로 이동
+                                  window.open(`/admin/content-calendar-hub`, '_blank');
+                                }}
+                              >
+                                {message.calendar_id.substring(0, 8)}...
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              미연결
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4">

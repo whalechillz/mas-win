@@ -110,12 +110,11 @@ async function handleGet(req, res) {
       
       overallStats.blog.connected = blogConnected || 0;
 
-      // SMS 연결 수 계산
+      // SMS 연결 수 계산 (channel_sms 테이블에서 calendar_id가 있는 것들)
       const { count: smsConnected } = await supabase
-        .from('cc_content_calendar')
+        .from('channel_sms')
         .select('*', { count: 'exact', head: true })
-        .not('sms_id', 'is', null)
-        .eq('is_hub_content', true);
+        .not('calendar_id', 'is', null);
       
       overallStats.sms.connected = smsConnected || 0;
 

@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
     let query = supabase
       .from('channel_sms')
-      .select('*')
+      .select('*, calendar_id')
       .order('created_at', { ascending: false });
 
     // 상태별 필터링

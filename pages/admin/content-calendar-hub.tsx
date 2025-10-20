@@ -77,6 +77,67 @@ export default function ContentCalendarHub() {
   // SMS 미리보기 상태
   const [showSMSPreview, setShowSMSPreview] = useState(false);
   const [smsPreviewContent, setSMSPreviewContent] = useState(null);
+  
+  // 동적 채널 관리 상태
+  const [showAddChannelModal, setShowAddChannelModal] = useState(false);
+  const [newChannelType, setNewChannelType] = useState('');
+  const [newChannelAccountName, setNewChannelAccountName] = useState('');
+  const [selectedContentForChannel, setSelectedContentForChannel] = useState(null);
+  
+  // 토스트 메시지 상태
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
+  // 토스트 메시지 표시 함수
+  const showToastMessage = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToastMessage(message);
+    setShowToast(true);
+    
+    // 3초 후 자동으로 사라짐
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  };
+
+  // 허브 상태 검증 및 자동 복구
+  const validateAndRepairHubStatus = async (contents: HubContent[]) => {
+    const repairPromises = [];
+    
+    for (const content of contents) {
+      const channelStatus = content.channel_status || {};
+      
+      // SMS 채널 상태 검증
+      for (const [channelKey, channelData] of Object.entries(channelStatus)) {
+        if (channelKey.startsWith('sms') && (channelData as any)?.post_id) {
+          // SMS 존재 여부 확인
+          try {
+            const response = await fetch(`/api/admin/sms?id=${(channelData as any).post_id}`);
+            const result = await response.json();
+            
+            if (!result.success || !result.smsContent) {
+              console.log(`🔧 SMS 상태 복구 필요: ${content.id} - ${channelKey}`);
+              repairPromises.push(
+                updateHubChannelStatus(content.id, channelKey, '미발행', null)
+              );
+            }
+          } catch (error) {
+            console.error(`❌ SMS 상태 검증 오류: ${content.id} - ${channelKey}`, error);
+          }
+        }
+      }
+    }
+    
+    // 복구 작업 실행
+    if (repairPromises.length > 0) {
+      try {
+        await Promise.all(repairPromises);
+        console.log(`✅ ${repairPromises.length}개 채널 상태 복구 완료`);
+        showToastMessage(`✅ ${repairPromises.length}개 채널 상태가 자동 복구되었습니다.`, 'success');
+      } catch (error) {
+        console.error('❌ 채널 상태 복구 오류:', error);
+      }
+    }
+  };
 
   // 허브 콘텐츠 목록 조회
   const fetchContents = async (page = 1) => {
@@ -85,7 +146,8 @@ export default function ContentCalendarHub() {
       const response = await fetch(`/api/admin/content-calendar-hub?page=${page}&limit=20`);
       const data = await response.json();
       if (data.success) {
-        setContents(data.data || []);
+        const contents = data.data || [];
+        setContents(contents);
         setStats(data.stats || null);
         setPagination(data.pagination || {
           page: 1,
@@ -94,6 +156,9 @@ export default function ContentCalendarHub() {
           totalPages: 0,
           hasMore: false
         });
+        
+        // 허브 상태 검증 및 자동 복구 (백그라운드에서 실행)
+        validateAndRepairHubStatus(contents);
       }
     } catch (error) {
       console.error('허브 콘텐츠 조회 오류:', error);
@@ -309,10 +374,127 @@ export default function ContentCalendarHub() {
   const getChannelStatusColor = (status: string) => {
     switch (status) {
       case '연결됨': return 'bg-green-100 text-green-800';
+      case '발행됨': return 'bg-blue-100 text-blue-800';
       case '수정중': return 'bg-yellow-100 text-yellow-800';
       case '미발행': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // 동적 채널 추가
+  const handleAddChannel = async (content: HubContent) => {
+    if (!newChannelType || !newChannelAccountName) {
+      alert('채널 타입과 계정명을 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/manage-channels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hubContentId: content.id,
+          channelType: newChannelType,
+          accountName: newChannelAccountName
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToastMessage(`✅ 새 ${newChannelType} 채널이 추가되었습니다!`, 'success');
+        setShowAddChannelModal(false);
+        setNewChannelType('');
+        setNewChannelAccountName('');
+        // 허브 콘텐츠 목록 새로고침
+        fetchContents(pagination.page);
+      } else {
+        showToastMessage(`❌ 채널 추가 실패: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('채널 추가 오류:', error);
+      showToastMessage('❌ 채널 추가 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  // 동적 채널 삭제
+  const handleRemoveChannel = async (content: HubContent, channelKey: string) => {
+    if (!confirm('정말로 이 채널을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/manage-channels', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hubContentId: content.id,
+          channelKey: channelKey
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToastMessage('✅ 채널이 삭제되었습니다.', 'success');
+        // 허브 콘텐츠 목록 새로고침
+        fetchContents(pagination.page);
+      } else {
+        showToastMessage(`❌ 채널 삭제 실패: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('채널 삭제 오류:', error);
+      showToastMessage('❌ 채널 삭제 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  // 동적 채널을 접을 수 있게 렌더링
+  const renderDynamicChannelsCollapsed = (content: HubContent) => {
+    const channels = content.channel_status || {};
+    const basicChannels = ['blog', 'sms', 'naver_blog', 'kakao'];
+    const dynamicChannels = Object.entries(channels)
+      .filter(([key]) => !basicChannels.includes(key));
+    
+    if (dynamicChannels.length === 0) return null;
+    
+    return (
+      <details className="mt-2">
+        <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 flex items-center space-x-1">
+          <span>+ 추가 채널</span>
+          <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">{dynamicChannels.length}개</span>
+        </summary>
+        <div className="ml-4 mt-2 space-y-1">
+          {dynamicChannels.map(([channelKey, channelData]) => {
+            const [channelType, channelId] = channelKey.split('_');
+            const channelInfo = channelData as any;
+            const status = channelInfo.status || '미발행';
+            const accountName = channelInfo.account_name || '기본';
+            
+            return (
+              <div key={channelKey} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-sm">{channelType.toUpperCase()}</span>
+                  <span className="text-xs text-gray-500">({accountName})</span>
+                  <span className={`px-2 py-1 text-xs rounded ${getChannelStatusColor(status)}`}>
+                    {status}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  {getChannelActionButton(content, channelKey)}
+                  <button
+                    onClick={() => handleRemoveChannel(content, channelKey)}
+                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                    title="채널 삭제"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </details>
+    );
   };
 
   // 채널별 액션 버튼 렌더링
@@ -333,20 +515,37 @@ export default function ContentCalendarHub() {
         return (
           <div className="flex space-x-1">
             <button
+              onClick={() => handleChannelAction(content, channel, 'view')}
+              className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              보기
+            </button>
+            <button
               onClick={() => handleChannelAction(content, channel, 'edit')}
               className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
             >
               편집
             </button>
+          </div>
+        );
+      case '연결됨':
+        return (
+          <div className="flex space-x-1">
             <button
               onClick={() => handleChannelAction(content, channel, 'view')}
               className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
             >
               보기
             </button>
+            <button
+              onClick={() => handleChannelAction(content, channel, 'edit')}
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              편집
+            </button>
           </div>
         );
-      case '연결됨':
+      case '발행됨':
         return (
           <div className="flex space-x-1">
             <button
@@ -391,6 +590,27 @@ export default function ContentCalendarHub() {
   // 채널별 콘텐츠 생성
   const createChannelContent = async (content: HubContent, channel: string) => {
     try {
+      // 블로그 채널의 경우 직접 블로그 에디터로 이동
+      if (channel === 'blog') {
+        console.log('📝 블로그 초안 생성:', { contentId: content.id, title: content.title, summary: content.summary });
+        
+        // 블로그 에디터 URL 생성
+        const blogUrl = `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`;
+        console.log('📝 블로그 에디터 URL:', blogUrl);
+        
+        // 즉시 새 탭 열기 (setTimeout 제거로 빠른 반응)
+        try {
+          window.open(blogUrl, '_blank');
+          console.log('✅ 블로그 에디터 새 탭 열기 완료');
+          showToastMessage('✅ 블로그 에디터가 열렸습니다!', 'success');
+        } catch (error) {
+          console.error('❌ 블로그 에디터 열기 실패:', error);
+          showToastMessage('❌ 블로그 에디터를 열 수 없습니다.', 'error');
+        }
+        return;
+      }
+
+      // 다른 채널들은 기존 로직 사용
       const response = await fetch('/api/content-calendar/generate-channel-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -412,17 +632,20 @@ export default function ContentCalendarHub() {
           await saveSMSContent(result.channelContent, content.id);
         }
         
-        alert(`✅ ${channel} 채널 콘텐츠가 생성되었습니다!`);
+        // 토스트 메시지로 성공 알림
+        showToastMessage(`✅ ${channel} 채널 콘텐츠가 생성되었습니다!`, 'success');
+        
         // 허브 콘텐츠 목록 새로고침
         fetchContents(pagination.page);
+        
         // 채널별 편집기 열기
         await openChannelEditor(content, channel, result.channelContent);
       } else {
-        alert(`생성 실패: ${result.message}`);
+        showToastMessage(`❌ 생성 실패: ${result.message}`, 'error');
       }
     } catch (error) {
       console.error('채널 콘텐츠 생성 오류:', error);
-      alert('생성 중 오류가 발생했습니다.');
+      showToastMessage('❌ 생성 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -485,32 +708,84 @@ export default function ContentCalendarHub() {
 
   // 채널별 편집기 열기
   const openChannelEditor = async (content: HubContent, channel: string, generatedContent?: any) => {
-    // 기존 채널 콘텐츠가 있는 경우 해당 ID로 편집기 열기
+    // 동적 채널 타입 추출
+    const getChannelType = (channel: string) => {
+      if (channel.includes('_')) {
+        return channel.split('_')[0]; // sms_1234567890 -> sms
+      }
+      return channel;
+    };
+
+    const channelType = getChannelType(channel);
     const channelContentId = getChannelContentId(content, channel);
     
     console.log('🔧 채널 편집기 열기:', {
       contentId: content.id,
       channel,
+      channelType,
       channelContentId,
       channelStatus: content.channel_status?.[channel],
       blogPostId: content.blog_post_id,
       smsId: content.sms_id
     });
     
+    // SMS 채널의 경우 유효성 검사
+    if (channelType === 'sms' && channelContentId) {
+      try {
+        // SMS 존재 여부 확인
+        const response = await fetch(`/api/admin/sms?id=${channelContentId}`);
+        const result = await response.json();
+        
+        if (!result.success || !result.smsContent) {
+          console.error('📱 SMS 콘텐츠 조회 실패:', result);
+          
+          // SMS가 존재하지 않으면 허브 상태를 미발행으로 변경
+          const updateSuccess = await updateHubChannelStatus(content.id, channel, '미발행', null);
+          
+          if (updateSuccess) {
+            showToastMessage('❌ SMS 콘텐츠가 삭제되어 상태를 미발행으로 변경했습니다.', 'error');
+            // 허브 콘텐츠 목록 새로고침
+            fetchContents(pagination.page);
+          } else {
+            showToastMessage('❌ SMS 콘텐츠를 찾을 수 없습니다. 상태 동기화에 실패했습니다.', 'error');
+          }
+          return;
+        }
+      } catch (error) {
+        console.error('📱 SMS 유효성 검사 오류:', error);
+        showToastMessage('❌ SMS 콘텐츠 확인 중 오류가 발생했습니다.', 'error');
+        return;
+      }
+    }
+    
+    // 블로그 채널의 경우 blog_post_id를 우선 사용 (edit 파라미터로 빠른 편집)
     const channelUrls = {
-      blog: channelContentId ? `/admin/blog?id=${channelContentId}` : `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
-      sms: channelContentId ? `/admin/sms?id=${channelContentId}&hub=${content.id}` : `/admin/sms?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
-      naver_blog: channelContentId ? `/admin/naver-blog?id=${channelContentId}` : `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
-      kakao: channelContentId ? `/admin/kakao?id=${channelContentId}` : `/admin/kakao?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`
+      blog: content.blog_post_id ? `/admin/blog?edit=${content.blog_post_id}` : 
+            channelContentId ? `/admin/blog?edit=${channelContentId}` : 
+            `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
+      sms: channelContentId ? `/admin/sms?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
+           `/admin/sms?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
+      naver_blog: channelContentId ? `/admin/naver-blog?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
+                  `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
+      kakao: channelContentId ? `/admin/kakao?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
+             `/admin/kakao?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`
     };
 
-    const url = channelUrls[channel];
+    const url = channelUrls[channelType]; // channelType 사용
     console.log('🔧 생성된 URL:', url);
     
     if (url) {
-      window.open(url, '_blank');
+      // 즉시 새 탭 열기 (setTimeout 제거로 빠른 반응)
+      try {
+        window.open(url, '_blank');
+        console.log(`✅ ${channel} 편집기 새 탭 열기 완료`);
+        showToastMessage(`✅ ${channel} 편집기가 열렸습니다!`, 'success');
+      } catch (error) {
+        console.error(`❌ ${channel} 편집기 열기 실패:`, error);
+        showToastMessage(`❌ ${channel} 편집기를 열 수 없습니다.`, 'error');
+      }
     } else {
-      alert(`${channel} 채널 편집기는 준비 중입니다.`);
+      showToastMessage(`❌ ${channel} 채널 편집기는 준비 중입니다.`, 'error');
     }
   };
 
@@ -534,9 +809,10 @@ export default function ContentCalendarHub() {
 
   // 채널별 콘텐츠 보기
   const openChannelView = async (content: HubContent, channel: string) => {
-    if (channel === 'sms') {
+    // SMS 관련 채널인 경우 (기본 SMS 또는 동적 SMS 채널)
+    if (channel === 'sms' || channel.startsWith('sms_')) {
       // SMS의 경우 모바일 미리보기 팝업 표시
-      await showSMSMobilePreview(content);
+      await showSMSMobilePreview(content, channel);
       return;
     }
 
@@ -555,16 +831,55 @@ export default function ContentCalendarHub() {
     }
   };
 
-  // SMS 모바일 미리보기 표시
-  const showSMSMobilePreview = async (content: HubContent) => {
+  // 허브 채널 상태 업데이트 함수
+  const updateHubChannelStatus = async (hubContentId: string, channel: string, status: string, postId: string | null) => {
     try {
-      // channel_status에서 SMS ID 가져오기
-      const smsId = content.channel_status?.sms?.post_id;
+      const response = await fetch('/api/admin/sync-channel-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hubContentId,
+          channel,
+          channelContentId: postId,
+          status
+        })
+      });
       
-      console.log('📱 SMS 미리보기 요청:', { contentId: content.id, smsId, channelStatus: content.channel_status });
+      if (response.ok) {
+        console.log('✅ 허브 상태 업데이트 완료:', { hubContentId, channel, status, postId });
+        return true;
+      } else {
+        console.error('❌ 허브 상태 업데이트 실패');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ 허브 상태 업데이트 오류:', error);
+      return false;
+    }
+  };
+
+  // SMS 모바일 미리보기 표시
+  const showSMSMobilePreview = async (content: HubContent, channelKey?: string) => {
+    try {
+      let smsId = null;
+      
+      // 동적 채널인 경우 channel_status에서 해당 채널의 post_id 가져오기
+      if (channelKey && content.channel_status?.[channelKey]?.post_id) {
+        smsId = content.channel_status[channelKey].post_id;
+      } else {
+        // 기본 SMS 채널인 경우
+        smsId = content.channel_status?.sms?.post_id;
+      }
+      
+      console.log('📱 SMS 미리보기 요청:', { 
+        contentId: content.id, 
+        channelKey, 
+        smsId, 
+        channelStatus: content.channel_status 
+      });
       
       if (!smsId) {
-        alert('SMS 콘텐츠를 찾을 수 없습니다.');
+        alert(`${channelKey || 'SMS'} 채널 콘텐츠를 찾을 수 없습니다.`);
         return;
       }
       
@@ -582,7 +897,18 @@ export default function ContentCalendarHub() {
         console.log('📱 SMS 미리보기 모달 표시됨');
       } else {
         console.error('📱 SMS 콘텐츠 조회 실패:', result);
-        alert('SMS 콘텐츠를 찾을 수 없습니다.');
+        
+        // SMS가 존재하지 않으면 허브 상태를 미발행으로 변경
+        const channel = channelKey || 'sms';
+        const updateSuccess = await updateHubChannelStatus(content.id, channel, '미발행', null);
+        
+        if (updateSuccess) {
+          showToastMessage('❌ SMS 콘텐츠가 삭제되어 상태를 미발행으로 변경했습니다.', 'error');
+          // 허브 콘텐츠 목록 새로고침
+          fetchContents(pagination.page);
+        } else {
+          showToastMessage('❌ SMS 콘텐츠를 찾을 수 없습니다. 상태 동기화에 실패했습니다.', 'error');
+        }
       }
     } catch (error) {
       console.error('SMS 미리보기 오류:', error);
@@ -699,37 +1025,43 @@ export default function ContentCalendarHub() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="space-y-2">
-                          {/* 블로그 채널 */}
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'blog'))}`}>
-                              홈피: {getChannelStatus(content, 'blog')}
-                            </span>
-                            {getChannelActionButton(content, 'blog')}
+                          {/* 기본 채널들만 표시 (중복 제거) */}
+                          <div className="space-y-1">
+                            {/* 블로그 채널 */}
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'blog'))}`}>
+                                홈피: {getChannelStatus(content, 'blog')}
+                              </span>
+                              {getChannelActionButton(content, 'blog')}
+                            </div>
+                            
+                            {/* SMS 채널 */}
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
+                                SMS: {getChannelStatus(content, 'sms')}
+                              </span>
+                              {getChannelActionButton(content, 'sms')}
+                            </div>
+                            
+                            {/* 네이버 채널 */}
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'naver_blog'))}`}>
+                                네이버: {getChannelStatus(content, 'naver_blog')}
+                              </span>
+                              {getChannelActionButton(content, 'naver_blog')}
+                            </div>
+                            
+                            {/* 카카오 채널 */}
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'kakao'))}`}>
+                                카카오: {getChannelStatus(content, 'kakao')}
+                              </span>
+                              {getChannelActionButton(content, 'kakao')}
+                            </div>
                           </div>
-                          
-                          {/* SMS 채널 */}
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
-                              SMS: {getChannelStatus(content, 'sms')}
-                            </span>
-                            {getChannelActionButton(content, 'sms')}
-                          </div>
-                          
-                          {/* 네이버 채널 */}
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'naver_blog'))}`}>
-                              네이버: {getChannelStatus(content, 'naver_blog')}
-                            </span>
-                            {getChannelActionButton(content, 'naver_blog')}
-                          </div>
-                          
-                          {/* 카카오 채널 */}
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'kakao'))}`}>
-                              카카오: {getChannelStatus(content, 'kakao')}
-                            </span>
-                            {getChannelActionButton(content, 'kakao')}
-                          </div>
+
+                          {/* 동적 채널들은 접을 수 있게 표시 */}
+                          {renderDynamicChannelsCollapsed(content)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -738,6 +1070,15 @@ export default function ContentCalendarHub() {
                           className="text-blue-600 hover:text-blue-900 mr-3"
                         >
                           편집
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddChannelModal(true);
+                            setSelectedContentForChannel(content);
+                          }}
+                          className="text-green-600 hover:text-green-900 mr-3"
+                        >
+                          + 채널
                         </button>
                         <button
                           onClick={() => deleteContent(content.id)}
@@ -1136,6 +1477,96 @@ export default function ContentCalendarHub() {
                     선택된 {selectedContents.size}개 콘텐츠 허브에 추가
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 채널 추가 모달 */}
+        {showAddChannelModal && selectedContentForChannel && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">새 채널 추가</h2>
+                <button 
+                  onClick={() => setShowAddChannelModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">채널 타입</label>
+                  <select
+                    value={newChannelType}
+                    onChange={(e) => setNewChannelType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">채널 타입 선택</option>
+                    <option value="sms">SMS</option>
+                    <option value="kakao">카카오</option>
+                    <option value="naver_blog">네이버 블로그</option>
+                    <option value="instagram">인스타그램</option>
+                    <option value="facebook">페이스북</option>
+                    <option value="youtube">유튜브</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">계정명</label>
+                  <input
+                    type="text"
+                    value={newChannelAccountName}
+                    onChange={(e) => setNewChannelAccountName(e.target.value)}
+                    placeholder="예: 마케팅용, VIP용, 지역별"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 mt-6">
+                <button
+                  onClick={() => setShowAddChannelModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => handleAddChannel(selectedContentForChannel)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  추가
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 토스트 메시지 */}
+        {showToast && (
+          <div className="fixed top-4 right-4 z-50 animate-slide-in">
+            <div className="bg-white border-l-4 border-green-500 shadow-lg rounded-lg p-4 max-w-sm">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-900">{toastMessage}</p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <button
+                    onClick={() => setShowToast(false)}
+                    className="inline-flex text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
