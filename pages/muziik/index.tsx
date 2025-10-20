@@ -445,15 +445,9 @@ export default function MuziikHome() {
           </div>
         </section>
 
-        {/* 마쓰구 콜라보레이션 섹션 - 풀블리드 배경 */}
-        <section className="relative py-16 md:py-20 overflow-hidden">
-          <img
-            src="/muziik/brand/massgooxmuziik_shaft.png"
-            alt="MASSGOO X MUZIIK Shaft"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/45" />
-          <div className="container mx-auto px-4 relative z-10">
+        {/* 마쓰구 콜라보레이션 섹션 - 이미지 홀더 */}
+        <section className="py-16 bg-gradient-to-r from-red-900 to-orange-900">
+          <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto text-center">
               <h2 className="text-4xl font-bold text-white mb-6">
                 {language === 'ja' ? 'マツグドライバーと一緒に' : '마쓰구 드라이버와 함께'}
@@ -465,6 +459,19 @@ export default function MuziikHome() {
                 }
               </p>
               
+              {/* 이미지 홀더 */}
+              <div className="max-w-5xl mx-auto mb-10">
+                <div className="bg-black/30 border border-orange-500 rounded-lg overflow-hidden">
+                  <div className="aspect-[21/9] w-full bg-black">
+                    <img
+                      src="/muziik/brand/massgooxmuziik_shaft.png"
+                      alt="MASSGOO X MUZIIK Shaft"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-3 gap-8 mb-12">
                 <div className="bg-black bg-opacity-30 rounded-lg p-6 border border-orange-500">
                   <div className="text-4xl mb-4">🇰🇷</div>
