@@ -310,6 +310,27 @@ export default async function handler(req, res) {
         </p>
       </div>
       
+      <div style="margin: 20px 0; text-align: center;">
+        <h3 style="color: #333; margin-bottom: 15px;">${isJapanese ? 'MUZIIK 독자 기술' : 'MUZIIK 독자 기술'}</h3>
+        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
+          <div style="text-align: center; flex: 1; min-width: 150px;">
+            <img src="https://muziik.masgolf.co.kr/muziik/technology/dogatti-nano-resin.webp" alt="나노레벨 수지" style="width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px;">
+            <p style="font-size: 0.8em; color: #666; margin: 0;"><strong>${isJapanese ? '나노레벨 수지' : '나노레벨 수지'}</strong></p>
+            <p style="font-size: 0.7em; color: #888; margin: 0;">${isJapanese ? '수지 함유율 감소로 반발성 향상' : '수지 함유율 감소로 반발성 향상'}</p>
+          </div>
+          <div style="text-align: center; flex: 1; min-width: 150px;">
+            <img src="https://muziik.masgolf.co.kr/muziik/technology/dogatti-reverse-torque.webp" alt="역토크 방지" style="width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px;">
+            <p style="font-size: 0.8em; color: #666; margin: 0;"><strong>${isJapanese ? '역토크 방지' : '역토크 방지'}</strong></p>
+            <p style="font-size: 0.7em; color: #888; margin: 0;">${isJapanese ? '임팩트시 컨트롤 향상' : '임팩트시 컨트롤 향상'}</p>
+          </div>
+          <div style="text-align: center; flex: 1; min-width: 150px;">
+            <img src="https://muziik.masgolf.co.kr/muziik/technology/dogatti-titanium-fiber.webp" alt="티타늄 섬유" style="width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px;">
+            <p style="font-size: 0.8em; color: #666; margin: 0;"><strong>${isJapanese ? '티타늄 섬유 전장 사용' : '티타늄 섬유 전장 사용'}</strong></p>
+            <p style="font-size: 0.7em; color: #888; margin: 0;">${isJapanese ? '경량으로 고탄성 실현' : '경량으로 고탄성 실현'}</p>
+          </div>
+        </div>
+      </div>
+      
       <p>${isJapanese ? 'お問い合わせいただいた内容は以下の通りです。' : '문의하신 내용은 다음과 같습니다.'}</p>
       <div class="data-row"><span class="data-label">${isJapanese ? 'お問い合わせタイプ:' : '문의 유형:'}</span> ${data.type}</div>
       <div class="data-row"><span class="data-label">${isJapanese ? 'お名前:' : '이름:'}</span> ${data.name}</div>
