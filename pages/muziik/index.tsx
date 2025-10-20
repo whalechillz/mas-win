@@ -152,7 +152,7 @@ export default function MuziikHome() {
                     <img 
                       src="/muziik/brand/titan_1.png" 
                       alt="티타늄 원석"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-3">
@@ -551,11 +551,11 @@ export default function MuziikHome() {
               {/* Technology Features */}
               <div className="grid md:grid-cols-3 gap-8 mb-12">
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="mb-4 flex justify-center">
+                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg">
                     <img 
                       src="/muziik/technology/dogatti-nano-resin.webp" 
                       alt="나노레벨 수지"
-                      className="w-12 h-12 object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-4 text-center">
@@ -570,11 +570,11 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="mb-4 flex justify-center">
+                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg">
                     <img 
                       src="/muziik/technology/dogatti-reverse-torque.webp" 
                       alt="역토크 방지"
-                      className="w-12 h-12 object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-4 text-center">
@@ -589,11 +589,11 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="mb-4 flex justify-center">
+                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg">
                     <img 
                       src="/muziik/technology/dogatti-titanium-fiber.webp" 
                       alt="티타늄 섬유 전장 사용"
-                      className="w-12 h-12 object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-4 text-center">
