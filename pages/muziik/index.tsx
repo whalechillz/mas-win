@@ -605,7 +605,7 @@ export default function MuziikHome() {
               dangerouslySetInnerHTML={{ __html: t.ctaDescription }}
             />
             <a 
-              href="mailto:info@masgolf.co.kr"
+              href="mailto:massgoogolf@gmail.com"
               className="inline-block bg-white text-blue-900 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg"
             >
               {t.ctaButton}

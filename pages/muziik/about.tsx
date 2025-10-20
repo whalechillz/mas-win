@@ -57,7 +57,7 @@ export default function AboutPage() {
       // 연락처
       contactTitle: 'お問い合わせ',
       contactDesc: 'DOGATTI GENERATION シャフトに関するお問い合わせは、下記までご連絡ください。',
-      email: 'info@masgolf.co.kr',
+      email: 'massgoogolf@gmail.com',
       phone: '전화 문의',
       address: '한국 서울'
     },
@@ -424,7 +424,7 @@ export default function AboutPage() {
             </p>
             <div className="space-y-4">
               <a 
-                href="mailto:info@masgolf.co.kr"
+                href="mailto:massgoogolf@gmail.com"
                 className="inline-block bg-white text-blue-900 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg"
               >
                 {t.email}

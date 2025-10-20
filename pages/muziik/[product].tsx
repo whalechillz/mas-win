@@ -268,7 +268,7 @@ export default function ProductPage({ product }: ProductPageProps) {
               }
             </p>
             <a 
-              href="mailto:info@masgolf.co.kr"
+              href="mailto:massgoogolf@gmail.com"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
               {language === 'ja' ? 'お問い合わせする' : '문의하기'}
@@ -350,6 +350,9 @@ const products = [
     name: 'DOGATTI GENERATION Beryl_40',
     nameEn: 'DOGATTI GENERATION Beryl_40',
     description: '高弾性カーボンシートとチタンファイバーを組み合わせた、美しさと性能を兼ね備えたプレミアムシャフト。',
+    mainImage: '/muziik/products/beryl/beryl_shaft_main.webp',
+    shaftImage: '/muziik/products/beryl/beryl_shaft_40.webp',
+    chartImage: '/muziik/products/beryl/beryl_shaft_bending_profile.webp',
     features: [
       '高弾性(65t)カーボンシート使用',
       'チタンファイバーによる引張強度向上',
@@ -357,10 +360,21 @@ const products = [
       '美しいアルミニウムIP処理',
       'BERYL(美しさ、輝き、若さ)にふさわしいデザイン'
     ],
+    featuresKo: [
+      '고탄성(65t) 카본 시트 사용',
+      '티타늄 파이버로 인한 인장 강도 향상',
+      '임팩트 시 역토크 억제',
+      '아름다운 알루미늄 IP 처리',
+      'BERYL(아름다움, 빛남, 젊음)에 어울리는 디자인'
+    ],
     technicalDescription: `高弾性(65t)カーボンシートを使用しています。
 ストレートレイヤー全体にチタンファイバーを使用することで、引張強度を向上させ、シャフトの反発性を良くし、粘りとドライブという相反する特性を組み合わせています。
 さらに、インパクト時の逆トルクを抑制し、フェースコントロールを容易にし、方向性を安定させます。
 DOGATTIは、BERYL(美しさ、輝き、若さ)にふさわしい、光沢があり美しいアルミニウムIP処理カラーリングが特徴です。`,
+    technicalDescriptionKo: `고탄성(65t) 카본 시트를 사용합니다.
+스트레이트 레이어 전체에 티타늄 파이버를 사용함으로써 인장 강도를 향상시키고, 샤프트의 반발성을 좋게 하며, 끈기와 드라이브라는 상반된 특성을 결합합니다.
+또한 임팩트 시 역토크를 억제하여 페이스 컨트롤을 쉽게 하고 방향성을 안정시킵니다.
+DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 아름다운 알루미늄 IP 처리 컬러링이 특징입니다.`,
     specs: [
       {
         model: 'R2',

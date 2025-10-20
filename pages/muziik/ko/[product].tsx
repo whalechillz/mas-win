@@ -79,7 +79,7 @@ export default function KoreanProductPage({ product }: ProductPageProps) {
                 <Link href="/muziik/ko/beryl" className="text-gray-300 hover:text-white transition-colors">
                   Beryl
                 </Link>
-                <a href="mailto:info@masgolf.co.kr" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="mailto:massgoogolf@gmail.com" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                   문의하기
                 </a>
                 <Link href="/muziik" className="text-gray-400 hover:text-white transition-colors text-sm">
@@ -221,7 +221,7 @@ export default function KoreanProductPage({ product }: ProductPageProps) {
               자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요.
             </p>
             <a 
-              href="mailto:info@masgolf.co.kr"
+              href="mailto:massgoogolf@gmail.com"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
               문의하기
