@@ -56,8 +56,8 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             onClick={closeMobileMenu}
           >
             <img 
-              src="/muziik/brand/massgooxmuziik_shaft.png" 
-              alt="MUZIIK X MASSGOO"
+              src="/muziik/brand/muziik-logo-art.png" 
+              alt="MUZIIK Logo"
               className="h-12 w-auto object-contain"
             />
             <div className="flex flex-col">
