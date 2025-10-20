@@ -114,8 +114,8 @@ export default function ProductPage({ product }: ProductPageProps) {
             <div className="relative h-96 md:h-[500px] rounded-lg overflow-hidden bg-gray-900 border border-gray-800">
               <img
                 src={product.id === 'sapphire' 
-                  ? '/muziik/sapphire_one_flex_shaft_main.png'
-                  : '/muziik/beryl_40_shaft_main.png'
+                  ? '/muziik/products/sapphire/sapphire_shaft_main.webp'
+                  : '/muziik/products/beryl/beryl_shaft_main.webp'
                 }
                 alt={product.name}
                 className="w-full h-full object-cover object-center"
@@ -183,7 +183,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             </h2>
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
               <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                {product.technicalDescription}
+                {language === 'ko' && product.technicalDescriptionKo ? product.technicalDescriptionKo : product.technicalDescription}
               </p>
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function ProductPage({ product }: ProductPageProps) {
               {language === 'ja' ? '主な特徴' : '주요 특징'}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {product.features.map((feature, index) => (
+              {(language === 'ko' && product.featuresKo ? product.featuresKo : product.features).map((feature, index) => (
                 <div key={index} className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-300">{feature}</p>
@@ -297,6 +297,9 @@ const products = [
     name: 'DOGATTI GENERATION Sapphire one-flex',
     nameEn: 'DOGATTI GENERATION Sapphire one-flex',
     description: '超高速の反発力とヘッド安定性を実現する、MUZIIK独自のチタンファイバー技術を採用したプレミアムシャフト。',
+    mainImage: '/muziik/products/sapphire/sapphire_shaft_main.webp',
+    shaftImage: '/muziik/products/sapphire/sapphire_shaft_40.webp',
+    chartImage: '/muziik/products/sapphire/sapphire_shaft_bending_profile.webp',
     features: [
       'チタンファイバー技術による超高速反発力',
       'ヘッド安定性の向上',
@@ -304,11 +307,23 @@ const products = [
       '自動的なワンフレックスタイプ',
       '様々なゴルファーに対応'
     ],
+    featuresKo: [
+      '티타늄 파이버 기술로 인한 초고속 반발력',
+      '헤드 안정성 향상',
+      '오프센터 시 헤드 흔들림 억제',
+      '자동적인 원플렉스 타입',
+      '다양한 골퍼에게 대응'
+    ],
     technicalDescription: `超高速の反発力とヘッド安定性は、MUZIIK独自のチタンファイバー技術によるものです。
 シャフト全体にチタンファイバーを使用することで、強いインパクトやオフセンター時のヘッドのブレを抑制します。
 強靭さと大きな反発が高い弾道を実現します。
 バックスイングトップからインパクトまで、ヘッドの動きを安定化するようシャフト剛性が設計されており、タイミングを掴みやすくなっています。
 ヘッドスピードに関係なく、様々なゴルファーに適した自動的なワンフレックスタイプです。`,
+    technicalDescriptionKo: `초고속의 반발력과 헤드 안정성은 MUZIIK 독자적인 티타늄 파이버 기술에 의한 것입니다.
+샤프트 전체에 티타늄 파이버를 사용함으로써 강한 임팩트나 오프센터 시 헤드의 흔들림을 억제합니다.
+강인함과 큰 반발이 높은 탄도를 실현합니다.
+백스윙 탑부터 임팩트까지 헤드의 움직임을 안정화하도록 샤프트 강성이 설계되어 있어 타이밍을 잡기 쉬워집니다.
+헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 원플렉스 타입입니다.`,
     specs: [
       {
         model: '40',
