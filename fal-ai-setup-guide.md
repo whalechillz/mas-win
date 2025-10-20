@@ -6,7 +6,7 @@
 
 ```bash
 # FAL AI API 키
-FAL_API_KEY=b6ae9e4b-d592-4dee-a0ac-78a4a2be3486:5642c60bc1fd9b18402026df987a2123
+FAL_API_KEY=your_fal_api_key_here
 
 # 기존 OpenAI API 키 (이미 있다면)
 OPENAI_API_KEY=your_openai_api_key_here

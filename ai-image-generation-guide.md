@@ -157,7 +157,7 @@ professional marketing image.
 ```bash
 # .env.local 파일에 추가
 OPENAI_API_KEY=your_openai_api_key_here
-FAL_API_KEY=b6ae9e4b-d592-4dee-a0ac-78a4a2be3486:5642c60bc1fd9b18402026df987a2123
+FAL_API_KEY=your_fal_api_key_here
 ```
 
 ### **Next.js 서버 재시작**

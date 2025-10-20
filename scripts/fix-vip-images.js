@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-// API 키 설정
-const FAL_API_KEY = 'b6ae9e4b-d592-4dee-a0ac-78a4a2be3486:5642c60bc1fd9b18402026df987a2123';
+// API 키 설정 (환경변수에서 가져오기)
+const FAL_API_KEY = process.env.FAL_API_KEY || process.env.FAL_AI_KEY;
 
 // 이미지 생성 요청 함수
 async function generateImage(prompt, width, height, model = 'flux') {

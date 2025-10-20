@@ -1,6 +1,6 @@
 // FAL AI API 간단 테스트
 const testFALAPI = async () => {
-  const apiKey = 'b6ae9e4b-d592-4dee-a0ac-78a4a2be3486:5642c60bc1fd9b18402026df987a2123';
+  const apiKey = process.env.FAL_API_KEY || process.env.FAL_AI_KEY;
   
   try {
     console.log('🧪 FAL AI API 테스트 시작...');
