@@ -164,27 +164,40 @@ export default function ProductPage({ product }: ProductPageProps) {
                       className="w-full h-full object-contain bg-black"
                     />
                   ) : product.id === 'beryl' ? (
-                    <div className="p-4 h-full overflow-y-auto">
-                      <div className="text-white text-sm">
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <div className="font-semibold">Model</div>
-                          <div className="font-semibold">Specifications</div>
-                        </div>
-                        {product.specs.slice(0, 3).map((spec, index) => (
-                          <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
-                            <div className="text-blue-400 font-medium">{spec.model}</div>
-                            <div className="text-gray-300 text-xs">
-                              {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
-                              {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
-                              {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm
-                            </div>
+                    <div className="h-full flex flex-col">
+                      <div className="p-4 flex-1 overflow-y-auto">
+                        <div className="text-white text-sm">
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div className="font-semibold">Model</div>
+                            <div className="font-semibold">Specifications</div>
                           </div>
-                        ))}
-                        <div className="mt-2 text-xs text-gray-400">
-                          {language === 'ja' ? '全長' : '전장'}: 1168mm | 
-                          {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
-                          {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
+                          {product.specs.slice(0, 3).map((spec, index) => (
+                            <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
+                              <div className="text-blue-400 font-medium">{spec.model}</div>
+                              <div className="text-gray-300 text-xs">
+                                {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
+                                {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
+                                {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm | 
+                                {language === 'ja' ? 'キックポイント' : '킥포인트'}: {spec.kickPoint || '先中調子'}
+                              </div>
+                            </div>
+                          ))}
+                          <div className="mt-2 text-xs text-gray-400">
+                            {language === 'ja' ? '全長' : '전장'}: 1168mm | 
+                            {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
+                            {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
+                          </div>
                         </div>
+                      </div>
+                      <div className="p-2 border-t border-gray-600">
+                        <img
+                          src="/muziik/products/beryl/beryl_shaft_bending_profile.webp"
+                          alt="Beryl Shaft Bending Profile"
+                          className="w-full h-24 object-contain"
+                        />
+                        <p className="text-xs text-gray-400 text-center mt-1">
+                          {language === 'ja' ? 'ベリル剛性分布' : '베럴 강성 분포'}
+                        </p>
                       </div>
                     </div>
                   ) : (
@@ -259,58 +272,6 @@ export default function ProductPage({ product }: ProductPageProps) {
             </div>
           </div>
 
-          {/* Specifications */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              {language === 'ja' ? '仕様表' : '스펙표'}
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full bg-gray-900 border border-gray-800 rounded-lg">
-                <thead>
-                  <tr className="bg-gray-800">
-                    <th className="px-4 py-3 text-left text-white font-semibold">Model</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">
-                      {language === 'ja' ? '全長(mm)' : '전장(mm)'}
-                    </th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">
-                      {language === 'ja' ? '重量(g)' : '중량(g)'}
-                    </th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Tip(mm)</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Butt(mm)</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">
-                      {language === 'ja' ? 'トルク(°)' : '토크(°)'}
-                    </th>
-                    {product.specs[0]?.frequency && (
-                      <th className="px-4 py-3 text-left text-white font-semibold">
-                        {language === 'ja' ? '振動数(cpm)' : '진동수(cpm)'}
-                      </th>
-                    )}
-                    {product.specs[0]?.kickPoint && (
-                      <th className="px-4 py-3 text-left text-white font-semibold">K.P.</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {product.specs.map((spec, index) => (
-                    <tr key={index} className="border-t border-gray-800 hover:bg-gray-800/50">
-                      <td className="px-4 py-3 text-white font-medium">{spec.model}</td>
-                      <td className="px-4 py-3 text-gray-300">{spec.length}</td>
-                      <td className="px-4 py-3 text-gray-300">{spec.weight}</td>
-                      <td className="px-4 py-3 text-gray-300">{spec.tipDiameter}</td>
-                      <td className="px-4 py-3 text-gray-300">{spec.buttDiameter}</td>
-                      <td className="px-4 py-3 text-gray-300">{spec.torque}</td>
-                      {spec.frequency && (
-                        <td className="px-4 py-3 text-gray-300">{spec.frequency}</td>
-                      )}
-                      {spec.kickPoint && (
-                        <td className="px-4 py-3 text-gray-300">{spec.kickPoint}</td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
 
           {/* CTA Section */}
           <div className="text-center bg-gray-900 rounded-lg p-8 border border-gray-800">
