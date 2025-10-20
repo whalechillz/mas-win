@@ -360,6 +360,127 @@ export default function MuziikHome() {
           </div>
         </section>
 
+        {/* Technology Highlights Section */}
+        <section className="py-16 bg-black">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto text-center mb-12">
+              <h2 className="text-4xl font-bold text-white mb-6">
+                {language === 'ja' ? '革新的なテクノロジー' : '혁신적인 테크놀로지'}
+              </h2>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                {language === 'ja' 
+                  ? 'MUZIIK独自の技術が実現する、ゴルフシャフトの新たな可能性。'
+                  : 'MUZIIK 독자 기술이 실현하는, 골프 샤프트의 새로운 가능성.'
+                }
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Tech 1: Nano Resin */}
+              <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                <div className="aspect-video rounded-lg overflow-hidden mb-6">
+                  <img 
+                    src="/muziik/technology/dogatti-nano-resin.webp" 
+                    alt={language === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {language === 'ja' ? 'ナノレベル樹脂採用' : '나노레벨 수지 채택'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed mb-4">
+                  {language === 'ja' 
+                    ? '樹脂含有率を削減し、カーボン密度を高めることで弾きの良さと打感の向上を実現。'
+                    : '수지 함유율을 감소시키고 카본 밀도를 높여 반발성과 타감의 향상을 실현합니다.'
+                  }
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? '樹脂含有率の削減' : '수지 함유율 감소'}
+                  </li>
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? 'カーボン密度の向上' : '카본 밀도 향상'}
+                  </li>
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? '弾きの良さの実現' : '반발성 향상'}
+                  </li>
+                </ul>
+              </div>
+
+              {/* Tech 2: Reverse Torque Prevention */}
+              <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                <div className="aspect-video rounded-lg overflow-hidden mb-6">
+                  <img 
+                    src="/muziik/technology/dogatti-reverse-torque.webp" 
+                    alt={language === 'ja' ? '逆トルク防止' : '역토크 방지'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {language === 'ja' ? 'インパクト時の逆トルク防止' : '임팩트시 역토크 방지'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed mb-4">
+                  {language === 'ja' 
+                    ? '軽量シャフト特有の逆トルクを抑制し、ヘッドの直進性と方向性を向上。'
+                    : '경량 샤프트 특유의 역토크를 억제하여 헤드의 직진성과 방향성을 향상시킵니다.'
+                  }
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? '逆トルク発生の減少' : '역토크 발생 감소'}
+                  </li>
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? 'ヘッドスピードアップ' : '헤드 스피드 향상'}
+                  </li>
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? '方向性の安定' : '방향성 안정'}
+                  </li>
+                </ul>
+              </div>
+
+              {/* Tech 3: Titanium Fiber */}
+              <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                <div className="aspect-video rounded-lg overflow-hidden mb-6">
+                  <img 
+                    src="/muziik/technology/dogatti-titanium-fiber.webp" 
+                    alt={language === 'ja' ? 'チタン繊維' : '티타늄 섬유'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed mb-4">
+                  {language === 'ja' 
+                    ? '軽量でありながら超高弾性を実現。しなり戻りとインパクト時の安定感を両立。'
+                    : '경량이면서도 초고탄성을 실현. 휨 복원과 임팩트시 안정감을 양립합니다.'
+                  }
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? '軽量性の維持' : '경량성 유지'}
+                  </li>
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? '超高弾性の実現' : '초고탄성 실현'}
+                  </li>
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                    {language === 'ja' ? 'インパクト時の安定感' : '임팩트시 안정감'}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
         <section className="py-16 bg-gray-900">
           <div className="container mx-auto px-4">
