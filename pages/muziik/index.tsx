@@ -320,7 +320,7 @@ export default function MuziikHome() {
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
                 <div className="relative h-64 bg-gradient-to-br from-emerald-900 to-emerald-700">
                   <img 
-                    src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
+                    src="/muziik/products/beryl/beryl_shaft_main.webp" 
                     alt="Beryl Shaft"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -427,7 +427,7 @@ export default function MuziikHome() {
                   {/* Beryl 후킹 이미지 */}
                   <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
                     <img
-                      src="/muziik/products/beryl/beryl_shaft_main.webp"
+                      src="/muziik/products/beryl/beryl_shaft_40.webp"
                       alt="DOGATTI GENERATION Beryl_40 shaft"
                       className="w-full h-32 object-cover object-center"
                     />
