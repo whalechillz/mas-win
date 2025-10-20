@@ -189,13 +189,13 @@ export default function ProductPage({ product }: ProductPageProps) {
                           </div>
                         </div>
                       </div>
-                      <div className="p-2 border-t border-gray-600">
+                      <div className="p-4 border-t border-gray-600">
                         <img
                           src="/muziik/products/beryl/beryl_shaft_bending_profile.webp"
                           alt="Beryl Shaft Bending Profile"
-                          className="w-full h-24 object-contain"
+                          className="w-full h-40 object-contain bg-white rounded"
                         />
-                        <p className="text-xs text-gray-400 text-center mt-1">
+                        <p className="text-sm text-gray-400 text-center mt-2 font-medium">
                           {language === 'ja' ? 'ベリル剛性分布' : '베럴 강성 분포'}
                         </p>
                       </div>
