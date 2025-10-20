@@ -157,12 +157,30 @@ export default function ProductPage({ product }: ProductPageProps) {
                   }
                 </h3>
                 <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
-                  {product.id === 'sapphire' && product.chartImage ? (
-                    <img
-                      src={product.chartImage}
-                      alt="Bending Profile Chart"
-                      className="w-full h-full object-contain bg-black"
-                    />
+                  {product.id === 'sapphire' ? (
+                    <div className="p-4 h-full overflow-y-auto">
+                      <div className="text-white text-sm">
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="font-semibold">Model</div>
+                          <div className="font-semibold">Specifications</div>
+                        </div>
+                        {product.specs.map((spec, index) => (
+                          <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
+                            <div className="text-blue-400 font-medium">{spec.model}</div>
+                            <div className="text-gray-300 text-xs">
+                              {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
+                              {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
+                              {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-2 text-xs text-gray-400">
+                          {language === 'ja' ? '全長' : '전장'}: 1168mm | 
+                          {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
+                          {language === 'ja' ? 'Butt' : 'Butt'}: 15.05-15.4mm
+                        </div>
+                      </div>
+                    </div>
                   ) : product.id === 'beryl' ? (
                     <div className="p-4 h-full overflow-y-auto">
                       <div className="text-white text-sm">
@@ -200,6 +218,30 @@ export default function ProductPage({ product }: ProductPageProps) {
               </div>
             </div>
             
+            {/* Bending Profile Section for Sapphire */}
+            {product.id === 'sapphire' && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-white mb-6">
+                  {language === 'ja' ? 'サファイア剛性分布' : '사파이어 강성 분포'}
+                </h2>
+                <div className="bg-gray-900 rounded-lg p-8 border border-gray-700">
+                  <div className="text-center">
+                    <img
+                      src="/muziik/products/sapphire/sapphire_shaft_bending_profile.webp"
+                      alt="Sapphire Shaft Bending Profile"
+                      className="w-full max-w-4xl mx-auto h-auto object-contain"
+                    />
+                    <p className="text-gray-400 mt-4">
+                      {language === 'ja' 
+                        ? 'サファイアシャフトの剛性分布チャート - 40と50モデルの比較'
+                        : '사파이어 샤프트 강성 분포 차트 - 40과 50 모델 비교'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Bending Profile Section for Beryl */}
             {product.id === 'beryl' && (
               <div className="mb-12">
