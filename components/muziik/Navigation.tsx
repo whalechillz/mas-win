@@ -58,7 +58,7 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             <img 
               src="/muziik/brand/muziik-logo2.webp" 
               alt="MUZIIK Logo"
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
             <div className="flex flex-col">
               <span>MUZIIK</span>
