@@ -284,6 +284,22 @@ export default function AboutPage() {
                 </p>
               </div>
               
+              {/* 협업 샤프트 시안 이미지 */}
+              <div className="mb-12">
+                <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
+                  <h4 className="text-white font-semibold mb-6 text-center">
+                    {language === 'ja' ? 'MASSGOO X MUZIIK 협업 샤프트 시안' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
+                  </h4>
+                  <div className="max-w-2xl mx-auto">
+                    <img 
+                      src="/muziik/brand/massgooxmuziik.png" 
+                      alt="MASSGOO X MUZIIK 협업 샤프트 시안"
+                      className="w-full h-auto rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+              
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div>
                   <ul className="space-y-4">
