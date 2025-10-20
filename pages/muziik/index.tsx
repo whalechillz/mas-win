@@ -170,7 +170,7 @@ export default function MuziikHome() {
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500">
                   <div className="aspect-square w-full mb-4 overflow-hidden rounded-lg">
                     <img 
-                      src="/muziik/technology/one-flex-2.png" 
+                      src="/muziik/technology/one-flex-1.webp" 
                       alt="원플렉스 설계"
                       className="w-full h-full object-cover"
                     />
