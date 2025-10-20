@@ -258,6 +258,71 @@ export default function TechnologyPage() {
           </div>
         </section>
 
+        {/* Japan Titanium Section */}
+        <section className="py-16 bg-gradient-to-br from-gray-800 to-gray-900">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto text-center">
+              <div className="mb-8">
+                <img 
+                  src="/muziik/brand/japan_titan_white.png" 
+                  alt="Japan Titanium"
+                  className="mx-auto h-20 w-auto object-contain mb-6"
+                />
+                <h2 className="text-4xl font-bold text-white mb-4">
+                  {language === 'ja' ? 'Japan Titanium' : 'Japan Titanium'}
+                </h2>
+                <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                  {language === 'ja' 
+                    ? '日本の最高品質チタンを使用したプレミアムシャフト。40年の伝統と最新技術が融合した、世界最高水準のゴルフシャフトを提供します。'
+                    : '일본의 최고 품질 티타늄을 사용한 프리미엄 샤프트. 40년 전통과 최신 기술이 융합된, 세계 최고 수준의 골프 샤프트를 제공합니다.'
+                  }
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-3 gap-8 mt-12">
+                <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
+                  <div className="text-4xl mb-6">🇯🇵</div>
+                  <h3 className="text-2xl font-semibold text-white mb-4">
+                    {language === 'ja' ? '日本製品質' : '일본제 품질'}
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    {language === 'ja' 
+                      ? '40年の伝統と職人技術による最高品質のシャフト製造。日本の精密技術が生み出す完璧なシャフト。'
+                      : '40년 전통과 장인 기술에 의한 최고 품질의 샤프트 제조. 일본의 정밀 기술이 만들어내는 완벽한 샤프트.'
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
+                  <div className="text-4xl mb-6">💎</div>
+                  <h3 className="text-2xl font-semibold text-white mb-4">
+                    {language === 'ja' ? 'プレミアムチタン' : '프리미엄 티타늄'}
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    {language === 'ja' 
+                      ? '日本最高品質のチタン素材を使用した高級シャフト。軽量でありながら強度と弾性を両立。'
+                      : '일본 최고 품질의 티타늄 소재를 사용한 고급 샤프트. 경량이면서도 강도와 탄성을 양립.'
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
+                  <div className="text-4xl mb-6">🏆</div>
+                  <h3 className="text-2xl font-semibold text-white mb-4">
+                    {language === 'ja' ? '世界最高水準' : '세계 최고 수준'}
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    {language === 'ja' 
+                      ? '日本の技術力が生み出す世界最高水準のゴルフシャフト。プロゴルファーも認める品質。'
+                      : '일본의 기술력이 만들어내는 세계 최고 수준의 골프 샤프트. 프로 골퍼도 인정하는 품질.'
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Technology Diagram Section */}
         <section className="py-16 bg-black">
           <div className="container mx-auto px-4">

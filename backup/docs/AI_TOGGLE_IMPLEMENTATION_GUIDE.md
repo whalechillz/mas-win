@@ -46,7 +46,7 @@
 # AI API 키들
 ANTHROPIC_API_KEY=sk-ant-...      # Claude
 PERPLEXITY_API_KEY=pplx-...       # Perplexity
-FAL_API_KEY=b6ae9e4b-...          # 이미지 생성
+FAL_API_KEY=your_fal_api_key_here  # 이미지 생성
 OPENAI_API_KEY=sk-...             # GPT (선택)
 ```
 
