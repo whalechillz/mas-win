@@ -163,6 +163,30 @@ export default function ProductPage({ product }: ProductPageProps) {
                       alt="Bending Profile Chart"
                       className="w-full h-full object-contain bg-black"
                     />
+                  ) : product.id === 'beryl' ? (
+                    <div className="p-4 h-full overflow-y-auto">
+                      <div className="text-white text-sm">
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="font-semibold">Model</div>
+                          <div className="font-semibold">Specifications</div>
+                        </div>
+                        {product.specs.slice(0, 3).map((spec, index) => (
+                          <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
+                            <div className="text-blue-400 font-medium">{spec.model}</div>
+                            <div className="text-gray-300 text-xs">
+                              {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
+                              {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
+                              {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-2 text-xs text-gray-400">
+                          {language === 'ja' ? '全長' : '전장'}: 1168mm | 
+                          {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
+                          {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center text-gray-400">

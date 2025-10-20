@@ -223,15 +223,33 @@ export default function ContactPage() {
         />
 
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20">
-          <div className="container mx-auto px-4">
+        <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          <div className="container mx-auto px-4 relative z-10">
             <div className="text-center">
+              <div className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
+                {language === 'ja' ? 'プレミアムサポート' : '프리미엄 지원'}
+              </div>
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
                 {t.heroTitle}
               </h1>
               <h2 className="text-2xl md:text-3xl text-blue-400 mb-8">
                 {t.heroSubtitle}
               </h2>
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-300">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  {language === 'ja' ? '24時間以内返信' : '24시간 이내 답변'}
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  {language === 'ja' ? '専門フィッティング' : '전문 피팅'}
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                  {language === 'ja' ? 'カスタムソリューション' : '맞춤 솔루션'}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -276,14 +294,19 @@ export default function ContactPage() {
               </div>
 
               {/* Form Content */}
-              <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
+              <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 shadow-2xl">
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-4">
+                  <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                    {activeTab === 'general' && '📞 일반 문의'}
+                    {activeTab === 'partnership' && '🤝 파트너십'}
+                    {activeTab === 'collaboration' && '⚡ 마쓰구 콜라보'}
+                  </div>
+                  <h3 className="text-3xl font-bold text-white mb-4">
                     {activeTab === 'general' && t.generalTitle}
                     {activeTab === 'partnership' && t.partnershipTitle}
                     {activeTab === 'collaboration' && t.collaborationTitle}
                   </h3>
-                  <p className="text-gray-300">
+                  <p className="text-gray-300 text-lg">
                     {activeTab === 'general' && t.generalDesc}
                     {activeTab === 'partnership' && t.partnershipDesc}
                     {activeTab === 'collaboration' && t.collaborationDesc}
@@ -302,11 +325,12 @@ export default function ContactPage() {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Basic Information */}
                   <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-white font-semibold mb-2">
+                    <div className="space-y-2">
+                      <label className="block text-white font-semibold mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                         {t.name} *
                       </label>
                       <input
@@ -315,11 +339,13 @@ export default function ContactPage() {
                         value={formData.name}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder={language === 'ja' ? 'お名前を入力してください' : '이름을 입력해주세요'}
                       />
                     </div>
-                    <div>
-                      <label className="block text-white font-semibold mb-2">
+                    <div className="space-y-2">
+                      <label className="block text-white font-semibold mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                         {t.email} *
                       </label>
                       <input
@@ -328,7 +354,8 @@ export default function ContactPage() {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder={language === 'ja' ? 'メールアドレスを入力してください' : '이메일을 입력해주세요'}
                       />
                     </div>
                   </div>
@@ -447,14 +474,30 @@ export default function ContactPage() {
                   )}
 
                   {/* Submit Button */}
-                  <div className="text-center">
+                  <div className="text-center pt-6">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
                     >
-                      {isSubmitting ? t.submitting : t.submit}
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          {t.submitting}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center">
+                          <span className="mr-2">🚀</span>
+                          {t.submit}
+                        </div>
+                      )}
                     </button>
+                    <p className="text-gray-400 text-sm mt-4">
+                      {language === 'ja' 
+                        ? '送信後、24時間以内にご返信いたします'
+                        : '전송 후 24시간 이내에 답변드리겠습니다'
+                      }
+                    </p>
                   </div>
                 </form>
               </div>
