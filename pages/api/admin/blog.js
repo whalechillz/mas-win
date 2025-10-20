@@ -157,7 +157,7 @@ export default async function handler(req, res) {
       
       const { data: posts, error } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select('*, calendar_id')
         .order(finalSortBy, { ascending: finalSortOrder === 'asc' });
       
       if (error) {

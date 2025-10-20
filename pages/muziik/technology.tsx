@@ -178,13 +178,12 @@ export default function TechnologyPage() {
                     </ul>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                    <div className="aspect-video bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-4xl mb-4">⚗️</div>
-                        <p className="text-blue-200">
-                          {language === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
-                        </p>
-                      </div>
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <img 
+                        src="/muziik/technology/dogatti-nano-resin.png" 
+                        alt={language === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </div>
                 </div>
@@ -195,13 +194,12 @@ export default function TechnologyPage() {
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                   <div className="order-2 md:order-1">
                     <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                      <div className="aspect-video bg-gradient-to-br from-emerald-900 to-teal-900 rounded-lg flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-4xl mb-4">⚡</div>
-                          <p className="text-emerald-200">
-                            {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
-                          </p>
-                        </div>
+                      <div className="aspect-video rounded-lg overflow-hidden">
+                        <img 
+                          src="/muziik/technology/dogatti-reverse-torque.png" 
+                          alt={language === 'ja' ? '逆トルク防止' : '역토크 방지'}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </div>
                   </div>
@@ -246,13 +244,12 @@ export default function TechnologyPage() {
                     </ul>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                    <div className="aspect-video bg-gradient-to-br from-purple-900 to-pink-900 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-4xl mb-4">💎</div>
-                        <p className="text-purple-200">
-                          {language === 'ja' ? 'チタン繊維構造' : '티타늄 섬유 구조'}
-                        </p>
-                      </div>
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <img 
+                        src="/muziik/technology/dogatti-titanium-fiber.png" 
+                        alt={language === 'ja' ? 'チタン繊維構造' : '티타늄 섬유 구조'}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </div>
                 </div>
@@ -272,16 +269,12 @@ export default function TechnologyPage() {
                 {t.diagramDesc}
               </p>
               <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
-                <div className="aspect-video bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">🔬</div>
-                    <p className="text-blue-200 text-xl">
-                      {language === 'ja' ? '技術構造図' : '기술 구조도'}
-                    </p>
-                    <p className="text-gray-400 mt-2">
-                      {language === 'ja' ? '詳細な技術図表' : '상세한 기술 도표'}
-                    </p>
-                  </div>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  <img 
+                    src="/muziik/technology/technology_diagram.png" 
+                    alt={language === 'ja' ? '技術構造図' : '기술 구조도'}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>

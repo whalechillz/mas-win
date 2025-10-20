@@ -3848,16 +3848,33 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   // URL 파라미터 처리
   useEffect(() => {
     if (router.isReady) {
-      const { edit, new: isNew, title, content, category, status } = router.query;
+      const { edit, id, new: isNew, title, content, category, status } = router.query;
       
       if (edit) {
-        // 기존 포스트 편집 모드
+        // 기존 포스트 편집 모드 (edit 파라미터) - 빠른 편집
         const postId = edit as string;
-        console.log('🔍 편집 모드 진입:', postId);
+        console.log('🚀 빠른 편집 모드 진입 (edit):', postId);
+        console.log('🔍 현재 상태:', { showForm, activeTab, editingPost });
+        
         setEditingPost(postId);
         setShowForm(true);
+        setActiveTab('edit');
+        console.log('✅ 편집 모드 설정 완료');
         
         // 포스트 데이터 로드
+        loadPostForEdit(postId);
+      } else if (id) {
+        // 기존 포스트 편집 모드 (id 파라미터) - 허브에서 온 경우 (빠른 편집 적용)
+        const postId = id as string;
+        console.log('🚀 빠른 편집 모드 진입 (id):', postId);
+        
+        // 즉시 편집 모드 설정
+        setEditingPost(postId);
+        setShowForm(true);
+        setActiveTab('edit');
+        console.log('✅ 편집 모드 즉시 설정 완료');
+        
+        // 포스트 데이터 로드 (백그라운드)
         loadPostForEdit(postId);
       } else if (isNew === 'true') {
         // 새 포스트 생성 모드 (캘린더에서 온 경우)
@@ -3872,7 +3889,12 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         setShowForm(true);
       }
     }
-  }, [router.isReady, router.query, loadPostForEdit]);
+  }, [router.isReady, router.query]);
+
+  // 상태 변화 추적
+  useEffect(() => {
+    console.log('🔍 상태 변화:', { showForm, activeTab, editingPost, routerQuery: router.query });
+  }, [showForm, activeTab, editingPost, router.query]);
 
   // 초기 로드
   useEffect(() => {
@@ -4667,6 +4689,25 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                                   추천
                                 </span>
                               )}
+                              {/* 허브 연동 ID */}
+                              <div className="flex items-center space-x-2">
+                                {post.calendar_id ? (
+                                  <span 
+                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
+                                    title={`허브 ID: ${post.calendar_id}`}
+                                    onClick={() => {
+                                      // 허브 콘텐츠로 이동
+                                      window.open(`/admin/content-calendar-hub`, '_blank');
+                                    }}
+                                  >
+                                    허브: {post.calendar_id.substring(0, 8)}...
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    미연결
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

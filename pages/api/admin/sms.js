@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     // SMS 생성
-    const { message, type, status, hub_content_id } = req.body;
+    const { message, type, status, hub_content_id, calendar_id } = req.body;
 
     try {
       const { data: newSMS, error } = await supabase
@@ -59,6 +59,7 @@ export default async function handler(req, res) {
           message_text: message,
           message_type: type || 'SMS300',
           status: status || 'draft',
+          calendar_id: calendar_id || hub_content_id || null, // calendar_id 우선 사용
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -75,13 +76,14 @@ export default async function handler(req, res) {
       }
 
       // 허브 콘텐츠의 SMS 상태 동기화 (허브 연동이 있는 경우)
-      if (hub_content_id) {
+      const hubId = calendar_id || hub_content_id;
+      if (hubId) {
         try {
           const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              hubContentId: hub_content_id,
+              hubContentId: hubId,
               channel: 'sms',
               channelContentId: newSMS.id,
               status: '수정중'
@@ -117,7 +119,16 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     // SMS 수정
-    const { id, message, type, status, hub_content_id } = req.body;
+    const { id, message, type, status, hub_content_id, calendar_id } = req.body;
+
+    if (!id) {
+      console.error('❌ SMS 수정 오류: ID가 필요합니다.');
+      return res.status(400).json({
+        success: false,
+        message: 'SMS ID가 필요합니다.',
+        error: 'Missing SMS ID'
+      });
+    }
 
     try {
         const { data: updatedSMS, error } = await supabase
@@ -126,6 +137,7 @@ export default async function handler(req, res) {
             message_text: message,
             message_type: type || 'SMS300',
             status: status || 'draft',
+            calendar_id: calendar_id || hub_content_id || null, // calendar_id 업데이트
             updated_at: new Date().toISOString()
           })
           .eq('id', id)
@@ -167,6 +179,90 @@ export default async function handler(req, res) {
       return res.status(500).json({
         success: false,
         message: 'SMS 수정 중 오류가 발생했습니다.',
+        error: error.message
+      });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    // SMS 삭제
+    const { id } = req.body;
+
+    if (!id) {
+      console.error('❌ SMS 삭제 오류: ID가 필요합니다.');
+      return res.status(400).json({
+        success: false,
+        message: 'SMS ID가 필요합니다.',
+        error: 'Missing SMS ID'
+      });
+    }
+
+    try {
+      // SMS 삭제 전에 허브 상태 확인
+      const { data: smsData, error: fetchError } = await supabase
+        .from('channel_sms')
+        .select('calendar_id')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error('❌ SMS 조회 오류:', fetchError);
+        return res.status(404).json({
+          success: false,
+          message: 'SMS를 찾을 수 없습니다.',
+          error: fetchError.message
+        });
+      }
+
+      // SMS 삭제
+      const { error: deleteError } = await supabase
+        .from('channel_sms')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        console.error('❌ SMS 삭제 오류:', deleteError);
+        return res.status(500).json({
+          success: false,
+          message: 'SMS 삭제에 실패했습니다.',
+          error: deleteError.message
+        });
+      }
+
+      // 허브 상태 동기화 (SMS 삭제 시 상태를 미발행으로 변경)
+      if (smsData?.calendar_id) {
+        try {
+          const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hubContentId: smsData.calendar_id,
+              channel: 'sms',
+              channelContentId: null,
+              status: '미발행'
+            })
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ SMS 삭제 후 허브 상태 동기화 완료');
+          } else {
+            console.error('❌ SMS 삭제 후 허브 상태 동기화 실패');
+          }
+        } catch (syncError) {
+          console.error('❌ SMS 삭제 후 허브 상태 동기화 오류:', syncError);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'SMS가 삭제되었습니다.'
+      });
+
+    } catch (error) {
+      console.error('❌ SMS 삭제 오류:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'SMS 삭제 중 오류가 발생했습니다.',
         error: error.message
       });
     }

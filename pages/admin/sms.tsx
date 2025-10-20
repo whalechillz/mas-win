@@ -154,19 +154,29 @@ export default function SMSAdmin() {
   // 초안 저장
   const handleSaveDraft = async () => {
     try {
+      // 디버깅: URL 파라미터 확인
+      console.log('🔍 SMS 저장 디버깅:', {
+        hub: hub,
+        id: id,
+        channelKey: router.query.channelKey,
+        allQuery: router.query,
+        formData: formData
+      });
+
       // SMS 데이터 직접 저장 (useChannelEditor 대신 직접 API 호출)
       const smsData = {
         message: formData.content || formData.title || '',
         type: formData.messageType || 'SMS300',
         status: 'draft',
-        hub_content_id: hub || null
+        calendar_id: hub || null, // hub_content_id → calendar_id로 수정
+        id: id || null // PUT 요청 시 id를 body에 포함
       };
 
       console.log('📝 SMS 저장 데이터:', smsData);
 
       // 기존 SMS ID가 있는지 확인하여 POST/PUT 결정
       const method = id ? 'PUT' : 'POST';
-      const url = id ? `/api/admin/sms?id=${id}` : '/api/admin/sms';
+      const url = '/api/admin/sms'; // URL은 항상 동일
       
       console.log('📝 SMS 요청 정보:', { method, url, id });
 
@@ -182,7 +192,9 @@ export default function SMSAdmin() {
       if (result.success) {
         // 허브 연동이 있는 경우 상태 동기화
         if (hub && result.smsId) {
-          console.log('🔄 허브 상태 동기화 시작:', { hub, smsId: result.smsId });
+          // 동적 채널 키 확인 (URL에서 channelKey 파라미터 추출)
+          const channelKey = router.query.channelKey || 'sms';
+          console.log('🔄 허브 상태 동기화 시작:', { hub, channelKey, smsId: result.smsId });
           
           try {
             const syncResponse = await fetch('/api/admin/sync-channel-status', {
@@ -190,7 +202,7 @@ export default function SMSAdmin() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 hubContentId: hub,
-                channel: 'sms',
+                channel: channelKey, // 동적 채널 키 사용
                 channelContentId: result.smsId,
                 status: '수정중'
               })
@@ -246,6 +258,31 @@ export default function SMSAdmin() {
       );
 
       await sendMessage(channelPostId);
+      
+      // SMS 발송 후 허브 상태를 "발행됨"으로 업데이트
+      if (hub) {
+        try {
+          const syncResponse = await fetch('/api/admin/sync-channel-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hubContentId: hub,
+              channel: 'sms',
+              channelContentId: channelPostId,
+              status: '발행됨'
+            })
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ SMS 발송 후 허브 상태 업데이트 완료');
+          } else {
+            console.error('❌ SMS 발송 후 허브 상태 업데이트 실패');
+          }
+        } catch (syncError) {
+          console.error('❌ SMS 발송 후 허브 상태 동기화 오류:', syncError);
+        }
+      }
+      
       alert('SMS가 성공적으로 발송되었습니다.');
       router.push('/admin/sms');
     } catch (error) {
