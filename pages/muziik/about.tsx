@@ -70,22 +70,22 @@ export default function AboutPage() {
       
       // 회사 소개
       companyTitle: '회사 개요',
-      companyDesc: 'MUZIIK는 일본의 전통적인 샤프트 제조 기술과 최신 테크놀로지를 융합하여 세계 최고 수준의 골프 샤프트를 제조하는 기업입니다.',
+      companyDesc: 'MASSGOO는 MUZIIK와의 협업을 통해 일본제 프리미엄 골프 샤프트 DOGATTI GENERATION을 한국 시장에 소개하는 기업입니다.',
       companyFeatures: [
-        '40년 전통의 샤프트 제조 기술',
-        '최신 티타늄 파이버 테크놀로지',
-        '엄격한 품질 관리 시스템',
-        '한국 정식 수입 판매 대리점'
+        'MUZIIK와의 전략적 파트너십',
+        'DOGATTI GENERATION 한국 정식 수입',
+        '전문 골프 샤프트 컨설팅',
+        '한국 골퍼를 위한 맞춤 서비스'
       ],
       
       // 브랜드 스토리
-      brandTitle: '브랜드 스토리',
-      brandDesc: 'DOGATTI GENERATION은 MUZIIK 독자적인 설계 사상에 기반하여 만들어진 최강 샤프트입니다. 티타늄 파이버 기술로 혁신적인 성능을 구현하여 골퍼의 퍼포먼스를 향상시킵니다.',
+      brandTitle: 'MASSGOO X MUZIIK 협업',
+      brandDesc: 'MASSGOO와 MUZIIK의 전략적 파트너십을 통해 한국 골퍼들에게 최고 품질의 일본제 프리미엄 샤프트를 제공합니다.',
       brandStory: [
-        '1970년대부터 이어지는 샤프트 제조 전통',
-        '2000년대 티타늄 파이버 기술 개발',
-        '2010년대 DOGATTI GENERATION 탄생',
-        '2020년대 한국 시장 진출'
+        'MUZIIK와의 파트너십 체결',
+        'DOGATTI GENERATION 기술 도입',
+        '한국 시장 맞춤 서비스 개발',
+        '전문 컨설팅 및 피팅 서비스'
       ],
       
       // Muziik Golf 브랜드 소개
@@ -102,23 +102,23 @@ export default function AboutPage() {
       muziikGolfEmail: 'info@muziik-golf.com',
       
       // 기술력
-      technologyTitle: '기술력',
-      technologyDesc: 'MUZIIK의 기술력은 오랜 연구 개발과 제조 경험에 기반하고 있습니다. 특히 티타늄 파이버 기술 분야에서는 업계를 선도하는 기술을 보유하고 있습니다.',
+      technologyTitle: 'DOGATTI GENERATION 기술',
+      technologyDesc: 'MUZIIK의 DOGATTI GENERATION 기술은 혁신적인 티타늄 파이버와 프리프레그 기술을 통해 최고의 성능을 구현합니다.',
       technologyFeatures: [
-        '나노레벨 수지 기술',
-        '티타늄 파이버 전장 사용 기술',
-        '역토크 방지 기술',
-        '정밀한 강성 분포 제어'
+        '프리프레그 기술',
+        '전장 티타늄 섬유',
+        '낮은 토크 달성',
+        '역토크 방지 기술'
       ],
       
       // 한국 진출
-      koreaTitle: '한국 시장 진출',
-      koreaDesc: 'MUZIIK는 한국 골프 시장에 정식으로 진출하여 DOGATTI GENERATION 샤프트의 정식 수입 판매를 진행하고 있습니다.',
+      koreaTitle: 'MASSGOO X MUZIIK 한국 진출',
+      koreaDesc: 'MASSGOO와 MUZIIK의 협업을 통해 한국 골퍼들에게 DOGATTI GENERATION 샤프트의 최고 품질을 제공합니다.',
       koreaFeatures: [
-        '한국 정식 수입 판매 대리점',
-        '현지 애프터 서비스',
-        '전문 피팅 서비스',
-        '품질 보증 시스템'
+        'MASSGOO를 통한 한국 정식 수입',
+        '전문 컨설팅 및 피팅 서비스',
+        '한국 골퍼 맞춤 애프터 서비스',
+        '품질 보증 및 기술 지원'
       ],
       
       // 연락처
@@ -239,13 +239,16 @@ export default function AboutPage() {
                   <div key={index} className="text-center">
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 h-full">
                       <div className="text-4xl mb-4">
-                        {index === 0 && '🏛️'}
-                        {index === 1 && '🔬'}
-                        {index === 2 && '💎'}
+                        {index === 0 && '🤝'}
+                        {index === 1 && '💎'}
+                        {index === 2 && '🎯'}
                         {index === 3 && '🇰🇷'}
                       </div>
                       <h3 className="text-white font-semibold mb-3">
-                        {language === 'ja' ? `${1970 + index * 10}年代` : `${1970 + index * 10}년대`}
+                        {index === 0 && '파트너십'}
+                        {index === 1 && '기술 도입'}
+                        {index === 2 && '서비스 개발'}
+                        {index === 3 && '한국 진출'}
                       </h3>
                       <p className="text-gray-300 text-sm">
                         {story}
