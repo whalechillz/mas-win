@@ -88,6 +88,19 @@ export default function AboutPage() {
         '2020년대 한국 시장 진출'
       ],
       
+      // Muziik Golf 브랜드 소개
+      muziikGolfTitle: 'Muziik Golf',
+      muziikGolfSubtitle: 'MUZIIK TO GOLFERS\' EARS',
+      muziikGolfDesc: 'Muziik Golf was born out of the concept of enjoying the game as if it was music, aiming to resonate with golfers of all levels by helping them play stress-free golf.',
+      muziikGolfFeatures: [
+        'Cutting-edge technology and premium craftsmanship',
+        'Designed to help golfers hit better and score lower',
+        'Less effort and no worry approach',
+        'Make golf a symphony of joy with Muziik!'
+      ],
+      muziikGolfWebsite: 'https://muziik-golf.com/japan/home.html',
+      muziikGolfEmail: 'info@muziik-golf.com',
+      
       // 기술력
       technologyTitle: '기술력',
       technologyDesc: 'MUZIIK의 기술력은 오랜 연구 개발과 제조 경험에 기반하고 있습니다. 특히 티타늄 파이버 기술 분야에서는 업계를 선도하는 기술을 보유하고 있습니다.',
@@ -195,13 +208,12 @@ export default function AboutPage() {
                   </ul>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                  <div className="aspect-video bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-6xl mb-4">🏭</div>
-                      <p className="text-blue-200 text-xl">
-                        {language === 'ja' ? 'MUZIIK 工場' : 'MUZIIK 공장'}
-                      </p>
-                    </div>
+                  <div className="aspect-video rounded-lg overflow-hidden">
+                    <img 
+                      src="/muziik/brand/masgolf_store_02.jpeg" 
+                      alt={language === 'ja' ? 'MUZIIK 店舗' : 'MUZIIK 매장'}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </div>
               </div>
@@ -241,6 +253,65 @@ export default function AboutPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Muziik Golf Brand */}
+        <section className="py-16 bg-gray-900">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <div className="mb-6">
+                  <img 
+                    src="/muziik/logos/muziik-logo2.webp" 
+                    alt="Muziik Golf Logo"
+                    className="h-16 mx-auto mb-4"
+                  />
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  {t.muziikGolfTitle}
+                </h2>
+                <h3 className="text-xl text-blue-400 mb-6">
+                  {t.muziikGolfSubtitle}
+                </h3>
+                <p className="text-gray-300 text-lg max-w-4xl mx-auto leading-relaxed">
+                  {t.muziikGolfDesc}
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                  <ul className="space-y-4">
+                    {t.muziikGolfFeatures.map((feature, index) => (
+                      <li key={index} className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-gray-300 text-lg">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
+                  <div className="text-center">
+                    <h4 className="text-white font-semibold mb-4">For the latest information</h4>
+                    <a 
+                      href={t.muziikGolfWebsite}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-lg block mb-4"
+                    >
+                      {t.muziikGolfWebsite}
+                    </a>
+                    <p className="text-gray-300 mb-4">If you need more information</p>
+                    <a 
+                      href={`mailto:${t.muziikGolfEmail}`}
+                      className="text-blue-400 hover:text-blue-300 text-lg"
+                    >
+                      {t.muziikGolfEmail}
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -300,13 +371,12 @@ export default function AboutPage() {
               
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                  <div className="aspect-video bg-gradient-to-br from-red-900 to-yellow-900 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-6xl mb-4">🇰🇷</div>
-                      <p className="text-red-200 text-xl">
-                        {language === 'ja' ? '韓国市場' : '한국 시장'}
-                      </p>
-                    </div>
+                  <div className="aspect-video rounded-lg overflow-hidden">
+                    <img 
+                      src="/muziik/brand/masgolf_store_02.jpeg" 
+                      alt={language === 'ja' ? '韓国市場 진출' : '한국 시장 진출'}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </div>
                 <div>
