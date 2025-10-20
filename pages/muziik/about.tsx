@@ -210,8 +210,8 @@ export default function AboutPage() {
                 <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
                   <div className="aspect-video rounded-lg overflow-hidden">
                     <img 
-                      src="/muziik/brand/masgolf_store_02.jpeg" 
-                      alt={language === 'ja' ? 'MUZIIK 店舗' : 'MUZIIK 매장'}
+                      src="/muziik/brand/muziik_company.webp" 
+                      alt={language === 'ja' ? 'MUZIIK 会社' : 'MUZIIK 회사'}
                       className="w-full h-full object-cover"
                     />
                   </div>
