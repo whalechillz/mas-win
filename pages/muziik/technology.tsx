@@ -180,7 +180,7 @@ export default function TechnologyPage() {
                   <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
                     <div className="aspect-video rounded-lg overflow-hidden">
                       <img 
-                        src="/muziik/technology/dogatti-nano-resin.png" 
+                        src="/muziik/technology/dogatti-nano-resin.webp" 
                         alt={language === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
                         className="w-full h-full object-cover"
                       />
@@ -196,7 +196,7 @@ export default function TechnologyPage() {
                     <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
                       <div className="aspect-video rounded-lg overflow-hidden">
                         <img 
-                          src="/muziik/technology/dogatti-reverse-torque.png" 
+                          src="/muziik/technology/dogatti-reverse-torque.webp" 
                           alt={language === 'ja' ? '逆トルク防止' : '역토크 방지'}
                           className="w-full h-full object-cover"
                         />
@@ -246,7 +246,7 @@ export default function TechnologyPage() {
                   <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
                     <div className="aspect-video rounded-lg overflow-hidden">
                       <img 
-                        src="/muziik/technology/dogatti-titanium-fiber.png" 
+                        src="/muziik/technology/dogatti-titanium-fiber.webp" 
                         alt={language === 'ja' ? 'チタン繊維構造' : '티타늄 섬유 구조'}
                         className="w-full h-full object-cover"
                       />
@@ -271,7 +271,7 @@ export default function TechnologyPage() {
               <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
                 <div className="aspect-video rounded-lg overflow-hidden">
                   <img 
-                    src="/muziik/technology/technology_diagram.png" 
+                    src="/muziik/technology/technology_diagram.webp" 
                     alt={language === 'ja' ? '技術構造図' : '기술 구조도'}
                     className="w-full h-full object-cover"
                   />
