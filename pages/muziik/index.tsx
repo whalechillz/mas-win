@@ -117,6 +117,25 @@ export default function MuziikHome() {
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
                 {t.heroTitle}
               </h1>
+              
+              {/* 감성 테크 메시지 */}
+              <div className="flex justify-center gap-4 mb-6">
+                <span className="text-blue-300 text-sm md:text-base font-light tracking-wider">
+                  ELEGANT ENGINEERING
+                </span>
+                <span className="text-gray-500">|</span>
+                <span className="text-blue-300 text-sm md:text-base font-light tracking-wider">
+                  EXPLOSIVE POWER
+                </span>
+                <span className="text-gray-500">|</span>
+                <span className="text-blue-300 text-sm md:text-base font-light tracking-wider">
+                  AGELESS PERFORMANCE
+                </span>
+              </div>
+              <p className="text-gray-400 text-xs md:text-sm mb-8">
+                우아한 엔지니어링. 폭발적인 파워. 나이를 뛰어넘는 퍼포먼스.
+              </p>
+              
               <h2 className="text-2xl md:text-3xl text-blue-400 mb-8">
                 {t.heroSubtitle}
               </h2>
@@ -125,58 +144,45 @@ export default function MuziikHome() {
                 dangerouslySetInnerHTML={{ __html: t.heroDescription }}
               />
               
-              {/* Technology Highlights */}
-              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
-                <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="aspect-[16/9] w-full overflow-hidden">
+              {/* 혁신적인 테크놀로지 2열 */}
+              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+                {/* 티타늄 파이버 기술 */}
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500">
+                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg">
                     <img 
-                      src="/muziik/technology/dogatti-nano-resin.webp" 
-                      alt="나노레벨 수지"
+                      src="/muziik/brand/titan_1.png" 
+                      alt="티타늄 원석"
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-white font-semibold mb-1">
-                      {language === 'ja' ? 'ナノレベル樹脂' : '나노레벨 수지'}
-                    </h3>
-                    <p className="text-gray-300 text-sm">
-                      {language === 'ja' ? '樹脂含有率削減で弾き向上' : '수지 함유율 감소로 반발성 향상'}
-                    </p>
-                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">
+                    {language === 'ja' ? 'チタンファイバー技術' : '티타늄 파이버 기술'}
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {language === 'ja' 
+                      ? 'シャフト全体にチタンファイバーを使用することで、引張強度を向上させ、反発性を高めます。強靭さと大きな反発が高い弾道を実現します。'
+                      : '샤프트 전체에 티타늄 파이버를 사용하여 인장 강도를 향상시키고 반발성을 높입니다. 강인함과 큰 반발이 높은 탄도를 실현합니다.'
+                    }
+                  </p>
                 </div>
-                <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="aspect-[16/9] w-full overflow-hidden">
-                    <img 
-                      src="/muziik/technology/dogatti-reverse-torque.jpg" 
-                      alt="역토크 방지"
-                      className="w-full h-full object-contain"
-                    />
+                
+                {/* 원플렉스 설계 */}
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500">
+                  <div className="aspect-[4/3] w-full mb-4 overflow-hidden rounded-lg bg-gray-900">
+                    {/* FAL AI 이미지 플레이스홀더 */}
+                    <div className="w-full h-full flex items-center justify-center text-gray-600">
+                      [원플렉스 설계 이미지]
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-white font-semibold mb-1">
-                      {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
-                    </h3>
-                    <p className="text-gray-300 text-sm">
-                      {language === 'ja' ? 'インパクト時のコントロール向上' : '임팩트시 컨트롤 향상'}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                  <div className="aspect-[16/9] w-full overflow-hidden">
-                    <img 
-                      src="/muziik/technology/dogatti-titanium-fiber.webp" 
-                      alt="티타늄 섬유 전장 사용"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-white font-semibold mb-1">
-                      {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
-                    </h3>
-                    <p className="text-gray-300 text-sm">
-                      {language === 'ja' ? '軽量で高弾性実現' : '경량으로 고탄성 실현'}
-                    </p>
-                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">
+                    {language === 'ja' ? 'ワンフレックス設計' : '원플렉스 설계'}
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {language === 'ja' 
+                      ? 'ヘッドスピードに関係なく、様々なゴルファーに適した自動的なワンフレックスタイプ。バックスイングからインパクトまで安定したパフォーマンスを提供します。'
+                      : '헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 원플렉스 타입. 백스윙부터 임팩트까지 안정된 퍼포먼스를 제공합니다.'
+                    }
+                  </p>
                 </div>
               </div>
             </div>
@@ -619,34 +625,6 @@ export default function MuziikHome() {
           </div>
         </section>
 
-        {/* Technology Section */}
-        <section className="py-16 bg-black">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl font-bold text-white mb-8">
-                {t.technologyTitle}
-              </h2>
-              <div className="grid md:grid-cols-2 gap-8 text-left">
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-white mb-4">
-                    {t.technology1Title}
-                  </h3>
-                  <p className="text-gray-300">
-                    {t.technology1Desc}
-                  </p>
-                </div>
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-white mb-4">
-                    {t.technology2Title}
-                  </h3>
-                  <p className="text-gray-300">
-                    {t.technology2Desc}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <section className="py-16 bg-blue-900">
