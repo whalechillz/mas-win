@@ -54,37 +54,37 @@ export default function TechnologyPage() {
     },
     ko: {
       title: 'MUZIIK - Dogatti Generation Technology',
-      description: 'DOGATTI GENERATION 샤프트의 혁신적인 테크놀로지 - 나노레벨 수지, 역토크 방지, 티타늄 파이버 전장 사용 기술',
+      description: 'DOGATTI GENERATION 샤프트의 혁신적인 테크놀로지 - 프리프레그 기술, 낮은 토크 달성, 전장 티타늄 섬유 사용 기술',
       heroTitle: 'Dogatti Generation Technology',
       heroSubtitle: '무지크 독자적인 티타늄 파이버 테크놀로지',
       heroDescription: '티타늄의 반발력으로 비거리를 늘리고, 임팩트시 발생하는 역토크를 방지하여 컨트롤성도 향상. 도가티 제네레이션은 무지크 독자적인 설계 사상에 기반하여 만들어진 최강 샤프트.',
       
       // 기술 특징
-      tech1Title: '나노레벨 수지 채택',
-      tech1Desc: '도가티 제네레이션에 채택된 나노 수지. 수지 함유율을 줄이고 카본 밀도를 높여 반발성과 타감의 향상을 가져옵니다.',
+      tech1Title: '프리프레그 기술 채택',
+      tech1Desc: '도가티 제네레이션에 채택된 프리프레그(Pre-preg) 기술. 카본에 수지를 사전 함침시켜 샤프트 자체의 수지 함량을 낮추고 카본 밀도를 높여 반발성과 타감의 향상을 가져옵니다.',
       tech1Features: [
-        '수지 함유율 감소',
-        '카본 밀도 향상',
-        '반발성 실현',
-        '타감 향상'
+        '저수지 함량으로 경량화',
+        '고카본 밀도로 강성 향상',
+        '반발력 증가로 비거리 향상',
+        '타격감 개선'
       ],
       
-      tech2Title: '임팩트시 역토크 방지',
-      tech2Desc: '경량 샤프트는 토크의 많음과 헤드 중량의 관계로 인해 임팩트시, 특히 오프센터 샷시 역토크가 발생합니다. 역토크는 헤드의 직진성을 방해하고, 방향성과 비거리 성능에 영향을 줍니다.',
+      tech2Title: '낮은 토크 달성',
+      tech2Desc: '경량 샤프트는 높은 토크 수치(5.0°~7.0°)로 인해 임팩트시 뒤틀림이 발생합니다. 헤드 무게와 상호작용하여 역토크가 발생하며, 이는 방향성과 비거리 성능에 영향을 줍니다. 도가티 제네레이션은 전장 티타늄 섬유로 토크 수치를 3.0°~4.0°로 낮춰 역토크를 방지합니다.',
       tech2Features: [
-        '역토크 발생 감소',
-        '헤드 스피드 향상',
-        '가속감 창출',
-        '방향성 안정'
+        '토크 수치 3.0°~4.0° 달성',
+        '임팩트시 뒤틀림 최소화',
+        '역토크 방지로 정확도 향상',
+        '방향성과 비거리 확보'
       ],
       
-      tech3Title: '티타늄 섬유 전장 사용',
-      tech3Desc: '가볍고 반발성이 뛰어난 티타늄 세선을 컴포지트. 중량은 경량화를 유지하면서도 초고탄성과 같은 휨 복원과 임팩트시의 탄탄함을 실현합니다.',
+      tech3Title: '전장 티타늄 섬유',
+      tech3Desc: '샤프트 전체에 걸쳐 티타늄 섬유를 사용하여 균일한 성능을 실현합니다. 경량화를 유지하면서도 전장에 걸친 일관된 반발력과 임팩트시 안정성을 극대화합니다.',
       tech3Features: [
-        '경량성 유지',
-        '초고탄성 실현',
-        '휨 복원 향상',
-        '임팩트시 안정감'
+        '샤프트 전체에 걸친 균일한 성능',
+        '전장에 걸친 일관된 반발력',
+        '임팩트시 안정성 극대화',
+        '경량화와 강성의 완벽한 조화'
       ],
       
       // 기술 다이어그램 섹션
@@ -106,13 +106,13 @@ export default function TechnologyPage() {
       <Head>
         <title>{t.title}</title>
         <meta name="description" content={t.description} />
-        <meta name="keywords" content="MUZIIK,도가티,골프샤프트기술,티타늄파이버,나노수지,역토크방지,골프샤프트테크놀로지,DOGATTI GENERATION" />
+        <meta name="keywords" content="MUZIIK,도가티,골프샤프트기술,티타늄파이버,프리프레그,낮은토크,역토크방지,골프샤프트테크놀로지,DOGATTI GENERATION" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
         
         {/* Open Graph */}
         <meta property="og:title" content="MUZIIK Dogatti Generation Technology" />
-        <meta property="og:description" content="나노레벨 수지, 역토크 방지, 티타늄 파이버 전장 사용 기술. MUZIIK 독자적인 샤프트 테크놀로지." />
+        <meta property="og:description" content="프리프레그 기술, 낮은 토크 달성, 전장 티타늄 섬유 사용 기술. MUZIIK 독자적인 샤프트 테크놀로지." />
         <meta property="og:image" content="/muziik/technology-og.jpg" />
         <meta property="og:url" content="https://muziik.masgolf.co.kr/technology" />
         <meta property="og:type" content="article" />
@@ -120,7 +120,7 @@ export default function TechnologyPage() {
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="MUZIIK Dogatti Generation Technology" />
-        <meta name="twitter:description" content="나노레벨 수지, 역토크 방지, 티타늄 파이버 전장 사용 기술." />
+        <meta name="twitter:description" content="프리프레그 기술, 낮은 토크 달성, 전장 티타늄 섬유 사용 기술." />
         <meta name="twitter:image" content="/muziik/technology-og.jpg" />
         
         {/* Additional SEO */}
