@@ -537,7 +537,7 @@ export default function ContactPage() {
         <footer className="bg-gray-900 border-t border-gray-800 py-8">
           <div className="container mx-auto px-4">
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 MUZIIK. All rights reserved.</p>
+              <p>&copy; 2025 MASSGOO X MUZIIK. All rights reserved.</p>
               <p className="mt-2">
                 {language === 'ja' 
                   ? 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
