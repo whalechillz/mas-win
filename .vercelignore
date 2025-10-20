@@ -1,0 +1,8 @@
+# Exclude large/non-deploy artifacts
+backup/**
+test-results/**
+*.zip
+**/*backup*
+pages/**/index_backup.tsx
+# Optional: local archives
+archive-*.zip
