@@ -147,7 +147,7 @@ export default function MuziikHome() {
                 <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
                   <div className="aspect-[4/3] w-full overflow-hidden">
                     <img 
-                      src="/muziik/technology/dogatti-reverse-torque.webp" 
+                      src="/muziik/technology/dogatti-reverse-torque.jpg" 
                       alt="역토크 방지"
                       className="w-full h-full object-contain"
                     />
