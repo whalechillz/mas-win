@@ -148,7 +148,7 @@ export default function MuziikHome() {
               <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
                 {/* 티타늄 파이버 기술 */}
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500">
-                  <div className="aspect-[16/9] w-full mb-4 overflow-hidden rounded-lg">
+                  <div className="aspect-square w-full mb-4 overflow-hidden rounded-lg">
                     <img 
                       src="/muziik/brand/titan_1.png" 
                       alt="티타늄 원석"
@@ -168,9 +168,9 @@ export default function MuziikHome() {
                 
                 {/* 원플렉스 설계 */}
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500">
-                  <div className="aspect-[16/9] w-full mb-4 overflow-hidden rounded-lg">
+                  <div className="aspect-square w-full mb-4 overflow-hidden rounded-lg">
                     <img 
-                      src="/muziik/technology/one-flex-1.png" 
+                      src="/muziik/technology/one-flex-2.png" 
                       alt="원플렉스 설계"
                       className="w-full h-full object-cover"
                     />
