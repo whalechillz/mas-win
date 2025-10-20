@@ -30,7 +30,7 @@ export default function MuziikKoreanHome() {
                 <Link href="/muziik/ko/beryl" className="text-gray-300 hover:text-white transition-colors">
                   Beryl
                 </Link>
-                <a href="mailto:info@masgolf.co.kr" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="mailto:massgoogolf@gmail.com" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                   문의하기
                 </a>
                 <Link href="/muziik" className="text-gray-400 hover:text-white transition-colors text-sm">
@@ -247,7 +247,7 @@ export default function MuziikKoreanHome() {
               전문 스태프가 고객님의 니즈에 최적한 샤프트를 제안해 드립니다.
             </p>
             <a 
-              href="mailto:info@masgolf.co.kr"
+              href="mailto:massgoogolf@gmail.com"
               className="inline-block bg-white text-blue-900 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg"
             >
               문의하기
