@@ -164,29 +164,27 @@ export default function ProductPage({ product }: ProductPageProps) {
                       className="w-full h-full object-contain bg-black"
                     />
                   ) : product.id === 'beryl' ? (
-                    <div className="h-full">
-                      <div className="p-4 h-full overflow-y-auto">
-                        <div className="text-white text-sm">
-                          <div className="grid grid-cols-2 gap-2 mb-3">
-                            <div className="font-semibold">Model</div>
-                            <div className="font-semibold">Specifications</div>
-                          </div>
-                          {product.specs.map((spec, index) => (
-                            <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
-                              <div className="text-blue-400 font-medium">{spec.model}</div>
-                              <div className="text-gray-300 text-xs">
-                                {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
-                                {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
-                                {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm | 
-                                {language === 'ja' ? 'キックポイント' : '킥포인트'}: {spec.kickPoint || '先中調子'}
-                              </div>
+                    <div className="p-4 h-full overflow-y-auto">
+                      <div className="text-white text-sm">
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="font-semibold">Model</div>
+                          <div className="font-semibold">Specifications</div>
+                        </div>
+                        {product.specs.map((spec, index) => (
+                          <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
+                            <div className="text-blue-400 font-medium">{spec.model}</div>
+                            <div className="text-gray-300 text-xs">
+                              {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
+                              {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
+                              {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm | 
+                              {language === 'ja' ? 'キックポイント' : '킥포인트'}: {spec.kickPoint || '先中調子'}
                             </div>
-                          ))}
-                          <div className="mt-3 text-xs text-gray-400">
-                            {language === 'ja' ? '全長' : '전장'}: 1168mm | 
-                            {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
-                            {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
                           </div>
+                        ))}
+                        <div className="mt-2 text-xs text-gray-400">
+                          {language === 'ja' ? '全長' : '전장'}: 1168mm | 
+                          {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
+                          {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
                         </div>
                       </div>
                     </div>
@@ -202,31 +200,36 @@ export default function ProductPage({ product }: ProductPageProps) {
               </div>
             </div>
             
-            {/* Bending Profile Chart for Beryl */}
+            {/* Bending Profile Section for Beryl */}
             {product.id === 'beryl' && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-white mb-4">
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-white mb-6">
                   {language === 'ja' ? 'ベリル剛性分布' : '베럴 강성 분포'}
-                </h3>
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <img
-                    src="/muziik/products/beryl/beryl_shaft_bending_profile.webp"
-                    alt="Beryl Shaft Bending Profile"
-                    className="w-full h-64 object-contain bg-white rounded"
-                  />
-                  <p className="text-gray-400 text-sm text-center mt-2">
-                    {language === 'ja' ? 'ベリルシャフトの剛性分布チャート' : '베럴 샤프트의 강성 분포 차트'}
-                  </p>
+                </h2>
+                <div className="bg-gray-900 rounded-lg p-8 border border-gray-700">
+                  <div className="text-center">
+                    <img
+                      src="/muziik/products/beryl/beryl_shaft_bending_profile.webp"
+                      alt="Beryl Shaft Bending Profile"
+                      className="w-full max-w-4xl mx-auto h-auto object-contain"
+                    />
+                    <p className="text-gray-400 mt-4">
+                      {language === 'ja' 
+                        ? 'ベリルシャフトの剛性分布チャート - 40Sと50Sモデルの比較'
+                        : '베럴 샤프트 강성 분포 차트 - 40S와 50S 모델 비교'
+                      }
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Additional Product Gallery for Beryl */}
             {product.id === 'beryl' && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-white mb-4">
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-white mb-6">
                   {language === 'ja' ? '제품 갤러리' : '제품 갤러리'}
-                </h3>
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gray-800 rounded-lg overflow-hidden">
                     <img
