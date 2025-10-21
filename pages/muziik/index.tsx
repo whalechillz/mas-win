@@ -79,7 +79,7 @@ export default function MuziikHome() {
         {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
         <meta name="author" content="MUZIIK" />
-        <meta name="language" content="ko" />
+        <meta name="locale" content="ko" />
         <link rel="canonical" href="https://muziik.masgolf.co.kr" />
       </Head>
 
@@ -143,7 +143,7 @@ export default function MuziikHome() {
                     MUZIIK
                   </h1>
                   <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
-                    {language === 'ja' ? '優雅なエンジニアリング。爆発的なパワー。世代を超えるパフォーマンス。' : '우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.'}
+                    {locale === 'ja' ? '優雅なエンジニアリング。爆発的なパワー。世代を超えるパフォーマンス。' : '우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.'}
                   </p>
                 </div>
                 
@@ -174,15 +174,15 @@ export default function MuziikHome() {
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                       <img 
                         src="/muziik/brand/one-flex-1.webp" 
-                        alt={language === 'ja' ? 'オートフレックス設計' : '오토플렉스 설계'}
+                        alt={locale === 'ja' ? 'オートフレックス設計' : '오토플렉스 설계'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">
-                      {language === 'ja' ? 'オートフレックス設計' : '오토플렉스 설계'}
+                      {locale === 'ja' ? 'オートフレックス設計' : '오토플렉스 설계'}
                     </h3>
                     <p className="text-gray-300 text-sm leading-relaxed text-center">
-                      {language === 'ja' 
+                      {locale === 'ja' 
                         ? 'すべてのゴルファーの夢を実現するオートフレックステクノロジー'
                         : '모든 골퍼의 꿈을 실현하는 오토플렉스 테크놀로지'
                       }
@@ -204,10 +204,10 @@ export default function MuziikHome() {
                   className="mx-auto h-16 w-auto object-contain mb-6"
                 />
                 <h2 className="text-4xl font-bold text-white mb-4">
-                  {language === 'ja' ? 'Japan Titanium' : 'Japan Titanium'}
+                  {locale === 'ja' ? 'Japan Titanium' : 'Japan Titanium'}
                 </h2>
                 <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '日本の最高品質チタンを使用したプレミアムシャフト。40年の伝統と最新技術が融合した、世界最高水準のゴルフシャフトを提供します。'
                     : '일본의 최고 품질 티타늄을 사용한 프리미엄 샤프트. 40년 전통과 최신 기술이 융합된, 세계 최고 수준의 골프 샤프트를 제공합니다.'
                   }
@@ -218,10 +218,10 @@ export default function MuziikHome() {
                 <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
                   <div className="text-3xl mb-4">🇯🇵</div>
                   <h3 className="text-xl font-semibold text-white mb-3">
-                    {language === 'ja' ? '日本製品質' : '일본제 품질'}
+                    {locale === 'ja' ? '日本製品質' : '일본제 품질'}
                   </h3>
                   <p className="text-gray-300 text-sm">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '40年の伝統と職人技術による最高品質のシャフト製造'
                       : '40년 전통과 장인 기술에 의한 최고 품질의 샤프트 제조'
                     }
@@ -231,10 +231,10 @@ export default function MuziikHome() {
                 <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
                   <div className="text-3xl mb-4">🔧</div>
                   <h3 className="text-xl font-semibold text-white mb-3">
-                    {language === 'ja' ? '精密加工技術' : '정밀 가공 기술'}
+                    {locale === 'ja' ? '精密加工技術' : '정밀 가공 기술'}
                   </h3>
                   <p className="text-gray-300 text-sm">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '日本の精密加工技術で完璧なシャフト製造'
                       : '일본의 정밀 가공 기술로 완벽한 샤프트 제조'
                     }
@@ -244,10 +244,10 @@ export default function MuziikHome() {
                 <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
                   <div className="text-3xl mb-4">🏆</div>
                   <h3 className="text-xl font-semibold text-white mb-3">
-                    {language === 'ja' ? '世界最高水準' : '세계 최고 수준'}
+                    {locale === 'ja' ? '世界最高水準' : '세계 최고 수준'}
                   </h3>
                   <p className="text-gray-300 text-sm">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '日本の技術力が生み出す世界最高水準のゴルフシャフト'
                       : '일본의 기술력이 만들어내는 세계 최고 수준의 골프 샤프트'
                     }
@@ -263,10 +263,10 @@ export default function MuziikHome() {
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto text-center mb-12">
               <h2 className="text-4xl font-bold text-white mb-6">
-                {language === 'ja' ? '革新的なテクノロジー' : '혁신적인 테크놀로지'}
+                {locale === 'ja' ? '革新的なテクノロジー' : '혁신적인 테크놀로지'}
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {language === 'ja' 
+                {locale === 'ja' 
                   ? 'MUZIIK独自の技術が実現する、ゴルフシャフトの新たな可能性。'
                   : 'MUZIIK 독자 기술이 실현하는, 골프 샤프트의 새로운 가능성.'
                 }
@@ -279,15 +279,15 @@ export default function MuziikHome() {
                 <div className="aspect-video rounded-lg overflow-hidden mb-6">
                   <img 
                     src="/muziik/technology/dogatti-nano-resin.webp" 
-                    alt={language === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
+                    alt={locale === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {language === 'ja' ? 'ナノレベル樹脂採用' : '나노레벨 수지 채택'}
+                  {locale === 'ja' ? 'ナノレベル樹脂採用' : '나노레벨 수지 채택'}
                 </h3>
                 <p className="text-gray-300 leading-relaxed mb-4">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '樹脂含有率を削減し、カーボン密度を高めることで弾きの良さと打感の向上を実現。'
                     : '수지 함유율을 감소시키고 카본 밀도를 높여 반발성과 타감의 향상을 실현합니다.'
                   }
@@ -295,15 +295,15 @@ export default function MuziikHome() {
                 <ul className="space-y-2">
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? '樹脂含有率の削減' : '수지 함유율 감소'}
+                    {locale === 'ja' ? '樹脂含有率の削減' : '수지 함유율 감소'}
                   </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? 'カーボン密度の向上' : '카본 밀도 향상'}
+                    {locale === 'ja' ? 'カーボン密度の向上' : '카본 밀도 향상'}
                   </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? '弾きの良さの実現' : '반발성 향상'}
+                    {locale === 'ja' ? '弾きの良さの実現' : '반발성 향상'}
                   </li>
                 </ul>
               </div>
@@ -313,15 +313,15 @@ export default function MuziikHome() {
                 <div className="aspect-video rounded-lg overflow-hidden mb-6">
                   <img 
                     src="/muziik/technology/dogatti-reverse-torque.webp" 
-                    alt={language === 'ja' ? '逆トルク防止' : '역토크 방지'}
+                    alt={locale === 'ja' ? '逆トルク防止' : '역토크 방지'}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {language === 'ja' ? 'インパクト時の逆トルク防止' : '임팩트시 역토크 방지'}
+                  {locale === 'ja' ? 'インパクト時の逆トルク防止' : '임팩트시 역토크 방지'}
                 </h3>
                 <p className="text-gray-300 leading-relaxed mb-4">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '軽量シャフト特有の逆トルクを抑制し、ヘッドの直進性と方向性を向上。'
                     : '경량 샤프트 특유의 역토크를 억제하여 헤드의 직진성과 방향성을 향상시킵니다.'
                   }
@@ -329,15 +329,15 @@ export default function MuziikHome() {
                 <ul className="space-y-2">
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? '逆トルク発生の減少' : '역토크 발생 감소'}
+                    {locale === 'ja' ? '逆トルク発生の減少' : '역토크 발생 감소'}
                   </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? 'ヘッドスピードアップ' : '헤드 스피드 향상'}
+                    {locale === 'ja' ? 'ヘッドスピードアップ' : '헤드 스피드 향상'}
                   </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? '方向性の安定' : '방향성 안정'}
+                    {locale === 'ja' ? '方向性の安定' : '방향성 안정'}
                   </li>
                 </ul>
               </div>
@@ -347,15 +347,15 @@ export default function MuziikHome() {
                 <div className="aspect-video rounded-lg overflow-hidden mb-6">
                   <img 
                     src="/muziik/technology/dogatti-titanium-fiber.webp" 
-                    alt={language === 'ja' ? 'チタン繊維' : '티타늄 섬유'}
+                    alt={locale === 'ja' ? 'チタン繊維' : '티타늄 섬유'}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
+                  {locale === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
                 </h3>
                 <p className="text-gray-300 leading-relaxed mb-4">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '軽量でありながら超高弾性を実現。しなり戻りとインパクト時の安定感を両立。'
                     : '경량이면서도 초고탄성을 실현. 휨 복원과 임팩트시 안정감을 양립합니다.'
                   }
@@ -363,15 +363,15 @@ export default function MuziikHome() {
                 <ul className="space-y-2">
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? '軽量性の維持' : '경량성 유지'}
+                    {locale === 'ja' ? '軽量性の維持' : '경량성 유지'}
                   </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? '超高弾性の実現' : '초고탄성 실현'}
+                    {locale === 'ja' ? '超高弾性の実現' : '초고탄성 실현'}
                   </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                    {language === 'ja' ? 'インパクト時の安定感' : '임팩트시 안정감'}
+                    {locale === 'ja' ? 'インパクト時の安定感' : '임팩트시 안정감'}
                   </li>
                 </ul>
               </div>
@@ -383,16 +383,16 @@ export default function MuziikHome() {
         <section className="py-16 bg-gray-900">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center text-white mb-12">
-              {language === 'ja' ? 'コア設計技術' : '핵심 설계 기술'}
+              {locale === 'ja' ? 'コア設計技術' : '핵심 설계 기술'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               <div className="text-center">
                 <div className="text-4xl mb-4">🔧</div>
                 <h3 className="text-xl font-semibold text-white mb-2">
-                  {language === 'ja' ? 'アルミニウムIP処理' : '알루미늄 IP 처리'}
+                  {locale === 'ja' ? 'アルミニウムIP処理' : '알루미늄 IP 처리'}
                 </h3>
                 <p className="text-gray-400">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '表面硬度を高め、耐久性と高級感のある外観を提供します'
                     : '표면 경도를 높여 내구성과 고급스러운 외관을 제공합니다'
                   }
@@ -401,10 +401,10 @@ export default function MuziikHome() {
               <div className="text-center">
                 <div className="text-4xl mb-4">💎</div>
                 <h3 className="text-xl font-semibold text-white mb-2">
-                  {language === 'ja' ? '高弾性(65t)カーボンシート' : '고탄성(65t) 카본 시트'}
+                  {locale === 'ja' ? '高弾性(65t)カーボンシート' : '고탄성(65t) 카본 시트'}
                 </h3>
                 <p className="text-gray-400">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '65トン高弾性カーボンシートを使用して優れた復元力と安定した打感を提供します'
                     : '65톤 고탄성 카본 시트를 사용하여 뛰어난 복원력과 안정적인 타구감을 선사합니다'
                   }
@@ -413,10 +413,10 @@ export default function MuziikHome() {
               <div className="text-center">
                 <div className="text-4xl mb-4">⚡</div>
                 <h3 className="text-xl font-semibold text-white mb-2">
-                  {language === 'ja' ? 'ダブルキックポイント' : '더블킥 포인트'}
+                  {locale === 'ja' ? 'ダブルキックポイント' : '더블킥 포인트'}
                 </h3>
                 <p className="text-gray-400">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '2つのキックポイントを通じてヘッドスピードを最大化し、飛距離を向上させます'
                     : '두 개의 킥 포인트를 통해 헤드 스피드를 극대화하고 비거리를 향상시킵니다'
                   }
@@ -461,7 +461,7 @@ export default function MuziikHome() {
                     DOGATTI GENERATION Sapphire Auto-flex
                   </p>
                   <p className="text-gray-400 text-sm mb-4">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '超高速の反発力とヘッド安定性を実現する、MUZIIK独自のチタンファイバー技術を採用したプレミアムシャフト。'
                       : '초고속의 반발력과 헤드 안정성을 실현하는, MUZIIK 독자적인 티타늄 파이버 기술을 채택한 프리미엄 샤프트.'
                     }
@@ -470,18 +470,18 @@ export default function MuziikHome() {
                   {/* Sapphire 스펙 미리보기 */}
                   <div className="mb-4 bg-gray-800 rounded p-3">
                     <h4 className="text-white font-semibold mb-2 text-sm">
-                      {language === 'ja' ? 'DOGATTI GENERATION SAPPHIRE 40/50' : 'DOGATTI GENERATION SAPPHIRE 40/50'}
+                      {locale === 'ja' ? 'DOGATTI GENERATION SAPPHIRE 40/50' : 'DOGATTI GENERATION SAPPHIRE 40/50'}
                     </h4>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs text-gray-300 min-w-full">
                         <thead>
                           <tr className="border-b border-gray-600">
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Model' : 'Model'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Tip(mm)' : 'Tip(mm)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Butt(mm)' : 'Butt(mm)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? 'Model' : 'Model'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? '重量(g)' : '중량(g)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? 'Tip(mm)' : 'Tip(mm)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? 'Butt(mm)' : 'Butt(mm)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
                             <th className="text-left py-1 px-2">CPM</th>
                             <th className="text-left py-1 px-2">K.P.</th>
                           </tr>
@@ -525,7 +525,7 @@ export default function MuziikHome() {
                     href="/sapphire"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                   >
-                    {language === 'ja' ? '詳細を見る' : '자세히 보기'}
+                    {locale === 'ja' ? '詳細を見る' : '자세히 보기'}
                   </Link>
                 </div>
               </div>
@@ -556,7 +556,7 @@ export default function MuziikHome() {
                     DOGATTI GENERATION Beryl
                   </p>
                   <p className="text-gray-400 text-sm mb-4">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '高弾性カーボンシートとチタンファイバーを組み合わせた、美しさと性能を兼ね備えたプレミアムシャフト。'
                       : '고탄성 카본 시트와 티타늄 파이버를 조합한, 아름다움과 성능을 겸비한 프리미엄 샤프트.'
                     }
@@ -565,18 +565,18 @@ export default function MuziikHome() {
                   {/* Beryl 스펙 미리보기 */}
                   <div className="mb-4 bg-gray-800 rounded p-3">
                     <h4 className="text-white font-semibold mb-2 text-sm">
-                      {language === 'ja' ? 'DOGATTI GENERATION BERYL' : 'DOGATTI GENERATION BERYL'}
+                      {locale === 'ja' ? 'DOGATTI GENERATION BERYL' : 'DOGATTI GENERATION BERYL'}
                     </h4>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs text-gray-300 min-w-full">
                         <thead>
                           <tr className="border-b border-gray-600">
                             <th className="text-left py-1 px-2">FLEX</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? '重量(g)' : '중량(g)'}</th>
                             <th className="text-left py-1 px-2">Tip(mm)</th>
                             <th className="text-left py-1 px-2">Butt(mm)</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
+                            <th className="text-left py-1 px-2">{locale === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
                             <th className="text-left py-1 px-2">CPM</th>
                             <th className="text-left py-1 px-2">K.P.</th>
                           </tr>
@@ -653,7 +653,7 @@ export default function MuziikHome() {
                     href="/beryl"
                     className="block w-full bg-emerald-600 text-white text-center py-3 rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
                   >
-                    {language === 'ja' ? '詳細を見る' : '자세히 보기'}
+                    {locale === 'ja' ? '詳細を見る' : '자세히 보기'}
                   </Link>
                 </div>
               </div>
