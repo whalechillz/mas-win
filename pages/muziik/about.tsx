@@ -286,16 +286,18 @@ export default function AboutPage() {
               
               {/* 협업 샤프트 시안 이미지 */}
               <div className="mb-12">
-                <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-                  <h4 className="text-white font-semibold mb-6 text-center">
-                    {language === 'ja' ? 'MASSGOO X MUZIIK 협업 샤프트 시안' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
-                  </h4>
-                  <div className="max-w-2xl mx-auto">
+                <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                  <div className="aspect-[21/9] w-full">
                     <img 
                       src="/muziik/brand/massgooxmuziik.png" 
                       alt="MASSGOO X MUZIIK 협업 샤프트 시안"
-                      className="w-full h-auto rounded-lg"
+                      className="w-full h-full object-cover"
                     />
+                  </div>
+                  <div className="p-6">
+                    <h4 className="text-white font-semibold text-center">
+                      {language === 'ja' ? 'MASSGOO X MUZIIK 협업 샤프트 시안' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
+                    </h4>
                   </div>
                 </div>
               </div>
