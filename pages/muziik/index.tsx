@@ -448,8 +448,9 @@ export default function MuziikHome() {
                             <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
                             <th className="text-left py-1 px-2">{language === 'ja' ? 'Tip(mm)' : 'Tip(mm)'}</th>
                             <th className="text-left py-1 px-2">{language === 'ja' ? 'Butt(mm)' : 'Butt(mm)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°)' : '토크(°)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
                             <th className="text-left py-1 px-2">{language === 'ja' ? '振動数(cpm)' : '진동수(cpm)'}</th>
+                            <th className="text-left py-1 px-2">K.P.</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -461,6 +462,7 @@ export default function MuziikHome() {
                             <td className="py-1 px-2">15.05</td>
                             <td className="py-1 px-2">5.0</td>
                             <td className="py-1 px-2">200</td>
+                            <td className="py-1 px-2">더블킥</td>
                           </tr>
                           <tr>
                             <td className="py-1 px-2">50</td>
@@ -470,6 +472,7 @@ export default function MuziikHome() {
                             <td className="py-1 px-2">15.4</td>
                             <td className="py-1 px-2">4.2</td>
                             <td className="py-1 px-2">215</td>
+                            <td className="py-1 px-2">더블킥</td>
                           </tr>
                         </tbody>
                       </table>
@@ -540,7 +543,7 @@ export default function MuziikHome() {
                             <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
                             <th className="text-left py-1 px-2">Tip(mm)</th>
                             <th className="text-left py-1 px-2">Butt(mm)</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°)' : '토크(°)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
                             <th className="text-left py-1 px-2">CPM</th>
                             <th className="text-left py-1 px-2">K.P.</th>
                           </tr>
@@ -598,6 +601,9 @@ export default function MuziikHome() {
                           </tr>
                         </tbody>
                       </table>
+                      <div className="mt-3 text-xs text-gray-400 text-center">
+                        ※ 참고: 50g대 모델 (SR: 55g, S: 56g, X: 57g)은 中調子
+                      </div>
                     </div>
                   </div>
                   

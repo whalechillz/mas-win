@@ -403,7 +403,8 @@ const products = [
                tipDiameter: '8.55',
                buttDiameter: '15.05',
                torque: '5.0',
-               frequency: '200'
+               frequency: '200',
+               kickPoint: '더블킥'
              },
              {
                model: '50',
@@ -412,7 +413,8 @@ const products = [
                tipDiameter: '8.55',
                buttDiameter: '15.4',
                torque: '4.2',
-               frequency: '215'
+               frequency: '215',
+               kickPoint: '더블킥'
              }
     ]
   },
