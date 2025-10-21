@@ -82,7 +82,7 @@ export default function MuziikHome() {
         <link rel="canonical" href="https://muziik.masgolf.co.kr" />
       </Head>
 
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-black text-white overflow-x-hidden">
         <Navigation 
           language={language} 
           onLanguageChange={setLanguage}
@@ -129,7 +129,7 @@ export default function MuziikHome() {
                 </div>
                 
                 {/* 3군: 기술 카드 (미니멀) */}
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
                   {/* 티타늄 파이버 기술 */}
                   <div className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-8 border border-blue-500/30 hover:border-blue-400 transition-all duration-300">
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
@@ -254,7 +254,7 @@ export default function MuziikHome() {
               </p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               {/* Tech 1: Nano Resin */}
               <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
                 <div className="aspect-video rounded-lg overflow-hidden mb-6">
@@ -366,7 +366,7 @@ export default function MuziikHome() {
             <h2 className="text-3xl font-bold text-center text-white mb-12">
               {t.featuresTitle}
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               <div className="text-center">
                 <div className="text-4xl mb-4">⚡</div>
                 <h3 className="text-xl font-semibold text-white mb-2">{t.feature1}</h3>
@@ -398,7 +398,7 @@ export default function MuziikHome() {
             <h2 className="text-3xl font-bold text-center text-white mb-12">
               {t.productsTitle}
             </h2>
-            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto">
               
               {/* Sapphire Product Card */}
               <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
@@ -439,7 +439,7 @@ export default function MuziikHome() {
                       {language === 'ja' ? 'DOGATTI GENERATION SAPPHIRE 40/50' : 'DOGATTI GENERATION SAPPHIRE 40/50'}
                     </h4>
                     <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-gray-300">
+                      <table className="w-full text-xs text-gray-300 min-w-full">
                         <thead>
                           <tr className="border-b border-gray-600">
                             <th className="text-left py-1 px-2">{language === 'ja' ? 'Model' : 'Model'}</th>
@@ -534,7 +534,7 @@ export default function MuziikHome() {
                       {language === 'ja' ? 'DOGATTI GENERATION BERYL' : 'DOGATTI GENERATION BERYL'}
                     </h4>
                     <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-gray-300">
+                      <table className="w-full text-xs text-gray-300 min-w-full">
                         <thead>
                           <tr className="border-b border-gray-600">
                             <th className="text-left py-1 px-2">FLEX</th>
