@@ -247,8 +247,8 @@ export default function KoreanProductPage({ product }: ProductPageProps) {
 const products = [
   {
     id: 'sapphire',
-    name: 'DOGATTI GENERATION Sapphire one-flex',
-    nameEn: 'DOGATTI GENERATION Sapphire one-flex',
+    name: 'DOGATTI GENERATION Sapphire Auto-flex',
+    nameEn: 'DOGATTI GENERATION Sapphire Auto-flex',
     description: '초고속의 반발력과 헤드 안정성을 실현하는, MUZIIK 독자적인 티타늄 파이버 기술을 채택한 프리미엄 샤프트.',
     features: [
       '티타늄 파이버 기술로 초고속 반발력',
