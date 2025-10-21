@@ -3,13 +3,12 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 interface NavigationProps {
-  language: 'ja' | 'ko';
-  onLanguageChange: (lang: 'ja' | 'ko') => void;
   currentPath?: string;
 }
 
-export default function Navigation({ language, onLanguageChange, currentPath }: NavigationProps) {
+export default function Navigation({ currentPath }: NavigationProps) {
   const router = useRouter();
+  const { locale } = router;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // 언어별 메뉴 텍스트
@@ -28,7 +27,7 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
     }
   };
 
-  const t = menuText[language];
+  const t = menuText[locale as 'ja' | 'ko'];
 
   // 현재 페이지 확인
   const isActive = (path: string) => {
@@ -132,9 +131,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
             {/* 언어 전환 버튼 */}
             <div className="flex space-x-2">
               <button
-                onClick={() => onLanguageChange('ja')}
+                onClick={() => router.push(router.asPath, router.asPath, { locale: 'ja' })}
                 className={`px-3 py-1 rounded text-sm transition-colors ${
-                  language === 'ja' 
+                  locale === 'ja' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-gray-400 hover:text-white'
                 }`}
@@ -142,9 +141,9 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
                 🇯🇵
               </button>
               <button
-                onClick={() => onLanguageChange('ko')}
+                onClick={() => router.push(router.asPath, router.asPath, { locale: 'ko' })}
                 className={`px-3 py-1 rounded text-sm transition-colors ${
-                  language === 'ko' 
+                  locale === 'ko' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-gray-400 hover:text-white'
                 }`}
@@ -260,11 +259,11 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
               <div className="flex space-x-2 justify-center pt-4">
                 <button
                   onClick={() => {
-                    onLanguageChange('ja');
+                    router.push(router.asPath, router.asPath, { locale: 'ja' });
                     closeMobileMenu();
                   }}
                   className={`px-4 py-2 rounded text-sm transition-colors ${
-                    language === 'ja' 
+                    locale === 'ja' 
                       ? 'bg-blue-600 text-white' 
                       : 'text-gray-400 hover:text-white bg-gray-800'
                   }`}
@@ -273,11 +272,11 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
                 </button>
                 <button
                   onClick={() => {
-                    onLanguageChange('ko');
+                    router.push(router.asPath, router.asPath, { locale: 'ko' });
                     closeMobileMenu();
                   }}
                   className={`px-4 py-2 rounded text-sm transition-colors ${
-                    language === 'ko' 
+                    locale === 'ko' 
                       ? 'bg-blue-600 text-white' 
                       : 'text-gray-400 hover:text-white bg-gray-800'
                   }`}

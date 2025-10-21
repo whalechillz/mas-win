@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  // i18n 설정
+  i18n: {
+    locales: ['ko', 'ja'],
+    defaultLocale: 'ko',
+    localeDetection: true,
+  },
   eslint: {
     // 빌드 시 ESLint 에러 무시 (임시)
     ignoreDuringBuilds: true,

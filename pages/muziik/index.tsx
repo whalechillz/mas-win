@@ -1,10 +1,11 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
 import Navigation from '../../components/muziik/Navigation';
 
 export default function MuziikHome() {
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
+  const router = useRouter();
+  const { locale } = router;
 
   // 언어별 콘텐츠
   const content = {
@@ -50,7 +51,7 @@ export default function MuziikHome() {
     }
   };
 
-  const t = content[language];
+  const t = content[locale as 'ja' | 'ko'];
 
   return (
     <>
@@ -84,8 +85,6 @@ export default function MuziikHome() {
 
       <div className="min-h-screen bg-black text-white overflow-x-hidden">
         <Navigation 
-          language={language} 
-          onLanguageChange={setLanguage}
           currentPath="/muziik"
         />
 
@@ -155,15 +154,15 @@ export default function MuziikHome() {
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                       <img 
                         src="/muziik/brand/titan_1.png" 
-                        alt={language === 'ja' ? 'チタン原石' : '티타늄 원석'}
+                        alt={locale === 'ja' ? 'チタン原石' : '티타늄 원석'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">
-                      {language === 'ja' ? 'チタンファイバー技術' : '티타늄 파이버 기술'}
+      {t.heroSubtitle}
                     </h3>
                     <p className="text-gray-300 text-sm leading-relaxed text-center">
-                      {language === 'ja' 
+                      {locale === 'ja' 
                         ? '日本最高級チタンファイバーが作り出す超高速反発力の革新'
                         : '일본 최고급 티타늄 파이버가 만들어내는 초고속 반발력의 혁신'
                       }
