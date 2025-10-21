@@ -105,7 +105,7 @@ export default function MuziikHome() {
                         美
                       </span>
                       <span className="text-xs text-gray-400 ml-1">
-                        압도적인
+                        {locale === 'ja' ? '圧倒的' : '압도적인'}
                       </span>
                     </div>
                     
@@ -116,7 +116,7 @@ export default function MuziikHome() {
                         輝
                       </span>
                       <span className="text-xs text-gray-400 ml-1">
-                        광채의
+                        {locale === 'ja' ? '光彩の' : '광채의'}
                       </span>
                     </div>
                     
@@ -127,7 +127,7 @@ export default function MuziikHome() {
                         若
                       </span>
                       <span className="text-xs text-gray-400 ml-1">
-                        젊음
+                        {locale === 'ja' ? '若さ' : '젊음'}
                       </span>
                     </div>
                   </div>

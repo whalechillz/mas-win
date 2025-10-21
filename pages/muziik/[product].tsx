@@ -148,12 +148,12 @@ export default function ProductPage({ product }: ProductPageProps) {
           {/* Product Images Section */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">
-              {locale === 'ja' ? '제품 이미지' : '제품 이미지'}
+              {locale === 'ja' ? '製品画像' : '제품 이미지'}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <h3 className="text-lg font-semibold text-white mb-4">
-                  {locale === 'ja' ? '샤프트 이미지' : '샤프트 이미지'}
+                  {locale === 'ja' ? 'シャフト画像' : '샤프트 이미지'}
                 </h3>
                 <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
                   <img
@@ -166,8 +166,8 @@ export default function ProductPage({ product }: ProductPageProps) {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <h3 className="text-lg font-semibold text-white mb-4">
                   {product.id === 'sapphire' 
-                    ? (locale === 'ja' ? 'E.I. 강성 분포 차트' : 'E.I. 강성 분포 차트')
-                    : (locale === 'ja' ? '기술 스펙' : '기술 스펙')
+                    ? (locale === 'ja' ? 'E.I.剛性分布チャート' : 'E.I. 강성 분포 차트')
+                    : (locale === 'ja' ? '技術スペック' : '기술 스펙')
                   }
                 </h3>
                 <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
