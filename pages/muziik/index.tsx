@@ -393,6 +393,235 @@ export default function MuziikHome() {
           </div>
         </section>
 
+        {/* Products Section */}
+        <section className="py-16 bg-black">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-white mb-12">
+              {t.productsTitle}
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              
+              {/* Sapphire Product Card */}
+              <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
+                <div className="relative h-64 bg-gradient-to-br from-blue-900 to-blue-700">
+                  <img 
+                    src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
+                    alt="Sapphire Shaft"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center bg-black/20">
+                    <h3 className="text-2xl font-bold text-white">Sapphire</h3>
+                    <p className="text-blue-200 text-sm mt-2">AUTO-FLEX 40</p>
+                  </div>
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      NEW
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    DOGATTI GENERATION Sapphire Auto-flex
+                  </h3>
+                  <p className="text-gray-300 text-sm mb-3">
+                    DOGATTI GENERATION Sapphire Auto-flex
+                  </p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {language === 'ja' 
+                      ? '超高速の反発力とヘッド安定性を実現する、MUZIIK独自のチタンファイバー技術を採用したプレミアムシャフト。'
+                      : '초고속의 반발력과 헤드 안정성을 실현하는, MUZIIK 독자적인 티타늄 파이버 기술을 채택한 프리미엄 샤프트.'
+                    }
+                  </p>
+
+                  {/* Sapphire 스펙 미리보기 */}
+                  <div className="mb-4 bg-gray-800 rounded p-3">
+                    <h4 className="text-white font-semibold mb-2 text-sm">
+                      {language === 'ja' ? 'DOGATTI GENERATION SAPPHIRE 40/50' : 'DOGATTI GENERATION SAPPHIRE 40/50'}
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-gray-300">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Model' : 'Model'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Tip(mm)' : 'Tip(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'Butt(mm)' : 'Butt(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°)' : '토크(°)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '振動数(cpm)' : '진동수(cpm)'}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">40</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">45</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.05</td>
+                            <td className="py-1 px-2">5.0</td>
+                            <td className="py-1 px-2">200</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 px-2">50</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">54</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.4</td>
+                            <td className="py-1 px-2">4.2</td>
+                            <td className="py-1 px-2">215</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  
+                  {/* Sapphire 후킹 이미지 */}
+                  <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
+                    <img
+                      src="/muziik/products/sapphire/sapphire_shaft_40.webp"
+                      alt="DOGATTI GENERATION Sapphire Auto-flex shaft"
+                      className="w-full h-32 object-cover object-center"
+                    />
+                  </div>
+
+                  <Link 
+                    href="/sapphire"
+                    className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  >
+                    {language === 'ja' ? '詳細を見る' : '자세히 보기'}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Beryl Product Card */}
+              <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
+                <div className="relative h-64 bg-gradient-to-br from-emerald-900 to-emerald-700">
+                  <img 
+                    src="/muziik/products/beryl/beryl_shaft_main.webp" 
+                    alt="Beryl Shaft"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="relative z-10 h-full flex items-end justify-start p-4 bg-black/20">
+                    <h3 className="text-2xl font-bold text-white">Beryl</h3>
+                  </div>
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      NEW
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    DOGATTI GENERATION Beryl
+                  </h3>
+                  <p className="text-gray-300 text-sm mb-3">
+                    DOGATTI GENERATION Beryl
+                  </p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {language === 'ja' 
+                      ? '高弾性カーボンシートとチタンファイバーを組み合わせた、美しさと性能を兼ね備えたプレミアムシャフト。'
+                      : '고탄성 카본 시트와 티타늄 파이버를 조합한, 아름다움과 성능을 겸비한 프리미엄 샤프트.'
+                    }
+                  </p>
+
+                  {/* Beryl 스펙 미리보기 */}
+                  <div className="mb-4 bg-gray-800 rounded p-3">
+                    <h4 className="text-white font-semibold mb-2 text-sm">
+                      {language === 'ja' ? 'DOGATTI GENERATION BERYL' : 'DOGATTI GENERATION BERYL'}
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-gray-300">
+                        <thead>
+                          <tr className="border-b border-gray-600">
+                            <th className="text-left py-1 px-2">FLEX</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '全長(mm)' : '전장(mm)'}</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? '重量(g)' : '중량(g)'}</th>
+                            <th className="text-left py-1 px-2">Tip(mm)</th>
+                            <th className="text-left py-1 px-2">Butt(mm)</th>
+                            <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°)' : '토크(°)'}</th>
+                            <th className="text-left py-1 px-2">CPM</th>
+                            <th className="text-left py-1 px-2">K.P.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">R2</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">42</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">14.95</td>
+                            <td className="py-1 px-2">5.0</td>
+                            <td className="py-1 px-2">230</td>
+                            <td className="py-1 px-2">先中調子</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">R</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">48</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.1</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">240</td>
+                            <td className="py-1 px-2">先中調子</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">SR</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">49</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.15</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">250</td>
+                            <td className="py-1 px-2">先中調子</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">S</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">50</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.2</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">260</td>
+                            <td className="py-1 px-2">先中調子</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 px-2">X</td>
+                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">53</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.3</td>
+                            <td className="py-1 px-2">3.9</td>
+                            <td className="py-1 px-2">270</td>
+                            <td className="py-1 px-2">先中調子</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  
+                  {/* Beryl 후킹 이미지 */}
+                  <div className="mb-4 bg-gray-800 rounded overflow-hidden border border-gray-700">
+                    <img
+                      src="/muziik/products/beryl/beryl_shaft_40.webp"
+                      alt="DOGATTI GENERATION Beryl shaft"
+                      className="w-full h-32 object-cover object-center"
+                    />
+                  </div>
+
+                  <Link 
+                    href="/beryl"
+                    className="block w-full bg-emerald-600 text-white text-center py-3 rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
+                  >
+                    {language === 'ja' ? '詳細を見る' : '자세히 보기'}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="py-16 bg-blue-900">
           <div className="container mx-auto px-4 text-center">
