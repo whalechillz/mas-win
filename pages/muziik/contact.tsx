@@ -13,8 +13,7 @@ export default function ContactPage() {
     businessNumber: '',
     inquiryType: '',
     message: '',
-    quantity: '',
-    attachment: null as File | null
+    quantity: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -53,7 +52,6 @@ export default function ContactPage() {
       inquiryType: 'お問い合わせ種別',
       message: 'メッセージ',
       quantity: '希望取引数量',
-      attachment: '事業計画書',
       
       // 문의 유형
       inquiryTypes: {
@@ -104,7 +102,6 @@ export default function ContactPage() {
       inquiryType: '문의 유형',
       message: '문의 내용',
       quantity: '희망 거래 수량',
-      attachment: '사업계획서',
       
       // 문의 유형
       inquiryTypes: {
@@ -135,13 +132,6 @@ export default function ContactPage() {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({
-      ...prev,
-      attachment: file
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,8 +185,7 @@ export default function ContactPage() {
           businessNumber: '',
           inquiryType: '',
           message: '',
-          quantity: '',
-          attachment: null
+          quantity: ''
         });
       } else {
         setSubmitStatus('error');
@@ -476,24 +465,6 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  {/* File Upload for Partnership */}
-                  {activeTab === 'partnership' && (
-                    <div>
-                      <label className="block text-white font-semibold mb-2">
-                        {t.attachment}
-                      </label>
-                      <input
-                        type="file"
-                        name="attachment"
-                        onChange={handleFileChange}
-                        accept=".pdf,.doc,.docx"
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                      />
-                      <p className="text-gray-400 text-sm mt-2">
-                        PDF, DOC, DOCX 파일만 업로드 가능합니다 (최대 10MB)
-                      </p>
-                    </div>
-                  )}
 
                   {/* Submit Button */}
                   <div className="text-center pt-6">
