@@ -42,9 +42,6 @@ export default function TechnologyPage() {
         'インパクト時の安定感'
       ],
       
-      // 기술 다이어그램 섹션
-      diagramTitle: '技術構造図',
-      diagramDesc: 'DOGATTI GENERATION シャフトの内部構造とテクノロジー',
       
       // 제품 적용
       applicationTitle: '제품 적용',
@@ -87,9 +84,6 @@ export default function TechnologyPage() {
         '경량화와 강성의 완벽한 조화'
       ],
       
-      // 기술 다이어그램 섹션
-      diagramTitle: '기술 구조도',
-      diagramDesc: 'DOGATTI GENERATION 샤프트의 내부 구조와 테크놀로지',
       
       // 제품 적용
       applicationTitle: '제품 적용',
@@ -323,28 +317,6 @@ export default function TechnologyPage() {
           </div>
         </section>
 
-        {/* Technology Diagram Section */}
-        <section className="py-16 bg-black">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl font-bold text-white mb-8">
-                {t.diagramTitle}
-              </h2>
-              <p className="text-gray-300 text-lg mb-12">
-                {t.diagramDesc}
-              </p>
-              <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
-                <div className="aspect-video rounded-lg overflow-hidden">
-                  <img 
-                    src="/muziik/technology/technology_diagram.webp" 
-                    alt={language === 'ja' ? '技術構造図' : '기술 구조도'}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Product Application Section */}
         <section className="py-16 bg-gray-900">
@@ -361,7 +333,13 @@ export default function TechnologyPage() {
                   href="/sapphire"
                   className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg p-8 hover:from-blue-800 hover:to-blue-600 transition-all duration-300"
                 >
-                  <div className="text-4xl mb-4">💎</div>
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden">
+                    <img 
+                      src="/muziik/products/sapphire/sapphire_thumbnail.webp" 
+                      alt="Sapphire Thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold text-white mb-4">Sapphire</h3>
                   <p className="text-blue-200">
                     {language === 'ja' ? '超高速反発力とヘッド安定性' : '초고속 반발력과 헤드 안정성'}
@@ -371,7 +349,13 @@ export default function TechnologyPage() {
                   href="/beryl"
                   className="bg-gradient-to-br from-emerald-900 to-emerald-700 rounded-lg p-8 hover:from-emerald-800 hover:to-emerald-600 transition-all duration-300"
                 >
-                  <div className="text-4xl mb-4">💚</div>
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden">
+                    <img 
+                      src="/muziik/products/beryl/beryl_thumbnail.webp" 
+                      alt="Beryl Thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold text-white mb-4">Beryl</h3>
                   <p className="text-emerald-200">
                     {language === 'ja' ? '美しさと性能を兼ね備えた' : '아름다움과 성능을 겸비한'}
@@ -386,7 +370,7 @@ export default function TechnologyPage() {
         <footer className="bg-gray-900 border-t border-gray-800 py-8">
           <div className="container mx-auto px-4">
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 MUZIIK. All rights reserved.</p>
+              <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">
                 {language === 'ja' 
                   ? 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
