@@ -411,7 +411,7 @@ export default function MuziikHome() {
                   />
                   <div className="relative z-10 h-full flex flex-col items-center justify-center bg-black/20">
                     <h3 className="text-2xl font-bold text-white">Sapphire</h3>
-                    <p className="text-blue-200 text-sm mt-2">AUTO-FLEX 40</p>
+                    <p className="text-blue-200 text-sm mt-2">AUTO-FLEX</p>
                   </div>
                   <div className="absolute top-4 left-4">
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -449,7 +449,7 @@ export default function MuziikHome() {
                             <th className="text-left py-1 px-2">{language === 'ja' ? 'Tip(mm)' : 'Tip(mm)'}</th>
                             <th className="text-left py-1 px-2">{language === 'ja' ? 'Butt(mm)' : 'Butt(mm)'}</th>
                             <th className="text-left py-1 px-2">{language === 'ja' ? 'トルク(°↓)' : '토크(°↓)'}</th>
-                            <th className="text-left py-1 px-2">{language === 'ja' ? '振動数(cpm)' : '진동수(cpm)'}</th>
+                            <th className="text-left py-1 px-2">CPM</th>
                             <th className="text-left py-1 px-2">K.P.</th>
                           </tr>
                         </thead>
@@ -602,7 +602,7 @@ export default function MuziikHome() {
                         </tbody>
                       </table>
                       <div className="mt-3 text-xs text-gray-400 text-center">
-                        ※ 참고: 50g대 모델 (SR: 55g, S: 56g, X: 57g)은 中調子
+                        ※ BERYL 50 (SR: 55g, S: 56g, X: 57g) 中調子
                       </div>
                     </div>
                   </div>
