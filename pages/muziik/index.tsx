@@ -230,14 +230,14 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
-                  <div className="text-3xl mb-4">💎</div>
+                  <div className="text-3xl mb-4">🔧</div>
                   <h3 className="text-xl font-semibold text-white mb-3">
-                    {language === 'ja' ? 'プレミアムチタン' : '프리미엄 티타늄'}
+                    {language === 'ja' ? '精密加工技術' : '정밀 가공 기술'}
                   </h3>
                   <p className="text-gray-300 text-sm">
                     {language === 'ja' 
-                      ? '日本最高品質のチタン素材を使用した高級シャフト'
-                      : '일본 최고 품질의 티타늄 소재를 사용한 고급 샤프트'
+                      ? '日本の精密加工技術で完璧なシャフト製造'
+                      : '일본의 정밀 가공 기술로 완벽한 샤프트 제조'
                     }
                   </p>
                 </div>
@@ -380,32 +380,47 @@ export default function MuziikHome() {
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* 핵심 설계 기술 Section */}
         <section className="py-16 bg-gray-900">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center text-white mb-12">
-              {t.featuresTitle}
+              {language === 'ja' ? 'コア設計技術' : '핵심 설계 기술'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               <div className="text-center">
+                <div className="text-4xl mb-4">🔧</div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {language === 'ja' ? 'アルミニウムIP処理' : '알루미늄 IP 처리'}
+                </h3>
+                <p className="text-gray-400">
+                  {language === 'ja' 
+                    ? '表面硬度を高め、耐久性と高級感のある外観を提供します'
+                    : '표면 경도를 높여 내구성과 고급스러운 외관을 제공합니다'
+                  }
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl mb-4">💎</div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {language === 'ja' ? '高弾性(65t)カーボンシート' : '고탄성(65t) 카본 시트'}
+                </h3>
+                <p className="text-gray-400">
+                  {language === 'ja' 
+                    ? '65トン高弾性カーボンシートを使用して優れた復元力と安定した打感を提供します'
+                    : '65톤 고탄성 카본 시트를 사용하여 뛰어난 복원력과 안정적인 타구감을 선사합니다'
+                  }
+                </p>
+              </div>
+              <div className="text-center">
                 <div className="text-4xl mb-4">⚡</div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t.feature1}</h3>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {language === 'ja' ? 'ダブルキックポイント' : '더블킥 포인트'}
+                </h3>
                 <p className="text-gray-400">
-                  {t.feature1Desc}
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl mb-4">🎯</div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t.feature2}</h3>
-                <p className="text-gray-400">
-                  {t.feature2Desc}
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl mb-4">🇯🇵</div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t.feature3}</h3>
-                <p className="text-gray-400">
-                  {t.feature3Desc}
+                  {language === 'ja' 
+                    ? '2つのキックポイントを通じてヘッドスピードを最大化し、飛距離を向上させます'
+                    : '두 개의 킥 포인트를 통해 헤드 스피드를 극대화하고 비거리를 향상시킵니다'
+                  }
                 </p>
               </div>
             </div>
