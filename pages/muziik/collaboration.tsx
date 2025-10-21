@@ -272,8 +272,8 @@ export default function CollaborationPage() {
                   </h3>
                   <p className="text-gray-300 mb-4">
                     {language === 'ja' 
-                      ? 'Sapphire Auto-flexまたはBeryl_40の中から、あなたのスイングに最適なシャフトを選択します。'
-                      : 'Sapphire Auto-flex 또는 Beryl_40 중에서 당신의 스윙에 최적한 샤프트를 선택합니다.'
+                      ? 'Sapphire Auto-flexまたはBerylの中から、あなたのスイングに最適なシャフトを選択します。'
+                      : 'Sapphire Auto-flex 또는 Beryl 중에서 당신의 스윙에 최적한 샤프트를 선택합니다.'
                     }
                   </p>
                   <div className="text-4xl text-center">🎯</div>

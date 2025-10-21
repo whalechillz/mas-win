@@ -285,8 +285,8 @@ const products = [
   },
   {
     id: 'beryl',
-    name: 'DOGATTI GENERATION Beryl_40',
-    nameEn: 'DOGATTI GENERATION Beryl_40',
+    name: 'DOGATTI GENERATION Beryl',
+    nameEn: 'DOGATTI GENERATION Beryl',
     description: '고탄성 카본 시트와 티타늄 파이버를 조합한, 아름다움과 성능을 겸비한 프리미엄 샤프트.',
     features: [
       '고탄성(65t) 카본 시트 사용',
