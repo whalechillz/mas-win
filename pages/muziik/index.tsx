@@ -94,20 +94,52 @@ export default function MuziikHome() {
           <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20">
             <div className="container mx-auto px-4">
               <div className="text-center">
-                {/* 1군: 기호화된 상단 */}
-                <div className="flex justify-center items-center gap-3 mb-8">
+                {/* 1군: 기호화된 상단 - 장비병 환자 타겟팅 */}
+                <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-3 mb-8">
                   <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">
                     NEW
                   </span>
-                  <div className="flex items-center gap-3 text-blue-300">
-                    <span className="text-lg">⚡</span>
-                    <span className="text-sm font-light tracking-wider">ELEGANT ENGINEERING</span>
-                    <span className="text-gray-500">|</span>
-                    <span className="text-lg">💎</span>
-                    <span className="text-sm font-light tracking-wider">EXPLOSIVE POWER</span>
-                    <span className="text-gray-500">|</span>
-                    <span className="text-lg">🚀</span>
-                    <span className="text-sm font-light tracking-wider">AGELESS PERFORMANCE</span>
+                  
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3 text-blue-300">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⚡</span>
+                      <div className="flex items-center">
+                        <span className="text-2xl md:text-3xl font-black text-blue-300 tracking-tight">
+                          美
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1">
+                          압도적인
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <span className="text-gray-500 hidden md:block">|</span>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">💎</span>
+                      <div className="flex items-center">
+                        <span className="text-2xl md:text-3xl font-black text-blue-300 tracking-tight">
+                          輝
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1">
+                          광채의
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <span className="text-gray-500 hidden md:block">|</span>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🚀</span>
+                      <div className="flex items-center">
+                        <span className="text-2xl md:text-3xl font-black text-blue-300 tracking-tight">
+                          若
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1">
+                          젊음
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
