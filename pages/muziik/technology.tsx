@@ -330,35 +330,54 @@ export default function TechnologyPage() {
               <div className="grid md:grid-cols-2 gap-8">
                 <a 
                   href="/sapphire"
-                  className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg p-8 hover:from-blue-800 hover:to-blue-600 transition-all duration-300"
+                  className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg overflow-hidden hover:from-blue-800 hover:to-blue-600 transition-all duration-300 relative"
                 >
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden">
+                  {/* 제품명 - 이미지 위에 오버레이 */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <h3 className="text-2xl font-bold text-white">Sapphire</h3>
+                  </div>
+                  
+                  {/* 이미지 - 전체 카드 크기 */}
+                  <div className="w-full h-48">
                     <img 
                       src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
                       alt="Sapphire Thumbnail"
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Sapphire</h3>
-                  <p className="text-blue-200">
-                    {locale === 'ja' ? '超高速反発力とヘッド安定性' : '초고속 반발력과 헤드 안정성'}
-                  </p>
+                  
+                  {/* 설명 - 이미지 위에 오버레이 */}
+                  <div className="absolute bottom-4 left-4 z-10">
+                    <p className="text-blue-200 text-sm font-medium">
+                      {locale === 'ja' ? '超高速反発力とヘッド安定性' : '초고속 반발력과 헤드 안정성'}
+                    </p>
+                  </div>
                 </a>
+                
                 <a 
                   href="/beryl"
-                  className="bg-gradient-to-br from-emerald-900 to-emerald-700 rounded-lg p-8 hover:from-emerald-800 hover:to-emerald-600 transition-all duration-300"
+                  className="bg-gradient-to-br from-emerald-900 to-emerald-700 rounded-lg overflow-hidden hover:from-emerald-800 hover:to-emerald-600 transition-all duration-300 relative"
                 >
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden">
+                  {/* 제품명 - 이미지 위에 오버레이 */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <h3 className="text-2xl font-bold text-white">Beryl</h3>
+                  </div>
+                  
+                  {/* 이미지 - 전체 카드 크기 */}
+                  <div className="w-full h-48">
                     <img 
                       src="/muziik/products/beryl/beryl_shaft_main.webp" 
                       alt="Beryl Thumbnail"
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Beryl</h3>
-                  <p className="text-emerald-200">
-                    {locale === 'ja' ? '美しさと性能を兼ね備えた' : '아름다움과 성능을 겸비한'}
-                  </p>
+                  
+                  {/* 설명 - 이미지 위에 오버레이 */}
+                  <div className="absolute bottom-4 left-4 z-10">
+                    <p className="text-emerald-200 text-sm font-medium">
+                      {locale === 'ja' ? '美しさと性能を兼ね備えた' : '아름다움과 성능을 겸비한'}
+                    </p>
+                  </div>
                 </a>
               </div>
             </div>
