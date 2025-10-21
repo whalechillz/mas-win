@@ -138,7 +138,7 @@ export default function MuziikKoreanHome() {
                       </li>
                       <li className="text-gray-400 text-sm flex items-center">
                         <span className="w-1 h-1 bg-blue-500 rounded-full mr-2"></span>
-                        자동적인 원플렉스 타입
+                        자동적인 오토플렉스 타입
                       </li>
                     </ul>
                   </div>
@@ -225,10 +225,10 @@ export default function MuziikKoreanHome() {
                 </div>
                 <div className="bg-gray-800 rounded-lg p-6">
                   <h3 className="text-xl font-semibold text-white mb-4">
-                    원플렉스 설계
+                    오토플렉스 설계
                   </h3>
                   <p className="text-gray-300">
-                    헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 원플렉스 타입. 백스윙부터 임팩트까지 안정된 퍼포먼스를 제공합니다.
+                    헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 오토플렉스 타입. 백스윙부터 임팩트까지 안정된 퍼포먼스를 제공합니다.
                   </p>
                 </div>
               </div>

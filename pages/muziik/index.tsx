@@ -151,22 +151,22 @@ export default function MuziikHome() {
                     </p>
                   </div>
                   
-                  {/* 원플렉스 설계 */}
+                  {/* 오토플렉스 설계 */}
                   <div className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-8 border border-blue-500/30 hover:border-blue-400 transition-all duration-300">
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                       <img 
                         src="/muziik/brand/one-flex-1.webp" 
-                        alt="원플렉스 설계"
+                        alt="오토플렉스 설계"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">
-                      {language === 'ja' ? 'ワンフレックス設計' : '원플렉스 설계'}
+                      {language === 'ja' ? 'オートフレックス設計' : '오토플렉스 설계'}
                     </h3>
                     <p className="text-gray-300 text-sm leading-relaxed text-center">
                       {language === 'ja' 
-                        ? 'ヘッドスピードに関係なく、様々なゴルファーに適した自動的なワンフレックスタイプ。'
-                        : '헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 원플렉스 타입.'
+                        ? 'ヘッドスピードに関係なく、様々なゴルファーに適した自動的なオートフレックスタイプ。バックスイングからインパクトまで安定したパフォーマンスを提供します。'
+                        : '헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 오토플렉스 타입. 백스윙부터 임팩트까지 안정된 퍼포먼스를 제공합니다.'
                       }
                     </p>
                   </div>
