@@ -31,7 +31,23 @@ interface ProductPageProps {
 
 export default function ProductPage({ product }: ProductPageProps) {
   const router = useRouter();
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
+  const { locale } = router;
+
+  // 언어별 콘텐츠
+  const content = {
+    ko: {
+      sapphireDescription: '초고속의 반발력과 헤드 안정성을 실현하는, MUZIIK 독자적인 티타늄 파이버 기술을 채택한 프리미엄 샤프트.',
+      berylDescription: '고탄성 카본 시트와 티타늄 파이버를 조합한, 아름다움과 성능을 겸비한 프리미엄 샤프트.',
+      footer: 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트'
+    },
+    ja: {
+      sapphireDescription: '超高速の反発力とヘッド安定性を実現する、MUZIIK独自のチタンファイバー技術を採用したプレミアムシャフト。',
+      berylDescription: '高弾性カーボンシートとチタンファイバーを組み合わせた、美しさと性能を兼ね備えたプレミアムシャフト。',
+      footer: 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
+    }
+  };
+
+  const t = content[locale as 'ja' | 'ko'] || content.ko;
 
   if (router.isFallback) {
     return (
@@ -87,8 +103,6 @@ export default function ProductPage({ product }: ProductPageProps) {
 
       <div className="min-h-screen bg-black text-white">
         <Navigation 
-          language={language} 
-          onLanguageChange={setLanguage}
           currentPath={`/${product.id}`}
         />
 
@@ -105,7 +119,7 @@ export default function ProductPage({ product }: ProductPageProps) {
               {product.nameEn}
             </p>
             <p className="text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              {product.description}
+              {product.id === 'sapphire' ? t.sapphireDescription : t.berylDescription}
             </p>
           </div>
 
@@ -124,7 +138,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                 <div className="text-center">
                   <h2 className="text-3xl font-bold text-white mb-2">{product.name}</h2>
                   <p className="text-gray-200">
-                    {language === 'ja' ? 'プレミアムシャフト' : '프리미엄 샤프트'}
+                    {locale === 'ja' ? 'プレミアムシャフト' : '프리미엄 샤프트'}
                   </p>
                 </div>
               </div>
@@ -134,12 +148,12 @@ export default function ProductPage({ product }: ProductPageProps) {
           {/* Product Images Section */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">
-              {language === 'ja' ? '제품 이미지' : '제품 이미지'}
+              {locale === 'ja' ? '제품 이미지' : '제품 이미지'}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <h3 className="text-lg font-semibold text-white mb-4">
-                  {language === 'ja' ? '샤프트 이미지' : '샤프트 이미지'}
+                  {locale === 'ja' ? '샤프트 이미지' : '샤프트 이미지'}
                 </h3>
                 <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
                   <img
@@ -152,8 +166,8 @@ export default function ProductPage({ product }: ProductPageProps) {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <h3 className="text-lg font-semibold text-white mb-4">
                   {product.id === 'sapphire' 
-                    ? (language === 'ja' ? 'E.I. 강성 분포 차트' : 'E.I. 강성 분포 차트')
-                    : (language === 'ja' ? '기술 스펙' : '기술 스펙')
+                    ? (locale === 'ja' ? 'E.I. 강성 분포 차트' : 'E.I. 강성 분포 차트')
+                    : (locale === 'ja' ? '기술 스펙' : '기술 스펙')
                   }
                 </h3>
                 <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
@@ -168,16 +182,16 @@ export default function ProductPage({ product }: ProductPageProps) {
                           <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
                             <div className="text-blue-400 font-medium">{spec.model}</div>
                             <div className="text-gray-300 text-xs">
-                              {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
-                              {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
-                              {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm
+                              {locale === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
+                              {locale === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
+                              {locale === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm
                             </div>
                           </div>
                         ))}
                         <div className="mt-2 text-xs text-gray-400">
-                          {language === 'ja' ? '全長' : '전장'}: 1130mm | 
-                          {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
-                          {language === 'ja' ? 'Butt' : 'Butt'}: 15.05-15.4mm
+                          {locale === 'ja' ? '全長' : '전장'}: 1130mm | 
+                          {locale === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
+                          {locale === 'ja' ? 'Butt' : 'Butt'}: 15.05-15.4mm
                         </div>
                       </div>
                     </div>
@@ -192,17 +206,17 @@ export default function ProductPage({ product }: ProductPageProps) {
                           <div key={index} className="grid grid-cols-2 gap-2 py-1 border-b border-gray-600">
                             <div className="text-blue-400 font-medium">{spec.model}</div>
                             <div className="text-gray-300 text-xs">
-                              {language === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
-                              {language === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
-                              {language === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm | 
-                              {language === 'ja' ? 'キックポイント' : '킥포인트'}: {spec.kickPoint || '先中調子'}
+                              {locale === 'ja' ? '重量' : '중량'}: {spec.weight}g | 
+                              {locale === 'ja' ? 'トルク' : '토크'}: {spec.torque}° | 
+                              {locale === 'ja' ? '振動数' : '진동수'}: {spec.frequency}cpm | 
+                              {locale === 'ja' ? 'キックポイント' : '킥포인트'}: {spec.kickPoint || '先中調子'}
                             </div>
                           </div>
                         ))}
                         <div className="mt-2 text-xs text-gray-400">
-                          {language === 'ja' ? '全長' : '전장'}: 1136mm | 
-                          {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
-                          {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
+                          {locale === 'ja' ? '全長' : '전장'}: 1136mm | 
+                          {locale === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
+                          {locale === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
                         </div>
                       </div>
                     </div>
@@ -210,7 +224,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center text-gray-400">
                         <div className="text-4xl mb-2">📊</div>
-                        <p>{language === 'ja' ? '스펙 테이블' : '스펙 테이블'}</p>
+                        <p>{locale === 'ja' ? '스펙 테이블' : '스펙 테이블'}</p>
                       </div>
                     </div>
                   )}
@@ -222,7 +236,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             {product.id === 'sapphire' && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  {language === 'ja' ? 'サファイア剛性分布' : '사파이어 강성 분포'}
+                  {locale === 'ja' ? 'サファイア剛性分布' : '사파이어 강성 분포'}
                 </h2>
                 <div className="bg-gray-900 rounded-lg p-8 border border-gray-700">
                   <div className="text-center">
@@ -232,7 +246,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                       className="w-full max-w-4xl mx-auto h-auto object-contain"
                     />
                     <p className="text-gray-400 mt-4">
-                      {language === 'ja' 
+                      {locale === 'ja' 
                         ? 'サファイアシャフトの剛性分布チャート - 40と50モデルの比較'
                         : '사파이어 샤프트 강성 분포 차트 - 40과 50 모델 비교'
                       }
@@ -246,7 +260,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             {product.id === 'beryl' && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  {language === 'ja' ? 'ベリル剛性分布' : '베럴 강성 분포'}
+                  {locale === 'ja' ? 'ベリル剛性分布' : '베럴 강성 분포'}
                 </h2>
                 <div className="bg-gray-900 rounded-lg p-8 border border-gray-700">
                   <div className="text-center">
@@ -256,7 +270,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                       className="w-full max-w-4xl mx-auto h-auto object-contain"
                     />
                     <p className="text-gray-400 mt-4">
-                      {language === 'ja' 
+                      {locale === 'ja' 
                         ? 'ベリルシャフトの剛性分布チャート - 40Sと50Sモデルの比較'
                         : '베럴 샤프트 강성 분포 차트 - 40S와 50S 모델 비교'
                       }
@@ -270,7 +284,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             {product.id === 'beryl' && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  {language === 'ja' ? '제품 갤러리' : '제품 갤러리'}
+                  {locale === 'ja' ? '제품 갤러리' : '제품 갤러리'}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gray-800 rounded-lg overflow-hidden">
@@ -302,11 +316,11 @@ export default function ProductPage({ product }: ProductPageProps) {
           {/* Technical Description */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">
-              {language === 'ja' ? '技術的特徴' : '기술적 특징'}
+              {locale === 'ja' ? '技術的特徴' : '기술적 특징'}
             </h2>
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
               <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                {language === 'ko' && product.technicalDescriptionKo ? product.technicalDescriptionKo : product.technicalDescription}
+                {locale === 'ko' && product.technicalDescriptionKo ? product.technicalDescriptionKo : product.technicalDescription}
               </p>
             </div>
           </div>
@@ -314,10 +328,10 @@ export default function ProductPage({ product }: ProductPageProps) {
           {/* Features */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">
-              {language === 'ja' ? '主な特徴' : '주요 특징'}
+              {locale === 'ja' ? '主な特徴' : '주요 특징'}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {(language === 'ko' && product.featuresKo ? product.featuresKo : product.features).map((feature, index) => (
+              {(locale === 'ko' && product.featuresKo ? product.featuresKo : product.features).map((feature, index) => (
                 <div key={index} className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-300">{feature}</p>
@@ -330,10 +344,10 @@ export default function ProductPage({ product }: ProductPageProps) {
           {/* CTA Section */}
           <div className="text-center bg-gray-900 rounded-lg p-8 border border-gray-800">
             <h3 className="text-2xl font-bold text-white mb-4">
-              {language === 'ja' ? 'お問い合わせ' : '문의하기'}
+              {locale === 'ja' ? 'お問い合わせ' : '문의하기'}
             </h3>
             <p className="text-gray-300 mb-6">
-              {language === 'ja' 
+              {locale === 'ja' 
                 ? '詳細な情報やカスタムオーダーについては、お気軽にお問い合わせください。'
                 : '자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요.'
               }
@@ -342,7 +356,7 @@ export default function ProductPage({ product }: ProductPageProps) {
               href="/contact/"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
-              {language === 'ja' ? 'お問い合わせする' : '문의하기'}
+              {locale === 'ja' ? 'お問い合わせする' : '문의하기'}
             </Link>
           </div>
         </div>
@@ -352,7 +366,7 @@ export default function ProductPage({ product }: ProductPageProps) {
           <div className="container mx-auto px-4">
             <div className="text-center text-gray-400">
               <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
-              <p className="mt-2">DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト</p>
+              <p className="mt-2">{t.footer}</p>
             </div>
           </div>
         </footer>
