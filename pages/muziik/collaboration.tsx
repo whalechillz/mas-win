@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useState } from 'react';
 import Navigation from '../../components/muziik/Navigation';
 
@@ -472,12 +473,12 @@ export default function CollaborationPage() {
               >
                 {t.ctaButton}
               </a>
-              <a 
-                href="mailto:massgoogolf@gmail.com"
+              <Link 
+                href="/contact/"
                 className="inline-block bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-red-900 transition-colors"
               >
                 {t.contactButton}
-              </a>
+              </Link>
             </div>
           </div>
         </section>

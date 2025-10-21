@@ -220,12 +220,12 @@ export default function KoreanProductPage({ product }: ProductPageProps) {
             <p className="text-gray-300 mb-6">
               자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요.
             </p>
-            <a 
-              href="mailto:massgoogolf@gmail.com"
+            <Link 
+              href="/contact/"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
               문의하기
-            </a>
+            </Link>
           </div>
         </div>
 
