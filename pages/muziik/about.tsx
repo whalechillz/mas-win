@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useState } from 'react';
 import Navigation from '../../components/muziik/Navigation';
 
@@ -441,12 +442,12 @@ export default function AboutPage() {
               {t.contactDesc}
             </p>
             <div className="space-y-4">
-              <a 
-                href="mailto:massgoogolf@gmail.com"
+              <Link 
+                href="/contact/"
                 className="inline-block bg-white text-blue-900 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg"
               >
-                {t.email}
-              </a>
+                {language === 'ja' ? 'お問い合わせする' : '문의하기'}
+              </Link>
             </div>
           </div>
         </section>
