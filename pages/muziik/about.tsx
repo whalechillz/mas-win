@@ -27,13 +27,13 @@ export default function AboutPage() {
       ],
       
       // 브랜드 스토리
-      brandTitle: 'ブランドストーリー',
-      brandDesc: 'DOGATTI GENERATIONは、MUZIIK独自の設計思想に基づき創られた最強シャフトです。チタンファイバー技術による革新的な性能で、ゴルファーのパフォーマンスを向上させます。',
+      brandTitle: 'MASSGOO X MUZIIK コラボレーション',
+      brandDesc: 'MASSGOOとMUZIIKの戦略的パートナーシップにより、韓国のゴルファーに最高品質の日本製プレミアムシャフトを提供します。',
       brandStory: [
-        '1970年代から続くシャフト製造の伝統',
-        '2000年代のチタンファイバー技術開発',
-        '2010年代のDOGATTI GENERATION誕生',
-        '2020年代の韓国市場進出'
+        'MUZIIKとのパートナーシップ締結',
+        'DOGATTI GENERATION技術導入',
+        '韓国市場向けカスタマイズサービス開発',
+        '専門コンサルティング及びフィッティングサービス'
       ],
       
       // 기술력
