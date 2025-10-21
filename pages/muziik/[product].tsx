@@ -284,7 +284,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             {product.id === 'beryl' && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  {locale === 'ja' ? '제품 갤러리' : '제품 갤러리'}
+                  {locale === 'ja' ? '製品ギャラリー' : '제품 갤러리'}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gray-800 rounded-lg overflow-hidden">
