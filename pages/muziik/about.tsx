@@ -31,7 +31,7 @@ export default function AboutPage() {
         '1970年代から続くシャフト製造の伝統',
         '2000年代のチタンファイバー技術開発',
         '2010年代のDOGATTI GENERATION誕生',
-        '2020年代の韓国市場 진출'
+        '2020年代の韓国市場進出'
       ],
       
       // 기술력
@@ -45,8 +45,8 @@ export default function AboutPage() {
       ],
       
       // 한국 진출
-      koreaTitle: '韓国市場 진출',
-      koreaDesc: 'MUZIIKは韓国のゴルフ市場に正式に 진출하여、DOGATTI GENERATION シャフトの正規輸入販売を行っています。',
+      koreaTitle: '韓国市場進出',
+      koreaDesc: 'MUZIIKは韓国のゴルフ市場に正式に進出し、DOGATTI GENERATION シャフトの正規輸入販売を行っています。',
       koreaFeatures: [
         '韓国正規輸入販売代理店',
         '現地アフターサービス',
@@ -395,7 +395,7 @@ export default function AboutPage() {
                   <div className="aspect-video rounded-lg overflow-hidden">
                     <img 
                       src="/muziik/brand/masgolf_store_02.jpeg" 
-                      alt={language === 'ja' ? '韓国市場 진출' : '한국 시장 진출'}
+                      alt={language === 'ja' ? '韓国市場進出' : '한국 시장 진출'}
                       className="w-full h-full object-cover"
                     />
                   </div>
