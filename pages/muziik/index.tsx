@@ -13,7 +13,7 @@ export default function MuziikHome() {
       description: 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフトの最高峰。チタンファイバー技術による超高速反発力とヘッド安定性を実現。',
       heroTitle: 'MUZIIK',
       heroSubtitle: 'DOGATTI GENERATION シャフト',
-      heroDescription: '日本製プレミアムゴルフシャフトの最高峰。<br />チタンファイバー技術による超高速反発力とヘッド安定性を実現する、<br />革新的なシャフトテクノロジーをお届けします。',
+      heroDescription: '日本製プレミアムゴルフシャフトの最高峰。チタンファイバー技術による超高速反発力とヘッド安定性を実現する、革新的なシャフトテクノロジーをお届けします。',
       featuresTitle: 'MUZIIKの特徴',
       feature1: '超高速反発力',
       feature1Desc: 'チタンファイバー技術による革新的な反発性能で、最大限のボールスピードを実現',
@@ -24,7 +24,7 @@ export default function MuziikHome() {
       productsTitle: '製品ラインナップ',
       technologyTitle: '革新的なテクノロジー',
       ctaTitle: 'お問い合わせ',
-      ctaDescription: '詳細な情報やカスタムオーダーについては、お気軽にお問い合わせください。<br />専門スタッフがお客様のニーズに最適なシャフトをご提案いたします。',
+      ctaDescription: '詳細な情報やカスタムオーダーについては、お気軽にお問い合わせください。専門スタッフがお客様のニーズに最適なシャフトをご提案いたします。',
       ctaButton: 'お問い合わせする',
       footer: 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
     },
@@ -33,7 +33,7 @@ export default function MuziikHome() {
       description: 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트의 최고봉. 티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현합니다.',
       heroTitle: 'MUZIIK',
       heroSubtitle: 'DOGATTI GENERATION 샤프트',
-      heroDescription: '일본제 프리미엄 골프 샤프트의 최고봉.<br />티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는<br />혁신적인 샤프트 테크놀로지를 제공합니다.',
+      heroDescription: '일본제 프리미엄 골프 샤프트의 최고봉. 티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는 혁신적인 샤프트 테크놀로지를 제공합니다.',
       featuresTitle: 'MUZIIK의 특징',
       feature1: '초고속 반발력',
       feature1Desc: '티타늄 파이버 기술로 혁신적인 반발 성능을 구현하여 최대한의 볼 스피드를 실현합니다',
@@ -44,7 +44,7 @@ export default function MuziikHome() {
       productsTitle: '제품 라인업',
       technologyTitle: '혁신적인 테크놀로지',
       ctaTitle: '문의하기',
-      ctaDescription: '자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요.<br />전문 스태프가 고객님의 니즈에 최적한 샤프트를 제안해 드립니다.',
+      ctaDescription: '자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요. 전문 스태프가 고객님의 니즈에 최적한 샤프트를 제안해 드립니다.',
       ctaButton: '문의하기',
       footer: 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트'
     }
@@ -156,7 +156,7 @@ export default function MuziikHome() {
                     {language === 'ja' ? '優雅なエンジニアリング。爆発的なパワー。世代を超えるパフォーマンス。' : '우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.'}
                   </p>
                   <p className="text-gray-400 text-base max-w-3xl mx-auto leading-relaxed">
-                    {language === 'ja' ? 'チタンファイバー技術による超高速反発力とヘッド安定性を実現する<br/>革新的なシャフトテクノロジーをお届けします。' : '티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는<br/>혁신적인 샤프트 테크놀로지를 제공합니다.'}
+                    {language === 'ja' ? 'チタンファイバー技術による超高速反発力とヘッド安定性を実現する革新的なシャフトテクノロジーをお届けします。' : '티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는 혁신적인 샤프트 테크놀로지를 제공합니다.'}
                   </p>
                 </div>
                 
