@@ -68,11 +68,11 @@ export default function ContactPage() {
     ko: {
       title: 'MUZIIK - 문의하기',
       description: 'MUZIIK DOGATTI GENERATION 샤프트 문의 및 상담',
-      heroTitle: '문의하기',
+      heroTitle: '문의 및 상담',
       heroSubtitle: 'MUZIIK DOGATTI GENERATION 샤프트에 대한 문의 및 상담',
       
       // 탭 메뉴
-      generalTab: '문의하기',
+      generalTab: '일반 문의',
       partnershipTab: '파트너십',
       
       // 일반 문의
@@ -288,7 +288,7 @@ export default function ContactPage() {
               <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 shadow-2xl">
                 <div className="text-center mb-8">
                   <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
-                    {activeTab === 'general' && '📞 문의하기'}
+                    {activeTab === 'general' && '📞 일반 문의'}
                     {activeTab === 'partnership' && '🤝 파트너십'}
                   </div>
                   <h3 className="text-3xl font-bold text-white mb-4">
@@ -475,33 +475,6 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* Contact Info Section */}
-        <section className="py-16 bg-black">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold text-white mb-8">
-              {language === 'ja' ? 'お問い合わせ先' : '연락처'}
-            </h2>
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  {language === 'ja' ? '直接メール' : '직접 이메일'}
-                </h3>
-                <a 
-                  href="mailto:massgoogolf@gmail.com"
-                  className="text-blue-400 hover:text-blue-300 text-lg"
-                >
-                  massgoogolf@gmail.com
-                </a>
-                <p className="text-gray-400 mt-4">
-                  {language === 'ja' 
-                    ? '24時間以内にご返信いたします'
-                    : '24시간 이내에 답변드리겠습니다'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Footer */}
         <footer className="bg-gray-900 border-t border-gray-800 py-8">
