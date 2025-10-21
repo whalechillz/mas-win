@@ -258,10 +258,10 @@ export default function AboutPage() {
                         {index === 3 && '🇰🇷'}
                       </div>
                       <h3 className="text-white font-semibold mb-3">
-                        {index === 0 && '파트너십'}
-                        {index === 1 && '기술 도입'}
-                        {index === 2 && '서비스 개발'}
-                        {index === 3 && '한국 진출'}
+                        {index === 0 && (locale === 'ja' ? 'パートナーシップ' : '파트너십')}
+                        {index === 1 && (locale === 'ja' ? '技術導入' : '기술 도입')}
+                        {index === 2 && (locale === 'ja' ? 'サービス開発' : '서비스 개발')}
+                        {index === 3 && (locale === 'ja' ? '韓国進出' : '한국 진출')}
                       </h3>
                       <p className="text-gray-300 text-sm">
                         {story}
