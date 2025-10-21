@@ -1,9 +1,11 @@
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Navigation from '../../components/muziik/Navigation';
 
 export default function ContactPage() {
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
+  const router = useRouter();
+  const { locale } = router;
   const [activeTab, setActiveTab] = useState<'general' | 'partnership'>('general');
   const [formData, setFormData] = useState({
     name: '',
@@ -120,7 +122,7 @@ export default function ContactPage() {
     }
   };
 
-  const t = content[language];
+  const t = content[locale];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -147,7 +149,7 @@ export default function ContactPage() {
       // JSON으로 전송 (FormData 대신)
       const requestData = {
         type: activeTab,
-        language: language,
+        locale: locale,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -226,8 +228,6 @@ export default function ContactPage() {
 
       <div className="min-h-screen bg-black text-white">
         <Navigation 
-          language={language} 
-          onLanguageChange={setLanguage}
           currentPath="/contact"
         />
 
@@ -237,7 +237,7 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="text-center">
               <div className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
-                {language === 'ja' ? 'プレミアムサポート' : '프리미엄 지원'}
+                {locale === 'ja' ? 'プレミアムサポート' : '프리미엄 지원'}
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
                 {t.heroTitle}
@@ -248,15 +248,15 @@ export default function ContactPage() {
               <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-300">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  {language === 'ja' ? '24時間以内返信' : '24시간 이내 답변'}
+                  {locale === 'ja' ? '24時間以内返信' : '24시간 이내 답변'}
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  {language === 'ja' ? '専門フィッティング' : '전문 피팅'}
+                  {locale === 'ja' ? '専門フィッティング' : '전문 피팅'}
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                  {language === 'ja' ? 'カスタムソリューション' : '맞춤 솔루션'}
+                  {locale === 'ja' ? 'カスタムソリューション' : '맞춤 솔루션'}
                 </div>
               </div>
             </div>
@@ -336,7 +336,7 @@ export default function ContactPage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder={language === 'ja' ? 'お名前を入力してください' : '이름을 입력해주세요'}
+                        placeholder={locale === 'ja' ? 'お名前を入力してください' : '이름을 입력해주세요'}
                       />
                     </div>
                     <div className="space-y-2">
@@ -351,7 +351,7 @@ export default function ContactPage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder={language === 'ja' ? 'メールアドレスを入力してください' : '이메일을 입력해주세요'}
+                        placeholder={locale === 'ja' ? 'メールアドレスを入力してください' : '이메일을 입력해주세요'}
                       />
                     </div>
                   </div>
@@ -471,7 +471,7 @@ export default function ContactPage() {
                       )}
                     </button>
                     <p className="text-gray-400 text-sm mt-4">
-                      {language === 'ja' 
+                      {locale === 'ja' 
                         ? '送信後、24時間以内にご返信いたします'
                         : '전송 후 24시간 이내에 답변드리겠습니다'
                       }
@@ -490,7 +490,7 @@ export default function ContactPage() {
             <div className="text-center text-gray-400">
               <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">
-                {language === 'ja' 
+                {locale === 'ja' 
                   ? 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
                   : 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트'
                 }

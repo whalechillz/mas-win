@@ -1,9 +1,10 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
 import Navigation from '../../components/muziik/Navigation';
 
 export default function TechnologyPage() {
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
+  const router = useRouter();
+  const { locale } = router;
 
   // 언어별 콘텐츠
   const content = {
@@ -93,7 +94,7 @@ export default function TechnologyPage() {
     }
   };
 
-  const t = content[language];
+  const t = content[locale];
 
   return (
     <>
@@ -124,8 +125,6 @@ export default function TechnologyPage() {
 
       <div className="min-h-screen bg-black text-white">
         <Navigation 
-          language={language} 
-          onLanguageChange={setLanguage}
           currentPath="/technology"
         />
 
@@ -175,7 +174,7 @@ export default function TechnologyPage() {
                     <div className="aspect-video rounded-lg overflow-hidden">
                       <img 
                         src="/muziik/technology/dogatti-nano-resin.webp" 
-                        alt={language === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
+                        alt={locale === 'ja' ? 'ナノ樹脂構造' : '나노 수지 구조'}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -191,7 +190,7 @@ export default function TechnologyPage() {
                       <div className="aspect-video rounded-lg overflow-hidden">
                         <img 
                           src="/muziik/technology/dogatti-reverse-torque.webp" 
-                          alt={language === 'ja' ? '逆トルク防止' : '역토크 방지'}
+                          alt={locale === 'ja' ? '逆トルク防止' : '역토크 방지'}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -241,7 +240,7 @@ export default function TechnologyPage() {
                     <div className="aspect-video rounded-lg overflow-hidden">
                       <img 
                         src="/muziik/technology/dogatti-titanium-fiber.webp" 
-                        alt={language === 'ja' ? 'チタン繊維構造' : '티타늄 섬유 구조'}
+                        alt={locale === 'ja' ? 'チタン繊維構造' : '티타늄 섬유 구조'}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -263,10 +262,10 @@ export default function TechnologyPage() {
                   className="mx-auto h-20 w-auto object-contain mb-6"
                 />
                 <h2 className="text-4xl font-bold text-white mb-4">
-                  {language === 'ja' ? 'Japan Titanium' : 'Japan Titanium'}
+                  {locale === 'ja' ? 'Japan Titanium' : 'Japan Titanium'}
                 </h2>
                 <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-                  {language === 'ja' 
+                  {locale === 'ja' 
                     ? '日本の最高品質チタンを使用したプレミアムシャフト。40年の伝統と最新技術が融合した、世界最高水準のゴルフシャフトを提供します。'
                     : '일본의 최고 품질 티타늄을 사용한 프리미엄 샤프트. 40년 전통과 최신 기술이 융합된, 세계 최고 수준의 골프 샤프트를 제공합니다.'
                   }
@@ -277,10 +276,10 @@ export default function TechnologyPage() {
                 <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
                   <div className="text-4xl mb-6">🇯🇵</div>
                   <h3 className="text-2xl font-semibold text-white mb-4">
-                    {language === 'ja' ? '日本製品質' : '일본제 품질'}
+                    {locale === 'ja' ? '日本製品質' : '일본제 품질'}
                   </h3>
                   <p className="text-gray-300 leading-relaxed">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '40年の伝統と職人技術による最高品質のシャフト製造。日本の精密技術が生み出す完璧なシャフト。'
                       : '40년 전통과 장인 기술에 의한 최고 품질의 샤프트 제조. 일본의 정밀 기술이 만들어내는 완벽한 샤프트.'
                     }
@@ -290,10 +289,10 @@ export default function TechnologyPage() {
                 <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
                   <div className="text-4xl mb-6">💎</div>
                   <h3 className="text-2xl font-semibold text-white mb-4">
-                    {language === 'ja' ? 'プレミアムチタン' : '프리미엄 티타늄'}
+                    {locale === 'ja' ? 'プレミアムチタン' : '프리미엄 티타늄'}
                   </h3>
                   <p className="text-gray-300 leading-relaxed">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '日本最高品質のチタン素材を使用した高級シャフト。軽量でありながら強度と弾性を両立。'
                       : '일본 최고 품질의 티타늄 소재를 사용한 고급 샤프트. 경량이면서도 강도와 탄성을 양립.'
                     }
@@ -303,10 +302,10 @@ export default function TechnologyPage() {
                 <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
                   <div className="text-4xl mb-6">🏆</div>
                   <h3 className="text-2xl font-semibold text-white mb-4">
-                    {language === 'ja' ? '世界最高水準' : '세계 최고 수준'}
+                    {locale === 'ja' ? '世界最高水準' : '세계 최고 수준'}
                   </h3>
                   <p className="text-gray-300 leading-relaxed">
-                    {language === 'ja' 
+                    {locale === 'ja' 
                       ? '日本の技術力が生み出す世界最高水準のゴルフシャフト。プロゴルファーも認める品質。'
                       : '일본의 기술력이 만들어내는 세계 최고 수준의 골프 샤프트. 프로 골퍼도 인정하는 품질.'
                     }
@@ -342,7 +341,7 @@ export default function TechnologyPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4">Sapphire</h3>
                   <p className="text-blue-200">
-                    {language === 'ja' ? '超高速反発力とヘッド安定性' : '초고속 반발력과 헤드 안정성'}
+                    {locale === 'ja' ? '超高速反発力とヘッド安定性' : '초고속 반발력과 헤드 안정성'}
                   </p>
                 </a>
                 <a 
@@ -358,7 +357,7 @@ export default function TechnologyPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4">Beryl</h3>
                   <p className="text-emerald-200">
-                    {language === 'ja' ? '美しさと性能を兼ね備えた' : '아름다움과 성능을 겸비한'}
+                    {locale === 'ja' ? '美しさと性能を兼ね備えた' : '아름다움과 성능을 겸비한'}
                   </p>
                 </a>
               </div>
@@ -372,7 +371,7 @@ export default function TechnologyPage() {
             <div className="text-center text-gray-400">
               <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">
-                {language === 'ja' 
+                {locale === 'ja' 
                   ? 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
                   : 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트'
                 }

@@ -1,10 +1,11 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
 import Navigation from '../../components/muziik/Navigation';
 
 export default function AboutPage() {
-  const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
+  const router = useRouter();
+  const { locale } = router;
 
   // 언어별 콘텐츠
   const content = {
@@ -144,7 +145,7 @@ export default function AboutPage() {
     }
   };
 
-  const t = content[language];
+  const t = content[locale];
 
   return (
     <>
@@ -175,8 +176,6 @@ export default function AboutPage() {
 
       <div className="min-h-screen bg-black text-white">
         <Navigation 
-          language={language} 
-          onLanguageChange={setLanguage}
           currentPath="/about"
         />
 
@@ -225,7 +224,7 @@ export default function AboutPage() {
                   <div className="aspect-video rounded-lg overflow-hidden">
                     <img 
                       src="/muziik/brand/muziik_company.webp" 
-                      alt={language === 'ja' ? 'MUZIIK 会社' : 'MUZIIK 회사'}
+                      alt={locale === 'ja' ? 'MUZIIK 会社' : 'MUZIIK 회사'}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -310,7 +309,7 @@ export default function AboutPage() {
                   </div>
                   <div className="p-6">
                     <h4 className="text-white font-semibold text-center">
-                      {language === 'ja' ? 'MASSGOO X MUZIIK 협업 샤프트 시안' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
+                      {locale === 'ja' ? 'MASSGOO X MUZIIK 협업 샤프트 시안' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
                     </h4>
                   </div>
                 </div>
@@ -380,10 +379,10 @@ export default function AboutPage() {
                           {feature}
                         </h3>
                         <p className="text-gray-400 text-sm">
-                          {index === 0 && (language === 'ja' ? '高強度複合材料' : '고강도 복합재료')}
-                          {index === 1 && (language === 'ja' ? '超高速反発力' : '초고속 반발력')}
-                          {index === 2 && (language === 'ja' ? '安定したスイング' : '안정된 스윙')}
-                          {index === 3 && (language === 'ja' ? '精密制御' : '정밀한 제어')}
+                          {index === 0 && (locale === 'ja' ? '高強度複合材料' : '고강도 복합재료')}
+                          {index === 1 && (locale === 'ja' ? '超高速反発力' : '초고속 반발력')}
+                          {index === 2 && (locale === 'ja' ? '安定したスイング' : '안정된 스윙')}
+                          {index === 3 && (locale === 'ja' ? '精密制御' : '정밀한 제어')}
                         </p>
                       </div>
                     </div>
@@ -412,7 +411,7 @@ export default function AboutPage() {
                   <div className="aspect-video rounded-lg overflow-hidden">
                     <img 
                       src="/muziik/brand/masgolf_store_02.jpeg" 
-                      alt={language === 'ja' ? '韓国市場進出' : '한국 시장 진출'}
+                      alt={locale === 'ja' ? '韓国市場進出' : '한국 시장 진출'}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -446,7 +445,7 @@ export default function AboutPage() {
                 href="/contact/"
                 className="inline-block bg-white text-blue-900 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg"
               >
-                {language === 'ja' ? 'お問い合わせする' : '문의하기'}
+                {locale === 'ja' ? 'お問い合わせする' : '문의하기'}
               </Link>
             </div>
           </div>
@@ -458,7 +457,7 @@ export default function AboutPage() {
             <div className="text-center text-gray-400">
               <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">
-                {language === 'ja' 
+                {locale === 'ja' 
                   ? 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'
                   : 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트'
                 }
