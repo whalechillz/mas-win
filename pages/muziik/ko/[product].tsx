@@ -233,7 +233,7 @@ export default function KoreanProductPage({ product }: ProductPageProps) {
         <footer className="bg-gray-900 border-t border-gray-800 py-8 mt-16">
           <div className="container mx-auto px-4">
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 MUZIIK. All rights reserved.</p>
+              <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트</p>
             </div>
           </div>
