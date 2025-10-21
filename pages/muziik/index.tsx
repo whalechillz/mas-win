@@ -112,7 +112,7 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="text-blue-400 text-lg font-medium mb-12">
-                  DOGATTI GENERATION 샤프트
+                  {t.heroSubtitle}
                 </div>
                 
                 {/* 2군: 메인 메시지 */}
@@ -121,11 +121,10 @@ export default function MuziikHome() {
                     MUZIIK
                   </h1>
                   <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
-                    우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.
+                    {language === 'ja' ? '優雅なエンジニアリング。爆発的なパワー。世代を超えるパフォーマンス。' : '우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.'}
                   </p>
                   <p className="text-gray-400 text-base max-w-3xl mx-auto leading-relaxed">
-                    티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는<br/>
-                    혁신적인 샤프트 테크놀로지를 제공합니다.
+                    {language === 'ja' ? 'チタンファイバー技術による超高速反発力とヘッド安定性を実現する<br/>革新的なシャフトテクノロジーをお届けします。' : '티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는<br/>혁신적인 샤프트 테크놀로지를 제공합니다.'}
                   </p>
                 </div>
                 
@@ -136,7 +135,7 @@ export default function MuziikHome() {
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                       <img 
                         src="/muziik/brand/titan_1.png" 
-                        alt="티타늄 원석"
+                        alt={language === 'ja' ? 'チタン原石' : '티타늄 원석'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
@@ -156,7 +155,7 @@ export default function MuziikHome() {
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                       <img 
                         src="/muziik/brand/one-flex-1.webp" 
-                        alt="오토플렉스 설계"
+                        alt={language === 'ja' ? 'オートフレックス設計' : '오토플렉스 설계'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
