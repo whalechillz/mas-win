@@ -100,45 +100,36 @@ export default function MuziikHome() {
                     NEW
                   </span>
                   
-                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3 text-blue-300">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">⚡</span>
-                      <div className="flex items-center">
-                        <span className="text-2xl md:text-3xl font-black text-blue-300 tracking-tight">
-                          美
-                        </span>
-                        <span className="text-xs text-gray-400 ml-1">
-                          압도적인
-                        </span>
-                      </div>
+                  <div className="flex flex-row items-center justify-center gap-2 md:gap-3 text-blue-300">
+                    <div className="flex items-center">
+                      <span className="text-lg md:text-xl font-black text-blue-300 tracking-tight">
+                        美
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">
+                        압도적인
+                      </span>
                     </div>
                     
-                    <span className="text-gray-500 hidden md:block">|</span>
+                    <span className="text-gray-500">|</span>
                     
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">💎</span>
-                      <div className="flex items-center">
-                        <span className="text-2xl md:text-3xl font-black text-blue-300 tracking-tight">
-                          輝
-                        </span>
-                        <span className="text-xs text-gray-400 ml-1">
-                          광채의
-                        </span>
-                      </div>
+                    <div className="flex items-center">
+                      <span className="text-lg md:text-xl font-black text-blue-300 tracking-tight">
+                        輝
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">
+                        광채의
+                      </span>
                     </div>
                     
-                    <span className="text-gray-500 hidden md:block">|</span>
+                    <span className="text-gray-500">|</span>
                     
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🚀</span>
-                      <div className="flex items-center">
-                        <span className="text-2xl md:text-3xl font-black text-blue-300 tracking-tight">
-                          若
-                        </span>
-                        <span className="text-xs text-gray-400 ml-1">
-                          젊음
-                        </span>
-                      </div>
+                    <div className="flex items-center">
+                      <span className="text-lg md:text-xl font-black text-blue-300 tracking-tight">
+                        若
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">
+                        젊음
+                      </span>
                     </div>
                   </div>
                 </div>
