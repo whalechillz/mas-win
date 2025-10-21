@@ -455,7 +455,7 @@ export default function MuziikHome() {
                         <tbody>
                           <tr className="border-b border-gray-700">
                             <td className="py-1 px-2">40</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1130</td>
                             <td className="py-1 px-2">45</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.05</td>
@@ -464,7 +464,7 @@ export default function MuziikHome() {
                           </tr>
                           <tr>
                             <td className="py-1 px-2">50</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1130</td>
                             <td className="py-1 px-2">54</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.4</td>
@@ -548,7 +548,7 @@ export default function MuziikHome() {
                         <tbody>
                           <tr className="border-b border-gray-700">
                             <td className="py-1 px-2">R2</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">42</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">14.95</td>
@@ -558,7 +558,7 @@ export default function MuziikHome() {
                           </tr>
                           <tr className="border-b border-gray-700">
                             <td className="py-1 px-2">R</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">48</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.1</td>
@@ -568,7 +568,7 @@ export default function MuziikHome() {
                           </tr>
                           <tr className="border-b border-gray-700">
                             <td className="py-1 px-2">SR</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">49</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.15</td>
@@ -578,7 +578,7 @@ export default function MuziikHome() {
                           </tr>
                           <tr className="border-b border-gray-700">
                             <td className="py-1 px-2">S</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">50</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.2</td>
@@ -588,7 +588,7 @@ export default function MuziikHome() {
                           </tr>
                           <tr>
                             <td className="py-1 px-2">X</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">53</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.3</td>

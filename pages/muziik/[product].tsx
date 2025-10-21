@@ -396,24 +396,24 @@ const products = [
 백스윙 탑부터 임팩트까지 헤드의 움직임을 안정화하도록 샤프트 강성이 설계되어 있어 타이밍을 잡기 쉬워집니다.
 헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 오토플렉스 타입입니다.`,
     specs: [
-      {
-        model: '40',
-        length: '1168',
-        weight: '45',
-        tipDiameter: '8.55',
-        buttDiameter: '15.05',
-        torque: '5.0',
-        frequency: '200'
-      },
-      {
-        model: '50',
-        length: '1168',
-        weight: '54',
-        tipDiameter: '8.55',
-        buttDiameter: '15.4',
-        torque: '4.2',
-        frequency: '215'
-      }
+             {
+               model: '40',
+               length: '1130',
+               weight: '45',
+               tipDiameter: '8.55',
+               buttDiameter: '15.05',
+               torque: '5.0',
+               frequency: '200'
+             },
+             {
+               model: '50',
+               length: '1130',
+               weight: '54',
+               tipDiameter: '8.55',
+               buttDiameter: '15.4',
+               torque: '4.2',
+               frequency: '215'
+             }
     ]
   },
   {
@@ -447,56 +447,56 @@ DOGATTIは、BERYL(美しさ、輝き、若さ)にふさわしい、光沢があ
 또한 임팩트 시 역토크를 억제하여 페이스 컨트롤을 쉽게 하고 방향성을 안정시킵니다.
 DOGATTI는 BERYL(아름다움, 빛남, 젊음)에 어울리는 광택이 있고 아름다운 알루미늄 IP 처리 컬러링이 특징입니다.`,
     specs: [
-      {
-        model: 'R2',
-        length: '1168',
-        weight: '42',
-        tipDiameter: '8.55',
-        buttDiameter: '14.95',
-        torque: '5.0',
-        frequency: '230',
-        kickPoint: '先中調子'
-      },
-      {
-        model: 'R',
-        length: '1168',
-        weight: '48',
-        tipDiameter: '8.55',
-        buttDiameter: '15.1',
-        torque: '4.0',
-        frequency: '240',
-        kickPoint: '先中調子'
-      },
-      {
-        model: 'SR',
-        length: '1168',
-        weight: '49',
-        tipDiameter: '8.55',
-        buttDiameter: '15.15',
-        torque: '4.0',
-        frequency: '250',
-        kickPoint: '先中調子'
-      },
-      {
-        model: 'S',
-        length: '1168',
-        weight: '50',
-        tipDiameter: '8.55',
-        buttDiameter: '15.2',
-        torque: '4.0',
-        frequency: '260',
-        kickPoint: '先中調子'
-      },
-      {
-        model: 'X',
-        length: '1168',
-        weight: '53',
-        tipDiameter: '8.55',
-        buttDiameter: '15.3',
-        torque: '3.9',
-        frequency: '270',
-        kickPoint: '先中調子'
-      }
+             {
+               model: 'R2',
+               length: '1136',
+               weight: '42',
+               tipDiameter: '8.55',
+               buttDiameter: '14.95',
+               torque: '5.0',
+               frequency: '230',
+               kickPoint: '先中調子'
+             },
+             {
+               model: 'R',
+               length: '1136',
+               weight: '48',
+               tipDiameter: '8.55',
+               buttDiameter: '15.1',
+               torque: '4.0',
+               frequency: '240',
+               kickPoint: '先中調子'
+             },
+             {
+               model: 'SR',
+               length: '1136',
+               weight: '49',
+               tipDiameter: '8.55',
+               buttDiameter: '15.15',
+               torque: '4.0',
+               frequency: '250',
+               kickPoint: '先中調子'
+             },
+             {
+               model: 'S',
+               length: '1136',
+               weight: '50',
+               tipDiameter: '8.55',
+               buttDiameter: '15.2',
+               torque: '4.0',
+               frequency: '260',
+               kickPoint: '先中調子'
+             },
+             {
+               model: 'X',
+               length: '1136',
+               weight: '53',
+               tipDiameter: '8.55',
+               buttDiameter: '15.3',
+               torque: '3.9',
+               frequency: '270',
+               kickPoint: '先中調子'
+             }
     ]
   }
 ];

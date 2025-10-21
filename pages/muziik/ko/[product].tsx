@@ -265,21 +265,21 @@ const products = [
     specs: [
       {
         model: '40',
-        length: '1168',
+        length: '1130',
         weight: '45',
         tipDiameter: '8.55',
         buttDiameter: '15.05',
         torque: '5.0',
-        frequency: '185'
+        frequency: '200'
       },
       {
         model: '50',
-        length: '1168',
+        length: '1130',
         weight: '54',
         tipDiameter: '8.55',
         buttDiameter: '15.4',
         torque: '4.2',
-        frequency: '195'
+        frequency: '215'
       }
     ]
   },
@@ -302,53 +302,53 @@ DOGATTI는, BERYL(아름다움, 광채, 젊음)에 어울리는, 광택이 있�
     specs: [
       {
         model: 'R2',
-        length: '1168',
+        length: '1136',
         weight: '42',
         tipDiameter: '8.55',
         buttDiameter: '14.95',
         torque: '5.0',
-        frequency: '215',
-        kickPoint: 'Mid-High'
+        frequency: '230',
+        kickPoint: '先中調子'
       },
       {
         model: 'R',
-        length: '1168',
+        length: '1136',
         weight: '48',
         tipDiameter: '8.55',
         buttDiameter: '15.1',
         torque: '4.0',
-        frequency: '225',
-        kickPoint: 'Mid-High'
+        frequency: '240',
+        kickPoint: '先中調子'
       },
       {
         model: 'SR',
-        length: '1168',
+        length: '1136',
         weight: '49',
         tipDiameter: '8.55',
         buttDiameter: '15.15',
         torque: '4.0',
-        frequency: '235',
-        kickPoint: 'Mid-High'
+        frequency: '250',
+        kickPoint: '先中調子'
       },
       {
         model: 'S',
-        length: '1168',
+        length: '1136',
         weight: '50',
         tipDiameter: '8.55',
         buttDiameter: '15.2',
         torque: '4.0',
-        frequency: '245',
-        kickPoint: 'Mid-High'
+        frequency: '260',
+        kickPoint: '先中調子'
       },
       {
         model: 'X',
-        length: '1168',
+        length: '1136',
         weight: '53',
         tipDiameter: '8.55',
         buttDiameter: '15.3',
         torque: '3.9',
-        frequency: '255',
-        kickPoint: 'Mid-High'
+        frequency: '270',
+        kickPoint: '先中調子'
       }
     ]
   }
