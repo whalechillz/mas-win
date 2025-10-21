@@ -54,6 +54,19 @@ export default function AboutPage() {
         '品質保証システム'
       ],
       
+      // Muziik Golf 브랜드 소개
+      muziikGolfTitle: 'Muziik Golf',
+      muziikGolfSubtitle: 'MUZIIK TO GOLFERS\' EARS',
+      muziikGolfDesc: 'Muziik Golf was born out of the concept of enjoying the game as if it was music, aiming to resonate with golfers of all levels by helping them play stress-free golf.',
+      muziikGolfFeatures: [
+        'Cutting-edge technology and premium craftsmanship',
+        'Designed to help golfers hit better and score lower',
+        'Less effort and no worry approach',
+        'Make golf a symphony of joy with Muziik!'
+      ],
+      muziikGolfWebsite: 'https://muziik-golf.com/japan/home.html',
+      muziikGolfEmail: 'info@muziik-golf.com',
+      
       // 연락처
       contactTitle: 'お問い合わせ',
       contactDesc: 'DOGATTI GENERATION シャフトに関するお問い合わせは、下記までご連絡ください。',
