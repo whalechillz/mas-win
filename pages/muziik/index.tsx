@@ -146,9 +146,6 @@ export default function MuziikHome() {
                   <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
                     {language === 'ja' ? '優雅なエンジニアリング。爆発的なパワー。世代を超えるパフォーマンス。' : '우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.'}
                   </p>
-                  <p className="text-gray-400 text-base max-w-3xl mx-auto leading-relaxed">
-                    {language === 'ja' ? 'チタンファイバー技術による超高速反発力とヘッド安定性を実現する革新的なシャフトテクノロジーをお届けします。' : '티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는 혁신적인 샤프트 테크놀로지를 제공합니다.'}
-                  </p>
                 </div>
                 
                 {/* 3군: 기술 카드 (미니멀) */}
@@ -167,8 +164,8 @@ export default function MuziikHome() {
                     </h3>
                     <p className="text-gray-300 text-sm leading-relaxed text-center">
                       {language === 'ja' 
-                        ? 'シャフト全体にチタンファイバーを使用することで、引張強度を向上させ、反発性を高めます。'
-                        : '샤프트 전체에 티타늄 파이버를 사용하여 인장 강도를 향상시키고 반발성을 높입니다.'
+                        ? '日本最高級チタンファイバーが作り出す超高速反発力の革新'
+                        : '일본 최고급 티타늄 파이버가 만들어내는 초고속 반발력의 혁신'
                       }
                     </p>
                   </div>
@@ -187,8 +184,8 @@ export default function MuziikHome() {
                     </h3>
                     <p className="text-gray-300 text-sm leading-relaxed text-center">
                       {language === 'ja' 
-                        ? 'ヘッドスピードに関係なく、様々なゴルファーに適した自動的なオートフレックスタイプ。バックスイングからインパクトまで安定したパフォーマンスを提供します。'
-                        : '헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 오토플렉스 타입. 백스윙부터 임팩트까지 안정된 퍼포먼스를 제공합니다.'
+                        ? 'すべてのゴルファーの夢を実現するオートフレックステクノロジー'
+                        : '모든 골퍼의 꿈을 실현하는 오토플렉스 테크놀로지'
                       }
                     </p>
                   </div>
