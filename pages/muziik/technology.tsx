@@ -45,10 +45,10 @@ export default function TechnologyPage() {
       
       
       // 제품 적용
-      applicationTitle: '제품 적용',
-      applicationDesc: '이러한 혁신적인 기술들이 Sapphire와 Beryl 제품에 어떻게 적용되었는지 확인해보세요.',
-      sapphireLink: 'Sapphire 제품 보기',
-      berylLink: 'Beryl 제품 보기'
+      applicationTitle: '製品適用',
+      applicationDesc: 'これらの革新的な技術がSapphireとBeryl製品にどのように適用されているかをご確認ください。',
+      sapphireLink: 'Sapphire製品を見る',
+      berylLink: 'Beryl製品を見る'
     },
     ko: {
       title: 'MUZIIK - Dogatti Generation Technology',
@@ -332,7 +332,7 @@ export default function TechnologyPage() {
                   href="/sapphire"
                   className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg p-8 hover:from-blue-800 hover:to-blue-600 transition-all duration-300"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden">
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden">
                     <img 
                       src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
                       alt="Sapphire Thumbnail"
@@ -348,7 +348,7 @@ export default function TechnologyPage() {
                   href="/beryl"
                   className="bg-gradient-to-br from-emerald-900 to-emerald-700 rounded-lg p-8 hover:from-emerald-800 hover:to-emerald-600 transition-all duration-300"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden">
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden">
                     <img 
                       src="/muziik/products/beryl/beryl_shaft_main.webp" 
                       alt="Beryl Thumbnail"
