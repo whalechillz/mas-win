@@ -309,7 +309,7 @@ export default function AboutPage() {
                   </div>
                   <div className="p-6">
                     <h4 className="text-white font-semibold text-center">
-                      {locale === 'ja' ? 'MASSGOO X MUZIIK 협업 샤프트 시안' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
+                      {locale === 'ja' ? 'MASSGOO X MUZIIK コラボレーションシャフト試案' : 'MASSGOO X MUZIIK 협업 샤프트 시안'}
                     </h4>
                   </div>
                 </div>
