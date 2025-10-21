@@ -365,8 +365,8 @@ export default function ProductPage({ product }: ProductPageProps) {
 const products = [
   {
     id: 'sapphire',
-    name: 'DOGATTI GENERATION Sapphire one-flex',
-    nameEn: 'DOGATTI GENERATION Sapphire one-flex',
+    name: 'DOGATTI GENERATION Sapphire Auto-flex',
+    nameEn: 'DOGATTI GENERATION Sapphire Auto-flex',
     description: '超高速の反発力とヘッド安定性を実現する、MUZIIK独自のチタンファイバー技術を採用したプレミアムシャフト。',
     mainImage: '/muziik/products/sapphire/sapphire_shaft_main.webp',
     shaftImage: '/muziik/products/sapphire/sapphire_shaft_40.webp',

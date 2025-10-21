@@ -116,10 +116,10 @@ export default function MuziikKoreanHome() {
                 
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-white mb-2">
-                    DOGATTI GENERATION Sapphire one-flex
+                    DOGATTI GENERATION Sapphire Auto-flex
                   </h3>
                   <p className="text-gray-300 text-sm mb-3">
-                    DOGATTI GENERATION Sapphire one-flex
+                    DOGATTI GENERATION Sapphire Auto-flex
                   </p>
                   <p className="text-gray-400 text-sm mb-4">
                     초고속의 반발력과 헤드 안정성을 실현하는, MUZIIK 독자적인 티타늄 파이버 기술을 채택한 프리미엄 샤프트.
