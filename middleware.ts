@@ -21,12 +21,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`)
   }
   
-  // muziik.masgolf.co.kr 도메인 라우팅 (API 경로 제외)
+  // muziik.masgolf.co.kr 도메인 라우팅
   if (hostname === 'muziik.masgolf.co.kr') {
-    // API 경로는 제외하고 리라이트
-    if (!pathname.startsWith('/api')) {
-      return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url))
+    // 루트 경로를 /muziik으로 리다이렉트
+    if (pathname === '/') {
+      return NextResponse.redirect(new URL('/muziik', request.url))
     }
+    // /muziik 경로를 /muziik으로 리라이트
+    if (pathname.startsWith('/muziik')) {
+      return NextResponse.rewrite(new URL(pathname, request.url))
+    }
+    // 다른 경로들도 /muziik으로 리라이트
+    return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url))
   }
   
   // 모든 도메인은 기본 라우트 사용 (pages/index.js)
