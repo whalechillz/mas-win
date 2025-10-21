@@ -4,7 +4,7 @@ import Navigation from '../../components/muziik/Navigation';
 
 export default function ContactPage() {
   const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
-  const [activeTab, setActiveTab] = useState<'general' | 'partnership' | 'collaboration'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'partnership'>('general');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,7 +29,6 @@ export default function ContactPage() {
       // 탭 메뉴
       generalTab: '一般お問い合わせ',
       partnershipTab: 'パートナーシップ',
-      collaborationTab: 'マツグコラボ',
       
       // 일반 문의
       generalTitle: '一般お問い合わせ',
@@ -39,9 +38,6 @@ export default function ContactPage() {
       partnershipTitle: 'パートナーシップお問い合わせ',
       partnershipDesc: 'フィッティングショップ、プロショップ様向け',
       
-      // 콜라보
-      collaborationTitle: 'マツグコラボお問い合わせ',
-      collaborationDesc: 'マツグドライバー + MUZIIK シャフトの組み合わせ',
       
       // 폼 필드
       name: 'お名前',
@@ -57,7 +53,6 @@ export default function ContactPage() {
       inquiryTypes: {
         general: ['製品情報', '購入相談', 'フィッティング相談', 'その他'],
         partnership: ['パートナーシップ', '卸売取引', '技術サポート', '教育資料'],
-        collaboration: ['マツグコラボ', 'カスタムフィッティング', 'プロショップ向け', '技術相談']
       },
       
       // 버튼
@@ -77,21 +72,17 @@ export default function ContactPage() {
       heroSubtitle: 'MUZIIK DOGATTI GENERATION 샤프트에 대한 문의 및 상담',
       
       // 탭 메뉴
-      generalTab: '일반 문의',
+      generalTab: '문의하기',
       partnershipTab: '파트너십',
-      collaborationTab: '마쓰구 콜라보',
       
       // 일반 문의
-      generalTitle: '일반 문의',
+      generalTitle: '문의하기',
       generalDesc: '제품 정보, 구매, 피팅에 대한 문의',
       
       // 파트너십
       partnershipTitle: '파트너십 문의',
       partnershipDesc: '피팅샵, 프로샵을 위한 B2B 문의',
       
-      // 콜라보
-      collaborationTitle: '마쓰구 콜라보 문의',
-      collaborationDesc: '마쓰구 드라이버 + MUZIIK 샤프트 조합 문의',
       
       // 폼 필드
       name: '이름',
@@ -107,7 +98,6 @@ export default function ContactPage() {
       inquiryTypes: {
         general: ['제품 정보', '구매 상담', '피팅 상담', '기타'],
         partnership: ['파트너십', '도매 거래', '기술 지원', '교육 자료'],
-        collaboration: ['마쓰구 콜라보', '커스텀 피팅', '프로샵 전용', '기술 상담']
       },
       
       // 버튼
@@ -210,7 +200,7 @@ export default function ContactPage() {
         
         {/* Open Graph */}
         <meta property="og:title" content="MUZIIK 문의하기 - 골프 샤프트 상담" />
-        <meta property="og:description" content="MUZIIK DOGATTI GENERATION 샤프트 문의 및 상담. 일반 문의, 파트너십, 마쓰구 콜라보 문의." />
+        <meta property="og:description" content="MUZIIK DOGATTI GENERATION 샤프트 문의 및 상담. 문의하기, 파트너십 문의." />
         <meta property="og:image" content="/muziik/contact-og.jpg" />
         <meta property="og:url" content="https://muziik.masgolf.co.kr/contact" />
         <meta property="og:type" content="website" />
@@ -292,35 +282,22 @@ export default function ContactPage() {
                 >
                   {t.partnershipTab}
                 </button>
-                <button
-                  onClick={() => setActiveTab('collaboration')}
-                  className={`px-6 py-3 m-2 rounded-lg font-semibold transition-all ${
-                    activeTab === 'collaboration'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  {t.collaborationTab}
-                </button>
               </div>
 
               {/* Form Content */}
               <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 shadow-2xl">
                 <div className="text-center mb-8">
                   <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
-                    {activeTab === 'general' && '📞 일반 문의'}
+                    {activeTab === 'general' && '📞 문의하기'}
                     {activeTab === 'partnership' && '🤝 파트너십'}
-                    {activeTab === 'collaboration' && '⚡ 마쓰구 콜라보'}
                   </div>
                   <h3 className="text-3xl font-bold text-white mb-4">
                     {activeTab === 'general' && t.generalTitle}
                     {activeTab === 'partnership' && t.partnershipTitle}
-                    {activeTab === 'collaboration' && t.collaborationTitle}
                   </h3>
                   <p className="text-gray-300 text-lg">
                     {activeTab === 'general' && t.generalDesc}
                     {activeTab === 'partnership' && t.partnershipDesc}
-                    {activeTab === 'collaboration' && t.collaborationDesc}
                   </p>
                 </div>
 
@@ -404,7 +381,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Partnership/Collaboration specific fields */}
-                  {(activeTab === 'partnership' || activeTab === 'collaboration') && (
+                  {activeTab === 'partnership' && (
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-white font-semibold mb-2">
@@ -502,7 +479,7 @@ export default function ContactPage() {
         <section className="py-16 bg-black">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold text-white mb-8">
-              {language === 'ja' ? 'お問い合わせ先' : '문의처'}
+              {language === 'ja' ? 'お問い合わせ先' : '연락처'}
             </h2>
             <div className="max-w-2xl mx-auto">
               <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
