@@ -148,25 +148,45 @@ export default function ContactPage() {
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
+    // 폼 데이터 검증
+    if (!formData.name || !formData.email || !formData.message) {
+      setSubmitStatus('error');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('type', activeTab);
-      formDataToSend.append('language', language);
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null) {
-          formDataToSend.append(key, value.toString());
-        }
+      // JSON으로 전송 (FormData 대신)
+      const requestData = {
+        type: activeTab,
+        language: language,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        businessNumber: formData.businessNumber,
+        inquiryType: formData.inquiryType,
+        message: formData.message,
+        quantity: formData.quantity
+      };
+
+      console.log('전송할 데이터:', requestData);
+
+      const response = await fetch('/api/contact/muziik', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
       });
 
-      console.log('Contact 폼에서 API 호출 시작...');
-      const response = await fetch('/api/contact/muziik/', {
-        method: 'POST',
-        body: formDataToSend
-      });
       console.log('API 응답 상태:', response.status);
+      const result = await response.json();
+      console.log('API 응답 내용:', result);
 
       if (response.ok) {
         setSubmitStatus('success');
+        // 폼 초기화
         setFormData({
           name: '',
           email: '',
@@ -180,8 +200,10 @@ export default function ContactPage() {
         });
       } else {
         setSubmitStatus('error');
+        console.error('API 에러:', result);
       }
     } catch (error) {
+      console.error('네트워크 에러:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
