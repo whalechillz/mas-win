@@ -52,9 +52,7 @@ export default function MuziikKoreanHome() {
                 DOGATTI GENERATION 샤프트
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                일본제 프리미엄 골프 샤프트의 최고봉.<br />
-                티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는<br />
-                혁신적인 샤프트 테크놀로지를 제공합니다.
+                일본제 프리미엄 골프 샤프트의 최고봉. 티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는 혁신적인 샤프트 테크놀로지를 제공합니다.
               </p>
             </div>
           </div>
@@ -243,8 +241,7 @@ export default function MuziikKoreanHome() {
               문의하기
             </h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요.<br />
-              전문 스태프가 고객님의 니즈에 최적한 샤프트를 제안해 드립니다.
+              자세한 정보나 커스텀 오더에 대해서는 언제든지 문의해 주세요. 전문 스태프가 고객님의 니즈에 최적한 샤프트를 제안해 드립니다.
             </p>
             <a 
               href="mailto:massgoogolf@gmail.com"
