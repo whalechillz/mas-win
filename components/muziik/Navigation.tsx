@@ -238,6 +238,16 @@ export default function Navigation({ language, onLanguageChange, currentPath }: 
                 {t.about}
               </Link>
               
+              {/* 모바일 전화번호 버튼 */}
+              <a 
+                href="tel:+82-80-028-8888"
+                className="bg-green-600 text-white px-4 py-3 rounded-lg text-center font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                onClick={closeMobileMenu}
+              >
+                <span>📞</span>
+                <span>+82-80-028-8888</span>
+              </a>
+              
               <Link 
                 href="/contact" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-center"
