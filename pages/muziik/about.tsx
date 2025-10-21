@@ -379,7 +379,10 @@ export default function AboutPage() {
                           {feature}
                         </h3>
                         <p className="text-gray-400 text-sm">
-                          {language === 'ja' ? '最先端技術' : '최첨단 기술'}
+                          {index === 0 && (language === 'ja' ? '高強度複合材料' : '고강도 복합재료')}
+                          {index === 1 && (language === 'ja' ? '超高速反発力' : '초고속 반발력')}
+                          {index === 2 && (language === 'ja' ? '安定したスイング' : '안정된 스윙')}
+                          {index === 3 && (language === 'ja' ? '精密制御' : '정밀한 제어')}
                         </p>
                       </div>
                     </div>
