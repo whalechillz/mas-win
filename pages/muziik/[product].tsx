@@ -418,8 +418,8 @@ const products = [
   },
   {
     id: 'beryl',
-    name: 'DOGATTI GENERATION Beryl_40',
-    nameEn: 'DOGATTI GENERATION Beryl_40',
+    name: 'DOGATTI GENERATION Beryl',
+    nameEn: 'DOGATTI GENERATION Beryl',
     description: '高弾性カーボンシートとチタンファイバーを組み合わせた、美しさと性能を兼ね備えたプレミアムシャフト。',
     mainImage: '/muziik/products/beryl/beryl_shaft_main.webp',
     shaftImage: '/muziik/products/beryl/beryl_shaft_40.webp',

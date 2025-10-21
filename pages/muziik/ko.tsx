@@ -168,10 +168,10 @@ export default function MuziikKoreanHome() {
                 
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-white mb-2">
-                    DOGATTI GENERATION Beryl_40
+                    DOGATTI GENERATION Beryl
                   </h3>
                   <p className="text-gray-300 text-sm mb-3">
-                    DOGATTI GENERATION Beryl_40
+                    DOGATTI GENERATION Beryl
                   </p>
                   <p className="text-gray-400 text-sm mb-4">
                     고탄성 카본 시트와 티타늄 파이버를 조합한, 아름다움과 성능을 겸비한 프리미엄 샤프트.
