@@ -5,7 +5,6 @@ import Navigation from '../../components/muziik/Navigation';
 
 export default function MuziikHome() {
   const [language, setLanguage] = useState<'ja' | 'ko'>('ko');
-  const [showComparison, setShowComparison] = useState<'new' | 'old' | null>(null);
 
   // 언어별 콘텐츠
   const content = {
@@ -90,46 +89,8 @@ export default function MuziikHome() {
           currentPath="/muziik"
         />
 
-        {/* Comparison Toggle */}
-        <div className="bg-gray-900 border-b border-gray-800 py-4">
-          <div className="container mx-auto px-4">
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={() => setShowComparison('new')}
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                  showComparison === 'new' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {language === 'ja' ? '新規版' : '신규 버전'}
-              </button>
-              <button
-                onClick={() => setShowComparison('old')}
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                  showComparison === 'old' 
-                    ? 'bg-red-600 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {language === 'ja' ? '既存版' : '기존 버전'}
-              </button>
-              <button
-                onClick={() => setShowComparison(null)}
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                  showComparison === null 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {language === 'ja' ? '通常表示' : '일반 표시'}
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* Hero Section - New Version */}
-        {showComparison !== 'old' && (
+        {/* Hero Section */}
           <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20">
             <div className="container mx-auto px-4">
               <div className="text-center">
@@ -160,7 +121,7 @@ export default function MuziikHome() {
                     MUZIIK
                   </h1>
                   <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
-                    우아한 엔지니어링. 폭발적인 파워. 나이를 뛰어넘는 퍼포먼스.
+                    우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.
                   </p>
                   <p className="text-gray-400 text-base max-w-3xl mx-auto leading-relaxed">
                     티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는<br/>
@@ -210,90 +171,9 @@ export default function MuziikHome() {
                     </p>
                   </div>
                 </div>
-              </div>
             </div>
-          </section>
-        )}
-
-        {/* Hero Section - Old Version */}
-        {showComparison === 'old' && (
-          <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 py-20">
-            <div className="container mx-auto px-4">
-              <div className="text-center">
-                <div className="mb-6">
-                  <span className="inline-block bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
-                    NEW
-                  </span>
-                </div>
-                <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-                  {t.heroTitle}
-                </h1>
-                <h2 className="text-2xl md:text-3xl text-blue-400 mb-8">
-                  {t.heroSubtitle}
-                </h2>
-                <p 
-                  className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8"
-                  dangerouslySetInnerHTML={{ __html: t.heroDescription }}
-                />
-                
-                {/* Technology Highlights */}
-                <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
-                  <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                    <div className="aspect-[16/9] w-full overflow-hidden">
-                      <img 
-                        src="/muziik/technology/dogatti-nano-resin.webp" 
-                        alt="나노레벨 수지"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-white font-semibold mb-1">
-                        {language === 'ja' ? 'ナノレベル樹脂' : '나노레벨 수지'}
-                      </h3>
-                      <p className="text-gray-300 text-sm">
-                        {language === 'ja' ? '樹脂含有率削減で弾き向上' : '수지 함유율 감소로 반발성 향상'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                    <div className="aspect-[16/9] w-full overflow-hidden">
-                      <img 
-                        src="/muziik/technology/dogatti-reverse-torque.webp" 
-                        alt="역토크 방지"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-white font-semibold mb-1">
-                        {language === 'ja' ? '逆トルク防止' : '역토크 방지'}
-                      </h3>
-                      <p className="text-gray-300 text-sm">
-                        {language === 'ja' ? 'インパクト時のコントロール向上' : '임팩트시 컨트롤 향상'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-black bg-opacity-30 rounded-lg border border-blue-500 overflow-hidden">
-                    <div className="aspect-[16/9] w-full overflow-hidden">
-                      <img 
-                        src="/muziik/technology/dogatti-titanium-fiber.webp" 
-                        alt="티타늄 섬유 전장 사용"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-white font-semibold mb-1">
-                        {language === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
-                      </h3>
-                      <p className="text-gray-300 text-sm">
-                        {language === 'ja' ? '軽量で高弾性実現' : '경량으로 고탄성 실현'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
+          </div>
+        </section>
 
         {/* Japan Titanium Section */}
         <section className="py-16 bg-gradient-to-br from-gray-800 to-gray-900">
