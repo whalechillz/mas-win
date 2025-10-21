@@ -23,7 +23,7 @@ export default function ContactPage() {
     ja: {
       title: 'MUZIIK - お問い合わせ',
       description: 'MUZIIK DOGATTI GENERATION シャフトに関するお問い合わせはこちらから',
-      heroTitle: 'お問い合わせ',
+      heroTitle: 'お問い合わせ・ご相談',
       heroSubtitle: 'MUZIIK DOGATTI GENERATION シャフトに関するご質問・ご相談',
       
       // 탭 메뉴
@@ -63,7 +63,11 @@ export default function ContactPage() {
       
       // 성공 메시지
       successMessage: 'お問い合わせを受け付けました。2営業日以内にご連絡いたします。',
-      errorMessage: '送信に失敗しました。しばらく時間をおいて再度お試しください。'
+      errorMessage: '送信に失敗しました。しばらく時間をおいて再度お試しください。',
+      
+      // Placeholder 텍스트
+      selectPlaceholder: '選択してください',
+      messagePlaceholder: 'お問い合わせ内容を詳しくご記入ください'
     },
     ko: {
       title: 'MUZIIK - 문의하기',
@@ -108,7 +112,11 @@ export default function ContactPage() {
       
       // 성공 메시지
       successMessage: '문의가 접수되었습니다. 영업일 기준 2일 이내에 연락드리겠습니다.',
-      errorMessage: '전송에 실패했습니다. 잠시 후 다시 시도해주세요.'
+      errorMessage: '전송에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      
+      // Placeholder 텍스트
+      selectPlaceholder: '선택해주세요',
+      messagePlaceholder: '문의 내용을 자세히 작성해주세요'
     }
   };
 
@@ -288,8 +296,8 @@ export default function ContactPage() {
               <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 shadow-2xl">
                 <div className="text-center mb-8">
                   <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
-                    {activeTab === 'general' && '📞 일반 문의'}
-                    {activeTab === 'partnership' && '🤝 파트너십'}
+                    {activeTab === 'general' && `📞 ${t.generalTab}`}
+                    {activeTab === 'partnership' && `🤝 ${t.partnershipTab}`}
                   </div>
                   <h3 className="text-3xl font-bold text-white mb-4">
                     {activeTab === 'general' && t.generalTitle}
@@ -372,7 +380,7 @@ export default function ContactPage() {
                         required
                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                       >
-                        <option value="">선택해주세요</option>
+                        <option value="">{t.selectPlaceholder}</option>
                         {t.inquiryTypes[activeTab].map((type) => (
                           <option key={type} value={type}>{type}</option>
                         ))}
@@ -438,7 +446,7 @@ export default function ContactPage() {
                       required
                       rows={6}
                       className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                      placeholder="문의 내용을 자세히 작성해주세요"
+                      placeholder={t.messagePlaceholder}
                     />
                   </div>
 
