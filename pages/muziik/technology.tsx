@@ -334,7 +334,7 @@ export default function TechnologyPage() {
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden">
                     <img 
-                      src="/muziik/products/sapphire/sapphire_thumbnail.webp" 
+                      src="/muziik/products/sapphire/sapphire_shaft_main2.webp" 
                       alt="Sapphire Thumbnail"
                       className="w-full h-full object-cover"
                     />
@@ -350,7 +350,7 @@ export default function TechnologyPage() {
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-lg overflow-hidden">
                     <img 
-                      src="/muziik/products/beryl/beryl_thumbnail.webp" 
+                      src="/muziik/products/beryl/beryl_shaft_main.webp" 
                       alt="Beryl Thumbnail"
                       className="w-full h-full object-cover"
                     />
