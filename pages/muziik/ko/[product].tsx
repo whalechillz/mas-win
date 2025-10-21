@@ -185,7 +185,7 @@ export default function KoreanProductPage({ product }: ProductPageProps) {
                     <th className="px-4 py-3 text-left text-white font-semibold">버트직경(mm)</th>
                     <th className="px-4 py-3 text-left text-white font-semibold">토크(°)</th>
                     {product.specs[0]?.frequency && (
-                      <th className="px-4 py-3 text-left text-white font-semibold">진동수(cpm)</th>
+                      <th className="px-4 py-3 text-left text-white font-semibold">CPM</th>
                     )}
                     {product.specs[0]?.kickPoint && (
                       <th className="px-4 py-3 text-left text-white font-semibold">킥포인트</th>
