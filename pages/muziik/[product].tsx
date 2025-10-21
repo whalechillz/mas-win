@@ -175,7 +175,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                           </div>
                         ))}
                         <div className="mt-2 text-xs text-gray-400">
-                          {language === 'ja' ? '全長' : '전장'}: 1168mm | 
+                          {language === 'ja' ? '全長' : '전장'}: 1130mm | 
                           {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
                           {language === 'ja' ? 'Butt' : 'Butt'}: 15.05-15.4mm
                         </div>
@@ -200,7 +200,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                           </div>
                         ))}
                         <div className="mt-2 text-xs text-gray-400">
-                          {language === 'ja' ? '全長' : '전장'}: 1168mm | 
+                          {language === 'ja' ? '全長' : '전장'}: 1136mm | 
                           {language === 'ja' ? 'Tip' : 'Tip'}: 8.55mm | 
                           {language === 'ja' ? 'Butt' : 'Butt'}: 14.95-15.3mm
                         </div>
