@@ -9,6 +9,8 @@ interface BaseChannelEditorProps {
   channelType: 'sms' | 'kakao' | 'naver';
   channelName: string;
   calendarId?: string;
+  hubId?: string;
+  channelKey?: string;
   initialData?: any;
   onSave?: (data: any) => void;
   onSend?: (data: any) => void;
@@ -19,6 +21,8 @@ export default function BaseChannelEditor({
   channelType,
   channelName,
   calendarId,
+  hubId,
+  channelKey,
   initialData,
   onSave,
   onSend,
@@ -37,7 +41,7 @@ export default function BaseChannelEditor({
     saveDraft,
     sendMessage,
     loadFromBlog
-  } = useChannelEditor(channelType, calendarId, initialData);
+  } = useChannelEditor(channelType, calendarId, initialData, hubId, channelKey);
 
   // 블로그 소스에서 내용 가져오기
   const handleFetchBlogSource = async () => {

@@ -18,6 +18,7 @@ export default function BlogAdmin() {
   const [activeTab, setActiveTab] = useState('list');
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
+  const [editingPostId, setEditingPostId] = useState(null);
   const [viewMode, setViewMode] = useState('list');
   const [sortBy, setSortBy] = useState('published_at');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -514,7 +515,7 @@ export default function BlogAdmin() {
     content: '',
     featured_image: '',
     category: '고객 후기',
-    tags: [],
+    tags: [] as string[],
     status: 'published',
     meta_title: '',
     meta_description: '',
@@ -522,7 +523,7 @@ export default function BlogAdmin() {
     view_count: 0,
     is_featured: false,
     is_scheduled: false,
-    scheduled_at: null,
+    scheduled_at: null as string | null,
     author: '마쓰구골프',
     // 추가 필드들
     summary: '',
@@ -537,11 +538,35 @@ export default function BlogAdmin() {
   const loadPostForEdit = useCallback(async (postId: string) => {
     try {
       console.log('🔍 포스트 로드 중:', postId);
-      const response = await fetch(`/api/admin/blog?id=${postId}`);
+      const response = await fetch(`/api/admin/blog/${postId}`);
       
       if (response.ok) {
-        const post = await response.json();
+        const data = await response.json();
+        const post = data.post;
         console.log('✅ 포스트 로드 성공:', post);
+        
+        // 편집할 포스트 객체 설정
+        setEditingPost(post);
+        
+        // 허브 모드인 경우 허브 데이터 로드
+        console.log('🔍 router.query 확인:', router.query);
+        console.log('🔍 router.query.hub:', router.query.hub);
+        console.log('🔍 post.calendar_id:', post.calendar_id);
+        
+        // URL에서 직접 hub 파라미터 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const hubId = urlParams.get('hub');
+        console.log('🔍 URL에서 직접 확인:', { hubId, search: window.location.search });
+        
+        if (hubId) {
+          console.log('🔗 허브 모드 감지 (URL 파라미터), 허브 데이터 로드 중...', hubId);
+          await loadHubData(hubId);
+        } else if (post.calendar_id) {
+          console.log('🔗 허브 모드 감지 (블로그 포스트 calendar_id), 허브 데이터 로드 중...', post.calendar_id);
+          await loadHubData(post.calendar_id);
+        } else {
+          console.log('❌ 허브 파라미터가 없습니다.');
+        }
         
         setFormData({
           title: post.title || '',
@@ -635,6 +660,31 @@ export default function BlogAdmin() {
   const [hubData, setHubData] = useState(null);
   const [isHubMode, setIsHubMode] = useState(false);
 
+  // 허브 데이터 로드 함수
+  const loadHubData = async (hubId: string) => {
+    try {
+      console.log('🔍 허브 데이터 로드 중...', hubId);
+      const response = await fetch(`/api/admin/content-calendar-hub?id=${hubId}`);
+      const data = await response.json();
+      
+      if (response.ok && data.data && data.data.length > 0) {
+        const hubContent = data.data[0]; // 첫 번째 항목이 해당 허브 콘텐츠
+        console.log('✅ 허브 데이터 로드 성공:', hubContent);
+        setHubData({
+          id: hubContent.id,
+          hubId: hubContent.id,
+          title: hubContent.title,
+          summary: hubContent.summary
+        });
+        setIsHubMode(true);
+      } else {
+        console.error('❌ 허브 데이터 로드 실패:', data.error);
+      }
+    } catch (error) {
+      console.error('❌ 허브 데이터 로드 오류:', error);
+    }
+  };
+
   // URL 파라미터 확인 (허브 연동)
   useEffect(() => {
     if (router.query.hub && router.query.title && router.query.summary) {
@@ -655,13 +705,20 @@ export default function BlogAdmin() {
         slug: '',
         featured_image: '',
         category: '고객 후기',
-        tags: [],
+        tags: [] as string[],
         status: 'draft',
         meta_title: '',
         meta_description: '',
         meta_keywords: '',
         view_count: 0,
         is_featured: false,
+        is_scheduled: false,
+        scheduled_at: null as string | null,
+        author: '마쓰구골프',
+        summary: '',
+        customerpersona: '',
+        conversiongoal: 'homepage_visit',
+        target_product: 'all',
         published_at: new Date().toISOString().slice(0, 16),
         created_at: ''
       });
@@ -738,7 +795,7 @@ export default function BlogAdmin() {
       content: '',
       featured_image: '',
       category: '고객 후기',
-      tags: [],
+      tags: [] as string[],
       status: 'published',
       meta_title: '',
       meta_description: '',
@@ -746,7 +803,7 @@ export default function BlogAdmin() {
       view_count: 0,
       is_featured: false,
       is_scheduled: false,
-      scheduled_at: null,
+      scheduled_at: null as string | null,
       author: '마쓰구골프',
       // 추가 필드들
       summary: '',
@@ -783,12 +840,20 @@ export default function BlogAdmin() {
     try {
       console.log('📝 게시물 저장 중...');
       
+      // 허브 모드일 때 calendar_id 포함하여 저장
+      const submitData = {
+        ...formData,
+        ...(isHubMode && hubData ? { calendar_id: hubData.hubId } : {})
+      };
+      
+      console.log('📝 저장 데이터:', { isHubMode, hubData, submitData });
+      
       if (editingPost) {
         // 수정
         const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(submitData)
         });
         
         if (response.ok) {
@@ -829,7 +894,7 @@ export default function BlogAdmin() {
         const response = await fetch('/api/admin/blog/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(submitData)
         });
         
         if (response.ok) {
@@ -865,7 +930,36 @@ export default function BlogAdmin() {
             // 캘린더 등록 실패해도 블로그 저장은 성공으로 처리
           }
           
+          // 허브 상태 동기화 (허브 모드일 때)
+          if (isHubMode && hubData) {
+            try {
+              console.log('🔄 허브 상태 동기화 시작...', { hubId: hubData.hubId, blogId: savedBlog.id });
+              const syncResponse = await fetch('/api/admin/sync-channel-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  hubContentId: hubData.hubId,
+                  channel: 'blog',
+                  channelContentId: savedBlog.id,
+                  status: '수정중'
+                })
+              });
+              
+              if (syncResponse.ok) {
+                console.log('✅ 허브 상태 동기화 완료');
+                alert('게시물이 생성되었습니다! 허브와 연결되었습니다.');
+              } else {
+                console.error('❌ 허브 상태 동기화 실패');
+                alert('게시물이 생성되었지만 허브 연결에 실패했습니다.');
+              }
+            } catch (syncError) {
+              console.error('❌ 허브 상태 동기화 오류:', syncError);
+              alert('게시물이 생성되었지만 허브 연결에 실패했습니다.');
+            }
+          } else {
           alert('게시물이 생성되었습니다! 콘텐츠 캘린더에도 자동 등록되었습니다.');
+          }
+          
           fetchPosts();
           resetForm();
           
@@ -882,6 +976,55 @@ export default function BlogAdmin() {
       } finally {
         setIsSubmitting(false);
       }
+    }
+  };
+
+  // 허브 연동 해제
+  const handleUnlinkHub = async () => {
+    if (!confirm('허브 연동을 해제하시겠습니까?')) return;
+    
+    try {
+      console.log('🔗 허브 연동 해제 중...', { hubId: hubData?.hubId });
+      
+      // 블로그에서 calendar_id 제거
+      if (editingPost) {
+        const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ calendar_id: null })
+        });
+        
+        if (!response.ok) {
+          throw new Error('블로그 업데이트 실패');
+        }
+      }
+      
+      // 허브 상태를 미발행으로 변경
+      if (hubData) {
+        const syncResponse = await fetch('/api/admin/sync-channel-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hubContentId: hubData.hubId,
+            channel: 'blog',
+            channelContentId: null,
+            status: '미발행'
+          })
+        });
+        
+        if (!syncResponse.ok) {
+          console.error('❌ 허브 상태 동기화 실패');
+        }
+      }
+      
+      // 허브 모드 해제
+      setIsHubMode(false);
+      setHubData(null);
+      alert('허브 연동이 해제되었습니다.');
+      
+    } catch (error) {
+      console.error('❌ 허브 연동 해제 오류:', error);
+      alert('허브 연동 해제에 실패했습니다.');
     }
   };
 
@@ -1267,7 +1410,7 @@ export default function BlogAdmin() {
           content: post.content || '',
         featured_image: post.featured_image || '',
         category: post.category || '고객 후기',
-        tags: Array.isArray(post.tags) ? post.tags : [],
+        tags: Array.isArray(post.tags) ? post.tags : [] as string[],
         status: post.status || 'draft',
         meta_title: post.meta_title || '',
         meta_description: post.meta_description || '',
@@ -1275,14 +1418,15 @@ export default function BlogAdmin() {
         view_count: post.view_count || 0,
         is_featured: post.is_featured || false,
         is_scheduled: post.is_scheduled || false,
-        scheduled_at: post.scheduled_at || null,
+        scheduled_at: post.scheduled_at || null as string | null,
         author: post.author || '마쓰구골프',
         // 추가 필드들
         summary: post.summary || '',
         customerpersona: post.customer_persona || '',
         conversiongoal: post.conversion_goal || 'homepage_visit',
         target_product: post.target_product || 'all',
-        published_at: post.published_at || ''
+        published_at: post.published_at || '',
+        created_at: post.created_at || ''
       });
       
     setShowForm(true);
@@ -1802,9 +1946,10 @@ export default function BlogAdmin() {
     try {
       setIsGeneratingParagraphImages(true);
       setShowGenerationProcess(true);
-      setImageGenerationModel('FAL AI (단락별)');
-      setImageGenerationStep('수정된 프롬프트로 이미지 생성 중...');
+      setImageGenerationModel('FAL AI (수정 프롬프트)');
+      setImageGenerationStep('1단계: 프롬프트 준비 중...');
       
+      setImageGenerationStep('2단계: FAL AI로 이미지 생성 중...');
       const res = await fetch('/api/generate-paragraph-images-with-prompts', {
         method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1819,7 +1964,7 @@ export default function BlogAdmin() {
         throw new Error(errorData.message || '이미지 생성 실패');
       }
       
-      setImageGenerationStep('본문에 삽입 중...');
+      setImageGenerationStep('3단계: 이미지 저장 중...');
       const data = await res.json();
       console.log('📷 단락별 이미지 생성 API 응답:', data);
       
@@ -1836,7 +1981,7 @@ export default function BlogAdmin() {
       setGeneratedImages(prev => [...prev, ...urls]);
       setShowGeneratedImages(true);
       
-      setImageGenerationStep('완료!');
+      setImageGenerationStep('4단계: 완료!');
       alert(`${urls.length}개의 이미지가 수정된 프롬프트로 생성되어 갤러리에 추가되었습니다. 필요시 갤러리에서 본문에 삽입하세요.`);
       
     } catch (e: any) {
@@ -3856,7 +4001,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         console.log('🚀 빠른 편집 모드 진입 (edit):', postId);
         console.log('🔍 현재 상태:', { showForm, activeTab, editingPost });
         
-        setEditingPost(postId);
+        setEditingPostId(postId);
         setShowForm(true);
         setActiveTab('edit');
         console.log('✅ 편집 모드 설정 완료');
@@ -3869,7 +4014,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         console.log('🚀 빠른 편집 모드 진입 (id):', postId);
         
         // 즉시 편집 모드 설정
-        setEditingPost(postId);
+        setEditingPostId(postId);
         setShowForm(true);
         setActiveTab('edit');
         console.log('✅ 편집 모드 즉시 설정 완료');
@@ -4070,7 +4215,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 onClick={() => {
                   // 새 게시물 작성 시 formData 초기화
                   setFormData({
-                    id: null,
                     title: '',
                     content: '',
                     excerpt: '',
@@ -4081,10 +4225,18 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     meta_title: '',
                     meta_description: '',
                     meta_keywords: '',
-                    tags: [],
-                    target_audience: 'all',
+                    tags: [] as string[],
+                    view_count: 0,
+                    is_featured: false,
+                    is_scheduled: false,
+                    scheduled_at: null as string | null,
+                    author: '마쓰구골프',
+                    summary: '',
+                    customerpersona: '',
+                    conversiongoal: 'homepage_visit',
                     target_product: 'all',
-                    published_at: ''
+                    published_at: '',
+                    created_at: ''
                   });
                   setEditingPost(null);
                   setActiveTab('create');
@@ -4692,16 +4844,37 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                               {/* 허브 연동 ID */}
                               <div className="flex items-center space-x-2">
                                 {post.calendar_id ? (
-                                  <span 
-                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
-                                    title={`허브 ID: ${post.calendar_id}`}
-                                    onClick={() => {
-                                      // 허브 콘텐츠로 이동
-                                      window.open(`/admin/content-calendar-hub`, '_blank');
-                                    }}
-                                  >
-                                    허브: {post.calendar_id.substring(0, 8)}...
-                                  </span>
+                                  <div className="flex items-center space-x-2">
+                                    <span 
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
+                                      title={`허브 ID: ${post.calendar_id}`}
+                                      onClick={() => {
+                                        // 허브 콘텐츠로 이동
+                                        window.open(`/admin/content-calendar-hub`, '_blank');
+                                      }}
+                                    >
+                                      🔗 연결됨: {post.calendar_id.substring(0, 8)}...
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        if (confirm('허브 연결을 해제하시겠습니까?')) {
+                                          // 연결 해제 로직
+                                          fetch(`/api/admin/blog/${post.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ calendar_id: null })
+                                          }).then(() => {
+                                            alert('허브 연결이 해제되었습니다.');
+                                            fetchPosts();
+                                          });
+                                        }
+                                      }}
+                                      className="text-red-500 hover:text-red-700 text-xs"
+                                      title="허브 연결 해제"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
                                 ) : (
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                     미연결
@@ -4759,15 +4932,28 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
           )}
 
           {/* 새 게시물 작성/수정 폼 */}
-          {activeTab === 'create' && (
+          {showForm && (activeTab === 'create' || activeTab === 'edit') && (
             <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="mb-6">
+              <div className="mb-6 flex justify-between items-center">
+                <div>
                 <h2 className="text-2xl font-bold text-gray-900">
                 {editingPost ? '게시물 수정' : '새 게시물 작성'}
               </h2>
                 <p className="text-gray-600 mt-1">
                   {editingPost ? '게시물을 수정하세요.' : '새로운 게시물을 작성하세요.'}
                   </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingPost(null);
+                    setEditingPostId(null);
+                    setActiveTab('list');
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  ✕ 닫기
+                </button>
                 </div>
 
                 {/* 허브 연동 정보 표시 */}
@@ -4779,6 +4965,10 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-start space-x-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">허브 ID:</span>
+                        <span className="text-sm text-gray-900 font-mono">{hubData.id}</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
                         <span className="text-sm font-medium text-gray-700 w-16">제목:</span>
                         <span className="text-sm text-gray-900">{hubData.title}</span>
                       </div>
@@ -4789,33 +4979,13 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       <div className="flex items-center space-x-2 mt-3">
                         <button
                           type="button"
-                          onClick={() => {
-                            setIsHubMode(false);
-                            setHubData(null);
-                            setFormData({
-                              title: '',
-                              content: '',
-                              excerpt: '',
-                              slug: '',
-                              featured_image: '',
-                              category: '고객 후기',
-                              tags: [],
-                              status: 'draft',
-                              meta_title: '',
-                              meta_description: '',
-                              meta_keywords: '',
-                              view_count: 0,
-                              is_featured: false,
-                              published_at: new Date().toISOString().slice(0, 16),
-                              created_at: ''
-                            });
-                          }}
+                          onClick={handleUnlinkHub}
                           className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
                         >
                           허브 연동 해제
                         </button>
                         <span className="text-xs text-gray-500">
-                          허브 콘텐츠를 기반으로 블로그 포스트를 작성합니다
+                          초안 저장 시 자동으로 허브 상태가 동기화됩니다.
                         </span>
                       </div>
                     </div>

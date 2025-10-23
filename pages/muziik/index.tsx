@@ -13,7 +13,8 @@ export default function MuziikHome() {
       title: 'MUZIIK - DOGATTI GENERATION シャフト',
       description: 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフトの最高峰。チタンファイバー技術による超高速反発力とヘッド安定性を実現。',
       heroTitle: 'MUZIIK',
-      heroSubtitle: 'DOGATTI GENERATION シャフト',
+      heroKicker: 'DOGATTI GENERATION シャフト',
+      heroSubtitle: 'チタンファイバーシャフト',
       heroDescription: '日本製プレミアムゴルフシャフトの最高峰。チタンファイバー技術による超高速反発力とヘッド安定性を実現する、革新的なシャフトテクノロジーをお届けします。',
       featuresTitle: 'MUZIIKの特徴',
       feature1: '超高速反発力',
@@ -33,7 +34,8 @@ export default function MuziikHome() {
       title: 'MUZIIK - DOGATTI GENERATION 샤프트',
       description: 'DOGATTI GENERATION 샤프트 - 일본제 프리미엄 골프 샤프트의 최고봉. 티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현합니다.',
       heroTitle: 'MUZIIK',
-      heroSubtitle: 'DOGATTI GENERATION 샤프트',
+      heroKicker: 'DOGATTI GENERATION 샤프트',
+      heroSubtitle: '티타늄 파이버 샤프트',
       heroDescription: '일본제 프리미엄 골프 샤프트의 최고봉. 티타늄 파이버 기술로 초고속 반발력과 헤드 안정성을 실현하는 혁신적인 샤프트 테크놀로지를 제공합니다.',
       featuresTitle: 'MUZIIK의 특징',
       feature1: '초고속 반발력',
@@ -134,7 +136,7 @@ export default function MuziikHome() {
                 </div>
                 
                 <div className="text-blue-400 text-lg font-medium mb-12">
-                  {t.heroSubtitle}
+                  {t.heroKicker}
                 </div>
                 
                 {/* 2군: 메인 메시지 */}
@@ -153,7 +155,7 @@ export default function MuziikHome() {
                   <div className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-8 border border-blue-500/30 hover:border-blue-400 transition-all duration-300">
                     <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                       <img 
-                        src="/muziik/brand/titan_1.png" 
+                        src="/muziik/brand/titan_1_bg.webp" 
                         alt={locale === 'ja' ? 'チタン原石' : '티타늄 원석'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

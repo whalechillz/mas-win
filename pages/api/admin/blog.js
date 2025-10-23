@@ -243,6 +243,11 @@ export default async function handler(req, res) {
       
       console.log('📅 최종 published_at 값:', postData.published_at);
       
+      // calendar_id 처리 (허브 연결)
+      if (postData.calendar_id) {
+        console.log('🔗 허브 연결 모드:', { calendar_id: postData.calendar_id });
+      }
+      
       const { data: newPost, error } = await supabase
         .from('blog_posts')
         .insert([postData])
@@ -301,6 +306,31 @@ export default async function handler(req, res) {
         }
       } catch (calendarError) {
         console.warn('⚠️ 콘텐츠 캘린더 등록 중 오류:', calendarError);
+      }
+      
+      // 허브 상태 동기화 (calendar_id가 있는 경우)
+      if (postData.calendar_id) {
+        try {
+          console.log('🔄 허브 상태 동기화 시작...', { hubId: postData.calendar_id, blogId: newPost.id });
+          const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hubContentId: postData.calendar_id,
+              channel: 'blog',
+              channelContentId: newPost.id,
+              status: '수정중'
+            })
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ 허브 상태 동기화 완료');
+          } else {
+            console.error('❌ 허브 상태 동기화 실패');
+          }
+        } catch (syncError) {
+          console.error('❌ 허브 상태 동기화 오류:', syncError);
+        }
       }
       
       return res.status(201).json({ post: newPost });

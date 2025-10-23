@@ -11,7 +11,34 @@ export default async function handler(req, res) {
   console.log('🔍 개별 게시물 API 요청:', req.method, 'ID:', id);
   
   try {
-    if (req.method === 'PUT') {
+    if (req.method === 'GET') {
+      // 게시물 조회
+      console.log('📖 게시물 조회 중...', id);
+      
+      const { data: post, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('❌ 게시물 조회 오류:', error);
+        return res.status(404).json({
+          error: '게시물을 찾을 수 없습니다.',
+          details: error.message
+        });
+      }
+      
+      if (!post) {
+        return res.status(404).json({
+          error: '게시물이 존재하지 않습니다.'
+        });
+      }
+      
+      console.log('✅ 게시물 조회 성공:', post.id);
+      return res.status(200).json({ post });
+      
+    } else if (req.method === 'PUT') {
       // 게시물 수정
       console.log('📝 게시물 수정 중...');
       
@@ -103,6 +130,21 @@ export default async function handler(req, res) {
       // 게시물 삭제
       console.log('🗑️ 게시물 삭제 중...');
       
+      // 삭제 전에 허브 연결 정보 확인
+      const { data: blogData, error: fetchError } = await supabase
+        .from('blog_posts')
+        .select('calendar_id')
+        .eq('id', id)
+        .single();
+      
+      if (fetchError) {
+        console.error('❌ 블로그 데이터 조회 오류:', fetchError);
+        return res.status(500).json({
+          error: '블로그 데이터를 조회할 수 없습니다.',
+          details: fetchError.message
+        });
+      }
+      
       const { error } = await supabase
         .from('blog_posts')
         .delete()
@@ -114,6 +156,30 @@ export default async function handler(req, res) {
           error: '게시물을 삭제할 수 없습니다.',
           details: error.message
         });
+      }
+      
+      // 허브 상태 동기화 (블로그 삭제 시 상태를 미발행으로 변경)
+      if (blogData?.calendar_id) {
+        try {
+          const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hubContentId: blogData.calendar_id,
+              channel: 'blog',
+              channelContentId: null,
+              status: '미발행'
+            })
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ 블로그 삭제 후 허브 상태 동기화 완료');
+          } else {
+            console.error('❌ 블로그 삭제 후 허브 상태 동기화 실패');
+          }
+        } catch (syncError) {
+          console.error('❌ 블로그 삭제 후 허브 상태 동기화 오류:', syncError);
+        }
       }
       
       console.log('✅ 게시물 삭제 성공:', id);

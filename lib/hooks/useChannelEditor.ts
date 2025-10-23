@@ -29,14 +29,21 @@ export interface ChannelPost {
   updatedAt: string;
 }
 
-export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
+export const useChannelEditor = (
+  channelType: 'sms' | 'kakao' | 'naver',
+  calendarId?: string,
+  initialData?: any,
+  hubId?: string,
+  channelKey?: string
+) => {
   const [formData, setFormData] = useState<ChannelFormData>({
-    title: '',
-    content: '',
-    imageUrl: '',
-    shortLink: '',
+    title: initialData?.title || '',
+    content: initialData?.messageText || initialData?.content || '',
+    imageUrl: initialData?.imageUrl || '',
+    shortLink: initialData?.shortLink || '',
     status: 'draft',
-    messageType: channelType === 'sms' ? 'MMS' : undefined
+    messageType: channelType === 'sms' ? 'MMS' : undefined,
+    ...initialData
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -102,6 +109,8 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
         requestData = {
           calendarId,
           blogPostId,
+          hub_content_id: hubId,
+          channelKey,
           messageType: formData.messageType || 'SMS',
           messageText: formData.content || formData.title || '',
           shortLink: formData.shortLink,
@@ -113,7 +122,9 @@ export const useChannelEditor = (channelType: 'sms' | 'kakao' | 'naver') => {
         requestData = {
           ...formData,
           calendarId,
-          blogPostId
+          blogPostId,
+          hub_content_id: hubId,
+          channelKey
         };
       }
 

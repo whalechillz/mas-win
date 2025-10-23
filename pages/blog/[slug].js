@@ -275,14 +275,28 @@ export default function BlogPost({ post: staticPost }) {
             headers['x-admin-auth'] = 'true';
           }
           
+          console.log('🔍 퍼블릭 블로그 페이지 로드:', { 
+            slug, 
+            isAdmin,
+            urlParams: window.location.search 
+          });
+          
           const response = await fetch(`/api/blog/${slug}`, {
             headers: headers
           });
           const data = await response.json();
           
           if (response.ok) {
-            setPost(data.post);
-            setRelatedPosts(data.relatedPosts || []);
+            // API 응답 구조 확인: 관리자 요청은 직접 객체, 일반 요청은 중첩 구조
+            if (data.post) {
+              // 일반 요청: {post: {...}, relatedPosts: [...]}
+              setPost(data.post);
+              setRelatedPosts(data.relatedPosts || []);
+            } else {
+              // 관리자 요청: 직접 객체 {...}
+              setPost(data);
+              setRelatedPosts([]);
+            }
           } else {
             console.error('Failed to fetch post:', data.error);
             setPost(null);
@@ -440,6 +454,19 @@ export default function BlogPost({ post: staticPost }) {
 
         {/* 메인 콘텐츠 */}
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* 미발행 상태 배너 */}
+          {post.status !== 'published' && (
+            <div className="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm">
+                    <strong>⚠️ 미리보기 모드</strong> - 이 게시물은 아직 발행되지 않았습니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <article className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl shadow-slate-900/5 border border-slate-200/50 overflow-hidden">
             {/* 고급스러운 썸네일 이미지 */}
             {post.featured_image && (

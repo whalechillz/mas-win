@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { createClient } from '@supabase/supabase-js';
 import CampaignKPIDashboard from '../components/admin/dashboard/CampaignKPIDashboard';
@@ -108,6 +109,7 @@ export default function Admin() {
     { id: 'dashboard', name: '대시보드', icon: '📊' },
     { id: 'team', name: '계정 관리', icon: '👨‍💼' },
     { id: 'marketing', name: '마케팅', icon: '📈' },
+    { id: 'blog', name: '블로그 관리', icon: '📝' },
     { id: 'bookings', name: '예약 관리', icon: '📅' },
     { id: 'contacts', name: '연락처 관리', icon: '👥' },
     { id: 'analytics', name: '분석', icon: '📊' },
@@ -121,6 +123,26 @@ export default function Admin() {
         return <CampaignKPIDashboard />;
       case 'marketing':
         return <MarketingManagementUnified />;
+      case 'blog':
+        return (
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">📝 블로그 관리</h2>
+              <p className="text-gray-600 mb-6">블로그 게시물을 작성, 수정, 관리할 수 있습니다.</p>
+              <div className="space-y-4">
+                <Link 
+                  href="/admin/blog" 
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  📝 블로그 관리 페이지로 이동
+                </Link>
+                <div className="text-sm text-gray-500">
+                  게시물 작성, 수정, 삭제, 카테고리 관리 등 모든 블로그 기능을 이용하실 수 있습니다.
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case 'bookings':
         return <BookingManagement bookings={bookings} onUpdate={loadData} />;
       case 'contacts':

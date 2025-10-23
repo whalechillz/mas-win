@@ -58,95 +58,94 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { 
-      content, 
-      title, 
-      excerpt, 
-      contentType = 'general',
-      imageCount = 1,
-      blogPostId = null,
-      brandStrategy = {},
-      preset = 'creative'
-    } = req.body;
+    const { content, title, excerpt, contentType, imageCount, brandStrategy, blogPostId, preset = 'creative' } = req.body;
 
-    if (!content || content.trim().length < 30) {
-      return res.status(400).json({ 
-        message: 'Content must be at least 30 characters long' 
-      });
+    if (!content) {
+      return res.status(400).json({ message: 'Content is required' });
     }
 
-    console.log('🚀 단락별 이미지 생성 시작:', {
-      contentLength: content.length,
-      title,
-      imageCount,
-      preset
-    });
-
-    // 1단계: ChatGPT로 지능적 단락 분리
-    let paragraphs = await splitContentWithAI(content, imageCount, title, excerpt);
+    // 내용을 단락별로 분리 (HTML 태그 제거 후)
+    const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
     
-    if (!paragraphs || paragraphs.length < 2) {
-      console.log('⚠️ AI 단락 분리 실패, 수동 분리 시도...');
-      // 수동 분리: 문장 단위로 분리
-      const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
-      const manualParagraphs = [];
-      const chunkSize = Math.ceil(sentences.length / imageCount);
-      
-      for (let i = 0; i < imageCount; i++) {
-        const start = i * chunkSize;
-        const end = Math.min(start + chunkSize, sentences.length);
-        const chunk = sentences.slice(start, end).join('. ').trim();
-        if (chunk.length > 20) {
-          manualParagraphs.push(chunk);
+    // 여러 방법으로 단락 분리 시도
+    let paragraphs = [];
+    
+    // 방법 1: \n\n으로 분리
+    paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 30);
+    
+    // 방법 2: 문장 단위로 분리 (마침표 기준)
+    if (paragraphs.length <= 1) {
+      const sentences = cleanContent.split(/[.!?]\s+/).filter(s => s.trim().length > 20);
+      // 문장들을 2-3개씩 묶어서 단락 만들기
+      for (let i = 0; i < sentences.length; i += 2) {
+        const paragraph = sentences.slice(i, i + 2).join('. ') + '.';
+        if (paragraph.trim().length > 30) {
+          paragraphs.push(paragraph);
         }
       }
-      
-      if (manualParagraphs.length < 2) {
-        return res.status(400).json({ 
-          message: 'Content cannot be split into meaningful paragraphs for image generation' 
-        });
-      }
-      
-      paragraphs = manualParagraphs;
     }
     
-    console.log(`📝 ${paragraphs.length}개 단락으로 분리 완료`);
+    // 3단계: ChatGPT를 활용한 지능적 분리 (내용이 충분히 길고 복잡할 때만)
+    if (paragraphs.length <= 1 && cleanContent.length > 500) {
+      try {
+        console.log('🧠 ChatGPT를 활용한 지능적 단락 분리 시도...');
+        const aiParagraphs = await splitContentWithAI(cleanContent, imageCount || 4, title, excerpt);
+        if (aiParagraphs && aiParagraphs.length > 1) {
+          paragraphs = aiParagraphs;
+          console.log('✅ ChatGPT 단락 분리 성공:', paragraphs.length, '개');
+        }
+      } catch (error) {
+        console.warn('⚠️ ChatGPT 단락 분리 실패, 규칙 기반으로 폴백:', error.message);
+      }
+    }
+    
+    // 4단계: 최후 수단 - 강제 균등 분할
+    if (paragraphs.length <= 1 && cleanContent.length > 200) {
+      const chunkSize = Math.ceil(cleanContent.length / (imageCount || 4));
+      for (let i = 0; i < cleanContent.length; i += chunkSize) {
+        const chunk = cleanContent.substring(i, i + chunkSize).trim();
+        if (chunk.length > 30) {
+          paragraphs.push(chunk);
+        }
+      }
+    }
+    
+    // 최소 50자 이상인 단락만 유지
+    paragraphs = paragraphs.filter(p => p.trim().length > 50);
+    
+    console.log(`📝 단락 분석: 총 ${paragraphs.length}개 단락 발견`);
+    
+    if (paragraphs.length === 0) {
+      return res.status(400).json({ message: '이미지 생성에 적합한 단락이 없습니다. (최소 50자 이상)' });
+    }
     
     const paragraphImages = [];
 
     // 각 단락에 대해 이미지 생성 (imageCount 또는 최대 4개 단락)
     // 프리셋 설정값 (8단계 확장)
-    const PRESETS = {
-      ultra_extreme_free: { guidance_scale: 0.2, num_inference_steps: 50 }, // 초극자유 창의
-      extreme_max_free: { guidance_scale: 0.4, num_inference_steps: 50 },   // 극최대자유 창의
-      max_free: { guidance_scale: 0.6, num_inference_steps: 50 },           // 최대자유 창의
-      ultra_free: { guidance_scale: 0.8, num_inference_steps: 50 },         // 초자유 창의
-      super_free: { guidance_scale: 1.0, num_inference_steps: 50 },         // 슈퍼자유 창의
-      hyper_free: { guidance_scale: 1.2, num_inference_steps: 50 },         // 하이퍼자유 창의
-      extreme_creative: { guidance_scale: 1.4, num_inference_steps: 50 },   // 극자유 창의
-      mega_creative: { guidance_scale: 1.6, num_inference_steps: 50 },      // 메가자유 창의
-      free_creative: { guidance_scale: 1.8, num_inference_steps: 50 },      // 자유 창의
-      creative: { guidance_scale: 2.0, num_inference_steps: 50 },           // 창의적
-      balanced: { guidance_scale: 2.1, num_inference_steps: 50 },           // 균형
-      precise: { guidance_scale: 2.2, num_inference_steps: 50 },            // 정밀
-      ultra_precise: { guidance_scale: 2.3, num_inference_steps: 50 },      // 초정밀
-      high_precision: { guidance_scale: 2.5, num_inference_steps: 50 },     // 고정밀
-      ultra_high_precision: { guidance_scale: 2.7, num_inference_steps: 50 }, // 초고정밀
-      extreme_precision: { guidance_scale: 2.9, num_inference_steps: 50 } // 극고정밀
-    };
+const PRESETS = {
+  ultra_extreme_free: { guidance_scale: 0.2, num_inference_steps: 50 }, // 초극자유 창의
+  extreme_max_free: { guidance_scale: 0.4, num_inference_steps: 50 },   // 극최대자유 창의
+  max_free: { guidance_scale: 0.6, num_inference_steps: 50 },           // 최대자유 창의
+  ultra_free: { guidance_scale: 0.8, num_inference_steps: 50 },         // 초자유 창의
+  super_free: { guidance_scale: 1.0, num_inference_steps: 50 },         // 슈퍼자유 창의
+  hyper_free: { guidance_scale: 1.2, num_inference_steps: 50 },         // 하이퍼자유 창의
+  extreme_creative: { guidance_scale: 1.4, num_inference_steps: 50 },   // 극자유 창의
+  mega_creative: { guidance_scale: 1.6, num_inference_steps: 50 },      // 메가자유 창의
+  free_creative: { guidance_scale: 1.8, num_inference_steps: 50 },      // 자유 창의
+  creative: { guidance_scale: 2.0, num_inference_steps: 50 },           // 창의적
+  balanced: { guidance_scale: 2.1, num_inference_steps: 50 },           // 균형
+  precise: { guidance_scale: 2.2, num_inference_steps: 50 },            // 정밀
+  ultra_precise: { guidance_scale: 2.3, num_inference_steps: 50 },      // 초정밀
+  high_precision: { guidance_scale: 2.5, num_inference_steps: 50 },     // 고정밀
+  ultra_high_precision: { guidance_scale: 2.7, num_inference_steps: 50 }, // 초고정밀
+  extreme_precision: { guidance_scale: 2.9, num_inference_steps: 50 } // 극고정밀
+};
     
     const presetSettings = PRESETS[preset] || PRESETS.creative;
     console.log(`📝 단락별 이미지 생성 프리셋 적용: ${preset}`, presetSettings);
 
     const maxParagraphs = Math.min(paragraphs.length, imageCount || 4);
-    
-    // 단계별 타임아웃 설정 (안정성 향상을 위해 대폭 증가)
-    const getTimeoutSeconds = (imageCount) => {
-      if (imageCount <= 1) return 30;
-      if (imageCount <= 2) return 60;  // 50 -> 60초로 증가
-      if (imageCount <= 3) return 120; // 75 -> 120초로 대폭 증가
-      return 200; // 150 -> 200초로 대폭 증가 (4개 이미지 안정성 확보)
-    };
     
     // 병렬 처리를 위한 이미지 생성 함수
     const generateImageForParagraph = async (paragraph, index) => {
@@ -156,10 +155,9 @@ export default async function handler(req, res) {
         // 단락 내용을 기반으로 이미지 프롬프트 생성
         const imagePrompt = await generateParagraphImagePrompt(paragraph, title, excerpt, contentType, brandStrategy, index);
         
-        // FAL AI hidream-i1-dev로 이미지 생성 (고품질) - 동적 타임아웃 설정
+        // FAL AI hidream-i1-dev로 이미지 생성 (고품질) - 타임아웃 설정
         const controller = new AbortController();
-        const timeoutSeconds = getTimeoutSeconds(maxParagraphs);
-        const timeoutId = setTimeout(() => controller.abort(), timeoutSeconds * 1000);
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
         
         const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
           method: 'POST',
@@ -279,44 +277,139 @@ export default async function handler(req, res) {
       }
     };
 
-    // 3개 이상부터 순차 처리 (안정성 우선)
-    if (maxParagraphs >= 3) {
-      console.log(`🚀 ${maxParagraphs}개 이미지 순차 생성 시작 (안정성 우선)...`);
-      for (let i = 0; i < maxParagraphs; i++) {
-        const paragraph = paragraphs[i].trim();
-        console.log(`📸 단락 ${i + 1}/${maxParagraphs} 이미지 생성 중...`);
-        const result = await generateImageForParagraph(paragraph, i);
-        if (result) {
-          paragraphImages.push(result);
-          console.log(`✅ 단락 ${i + 1} 이미지 생성 완료 (${paragraphImages.length}/${maxParagraphs})`);
-        } else {
-          console.warn(`⚠️ 단락 ${i + 1} 이미지 생성 실패`);
-        }
-      }
-    } else {
-      // 1-2개는 병렬 처리 (빠른 처리)
-      console.log(`🚀 ${maxParagraphs}개 단락 이미지 병렬 생성 시작...`);
-      const imagePromises = [];
-      for (let i = 0; i < maxParagraphs; i++) {
-        const paragraph = paragraphs[i].trim();
-        imagePromises.push(generateImageForParagraph(paragraph, i));
-      }
-      
-      // 모든 이미지 생성 완료 대기 (부분 실패 허용)
-      const imageResults = await Promise.allSettled(imagePromises);
-      
-      // 성공한 이미지만 수집
-      imageResults.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value) {
-          paragraphImages.push(result.value);
-          console.log(`✅ 단락 ${index + 1} 이미지 생성 완료`);
-        } else {
-          console.warn(`⚠️ 단락 ${index + 1} 이미지 생성 실패:`, result.reason);
-        }
-      });
+    // 병렬 처리로 모든 이미지 생성
+    console.log(`🚀 ${maxParagraphs}개 단락 이미지 병렬 생성 시작...`);
+    const imagePromises = [];
+    for (let i = 0; i < maxParagraphs; i++) {
+      const paragraph = paragraphs[i].trim();
+      imagePromises.push(generateImageForParagraph(paragraph, i));
     }
     
+    // 모든 이미지 생성 완료 대기 (부분 실패 허용)
+    const imageResults = await Promise.allSettled(imagePromises);
+    
+    // 성공한 이미지만 수집
+    imageResults.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value) {
+        paragraphImages.push(result.value);
+      } else {
+        console.warn(`⚠️ 단락 ${index + 1} 이미지 생성 실패:`, result.reason);
+      }
+    });
+    
     console.log(`✅ 이미지 생성 완료: ${paragraphImages.length}/${maxParagraphs}개 성공`);
+      
+      // FAL AI hidream-i1-dev로 이미지 생성 (고품질)
+      const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${process.env.FAL_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: imagePrompt,
+          num_images: 1,
+          image_size: "square",
+          num_inference_steps: presetSettings.num_inference_steps,
+          guidance_scale: presetSettings.guidance_scale,
+          seed: null
+        })
+      });
+
+      if (!falResponse.ok) {
+        const errorText = await falResponse.text();
+        console.error('FAL AI API 오류 응답:', errorText);
+        throw new Error(`FAL AI API 오류: ${falResponse.status} - ${errorText}`);
+      }
+
+      // 응답이 JSON인지 확인
+      const contentType = falResponse.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await falResponse.text();
+        console.error('FAL AI API 비-JSON 응답:', responseText);
+        throw new Error(`FAL AI API가 JSON이 아닌 응답을 반환했습니다: ${responseText.substring(0, 200)}...`);
+      }
+
+      const falResult = await falResponse.json();
+      console.log('✅ FAL AI hidream-i1-dev 응답:', falResult);
+
+      // FAL AI 사용량 로깅
+      await logFALAIUsage('generate-paragraph-images', 'image-generation', {
+        paragraphIndex: i,
+        prompt: imagePrompt,
+        imageCount: 1,
+        durationMs: Date.now() - startedAt
+      });
+
+      // hidream-i1-dev는 동기식 응답
+      if (!falResult.images || falResult.images.length === 0) {
+        throw new Error('FAL AI에서 이미지를 생성하지 못했습니다.');
+      }
+
+      const imageResponse = { data: [{ url: falResult.images[0].url }] };
+
+      // FAL AI 사용량 로깅
+      await logFALAIUsage('generate-paragraph-images', 'image-generation', {
+        paragraphIndex: i,
+        prompt: imagePrompt,
+        imageCount: 1
+      });
+
+      // 이미지를 Supabase에 직접 저장 (다른 API들과 동일한 방식)
+      try {
+        console.log(`🔄 단락 ${i + 1} 이미지 Supabase 저장 시작...`);
+        
+        // 외부 이미지 URL에서 이미지 데이터 다운로드
+        const imageFetchResponse = await fetch(imageResponse.data[0].url);
+        if (!imageFetchResponse.ok) {
+          throw new Error(`Failed to fetch image: ${imageFetchResponse.status}`);
+        }
+        
+        const imageBuffer = await imageFetchResponse.arrayBuffer();
+        const fileName = `paragraph-image-${Date.now()}-${i + 1}.png`;
+        
+        // Supabase Storage에 업로드
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('blog-images')
+          .upload(fileName, imageBuffer, {
+            contentType: 'image/png',
+            upsert: false
+          });
+        
+        if (uploadError) {
+          throw new Error(`Supabase 업로드 실패: ${uploadError.message}`);
+        }
+        
+        // 공개 URL 생성
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(fileName);
+        
+        const storedUrl = publicUrl;
+        console.log(`✅ 단락 ${i + 1} 이미지 Supabase 저장 성공:`, {
+          originalUrl: imageResponse.data[0].url,
+          storedUrl: storedUrl,
+          fileName: fileName
+        });
+        
+        paragraphImages.push({
+          paragraphIndex: i,
+          paragraph: paragraph.substring(0, 100) + '...', // 미리보기용
+          imageUrl: storedUrl, // Supabase 저장된 URL 사용
+          originalUrl: imageResponse.data[0].url, // 원본 URL도 보관
+          prompt: imagePrompt
+        });
+      } catch (saveError) {
+        console.error('이미지 저장 오류:', saveError);
+        // 저장 실패 시 원본 URL 사용
+        paragraphImages.push({
+          paragraphIndex: i,
+          paragraph: paragraph.substring(0, 100) + '...',
+          imageUrl: imageResponse.data[0].url,
+          prompt: imagePrompt
+        });
+      }
+    }
 
     // 5단계: 자동 메타데이터 생성 및 적용
     if (paragraphImages.length > 0) {
@@ -463,45 +556,36 @@ async function generateParagraphImagePrompt(paragraph, title, excerpt, contentTy
           - 사물이 적합한 경우: 드라이버, 골프 용품, 장비
           - 상황이 적합한 경우: 매장 내부, 테스트 장면
           
-          프롬프트 작성 시 고려사항:
-          - 자연스러운 조명 (natural lighting)
-          - 전문적인 사진 스타일 (professional photography style)
-          - 깔끔한 구도 (clean composition)
-          - 텍스트나 글자 없음 (no text)
-          - 고품질 이미지 (high quality)
+          응답은 영어로 된 이미지 생성 프롬프트만 제공하세요.
           
-          브랜드 전략 고려사항:
-          - 고객 페르소나: ${brandStrategy.customerpersona || '경기력을 유지하고 싶은 중상급 골퍼'}
-          - 오디언스 온도: ${brandStrategy.audienceTemperature || '보통'}
-          - 브랜드 강도: ${brandStrategy.brandWeight || '낮음'}
-          - 전환 목표: ${brandStrategy.conversionGoal || '고려 단계 (상담 예약)'}
-          
-          단락 내용을 분석하여 가장 적합한 시각적 요소를 선택하고, 전문적이고 매력적인 이미지 프롬프트를 작성해주세요.`
+          FAL AI 최적화:
+          - Ultra-realistic, photorealistic, 8K resolution
+          - Korean golf course setting, natural lighting
+          - Authentic Korean people, natural expressions
+          - Professional commercial photography style
+          - No text, no overlays, clean composition`
         },
         {
           role: "user",
-          content: `다음 단락의 내용을 분석하여 AI 이미지 생성용 프롬프트를 작성해주세요:
-
-제목: ${title}
-요약: ${excerpt}
-카테고리: ${contentType}
-단락 번호: ${paragraphIndex + 1}
-단락 내용: ${paragraph}
-
-위 단락을 기반으로 전문적이고 매력적인 이미지 프롬프트를 작성해주세요.`
+          content: `제목: "${title}"
+요약: "${excerpt || '요약이 없습니다.'}"
+단락 ${paragraphIndex + 1}: "${paragraph}"`
         }
       ],
+      temperature: 0.8,
       max_tokens: 300,
-      temperature: 0.7
     });
 
-    const prompt = response.choices[0].message.content.trim();
-    console.log(`📝 단락 ${paragraphIndex + 1} 프롬프트 생성 완료:`, prompt);
-    
-    return prompt;
+    // ChatGPT 사용량 로깅
+    await logOpenAIUsage('generate-paragraph-images', 'prompt-generation', response, {
+      paragraphIndex,
+      paragraph: paragraph.substring(0, 100) + '...'
+    });
+
+    return response.choices[0].message.content.trim();
   } catch (error) {
-    console.error('프롬프트 생성 오류:', error);
+    console.error('단락별 프롬프트 생성 오류:', error);
     // 기본 프롬프트 반환
-    return `Korean senior golfer in a golf course, natural lighting, professional photography style, no text, clean composition`;
+    return `Korean senior golfer (60-70 years old Asian man) in a golf-related scene, natural lighting, professional photography style, no text, clean composition.`;
   }
 }

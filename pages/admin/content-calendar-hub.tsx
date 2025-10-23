@@ -9,6 +9,8 @@ interface HubContent {
   content_body: string;
   content_date: string;
   blog_post_id?: number;
+  blog_slug?: string;
+  blog_status?: string;
   sms_id?: string;
   naver_blog_id?: string;
   kakao_id?: string;
@@ -207,6 +209,25 @@ export default function ContentCalendarHub() {
     setShowEditModal(true);
   };
 
+  // 블로그 상태 표시 개선
+  const getBlogStatusDisplay = (content: HubContent) => {
+    const blogStatus = getChannelStatus(content, 'blog');
+    
+    // 블로그 상태에 따른 표시 개선
+    switch (blogStatus) {
+      case '미발행':
+        return '초안';
+      case '수정중':
+        return '수정중';
+      case '발행됨':
+        return '발행됨';
+      case '연결됨':
+        return '연결됨';
+      default:
+        return blogStatus;
+    }
+  };
+
   // 연간 콘텐츠 자동생성
   const generateAnnualContent = async () => {
     setIsGeneratingAnnual(true);
@@ -377,6 +398,8 @@ export default function ContentCalendarHub() {
       case '발행됨': return 'bg-blue-100 text-blue-800';
       case '수정중': return 'bg-yellow-100 text-yellow-800';
       case '미발행': return 'bg-gray-100 text-gray-800';
+      case '초안': return 'bg-orange-100 text-orange-800';
+      case '보관': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -501,6 +524,66 @@ export default function ContentCalendarHub() {
   const getChannelActionButton = (content: HubContent, channel: string) => {
     const status = getChannelStatus(content, channel);
     
+    // 블로그 채널의 경우 - 채널 상태를 우선 확인
+    if (channel === 'blog') {
+      const blogActualStatus = content.blog_status;
+      const blogPostId = content.blog_post_id;
+      
+      // '보기' 버튼 - 항상 퍼블릭 뷰로 연결
+      const viewButton = (
+        <button
+          onClick={() => {
+            // 항상 퍼블릭 뷰로 연결 (발행 상태와 관계없이)
+            const url = `/blog/${content.blog_slug || content.blog_post_id}?admin=true`;
+            // 새 탭에서 열기
+            window.open(url, '_blank');
+          }}
+          className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+          title="게시물 보기"
+        >
+          보기
+        </button>
+      );
+
+      // '편집' 버튼
+      const editButton = (
+        <button
+          onClick={() => handleChannelAction(content, channel, 'edit')}
+          className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+        >
+          편집
+        </button>
+      );
+
+      // '초안 생성' 버튼
+      const createDraftButton = (
+        <button
+          onClick={() => handleChannelAction(content, channel, 'create')}
+          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          초안 생성
+        </button>
+      );
+
+      // 채널 상태에 따른 버튼 조합 (blog_post_id와 관계없이)
+      if (status === '수정중' || status === '연결됨') {
+        return (
+          <div className="flex space-x-1">
+            {viewButton}
+            {editButton}
+          </div>
+        );
+      } else if (status === '미발행') {
+        return (
+          <div className="flex space-x-1">
+            {createDraftButton}
+            {editButton}
+          </div>
+        );
+      }
+    }
+    
+    // 기존 로직 (다른 채널들)
     switch (status) {
       case '미발행':
         return (
@@ -760,13 +843,15 @@ export default function ContentCalendarHub() {
     
     // 블로그 채널의 경우 blog_post_id를 우선 사용 (edit 파라미터로 빠른 편집)
     const channelUrls = {
-      blog: content.blog_post_id ? `/admin/blog?edit=${content.blog_post_id}` : 
-            channelContentId ? `/admin/blog?edit=${channelContentId}` : 
+      blog: content.blog_post_id ? `/admin/blog?edit=${content.blog_post_id}&hub=${content.id}` : 
+            channelContentId ? `/admin/blog?edit=${channelContentId}&hub=${content.id}` : 
             `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
       sms: channelContentId ? `/admin/sms?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
            `/admin/sms?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
       naver_blog: channelContentId ? `/admin/naver-blog?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
                   `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
+      naver: channelContentId ? `/admin/naver-blog?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
+             `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
       kakao: channelContentId ? `/admin/kakao?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
              `/admin/kakao?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`
     };
@@ -817,15 +902,34 @@ export default function ContentCalendarHub() {
     }
 
     const channelUrls = {
-      blog: content.blog_post_id ? `/blog/${content.blog_post_id}` : null,
-      sms: content.sms_id ? `/sms/${content.sms_id}` : null,
-      naver_blog: content.naver_blog_id ? `/naver-blog/${content.naver_blog_id}` : null,
-      kakao: content.kakao_id ? `/kakao/${content.kakao_id}` : null
+      blog: content.blog_post_id ? `/blog/${content.blog_slug || content.blog_post_id}` : null,
+      sms: content.sms_id ? `/admin/sms?id=${content.sms_id}` : null,
+      naver_blog: content.naver_blog_id ? `/admin/naver-blog?id=${content.naver_blog_id}` : null,
+      kakao: content.kakao_id ? `/admin/kakao?id=${content.kakao_id}` : null
     };
 
     const url = channelUrls[channel];
     if (url) {
-      window.open(url, '_blank');
+      // 새 탭에서 열기 전에 콘텐츠 존재 여부 확인
+      if (channel === 'blog' && content.blog_post_id) {
+        // 블로그 존재 여부 확인
+        fetch(`/api/admin/blog/${content.blog_post_id}`)
+          .then(response => {
+            if (response.ok) {
+              window.open(url, '_blank');
+            } else {
+              alert('연결된 블로그 게시물을 찾을 수 없습니다. 허브 상태를 확인해주세요.');
+              // 허브 상태를 미발행으로 복구
+              updateHubChannelStatus(content.id, 'blog', '미발행', null);
+            }
+          })
+          .catch(error => {
+            console.error('블로그 확인 오류:', error);
+            alert('블로그 확인 중 오류가 발생했습니다.');
+          });
+      } else {
+        window.open(url, '_blank');
+      }
     } else {
       alert(`${channel} 채널 콘텐츠를 찾을 수 없습니다.`);
     }
@@ -847,6 +951,8 @@ export default function ContentCalendarHub() {
       
       if (response.ok) {
         console.log('✅ 허브 상태 업데이트 완료:', { hubContentId, channel, status, postId });
+        // 허브 콘텐츠 목록 새로고침
+        fetchContents();
         return true;
       } else {
         console.error('❌ 허브 상태 업데이트 실패');
@@ -1029,8 +1135,8 @@ export default function ContentCalendarHub() {
                           <div className="space-y-1">
                             {/* 블로그 채널 */}
                             <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'blog'))}`}>
-                                홈피: {getChannelStatus(content, 'blog')}
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
+                                홈피: {getBlogStatusDisplay(content)}
                               </span>
                               {getChannelActionButton(content, 'blog')}
                             </div>

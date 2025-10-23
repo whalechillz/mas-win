@@ -10,7 +10,8 @@ export default async function handler(req, res) {
     // 관리자 권한 확인 (관리자 페이지에서 온 요청은 모두 허용)
     const isAdmin = req.headers.referer?.includes('/admin/') || 
                    req.headers.cookie?.includes('admin-auth=true') || 
-                   req.headers['x-admin-auth'] === 'true';
+                   req.headers['x-admin-auth'] === 'true' ||
+                   req.query.admin === 'true';
     
     console.log('🔍 게시물 조회 요청:', { 
       slug, 
