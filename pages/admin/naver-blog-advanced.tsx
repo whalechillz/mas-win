@@ -125,10 +125,13 @@ export default function NaverBlogAdvanced() {
       const response = await fetch('/api/admin/naver-blog');
       if (response.ok) {
         const data = await response.json();
+        console.log('📝 네이버 블로그 API 응답:', data);
         setPosts(data.data || []);
+      } else {
+        console.error('❌ 네이버 블로그 API 오류:', response.status);
       }
     } catch (error) {
-      console.error('네이버 블로그 목록 조회 오류:', error);
+      console.error('❌ 네이버 블로그 목록 조회 오류:', error);
     } finally {
       setLoading(false);
     }
@@ -292,13 +295,16 @@ export default function NaverBlogAdvanced() {
       const response = await fetch('/api/admin/naver-trends');
       if (response.ok) {
         const data = await response.json();
+        console.log('📊 네이버 트렌드 API 응답:', data);
         setNaverTrends(data.trends || []);
         setNaverCompetitors(data.competitors || []);
         setNaverBestTimes(data.bestTimes || []);
         setNaverHashtags(data.hashtags || []);
+      } else {
+        console.error('❌ 네이버 트렌드 API 오류:', response.status);
       }
     } catch (error) {
-      console.error('네이버 트렌드 조회 오류:', error);
+      console.error('❌ 네이버 트렌드 조회 오류:', error);
     }
   };
 
@@ -500,28 +506,32 @@ export default function NaverBlogAdvanced() {
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">인기 키워드</h4>
             <div className="flex flex-wrap gap-1">
-              {naverTrends.slice(0, 10).map((trend, index) => (
+              {naverTrends && naverTrends.length > 0 ? naverTrends.slice(0, 10).map((trend, index) => (
                 <span
                   key={index}
                   className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
                 >
-                  {trend.keyword}
+                  {trend && typeof trend === 'object' && trend.keyword ? trend.keyword : `트렌드 ${index + 1}`}
                 </span>
-              ))}
+              )) : (
+                <span className="text-gray-500 text-sm">트렌드 데이터를 불러오는 중...</span>
+              )}
             </div>
           </div>
           
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">추천 해시태그</h4>
             <div className="flex flex-wrap gap-1">
-              {naverHashtags.slice(0, 10).map((hashtag, index) => (
+              {naverHashtags && naverHashtags.length > 0 ? naverHashtags.slice(0, 10).map((hashtag, index) => (
                 <span
                   key={index}
                   className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"
                 >
-                  #{hashtag}
+                  #{typeof hashtag === 'string' ? hashtag : `해시태그${index + 1}`}
                 </span>
-              ))}
+              )) : (
+                <span className="text-gray-500 text-sm">해시태그 데이터를 불러오는 중...</span>
+              )}
             </div>
           </div>
         </div>
