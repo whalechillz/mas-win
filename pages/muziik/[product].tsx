@@ -260,7 +260,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             {product.id === 'beryl' && (
               <div className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  {locale === 'ja' ? 'ベリル剛性分布' : '베럴 강성 분포'}
+                  {locale === 'ja' ? 'ベリル剛性分布' : '베릴 강성 분포'}
                 </h2>
                 <div className="bg-gray-900 rounded-lg p-8 border border-gray-700">
                   <div className="text-center">
@@ -272,7 +272,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                     <p className="text-gray-400 mt-4">
                       {locale === 'ja' 
                         ? 'ベリルシャフトの剛性分布チャート - 40Sと50Sモデルの比較'
-                        : '베럴 샤프트 강성 분포 차트 - 40S와 50S 모델 비교'
+                        : '베릴 샤프트 강성 분포 차트 - 40S와 50S 모델 비교'
                       }
                     </p>
                   </div>

@@ -150,7 +150,7 @@ export default function MuziikHome() {
                 <div className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-8 border border-blue-500/30 hover:border-blue-400 transition-all duration-300">
                   <div className="aspect-square w-full mb-6 overflow-hidden rounded-lg">
                     <img 
-                      src="/muziik/brand/titan_1.png" 
+                      src="/muziik/brand/titan_1_bg.webp" 
                       alt="티타늄 원석"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

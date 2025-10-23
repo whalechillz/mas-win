@@ -656,6 +656,16 @@ export async function getServerSideProps(context) {
   const { req } = context;
   const hostname = req.headers.host;
 
+  // muziik.masgolf.co.kr 루트 접근은 콜라보 사이트로 강제 이동
+  if (hostname === 'muziik.masgolf.co.kr') {
+    return {
+      redirect: {
+        destination: '/muziik',
+        permanent: false,
+      },
+    };
+  }
+
   // win.masgolf.co.kr만 /25-09로 301 리다이렉트 (SEO 최적화)
   if (hostname === 'win.masgolf.co.kr') {
     return {

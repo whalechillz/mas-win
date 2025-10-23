@@ -57,7 +57,8 @@ async function handleGet(req, res) {
         id, title, summary, content_body, content_date,
         blog_post_id, sms_id, naver_blog_id, kakao_id,
         channel_status, is_hub_content, hub_priority,
-        auto_derive_channels, created_at, updated_at
+        auto_derive_channels, created_at, updated_at,
+        blog_posts!left(slug, status)
       `, { count: 'exact' })
       .eq('is_hub_content', true)
       .order('content_date', { ascending: false })
@@ -140,12 +141,19 @@ async function handleGet(req, res) {
       console.error('❌ 통계 계산 오류:', statsError);
     }
 
+    // 블로그 slug와 status 정보를 포함하도록 데이터 처리
+    const processedContents = contents ? contents.map(content => ({
+      ...content,
+      blog_slug: content.blog_posts?.slug || null,
+      blog_status: content.blog_posts?.status || null
+    })) : [];
+
     console.log('📊 전체 통계:', overallStats);
-    console.log('✅ 허브 콘텐츠 조회 완료:', contents ? contents.length : 0, '개');
+    console.log('✅ 허브 콘텐츠 조회 완료:', processedContents ? processedContents.length : 0, '개');
 
     res.status(200).json({ 
       success: true, 
-      data: contents || [],
+      data: processedContents,
       stats: overallStats, // 전체 통계 사용
       pagination: {
         page: parseInt(page),
