@@ -37,8 +37,47 @@ async function handleGet(req, res) {
   try {
     console.log('🔍 허브 콘텐츠 조회 시작');
     
-    const { page = 1, limit = 20, date_from, date_to } = req.query;
+    const { id, page = 1, limit = 20, date_from, date_to } = req.query;
     const offset = (page - 1) * limit;
+    
+    // 특정 ID로 조회하는 경우
+    if (id) {
+      console.log('🔍 특정 허브 콘텐츠 조회:', id);
+      const { data: content, error } = await supabase
+        .from('cc_content_calendar')
+        .select(`
+          id, title, summary, content_body, content_date,
+          blog_post_id, sms_id, naver_blog_id, kakao_id,
+          channel_status, is_hub_content, hub_priority,
+          auto_derive_channels, created_at, updated_at,
+          blog_posts!left(slug, status)
+        `)
+        .eq('id', id)
+        .eq('is_hub_content', true)
+        .single();
+      
+      if (error) {
+        console.error('❌ 특정 허브 콘텐츠 조회 오류:', error);
+        return res.status(500).json({
+          success: false,
+          error: '허브 콘텐츠 조회 실패',
+          details: error.message
+        });
+      }
+      
+      if (!content) {
+        return res.status(404).json({
+          success: false,
+          error: '허브 콘텐츠를 찾을 수 없습니다'
+        });
+      }
+      
+      console.log('✅ 특정 허브 콘텐츠 조회 성공:', content.id);
+      return res.status(200).json({
+        success: true,
+        data: content
+      });
+    }
     
     console.log('📊 페이지네이션 파라미터:', { 
       page, 

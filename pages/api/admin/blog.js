@@ -112,7 +112,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       // 특정 포스트 ID가 있는 경우 단일 포스트 조회
-      const { id } = req.query;
+      const { id, calendar_id } = req.query;
       
       if (id) {
         console.log('📝 단일 게시물 조회 중:', id);
@@ -139,6 +139,31 @@ export default async function handler(req, res) {
         
         console.log('✅ 단일 게시물 조회 성공:', post.id);
         return res.status(200).json(post);
+      }
+
+      // calendar_id로 필터링된 블로그 포스트 조회
+      if (calendar_id) {
+        console.log('📝 허브별 블로그 포스트 조회 중:', calendar_id);
+        
+        const { data: posts, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('calendar_id', calendar_id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('❌ 허브별 블로그 조회 에러:', error);
+          return res.status(500).json({
+            error: '블로그 포스트를 불러올 수 없습니다.',
+            details: error.message
+          });
+        }
+        
+        console.log('✅ 허브별 블로그 조회 성공:', posts.length, '개');
+        return res.status(200).json({
+          success: true,
+          posts: posts || []
+        });
       }
       
       // 게시물 목록 조회
@@ -197,9 +222,22 @@ export default async function handler(req, res) {
       });
       
       // 필수 필드 검증
-      if (!postData.title) {
+      if (!postData.title || postData.title.trim() === '') {
         console.error('❌ 제목이 없습니다:', postData);
-        return res.status(400).json({ error: '제목은 필수입니다.' });
+        return res.status(400).json({ 
+          success: false,
+          error: '제목은 필수입니다.',
+          details: 'title field is required'
+        });
+      }
+      
+      if (!postData.content || postData.content.trim() === '') {
+        console.error('❌ 내용이 없습니다:', postData);
+        return res.status(400).json({ 
+          success: false,
+          error: '내용은 필수입니다.',
+          details: 'content field is required'
+        });
       }
       
       // slug 필드 강력한 처리
@@ -248,15 +286,34 @@ export default async function handler(req, res) {
         console.log('🔗 허브 연결 모드:', { calendar_id: postData.calendar_id });
       }
       
+      // 최종 데이터 검증
+      const finalData = {
+        title: postData.title.trim(),
+        slug: postData.slug,
+        content: postData.content.trim(),
+        excerpt: postData.excerpt || '',
+        status: postData.status || 'draft',
+        category: postData.category || '기타',
+        published_at: postData.published_at,
+        calendar_id: postData.calendar_id || null,
+        author: postData.author || '마쓰구골프',
+        tags: postData.tags || [],
+        featured_image: postData.featured_image || null,
+        meta_description: postData.meta_description || '',
+        meta_keywords: postData.meta_keywords || ''
+      };
+      
+      console.log('📝 최종 저장 데이터:', JSON.stringify(finalData, null, 2));
+      
       const { data: newPost, error } = await supabase
         .from('blog_posts')
-        .insert([postData])
+        .insert([finalData])
         .select()
         .single();
       
       if (error) {
         console.error('❌ 게시물 생성 에러:', error);
-        console.error('❌ 요청 데이터:', JSON.stringify(postData, null, 2));
+        console.error('❌ 요청 데이터:', JSON.stringify(finalData, null, 2));
         console.error('❌ 에러 상세:', {
           message: error.message,
           code: error.code,
@@ -264,13 +321,63 @@ export default async function handler(req, res) {
           hint: error.hint
         });
         return res.status(500).json({
+          success: false,
           error: '게시물을 저장할 수 없습니다.',
           details: error.message,
-          code: error.code
+          code: error.code,
+          hint: error.hint
         });
       }
       
       console.log('✅ 게시물 생성 성공:', newPost.id);
+      
+      // 허브 연동 처리 (calendar_id가 있는 경우)
+      if (postData.calendar_id) {
+        try {
+          console.log('🔗 허브 상태 동기화 시작:', postData.calendar_id);
+          
+          // 허브 콘텐츠의 channel_status 업데이트
+          const { data: hubData, error: hubFetchError } = await supabase
+            .from('cc_content_calendar')
+            .select('channel_status')
+            .eq('id', postData.calendar_id)
+            .single();
+          
+          if (hubFetchError) {
+            console.error('❌ 허브 데이터 조회 오류:', hubFetchError);
+          } else {
+            const currentStatus = hubData.channel_status || {};
+            const updatedStatus = {
+              ...currentStatus,
+              blog: {
+                status: '연결됨',
+                post_id: newPost.id,
+                created_at: new Date().toISOString()
+              }
+            };
+            
+            const { error: hubError } = await supabase
+              .from('cc_content_calendar')
+              .update({ channel_status: updatedStatus })
+              .eq('id', postData.calendar_id);
+            
+            if (hubError) {
+              console.error('❌ 허브 상태 업데이트 오류:', hubError);
+            } else {
+              console.log('✅ 허브 상태 동기화 성공');
+            }
+          }
+        } catch (syncError) {
+          console.error('❌ 허브 연동 처리 오류:', syncError);
+        }
+      }
+      
+      // 성공 응답
+      const response = {
+        success: true,
+        message: '게시물이 성공적으로 생성되었습니다.',
+        data: newPost
+      };
       
       // 콘텐츠 캘린더에 자동 등록
       try {
@@ -333,7 +440,7 @@ export default async function handler(req, res) {
         }
       }
       
-      return res.status(201).json({ post: newPost });
+      return res.status(201).json(response);
       
     } else if (req.method === 'PUT') {
       // 게시물 수정

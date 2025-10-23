@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { status = 'all' } = req.query;
+    const { status = 'all', calendar_id } = req.query;
 
     let query = supabase
       .from('channel_sms')
@@ -20,6 +20,11 @@ export default async function handler(req, res) {
     // 상태별 필터링
     if (status !== 'all') {
       query = query.eq('status', status);
+    }
+
+    // 허브 콘텐츠별 필터링
+    if (calendar_id) {
+      query = query.eq('calendar_id', calendar_id);
     }
 
     const { data: messages, error } = await query;

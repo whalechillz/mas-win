@@ -12,7 +12,7 @@ import { useSession } from 'next-auth/react';
 export default function SMSAdmin() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { id, calendarId, blogPostId, hub } = router.query;
+  const { id, edit, calendarId, blogPostId, hub, mode } = router.query;
 
   const {
     formData,
@@ -90,14 +90,28 @@ export default function SMSAdmin() {
     fetchBlogPosts();
   }, []);
 
-  // 페이지 로드 시 데이터 로드
+  // 편집 모드 처리 - 두 가지 URL 패턴 모두 지원
   useEffect(() => {
-    if (id) {
+    if (mode === 'edit' && edit) {
+      // 허브 시스템에서 온 경우: ?edit=26&mode=edit
+      console.log('편집 모드로 SMS 로드 (허브 시스템):', edit);
+      loadPost(parseInt(edit as string));
+    } else if (id) {
+      // SMS 관리에서 온 경우: ?id=26
+      console.log('SMS 관리에서 로드:', id);
+      loadPost(parseInt(id as string));
+    }
+  }, [mode, edit, id, loadPost]);
+
+  // 페이지 로드 시 데이터 로드 (편집 모드가 아닌 경우만)
+  useEffect(() => {
+    if (id && mode !== 'edit' && !edit) {
+      // SMS 관리에서 직접 접근한 경우만
       loadPost(parseInt(id as string));
     } else if (blogPostId) {
       loadFromBlog(parseInt(blogPostId as string));
     }
-  }, [id, blogPostId, loadPost, loadFromBlog]);
+  }, [id, blogPostId, mode, edit, loadPost, loadFromBlog]);
 
   // 인증 확인
   if (status === 'loading') {

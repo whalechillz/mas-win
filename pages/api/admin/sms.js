@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       const { data: newSMS, error } = await supabase
         .from('channel_sms')
         .insert({
-          message_text: message,
+          message_text: message || '새 SMS 메시지를 입력하세요',
           message_type: type || 'SMS300',
           status: status || 'draft',
           calendar_id: calendar_id || hub_content_id || null, // calendar_id 우선 사용
