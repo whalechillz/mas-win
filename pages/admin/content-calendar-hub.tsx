@@ -174,10 +174,11 @@ export default function ContentCalendarHub() {
         // 허브 상태 검증 및 자동 복구 (백그라운드에서 실행)
         validateAndRepairHubStatus(contents);
         
-        // 각 허브 콘텐츠에 대해 SMS와 블로그 데이터 가져오기
+        // 각 허브 콘텐츠에 대해 SMS, 블로그, 네이버 블로그 데이터 가져오기
         contents.forEach((content: HubContent) => {
           fetchSMSData(content.id);
           fetchBlogData(content.id);
+          fetchNaverBlogData(content.id);
         });
       }
     } catch (error) {
@@ -243,6 +244,24 @@ export default function ContentCalendarHub() {
         return '연결됨';
       default:
         return blogStatus;
+    }
+  };
+
+  const getNaverBlogStatusDisplay = (content: HubContent) => {
+    const naverBlogStatus = getChannelStatus(content, 'naver_blog');
+    
+    // 네이버 블로그 상태에 따른 표시 개선
+    switch (naverBlogStatus) {
+      case '미발행':
+        return '초안';
+      case '수정중':
+        return '수정중';
+      case '발행됨':
+        return '발행됨';
+      case '연결됨':
+        return '연결됨';
+      default:
+        return naverBlogStatus;
     }
   };
 
@@ -545,6 +564,10 @@ export default function ContentCalendarHub() {
   // 홈피 블로그 데이터를 별도로 가져오는 함수
   const [blogDataMap, setBlogDataMap] = useState<{[key: string]: any[]}>({});
   const [blogPreview, setBlogPreview] = useState<{show: boolean, blog: any}>({show: false, blog: null});
+  
+  // 네이버 블로그 데이터를 별도로 가져오는 함수
+  const [naverBlogDataMap, setNaverBlogDataMap] = useState<{[key: string]: any[]}>({});
+  const [naverBlogPreview, setNaverBlogPreview] = useState<{show: boolean, blog: any}>({show: false, blog: null});
 
   const fetchSMSData = async (contentId: string) => {
     try {
@@ -573,6 +596,21 @@ export default function ContentCalendarHub() {
       }
     } catch (error) {
       console.error('블로그 데이터 조회 오류:', error);
+    }
+  };
+
+  const fetchNaverBlogData = async (contentId: string) => {
+    try {
+      const response = await fetch(`/api/admin/naver-blog?calendar_id=${contentId}`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        setNaverBlogDataMap(prev => ({
+          ...prev,
+          [contentId]: data.data
+        }));
+      }
+    } catch (error) {
+      console.error('네이버 블로그 데이터 조회 오류:', error);
     }
   };
 
@@ -630,6 +668,35 @@ export default function ContentCalendarHub() {
       } catch (error) {
         console.error('블로그 삭제 오류:', error);
         alert('블로그 포스트 삭제 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
+  // 네이버 블로그 미리보기 핸들러
+  const handleNaverBlogView = (blog: any) => {
+    setNaverBlogPreview({ show: true, blog });
+  };
+
+  // 네이버 블로그 삭제 핸들러
+  const handleNaverBlogDelete = async (blogId: string, contentId: string) => {
+    if (confirm('이 네이버 블로그 포스트를 삭제하시겠습니까?')) {
+      try {
+        const response = await fetch(`/api/admin/naver-blog/${blogId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          // 네이버 블로그 데이터 새로고침
+          await fetchNaverBlogData(contentId);
+          // 허브 콘텐츠 새로고침
+          await fetchContents(1);
+          alert('네이버 블로그 포스트가 삭제되었습니다.');
+        } else {
+          alert('네이버 블로그 포스트 삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('네이버 블로그 삭제 오류:', error);
+        alert('네이버 블로그 포스트 삭제 중 오류가 발생했습니다.');
       }
     }
   };
@@ -774,6 +841,73 @@ export default function ContentCalendarHub() {
           <button
             onClick={() => handleChannelAction(content, channel, 'create')}
             className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            초안 생성
+          </button>
+        );
+      }
+    }
+
+    // 네이버 블로그 채널의 경우 - 박스 UI (1, 2, 3...) 구현
+    if (channel === 'naver_blog') {
+      const naverBlogPosts = naverBlogDataMap[content.id] || [];
+      
+      if (naverBlogPosts.length > 0) {
+        return (
+          <div className="flex flex-col gap-1">
+            {naverBlogPosts.map((blog, index) => (
+              <div key={blog.id} className="flex items-center justify-between border rounded-md px-2 py-1 text-xs bg-gray-50">
+                <div className="flex items-center">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-600 text-white font-bold mr-1">{index + 1}</span>
+                  <span className={`mr-2 px-1 py-0.5 rounded-full text-xs ${
+                    blog.status === 'published' ? 'bg-green-100 text-green-800' :
+                    blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {blog.status === 'published' ? '발행됨' : 
+                     blog.status === 'draft' ? '수정중' : '미발행'}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => window.open(`/admin/naver-blog-advanced?edit=${blog.id}&hub=${content.id}`, '_blank')}
+                    className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                    title="편집"
+                  >
+                    편집
+                  </button>
+                  <button
+                    onClick={() => handleNaverBlogView(blog)}
+                    className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                    title="보기"
+                  >
+                    보기
+                  </button>
+                  <button
+                    onClick={() => handleNaverBlogDelete(blog.id, content.id)}
+                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                    title="삭제"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))}
+            {/* 추가 네이버 블로그 버튼 */}
+            <button
+              onClick={() => handleChannelAction(content, channel, 'create')}
+              className="w-full mt-2 px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + 새 네이버 블로그 추가
+            </button>
+          </div>
+        );
+      } else {
+        // 네이버 블로그가 없는 경우
+        return (
+          <button
+            onClick={() => handleChannelAction(content, channel, 'create')}
+            className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
           >
             초안 생성
           </button>
@@ -1349,8 +1483,8 @@ export default function ContentCalendarHub() {
                             
                             {/* 네이버 채널 */}
                             <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'naver_blog'))}`}>
-                                네이버: {getChannelStatus(content, 'naver_blog')}
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
+                                네이버: {naverBlogDataMap[content.id]?.length > 0 ? `${naverBlogDataMap[content.id].length}개 연결` : getNaverBlogStatusDisplay(content)}
                               </span>
                               {getChannelActionButton(content, 'naver_blog')}
                             </div>
@@ -2057,6 +2191,86 @@ export default function ContentCalendarHub() {
                     setBlogPreview({ show: false, blog: null });
                   }}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  편집하기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 네이버 블로그 개별 미리보기 모달 */}
+        {naverBlogPreview.show && naverBlogPreview.blog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">📝 네이버 블로그 미리보기</h2>
+                <button
+                  onClick={() => setNaverBlogPreview({ show: false, blog: null })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 네이버 블로그 미리보기 내용 */}
+              <div className="bg-green-50 rounded-lg p-4 mb-4">
+                <div className="bg-white rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">N</span>
+                    </div>
+                    <span className="text-sm font-medium">네이버 블로그</span>
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{naverBlogPreview.blog.title}</h3>
+                  <div className="text-sm text-gray-600 mb-3">{naverBlogPreview.blog.excerpt}</div>
+                  
+                  <div className="text-sm text-gray-800">
+                    {naverBlogPreview.blog.content && (
+                      <div className="whitespace-pre-wrap max-h-40 overflow-y-auto">
+                        {naverBlogPreview.blog.content.substring(0, 500)}...
+                      </div>
+                    )}
+                  </div>
+                  
+                  {naverBlogPreview.blog.naver_tags && naverBlogPreview.blog.naver_tags.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="text-xs text-gray-500 mb-1">네이버 태그:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {naverBlogPreview.blog.naver_tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="text-right text-gray-500 text-xs mt-2">
+                    <p>상태: {naverBlogPreview.blog.status === 'published' ? '발행됨' : 
+                             naverBlogPreview.blog.status === 'draft' ? '수정중' : '미발행'}</p>
+                    <p>작성일: {new Date(naverBlogPreview.blog.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setNaverBlogPreview({ show: false, blog: null })}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(`/admin/naver-blog-advanced?edit=${naverBlogPreview.blog.id}&hub=${naverBlogPreview.blog.calendar_id}`, '_blank');
+                    setNaverBlogPreview({ show: false, blog: null });
+                  }}
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   편집하기
                 </button>
