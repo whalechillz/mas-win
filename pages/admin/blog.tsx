@@ -558,12 +558,12 @@ export default function BlogAdmin() {
         const hubId = urlParams.get('hub');
         console.log('🔍 URL에서 직접 확인:', { hubId, search: window.location.search });
         
-        if (hubId) {
-          console.log('🔗 허브 모드 감지 (URL 파라미터), 허브 데이터 로드 중...', hubId);
-          await loadHubData(hubId);
-        } else if (post.calendar_id) {
-          console.log('🔗 허브 모드 감지 (블로그 포스트 calendar_id), 허브 데이터 로드 중...', post.calendar_id);
+        if (post.calendar_id) {
+          console.log('🔗 허브 모드 감지 (블로그 포스트 calendar_id 우선), 허브 데이터 로드 중...', post.calendar_id);
           await loadHubData(post.calendar_id);
+        } else if (hubId) {
+          console.log('🔗 허브 모드 감지 (URL 파라미터 fallback), 허브 데이터 로드 중...', hubId);
+          await loadHubData(hubId);
         } else {
           console.log('❌ 허브 파라미터가 없습니다.');
         }
