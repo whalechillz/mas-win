@@ -8,6 +8,57 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
+      const { id, calendar_id } = req.query;
+      
+      // 특정 ID로 조회하는 경우
+      if (id) {
+        const { data: post, error } = await supabase
+          .from('naver_blog_posts')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          console.error('네이버 블로그 조회 오류:', error);
+          return res.status(500).json({
+            success: false,
+            error: '네이버 블로그를 불러올 수 없습니다.',
+            details: error.message
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          data: post
+        });
+      }
+
+      // calendar_id로 필터링된 네이버 블로그 포스트 조회
+      if (calendar_id) {
+        console.log('📝 허브별 네이버 블로그 포스트 조회 중:', calendar_id);
+        
+        const { data: posts, error } = await supabase
+          .from('naver_blog_posts')
+          .select('*')
+          .eq('calendar_id', calendar_id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('❌ 허브별 네이버 블로그 조회 에러:', error);
+          return res.status(500).json({
+            error: '네이버 블로그 포스트를 불러올 수 없습니다.',
+            details: error.message
+          });
+        }
+        
+        console.log('✅ 허브별 네이버 블로그 조회 성공:', posts.length, '개');
+        return res.status(200).json({
+          success: true,
+          data: posts || []
+        });
+      }
+
+      // 전체 네이버 블로그 목록 조회
       const { data: posts, error } = await supabase
         .from('naver_blog_posts')
         .select('*')
