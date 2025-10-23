@@ -141,6 +141,18 @@ export default function ContentCalendarHub() {
     }
   };
 
+  // SMS 데이터 로드 useEffect
+  useEffect(() => {
+    if (contents && contents.length > 0) {
+      // 각 허브 콘텐츠에 대해 SMS 데이터 로드
+      contents.forEach(content => {
+        if (content.id && !smsDataMap[content.id]) {
+          fetchSMSData(content.id);
+        }
+      });
+    }
+  }, [contents]);
+
   // 허브 콘텐츠 목록 조회
   const fetchContents = async (page = 1) => {
     setLoading(true);
@@ -161,6 +173,12 @@ export default function ContentCalendarHub() {
         
         // 허브 상태 검증 및 자동 복구 (백그라운드에서 실행)
         validateAndRepairHubStatus(contents);
+        
+        // 각 허브 콘텐츠에 대해 SMS와 블로그 데이터 가져오기
+        contents.forEach((content: HubContent) => {
+          fetchSMSData(content.id);
+          fetchBlogData(content.id);
+        });
       }
     } catch (error) {
       console.error('허브 콘텐츠 조회 오류:', error);
@@ -520,65 +538,245 @@ export default function ContentCalendarHub() {
     );
   };
 
+  // SMS 데이터를 별도로 가져오는 함수
+  const [smsDataMap, setSmsDataMap] = useState<{[key: string]: any[]}>({});
+  const [smsPreview, setSmsPreview] = useState<{show: boolean, sms: any}>({show: false, sms: null});
+  
+  // 홈피 블로그 데이터를 별도로 가져오는 함수
+  const [blogDataMap, setBlogDataMap] = useState<{[key: string]: any[]}>({});
+  const [blogPreview, setBlogPreview] = useState<{show: boolean, blog: any}>({show: false, blog: null});
+
+  const fetchSMSData = async (contentId: string) => {
+    try {
+      const response = await fetch(`/api/channels/sms/list?calendar_id=${contentId}`);
+      const data = await response.json();
+      if (data.success && data.messages) {
+        setSmsDataMap(prev => ({
+          ...prev,
+          [contentId]: data.messages
+        }));
+      }
+    } catch (error) {
+      console.error('SMS 데이터 조회 오류:', error);
+    }
+  };
+
+  const fetchBlogData = async (contentId: string) => {
+    try {
+      const response = await fetch(`/api/admin/blog?calendar_id=${contentId}`);
+      const data = await response.json();
+      if (data.success && data.posts) {
+        setBlogDataMap(prev => ({
+          ...prev,
+          [contentId]: data.posts
+        }));
+      }
+    } catch (error) {
+      console.error('블로그 데이터 조회 오류:', error);
+    }
+  };
+
+  // SMS 미리보기 핸들러
+  const handleSMSView = (sms: any) => {
+    setSmsPreview({ show: true, sms });
+  };
+
+  // SMS 삭제 핸들러
+  const handleSMSDelete = async (smsId: string, contentId: string) => {
+    if (confirm('이 SMS 메시지를 삭제하시겠습니까?')) {
+      try {
+        const response = await fetch(`/api/channels/sms/${smsId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          // SMS 데이터 새로고침
+          await fetchSMSData(contentId);
+          // 허브 콘텐츠 새로고침
+          await fetchContents(1);
+          alert('SMS 메시지가 삭제되었습니다.');
+        } else {
+          alert('SMS 메시지 삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('SMS 삭제 오류:', error);
+        alert('SMS 메시지 삭제 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
+  // 홈피 블로그 미리보기 핸들러
+  const handleBlogView = (blog: any) => {
+    setBlogPreview({ show: true, blog });
+  };
+
+  // 홈피 블로그 삭제 핸들러
+  const handleBlogDelete = async (blogId: string, contentId: string) => {
+    if (confirm('이 블로그 포스트를 삭제하시겠습니까?')) {
+      try {
+        const response = await fetch(`/api/admin/blog/${blogId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          // 블로그 데이터 새로고침
+          await fetchBlogData(contentId);
+          // 허브 콘텐츠 새로고침
+          await fetchContents(1);
+          alert('블로그 포스트가 삭제되었습니다.');
+        } else {
+          alert('블로그 포스트 삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('블로그 삭제 오류:', error);
+        alert('블로그 포스트 삭제 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
   // 채널별 액션 버튼 렌더링
   const getChannelActionButton = (content: HubContent, channel: string) => {
     const status = getChannelStatus(content, channel);
     
-    // 블로그 채널의 경우 - 채널 상태를 우선 확인
-    if (channel === 'blog') {
-      const blogActualStatus = content.blog_status;
-      const blogPostId = content.blog_post_id;
+    // SMS 채널의 경우 - 박스 UI (1, 2, 3...) 구현
+    if (channel === 'sms') {
+      const smsMessages = smsDataMap[content.id] || [];
       
-      // '보기' 버튼 - 항상 퍼블릭 뷰로 연결
-      const viewButton = (
-        <button
-          onClick={() => {
-            // 항상 퍼블릭 뷰로 연결 (발행 상태와 관계없이)
-            const url = `/blog/${content.blog_slug || content.blog_post_id}?admin=true`;
-            // 새 탭에서 열기
-            window.open(url, '_blank');
-          }}
-          className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-          title="게시물 보기"
-        >
-          보기
-        </button>
-      );
-
-      // '편집' 버튼
-      const editButton = (
-        <button
-          onClick={() => handleChannelAction(content, channel, 'edit')}
-          className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
-        >
-          편집
-        </button>
-      );
-
-      // '초안 생성' 버튼
-      const createDraftButton = (
-        <button
-          onClick={() => handleChannelAction(content, channel, 'create')}
-          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          초안 생성
-        </button>
-      );
-
-      // 채널 상태에 따른 버튼 조합 (blog_post_id와 관계없이)
-      if (status === '수정중' || status === '연결됨') {
+            if (smsMessages.length > 0) {
+              return (
+                <div className="space-y-1">
+                  
+                  {/* SMS 목록 - 심플한 형태 */}
+                  <div className="space-y-1">
+                    {smsMessages.map((sms, index) => (
+                      <div key={sms.id} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            sms.status === 'sent' ? 'bg-green-100 text-green-700' :
+                            sms.status === 'draft' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {sms.status === 'sent' ? '발행됨' : 
+                             sms.status === 'draft' ? '수정중' : '미발행'}
+                          </span>
+                        </div>
+                        
+                        {/* 액션 버튼들 - 드롭다운 스타일 */}
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => window.open(`/admin/sms?edit=${sms.id}&mode=edit`, '_blank')}
+                            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                            title="편집"
+                          >
+                            편집
+                          </button>
+                          <button
+                            onClick={() => handleSMSView(sms)}
+                            className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                            title="미리보기"
+                          >
+                            보기
+                          </button>
+                          <button
+                            onClick={() => handleSMSDelete(sms.id, content.id)}
+                            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                            title="삭제"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* 추가 SMS 버튼 */}
+                  <button
+                    onClick={() => handleChannelAction(content, channel, 'create')}
+                    className="w-full mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    + 새 SMS 추가
+                  </button>
+                </div>
+              );
+      } else {
+        // SMS가 없는 경우
         return (
-          <div className="flex space-x-1">
-            {viewButton}
-            {editButton}
+          <button
+            onClick={() => handleChannelAction(content, channel, 'create')}
+            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            초안 생성
+          </button>
+        );
+      }
+    }
+    
+    // 블로그 채널의 경우 - 박스 UI (1, 2, 3...) 구현
+    if (channel === 'blog') {
+      const blogPosts = blogDataMap[content.id] || [];
+      
+      if (blogPosts.length > 0) {
+        return (
+          <div className="flex flex-col gap-1">
+            {blogPosts.map((blog, index) => (
+              <div key={blog.id} className="flex items-center justify-between border rounded-md px-2 py-1 text-xs bg-gray-50">
+                <div className="flex items-center">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white font-bold mr-1">{index + 1}</span>
+                  <span className={`mr-2 px-1 py-0.5 rounded-full text-xs ${
+                    blog.status === 'published' ? 'bg-green-100 text-green-800' :
+                    blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {blog.status === 'published' ? '발행됨' : 
+                     blog.status === 'draft' ? '수정중' : '미발행'}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => window.open(`/admin/blog?edit=${blog.id}&hub=${content.id}`, '_blank')}
+                    className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                    title="편집"
+                  >
+                    편집
+                  </button>
+                  <button
+                    onClick={() => handleBlogView(blog)}
+                    className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                    title="보기"
+                  >
+                    보기
+                  </button>
+                  <button
+                    onClick={() => handleBlogDelete(blog.id, content.id)}
+                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                    title="삭제"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))}
+            {/* 추가 블로그 버튼 */}
+            <button
+              onClick={() => handleChannelAction(content, channel, 'create')}
+              className="w-full mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              + 새 블로그 추가
+            </button>
           </div>
         );
-      } else if (status === '미발행') {
+      } else {
+        // 블로그가 없는 경우
         return (
-          <div className="flex space-x-1">
-            {createDraftButton}
-            {editButton}
-          </div>
+          <button
+            onClick={() => handleChannelAction(content, channel, 'create')}
+            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            초안 생성
+          </button>
         );
       }
     }
@@ -848,10 +1046,10 @@ export default function ContentCalendarHub() {
             `/admin/blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}`,
       sms: channelContentId ? `/admin/sms?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
            `/admin/sms?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
-      naver_blog: channelContentId ? `/admin/naver-blog?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
-                  `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
-      naver: channelContentId ? `/admin/naver-blog?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
-             `/admin/naver-blog?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
+      naver_blog: channelContentId ? `/admin/naver-blog-advanced?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
+                  `/admin/naver-blog-advanced?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
+      naver: channelContentId ? `/admin/naver-blog-advanced?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
+             `/admin/naver-blog-advanced?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`,
       kakao: channelContentId ? `/admin/kakao?id=${channelContentId}&hub=${content.id}&channelKey=${channel}` : 
              `/admin/kakao?hub=${content.id}&title=${encodeURIComponent(content.title)}&summary=${encodeURIComponent(content.summary)}&channelKey=${channel}`
     };
@@ -904,7 +1102,7 @@ export default function ContentCalendarHub() {
     const channelUrls = {
       blog: content.blog_post_id ? `/blog/${content.blog_slug || content.blog_post_id}` : null,
       sms: content.sms_id ? `/admin/sms?id=${content.sms_id}` : null,
-      naver_blog: content.naver_blog_id ? `/admin/naver-blog?id=${content.naver_blog_id}` : null,
+      naver_blog: content.naver_blog_id ? `/admin/naver-blog-advanced?id=${content.naver_blog_id}` : null,
       kakao: content.kakao_id ? `/admin/kakao?id=${content.kakao_id}` : null
     };
 
@@ -1136,7 +1334,7 @@ export default function ContentCalendarHub() {
                             {/* 블로그 채널 */}
                             <div className="flex items-center space-x-2">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
-                                홈피: {getBlogStatusDisplay(content)}
+                                홈피: {blogDataMap[content.id]?.length > 0 ? `${blogDataMap[content.id].length}개 연결` : getBlogStatusDisplay(content)}
                               </span>
                               {getChannelActionButton(content, 'blog')}
                             </div>
@@ -1144,7 +1342,7 @@ export default function ContentCalendarHub() {
                             {/* SMS 채널 */}
                             <div className="flex items-center space-x-2">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
-                                SMS: {getChannelStatus(content, 'sms')}
+                                SMS: {smsDataMap[content.id]?.length > 0 ? `${smsDataMap[content.id].length}개 연결` : getChannelStatus(content, 'sms')}
                               </span>
                               {getChannelActionButton(content, 'sms')}
                             </div>
@@ -1736,6 +1934,129 @@ export default function ContentCalendarHub() {
                     setShowSMSPreview(false);
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  편집하기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SMS 개별 미리보기 모달 */}
+        {smsPreview.show && smsPreview.sms && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">📱 SMS 미리보기</h2>
+                <button
+                  onClick={() => setSmsPreview({ show: false, sms: null })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* SMS 미리보기 내용 */}
+              <div className="bg-blue-600 rounded-lg p-4 mb-4">
+                <div className="bg-white rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">M</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">마쓰구골프</div>
+                      <div className="text-xs text-gray-500">031-215-3990</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-gray-800">
+                    {smsPreview.sms.message_text && (
+                      <div className="whitespace-pre-wrap">{smsPreview.sms.message_text}</div>
+                    )}
+                    {!smsPreview.sms.message_text && smsPreview.sms.message && (
+                      <div className="whitespace-pre-wrap">{smsPreview.sms.message}</div>
+                    )}
+                    {!smsPreview.sms.message_text && !smsPreview.sms.message && (
+                      <div className="text-gray-400">메시지 내용이 없습니다.</div>
+                    )}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 mt-3">
+                    {new Date().toLocaleString('ko-KR')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setSmsPreview({ show: false, sms: null })}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(`/admin/sms?edit=${smsPreview.sms.id}`, '_blank');
+                    setSmsPreview({ show: false, sms: null });
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  편집하기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 홈피 블로그 개별 미리보기 모달 */}
+        {blogPreview.show && blogPreview.blog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">📝 블로그 미리보기</h2>
+                <button
+                  onClick={() => setBlogPreview({ show: false, blog: null })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 블로그 미리보기 내용 */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="bg-white rounded-lg p-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{blogPreview.blog.title}</h3>
+                  <div className="text-sm text-gray-600 mb-3">{blogPreview.blog.excerpt}</div>
+                  
+                  <div className="text-sm text-gray-800">
+                    {blogPreview.blog.content && (
+                      <div className="whitespace-pre-wrap max-h-40 overflow-y-auto">
+                        {blogPreview.blog.content.substring(0, 500)}...
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="text-right text-gray-500 text-xs mt-2">
+                    <p>상태: {blogPreview.blog.status === 'published' ? '발행됨' : 
+                             blogPreview.blog.status === 'draft' ? '수정중' : '미발행'}</p>
+                    <p>작성일: {new Date(blogPreview.blog.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setBlogPreview({ show: false, blog: null })}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(`/admin/blog?edit=${blogPreview.blog.id}&hub=${blogPreview.blog.calendar_id}`, '_blank');
+                    setBlogPreview({ show: false, blog: null });
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
                   편집하기
                 </button>

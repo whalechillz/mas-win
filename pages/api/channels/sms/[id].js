@@ -36,13 +36,15 @@ export default async function handler(req, res) {
             calendarId: post.calendar_id,
             blogPostId: post.blog_post_id,
             formData: {
-              title: post.message_text.substring(0, 50) + '...',
-              content: post.message_text,
-              imageUrl: post.image_url,
-              shortLink: post.short_link,
-              messageType: post.message_type,
-              recipientNumbers: post.recipient_numbers,
-              status: post.status
+              title: post.message_text ? 
+                (post.message_text.length > 50 ? post.message_text.substring(0, 50) + '...' : post.message_text) : 
+                '새 SMS 메시지',
+              content: post.message_text || '',
+              imageUrl: post.image_url || '',
+              shortLink: post.short_link || '',
+              messageType: post.message_type || 'MMS',
+              recipientNumbers: post.recipient_numbers || [],
+              status: post.status || 'draft'
             },
             createdAt: post.created_at,
             updatedAt: post.updated_at
