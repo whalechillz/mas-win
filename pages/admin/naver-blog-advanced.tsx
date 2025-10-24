@@ -1085,10 +1085,32 @@ export default function NaverBlogAdvanced() {
                 // TODO: 브랜드 전략을 활용한 AI 콘텐츠 생성 로직 추가
               }}
               showVariationButton={true}
-              onGenerateVariation={(strategy) => {
+              onGenerateVariation={async (variations) => {
                 // 베리에이션 생성
-                console.log('베리에이션 생성:', strategy);
-                // TODO: 브랜드 전략 기반 베리에이션 생성 로직 추가
+                console.log('베리에이션 생성:', variations);
+                try {
+                  const response = await fetch('/api/admin/generate-variations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      variations: variations,
+                      originalContent: formData.content,
+                      contentType: brandStrategy.contentType
+                    })
+                  });
+                  
+                  if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ 베리에이션 생성 성공:', data);
+                    alert(`${data.totalCount}개의 베리에이션이 생성되었습니다!`);
+                    // TODO: 베리에이션 결과를 UI에 표시하는 로직 추가
+                  } else {
+                    throw new Error('베리에이션 생성 실패');
+                  }
+                } catch (error) {
+                  console.error('❌ 베리에이션 생성 오류:', error);
+                  alert('베리에이션 생성 중 오류가 발생했습니다.');
+                }
               }}
             />
             

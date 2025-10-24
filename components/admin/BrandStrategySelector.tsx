@@ -135,7 +135,37 @@ export default function BrandStrategySelector({
 
   // 베리에이션 생성 핸들러
   const handleGenerateVariation = () => {
-    onGenerateVariation?.(strategy);
+    // 브랜드 강도별 베리에이션 생성
+    const variations = [];
+    
+    // 낮음, 중간, 높음 브랜드 강도별 베리에이션
+    const brandStrengths = ['낮음', '중간', '높음'];
+    
+    brandStrengths.forEach(strength => {
+      const variation = {
+        ...strategy,
+        brandStrength: strength,
+        variationType: 'brand_strength',
+        variationName: `${strategy.contentType} - ${strength} 브랜드 강도`
+      };
+      variations.push(variation);
+    });
+    
+    // 페르소나별 베리에이션 생성
+    const personas = ['tech_enthusiast', 'senior_fitting', 'high_rebound_enthusiast', 'competitive_maintainer', 'health_conscious_senior'];
+    
+    personas.forEach(persona => {
+      const variation = {
+        ...strategy,
+        persona: persona,
+        variationType: 'persona',
+        variationName: `${strategy.contentType} - ${PERSONA_STRUCTURE.main[persona]?.name || PERSONA_STRUCTURE.sub[persona]?.name}`
+      };
+      variations.push(variation);
+    });
+    
+    console.log('생성된 베리에이션:', variations);
+    onGenerateVariation?.(variations);
   };
 
   return (
@@ -322,7 +352,7 @@ export default function BrandStrategySelector({
               onClick={handleGenerateVariation}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              브랜드 전략으로 베리에이션 생성
+              🎯 브랜드 강도별 & 페르소나별 베리에이션 생성 (8개)
             </button>
           )}
         </div>
