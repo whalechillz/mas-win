@@ -5684,10 +5684,56 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     setSelectedStoryFramework(strategy.framework);
                     setSelectedConversionGoal(strategy.conversionGoal);
                   }}
-                  onApplyStrategy={(strategy) => {
-                    // 브랜드 전략 적용 시 AI 콘텐츠 생성
+                  onApplyStrategy={async (strategy) => {
+                    // 브랜드 전략 적용 시 실제 AI 콘텐츠 생성
                     console.log('브랜드 전략 적용:', strategy);
-                    // TODO: AI 콘텐츠 생성 로직 추가
+                    
+                    if (!formData.content || formData.content.trim() === '') {
+                      alert('러프 콘텐츠를 먼저 입력해주세요.');
+                      return;
+                    }
+                    
+                    try {
+                      const response = await fetch('/api/admin/generate-blog-content', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          roughContent: formData.content,
+                          contentType: strategy.contentType,
+                          persona: strategy.persona,
+                          framework: strategy.framework,
+                          channel: strategy.channel,
+                          brandStrength: strategy.brandStrength,
+                          audienceTemperature: strategy.audienceTemperature,
+                          conversionGoal: strategy.conversionGoal,
+                          platform: 'homepage'
+                        })
+                      });
+                      
+                      if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ 브랜드 전략 적용 성공:', data);
+                        
+                        // 폼 데이터 업데이트
+                        setFormData(prev => ({
+                          ...prev,
+                          title: data.title,
+                          content: data.content,
+                          excerpt: data.excerpt,
+                          meta_title: data.title,
+                          meta_description: data.excerpt,
+                          meta_keywords: data.keywords?.join(', ') || '',
+                          tags: data.keywords || []
+                        }));
+                        
+                        alert('브랜드 전략이 적용되었습니다! 제목과 내용이 업데이트되었습니다.');
+                      } else {
+                        throw new Error('AI 콘텐츠 생성 실패');
+                      }
+                    } catch (error) {
+                      console.error('❌ 브랜드 전략 적용 오류:', error);
+                      alert('브랜드 전략 적용 중 오류가 발생했습니다.');
+                    }
                   }}
                   showVariationButton={true}
                   onGenerateVariation={async (variations) => {

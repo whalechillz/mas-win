@@ -3,7 +3,10 @@ import {
   STORYTELLING_FRAMEWORKS, 
   CONTENT_TYPE_FRAMEWORK_MAPPING, 
   PERSONA_STRUCTURE, 
-  CUSTOMER_CHANNEL_CTA 
+  CUSTOMER_CHANNEL_CTA,
+  PERSONA_AUDIENCE_MAPPING,
+  CONTENT_TYPE_RECOMMENDED_FRAMEWORKS,
+  CONTENT_TYPE_DEFAULT_PERSONA
 } from '../../lib/masgolf-brand-data';
 
 interface BrandStrategyConfig {
@@ -91,18 +94,9 @@ export default function BrandStrategySelector({
     }
   }, [strategy.contentType, strategy.channel]);
 
-  // 페르소나 변경 시 오디언스 온도 추천
+  // 페르소나 변경 시 오디언스 온도 추천 (자동 매핑 사용)
   const getRecommendedAudience = (persona: string) => {
-    const personaMap = {
-      'tech_enthusiast': 'hot',
-      'senior_fitting': 'warm',
-      'high_rebound_enthusiast': 'hot',
-      'competitive_maintainer': 'warm',
-      'health_conscious_senior': 'warm',
-      'returning_60plus': 'cold',
-      'distance_seeking_beginner': 'cold'
-    };
-    return personaMap[persona] || 'warm';
+    return PERSONA_AUDIENCE_MAPPING[persona] || 'warm';
   };
 
   // 브랜드 강도 시각화
@@ -115,9 +109,24 @@ export default function BrandStrategySelector({
     return strengthMap[strength] || strengthMap['낮음'];
   };
 
-  // 전략 변경 핸들러
+  // 전략 변경 핸들러 (자동 추천 포함)
   const handleStrategyChange = (field: keyof BrandStrategy, value: string) => {
     const newStrategy = { ...strategy, [field]: value };
+    
+    // 콘텐츠 유형 변경 시 자동 추천
+    if (field === 'contentType') {
+      const defaultPersona = CONTENT_TYPE_DEFAULT_PERSONA[value];
+      const recommendedFrameworks = CONTENT_TYPE_RECOMMENDED_FRAMEWORKS[value];
+      
+      if (defaultPersona) {
+        newStrategy.persona = defaultPersona;
+        newStrategy.audienceTemperature = getRecommendedAudience(defaultPersona);
+      }
+      
+      if (recommendedFrameworks && recommendedFrameworks.length > 0) {
+        newStrategy.framework = recommendedFrameworks[0];
+      }
+    }
     
     // 페르소나 변경 시 오디언스 온도 자동 설정
     if (field === 'persona') {
@@ -133,38 +142,51 @@ export default function BrandStrategySelector({
     onApplyStrategy?.(strategy);
   };
 
-  // 베리에이션 생성 핸들러
+  // 베리에이션 생성 핸들러 (현실적으로 3개로 축소)
   const handleGenerateVariation = () => {
-    // 브랜드 강도별 베리에이션 생성
     const variations = [];
     
-    // 낮음, 중간, 높음 브랜드 강도별 베리에이션
-    const brandStrengths = ['낮음', '중간', '높음'];
+    // 1. 현재 전략 그대로 (기본)
+    variations.push({
+      ...strategy,
+      variationType: 'current',
+      variationName: '현재 전략'
+    });
     
-    brandStrengths.forEach(strength => {
-      const variation = {
+    // 2. 브랜드 강도 변경 (낮음 → 중간)
+    if (strategy.brandStrength === '낮음') {
+      variations.push({
         ...strategy,
-        brandStrength: strength,
+        brandStrength: '중간',
         variationType: 'brand_strength',
-        variationName: `${strategy.contentType} - ${strength} 브랜드 강도`
+        variationName: '브랜드 강도 증가'
+      });
+    }
+    
+    // 3. 대안 페르소나
+    const getAlternativePersona = (currentPersona: string) => {
+      const alternatives = {
+        'tech_enthusiast': 'senior_fitting',
+        'senior_fitting': 'tech_enthusiast',
+        'high_rebound_enthusiast': 'health_conscious_senior',
+        'competitive_maintainer': 'returning_60plus',
+        'health_conscious_senior': 'high_rebound_enthusiast',
+        'returning_60plus': 'competitive_maintainer',
+        'distance_seeking_beginner': 'tech_enthusiast'
       };
-      variations.push(variation);
+      return alternatives[currentPersona] || 'tech_enthusiast';
+    };
+    
+    const alternativePersona = getAlternativePersona(strategy.persona);
+    variations.push({
+      ...strategy,
+      persona: alternativePersona,
+      audienceTemperature: PERSONA_AUDIENCE_MAPPING[alternativePersona] || 'warm',
+      variationType: 'persona',
+      variationName: '대안 페르소나'
     });
     
-    // 페르소나별 베리에이션 생성
-    const personas = ['tech_enthusiast', 'senior_fitting', 'high_rebound_enthusiast', 'competitive_maintainer', 'health_conscious_senior'];
-    
-    personas.forEach(persona => {
-      const variation = {
-        ...strategy,
-        persona: persona,
-        variationType: 'persona',
-        variationName: `${strategy.contentType} - ${PERSONA_STRUCTURE.main[persona]?.name || PERSONA_STRUCTURE.sub[persona]?.name}`
-      };
-      variations.push(variation);
-    });
-    
-    console.log('생성된 베리에이션:', variations);
+    console.log('생성된 베리에이션 (3개):', variations);
     onGenerateVariation?.(variations);
   };
 
@@ -216,32 +238,31 @@ export default function BrandStrategySelector({
             </select>
           </div>
 
-          {/* 오디언스 온도 */}
+          {/* 오디언스 온도 (3단계 단순화) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">오디언스 온도</label>
-            <select 
-              value={strategy.audienceTemperature}
-              onChange={(e) => handleStrategyChange('audienceTemperature', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <optgroup label="기본 온도">
-                <option value="cold">Cold (관심 낮음)</option>
-                <option value="warm">Warm (관심 보통)</option>
-                <option value="hot">Hot (관심 높음)</option>
-              </optgroup>
-              <optgroup label="문의 단계">
-                <option value="pre_customer_inquiry_phone">전화 문의</option>
-                <option value="pre_customer_inquiry_kakao">카카오 문의</option>
-                <option value="pre_customer_inquiry_website">홈페이지 문의</option>
-                <option value="pre_customer_test_booking">시타 예약</option>
-              </optgroup>
-              <optgroup label="구매 고객">
-                <option value="customer_purchase_lt_1y">구매 1년 이내</option>
-                <option value="customer_purchase_1_2y">구매 1-2년</option>
-                <option value="customer_purchase_2_5y">구매 2-5년</option>
-                <option value="customer_purchase_gte_5y">구매 5년 이상</option>
-              </optgroup>
-            </select>
+            <div className="space-y-2">
+              {[
+                { value: 'cold', label: 'Cold (관심 낮음)', description: '정보 탐색 단계' },
+                { value: 'warm', label: 'Warm (관심 보통)', description: '고려 단계' },
+                { value: 'hot', label: 'Hot (관심 높음)', description: '구매 의향 높음' }
+              ].map((option) => (
+                <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="audienceTemperature"
+                    value={option.value}
+                    checked={strategy.audienceTemperature === option.value}
+                    onChange={(e) => handleStrategyChange('audienceTemperature', e.target.value)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{option.label}</div>
+                    <div className="text-xs text-gray-500">{option.description}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
             <p className="text-xs text-gray-500 mt-1">
               온도 가중치: {strategy.audienceTemperature === 'hot' ? '3' : strategy.audienceTemperature === 'warm' ? '2' : '1'}
             </p>
@@ -276,38 +297,59 @@ export default function BrandStrategySelector({
             </p>
           </div>
 
-          {/* 고객 채널 */}
+          {/* 고객 채널 (3개로 간소화) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">고객 채널</label>
-            <select 
-              value={strategy.channel}
-              onChange={(e) => handleStrategyChange('channel', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="local">근거리 고객</option>
-              <option value="nationwide">전국 고객</option>
-              <option value="event">행사 관심 고객</option>
-              <option value="detail">상세 정보 탐색 고객</option>
-              <option value="vip">VIP 고객</option>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              CTA: {autoMatchedValues.cta}
-            </p>
+            <div className="space-y-2">
+              {[
+                { value: 'local', label: '근거리 고객', description: '수원 갤러리아 광교 근처', cta: '시타 체험 안내' },
+                { value: 'nationwide', label: '전국 고객', description: '온라인 구매', cta: '온라인 구매 페이지 유도' },
+                { value: 'vip', label: 'VIP 고객', description: '기존 고객, 프리미엄 서비스', cta: '프리미엄 피팅, 전용 라인업' }
+              ].map((option) => (
+                <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="channel"
+                    value={option.value}
+                    checked={strategy.channel === option.value}
+                    onChange={(e) => handleStrategyChange('channel', e.target.value)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{option.label}</div>
+                    <div className="text-xs text-gray-500">{option.description} - {option.cta}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
           </div>
 
-          {/* 전환 목표 */}
+          {/* 전환 목표 (4단계 단순화) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">전환 목표</label>
-            <select 
-              value={strategy.conversionGoal}
-              onChange={(e) => handleStrategyChange('conversionGoal', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="awareness">인지 단계 (홈페이지 방문)</option>
-              <option value="consideration">고려 단계 (상담 예약)</option>
-              <option value="decision">결정 단계 (구매)</option>
-              <option value="funnel">퍼널 페이지 (25-10 등)</option>
-            </select>
+            <div className="space-y-2">
+              {[
+                { value: 'awareness', label: '인지 단계', description: '홈페이지 방문, 브랜드 인지' },
+                { value: 'consideration', label: '고려 단계', description: '상담 예약, 정보 수집' },
+                { value: 'decision', label: '결정 단계', description: '구매 결정, 결제' },
+                { value: 'advocacy', label: '옹호 단계', description: '추천, 리뷰, 재구매' }
+              ].map((option) => (
+                <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="conversionGoal"
+                    value={option.value}
+                    checked={strategy.conversionGoal === option.value}
+                    onChange={(e) => handleStrategyChange('conversionGoal', e.target.value)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{option.label}</div>
+                    <div className="text-xs text-gray-500">{option.description}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* 브랜드 강도 표시 */}
@@ -352,7 +394,7 @@ export default function BrandStrategySelector({
               onClick={handleGenerateVariation}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              🎯 브랜드 강도별 & 페르소나별 베리에이션 생성 (8개)
+              🎯 현실적인 베리에이션 생성 (3개)
             </button>
           )}
         </div>
