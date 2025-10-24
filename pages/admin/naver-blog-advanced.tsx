@@ -54,6 +54,7 @@ export default function NaverBlogAdvanced() {
   // AI 콘텐츠 생성 관련 상태
   const [roughContent, setRoughContent] = useState('');
   const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
+  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [aiGeneratedContent, setAiGeneratedContent] = useState(null);
@@ -1076,12 +1077,18 @@ export default function NaverBlogAdvanced() {
             
             {/* 브랜드 전략 선택기 */}
             <BrandStrategySelector 
+              isLoading={isApplyingBrandStrategy}
               onStrategyChange={(strategy) => {
                 setBrandStrategy(strategy);
               }}
               onApplyStrategy={async (strategy) => {
                 // 브랜드 전략 적용 시 실제 AI 콘텐츠 생성
                 console.log('브랜드 전략 적용:', strategy);
+                
+                // 이미 처리 중이면 중복 실행 방지
+                if (isApplyingBrandStrategy) {
+                  return;
+                }
                 
                 // 러프 콘텐츠가 없으면 기존 폼 데이터의 내용 사용
                 const contentToUse = roughContent && roughContent.trim() !== '' 
@@ -1092,6 +1099,8 @@ export default function NaverBlogAdvanced() {
                   alert('러프 콘텐츠를 입력하거나 기존 내용이 있어야 브랜드 전략을 적용할 수 있습니다.');
                   return;
                 }
+                
+                setIsApplyingBrandStrategy(true);
                 
                 try {
                   const response = await fetch('/api/admin/generate-blog-content', {
@@ -1134,6 +1143,8 @@ export default function NaverBlogAdvanced() {
                 } catch (error) {
                   console.error('❌ 브랜드 전략 적용 오류:', error);
                   alert('브랜드 전략 적용 중 오류가 발생했습니다.');
+                } finally {
+                  setIsApplyingBrandStrategy(false);
                 }
               }}
               showVariationButton={true}
