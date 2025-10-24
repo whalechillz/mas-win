@@ -144,52 +144,10 @@ export default function BrandStrategySelector({
     onApplyStrategy?.(strategy);
   };
 
-  // 베리에이션 생성 핸들러 (현실적으로 3개로 축소)
+  // 베리에이션 생성 핸들러 - 추천 모달 열기
   const handleGenerateVariation = () => {
-    const variations = [];
-    
-    // 1. 현재 전략 그대로 (기본)
-    variations.push({
-      ...strategy,
-      variationType: 'current',
-      variationName: '현재 전략'
-    });
-    
-    // 2. 브랜드 강도 변경 (낮음 → 중간)
-    if (strategy.brandStrength === '낮음') {
-      variations.push({
-        ...strategy,
-        brandStrength: '중간',
-        variationType: 'brand_strength',
-        variationName: '브랜드 강도 증가'
-      });
-    }
-    
-    // 3. 대안 페르소나
-    const getAlternativePersona = (currentPersona: string) => {
-      const alternatives = {
-        'tech_enthusiast': 'senior_fitting',
-        'senior_fitting': 'tech_enthusiast',
-        'high_rebound_enthusiast': 'health_conscious_senior',
-        'competitive_maintainer': 'returning_60plus',
-        'health_conscious_senior': 'high_rebound_enthusiast',
-        'returning_60plus': 'competitive_maintainer',
-        'distance_seeking_beginner': 'tech_enthusiast'
-      };
-      return alternatives[currentPersona] || 'tech_enthusiast';
-    };
-    
-    const alternativePersona = getAlternativePersona(strategy.persona);
-    variations.push({
-      ...strategy,
-      persona: alternativePersona,
-      audienceTemperature: PERSONA_AUDIENCE_MAPPING[alternativePersona] || 'warm',
-      variationType: 'persona',
-      variationName: '대안 페르소나'
-    });
-    
-    console.log('생성된 베리에이션 (3개):', variations);
-    onGenerateVariation?.(variations);
+    console.log('베리에이션 추천 모달 열기:', strategy);
+    onGenerateVariation?.(strategy);
   };
 
   return (
