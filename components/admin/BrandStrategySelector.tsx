@@ -383,6 +383,7 @@ export default function BrandStrategySelector({
         {/* 액션 버튼들 */}
         <div className="mt-6 flex space-x-4">
           <button
+            type="button"
             onClick={handleApplyStrategy}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -391,6 +392,7 @@ export default function BrandStrategySelector({
           
           {showVariationButton && (
             <button
+              type="button"
               onClick={handleGenerateVariation}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
