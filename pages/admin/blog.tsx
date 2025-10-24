@@ -53,6 +53,7 @@ export default function BlogAdmin() {
   // 러프 콘텐츠 관련 상태 (기존 기능 복원)
   const [roughContent, setRoughContent] = useState('');
   const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
+  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
 
   // AI 블로그 생성 관련 상태
   const [generationMode, setGenerationMode] = useState('auto'); // 'auto' | 'manual'
@@ -5676,6 +5677,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
 
                 {/* 마쓰구 브랜드 전략 섹션 */}
                 <BrandStrategySelector 
+                  isLoading={isApplyingBrandStrategy}
                   onStrategyChange={(strategy) => {
                     // 브랜드 전략 변경 시 상태 업데이트
                     setBrandContentType(strategy.contentType as any);
@@ -5688,6 +5690,11 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     // 브랜드 전략 적용 시 실제 AI 콘텐츠 생성
                     console.log('브랜드 전략 적용:', strategy);
                     
+                    // 이미 처리 중이면 중복 실행 방지
+                    if (isApplyingBrandStrategy) {
+                      return;
+                    }
+                    
                     // 러프 콘텐츠가 없으면 기존 폼 데이터의 내용 사용
                     const contentToUse = roughContent && roughContent.trim() !== '' 
                       ? roughContent 
@@ -5697,6 +5704,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       alert('러프 콘텐츠를 입력하거나 기존 내용이 있어야 브랜드 전략을 적용할 수 있습니다.');
                       return;
                     }
+                    
+                    setIsApplyingBrandStrategy(true);
                     
                     try {
                       const response = await fetch('/api/admin/generate-blog-content', {
@@ -5738,6 +5747,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     } catch (error) {
                       console.error('❌ 브랜드 전략 적용 오류:', error);
                       alert('브랜드 전략 적용 중 오류가 발생했습니다.');
+                    } finally {
+                      setIsApplyingBrandStrategy(false);
                     }
                   }}
                   showVariationButton={true}

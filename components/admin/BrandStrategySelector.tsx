@@ -34,6 +34,7 @@ interface BrandStrategySelectorProps {
   onApplyStrategy?: (strategy: BrandStrategy) => void;
   onGenerateVariation?: (strategy: BrandStrategy) => void;
   showVariationButton?: boolean;
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -43,6 +44,7 @@ export default function BrandStrategySelector({
   onApplyStrategy,
   onGenerateVariation,
   showVariationButton = false,
+  isLoading = false,
   className = ""
 }: BrandStrategySelectorProps) {
   // 기본 설정
@@ -385,9 +387,14 @@ export default function BrandStrategySelector({
           <button
             type="button"
             onClick={handleApplyStrategy}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isLoading}
+            className={`px-6 py-3 rounded-lg focus:outline-none focus:ring-2 ${
+              isLoading 
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+            }`}
           >
-            브랜드 전략 적용
+            {isLoading ? '브랜드 전략 적용 중...' : '브랜드 전략 적용'}
           </button>
           
           {showVariationButton && (
