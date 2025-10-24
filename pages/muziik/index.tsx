@@ -354,15 +354,19 @@ export default function MuziikHome() {
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {locale === 'ja' ? 'チタン繊維全長使用' : '티타늄 섬유 전장 사용'}
+                  {locale === 'ja' ? 'チタングラファイト使用' : '티타늄 그라파이트 사용'}
                 </h3>
                 <p className="text-gray-300 leading-relaxed mb-4">
                   {locale === 'ja' 
-                    ? '軽量でありながら超高弾性を実現。しなり戻りとインパクト時の安定感を両立。'
-                    : '경량이면서도 초고탄성을 실현. 휨 복원과 임팩트시 안정감을 양립합니다.'
+                    ? '軽量でありながら全長製造で超高弾性を実現。しなり戻りとインパクト時の安定感を両立。'
+                    : '경량이면서도 전장 제작으로 초고탄성을 실현. 휨 복원과 임팩트시 안정감을 양립합니다.'
                   }
                 </p>
                 <ul className="space-y-2">
+                  <li className="flex items-center text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                    {locale === 'ja' ? '全長チタンファイバー使用' : '전장 티타늄 파이버 사용'}
+                  </li>
                   <li className="flex items-center text-sm text-gray-400">
                     <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
                     {locale === 'ja' ? '軽量性の維持' : '경량성 유지'}
@@ -490,23 +494,23 @@ export default function MuziikHome() {
                         </thead>
                         <tbody>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">40</td>
+                            <td className="py-1 px-2">A200(40)</td>
                             <td className="py-1 px-2">1130</td>
-                            <td className="py-1 px-2">45</td>
+                            <td className="py-1 px-2">44</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.05</td>
-                            <td className="py-1 px-2">5.0</td>
-                            <td className="py-1 px-2">200</td>
+                            <td className="py-1 px-2">4.8</td>
+                            <td className="py-1 px-2">A200</td>
                             <td className="py-1 px-2">더블킥</td>
                           </tr>
                           <tr>
-                            <td className="py-1 px-2">50</td>
+                            <td className="py-1 px-2">A215(50)</td>
                             <td className="py-1 px-2">1130</td>
-                            <td className="py-1 px-2">54</td>
+                            <td className="py-1 px-2">53</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.4</td>
-                            <td className="py-1 px-2">4.2</td>
-                            <td className="py-1 px-2">215</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">A215</td>
                             <td className="py-1 px-2">더블킥</td>
                           </tr>
                         </tbody>
@@ -585,59 +589,39 @@ export default function MuziikHome() {
                         </thead>
                         <tbody>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">R2</td>
+                            <td className="py-1 px-2">230(R2)</td>
                             <td className="py-1 px-2">1136</td>
-                            <td className="py-1 px-2">42</td>
+                            <td className="py-1 px-2">43</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">14.95</td>
-                            <td className="py-1 px-2">5.0</td>
+                            <td className="py-1 px-2">4.8</td>
                             <td className="py-1 px-2">230</td>
                             <td className="py-1 px-2">先中調子</td>
                           </tr>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">R</td>
+                            <td className="py-1 px-2">240(R)</td>
                             <td className="py-1 px-2">1136</td>
-                            <td className="py-1 px-2">48</td>
+                            <td className="py-1 px-2">47</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.1</td>
-                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">3.8</td>
                             <td className="py-1 px-2">240</td>
                             <td className="py-1 px-2">先中調子</td>
                           </tr>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">SR</td>
+                            <td className="py-1 px-2">250(SR)</td>
                             <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">49</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.15</td>
-                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">3.8</td>
                             <td className="py-1 px-2">250</td>
-                            <td className="py-1 px-2">先中調子</td>
-                          </tr>
-                          <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">S</td>
-                            <td className="py-1 px-2">1136</td>
-                            <td className="py-1 px-2">50</td>
-                            <td className="py-1 px-2">8.55</td>
-                            <td className="py-1 px-2">15.2</td>
-                            <td className="py-1 px-2">4.0</td>
-                            <td className="py-1 px-2">260</td>
-                            <td className="py-1 px-2">先中調子</td>
-                          </tr>
-                          <tr>
-                            <td className="py-1 px-2">X</td>
-                            <td className="py-1 px-2">1136</td>
-                            <td className="py-1 px-2">53</td>
-                            <td className="py-1 px-2">8.55</td>
-                            <td className="py-1 px-2">15.3</td>
-                            <td className="py-1 px-2">3.9</td>
-                            <td className="py-1 px-2">270</td>
                             <td className="py-1 px-2">先中調子</td>
                           </tr>
                         </tbody>
                       </table>
                       <div className="mt-3 text-xs text-gray-400 text-center">
-                        ※ BERYL 50 (SR: 55g, S: 56g, X: 57g) 中調子
+                        ※ BERYL 50 (SR: 49g) 先中調子
                       </div>
                     </div>
                   </div>

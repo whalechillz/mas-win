@@ -17,7 +17,7 @@ const AdminNav = () => {
             <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>블로그 관리</Link>
             <Link href="/admin/sms-list" className={`px-2 py-1 rounded ${isActive('/admin/sms-list') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📱 SMS 관리</Link>
         <Link href="/admin/kakao" className={`px-2 py-1 rounded ${isActive('/admin/kakao') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>💬 카카오 채널</Link>
-        <Link href="/admin/naver-blog" className={`px-2 py-1 rounded ${isActive('/admin/naver-blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📝 네이버 블로그</Link>
+        <Link href="/admin/naver-blog-advanced" className={`px-2 py-1 rounded ${isActive('/admin/naver-blog-advanced') || isActive('/admin/naver-blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📝 네이버 블로그</Link>
             <Link href="/admin/gallery" className={`px-2 py-1 rounded ${isActive('/admin/gallery') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>갤러리 관리</Link>
             <Link href="/admin/content-calendar" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📅 콘텐츠 캘린더</Link>
             <Link href="/admin/content-calendar-new" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar-new') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>🆕 새 캘린더</Link>

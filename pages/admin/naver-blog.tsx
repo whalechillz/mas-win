@@ -300,6 +300,47 @@ export default function NaverBlogEditor() {
     setUrlSlug(slug);
   };
 
+  // 포스트 보기 핸들러
+  const handleViewPost = (post: any) => {
+    // 네이버 블로그 URL이 있으면 새 탭에서 열기
+    if (post.naver_post_url) {
+      window.open(post.naver_post_url, '_blank');
+    } else {
+      // 네이버 블로그 URL이 없으면 미리보기 모달 표시
+      alert(`네이버 블로그 URL이 없습니다.\n제목: ${post.title}\n상태: ${post.status}`);
+    }
+  };
+
+  // 포스트 편집 핸들러
+  const handleEditPost = (post: any) => {
+    // 네이버 블로그 고급 에디터로 이동
+    window.open(`/admin/naver-blog-advanced?edit=${post.id}`, '_blank');
+  };
+
+  // 포스트 삭제 핸들러
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('이 네이버 블로그 포스트를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/naver-blog/${postId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        alert('네이버 블로그 포스트가 삭제되었습니다.');
+        fetchNaverPosts(); // 목록 새로고침
+      } else {
+        const error = await response.json();
+        alert('삭제 실패: ' + error.message);
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // 컴포넌트 마운트 시 목록 로드
   useEffect(() => {
     if (activeTab === 'list') {
@@ -541,10 +582,10 @@ export default function NaverBlogEditor() {
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">네이버 블로그 목록</h2>
               <button
-                onClick={() => setActiveTab('create')}
+                onClick={() => window.open('/admin/naver-blog-advanced/', '_blank')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                새 게시물 작성
+                새 게시물 작성 (고급 에디터)
               </button>
             </div>
             
@@ -601,9 +642,26 @@ export default function NaverBlogEditor() {
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button className="text-blue-600 hover:text-blue-900 mr-3">보기</button>
-                            <button className="text-indigo-600 hover:text-indigo-900 mr-3">수정</button>
-                            <button className="text-red-600 hover:text-red-900">삭제</button>
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => handleViewPost(post)}
+                                className="text-green-600 hover:text-green-900"
+                              >
+                                보기
+                              </button>
+                              <button 
+                                onClick={() => handleEditPost(post)}
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                수정
+                              </button>
+                              <button 
+                                onClick={() => handleDeletePost(post.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                삭제
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -628,79 +686,18 @@ export default function NaverBlogEditor() {
               </button>
             </div>
             
-            {/* AI 콘텐츠 생성 섹션 */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="text-purple-600 text-xl">⚡</span>
-                <h3 className="text-lg font-semibold text-purple-900">AI 콘텐츠 생성</h3>
-              </div>
-              
-              {/* 러프 콘텐츠 입력 */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    러프 콘텐츠 입력
-                  </label>
-                  <p className="text-sm text-gray-600 mb-3">
-                    두서없이 써도 AI가 네이버 블로그에 최적화된 콘텐츠로 정리해드립니다
-                  </p>
-                  <textarea
-                    value={roughContent}
-                    onChange={(e) => setRoughContent(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 h-32"
-                    placeholder="예: 드라이버 비거리 늘리고 싶은데... 60대라서 힘들어... 마쓰구프라는 브랜드가 있다고 들었는데... 초고반발이라고 하던데... 맞춤 피팅도 해준다고... 비싸긴 한데 효과가 있을까... 동료들이 추천해줬는데..."
-                  />
-                  <div className="flex items-center space-x-2 mt-2">
-                    <button
-                      onClick={generateContentFromRough}
-                      disabled={!roughContent.trim() || isGeneratingFromRough}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      {isGeneratingFromRough ? 'AI가 정리하는 중...' : 'AI가 정리하기'}
-                    </button>
-                    <button
-                      onClick={() => setRoughContent('')}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                    >
-                      지우기
-                    </button>
-                  </div>
-                </div>
-                
-                {/* 제목 추천 */}
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={generateTitle}
-                    disabled={!formData.messageText.trim() || isGeneratingTitle}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {isGeneratingTitle ? '제목 생성 중...' : '제목 추천'}
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    내용을 입력한 후 제목을 추천받을 수 있습니다
-                  </span>
-                </div>
-              </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">🚀 고급 에디터로 이동</h3>
+              <p className="text-blue-700 mb-4">
+                더 강력한 기능을 제공하는 고급 네이버 블로그 에디터를 사용하세요.
+              </p>
+              <button
+                onClick={() => window.open('/admin/naver-blog-advanced/', '_blank')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              >
+                고급 에디터 열기
+              </button>
             </div>
-            
-            <BaseChannelEditor
-              channelType="naver"
-              channelName="네이버 블로그"
-              calendarId={calendarId as string}
-              hubId={hub as string}
-              channelKey={channelKey as string}
-              initialData={formData}
-              onSave={(data) => {
-                console.log('Naver blog saved:', data);
-                // 성공 메시지 표시
-              }}
-              onSend={(data) => {
-                console.log('Naver blog sent:', data);
-                // 성공 메시지 표시
-              }}
-            >
-              <NaverSpecificComponents />
-            </BaseChannelEditor>
           </div>
         );
       
@@ -714,6 +711,19 @@ export default function NaverBlogEditor() {
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
               >
                 목록으로
+              </button>
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <h3 className="text-lg font-semibold text-green-900 mb-2">🚀 고급 에디터로 이동</h3>
+              <p className="text-green-700 mb-4">
+                더 강력한 홈피에서 가져오기 기능을 제공하는 고급 네이버 블로그 에디터를 사용하세요.
+              </p>
+              <button
+                onClick={() => window.open('/admin/naver-blog-advanced/?tab=import', '_blank')}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+              >
+                고급 에디터 열기
               </button>
             </div>
             
@@ -836,14 +846,14 @@ export default function NaverBlogEditor() {
                 ✏️ 새 게시물 작성
               </button>
               <button
-                onClick={() => setActiveTab('import')}
+                onClick={() => window.open('/admin/naver-blog-advanced/?tab=import', '_blank')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'import'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                📥 홈피에서 가져오기
+                📥 홈피에서 가져오기 (고급 에디터)
               </button>
             </nav>
           </div>

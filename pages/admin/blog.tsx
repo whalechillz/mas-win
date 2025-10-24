@@ -8,6 +8,7 @@ import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
+import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
@@ -90,10 +91,6 @@ export default function BlogAdmin() {
   const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
   const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
 
-  // 콘텐츠 캘린더 상태
-  const [calendarContents, setCalendarContents] = useState([]);
-  const [selectedCalendarPosts, setSelectedCalendarPosts] = useState(new Set());
-  const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
 
   // 블로그 마이그레이션 상태
   const [migrationUrl, setMigrationUrl] = useState('');
@@ -726,65 +723,7 @@ export default function BlogAdmin() {
   }, [router.query]);
 
   // 콘텐츠 캘린더에서 데이터 불러오기
-  const fetchCalendarContents = useCallback(async () => {
-    try {
-      setIsLoadingCalendar(true);
-      const response = await fetch('/api/admin/content-calendar');
-      if (response.ok) {
-        const data = await response.json();
-        // 블로그 포스트가 없는 콘텐츠만 필터링
-        const availableContents = data.contents.filter(content => !content.blog_post_id);
-        setCalendarContents(availableContents);
-      } else {
-        console.error('콘텐츠 캘린더 데이터를 불러오는데 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('콘텐츠 캘린더 데이터를 불러오는 중 오류가 발생했습니다:', error);
-    } finally {
-      setIsLoadingCalendar(false);
-    }
-  }, []);
 
-  // 콘텐츠 캘린더에서 블로그 초안 생성
-  const createBlogFromCalendar = useCallback(async (selectedIds) => {
-    try {
-      setIsSubmitting(true);
-      const selectedContents = calendarContents.filter(content => selectedIds.has(content.id));
-      
-      for (const content of selectedContents) {
-        const response = await fetch('/api/admin/create-blog-from-calendar', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            calendarId: content.id,
-            title: content.title,
-            content: content.content_body || '',
-            category: content.content_type === 'blog' ? '골프' : '일반',
-            targetAudience: content.target_audience?.persona || 'all',
-            conversionGoal: content.conversion_tracking?.goal || '홈페이지 방문'
-          }),
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || '블로그 초안 생성 실패');
-        }
-      }
-      
-      alert(`${selectedContents.length}개의 블로그 초안이 성공적으로 생성되었습니다!`);
-      setSelectedCalendarPosts(new Set());
-      fetchPosts();
-      fetchCalendarContents();
-      
-    } catch (error) {
-      console.error('블로그 초안 생성 에러:', error);
-      alert(`블로그 초안 생성 실패: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [calendarContents, fetchPosts, fetchCalendarContents]);
 
   // 폼 초기화
   const resetForm = () => {
@@ -1248,7 +1187,34 @@ export default function BlogAdmin() {
     
     try {
       for (const post of selectedPosts) {
-        // 각 포스트를 블로그 포스트로 변환
+        console.log('🔄 네이버 포스트 마이그레이션 시작:', post.title);
+        
+        // 1. 허브 콘텐츠 먼저 생성
+        let calendarId = null;
+        try {
+          const hubResponse = await fetch('/api/admin/content-calendar-hub', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: post.title,
+              content_body: post.content || post.description || '', // API가 요구하는 필드명
+              summary: post.description || post.title.substring(0, 100) + '...',
+              content_date: new Date().toISOString().split('T')[0]
+            })
+          });
+
+          if (hubResponse.ok) {
+            const hubData = await hubResponse.json();
+            calendarId = hubData.content?.id || hubData.id;
+            console.log('✅ 허브 콘텐츠 생성 성공:', calendarId);
+          } else {
+            console.warn('⚠️ 허브 콘텐츠 생성 실패, calendar_id 없이 진행');
+          }
+        } catch (hubError) {
+          console.warn('⚠️ 허브 콘텐츠 생성 오류:', hubError.message);
+        }
+
+        // 2. 블로그 포스트 생성 (허브 연결)
         const response = await fetch('/api/admin/blog/', {
           method: 'POST',
           headers: { 
@@ -1264,7 +1230,8 @@ export default function BlogAdmin() {
             meta_title: post.title,
             meta_description: post.description || '',
             author: '마쓰구골프',
-            published_at: post.publishDate ? new Date(post.publishDate).toISOString() : null // 네이버에서 추출한 날짜 사용
+            published_at: new Date().toISOString(), // 현재 날짜로 저장 (원글 날짜 무시)
+            calendar_id: calendarId // 🔥 허브 연결 추가
           }),
           cache: 'no-cache'
         });
@@ -1274,6 +1241,8 @@ export default function BlogAdmin() {
           console.error('❌ 마이그레이션 API 응답 오류:', response.status, errorText);
           throw new Error(`포스트 "${post.title}" 마이그레이션 실패: HTTP ${response.status} - ${errorText}`);
         }
+
+        console.log('✅ 블로그 포스트 생성 성공:', post.title);
       }
 
       alert(`성공적으로 ${selectedPosts.length}개 포스트를 마이그레이션했습니다!`);
@@ -4199,20 +4168,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
               </button>
               <button
                 onClick={() => {
-                  setActiveTab('calendar-import');
-                  setShowForm(false);
-                  fetchCalendarContents();
-                }}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'calendar-import'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                📅 콘텐츠 캘린더 불러오기
-              </button>
-              <button
-                onClick={() => {
                   // 새 게시물 작성 시 formData 초기화
                   setFormData({
                     title: '',
@@ -5720,133 +5675,27 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
 
 
                 {/* 마쓰구 브랜드 전략 섹션 */}
-                <div className="border-t border-gray-200 pt-8">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">🎯 마쓰구 브랜드 전략</h3>
-                    <span className="text-sm text-gray-500">페르소나와 오디언스 온도에 맞춘 맞춤형 콘텐츠 생성</span>
-                </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 콘텐츠 유형 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 유형</label>
-                      <select 
-                        value={brandContentType}
-                        onChange={(e) => setBrandContentType(e.target.value as typeof brandContentType)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="골프 정보">골프 정보</option>
-                        <option value="튜토리얼">튜토리얼</option>
-                        <option value="고객 후기">고객 후기</option>
-                        <option value="고객 스토리">고객 스토리</option>
-                        <option value="이벤트">이벤트</option>
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">브랜드 강도: {getBrandWeight(brandContentType)}</p>
-                    </div>
-
-                    {/* 고객 페르소나 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">고객 페르소나</label>
-                      <select 
-                        value={brandPersona}
-                        onChange={(e) => {
-                          const newPersona = e.target.value as typeof brandPersona;
-                          setBrandPersona(newPersona);
-                          // 페르소나 변경 시 추천 오디언스 온도 자동 설정
-                          setAudienceTemperature(getRecommendedAudience(newPersona));
-                        }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="high_rebound_enthusiast">고반발 드라이버 선호 상급 골퍼</option>
-                        <option value="health_conscious_senior">건강을 고려한 비거리 증가 시니어 골퍼</option>
-                        <option value="competitive_maintainer">경기력을 유지하고 싶은 중상급 골퍼</option>
-                        <option value="returning_60plus">최근 골프를 다시 시작한 60대 이상 골퍼</option>
-                        <option value="distance_seeking_beginner">골프 입문자를 위한 비거리 향상 초급 골퍼</option>
-                      </select>
-                    </div>
-
-                    {/* 오디언스 온도 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">오디언스 온도</label>
-                      <select 
-                        value={audienceTemperature}
-                        onChange={(e) => setAudienceTemperature(e.target.value as typeof audienceTemperature)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <optgroup label="기본 온도">
-                          <option value="cold">Cold (관심 낮음)</option>
-                          <option value="warm">Warm (관심 보통)</option>
-                          <option value="hot">Hot (관심 높음)</option>
-                        </optgroup>
-                        <optgroup label="문의 단계">
-                          <option value="pre_customer_inquiry_phone">전화 문의</option>
-                          <option value="pre_customer_inquiry_kakao">카카오 문의</option>
-                          <option value="pre_customer_inquiry_website">홈페이지 문의</option>
-                          <option value="pre_customer_test_booking">시타 예약</option>
-                        </optgroup>
-                        <optgroup label="구매 고객">
-                          <option value="customer_purchase_lt_1y">구매 1년 이내</option>
-                          <option value="customer_purchase_1_2y">구매 1-2년</option>
-                          <option value="customer_purchase_2_5y">구매 2-5년</option>
-                          <option value="customer_purchase_gte_5y">구매 5년 이상</option>
-                        </optgroup>
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">온도 가중치: {getAudienceWeight(audienceTemperature)}</p>
-                    </div>
-
-                    {/* 스토리텔링 프레임워크 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">스토리텔링 프레임워크</label>
-                      <select 
-                        value={selectedStoryFramework}
-                        onChange={(e) => setSelectedStoryFramework(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="pixar">픽사 스토리 (영웅의 여정)</option>
-                        <option value="cialdini">치알디니 (설득의 6가지 원칙)</option>
-                        <option value="donald_miller">StoryBrand (7단계 스토리)</option>
-                      </select>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {selectedStoryFramework === 'pixar' && '옛날 옛적에... 매일매일... 그러던 어느 날...'}
-                        {selectedStoryFramework === 'cialdini' && '상호성, 일관성, 사회적 증거, 호감, 권위, 희귀성'}
-                        {selectedStoryFramework === 'donald_miller' && '고객이 영웅, 브랜드는 가이드'}
-                      </p>
-                    </div>
-
-                    {/* 전환 목표 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">전환 목표</label>
-                      <select 
-                        value={selectedConversionGoal}
-                        onChange={(e) => setSelectedConversionGoal(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="awareness">인지 단계 (홈페이지 방문)</option>
-                        <option value="consideration">고려 단계 (상담 예약)</option>
-                        <option value="decision">결정 단계 (구매)</option>
-                        <option value="funnel">퍼널 페이지 (25-10 등)</option>
-                      </select>
-                    </div>
-
-                    {/* 브랜드 강도 표시 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">브랜드 강도</label>
-                      <div className="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700">
-                            {getBrandWeight(brandContentType) === 'low' ? '낮음 (순수 정보)' :
-                             getBrandWeight(brandContentType) === 'medium' ? '보통 (브랜드 언급)' :
-                             '높음 (강력한 브랜딩)'}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {getBrandWeight(brandContentType) === 'low' ? '0' :
-                             getBrandWeight(brandContentType) === 'medium' ? '1' : '2'}
-                          </span>
-                    </div>
-                    </div>
-                    </div>
-                    </div>
-                  </div>
+                <BrandStrategySelector 
+                  onStrategyChange={(strategy) => {
+                    // 브랜드 전략 변경 시 상태 업데이트
+                    setBrandContentType(strategy.contentType as any);
+                    setBrandPersona(strategy.persona as any);
+                    setAudienceTemperature(strategy.audienceTemperature as any);
+                    setSelectedStoryFramework(strategy.framework);
+                    setSelectedConversionGoal(strategy.conversionGoal);
+                  }}
+                  onApplyStrategy={(strategy) => {
+                    // 브랜드 전략 적용 시 AI 콘텐츠 생성
+                    console.log('브랜드 전략 적용:', strategy);
+                    // TODO: AI 콘텐츠 생성 로직 추가
+                  }}
+                  showVariationButton={true}
+                  onGenerateVariation={(strategy) => {
+                    // 베리에이션 생성
+                    console.log('베리에이션 생성:', strategy);
+                    // TODO: 베리에이션 생성 로직 추가
+                  }}
+                />
                 {/* AI 이미지 생성 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
@@ -6956,92 +6805,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         />
       )}
 
-      {/* 콘텐츠 캘린더 불러오기 탭 */}
-      {activeTab === 'calendar-import' && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              📅 콘텐츠 캘린더 불러오기
-            </h2>
-            <p className="text-gray-600 mb-6">
-              콘텐츠 캘린더에서 블로그 초안을 생성할 수 있는 콘텐츠를 불러옵니다.
-            </p>
-            
-            {/* 콘텐츠 캘린더 데이터 불러오기 버튼 */}
-            <div className="mb-6">
-              <button
-                onClick={fetchCalendarContents}
-                disabled={isLoadingCalendar}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoadingCalendar ? '불러오는 중...' : '📅 콘텐츠 캘린더 불러오기'}
-              </button>
-            </div>
-
-            {/* 콘텐츠 목록 */}
-            {calendarContents.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">사용 가능한 콘텐츠 ({calendarContents.length}개)</h3>
-                <div className="space-y-4">
-                  {calendarContents.map((content) => (
-                    <div key={content.id} className="border rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{content.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            날짜: {content.content_date} | 타입: {content.content_type} | 상태: {content.status}
-                          </p>
-                          {content.content_body && (
-                            <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                              {content.content_body.substring(0, 100)}...
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedCalendarPosts.has(content.id)}
-                            onChange={(e) => {
-                              const newSelected = new Set(selectedCalendarPosts);
-                              if (e.target.checked) {
-                                newSelected.add(content.id);
-                              } else {
-                                newSelected.delete(content.id);
-                              }
-                              setSelectedCalendarPosts(newSelected);
-                            }}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* 선택된 콘텐츠로 블로그 초안 생성 */}
-                {selectedCalendarPosts.size > 0 && (
-                  <div className="mt-6 text-center">
-                    <button
-                      onClick={() => createBlogFromCalendar(selectedCalendarPosts)}
-                      disabled={isSubmitting}
-                      className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSubmitting ? '생성 중...' : `📝 선택된 ${selectedCalendarPosts.size}개 콘텐츠로 블로그 초안 생성`}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {calendarContents.length === 0 && !isLoadingCalendar && (
-              <div className="text-gray-500 mt-8">
-                <p>사용 가능한 콘텐츠가 없습니다.</p>
-                <p className="text-sm mt-2">콘텐츠 캘린더에서 블로그 포스트가 연결되지 않은 콘텐츠를 확인해보세요.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* 블로그 마이그레이션 탭 */}
       {activeTab === 'migration' && (

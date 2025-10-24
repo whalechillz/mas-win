@@ -348,22 +348,22 @@ export default function MuziikHome() {
                         </thead>
                         <tbody>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">40</td>
-                            <td className="py-1 px-2">1168</td>
-                            <td className="py-1 px-2">45</td>
+                            <td className="py-1 px-2">A200(40)</td>
+                            <td className="py-1 px-2">1130</td>
+                            <td className="py-1 px-2">44</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.05</td>
-                            <td className="py-1 px-2">5.0</td>
-                            <td className="py-1 px-2">185</td>
+                            <td className="py-1 px-2">4.8</td>
+                            <td className="py-1 px-2">A200</td>
                           </tr>
                           <tr>
-                            <td className="py-1 px-2">50</td>
-                            <td className="py-1 px-2">1168</td>
-                            <td className="py-1 px-2">54</td>
+                            <td className="py-1 px-2">A215(50)</td>
+                            <td className="py-1 px-2">1130</td>
+                            <td className="py-1 px-2">53</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.4</td>
-                            <td className="py-1 px-2">4.2</td>
-                            <td className="py-1 px-2">195</td>
+                            <td className="py-1 px-2">4.0</td>
+                            <td className="py-1 px-2">A215</td>
                           </tr>
                         </tbody>
                       </table>
@@ -441,54 +441,33 @@ export default function MuziikHome() {
                         </thead>
                         <tbody>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">R2</td>
-                            <td className="py-1 px-2">1168</td>
-                            <td className="py-1 px-2">42</td>
+                            <td className="py-1 px-2">230(R2)</td>
+                            <td className="py-1 px-2">1136</td>
+                            <td className="py-1 px-2">43</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">14.95</td>
-                            <td className="py-1 px-2">5.0</td>
-                            <td className="py-1 px-2">215</td>
-                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}
-                            </td>
-                          </tr>
-                          <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">R</td>
-                            <td className="py-1 px-2">1168</td>
-                            <td className="py-1 px-2">48</td>
-                            <td className="py-1 px-2">8.55</td>
-                            <td className="py-1 px-2">15.1</td>
-                            <td className="py-1 px-2">4.0</td>
-                            <td className="py-1 px-2">225</td>
+                            <td className="py-1 px-2">4.8</td>
+                            <td className="py-1 px-2">230</td>
                             <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
                           </tr>
                           <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">SR</td>
-                            <td className="py-1 px-2">1168</td>
+                            <td className="py-1 px-2">240(R)</td>
+                            <td className="py-1 px-2">1136</td>
+                            <td className="py-1 px-2">47</td>
+                            <td className="py-1 px-2">8.55</td>
+                            <td className="py-1 px-2">15.1</td>
+                            <td className="py-1 px-2">3.8</td>
+                            <td className="py-1 px-2">240</td>
+                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
+                          </tr>
+                          <tr className="border-b border-gray-700">
+                            <td className="py-1 px-2">250(SR)</td>
+                            <td className="py-1 px-2">1136</td>
                             <td className="py-1 px-2">49</td>
                             <td className="py-1 px-2">8.55</td>
                             <td className="py-1 px-2">15.15</td>
-                            <td className="py-1 px-2">4.0</td>
-                            <td className="py-1 px-2">235</td>
-                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
-                          </tr>
-                          <tr className="border-b border-gray-700">
-                            <td className="py-1 px-2">S</td>
-                            <td className="py-1 px-2">1168</td>
-                            <td className="py-1 px-2">50</td>
-                            <td className="py-1 px-2">8.55</td>
-                            <td className="py-1 px-2">15.2</td>
-                            <td className="py-1 px-2">4.0</td>
-                            <td className="py-1 px-2">245</td>
-                            <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
-                          </tr>
-                          <tr>
-                            <td className="py-1 px-2">X</td>
-                            <td className="py-1 px-2">1168</td>
-                            <td className="py-1 px-2">53</td>
-                            <td className="py-1 px-2">8.55</td>
-                            <td className="py-1 px-2">15.3</td>
-                            <td className="py-1 px-2">3.9</td>
-                            <td className="py-1 px-2">255</td>
+                            <td className="py-1 px-2">3.8</td>
+                            <td className="py-1 px-2">250</td>
                             <td className="py-1 px-2">{language === 'ja' ? '先中調子' : '선중'}</td>
                           </tr>
                         </tbody>
