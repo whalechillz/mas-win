@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
+import VariationRecommendationModal from '../../components/admin/VariationRecommendationModal';
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
@@ -53,7 +54,11 @@ export default function BlogAdmin() {
   // 러프 콘텐츠 관련 상태 (기존 기능 복원)
   const [roughContent, setRoughContent] = useState('');
   const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
-  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
+   const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
+
+  // 베리에이션 추천 모달 관련 상태
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [currentBrandStrategy, setCurrentBrandStrategy] = useState(null);
 
   // AI 블로그 생성 관련 상태
   const [generationMode, setGenerationMode] = useState('auto'); // 'auto' | 'manual'
@@ -5754,32 +5759,10 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     }
                   }}
                   showVariationButton={true}
-                  onGenerateVariation={async (variations) => {
-                    // 베리에이션 생성
-                    console.log('베리에이션 생성:', variations);
-                    try {
-                      const response = await fetch('/api/admin/generate-variations', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          variations: variations,
-                          originalContent: formData.content || '',
-                          contentType: brandContentType
-                        })
-                      });
-                      
-                      if (response.ok) {
-                        const data = await response.json();
-                        console.log('✅ 베리에이션 생성 성공:', data);
-                        alert(`${data.totalCount}개의 베리에이션이 생성되었습니다!`);
-                        // TODO: 베리에이션 결과를 UI에 표시하는 로직 추가
-                      } else {
-                        throw new Error('베리에이션 생성 실패');
-                      }
-                    } catch (error) {
-                      console.error('❌ 베리에이션 생성 오류:', error);
-                      alert('베리에이션 생성 중 오류가 발생했습니다.');
-                    }
+                  onGenerateVariation={(strategy) => {
+                    // 베리에이션 추천 모달 열기
+                    setCurrentBrandStrategy(strategy);
+                    setShowVariationModal(true);
                   }}
                 />
                 {/* AI 이미지 생성 섹션 */}
@@ -7039,6 +7022,62 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
           </div>
         </div>
       )}
+
+      {/* 베리에이션 추천 모달 */}
+      <VariationRecommendationModal
+        isOpen={showVariationModal}
+        onClose={() => setShowVariationModal(false)}
+        onSelectVariation={async (selectedVariation) => {
+          setIsGeneratingVariation(true);
+          try {
+            console.log('선택된 베리에이션:', selectedVariation);
+            
+            // 선택된 베리에이션으로 AI 콘텐츠 생성
+            const response = await fetch('/api/admin/generate-variations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                variations: [selectedVariation],
+                originalContent: formData.content || '',
+                contentType: brandContentType
+              })
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('✅ 베리에이션 생성 성공:', data);
+              
+              if (data.variations && data.variations.length > 0) {
+                const generatedContent = data.variations[0];
+                
+                // 폼 데이터 업데이트
+                setFormData(prev => ({
+                  ...prev,
+                  title: generatedContent.title,
+                  content: generatedContent.content,
+                  excerpt: generatedContent.excerpt,
+                  meta_title: generatedContent.title,
+                  meta_description: generatedContent.excerpt,
+                  meta_keywords: generatedContent.keywords?.join(', ') || '',
+                  tags: generatedContent.keywords || []
+                }));
+                
+                alert(`${selectedVariation.name} 베리에이션으로 콘텐츠가 생성되었습니다!`);
+              }
+            } else {
+              throw new Error('베리에이션 생성 실패');
+            }
+          } catch (error) {
+            console.error('❌ 베리에이션 생성 오류:', error);
+            alert('베리에이션 생성 중 오류가 발생했습니다.');
+          } finally {
+            setIsGeneratingVariation(false);
+            setShowVariationModal(false);
+          }
+        }}
+        currentContent={formData.content || ''}
+        brandStrategy={currentBrandStrategy}
+      />
 
     </>
   );
