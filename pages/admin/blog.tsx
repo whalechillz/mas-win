@@ -1340,10 +1340,14 @@ export default function BlogAdmin() {
       return;
     }
 
+    // 🔥 삭제 시작 시 즉시 선택 상태 초기화
+    const postsToDelete = [...selectedPosts]; // 삭제할 포스트 ID 백업
+    setSelectedPosts([]);
+
     try {
-      console.log('🗑️ 선택된 게시물 삭제 중...', selectedPosts);
+      console.log('🗑️ 선택된 게시물 삭제 중...', postsToDelete);
       
-      const deletePromises = selectedPosts.map(id => 
+      const deletePromises = postsToDelete.map(id => 
         fetch(`/api/admin/blog/${id}`, {
           method: 'DELETE'
         })
@@ -1353,12 +1357,10 @@ export default function BlogAdmin() {
       const failedDeletes = responses.filter(response => !response.ok);
       
       if (failedDeletes.length === 0) {
-        alert(`${selectedPosts.length}개 게시물이 삭제되었습니다!`);
-        setSelectedPosts([]);
+        alert(`${postsToDelete.length}개 게시물이 삭제되었습니다!`);
         fetchPosts();
       } else {
-        alert(`${selectedPosts.length - failedDeletes.length}개 삭제 성공, ${failedDeletes.length}개 삭제 실패`);
-        setSelectedPosts([]);
+        alert(`${postsToDelete.length - failedDeletes.length}개 삭제 성공, ${failedDeletes.length}개 삭제 실패`);
         fetchPosts();
       }
     } catch (error) {
