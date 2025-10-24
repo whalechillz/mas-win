@@ -5688,8 +5688,13 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     // 브랜드 전략 적용 시 실제 AI 콘텐츠 생성
                     console.log('브랜드 전략 적용:', strategy);
                     
-                    if (!roughContent || roughContent.trim() === '') {
-                      alert('러프 콘텐츠를 먼저 입력해주세요.');
+                    // 러프 콘텐츠가 없으면 기존 폼 데이터의 내용 사용
+                    const contentToUse = roughContent && roughContent.trim() !== '' 
+                      ? roughContent 
+                      : formData.content;
+                    
+                    if (!contentToUse || contentToUse.trim() === '') {
+                      alert('러프 콘텐츠를 입력하거나 기존 내용이 있어야 브랜드 전략을 적용할 수 있습니다.');
                       return;
                     }
                     
@@ -5698,7 +5703,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                          roughContent: roughContent,
+                          roughContent: contentToUse,
                           contentType: strategy.contentType,
                           persona: strategy.persona,
                           framework: strategy.framework,
