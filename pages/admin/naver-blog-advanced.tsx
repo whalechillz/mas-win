@@ -1083,7 +1083,7 @@ export default function NaverBlogAdvanced() {
                 // 브랜드 전략 적용 시 실제 AI 콘텐츠 생성
                 console.log('브랜드 전략 적용:', strategy);
                 
-                if (!formData.content || formData.content.trim() === '') {
+                if (!roughContent || roughContent.trim() === '') {
                   alert('러프 콘텐츠를 먼저 입력해주세요.');
                   return;
                 }
@@ -1093,7 +1093,7 @@ export default function NaverBlogAdvanced() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      roughContent: formData.content,
+                      roughContent: roughContent,
                       contentType: strategy.contentType,
                       persona: strategy.persona,
                       framework: strategy.framework,
