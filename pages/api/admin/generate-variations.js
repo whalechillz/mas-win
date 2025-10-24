@@ -6,6 +6,9 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
+  // API 타임아웃 설정 (60초)
+  res.setTimeout(60000);
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -29,7 +32,8 @@ export default async function handler(req, res) {
     for (const variation of variations) {
       console.log(`🔄 베리에이션 생성 중: ${variation.variationName}`);
       
-      // 베리에이션별 프롬프트 생성
+      try {
+        // 베리에이션별 프롬프트 생성
       const getVariationPrompt = (variation) => {
         const frameworkPrompts = {
           'PAS': 'PAS (Problem-Agitate-Solution) 구조: 문제 제시 → 자극 → 해결책',
@@ -88,7 +92,7 @@ ${originalContent ? `**원본 콘텐츠:**\n${originalContent}\n` : ''}
 **작성 요구사항:**
 1. 네이버 블로그에 최적화된 형식으로 작성
 2. SEO 친화적인 제목과 본문
-3. 마쓰구프(MASGOLF) 브랜드 자연스럽게 언급
+3. 마쓰구골프(MASGOLF) 브랜드 자연스럽게 언급
 4. ${getPersonaPrompt(variation.persona)}가 관심을 가질 만한 내용
 5. ${getVariationPrompt(variation)} 구조를 따라 작성
 6. ${getBrandStrengthPrompt(variation.brandStrength)}
@@ -123,15 +127,30 @@ ${originalContent ? `**원본 콘텐츠:**\n${originalContent}\n` : ''}
       });
 
       const result = JSON.parse(response.choices[0].message.content);
-      results.push({
-        ...result,
-        variationInfo: {
-          type: variation.variationType,
-          name: variation.variationName,
-          brandStrength: variation.brandStrength,
-          persona: variation.persona
-        }
-      });
+        results.push({
+          ...result,
+          variationInfo: {
+            type: variation.variationType,
+            name: variation.variationName,
+            brandStrength: variation.brandStrength,
+            persona: variation.persona
+          }
+        });
+        
+        console.log(`✅ 베리에이션 생성 완료: ${variation.variationName}`);
+        
+      } catch (variationError) {
+        console.error(`❌ 베리에이션 생성 실패 (${variation.variationName}):`, variationError);
+        results.push({
+          error: `베리에이션 생성 실패: ${variationError.message}`,
+          variationInfo: {
+            type: variation.variationType,
+            name: variation.variationName,
+            brandStrength: variation.brandStrength,
+            persona: variation.persona
+          }
+        });
+      }
     }
 
     res.status(200).json({
