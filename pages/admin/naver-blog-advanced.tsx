@@ -8,6 +8,7 @@ import AdminNav from '@/components/admin/AdminNav';
 // 동적 임포트
 const TipTapEditor = dynamic(() => import('@/components/admin/TipTapEditor'), { ssr: false });
 const GalleryPicker = dynamic(() => import('@/components/admin/GalleryPicker'), { ssr: false });
+const BrandStrategySelector = dynamic(() => import('@/components/admin/BrandStrategySelector'), { ssr: false });
 
 export default function NaverBlogAdvanced() {
   const { data: session, status } = useSession();
@@ -82,6 +83,26 @@ export default function NaverBlogAdvanced() {
   const [naverCompetitors, setNaverCompetitors] = useState([]);
   const [naverBestTimes, setNaverBestTimes] = useState([]);
   const [naverHashtags, setNaverHashtags] = useState([]);
+
+  // 블로그 소스에서 가져오기 관련 상태
+  const [homepagePosts, setHomepagePosts] = useState([]);
+  const [selectedHomepagePost, setSelectedHomepagePost] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+
+  // 미리보기 관련 상태
+  const [previewPost, setPreviewPost] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // 브랜드 전략 상태
+  const [brandStrategy, setBrandStrategy] = useState({
+    contentType: '골프 정보',
+    persona: 'tech_enthusiast',
+    framework: 'PAS',
+    channel: 'local',
+    brandStrength: '낮음',
+    audienceTemperature: 'warm',
+    conversionGoal: 'consideration'
+  });
 
   // URL 파라미터 확인 (허브 연동)
   useEffect(() => {
@@ -405,10 +426,122 @@ export default function NaverBlogAdvanced() {
     }
   };
 
+  // 홈페이지 블로그 포스트 가져오기
+  const fetchHomepagePosts = async () => {
+    try {
+      console.log('🔄 홈페이지 블로그 포스트 조회 시작...');
+      const response = await fetch('/api/admin/blog');
+      const data = await response.json();
+      console.log('📝 API 응답:', data);
+      
+      if (data.posts) {
+        setHomepagePosts(data.posts);
+        console.log('✅ 홈페이지 블로그 포스트 로드 성공:', data.posts.length, '개');
+      } else {
+        console.warn('⚠️ 홈페이지 블로그 포스트가 없습니다.');
+        setHomepagePosts([]);
+      }
+    } catch (error) {
+      console.error('❌ 홈페이지 블로그 조회 오류:', error);
+      setHomepagePosts([]);
+    }
+  };
+
+  // 홈피 블로그에서 네이버 블로그로 가져오기
+  const handleImportFromHomepage = async () => {
+    if (!selectedHomepagePost) {
+      alert('가져올 게시물을 선택해주세요.');
+      return;
+    }
+
+    setImportLoading(true);
+    try {
+      // 홈피 블로그 데이터를 네이버 블로그 형식으로 변환
+      const importData = {
+        title: selectedHomepagePost.title,
+        content: selectedHomepagePost.content,
+        excerpt: selectedHomepagePost.excerpt || '',
+        status: 'draft',
+        category: selectedHomepagePost.category || '골프',
+        tags: selectedHomepagePost.tags || [],
+        featured_image: selectedHomepagePost.featured_image || '',
+        meta_title: selectedHomepagePost.meta_title || selectedHomepagePost.title,
+        meta_description: selectedHomepagePost.meta_description || selectedHomepagePost.excerpt || '',
+        meta_keywords: selectedHomepagePost.meta_keywords || '',
+        naver_tags: selectedHomepagePost.tags || [],
+        naver_category: selectedHomepagePost.category || '골프',
+        calendar_id: hubData?.hubId || null
+      };
+
+      // 폼 데이터에 가져온 데이터 설정
+      setFormData(prev => ({
+        ...prev,
+        title: importData.title,
+        content: importData.content,
+        excerpt: importData.excerpt,
+        category: importData.category,
+        tags: importData.tags,
+        featured_image: importData.featured_image,
+        meta_title: importData.meta_title,
+        meta_description: importData.meta_description,
+        meta_keywords: importData.meta_keywords,
+        naver_tags: importData.naver_tags,
+        naver_category: importData.naver_category
+      }));
+
+      alert('홈피 블로그에서 성공적으로 가져왔습니다!');
+      setSelectedHomepagePost(null);
+      setActiveTab('create');
+    } catch (error) {
+      console.error('가져오기 오류:', error);
+      alert('가져오기 중 오류가 발생했습니다.');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  // 포스트 보기 핸들러
+  const handleViewPost = (post: any) => {
+    // 네이버 블로그 URL이 있으면 새 탭에서 열기
+    if (post.naver_post_url) {
+      window.open(post.naver_post_url, '_blank');
+    } else {
+      // 네이버 블로그 URL이 없으면 미리보기 모달 표시
+      setPreviewPost(post);
+      setShowPreview(true);
+    }
+  };
+
+  // 포스트 삭제 핸들러
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('이 네이버 블로그 포스트를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/naver-blog/${postId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        alert('네이버 블로그 포스트가 삭제되었습니다.');
+        fetchPosts(); // 목록 새로고침
+      } else {
+        const error = await response.json();
+        alert('삭제 실패: ' + error.message);
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     if (activeTab === 'list') {
       fetchPosts();
+    } else if (activeTab === 'import') {
+      fetchHomepagePosts();
     }
     fetchNaverTrends();
   }, [activeTab]);
@@ -830,18 +963,31 @@ export default function NaverBlogAdvanced() {
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button 
-                              onClick={() => {
-                                setEditingPostId(post.id);
-                                setActiveTab('create');
-                                setShowForm(true);
-                                loadPostForEdit(post.id);
-                              }}
-                              className="text-blue-600 hover:text-blue-900 mr-3"
-                            >
-                              수정
-                            </button>
-                            <button className="text-red-600 hover:text-red-900">삭제</button>
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => handleViewPost(post)}
+                                className="text-green-600 hover:text-green-900"
+                              >
+                                보기
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setEditingPostId(post.id);
+                                  setActiveTab('create');
+                                  setShowForm(true);
+                                  loadPostForEdit(post.id);
+                                }}
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                수정
+                              </button>
+                              <button 
+                                onClick={() => handleDeletePost(post.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                삭제
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -927,6 +1073,24 @@ export default function NaverBlogAdvanced() {
                 </div>
               </div>
             </div>
+            
+            {/* 브랜드 전략 선택기 */}
+            <BrandStrategySelector 
+              onStrategyChange={(strategy) => {
+                setBrandStrategy(strategy);
+              }}
+              onApplyStrategy={(strategy) => {
+                // 브랜드 전략 적용 시 AI 콘텐츠 생성
+                console.log('브랜드 전략 적용:', strategy);
+                // TODO: 브랜드 전략을 활용한 AI 콘텐츠 생성 로직 추가
+              }}
+              showVariationButton={true}
+              onGenerateVariation={(strategy) => {
+                // 베리에이션 생성
+                console.log('베리에이션 생성:', strategy);
+                // TODO: 브랜드 전략 기반 베리에이션 생성 로직 추가
+              }}
+            />
             
             {/* 기본 폼 */}
             <div className="bg-white rounded-lg shadow p-6">
@@ -1014,6 +1178,74 @@ export default function NaverBlogAdvanced() {
           </div>
         );
       
+      case 'import':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">홈피에서 가져오기</h2>
+              <button
+                onClick={() => setActiveTab('list')}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                목록으로
+              </button>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                  📝 블로그 소스에서 가져오기
+                </h3>
+                <p className="text-blue-700 mb-3">
+                  기존 홈페이지 블로그 포스트를 네이버 블로그에 최적화된 형태로 변환합니다.
+                </p>
+                <div className="bg-blue-100 p-3 rounded-lg mb-3">
+                  <p className="text-sm text-blue-800">
+                    💡 <strong>사용법:</strong> 가져올 블로그 포스트를 선택하면 네이버 블로그에 최적화된 형태로 자동 변환됩니다.
+                  </p>
+                </div>
+                <div className="flex gap-4 items-center">
+                  <select
+                    value={selectedHomepagePost?.id || ''}
+                    onChange={(e) => {
+                      const post = homepagePosts.find(p => p.id === e.target.value);
+                      setSelectedHomepagePost(post || null);
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">블로그 포스트를 선택하세요</option>
+                    {homepagePosts.map((post) => (
+                      <option key={post.id} value={post.id}>
+                        {post.title} ({post.status === 'published' ? '발행됨' : '초안'})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleImportFromHomepage}
+                    disabled={!selectedHomepagePost || importLoading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {importLoading ? '가져오는 중...' : '가져오기'}
+                  </button>
+                </div>
+              </div>
+              
+              {selectedHomepagePost && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">선택된 포스트 미리보기</h4>
+                  <div className="space-y-2">
+                    <p><strong>제목:</strong> {selectedHomepagePost.title}</p>
+                    <p><strong>카테고리:</strong> {selectedHomepagePost.category}</p>
+                    <p><strong>상태:</strong> {selectedHomepagePost.status === 'published' ? '발행됨' : '초안'}</p>
+                    <p><strong>요약:</strong> {selectedHomepagePost.excerpt || '요약 없음'}</p>
+                    <p><strong>내용 길이:</strong> {selectedHomepagePost.content?.length || 0}자</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+        
       default:
         return null;
     }
@@ -1066,6 +1298,16 @@ export default function NaverBlogAdvanced() {
               >
                 ✏️ 새 게시물 작성
               </button>
+              <button
+                onClick={() => setActiveTab('import')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'import'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📥 홈피에서 가져오기
+              </button>
             </nav>
           </div>
           
@@ -1073,6 +1315,98 @@ export default function NaverBlogAdvanced() {
           {renderTabContent()}
         </div>
       </div>
+
+      {/* 미리보기 모달 */}
+      {showPreview && previewPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">📝 네이버 블로그 미리보기</h2>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">제목</h3>
+                <p className="text-gray-700">{previewPost.title}</p>
+              </div>
+
+              {previewPost.excerpt && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">요약</h3>
+                  <p className="text-gray-700">{previewPost.excerpt}</p>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">내용</h3>
+                <div 
+                  className="text-gray-700 prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: previewPost.content }}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">상태</h4>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    previewPost.status === 'published' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {previewPost.status === 'published' ? '발행됨' : '초안'}
+                  </span>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">카테고리</h4>
+                  <p className="text-gray-700">{previewPost.category || '골프'}</p>
+                </div>
+
+                {previewPost.naver_post_url && (
+                  <div className="col-span-2">
+                    <h4 className="font-semibold text-gray-900 mb-1">네이버 블로그 URL</h4>
+                    <a 
+                      href={previewPost.naver_post_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 break-all"
+                    >
+                      {previewPost.naver_post_url}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                onClick={() => setShowPreview(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              >
+                닫기
+              </button>
+              <button
+                onClick={() => {
+                  setEditingPostId(previewPost.id);
+                  setActiveTab('create');
+                  setShowForm(true);
+                  loadPostForEdit(previewPost.id);
+                  setShowPreview(false);
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                편집하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

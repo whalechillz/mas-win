@@ -264,23 +264,23 @@ const products = [
 헤드 스피드에 관계없이, 다양한 골퍼에게 적합한 자동적인 오토플렉스 타입입니다.`,
     specs: [
       {
-        model: '40',
+        model: 'A200(40)',
         length: '1130',
-        weight: '45',
+        weight: '44',
         tipDiameter: '8.55',
         buttDiameter: '15.05',
-        torque: '5.0',
-        frequency: '200',
+        torque: '4.8',
+        frequency: 'A200',
         kickPoint: '더블킥'
       },
       {
-        model: '50',
+        model: 'A215(50)',
         length: '1130',
-        weight: '54',
+        weight: '53',
         tipDiameter: '8.55',
         buttDiameter: '15.4',
-        torque: '4.2',
-        frequency: '215',
+        torque: '4.0',
+        frequency: 'A215',
         kickPoint: '더블킥'
       }
     ]
@@ -303,53 +303,33 @@ const products = [
 DOGATTI는, BERYL(아름다움, 광채, 젊음)에 어울리는, 광택이 있고 아름다운 알루미늄 IP 처리 컬러링이 특징입니다.`,
     specs: [
       {
-        model: 'R2',
+        model: '230(R2)',
         length: '1136',
-        weight: '42',
+        weight: '43',
         tipDiameter: '8.55',
         buttDiameter: '14.95',
-        torque: '5.0',
+        torque: '4.8',
         frequency: '230',
         kickPoint: '先中調子'
       },
       {
-        model: 'R',
+        model: '240(R)',
         length: '1136',
-        weight: '48',
+        weight: '47',
         tipDiameter: '8.55',
         buttDiameter: '15.1',
-        torque: '4.0',
+        torque: '3.8',
         frequency: '240',
         kickPoint: '先中調子'
       },
       {
-        model: 'SR',
+        model: '250(SR)',
         length: '1136',
         weight: '49',
         tipDiameter: '8.55',
         buttDiameter: '15.15',
-        torque: '4.0',
+        torque: '3.8',
         frequency: '250',
-        kickPoint: '先中調子'
-      },
-      {
-        model: 'S',
-        length: '1136',
-        weight: '50',
-        tipDiameter: '8.55',
-        buttDiameter: '15.2',
-        torque: '4.0',
-        frequency: '260',
-        kickPoint: '先中調子'
-      },
-      {
-        model: 'X',
-        length: '1136',
-        weight: '53',
-        tipDiameter: '8.55',
-        buttDiameter: '15.3',
-        torque: '3.9',
-        frequency: '270',
         kickPoint: '先中調子'
       }
     ]
