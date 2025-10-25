@@ -33,7 +33,142 @@ export default function BlogAdmin() {
   
   // AI 이미지 생성 관련 상태는 생성 페이지로 이동됨
 
-  // AI 생성 관련 상태는 생성 페이지로 이동됨
+  // 네이버 블로그 스크래퍼 상태
+  const [naverScraperMode, setNaverScraperMode] = useState('urls');
+  const [naverBlogId, setNaverBlogId] = useState('');
+  const [naverPostUrls, setNaverPostUrls] = useState('');
+  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
+  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
+  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
+  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
+
+  // 블로그 마이그레이션 상태
+  const [migrationUrl, setMigrationUrl] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
+  const [scrapedData, setScrapedData] = useState(null);
+
+  // AI 이미지 생성 관련 상태
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [showGeneratedImages, setShowGeneratedImages] = useState(false);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
+  const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
+  const [imageGenerationStep, setImageGenerationStep] = useState('');
+  const [isVarying, setIsVarying] = useState(false);
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
+  const [imageGenerationModel, setImageGenerationModel] = useState('');
+  const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState('');
+
+  // 이미지 저장 상태 관리
+  const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
+
+  // 이미지 생성 개수 선택
+  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
+
+  // AI 프리셋 설정
+  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
+  
+  // 러프 콘텐츠 관련 상태
+  const [roughContent, setRoughContent] = useState('');
+  const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
+  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
+
+  // 베리에이션 추천 모달 관련 상태
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [currentBrandStrategy, setCurrentBrandStrategy] = useState(null);
+
+  // AI 블로그 생성 관련 상태
+  const [generationMode, setGenerationMode] = useState('auto');
+  const [autoGenerateTopic, setAutoGenerateTopic] = useState('');
+  const [selectedContentType, setSelectedContentType] = useState('골프 정보');
+  const [selectedPersona, setSelectedPersona] = useState('중상급 골퍼');
+  const [selectedBrandWeight, setSelectedBrandWeight] = useState('medium');
+  const [selectedPainPoint, setSelectedPainPoint] = useState('비거리 부족');
+  const [selectedConversionGoal, setSelectedConversionGoal] = useState('consideration');
+  const [selectedStoryFramework, setSelectedStoryFramework] = useState('pixar');
+  const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
+  const [generatedBlog, setGeneratedBlog] = useState(null);
+  const [generationProgress, setGenerationProgress] = useState('');
+
+  // 인라인 갤러리 모달 관련 상태
+  const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
+  const [multichannelPreview, setMultichannelPreview] = useState(null);
+
+  // 갤러리 관련 상태 추가
+  const [postImages, setPostImages] = useState([]);
+  const [allImages, setAllImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
+  const [totalImagesCount, setTotalImagesCount] = useState(0);
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [imagesPerPage] = useState(20);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  
+  // 갤러리 아코디언 상태 (중복 제거됨)
+
+  // 연간 콘텐츠 자동생성 관련 상태
+  const [annualGenerationPeriod, setAnnualGenerationPeriod] = useState('3months');
+  const [annualContentCategory, setAnnualContentCategory] = useState('mixed');
+  const [annualPublishFrequency, setAnnualPublishFrequency] = useState('weekly');
+  const [isGeneratingAnnual, setIsGeneratingAnnual] = useState(false);
+  const [showAnnualPreview, setShowAnnualPreview] = useState(false);
+  const [annualGeneratedContent, setAnnualGeneratedContent] = useState(null);
+
+
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    excerpt: '',
+    slug: '',
+    category: '고객 후기',
+    status: 'draft',
+    featured_image: '',
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
+    tags: [] as string[],
+    view_count: 0,
+    is_featured: false,
+    is_scheduled: false,
+    scheduled_at: null as string | null,
+    calendar_id: null as string | null
+  });
+
+  // SEO 관련 상태 (중복 제거됨)
+
+  // 이미지 관련 상태
+  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
+  const [paragraphPrompts, setParagraphPrompts] = useState([]);
+  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
+  const [isGeneratingBlackToneImages, setIsGeneratingBlackToneImages] = useState(false);
+  const [goldTonePrompts, setGoldTonePrompts] = useState([]);
+  const [blackTonePrompts, setBlackTonePrompts] = useState([]);
+  const [showGoldTonePrompts, setShowGoldTonePrompts] = useState(false);
+  const [showBlackTonePrompts, setShowBlackTonePrompts] = useState(false);
+
+  // 기존 이미지 변형 관련 상태 (중복 제거됨)
+
+  // 프롬프트 설정 관리 관련 상태
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [newConfigDescription, setNewConfigDescription] = useState('');
+  const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
+  const [savedConfigs, setSavedConfigs] = useState({});
+  const [savedPromptConfigs, setSavedPromptConfigs] = useState({});
+
+  // SEO 관련 상태 추가 (중복 제거됨)
+
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
@@ -279,35 +414,8 @@ export default function BlogAdmin() {
     }
   };
 
-  // 이미지 관리 관련 상태
-  const [postImages, setPostImages] = useState([]);
-  const [allImages, setAllImages] = useState([]);
-  const [selectedImages, setSelectedImages] = useState(new Set());
-  const [showImageGallery, setShowImageGallery] = useState(false);
-  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
-  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
-  const [totalImagesCount, setTotalImagesCount] = useState(0);
   
-  // 페이지네이션 상태
-  const [currentPage, setCurrentPage] = useState(1);
-  const [imagesPerPage] = useState(20); // 페이지당 20개 이미지
-  const [isLoadingImages, setIsLoadingImages] = useState(false);
-  
-  // 갤러리 아코디언 상태
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [galleryFilter, setGalleryFilter] = useState('all'); // 'all', 'featured', 'search'
-  const [gallerySearchQuery, setGallerySearchQuery] = useState('');
-  const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
-  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
-  const [largeImageUrl, setLargeImageUrl] = useState('');
-  const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
-  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
-  const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
-  const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
-  const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
-  const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
-  const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
-  const galleryRecommendedTags = ['golf', 'driver', 'club', 'swing', 'masgolf', 'green', 'fairway'];
+  // 갤러리 아코디언 상태 (중복 제거됨)
 
   // 이미지 버전 우선 삽입 URL 계산
   const getPreferredVersionUrl = (img: any): string => {
@@ -397,10 +505,7 @@ export default function BlogAdmin() {
   const [variationStrength, setVariationStrength] = useState(0.7);
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
   
-  // 기존 이미지 변형 관련 상태
-  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
-  const [selectedExistingImage, setSelectedExistingImage] = useState('');
-  const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
+  // 기존 이미지 변형 관련 상태 (중복 제거됨)
   
   // 간단 AI 이미지 개선 관련 상태
   const [simpleAIImageRequest, setSimpleAIImageRequest] = useState('');
@@ -420,53 +525,13 @@ export default function BlogAdmin() {
   const [migratedPosts, setMigratedPosts] = useState([]);
 
 
-  // 하이브리드 SEO 관련 상태
-  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
-  const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
-  const [isGeneratingMetaTitle, setIsGeneratingMetaTitle] = useState(false);
-  const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
-  const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
-  const [isAnalyzingSEO, setIsAnalyzingSEO] = useState(false);
-  const [isGeneratingAllSEO, setIsGeneratingAllSEO] = useState(false);
-  const [seoQualityResult, setSeoQualityResult] = useState('');
-  const [seoAnalysisSuggestions, setSeoAnalysisSuggestions] = useState({
-    meta_title: '',
-    meta_description: '',
-    slug: '',
-    keywords: ''
-  });
+  // 하이브리드 SEO 관련 상태 (중복 제거됨)
 
   // 제목/슬러그 AI 관련 상태
   const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
   const [showTitleOptions, setShowTitleOptions] = useState(false);
-  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
-  // 폼 데이터 상태
-  const [formData, setFormData] = useState({
-    title: '',
-    slug: '',
-    excerpt: '',
-    content: '',
-    featured_image: '',
-    category: '고객 후기',
-    tags: [] as string[],
-    status: 'published',
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
-    view_count: 0,
-    is_featured: false,
-    is_scheduled: false,
-    scheduled_at: null as string | null,
-    author: '마쓰구골프',
-    // 추가 필드들
-    summary: '',
-    customerpersona: '',
-    conversiongoal: 'homepage_visit',
-    target_product: 'all',
-    published_at: '',
-    created_at: ''
-  });
+  // 폼 데이터 상태 (중복 제거됨)
 
   // loadPostForEdit 함수는 편집 페이지로 이동됨
 
@@ -1621,22 +1686,9 @@ export default function BlogAdmin() {
     );
   };
 
-  // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
-  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
-  const [paragraphPrompts, setParagraphPrompts] = useState([]); // 단락별 프롬프트 배열
-  const [showParagraphPromptPreview, setShowParagraphPromptPreview] = useState(false);
+  // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입 (중복 제거됨)
   
-  // 골드톤 시니어 매너 전용 상태
-  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
-  const [goldTonePrompts, setGoldTonePrompts] = useState([]); // 골드톤 프롬프트 배열
-  const [showGoldTonePromptPreview, setShowGoldTonePromptPreview] = useState(false);
-  
-  // 프롬프트 설정 관리 상태
-  const [savedPromptConfigs, setSavedPromptConfigs] = useState({});
-  const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [newConfigName, setNewConfigName] = useState('');
-  const [newConfigDescription, setNewConfigDescription] = useState('');
+  // 골드톤 시니어 매너 전용 상태 (중복 제거됨)
   
   // 프롬프트 설정 관리 함수들
   const promptConfigManager = {
@@ -1678,6 +1730,7 @@ export default function BlogAdmin() {
     
     // 로컬 스토리지에 저장
     saveToStorage() {
+      if (typeof window === 'undefined') return;
       try {
         localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
       } catch (error) {
@@ -1688,6 +1741,7 @@ export default function BlogAdmin() {
     
     // 로컬 스토리지에서 불러오기
     loadConfigs() {
+      if (typeof window === 'undefined') return {};
       try {
         const stored = localStorage.getItem('promptConfigs');
         return stored ? JSON.parse(stored) : {};
@@ -1801,7 +1855,9 @@ export default function BlogAdmin() {
   
   // 컴포넌트 마운트 시 저장된 설정 불러오기
   useEffect(() => {
-    setSavedPromptConfigs(promptConfigManager.getConfigs());
+    if (typeof window !== 'undefined') {
+      setSavedPromptConfigs(promptConfigManager.loadConfigs());
+    }
   }, []);
   
   // 10월 8일 버전 프롬프트 생성 (안정적 생성)
