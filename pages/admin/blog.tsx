@@ -19,8 +19,11 @@ export default function BlogAdmin() {
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const [selectedPosts, setSelectedPosts] = useState([]);
-  const [editingPost, setEditingPost] = useState(null);
-  const [editingPostId, setEditingPostId] = useState(null);
+  // 편집 관련 상태는 편집 페이지로 이동됨
+  const editingPost = null; // 편집 기능은 편집 페이지로 이동됨
+  const editingPostId = null; // 편집 기능은 편집 페이지로 이동됨
+  const hubData = null; // 허브 기능은 편집 페이지로 이동됨
+  const isHubMode = false; // 허브 기능은 편집 페이지로 이동됨
   const [viewMode, setViewMode] = useState('list');
   const [sortBy, setSortBy] = useState('published_at');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -537,67 +540,7 @@ export default function BlogAdmin() {
     created_at: ''
   });
 
-  // 특정 포스트 로드 (편집용)
-  const loadPostForEdit = useCallback(async (postId: string) => {
-    try {
-      console.log('🔍 포스트 로드 중:', postId);
-      const response = await fetch(`/api/admin/blog/${postId}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        const post = data.post;
-        console.log('✅ 포스트 로드 성공:', post);
-        
-        // 편집할 포스트 객체 설정
-        setEditingPost(post);
-        
-        // 🔄 허브 데이터 로드 (개선된 로직)
-        console.log('🔍 post.calendar_id:', post.calendar_id);
-        
-        if (post.calendar_id) {
-          console.log('🔗 허브 모드 감지, 허브 데이터 로드 중...', post.calendar_id);
-          await loadHubData(post.calendar_id);
-        } else {
-          console.log('❌ 허브 연결 없음, 일반 편집 모드');
-          setIsHubMode(false);
-          setHubData(null);
-        }
-        
-        setFormData({
-          title: post.title || '',
-          slug: post.slug || '',
-          excerpt: post.excerpt || '',
-          content: post.content || '',
-          category: post.category || 'blog',
-          status: post.status || 'draft',
-          featured_image: post.featured_image || '',
-          tags: post.tags || [],
-          meta_title: post.meta_title || '',
-          meta_description: post.meta_description || '',
-          meta_keywords: post.meta_keywords || '',
-          view_count: post.view_count || 0,
-          is_featured: post.is_featured || false,
-          is_scheduled: post.is_scheduled || false,
-          scheduled_at: post.scheduled_at || null,
-          author: post.author || '마쓰구골프',
-          // 추가 필드들
-          summary: post.summary || '',
-          customerpersona: post.customer_persona || '',
-          conversiongoal: post.conversion_goal || 'awareness',
-          target_product: post.target_product || 'all',
-          published_at: post.published_at || '',
-          created_at: post.created_at || ''
-        });
-      } else {
-        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
-        console.error('❌ 포스트 로드 실패:', response.status, errorData);
-        alert(`포스트를 불러올 수 없습니다: ${errorData.error || '알 수 없는 오류'}`);
-      }
-    } catch (error) {
-      console.error('❌ 포스트 로드 오류:', error);
-      alert(`포스트 로드 중 오류가 발생했습니다: ${error.message}`);
-    }
-  }, []);
+  // loadPostForEdit 함수는 편집 페이지로 이동됨
 
   // 게시물 목록 불러오기
   const fetchPosts = useCallback(async (currentSortBy = sortBy, currentSortOrder = sortOrder) => {
@@ -651,175 +594,11 @@ export default function BlogAdmin() {
     }
   }, [sortBy, sortOrder]);
 
-  // 허브 연동 상태
-  const [hubData, setHubData] = useState(null);
-  const [isHubMode, setIsHubMode] = useState(false);
-  
-  // 허브 동기화 관련 상태
-  const [syncModalData, setSyncModalData] = useState({
-    isOpen: false,
-    blogPost: null,
-    hubId: null
-  });
-  const [isSyncing, setIsSyncing] = useState(false);
+  // 허브 연동 관련 상태는 편집 페이지로 이동됨
 
-  // 편집 모드 감지 함수
-  const isEditMode = () => {
-    return editingPost !== null || editingPostId !== null;
-  };
+  // 허브 관련 함수들은 편집 페이지로 이동됨
 
-  // 허브 데이터 로드 함수
-  const loadHubData = async (hubId: string) => {
-    try {
-      console.log('🔍 허브 데이터 로드 중...', hubId);
-      
-      // 허브 상태 초기화
-      setHubData(null);
-      setIsHubMode(false);
-      
-      const response = await fetch(`/api/admin/content-calendar-hub?id=${hubId}`);
-      const data = await response.json();
-      
-      if (response.ok && data.data && data.data.length > 0) {
-        const hubContent = data.data[0]; // 첫 번째 항목이 해당 허브 콘텐츠
-        console.log('✅ 허브 데이터 로드 성공:', hubContent);
-        setHubData({
-          id: hubContent.id,
-          hubId: hubContent.id,
-          title: hubContent.title,
-          summary: hubContent.summary
-        });
-        setIsHubMode(true);
-      } else {
-        console.log('❌ 허브 데이터 없음, 일반 편집 모드');
-        setIsHubMode(false);
-        setHubData(null);
-      }
-    } catch (error) {
-      console.error('❌ 허브 데이터 로드 오류:', error);
-      setIsHubMode(false);
-      setHubData(null);
-    }
-  };
-
-  // 허브 동기화 함수
-  const handleHubSync = async (post) => {
-    try {
-      // 동기화 모달 표시
-      setSyncModalData({
-        isOpen: true,
-        blogPost: post,
-        hubId: post.calendar_id
-      });
-    } catch (error) {
-      console.error('동기화 모달 오류:', error);
-      alert('동기화 모달을 열 수 없습니다.');
-    }
-  };
-
-  // AI 동기화 함수
-  const handleHubSyncWithAI = async (blogPost, hubId) => {
-    try {
-      setIsSyncing(true);
-      
-      const response = await fetch('/api/blog/sync-to-hub-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blogPostId: blogPost.id,
-          hubContentId: hubId,
-          title: blogPost.title,
-          content: blogPost.content,
-          excerpt: blogPost.excerpt
-        })
-      });
-      
-      if (response.ok) {
-        alert('🤖 AI로 허브 콘텐츠가 최적화되어 동기화되었습니다!');
-        setSyncModalData({ isOpen: false, blogPost: null, hubId: null });
-        fetchPosts(); // 목록 새로고침
-      } else {
-        throw new Error('AI 동기화 실패');
-      }
-    } catch (error) {
-      console.error('AI 동기화 오류:', error);
-      alert('AI 동기화에 실패했습니다.');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // 직접 동기화 함수
-  const handleHubSyncDirect = async (blogPost, hubId) => {
-    try {
-      setIsSyncing(true);
-      
-      const response = await fetch('/api/blog/sync-to-hub-direct', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blogPostId: blogPost.id,
-          hubContentId: hubId,
-          title: blogPost.title,
-          content: blogPost.content,
-          excerpt: blogPost.excerpt
-        })
-      });
-      
-      if (response.ok) {
-        alert('⚡ 직접 허브 콘텐츠가 동기화되었습니다!');
-        setSyncModalData({ isOpen: false, blogPost: null, hubId: null });
-        fetchPosts(); // 목록 새로고침
-      } else {
-        throw new Error('직접 동기화 실패');
-      }
-    } catch (error) {
-      console.error('직접 동기화 오류:', error);
-      alert('직접 동기화에 실패했습니다.');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // URL 파라미터 확인 (허브 연동)
-  useEffect(() => {
-    if (router.query.hub && router.query.title && router.query.summary) {
-      setIsHubMode(true);
-      setHubData({
-        hubId: router.query.hub,
-        title: decodeURIComponent(router.query.title as string),
-        summary: decodeURIComponent(router.query.summary as string)
-      });
-      setShowForm(true);
-      setActiveTab('create');
-      
-      // 허브 데이터로 폼 초기화
-      setFormData({
-        title: decodeURIComponent(router.query.title as string),
-        content: '',
-        excerpt: '',
-        slug: '',
-        featured_image: '',
-        category: '고객 후기',
-        tags: [] as string[],
-        status: 'draft',
-        meta_title: '',
-        meta_description: '',
-        meta_keywords: '',
-        view_count: 0,
-        is_featured: false,
-        is_scheduled: false,
-        scheduled_at: null as string | null,
-        author: '마쓰구골프',
-        summary: '',
-        customerpersona: '',
-        conversiongoal: 'homepage_visit',
-        target_product: 'all',
-        published_at: new Date().toISOString().slice(0, 16),
-        created_at: ''
-      });
-    }
-  }, [router.query]);
+  // URL 파라미터 확인 (허브 연동) - 편집 페이지로 이동됨
 
   // 콘텐츠 캘린더에서 데이터 불러오기
 
@@ -886,7 +665,7 @@ export default function BlogAdmin() {
       
       console.log('📝 저장 데이터:', { isHubMode, hubData, submitData });
       
-      if (editingPost) {
+      if (false) { // 편집 기능은 편집 페이지로 이동됨
         // 수정
         const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
@@ -1025,7 +804,7 @@ export default function BlogAdmin() {
       console.log('🔗 허브 연동 해제 중...', { hubId: hubData?.hubId });
       
       // 블로그에서 calendar_id 제거
-      if (editingPost) {
+      if (false) { // 편집 기능은 편집 페이지로 이동됨
         const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -1056,8 +835,7 @@ export default function BlogAdmin() {
       }
       
       // 허브 모드 해제
-      setIsHubMode(false);
-      setHubData(null);
+        // 허브 기능은 편집 페이지로 이동됨
       alert('허브 연동이 해제되었습니다.');
       
     } catch (error) {
@@ -1467,29 +1245,19 @@ export default function BlogAdmin() {
     }
   };
 
-  // 게시물 수정 모드로 전환
+  // 게시물 수정 모드로 전환 (편집 페이지로 리다이렉트)
   const handleEdit = useCallback(async (post) => {
     try {
       console.log('📝 게시물 수정 모드 시작:', post.id);
       
-      // 🔄 허브 상태 초기화 (방안1 핵심)
-      setHubData(null);
-      setIsHubMode(false);
-      
-      // 편집 모드 설정
-      setEditingPost(post);
-      setEditingPostId(post.id);
-      setShowForm(true);
-      setActiveTab('edit');
-      
-      // 🔄 포스트 데이터 로드 (허브 데이터 포함)
-      await loadPostForEdit(post.id);
+      // 편집 페이지로 리다이렉트
+      router.push(`/admin/blog/edit/${post.id}`);
       
     } catch (error) {
       console.error('❌ 게시물 수정 모드 오류:', error);
       alert('게시물 수정 모드 진입 중 오류가 발생했습니다.');
     }
-  }, []);
+  }, [router]);
 
   // generateSlug 함수는 위에서 이미 정의됨 (SEO 최적화된 버전 사용)
 
@@ -2263,7 +2031,7 @@ export default function BlogAdmin() {
             headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompts: paragraphPrompts,
-          blogPostId: editingPost?.id || null
+          blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
         })
       });
       
@@ -2391,7 +2159,7 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompts: goldTonePrompts,
-          blogPostId: editingPost?.id || null
+          blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
         })
       });
       
@@ -2490,7 +2258,7 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompts: prompts,
-          blogPostId: editingPost?.id || null
+          blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
         })
       });
       
@@ -2612,7 +2380,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: imageUrls[i],
                 fileName: `dalle3-${Date.now()}-${i + 1}.png`,
-                blogPostId: editingPost?.id || null
+                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
               })
             });
             
@@ -2778,7 +2546,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: result.imageUrls[i],
                 fileName: `fal-ai-image-${Date.now()}-${i + 1}.png`,
-                blogPostId: editingPost?.id || null
+                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
               })
             });
             
@@ -2940,7 +2708,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: result.imageUrls[i],
                 fileName: `google-ai-image-${Date.now()}-${i + 1}.png`,
-                blogPostId: editingPost?.id || null
+                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
               })
             });
             
@@ -3365,10 +3133,10 @@ export default function BlogAdmin() {
         body: JSON.stringify({ 
           imageUrl: selectedExistingImage,
           prompt: improvedPrompt,
-          title: editingPost?.title || '이미지 변형',
-          excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
-          contentType: editingPost?.content_type || 'blog',
-          brandStrategy: editingPost?.brand_strategy || 'professional',
+          title: '새 게시물',
+          excerpt: '새 게시물',
+          contentType: 'blog',
+          brandStrategy: 'professional',
           preset: aiPreset
         })
       });
@@ -3615,8 +3383,8 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             imageUrl: selectedExistingImage,
-            title: editingPost?.title || '이미지 변형',
-            excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트'
+            title: '새 게시물',
+            excerpt: '새 게시물'
         })
       });
 
@@ -3670,10 +3438,10 @@ export default function BlogAdmin() {
     try {
       let apiEndpoint = '';
       let requestBody = {
-        title: editingPost?.title || '이미지 변형',
-        excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
-        contentType: editingPost?.content_type || 'blog',
-        brandStrategy: editingPost?.brand_strategy || 'professional',
+        title: '새 게시물',
+        excerpt: '새 게시물',
+        contentType: 'blog',
+        brandStrategy: 'professional',
         baseImageUrl: selectedBaseImage,
         variationStrength: variationStrength,
         variationCount: 1
@@ -3713,7 +3481,7 @@ export default function BlogAdmin() {
                 body: JSON.stringify({
                   imageUrl: result.images[i].originalUrl || result.images[i],
                   fileName: `${model.toLowerCase().replace(' ', '-')}-variation-${Date.now()}-${i + 1}.png`,
-                  blogPostId: editingPost?.id || null
+                  blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
                 })
               });
               
@@ -3814,7 +3582,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                   imageUrl: data.images[i],
                   fileName: `${model.toLowerCase().replace(' ', '-')}-improved-${Date.now()}-${i + 1}.png`,
-                blogPostId: editingPost?.id || null
+                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
               })
             });
             
@@ -4458,31 +4226,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
       const { edit, id, new: isNew, title, content, category, status } = router.query;
       
       if (edit) {
-        // 기존 포스트 편집 모드 (edit 파라미터) - 빠른 편집
+        // 기존 포스트 편집 모드 (edit 파라미터) - 편집 페이지로 리다이렉트
         const postId = edit as string;
         console.log('🚀 빠른 편집 모드 진입 (edit):', postId);
-        console.log('🔍 현재 상태:', { showForm, activeTab, editingPost });
         
-        setEditingPostId(postId);
-        setShowForm(true);
-        setActiveTab('edit');
-        console.log('✅ 편집 모드 설정 완료');
-        
-        // 포스트 데이터 로드
-        loadPostForEdit(postId);
+        // 편집 페이지로 리다이렉트
+        router.push(`/admin/blog/edit/${postId}`);
       } else if (id) {
-        // 기존 포스트 편집 모드 (id 파라미터) - 허브에서 온 경우 (빠른 편집 적용)
+        // 기존 포스트 편집 모드 (id 파라미터) - 편집 페이지로 리다이렉트
         const postId = id as string;
         console.log('🚀 빠른 편집 모드 진입 (id):', postId);
         
-        // 즉시 편집 모드 설정
-        setEditingPostId(postId);
-        setShowForm(true);
-        setActiveTab('edit');
-        console.log('✅ 편집 모드 즉시 설정 완료');
-        
-        // 포스트 데이터 로드 (백그라운드)
-        loadPostForEdit(postId);
+        // 편집 페이지로 리다이렉트
+        router.push(`/admin/blog/edit/${postId}`);
       } else if (isNew === 'true') {
         // 새 포스트 생성 모드 (캘린더에서 온 경우)
         console.log('🔍 새 포스트 생성 모드 진입');
@@ -4686,7 +4442,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     published_at: '',
                     created_at: ''
                   });
-                  setEditingPost(null);
+                  // 편집 기능은 편집 페이지로 이동됨
                   setActiveTab('create');
                   setShowForm(true);
                 }}
@@ -5304,14 +5060,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                                       🔗 연결됨: {post.calendar_id.substring(0, 8)}...
                                     </span>
                                     
-                                    {/* 🔄 허브 동기화 버튼 추가 */}
-                                    <button
-                                      onClick={() => handleHubSync(post)}
-                                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 flex items-center gap-1"
-                                      title="허브 콘텐츠 동기화"
-                                    >
-                                      🔄 동기화
-                                    </button>
+                                    {/* 허브 동기화는 편집 페이지에서 처리됨 */}
                                     
                                     <button
                                       onClick={() => {
@@ -5395,17 +5144,17 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
               <div className="mb-6 flex justify-between items-center">
                 <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                {editingPost ? '게시물 수정' : '새 게시물 작성'}
+                새 게시물 작성
               </h2>
                 <p className="text-gray-600 mt-1">
-                  {editingPost ? '게시물을 수정하세요.' : '새로운 게시물을 작성하세요.'}
+                  새로운 게시물을 작성하세요.
                   </p>
                 </div>
                 <button
                   onClick={() => {
                     setShowForm(false);
-                    setEditingPost(null);
-                    setEditingPostId(null);
+                    // 편집 기능은 편집 페이지로 이동됨
+                    // 편집 기능은 편집 페이지로 이동됨
                     setActiveTab('list');
                   }}
                   className="text-gray-500 hover:text-gray-700 text-sm"
@@ -5414,51 +5163,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 </button>
                 </div>
 
-                {/* 허브 연동 정보 표시 */}
-                {(() => {
-                  console.log('🔍 허브 연동 정보 표시 조건:', {
-                    isEditMode: isEditMode(),
-                    isHubMode,
-                    hubData,
-                    editingPost,
-                    editingPostId,
-                    activeTab
-                  });
-                  return isEditMode() && isHubMode && hubData;
-                })() && (
-                  <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <span className="text-lg">🎯</span>
-                      <h3 className="text-lg font-semibold text-blue-800">허브 콘텐츠 연동</h3>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm font-medium text-gray-700 w-16">허브 ID:</span>
-                        <span className="text-sm text-gray-900 font-mono">{hubData.id}</span>
-                      </div>
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm font-medium text-gray-700 w-16">제목:</span>
-                        <span className="text-sm text-gray-900">{hubData.title}</span>
-                      </div>
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm font-medium text-gray-700 w-16">요약:</span>
-                        <span className="text-sm text-gray-900">{hubData.summary}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-3">
-                        <button
-                          type="button"
-                          onClick={handleUnlinkHub}
-                          className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
-                        >
-                          허브 연동 해제
-                        </button>
-                        <span className="text-xs text-gray-500">
-                          초안 저장 시 자동으로 허브 상태가 동기화됩니다.
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* 허브 연동 정보는 편집 페이지로 이동됨 */}
                     
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 러프 콘텐츠 입력 섹션 */}
@@ -7108,7 +6813,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     {isSubmitting && (
                       <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     )}
-                      {editingPost ? '수정' : '저장'}
+                      저장
                     </button>
                 </div>
               </form>
@@ -7776,54 +7481,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         </div>
       )}
 
-      {/* 허브 동기화 모달 */}
-      {syncModalData.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">허브 콘텐츠 동기화</h3>
-              <button
-                onClick={() => setSyncModalData({ isOpen: false, blogPost: null, hubId: null })}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>블로그:</strong> {syncModalData.blogPost?.title}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>허브 ID:</strong> {syncModalData.hubId}
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <button
-                onClick={() => handleHubSyncWithAI(syncModalData.blogPost, syncModalData.hubId)}
-                disabled={isSyncing}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isSyncing ? '🔄 동기화 중...' : '🤖 AI 동기화'}
-              </button>
-              
-              <button
-                onClick={() => handleHubSyncDirect(syncModalData.blogPost, syncModalData.hubId)}
-                disabled={isSyncing}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isSyncing ? '🔄 동기화 중...' : '⚡ 직접 동기화'}
-              </button>
-            </div>
-            
-            <div className="mt-4 text-xs text-gray-500">
-              <p><strong>AI 동기화:</strong> 허브용으로 최적화된 요약/개요 생성</p>
-              <p><strong>직접 동기화:</strong> 현재 블로그 내용을 그대로 복사</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 허브 동기화 모달은 편집 페이지로 이동됨 */}
 
     </>
   );
