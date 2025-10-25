@@ -34,6 +34,15 @@ export default function EditBlogPost() {
     meta_description: '',
     meta_keywords: '',
   });
+
+  // 러프 콘텐츠 관련 상태 (원본 소스에서 추가)
+  const [contentSource, setContentSource] = useState('');
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+  const [isAnalyzingContent, setIsAnalyzingContent] = useState(false);
+  const [generatedTitles, setGeneratedTitles] = useState([]);
+  const [showTitleOptions, setShowTitleOptions] = useState(false);
+  const [showAnalysisResult, setShowAnalysisResult] = useState(false);
+  const [contentAnalysisResult, setContentAnalysisResult] = useState(null);
   
   // 허브 연동 상태
   const [hubData, setHubData] = useState(null);
@@ -1123,6 +1132,85 @@ export default function EditBlogPost() {
     }
   };
 
+  // AI 제목 생성 함수 (원본 소스에서 추가)
+  const generateAITitle = async () => {
+    if (!contentSource.trim()) {
+      alert('콘텐츠 소스를 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingTitle(true);
+    try {
+      const response = await fetch('/api/generate-blog-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentSource: contentSource,
+          contentType: formData.category || '골프 정보'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedTitles(data.titles || []);
+        setShowTitleOptions(true);
+        alert('AI가 제목을 생성했습니다!');
+      } else {
+        throw new Error('제목 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 제목 생성 오류:', error);
+      alert('제목 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingTitle(false);
+    }
+  };
+
+  // 고급 콘텐츠 분석 함수 (원본 소스에서 추가)
+  const analyzeContentAdvanced = async () => {
+    if (!contentSource.trim()) {
+      alert('콘텐츠 소스를 입력해주세요.');
+      return;
+    }
+
+    setIsAnalyzingContent(true);
+    try {
+      const response = await fetch('/api/analyze-content-advanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentSource: contentSource,
+          contentType: formData.category || '골프 정보'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setContentAnalysisResult(data);
+        setShowAnalysisResult(true);
+        alert('고급 콘텐츠 분석이 완료되었습니다!');
+      } else {
+        throw new Error('콘텐츠 분석 실패');
+      }
+    } catch (error) {
+      console.error('고급 콘텐츠 분석 오류:', error);
+      alert('콘텐츠 분석 중 오류가 발생했습니다.');
+    } finally {
+      setIsAnalyzingContent(false);
+    }
+  };
+
+  // 생성된 제목 선택 함수 (원본 소스에서 추가)
+  const selectGeneratedTitle = (title) => {
+    setFormData(prev => ({
+      ...prev,
+      title: title,
+      meta_title: title
+    }));
+    setShowTitleOptions(false);
+    alert('제목이 선택되었습니다!');
+  };
+
   // 편집 폼 제출 함수
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1486,6 +1574,176 @@ export default function EditBlogPost() {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* 러프 콘텐츠 입력 섹션 - 원본 소스에서 추가 */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-2xl">📝</span>
+              <h2 className="text-xl font-semibold text-gray-900">콘텐츠 소스 & 글감</h2>
+              <span className="text-sm text-gray-500">AI가 이를 바탕으로 SEO 최적화된 콘텐츠를 생성합니다</span>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📝 콘텐츠 소스 & 글감
+              </label>
+              <textarea
+                value={contentSource}
+                onChange={(e) => setContentSource(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="블로그 글감, 정리되지 않은 데이터, 관련 정보, 키워드 등을 자유롭게 입력하세요. AI가 이를 바탕으로 SEO 최적화된 제목을 생성합니다."
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                💡 예시: "골프 드라이버, 비거리 향상, 50대 골퍼, 맞춤 피팅, 군산 지역, 고객 후기, 25m 증가, 시크리트포스 PRO3, 조병섭 교수님, 신성대학교"
+              </p>
+            </div>
+            
+            {/* AI 제목 생성 및 고급 콘텐츠 분석 버튼 */}
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                onClick={generateAITitle}
+                disabled={isGeneratingTitle}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm disabled:opacity-50 flex items-center gap-2"
+              >
+                {isGeneratingTitle ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    AI 제목 생성 중...
+                  </>
+                ) : (
+                  <>
+                    🤖 AI 제목 생성
+                  </>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={analyzeContentAdvanced}
+                disabled={isAnalyzingContent}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 flex items-center gap-2"
+              >
+                {isAnalyzingContent ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    고급 분석 중...
+                  </>
+                ) : (
+                  <>
+                    🔍 고급 콘텐츠 분석
+                  </>
+                )}
+              </button>
+              {generatedTitles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowTitleOptions(!showTitleOptions)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                >
+                  📋 생성된 제목 보기 ({generatedTitles.length}개)
+                </button>
+              )}
+            </div>
+
+            {/* 생성된 제목 옵션들 */}
+            {showTitleOptions && generatedTitles.length > 0 && (
+              <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h4 className="text-sm font-medium text-purple-800 mb-3">🎯 AI가 생성한 SEO 최적화 제목들</h4>
+                <div className="space-y-2">
+                  {generatedTitles.map((title, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-white border border-purple-200 rounded">
+                      <span className="text-xs text-purple-600 font-medium w-8">{index + 1}.</span>
+                      <span className="flex-1 text-sm text-gray-800">{title}</span>
+                      <button
+                        type="button"
+                        onClick={() => selectGeneratedTitle(title)}
+                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                      >
+                        선택
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowTitleOptions(false)}
+                    className="text-xs text-purple-600 hover:text-purple-800"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 고급 콘텐츠 분석 결과 */}
+            {showAnalysisResult && contentAnalysisResult && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-800 mb-3">🔍 고급 콘텐츠 분석 결과</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <h5 className="text-xs font-medium text-blue-700 mb-2">분류 정보</h5>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">카테고리:</span>
+                        <span className="font-medium text-blue-600">{contentAnalysisResult.category}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">신뢰도:</span>
+                        <span className="font-medium text-green-600">{(contentAnalysisResult.confidence * 100).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h5 className="text-xs font-medium text-blue-700 mb-2">추출된 키워드</h5>
+                    <div className="flex flex-wrap gap-1">
+                      {contentAnalysisResult.keywords?.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mb-3">
+                  <h5 className="text-xs font-medium text-blue-700 mb-2">분석 추론</h5>
+                  <p className="text-xs text-gray-700 bg-white p-2 rounded border">
+                    {contentAnalysisResult.reasoning}
+                  </p>
+                </div>
+                
+                <div className="mb-3">
+                  <h5 className="text-xs font-medium text-blue-700 mb-2">개선 제안</h5>
+                  <ul className="space-y-1">
+                    {contentAnalysisResult.suggestions?.map((suggestion, index) => (
+                      <li key={index} className="flex items-start text-xs">
+                        <span className="text-green-500 mr-1">•</span>
+                        <span className="text-gray-700">{suggestion}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowAnalysisResult(false)}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 편집 폼 */}
