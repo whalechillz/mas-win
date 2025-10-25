@@ -23,7 +23,7 @@ export default function CreateBlogPost() {
     slug: '',
     excerpt: '',
     content: '',
-    category: 'blog',
+    category: '고객 후기',
     status: 'draft',
     featured_image: '',
     tags: [] as string[],
@@ -104,6 +104,166 @@ export default function CreateBlogPost() {
   const [showAnnualPreview, setShowAnnualPreview] = useState(false);
   const [annualGeneratedContent, setAnnualGeneratedContent] = useState(null);
 
+  // 골드톤/블랙톤 이미지 생성 관련 상태
+  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
+  const [isGeneratingBlackToneImages, setIsGeneratingBlackToneImages] = useState(false);
+  const [goldTonePrompts, setGoldTonePrompts] = useState([]);
+  const [blackTonePrompts, setBlackTonePrompts] = useState([]);
+  const [showGoldTonePrompts, setShowGoldTonePrompts] = useState(false);
+  const [showBlackTonePrompts, setShowBlackTonePrompts] = useState(false);
+
+  // 기존 이미지 변형 관련 상태
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
+  const [selectedExistingImage, setSelectedExistingImage] = useState('');
+  const [improvedPrompt, setImprovedPrompt] = useState('');
+
+  // 프롬프트 설정 관리 관련 상태
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [newConfigDescription, setNewConfigDescription] = useState('');
+  const [selectedPromptConfig, setSelectedPromptConfig] = useState(null);
+  const [savedConfigs, setSavedConfigs] = useState([]);
+
+  // 프롬프트 설정 관리 함수들
+  const promptConfigManager = {
+    configs: {},
+    
+    init() {
+      this.configs = this.loadConfigs();
+    },
+    
+    // 설정 저장
+    saveConfig(name, config) {
+      this.configs[name] = config;
+      localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
+    },
+    
+    // 설정 로드
+    loadConfigs() {
+      try {
+        const saved = localStorage.getItem('promptConfigs');
+        return saved ? JSON.parse(saved) : {};
+      } catch (error) {
+        console.error('설정 불러오기 실패:', error);
+        return {};
+      }
+    },
+    
+    // 설정 삭제
+    deleteConfig(name) {
+      delete this.configs[name];
+      localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
+    },
+    
+    // 설정 내보내기
+    exportConfigs() {
+      const dataStr = JSON.stringify(this.configs, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'prompt-configs.json';
+      link.click();
+      URL.revokeObjectURL(url);
+    },
+    
+    // 설정 가져오기
+    importConfigs(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          this.configs = { ...this.configs, ...imported };
+          localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
+          alert('설정이 가져와졌습니다.');
+        } catch (error) {
+          alert('파일 형식이 올바르지 않습니다.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // 프롬프트 설정 저장
+  const savePromptConfig = (name, description, brandStrategy) => {
+    const config = {
+      name,
+      description,
+      brandStrategy,
+      createdAt: new Date().toISOString()
+    };
+    
+    promptConfigManager.saveConfig(name, config);
+    setSavedConfigs(Object.values(promptConfigManager.configs));
+    alert('프롬프트 설정이 저장되었습니다.');
+  };
+
+  // 프롬프트 설정 삭제
+  const deletePromptConfig = (name) => {
+    if (confirm('정말로 이 설정을 삭제하시겠습니까?')) {
+      promptConfigManager.deleteConfig(name);
+      setSavedConfigs(Object.values(promptConfigManager.configs));
+      if (selectedPromptConfig?.name === name) {
+        setSelectedPromptConfig(null);
+      }
+    }
+  };
+
+  // 프롬프트 설정 적용
+  const applyPromptConfig = (config) => {
+    setSelectedPromptConfig(config);
+    // 브랜드 전략 적용
+    if (config.brandStrategy) {
+      setCurrentBrandStrategy(config.brandStrategy);
+    }
+  };
+
+  // 기존 이미지 변형 함수
+  const handleExistingImageVariation = async () => {
+    if (!selectedExistingImage) {
+      alert('변형할 이미지를 선택해주세요.');
+      return;
+    }
+
+    try {
+      setIsGeneratingExistingVariation(true);
+      setImageGenerationStep('기존 이미지 변형 중...');
+      
+      const response = await fetch('/api/vary-existing-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedExistingImage,
+          prompt: improvedPrompt,
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: currentBrandStrategy || 'professional',
+          preset: aiPreset
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedImages(data.images || []);
+        setShowGeneratedImages(true);
+        setImageGenerationStep('기존 이미지 변형 완료!');
+        setShowExistingImageModal(false);
+      } else {
+        throw new Error('기존 이미지 변형 실패');
+      }
+    } catch (error) {
+      console.error('기존 이미지 변형 오류:', error);
+      alert('기존 이미지 변형 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingExistingVariation(false);
+      setTimeout(() => {
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
   // 제출 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -124,6 +284,12 @@ export default function CreateBlogPost() {
       }
     }
   }, [router.isReady, router.query]);
+
+  // 프롬프트 설정 초기화
+  useEffect(() => {
+    promptConfigManager.init();
+    setSavedConfigs(Object.values(promptConfigManager.configs));
+  }, []);
 
   // 폼 제출 함수
   const handleSubmit = async (e) => {
@@ -350,6 +516,100 @@ export default function CreateBlogPost() {
     }
   };
 
+  // 골드톤 시니어 매너 프롬프트 생성
+  const generateGoldTonePrompts = async () => {
+    if (!formData.content) {
+      alert('내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      setIsGeneratingGoldToneImages(true);
+      setImageGenerationStep('골드톤 시니어 매너 프롬프트 생성 중...');
+      
+      const response = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          brandStrategy: {
+            contentType: formData.category,
+            customerpersona: 'senior_preference',
+            customerChannel: 'local_customers',
+            brandWeight: 'high',
+            audienceTemperature: 'warm',
+            audienceWeight: 'high'
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoldTonePrompts(data.prompts || []);
+        setShowGoldTonePrompts(true);
+        setImageGenerationStep('골드톤 프롬프트 생성 완료!');
+      } else {
+        throw new Error('골드톤 프롬프트 생성 실패');
+      }
+    } catch (error) {
+      console.error('골드톤 프롬프트 생성 오류:', error);
+      alert('골드톤 프롬프트 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingGoldToneImages(false);
+      setTimeout(() => {
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // 블랙톤 젊은 매너 프롬프트 생성
+  const generateBlackTonePrompts = async () => {
+    if (!formData.content) {
+      alert('내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      setIsGeneratingBlackToneImages(true);
+      setImageGenerationStep('블랙톤 젊은 매너 프롬프트 생성 중...');
+      
+      const response = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          brandStrategy: {
+            contentType: formData.category,
+            customerpersona: 'tech_enthusiast',
+            customerChannel: 'online',
+            brandWeight: 'medium',
+            audienceTemperature: 'cold',
+            audienceWeight: 'medium'
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBlackTonePrompts(data.prompts || []);
+        setShowBlackTonePrompts(true);
+        setImageGenerationStep('블랙톤 프롬프트 생성 완료!');
+      } else {
+        throw new Error('블랙톤 프롬프트 생성 실패');
+      }
+    } catch (error) {
+      console.error('블랙톤 프롬프트 생성 오류:', error);
+      alert('블랙톤 프롬프트 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingBlackToneImages(false);
+      setTimeout(() => {
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -385,6 +645,93 @@ export default function CreateBlogPost() {
               onApplyStrategy={handleBrandStrategyApply}
               isApplying={isApplyingBrandStrategy}
             />
+          </div>
+
+          {/* 프롬프트 설정 관리 */}
+          <div className="mb-8">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">프롬프트 설정 관리</h3>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setShowConfigModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+                  >
+                    + 새 설정
+                  </button>
+                  <button
+                    onClick={() => promptConfigManager.exportConfigs()}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                  >
+                    📤 내보내기
+                  </button>
+                  <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm cursor-pointer">
+                    📥 가져오기
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) promptConfigManager.importConfigs(file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* 저장된 설정 목록 */}
+              {savedConfigs.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {savedConfigs.map((config, index) => (
+                    <div
+                      key={index}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedPromptConfig?.name === config.name
+                          ? 'border-purple-500 bg-purple-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => applyPromptConfig(config)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-gray-900">{config.name}</h4>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              applyPromptConfig(config);
+                            }}
+                            className="text-green-600 hover:text-green-700 text-sm"
+                          >
+                            ✅ 적용
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deletePromptConfig(config.name);
+                            }}
+                            className="text-red-600 hover:text-red-700 text-sm"
+                          >
+                            🗑️ 삭제
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{config.description}</p>
+                      <div className="text-xs text-gray-500">
+                        {new Date(config.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {savedConfigs.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p>저장된 프롬프트 설정이 없습니다.</p>
+                  <p className="text-sm">+ 새 설정 버튼을 클릭하여 설정을 저장하세요.</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 러프 콘텐츠 입력 섹션 */}
@@ -543,41 +890,114 @@ export default function CreateBlogPost() {
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 기본 이미지 생성 */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700">기본 이미지 생성</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => generateAIImage(imageGenerationCount)}
+                        disabled={isGeneratingImages || !formData.title}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2 text-sm"
+                      >
+                        {isGeneratingImages ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🎨</span>
+                            <span>AI 이미지 생성</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={handleGenerateParagraphImages}
+                        disabled={isGeneratingImages || !formData.content}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2 text-sm"
+                      >
+                        {isGeneratingImages ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📝</span>
+                            <span>단락별 이미지</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 톤앤매너별 이미지 생성 */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700">톤앤매너별 이미지 생성</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={generateGoldTonePrompts}
+                        disabled={isGeneratingGoldToneImages || !formData.content}
+                        className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 flex items-center space-x-2 text-sm"
+                      >
+                        {isGeneratingGoldToneImages ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🏆</span>
+                            <span>골드톤 시니어</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={generateBlackTonePrompts}
+                        disabled={isGeneratingBlackToneImages || !formData.content}
+                        className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 flex items-center space-x-2 text-sm"
+                      >
+                        {isGeneratingBlackToneImages ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>⚡</span>
+                            <span>블랙톤 젊은</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 기존 이미지 변형 */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">기존 이미지 변형</h4>
                   <button
                     type="button"
-                    onClick={() => generateAIImage(imageGenerationCount)}
-                    disabled={isGeneratingImages || !formData.title}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2"
+                    onClick={() => setShowExistingImageModal(true)}
+                    disabled={isGeneratingExistingVariation}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2 text-sm"
                   >
-                    {isGeneratingImages ? (
+                    {isGeneratingExistingVariation ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>생성 중...</span>
+                        <span>변형 중...</span>
                       </>
                     ) : (
                       <>
-                        <span>🎨</span>
-                        <span>AI 이미지 생성</span>
-                      </>
-                    )}
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={handleGenerateParagraphImages}
-                    disabled={isGeneratingImages || !formData.content}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
-                  >
-                    {isGeneratingImages ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>생성 중...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>📝</span>
-                        <span>단락별 이미지</span>
+                        <span>🔄</span>
+                        <span>기존 이미지 변형</span>
                       </>
                     )}
                   </button>
@@ -704,6 +1124,213 @@ export default function CreateBlogPost() {
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 골드톤 프롬프트 미리보기 모달 */}
+      {showGoldTonePrompts && goldTonePrompts.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-yellow-800">🏆 골드톤 시니어 매너 프롬프트</h3>
+              <button
+                onClick={() => setShowGoldTonePrompts(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {goldTonePrompts.map((prompt, index) => (
+                <div key={index} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 mb-2">프롬프트 {index + 1}</h4>
+                  <p className="text-sm text-gray-700">{prompt}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowGoldTonePrompts(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 블랙톤 프롬프트 미리보기 모달 */}
+      {showBlackTonePrompts && blackTonePrompts.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">⚡ 블랙톤 젊은 매너 프롬프트</h3>
+              <button
+                onClick={() => setShowBlackTonePrompts(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {blackTonePrompts.map((prompt, index) => (
+                <div key={index} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2">프롬프트 {index + 1}</h4>
+                  <p className="text-sm text-gray-700">{prompt}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowBlackTonePrompts(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 프롬프트 설정 저장 모달 */}
+      {showConfigModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">새 프롬프트 설정 저장</h3>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">설정 이름</label>
+                <input
+                  type="text"
+                  value={newConfigName}
+                  onChange={(e) => setNewConfigName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="예: 골드톤 시니어 매너"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">설명</label>
+                <textarea
+                  value={newConfigDescription}
+                  onChange={(e) => setNewConfigDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="이 설정에 대한 설명을 입력하세요"
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfigModal(false);
+                  setNewConfigName('');
+                  setNewConfigDescription('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newConfigName.trim()) {
+                    alert('설정 이름을 입력해주세요.');
+                    return;
+                  }
+                  
+                  const brandStrategy = currentBrandStrategy || {
+                    customerpersona: selectedPersona,
+                    customerChannel: 'local_customers',
+                    brandWeight: selectedBrandWeight,
+                    audienceTemperature: 'warm',
+                    audienceWeight: 'high'
+                  };
+                  
+                  savePromptConfig(newConfigName, newConfigDescription, brandStrategy);
+                  setShowConfigModal(false);
+                  setNewConfigName('');
+                  setNewConfigDescription('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 기존 이미지 변형 모달 */}
+      {showExistingImageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">기존 이미지 변형</h3>
+              <button
+                onClick={() => setShowExistingImageModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">이미지 URL</label>
+                <input
+                  type="url"
+                  value={selectedExistingImage}
+                  onChange={(e) => setSelectedExistingImage(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="변형할 이미지의 URL을 입력하세요"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">개선된 프롬프트 (선택사항)</label>
+                <textarea
+                  value={improvedPrompt}
+                  onChange={(e) => setImprovedPrompt(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="이미지 변형을 위한 추가 프롬프트를 입력하세요"
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowExistingImageModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleExistingImageVariation}
+                disabled={isGeneratingExistingVariation || !selectedExistingImage}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+              >
+                {isGeneratingExistingVariation ? '변형 중...' : '변형 시작'}
               </button>
             </div>
           </div>
