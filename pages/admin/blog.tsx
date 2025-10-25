@@ -1853,6 +1853,11 @@ export default function BlogAdmin() {
   const [paragraphPrompts, setParagraphPrompts] = useState([]); // 단락별 프롬프트 배열
   const [showParagraphPromptPreview, setShowParagraphPromptPreview] = useState(false);
   
+  // 골드톤 시니어 매너 전용 상태
+  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
+  const [goldTonePrompts, setGoldTonePrompts] = useState([]); // 골드톤 프롬프트 배열
+  const [showGoldTonePromptPreview, setShowGoldTonePromptPreview] = useState(false);
+  
   // 단락별 프롬프트 미리 생성
   const generateParagraphPrompts = async () => {
     if (!formData.content || formData.content.trim().length < 30) {
@@ -1972,6 +1977,126 @@ export default function BlogAdmin() {
       }, 2000);
     }
   };
+
+  // 골드톤 시니어 매너 프롬프트 미리 생성
+  const generateGoldTonePrompts = async () => {
+    if (!formData.content || formData.content.trim().length < 30) {
+      alert('본문을 먼저 작성해주세요. (최소 30자)');
+      return;
+    }
+    
+    if (isGeneratingGoldToneImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
+    try {
+      setImageGenerationStep('골드톤 시니어 매너 프롬프트 생성 중...');
+      
+      const res = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content: formData.content,
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          imageCount: imageGenerationCount,
+          brandStrategy: { 
+            customerpersona: 'senior_fitting', // 골드톤 시니어 매너 고정
+            customerChannel: 'local_customers', 
+            brandWeight: '높음',
+            audienceTemperature: 'warm',
+            audienceWeight: '높음'
+          }
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '골드톤 프롬프트 생성 실패');
+      }
+      
+      const data = await res.json();
+      console.log('📝 골드톤 API 응답 데이터:', data);
+      console.log('📝 골드톤 받은 프롬프트 개수:', data.prompts?.length || 0);
+      console.log('📝 골드톤 프롬프트 내용:', data.prompts?.map((p, i) => `단락 ${i+1}: ${p.prompt.substring(0, 50)}...`));
+      
+      setGoldTonePrompts(data.prompts || []);
+      setShowGoldTonePromptPreview(true);
+      setImageGenerationStep('✅ 골드톤 시니어 매너 프롬프트 생성 완료! 수정 후 이미지 생성 버튼을 눌러주세요.');
+      
+    } catch (e: any) {
+      console.error('골드톤 프롬프트 생성 오류:', e);
+      alert('골드톤 프롬프트 생성 중 오류가 발생했습니다: ' + e.message);
+      setImageGenerationStep('');
+    }
+  };
+
+  // 골드톤 시니어 매너 이미지 생성
+  const handleGenerateGoldToneImages = async () => {
+    if (!goldTonePrompts.length) {
+      alert('골드톤 프롬프트가 없습니다.');
+      return;
+    }
+    
+    if (isGeneratingGoldToneImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
+    try {
+      setIsGeneratingGoldToneImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('FAL AI (골드톤 시니어 매너)');
+      setImageGenerationStep('1단계: 골드톤 프롬프트 준비 중...');
+      
+      setImageGenerationStep(`2단계: FAL AI로 골드톤 이미지 생성 중... (${goldTonePrompts.length}개 단락)`);
+      const res = await fetch('/api/generate-paragraph-images-with-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompts: goldTonePrompts,
+          blogPostId: editingPost?.id || null
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '골드톤 이미지 생성 실패');
+      }
+      
+      setImageGenerationStep('3단계: 골드톤 이미지 저장 중...');
+      const data = await res.json();
+      console.log('📷 골드톤 이미지 생성 API 응답:', data);
+      
+      const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+      console.log('📷 골드톤 생성된 이미지 URL 개수:', urls.length);
+      console.log('📷 골드톤 이미지 URL들:', urls);
+      
+      if (!urls.length) {
+        alert('생성된 골드톤 이미지가 없습니다.');
+        return;
+      }
+      
+      // 생성된 이미지를 갤러리에 추가 (자동 삽입 없이)
+      setGeneratedImages(prev => [...prev, ...urls]);
+      setShowGeneratedImages(true);
+      
+      setImageGenerationStep('4단계: 골드톤 시니어 매너 이미지 생성 완료!');
+      alert(`${urls.length}개의 골드톤 시니어 매너 이미지가 생성되어 갤러리에 추가되었습니다. 필요시 갤러리에서 본문에 삽입하세요.`);
+      
+    } catch (e: any) {
+      console.error('골드톤 이미지 생성 오류:', e);
+      alert('골드톤 이미지 생성 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsGeneratingGoldToneImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
   
   const handleGenerateParagraphImages = async () => {
     if (!formData.content || formData.content.trim().length < 30) {
@@ -1987,27 +2112,51 @@ export default function BlogAdmin() {
     try {
       setIsGeneratingParagraphImages(true);
       setShowGenerationProcess(true);
-      setImageGenerationModel('FAL AI (단락별)');
-      setImageGenerationStep('단락 분석 중...');
+      setImageGenerationModel('FAL AI (블랙톤 젊은 매너)');
+      setImageGenerationStep('1단계: 블랙톤 프롬프트 생성 중...');
       
-      const res = await fetch('/api/generate-paragraph-images', {
+      // 먼저 프롬프트 생성
+      const promptRes = await fetch('/api/generate-paragraph-prompts', {
         method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           content: formData.content,
           title: formData.title,
           excerpt: formData.excerpt,
           contentType: formData.category,
-          imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
-          blogPostId: editingPost?.id || null,
+          imageCount: imageGenerationCount,
           brandStrategy: { 
             customerpersona: brandPersona, 
             customerChannel: 'local_customers', 
             brandWeight: getBrandWeight(brandContentType),
             audienceTemperature,
             audienceWeight: getAudienceWeight(audienceTemperature)
-          },
-          preset: aiPreset
+          }
+        })
+      });
+      
+      if (!promptRes.ok) {
+        const errorData = await promptRes.json();
+        throw new Error(errorData.message || '프롬프트 생성 실패');
+      }
+      
+      const promptData = await promptRes.json();
+      const prompts = promptData.prompts || [];
+      
+      if (!prompts.length) {
+        alert('생성된 프롬프트가 없습니다.');
+        return;
+      }
+      
+      setImageGenerationStep(`2단계: FAL AI로 블랙톤 이미지 생성 중... (${prompts.length}개 단락)`);
+      
+      // 프롬프트로 이미지 생성 (수정된 프롬프트로 이미지 생성과 동일한 로직)
+      const res = await fetch('/api/generate-paragraph-images-with-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompts: prompts,
+          blogPostId: editingPost?.id || null
         })
       });
       
@@ -2016,27 +2165,29 @@ export default function BlogAdmin() {
         throw new Error(errorData.message || '이미지 생성 실패');
       }
       
-      setImageGenerationStep('이미지 생성 중...');
+      setImageGenerationStep('3단계: 블랙톤 이미지 저장 중...');
       const data = await res.json();
+      console.log('📷 블랙톤 이미지 생성 API 응답:', data);
+      
       const urls: string[] = data.imageUrls || (data.imageUrl ? [data.imageUrl] : []);
+      console.log('📷 블랙톤 생성된 이미지 URL 개수:', urls.length);
+      console.log('📷 블랙톤 이미지 URL들:', urls);
       
       if (!urls.length) {
-        alert('생성된 이미지가 없습니다.');
-      return;
-    }
-
-      setImageGenerationStep('본문에 삽입 중...');
+        alert('생성된 블랙톤 이미지가 없습니다.');
+        return;
+      }
       
       // 생성된 이미지를 갤러리에 추가 (자동 삽입 없이)
       setGeneratedImages(prev => [...prev, ...urls]);
       setShowGeneratedImages(true);
       
-      setImageGenerationStep('완료!');
-      alert(`${urls.length}개의 이미지가 생성되어 갤러리에 추가되었습니다. 필요시 갤러리에서 본문에 삽입하세요.`);
+      setImageGenerationStep('4단계: 블랙톤 젊은 매너 이미지 생성 완료!');
+      alert(`${urls.length}개의 블랙톤 젊은 매너 이미지가 생성되어 갤러리에 추가되었습니다. 필요시 갤러리에서 본문에 삽입하세요.`);
       
     } catch (e: any) {
-      console.error('단락 이미지 생성 오류:', e);
-      alert('단락 이미지 생성 중 오류가 발생했습니다: ' + e.message);
+      console.error('블랙톤 이미지 생성 오류:', e);
+      alert('블랙톤 이미지 생성 중 오류가 발생했습니다: ' + e.message);
     } finally {
       setIsGeneratingParagraphImages(false);
       setTimeout(() => {
@@ -5967,7 +6118,65 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     </button>
                   </div>
 
-                  {/* 단락별 프롬프트 미리보기 */}
+                  {/* 골드톤 프롬프트 미리보기 */}
+                  {showGoldTonePromptPreview && goldTonePrompts.length > 0 && (
+                    <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-medium text-yellow-800">
+                          골드톤 시니어 매너 프롬프트 미리보기 ({goldTonePrompts.length}개)
+                        </h4>
+                        <button 
+                          type="button"
+                          onClick={() => setShowGoldTonePromptPreview(false)}
+                          className="text-yellow-600 hover:text-yellow-800"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="space-y-4">
+                        {goldTonePrompts.map((item, index) => (
+                          <div key={index} className="bg-white border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-yellow-700">골드톤 단락 {index + 1}</span>
+                              <span className="text-xs text-yellow-600">{item.paragraph}</span>
+                            </div>
+                            <textarea
+                              className="w-full h-20 text-xs px-2 py-1 border border-yellow-300 rounded"
+                              value={item.prompt}
+                              onChange={(e) => {
+                                const newPrompts = [...goldTonePrompts];
+                                newPrompts[index].prompt = e.target.value;
+                                setGoldTonePrompts(newPrompts);
+                              }}
+                              placeholder="골드톤 프롬프트를 수정하세요..."
+                            />
+                          </div>
+                        ))}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowGoldTonePromptPreview(false);
+                              // 수정된 골드톤 프롬프트로 이미지 생성
+                              handleGenerateGoldToneImages();
+                            }}
+                            className="px-3 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700"
+                          >
+                            🎨 수정된 골드톤 프롬프트로 이미지 생성
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowGoldTonePromptPreview(false)}
+                            className="px-3 py-2 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 블랙톤 프롬프트 미리보기 */}
                   {showParagraphPromptPreview && paragraphPrompts.length > 0 && (
                     <div className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-4">
@@ -6025,10 +6234,63 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     </div>
                   )}
 
-                  {/* 단락별 이미지 일괄 생성 버튼들 */}
+                  {/* 골드톤 시니어 매너 버튼들 */}
                   <div className="mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <button
+                    <h4 className="text-sm font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                      🏆 골드톤 시니어 매너 이미지 생성
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={generateGoldTonePrompts}
+                        disabled={isGeneratingGoldToneImages}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingGoldToneImages 
+                            ? 'bg-gray-300 text-white cursor-not-allowed' 
+                            : 'bg-yellow-600 text-white hover:bg-yellow-700'
+                        }`}
+                        title="골드톤 시니어 매너 프롬프트를 미리 생성하여 확인하고 수정할 수 있습니다"
+                      >
+                        {isGeneratingGoldToneImages ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            골드톤 분석 중...
+                          </span>
+                        ) : (
+                          '📝 단락별 프롬프트 미리보기 (골드톤 시니어 매너)'
+                        )}
+                      </button>
+                      
+                      <button 
+                        type="button"
+                        onClick={handleGenerateGoldToneImages}
+                        disabled={isGeneratingGoldToneImages}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingGoldToneImages 
+                            ? 'bg-yellow-300 text-white cursor-not-allowed' 
+                            : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                        }`}
+                        title="골드톤 시니어 매너 이미지를 일괄 생성"
+                      >
+                        {isGeneratingGoldToneImages ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            골드톤 생성 중...
+                          </span>
+                        ) : (
+                          '🎨 단락별 이미지 일괄 생성 (골드톤 시니어 매너)'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 블랙톤 젊은 매너 버튼들 */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                      ⚡ 블랙톤 젊은 매너 이미지 생성
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button
                         type="button"
                         onClick={generateParagraphPrompts}
                         disabled={isGeneratingParagraphImages}
@@ -6037,19 +6299,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             ? 'bg-gray-300 text-white cursor-not-allowed' 
                             : 'bg-blue-600 text-white hover:bg-blue-700'
                         }`}
-                        title="본문의 단락별 프롬프트를 미리 생성하여 확인하고 수정할 수 있습니다"
+                        title="블랙톤 젊은 매너 프롬프트를 미리 생성하여 확인하고 수정할 수 있습니다"
                       >
                         {isGeneratingParagraphImages ? (
                           <span className="flex items-center justify-center gap-2">
                             <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            분석 중...
-                                      </span>
+                            블랙톤 분석 중...
+                          </span>
                         ) : (
-                          '🔍 단락별 프롬프트 미리보기'
+                          '📝 단락별 프롬프트 미리보기 (블랙톤 젊은 매너)'
                         )}
-                            </button>
+                      </button>
                       
-                                    <button 
+                      <button 
                         type="button"
                         onClick={handleGenerateParagraphImages}
                         disabled={isGeneratingParagraphImages}
@@ -6058,28 +6320,57 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             ? 'bg-emerald-300 text-white cursor-not-allowed' 
                             : 'bg-emerald-600 text-white hover:bg-emerald-700'
                         }`}
-                        title="본문의 주요 단락에 어울리는 이미지를 일괄 생성하여 에디터에 순차 삽입"
+                        title="블랙톤 젊은 매너 이미지를 일괄 생성"
                       >
                         {isGeneratingParagraphImages ? (
                           <span className="flex items-center justify-center gap-2">
                             <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            생성 중...
+                            블랙톤 생성 중...
                           </span>
                         ) : (
-                          '📷 단락별 이미지 일괄 생성'
+                          '🎨 단락별 이미지 일괄 생성 (블랙톤 젊은 매너)'
                         )}
-                                    </button>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 기존 버튼들 (하단으로 이동) */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      🔧 기존 기능
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => generateFALAIImage(imageGenerationCount)}
+                        disabled={isGeneratingImages}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingImages 
+                            ? 'bg-gray-300 text-white cursor-not-allowed' 
+                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                        title="골드톤 시니어 매너 이미지 여러 장 생성 (기존 기능)"
+                      >
+                        {isGeneratingImages && imageGenerationModel === 'ChatGPT + FAL AI' ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            골드톤 생성 중...
+                          </span>
+                        ) : (
+                          '🎨 ChatGPT + FAL AI (골드톤 시니어 매너)'
+                        )}
+                      </button>
                       
-                                        <button
+                      <button 
                         type="button"
                         onClick={() => setShowExistingImageModal(true)}
                         disabled={isGeneratingExistingVariation}
                         className={`px-4 py-3 rounded-lg text-sm font-medium ${
                           isGeneratingExistingVariation 
                             ? 'bg-gray-300 text-white cursor-not-allowed' 
-                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                            : 'bg-purple-500 text-white hover:bg-purple-600'
                         }`}
-                        title="기존 이미지(갤러리/파일/URL)를 선택하여 비슷한 변형 이미지를 생성합니다"
+                        title="기존 이미지를 변형하여 새로운 이미지 생성"
                       >
                         {isGeneratingExistingVariation ? (
                           <span className="flex items-center justify-center gap-2">
@@ -6090,13 +6381,14 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                           '🔄 기존 이미지 변형'
                         )}
                       </button>
-                                </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다<br/>
-                      <span className="text-blue-600 font-medium">생성할 이미지 개수: {imageGenerationCount}개</span> (단락 수와 연동)<br/>
-                      <span className="text-purple-600 font-medium">기존 이미지 변형:</span> 갤러리/파일/URL에서 이미지를 선택하여 비슷한 변형 생성
-                                  </p>
-                                </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다<br/>
+                    <span className="text-blue-600 font-medium">생성할 이미지 개수: {imageGenerationCount}개</span> (단락 수와 연동)<br/>
+                    <span className="text-purple-600 font-medium">기존 이미지 변형:</span> 갤러리/파일/URL에서 이미지를 선택하여 비슷한 변형 생성
+                  </p>
 
                   {/* 이미지 생성 과정 표시 */}
                   {showGenerationProcess && imageGenerationStep && (
@@ -6106,9 +6398,9 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     </h4>
                       <div className="text-sm text-blue-700">
                         {imageGenerationStep}
-                          </div>
-                        </div>
-                      )}
+                      </div>
+                    </div>
+                  )}
                       
                   {/* 생성된 이미지 갤러리 */}
                   {showGeneratedImages && generatedImages.length > 0 && (
