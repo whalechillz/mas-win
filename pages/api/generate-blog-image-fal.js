@@ -220,47 +220,94 @@ const PRESETS = {
     const presetSettings = PRESETS[preset] || PRESETS.creative;
     console.log(`🎨 FAL AI 프리셋 적용: ${preset}`, presetSettings);
     
-    // FAL AI hidream-i1-dev 모델로 이미지 생성
-    const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${process.env.FAL_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: imagePrompt,
-        num_images: validImageCount,
-        image_size: "square", // FAL AI 지원 형식 (1024x1024와 유사)
-        num_inference_steps: presetSettings.num_inference_steps,
-        guidance_scale: presetSettings.guidance_scale,
-        seed: null
-      })
-    });
+    // 골드톤 프롬프트 배열이 있는 경우 각각 다른 프롬프트로 이미지 생성
+    let imageUrls = [];
+    
+    if (goldTonePrompts && goldTonePrompts.length > 0) {
+      console.log('🎨 골드톤 프롬프트 배열로 이미지 생성:', goldTonePrompts.length, '개');
+      
+      // 각 골드톤 프롬프트에 대해 개별 이미지 생성
+      for (let i = 0; i < goldTonePrompts.length; i++) {
+        console.log(`🎨 골드톤 이미지 ${i + 1} 생성 중...`);
+        
+        const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Key ${process.env.FAL_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: goldTonePrompts[i],
+            num_images: 1,
+            image_size: "square",
+            num_inference_steps: presetSettings.num_inference_steps,
+            guidance_scale: presetSettings.guidance_scale,
+            seed: null
+          })
+        });
 
-    if (!falResponse.ok) {
-      const error = await falResponse.text();
-      console.error('FAL AI API 에러:', error);
-      throw new Error(`FAL AI API 에러: ${error}`);
+        if (!falResponse.ok) {
+          const error = await falResponse.text();
+          console.error(`골드톤 이미지 ${i + 1} 생성 실패:`, error);
+          continue; // 실패한 이미지는 건너뛰고 다음 이미지 생성
+        }
+
+        const falResult = await falResponse.json();
+        if (falResult.images && falResult.images.length > 0) {
+          imageUrls.push(falResult.images[0].url);
+          console.log(`✅ 골드톤 이미지 ${i + 1} 생성 완료`);
+        }
+        
+        // 각 이미지 생성 사이에 지연 시간 추가
+        if (i < goldTonePrompts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 3000)); // 3초 대기
+        }
+      }
+    } else {
+      // 기존 방식: 단일 프롬프트로 여러 이미지 생성
+      const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${process.env.FAL_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: imagePrompt,
+          num_images: validImageCount,
+          image_size: "square",
+          num_inference_steps: presetSettings.num_inference_steps,
+          guidance_scale: presetSettings.guidance_scale,
+          seed: null
+        })
+      });
+
+      if (!falResponse.ok) {
+        const error = await falResponse.text();
+        console.error('FAL AI API 에러:', error);
+        throw new Error(`FAL AI API 에러: ${error}`);
+      }
+
+      const falResult = await falResponse.json();
+      console.log('FAL AI 응답:', falResult);
+      
+      if (falResult.images && falResult.images.length > 0) {
+        imageUrls = falResult.images.map(img => img.url);
+      }
     }
 
-    const falResult = await falResponse.json();
-    console.log('FAL AI 응답:', falResult);
-    
     // FAL AI 사용량 로깅
     await logFALAIUsage('generate-blog-image-fal', 'image-generation', {
-      imageCount: validImageCount,
+      imageCount: imageUrls.length,
       prompt: imagePrompt.substring(0, 100) + '...',
-      durationMs: Date.now() - startedAt
+      durationMs: Date.now() - startTime
     });
     
-    // FAL AI 응답에서 이미지 URL 추출
-    const imageUrls = falResult.images || [];
     console.log('✅ FAL AI 이미지 생성 완료:', imageUrls.length, '개');
 
     res.status(200).json({ 
       success: true,
-      imageUrl: imageUrls[0]?.url || imageUrls[0], // 첫 번째 이미지 (기존 호환성)
-      imageUrls: imageUrls.map(img => img.url || img), // 모든 이미지 URL 배열
+      imageUrl: imageUrls[0], // 첫 번째 이미지 (기존 호환성)
+      imageUrls: imageUrls, // 모든 이미지 URL 배열
       imageCount: imageUrls.length,
       prompt: imagePrompt,
       model: 'fal-ai/hidream-i1-dev',

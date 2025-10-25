@@ -42,7 +42,7 @@ export default function BlogAdmin() {
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
 
-  // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
+   // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
   const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
 
   // 이미지 생성 개수 선택
@@ -1899,7 +1899,7 @@ export default function BlogAdmin() {
       
       setParagraphPrompts(data.prompts || []);
       setShowParagraphPromptPreview(true);
-      setImageGenerationStep('');
+      setImageGenerationStep('✅ 프롬프트 생성 완료! 수정 후 이미지 생성 버튼을 눌러주세요.');
       
     } catch (e: any) {
       console.error('단락 프롬프트 생성 오류:', e);
@@ -1926,7 +1926,7 @@ export default function BlogAdmin() {
       setImageGenerationModel('FAL AI (수정 프롬프트)');
       setImageGenerationStep('1단계: 프롬프트 준비 중...');
       
-      setImageGenerationStep('2단계: FAL AI로 이미지 생성 중...');
+      setImageGenerationStep(`2단계: FAL AI로 이미지 생성 중... (${paragraphPrompts.length}개 단락)`);
       const res = await fetch('/api/generate-paragraph-images-with-prompts', {
         method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2212,7 +2212,7 @@ export default function BlogAdmin() {
     }
   };
 
-  // FAL AI 이미지 생성
+  // FAL AI 이미지 생성 (골드톤 시니어 매너)
   const generateFALAIImage = async (count = 4, customPromptOverride?: string) => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
@@ -2220,45 +2220,40 @@ export default function BlogAdmin() {
     }
 
     try {
-      console.log('🎨 FAL AI 이미지 생성 시작...', count, '개');
+      console.log('🎨 FAL AI 골드톤 이미지 생성 시작...', count, '개');
       setIsGeneratingImages(true);
-    setShowGenerationProcess(true);
-      setImageGenerationModel('ChatGPT + FAL AI');
+      setShowGenerationProcess(true);
+      setImageGenerationModel('ChatGPT + FAL AI (골드톤 시니어 매너)');
 
-      // 1단계: 프롬프트 준비 (수정본 우선)
+      // 브랜드 전략에 따른 골드톤 프롬프트 생성
       let smartPrompt = customPromptOverride || imageGenerationPrompt;
       if (!smartPrompt) {
-        setImageGenerationStep('1단계: ChatGPT로 프롬프트 생성 중...');
-      const promptResponse = await fetch('/api/generate-smart-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: formData.title,
-          excerpt: formData.excerpt,
-          contentType: formData.category,
-          brandStrategy: {
-            contentType: formData.category,
-            customerpersona: brandPersona,
-            customerChannel: '',
-            brandWeight: getBrandWeight(brandContentType),
-            audienceTemperature,
-            audienceWeight: getAudienceWeight(audienceTemperature)
-          },
-          model: 'fal',
-          preset: aiPreset
-        })
-      });
-
-        if (!promptResponse.ok) {
-          throw new Error('ChatGPT 프롬프트 생성 실패');
-        }
-
-        const resp = await promptResponse.json();
-        smartPrompt = resp.prompt;
+        setImageGenerationStep('1단계: 골드톤 시니어 매너 프롬프트 생성 중...');
+        
+        // 골드톤 시니어 매너에 특화된 프롬프트 생성
+        const goldTonePrompt = `Korean male golfer in his 60s, warm golden hour lighting, classic golf course, elegant traditional atmosphere, same person in different golf settings: golf course, clubhouse, fitting room, pro shop, professional photography style, no text, clean composition`;
+        
+        smartPrompt = goldTonePrompt;
         setImageGenerationPrompt(smartPrompt);
       }
       
-      setImageGenerationStep('2단계: FAL AI로 이미지 생성 중...');
+      setImageGenerationStep('2단계: FAL AI로 골드톤 이미지 생성 중...');
+      
+      // 골드톤 이미지 여러 장 생성 (각각 다른 배경/장소)
+      const goldTonePrompts = [];
+      const locationSettings = [
+        "on a beautiful golf course with golden sunset",
+        "in a traditional golf clubhouse with warm lighting",
+        "in a professional fitting room with elegant atmosphere",
+        "at a golf pro shop with classic interior"
+      ];
+      
+      for (let i = 0; i < count; i++) {
+        const locationPrompt = locationSettings[i % locationSettings.length];
+        const enhancedPrompt = `${smartPrompt} ${locationPrompt}`;
+        goldTonePrompts.push(enhancedPrompt);
+      }
+      
       const response = await fetch('/api/generate-blog-image-fal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2276,6 +2271,7 @@ export default function BlogAdmin() {
           },
           imageCount: count,
           customPrompt: smartPrompt,
+          goldTonePrompts: goldTonePrompts, // 골드톤 특화 프롬프트 배열
           preset: aiPreset
         })
       });
@@ -2288,6 +2284,8 @@ export default function BlogAdmin() {
         // 생성된 이미지들을 자동으로 Supabase에 저장
         const savedImages = [];
         for (let i = 0; i < result.imageUrls.length; i++) {
+          setImageGenerationStep(`4단계: 이미지 ${i + 1}/${result.imageUrls.length} 저장 중...`);
+          
           try {
             const saveResponse = await fetch('/api/save-generated-image', {
               method: 'POST',
@@ -2302,11 +2300,13 @@ export default function BlogAdmin() {
             if (saveResponse.ok) {
               const saveResult = await saveResponse.json();
               savedImages.push(saveResult.storedUrl);
-      } else {
+              console.log(`✅ 이미지 ${i + 1} 저장 완료`);
+            } else {
               savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
+              console.warn(`⚠️ 이미지 ${i + 1} 저장 실패, 원본 URL 사용`);
             }
           } catch (saveError) {
-            console.error('이미지 저장 오류:', saveError);
+            console.error(`❌ 이미지 ${i + 1} 저장 오류:`, saveError);
             savedImages.push(result.imageUrls[i]); // 저장 실패 시 원본 URL 사용
           }
         }
