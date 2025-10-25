@@ -6603,6 +6603,17 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                                   >
                                       {isGeneratingVariation ? '…' : '🎨'}
                                   </button>
+                                  <button
+                                      type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                        selectGeneratedImage(imageUrl);
+                                    }}
+                                      className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                                      title="대표 이미지로 설정"
+                                  >
+                                      ⭐
+                                  </button>
                                 </div>
                             </div>
                                 </div>
@@ -7047,6 +7058,16 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
             {/* 액션 버튼들 */}
             <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center flex-shrink-0 gap-3">
               <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                {/* 대표 이미지로 설정 버튼 */}
+                <button
+                  onClick={() => {
+                    selectGeneratedImage(selectedGeneratedImage);
+                    setShowGeneratedImageModal(false);
+                  }}
+                  className="px-4 py-2 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 whitespace-nowrap"
+                >
+                  ⭐ 대표 이미지로 설정
+                </button>
                 {/* 삭제 버튼 */}
                                     <button
                                       onClick={() => {
