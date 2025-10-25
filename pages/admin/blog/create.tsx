@@ -556,33 +556,89 @@ export default function CreateBlogPost() {
 
     setIsGeneratingFromRough(true);
     try {
-      const response = await fetch('/api/generate-blog-content', {
+      // 1단계: 제목 생성
+      const titleResponse = await fetch('/api/generate-enhanced-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          roughContent: roughContent,
+          title: roughContent,
+          type: 'title',
           contentType: selectedContentType,
-          persona: selectedPersona,
+          audienceTemp: 'warm',
           brandWeight: selectedBrandWeight,
+          customerChannel: 'local_customers',
+          customerPersona: selectedPersona,
           painPoint: selectedPainPoint,
-          conversionGoal: selectedConversionGoal,
-          storyFramework: selectedStoryFramework
+          keywords: ''
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setFormData(prev => ({
-          ...prev,
-          title: data.title || '',
-          excerpt: data.excerpt || '',
-          content: data.content || '',
-          summary: data.summary || ''
-        }));
-        alert('AI가 콘텐츠를 정리했습니다!');
-      } else {
-        throw new Error('콘텐츠 생성 실패');
+      if (!titleResponse.ok) {
+        throw new Error('제목 생성 실패');
       }
+
+      const titleData = await titleResponse.json();
+      const generatedTitle = titleData.content;
+
+      // 2단계: 요약 생성
+      const excerptResponse = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: generatedTitle,
+          type: 'excerpt',
+          contentType: selectedContentType,
+          audienceTemp: 'warm',
+          brandWeight: selectedBrandWeight,
+          customerChannel: 'local_customers',
+          customerPersona: selectedPersona,
+          painPoint: selectedPainPoint,
+          keywords: ''
+        })
+      });
+
+      if (!excerptResponse.ok) {
+        throw new Error('요약 생성 실패');
+      }
+
+      const excerptData = await excerptResponse.json();
+      const generatedExcerpt = excerptData.content;
+
+      // 3단계: 본문 생성
+      const contentResponse = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: generatedTitle,
+          type: 'content',
+          contentType: selectedContentType,
+          audienceTemp: 'warm',
+          brandWeight: selectedBrandWeight,
+          customerChannel: 'local_customers',
+          customerPersona: selectedPersona,
+          painPoint: selectedPainPoint,
+          keywords: '',
+          excerpt: generatedExcerpt
+        })
+      });
+
+      if (!contentResponse.ok) {
+        throw new Error('본문 생성 실패');
+      }
+
+      const contentData = await contentResponse.json();
+      const generatedContent = contentData.content;
+
+      // 폼 데이터 업데이트
+      setFormData(prev => ({
+        ...prev,
+        title: generatedTitle,
+        excerpt: generatedExcerpt,
+        content: generatedContent,
+        summary: generatedExcerpt
+      }));
+
+      alert('AI가 콘텐츠를 정리했습니다!');
     } catch (error) {
       console.error('러프 콘텐츠 생성 오류:', error);
       alert('콘텐츠 생성 중 오류가 발생했습니다.');
@@ -860,9 +916,9 @@ export default function CreateBlogPost() {
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push('/admin/blog')}
-                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                  className="text-gray-500 hover:text-gray-700 text-lg"
                 >
-                  × 닫기
+                  ×
                 </button>
                 <Link
                   href="/admin/blog"
