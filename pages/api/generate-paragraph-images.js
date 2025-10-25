@@ -146,158 +146,12 @@ const PRESETS = {
     console.log(`📝 단락별 이미지 생성 프리셋 적용: ${preset}`, presetSettings);
 
     const maxParagraphs = Math.min(paragraphs.length, imageCount || 4);
-    
-    // 병렬 처리를 위한 이미지 생성 함수
-    const generateImageForParagraph = async (paragraph, index) => {
+    for (let i = 0; i < maxParagraphs; i++) { // 최대 4개 단락
+      const paragraph = paragraphs[i].trim();
       const startedAt = Date.now();
       
-      try {
-        // 단락 내용을 기반으로 이미지 프롬프트 생성
-        const imagePrompt = await generateParagraphImagePrompt(paragraph, title, excerpt, contentType, brandStrategy, index);
-        
-        // FAL AI hidream-i1-dev로 이미지 생성 (고품질) - 타임아웃 설정
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
-        
-        const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Key ${process.env.FAL_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: imagePrompt,
-            num_images: 1,
-            image_size: "square",
-            num_inference_steps: presetSettings.num_inference_steps,
-            guidance_scale: presetSettings.guidance_scale,
-            seed: null
-          }),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-
-        if (!falResponse.ok) {
-          const errorText = await falResponse.text();
-          console.error(`FAL AI API 오류 응답 (단락 ${index + 1}):`, errorText);
-          throw new Error(`FAL AI API 오류: ${falResponse.status} - ${errorText}`);
-        }
-
-        // 응답이 JSON인지 확인
-        const contentType = falResponse.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const responseText = await falResponse.text();
-          console.error(`FAL AI API 비-JSON 응답 (단락 ${index + 1}):`, responseText);
-          throw new Error(`FAL AI API가 JSON이 아닌 응답을 반환했습니다: ${responseText.substring(0, 200)}...`);
-        }
-
-        const falResult = await falResponse.json();
-        console.log(`✅ FAL AI hidream-i1-dev 응답 (단락 ${index + 1}):`, falResult);
-
-        // FAL AI 사용량 로깅
-        await logFALAIUsage('generate-paragraph-images', 'image-generation', {
-          paragraphIndex: index,
-          prompt: imagePrompt,
-          imageCount: 1,
-          durationMs: Date.now() - startedAt
-        });
-
-        // hidream-i1-dev는 동기식 응답
-        if (!falResult.images || falResult.images.length === 0) {
-          console.error(`FAL AI에서 이미지를 생성하지 못했습니다 (단락 ${index + 1}).`);
-          throw new Error(`FAL AI에서 이미지를 생성하지 못했습니다 (단락 ${index + 1}).`);
-        }
-
-        const imageResponse = { data: [{ url: falResult.images[0].url }] };
-
-        // 이미지를 Supabase에 직접 저장 (다른 API들과 동일한 방식)
-        try {
-          console.log(`🔄 단락 ${index + 1} 이미지 Supabase 저장 시작...`);
-          
-          // 외부 이미지 URL에서 이미지 데이터 다운로드
-          const imageFetchResponse = await fetch(imageResponse.data[0].url);
-          if (!imageFetchResponse.ok) {
-            throw new Error(`Failed to fetch image: ${imageFetchResponse.status}`);
-          }
-          
-          const imageBuffer = await imageFetchResponse.arrayBuffer();
-          const fileName = `paragraph-image-${Date.now()}-${index + 1}.png`;
-          
-          // Supabase Storage에 업로드
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('blog-images')
-            .upload(fileName, imageBuffer, {
-              contentType: 'image/png',
-              upsert: false
-            });
-          
-          if (uploadError) {
-            throw new Error(`Supabase 업로드 실패: ${uploadError.message}`);
-          }
-          
-          // 공개 URL 생성
-          const { data: { publicUrl } } = supabase.storage
-            .from('blog-images')
-            .getPublicUrl(fileName);
-          
-          const storedUrl = publicUrl;
-          console.log(`✅ 단락 ${index + 1} 이미지 Supabase 저장 성공:`, {
-            originalUrl: imageResponse.data[0].url,
-            storedUrl: storedUrl,
-            fileName: fileName
-          });
-          
-          return {
-            paragraphIndex: index,
-            paragraph: paragraph,
-            imagePrompt: imagePrompt,
-            imageUrl: storedUrl,
-            originalUrl: imageResponse.data[0].url,
-            fileName: fileName
-          };
-          
-        } catch (error) {
-          console.error(`❌ 단락 ${index + 1} 이미지 Supabase 저장 실패:`, error);
-          // Supabase 저장 실패 시 원본 URL 사용
-          return {
-            paragraphIndex: index,
-            paragraph: paragraph,
-            imagePrompt: imagePrompt,
-            imageUrl: imageResponse.data[0].url,
-            originalUrl: imageResponse.data[0].url,
-            fileName: null
-          };
-        }
-        
-      } catch (error) {
-        console.error(`❌ 단락 ${index + 1} 이미지 생성 실패:`, error);
-        // 개별 이미지 생성 실패 시 null 반환 (부분 실패 허용)
-        return null;
-      }
-    };
-
-    // 병렬 처리로 모든 이미지 생성
-    console.log(`🚀 ${maxParagraphs}개 단락 이미지 병렬 생성 시작...`);
-    const imagePromises = [];
-    for (let i = 0; i < maxParagraphs; i++) {
-      const paragraph = paragraphs[i].trim();
-      imagePromises.push(generateImageForParagraph(paragraph, i));
-    }
-    
-    // 모든 이미지 생성 완료 대기 (부분 실패 허용)
-    const imageResults = await Promise.allSettled(imagePromises);
-    
-    // 성공한 이미지만 수집
-    imageResults.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value) {
-        paragraphImages.push(result.value);
-      } else {
-        console.warn(`⚠️ 단락 ${index + 1} 이미지 생성 실패:`, result.reason);
-      }
-    });
-    
-    console.log(`✅ 이미지 생성 완료: ${paragraphImages.length}/${maxParagraphs}개 성공`);
+      // 단락 내용을 기반으로 이미지 프롬프트 생성
+      const imagePrompt = await generateParagraphImagePrompt(paragraph, title, excerpt, contentType, brandStrategy, i);
       
       // FAL AI hidream-i1-dev로 이미지 생성 (고품질)
       const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
@@ -318,16 +172,7 @@ const PRESETS = {
 
       if (!falResponse.ok) {
         const errorText = await falResponse.text();
-        console.error('FAL AI API 오류 응답:', errorText);
         throw new Error(`FAL AI API 오류: ${falResponse.status} - ${errorText}`);
-      }
-
-      // 응답이 JSON인지 확인
-      const contentType = falResponse.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const responseText = await falResponse.text();
-        console.error('FAL AI API 비-JSON 응답:', responseText);
-        throw new Error(`FAL AI API가 JSON이 아닌 응답을 반환했습니다: ${responseText.substring(0, 200)}...`);
       }
 
       const falResult = await falResponse.json();
@@ -442,72 +287,10 @@ const PRESETS = {
 
   } catch (error) {
     console.error('단락별 이미지 생성 오류:', error);
-    console.error('오류 상세 정보:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
+    res.status(500).json({ 
+      message: 'Failed to generate paragraph images',
+      error: error.message 
     });
-    
-    // 더 자세한 오류 정보 로깅
-    console.error('환경 변수 확인:', {
-      OPENAI_API_KEY: process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음',
-      FAL_API_KEY: process.env.FAL_API_KEY ? '설정됨' : '설정되지 않음',
-      SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ? '설정됨' : '설정되지 않음',
-      SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? '설정됨' : '설정되지 않음'
-    });
-    
-    // 요청 데이터 로깅
-    console.error('요청 데이터:', {
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      body: req.body
-    });
-    
-    // 오류 타입별 처리
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      console.error('네트워크 오류 감지:', error);
-      res.status(500).json({ 
-        message: 'Network error occurred during image generation',
-        error: '네트워크 연결 오류가 발생했습니다.',
-        details: {
-          type: 'NetworkError',
-          suggestion: '인터넷 연결을 확인하고 다시 시도해주세요.'
-        }
-      });
-    } else if (error.message.includes('API key')) {
-      console.error('API 키 오류 감지:', error);
-      res.status(500).json({ 
-        message: 'API key error occurred',
-        error: 'API 키 설정에 문제가 있습니다.',
-        details: {
-          type: 'APIKeyError',
-          suggestion: '관리자에게 문의하세요.'
-        }
-      });
-    } else {
-      res.status(500).json({ 
-        message: 'Failed to generate paragraph images',
-        error: error.message,
-        details: {
-          name: error.name,
-          stack: error.stack?.split('\n').slice(0, 5).join('\n'),
-          environment: {
-            OPENAI_API_KEY: process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음',
-            FAL_API_KEY: process.env.FAL_API_KEY ? '설정됨' : '설정되지 않음',
-            SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ? '설정됨' : '설정되지 않음',
-            SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? '설정됨' : '설정되지 않음'
-          },
-          request: {
-            method: req.method,
-            url: req.url,
-            contentType: req.headers['content-type'],
-            userAgent: req.headers['user-agent']
-          }
-        }
-      });
-    }
   }
 }
 
