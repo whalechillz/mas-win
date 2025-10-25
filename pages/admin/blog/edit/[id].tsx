@@ -23,6 +23,18 @@ export default function EditBlogPost() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // 폼 데이터 상태
+  const [formData, setFormData] = useState({
+    title: '',
+    excerpt: '',
+    content: '',
+    category: '골프 정보',
+    status: 'draft',
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
+  });
+  
   // 허브 연동 상태
   const [hubData, setHubData] = useState(null);
   const [isHubMode, setIsHubMode] = useState(false);
