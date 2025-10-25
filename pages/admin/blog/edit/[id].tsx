@@ -269,7 +269,7 @@ export default function EditBlogPost() {
   };
 
   const handleBrandStrategyApply = async () => {
-    if (!post.content) {
+    if (!formData.content) {
       alert('기존 콘텐츠가 없습니다.');
       return;
     }
@@ -280,7 +280,7 @@ export default function EditBlogPost() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          roughContent: post.content,
+          roughContent: formData.content,
           contentType: selectedContentType,
           persona: selectedPersona,
           brandWeight: selectedBrandWeight,
@@ -1133,11 +1133,11 @@ export default function EditBlogPost() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: post.title,
-          excerpt: post.excerpt,
-          content: post.content,
-          category: post.category,
-          status: post.status
+          title: formData.title,
+          excerpt: formData.excerpt,
+          content: formData.content,
+          category: formData.category,
+          status: formData.status
         })
       });
 
@@ -1496,8 +1496,8 @@ export default function EditBlogPost() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
                 <input
                   type="text"
-                  value={post.title || ''}
-                  onChange={(e) => setPost({...post, title: e.target.value})}
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="게시물 제목을 입력하세요"
                   required
@@ -1508,8 +1508,8 @@ export default function EditBlogPost() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">요약</label>
                 <textarea
-                  value={post.excerpt || ''}
-                  onChange={(e) => setPost({...post, excerpt: e.target.value})}
+                  value={formData.excerpt || ''}
+                  onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="게시물 요약을 입력하세요"
                   rows={3}
@@ -1521,8 +1521,8 @@ export default function EditBlogPost() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
                 <div className="border border-gray-300 rounded-md">
                   <TipTapEditor
-                    initialContent={post.content || ''}
-                    onContentChange={(content) => setPost({...post, content})}
+                    initialContent={formData.content || ''}
+                    onContentChange={(content) => setFormData({...formData, content})}
                     placeholder="게시물 내용을 입력하세요"
                   />
                 </div>
@@ -1532,8 +1532,8 @@ export default function EditBlogPost() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
                 <select
-                  value={post.category || 'blog'}
-                  onChange={(e) => setPost({...post, category: e.target.value})}
+                  value={formData.category || 'blog'}
+                  onChange={(e) => setFormData({...formData, category: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="blog">블로그</option>
@@ -1547,8 +1547,8 @@ export default function EditBlogPost() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
                 <select
-                  value={post.status || 'draft'}
-                  onChange={(e) => setPost({...post, status: e.target.value})}
+                  value={formData.status || 'draft'}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="draft">초안</option>
@@ -1567,8 +1567,8 @@ export default function EditBlogPost() {
                     <div className="flex">
                       <input
                         type="text"
-                        value={post.meta_title || ''}
-                        onChange={(e) => setPost({...post, meta_title: e.target.value})}
+                        value={formData.meta_title || ''}
+                        onChange={(e) => setFormData({...formData, meta_title: e.target.value})}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="SEO 최적화된 제목"
                       />
@@ -1587,8 +1587,8 @@ export default function EditBlogPost() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">메타 설명</label>
                     <div className="flex">
                       <textarea
-                        value={post.meta_description || ''}
-                        onChange={(e) => setPost({...post, meta_description: e.target.value})}
+                        value={formData.meta_description || ''}
+                        onChange={(e) => setFormData({...formData, meta_description: e.target.value})}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="SEO 최적화된 설명"
                         rows={2}
@@ -1610,8 +1610,8 @@ export default function EditBlogPost() {
                   <div className="flex">
                     <input
                       type="text"
-                      value={post.meta_keywords || ''}
-                      onChange={(e) => setPost({...post, meta_keywords: e.target.value})}
+                      value={formData.meta_keywords || ''}
+                      onChange={(e) => setFormData({...formData, meta_keywords: e.target.value})}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="관련 키워드 (쉼표로 구분)"
                     />
