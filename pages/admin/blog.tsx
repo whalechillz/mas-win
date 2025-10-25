@@ -551,24 +551,16 @@ export default function BlogAdmin() {
         // 편집할 포스트 객체 설정
         setEditingPost(post);
         
-        // 허브 모드인 경우 허브 데이터 로드
-        console.log('🔍 router.query 확인:', router.query);
-        console.log('🔍 router.query.hub:', router.query.hub);
+        // 🔄 허브 데이터 로드 (개선된 로직)
         console.log('🔍 post.calendar_id:', post.calendar_id);
         
-        // URL에서 직접 hub 파라미터 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        const hubId = urlParams.get('hub');
-        console.log('🔍 URL에서 직접 확인:', { hubId, search: window.location.search });
-        
         if (post.calendar_id) {
-          console.log('🔗 허브 모드 감지 (블로그 포스트 calendar_id 우선), 허브 데이터 로드 중...', post.calendar_id);
+          console.log('🔗 허브 모드 감지, 허브 데이터 로드 중...', post.calendar_id);
           await loadHubData(post.calendar_id);
-        } else if (hubId) {
-          console.log('🔗 허브 모드 감지 (URL 파라미터 fallback), 허브 데이터 로드 중...', hubId);
-          await loadHubData(hubId);
         } else {
-          console.log('❌ 허브 파라미터가 없습니다.');
+          console.log('❌ 허브 연결 없음, 일반 편집 모드');
+          setIsHubMode(false);
+          setHubData(null);
         }
         
         setFormData({
@@ -675,6 +667,11 @@ export default function BlogAdmin() {
   const loadHubData = async (hubId: string) => {
     try {
       console.log('🔍 허브 데이터 로드 중...', hubId);
+      
+      // 허브 상태 초기화
+      setHubData(null);
+      setIsHubMode(false);
+      
       const response = await fetch(`/api/admin/content-calendar-hub?id=${hubId}`);
       const data = await response.json();
       
@@ -689,10 +686,14 @@ export default function BlogAdmin() {
         });
         setIsHubMode(true);
       } else {
-        console.error('❌ 허브 데이터 로드 실패:', data.error);
+        console.log('❌ 허브 데이터 없음, 일반 편집 모드');
+        setIsHubMode(false);
+        setHubData(null);
       }
     } catch (error) {
       console.error('❌ 허브 데이터 로드 오류:', error);
+      setIsHubMode(false);
+      setHubData(null);
     }
   };
 
@@ -1466,35 +1467,19 @@ export default function BlogAdmin() {
     try {
       console.log('📝 게시물 수정 모드 시작:', post.id);
       
-    setEditingPost(post);
-    setFormData({
-        title: post.title || '',
-        slug: post.slug || '',
-          excerpt: post.excerpt || '',
-          content: post.content || '',
-        featured_image: post.featured_image || '',
-        category: post.category || '고객 후기',
-        tags: Array.isArray(post.tags) ? post.tags : [] as string[],
-        status: post.status || 'draft',
-        meta_title: post.meta_title || '',
-        meta_description: post.meta_description || '',
-        meta_keywords: post.meta_keywords || '',
-        view_count: post.view_count || 0,
-        is_featured: post.is_featured || false,
-        is_scheduled: post.is_scheduled || false,
-        scheduled_at: post.scheduled_at || null as string | null,
-        author: post.author || '마쓰구골프',
-        // 추가 필드들
-        summary: post.summary || '',
-        customerpersona: post.customer_persona || '',
-        conversiongoal: post.conversion_goal || 'homepage_visit',
-        target_product: post.target_product || 'all',
-        published_at: post.published_at || '',
-        created_at: post.created_at || ''
-      });
+      // 🔄 허브 상태 초기화 (방안1 핵심)
+      setHubData(null);
+      setIsHubMode(false);
       
-    setShowForm(true);
-          setActiveTab('create');
+      // 편집 모드 설정
+      setEditingPost(post);
+      setEditingPostId(post.id);
+      setShowForm(true);
+      setActiveTab('create');
+      
+      // 🔄 포스트 데이터 로드 (허브 데이터 포함)
+      await loadPostForEdit(post.id);
+      
     } catch (error) {
       console.error('❌ 게시물 수정 모드 오류:', error);
       alert('게시물 수정 모드 진입 중 오류가 발생했습니다.');
