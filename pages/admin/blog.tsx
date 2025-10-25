@@ -2044,7 +2044,21 @@ export default function BlogAdmin() {
     }
     
     try {
-      setImageGenerationStep('10월 8일 버전 프롬프트 생성 중...');
+      // 선택된 프롬프트 설정이 있으면 사용, 없으면 기본값 사용
+      let brandStrategy;
+      if (selectedPromptConfig && savedPromptConfigs[selectedPromptConfig]) {
+        brandStrategy = savedPromptConfigs[selectedPromptConfig].brandStrategy;
+        setImageGenerationStep(`저장된 설정 "${savedPromptConfigs[selectedPromptConfig].name}"으로 10월 8일 버전 프롬프트 생성 중...`);
+      } else {
+        brandStrategy = { 
+          customerpersona: brandPersona, // 사용자 선택한 페르소나 사용 (10월 8일 버전과 동일)
+          customerChannel: 'local_customers', 
+          brandWeight: getBrandWeight(brandContentType),
+          audienceTemperature,
+          audienceWeight: getAudienceWeight(audienceTemperature)
+        };
+        setImageGenerationStep('10월 8일 버전 프롬프트 생성 중...');
+      }
       
       const res = await fetch('/api/generate-paragraph-prompts', {
         method: 'POST',
@@ -2055,13 +2069,7 @@ export default function BlogAdmin() {
           excerpt: formData.excerpt,
           contentType: formData.category,
           imageCount: imageGenerationCount,
-          brandStrategy: { 
-            customerpersona: brandPersona, // 사용자 선택한 페르소나 사용 (10월 8일 버전과 동일)
-            customerChannel: 'local_customers', 
-            brandWeight: getBrandWeight(brandContentType),
-            audienceTemperature,
-            audienceWeight: getAudienceWeight(audienceTemperature)
-          }
+          brandStrategy
         })
       });
       
@@ -2104,7 +2112,21 @@ export default function BlogAdmin() {
     }
     
     try {
-      setImageGenerationStep('단락 분석 및 프롬프트 생성 중...');
+      // 선택된 프롬프트 설정이 있으면 사용, 없으면 기본값 사용
+      let brandStrategy;
+      if (selectedPromptConfig && savedPromptConfigs[selectedPromptConfig]) {
+        brandStrategy = savedPromptConfigs[selectedPromptConfig].brandStrategy;
+        setImageGenerationStep(`저장된 설정 "${savedPromptConfigs[selectedPromptConfig].name}"으로 프롬프트 생성 중...`);
+      } else {
+        brandStrategy = { 
+          customerpersona: 'tech_enthusiast', // 블랙톤 젊은 매너 고정
+          customerChannel: 'online', 
+          brandWeight: '중간',
+          audienceTemperature: 'cold',
+          audienceWeight: '중간'
+        };
+        setImageGenerationStep('단락 분석 및 프롬프트 생성 중...');
+      }
       
       const res = await fetch('/api/generate-paragraph-prompts', {
         method: 'POST',
@@ -2115,13 +2137,7 @@ export default function BlogAdmin() {
           excerpt: formData.excerpt,
           contentType: formData.category,
           imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
-          brandStrategy: { 
-            customerpersona: 'tech_enthusiast', // 블랙톤 젊은 매너 고정
-            customerChannel: 'online', 
-            brandWeight: '중간',
-            audienceTemperature: 'cold',
-            audienceWeight: '중간'
-          }
+          brandStrategy
         })
       });
       
@@ -2224,7 +2240,21 @@ export default function BlogAdmin() {
     }
     
     try {
-      setImageGenerationStep('골드톤 시니어 매너 프롬프트 생성 중...');
+      // 선택된 프롬프트 설정이 있으면 사용, 없으면 기본값 사용
+      let brandStrategy;
+      if (selectedPromptConfig && savedPromptConfigs[selectedPromptConfig]) {
+        brandStrategy = savedPromptConfigs[selectedPromptConfig].brandStrategy;
+        setImageGenerationStep(`저장된 설정 "${savedPromptConfigs[selectedPromptConfig].name}"으로 골드톤 프롬프트 생성 중...`);
+      } else {
+        brandStrategy = { 
+          customerpersona: 'senior_fitting', // 골드톤 시니어 매너 고정
+          customerChannel: 'local_customers', 
+          brandWeight: '높음',
+          audienceTemperature: 'warm',
+          audienceWeight: '높음'
+        };
+        setImageGenerationStep('골드톤 시니어 매너 프롬프트 생성 중...');
+      }
       
       const res = await fetch('/api/generate-paragraph-prompts', {
         method: 'POST',
@@ -2235,13 +2265,7 @@ export default function BlogAdmin() {
           excerpt: formData.excerpt,
           contentType: formData.category,
           imageCount: imageGenerationCount,
-          brandStrategy: { 
-            customerpersona: 'senior_fitting', // 골드톤 시니어 매너 고정
-            customerChannel: 'local_customers', 
-            brandWeight: '높음',
-            audienceTemperature: 'warm',
-            audienceWeight: '높음'
-          }
+          brandStrategy
         })
       });
       
@@ -6444,6 +6468,52 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             + 새 설정
                           </button>
                         </div>
+                        
+                        {/* 선택된 설정 정보 및 액션 버튼들 */}
+                        {selectedPromptConfig && savedPromptConfigs[selectedPromptConfig] && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-sm font-medium text-gray-800">
+                                📋 {savedPromptConfigs[selectedPromptConfig].name}
+                              </h5>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const config = savedPromptConfigs[selectedPromptConfig];
+                                    if (config && config.brandStrategy) {
+                                      // 선택된 설정으로 브랜드 전략 적용
+                                      setBrandPersona(config.brandStrategy.customerpersona || 'senior_fitting');
+                                      setBrandContentType(config.brandStrategy.brandWeight === '높음' ? '골프 정보' : '고객 후기');
+                                      setAudienceTemperature(config.brandStrategy.audienceTemperature || 'warm');
+                                      alert(`설정 "${config.name}"이 적용되었습니다!`);
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                  title="이 설정을 현재 브랜드 전략에 적용"
+                                >
+                                  ✅ 적용
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deletePromptConfig(selectedPromptConfig)}
+                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                  title="이 설정을 삭제"
+                                >
+                                  🗑️ 삭제
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-2">
+                              {savedPromptConfigs[selectedPromptConfig].description}
+                            </p>
+                            <div className="text-xs text-gray-500">
+                              <div>페르소나: {savedPromptConfigs[selectedPromptConfig].brandStrategy?.customerpersona || 'N/A'}</div>
+                              <div>브랜드 강도: {savedPromptConfigs[selectedPromptConfig].brandStrategy?.brandWeight || 'N/A'}</div>
+                              <div>오디언스 온도: {savedPromptConfigs[selectedPromptConfig].brandStrategy?.audienceTemperature || 'N/A'}</div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       
                       {/* 설정 관리 버튼들 */}
