@@ -170,7 +170,6 @@ export default function EditBlogPost() {
   const [savedConfigs, setSavedConfigs] = useState([]);
 
   // SEO 관련 상태
-  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
   const [isGeneratingMetaTitle, setIsGeneratingMetaTitle] = useState(false);
   const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
