@@ -42,9 +42,850 @@ export default function EditBlogPost() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
 
+  // AI 생성 관련 상태 (생성 페이지와 동일)
+  const [generationMode, setGenerationMode] = useState('auto');
+  const [autoGenerateTopic, setAutoGenerateTopic] = useState('');
+  const [selectedContentType, setSelectedContentType] = useState('골프 정보');
+  const [selectedPersona, setSelectedPersona] = useState('중상급 골퍼');
+  const [selectedBrandWeight, setSelectedBrandWeight] = useState('medium');
+  const [selectedPainPoint, setSelectedPainPoint] = useState('비거리 부족');
+  const [selectedConversionGoal, setSelectedConversionGoal] = useState('consideration');
+  const [selectedStoryFramework, setSelectedStoryFramework] = useState('pixar');
+  const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
+  const [generatedBlog, setGeneratedBlog] = useState(null);
+  const [generationProgress, setGenerationProgress] = useState('');
+
+  // 러프 콘텐츠 관련 상태
+  const [roughContent, setRoughContent] = useState('');
+  const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
+  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
+
+  // 베리에이션 추천 모달 관련 상태
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [currentBrandStrategy, setCurrentBrandStrategy] = useState(null);
+
+  // AI 이미지 생성 관련 상태
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [showGeneratedImages, setShowGeneratedImages] = useState(false);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
+  const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
+  const [imageGenerationStep, setImageGenerationStep] = useState('');
+  const [isVarying, setIsVarying] = useState(false);
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
+  const [imageGenerationModel, setImageGenerationModel] = useState('');
+  const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState('');
+
+  // 이미지 저장 상태 관리
+  const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
+
+  // 이미지 생성 개수 선택
+  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
+
+  // AI 프리셋 설정
+  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
+
+  // 인라인 갤러리 모달 관련 상태
+  const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
+  const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
+  const [multichannelPreview, setMultichannelPreview] = useState(null);
+
+  // 연간 콘텐츠 자동생성 관련 상태
+  const [annualGenerationPeriod, setAnnualGenerationPeriod] = useState('3months');
+  const [annualContentCategory, setAnnualContentCategory] = useState('골프 정보');
+  const [annualPublishFrequency, setAnnualPublishFrequency] = useState('weekly');
+  const [isGeneratingAnnual, setIsGeneratingAnnual] = useState(false);
+  const [showAnnualPreview, setShowAnnualPreview] = useState(false);
+  const [annualGeneratedContent, setAnnualGeneratedContent] = useState(null);
+
+  // 브랜드 전략 관련 상태
+  const [brandContentType, setBrandContentType] = useState('골프 정보');
+  const [brandPersona, setBrandPersona] = useState('중상급 골퍼');
+  const [audienceTemperature, setAudienceTemperature] = useState('warm');
+
+  // 네이버 블로그 스크래핑 관련 상태
+  const [naverScraperMode, setNaverScraperMode] = useState(false);
+  const [naverBlogId, setNaverBlogId] = useState('');
+  const [naverPostUrls, setNaverPostUrls] = useState('');
+  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
+  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
+  const [selectedNaverPosts, setSelectedNaverPosts] = useState([]);
+  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
+
+  // 마이그레이션 관련 상태
+  const [migrationUrl, setMigrationUrl] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
+  const [scrapedData, setScrapedData] = useState(null);
+
+  // 단락별 이미지 생성 관련 상태
+  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
+  const [paragraphPrompts, setParagraphPrompts] = useState([]);
+  const [showParagraphPromptPreview, setShowParagraphPromptPreview] = useState(false);
+
+  // 골드톤/블랙톤 이미지 생성 관련 상태
+  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
+  const [isGeneratingBlackToneImages, setIsGeneratingBlackToneImages] = useState(false);
+  const [goldTonePrompts, setGoldTonePrompts] = useState([]);
+  const [blackTonePrompts, setBlackTonePrompts] = useState([]);
+  const [showGoldTonePrompts, setShowGoldTonePrompts] = useState(false);
+  const [showBlackTonePrompts, setShowBlackTonePrompts] = useState(false);
+
+  // 기존 이미지 변형 관련 상태
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
+  const [selectedExistingImage, setSelectedExistingImage] = useState(null);
+  const [improvedPrompt, setImprovedPrompt] = useState('');
+
+  // 프롬프트 설정 관리 관련 상태
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [newConfigDescription, setNewConfigDescription] = useState('');
+  const [selectedPromptConfig, setSelectedPromptConfig] = useState(null);
+  const [savedConfigs, setSavedConfigs] = useState([]);
+
+  // SEO 관련 상태
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+  const [isGeneratingMetaTitle, setIsGeneratingMetaTitle] = useState(false);
+  const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
+  const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
+  const [isAnalyzingSEO, setIsAnalyzingSEO] = useState(false);
+  const [isGeneratingAllSEO, setIsGeneratingAllSEO] = useState(false);
+  const [seoAnalysis, setSeoAnalysis] = useState(null);
+  const [seoQualityResult, setSeoQualityResult] = useState(null);
+  const [seoAnalysisSuggestions, setSeoAnalysisSuggestions] = useState([]);
+
   // 편집 모드 감지 함수
   const isEditMode = () => {
     return post !== null;
+  };
+
+  // 프롬프트 설정 관리자
+  const promptConfigManager = {
+    init: () => {
+      if (typeof window === 'undefined') return {};
+      try {
+        const configs = localStorage.getItem('savedPromptConfigs');
+        return configs ? JSON.parse(configs) : {};
+      } catch (error) {
+        console.error('프롬프트 설정 로드 오류:', error);
+        return {};
+      }
+    },
+    
+    saveToStorage: (configs) => {
+      if (typeof window === 'undefined') return;
+      try {
+        localStorage.setItem('savedPromptConfigs', JSON.stringify(configs));
+      } catch (error) {
+        console.error('프롬프트 설정 저장 오류:', error);
+      }
+    },
+    
+    loadConfigs: () => {
+      if (typeof window === 'undefined') return [];
+      try {
+        const configs = localStorage.getItem('savedPromptConfigs');
+        return configs ? JSON.parse(configs) : [];
+      } catch (error) {
+        console.error('프롬프트 설정 로드 오류:', error);
+        return [];
+      }
+    }
+  };
+
+  // 브랜드 전략 가중치 계산 함수
+  const getBrandWeight = (weight) => {
+    const weights = {
+      '낮음': 0.3,
+      '중간': 0.6,
+      '높음': 0.9
+    };
+    return weights[weight] || 0.6;
+  };
+
+  const getAudienceWeight = (temperature) => {
+    const weights = {
+      'cold': 0.2,
+      'warm': 0.6,
+      'hot': 0.9
+    };
+    return weights[temperature] || 0.6;
+  };
+
+  // AI 콘텐츠 생성 함수들
+  const handleRoughContentGenerate = async () => {
+    if (!roughContent.trim()) {
+      alert('러프 콘텐츠를 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingFromRough(true);
+    try {
+      const response = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roughContent,
+          contentType: selectedContentType,
+          persona: selectedPersona,
+          brandWeight: selectedBrandWeight,
+          painPoint: selectedPainPoint,
+          conversionGoal: selectedConversionGoal,
+          storyFramework: selectedStoryFramework
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost({...post, content: data.enhancedContent});
+        alert('러프 콘텐츠가 브랜드 전략에 맞게 개선되었습니다!');
+      } else {
+        throw new Error('콘텐츠 생성 실패');
+      }
+    } catch (error) {
+      console.error('러프 콘텐츠 생성 오류:', error);
+      alert('콘텐츠 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingFromRough(false);
+    }
+  };
+
+  const handleBrandStrategyApply = async () => {
+    if (!post.content) {
+      alert('기존 콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsApplyingBrandStrategy(true);
+    try {
+      const response = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roughContent: post.content,
+          contentType: selectedContentType,
+          persona: selectedPersona,
+          brandWeight: selectedBrandWeight,
+          painPoint: selectedPainPoint,
+          conversionGoal: selectedConversionGoal,
+          storyFramework: selectedStoryFramework
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost({...post, content: data.enhancedContent});
+        alert('브랜드 전략이 적용되었습니다!');
+      } else {
+        throw new Error('브랜드 전략 적용 실패');
+      }
+    } catch (error) {
+      console.error('브랜드 전략 적용 오류:', error);
+      alert('브랜드 전략 적용 중 오류가 발생했습니다.');
+    } finally {
+      setIsApplyingBrandStrategy(false);
+    }
+  };
+
+  // 이미지 생성 함수들
+  const generateAIImage = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingImages(true);
+    setImageGenerationStep('이미지 생성 중...');
+    
+    try {
+      const response = await fetch('/api/generate-blog-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          count: imageGenerationCount,
+          preset: aiPreset
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedImages(data.images || []);
+        setShowGeneratedImages(true);
+        alert(`${data.images?.length || 0}개의 이미지가 생성되었습니다!`);
+      } else {
+        throw new Error('이미지 생성 실패');
+      }
+    } catch (error) {
+      console.error('이미지 생성 오류:', error);
+      alert('이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingImages(false);
+      setImageGenerationStep('');
+    }
+  };
+
+  const generateFALAIImage = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingImages(true);
+    setImageGenerationStep('FAL AI 이미지 생성 중...');
+    
+    try {
+      const response = await fetch('/api/generate-blog-image-fal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          count: imageGenerationCount
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedImages(data.images || []);
+        setShowGeneratedImages(true);
+        alert(`${data.images?.length || 0}개의 FAL AI 이미지가 생성되었습니다!`);
+      } else {
+        throw new Error('FAL AI 이미지 생성 실패');
+      }
+    } catch (error) {
+      console.error('FAL AI 이미지 생성 오류:', error);
+      alert('FAL AI 이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingImages(false);
+      setImageGenerationStep('');
+    }
+  };
+
+  // 단락별 이미지 생성 함수들
+  const generateParagraphPrompts = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingParagraphImages(true);
+    try {
+      const response = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          brandStrategy: {
+            persona: 'tech_enthusiast',
+            customerChannel: 'online',
+            brandWeight: '중간',
+            audienceTemperature: 'cold',
+            audienceWeight: '중간'
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setParagraphPrompts(data.prompts || []);
+        setShowParagraphPromptPreview(true);
+        alert(`${data.prompts?.length || 0}개의 프롬프트가 생성되었습니다!`);
+      } else {
+        throw new Error('프롬프트 생성 실패');
+      }
+    } catch (error) {
+      console.error('프롬프트 생성 오류:', error);
+      alert('프롬프트 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingParagraphImages(false);
+    }
+  };
+
+  const handleGenerateParagraphImages = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingParagraphImages(true);
+    try {
+      // 1단계: 프롬프트 생성
+      const promptResponse = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          brandStrategy: {
+            persona: 'tech_enthusiast',
+            customerChannel: 'online',
+            brandWeight: '중간',
+            audienceTemperature: 'cold',
+            audienceWeight: '중간'
+          }
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('프롬프트 생성 실패');
+      }
+
+      const promptData = await promptResponse.json();
+      const prompts = promptData.prompts || [];
+
+      if (prompts.length === 0) {
+        alert('생성된 프롬프트가 없습니다.');
+        return;
+      }
+
+      // 2단계: 이미지 생성
+      const imageResponse = await fetch('/api/generate-paragraph-images-with-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          prompts: prompts
+        })
+      });
+
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        setGeneratedImages(imageData.images || []);
+        setShowGeneratedImages(true);
+        alert(`${imageData.images?.length || 0}개의 단락별 이미지가 생성되었습니다!`);
+      } else {
+        throw new Error('이미지 생성 실패');
+      }
+    } catch (error) {
+      console.error('단락별 이미지 생성 오류:', error);
+      alert('단락별 이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingParagraphImages(false);
+    }
+  };
+
+  // 골드톤 이미지 생성 함수들
+  const generateGoldTonePrompts = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingGoldToneImages(true);
+    try {
+      const response = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          brandStrategy: {
+            persona: 'senior_premium',
+            customerChannel: 'offline',
+            brandWeight: '높음',
+            audienceTemperature: 'warm',
+            audienceWeight: '높음'
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoldTonePrompts(data.prompts || []);
+        setShowGoldTonePrompts(true);
+        alert(`${data.prompts?.length || 0}개의 골드톤 프롬프트가 생성되었습니다!`);
+      } else {
+        throw new Error('골드톤 프롬프트 생성 실패');
+      }
+    } catch (error) {
+      console.error('골드톤 프롬프트 생성 오류:', error);
+      alert('골드톤 프롬프트 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingGoldToneImages(false);
+    }
+  };
+
+  const handleGenerateGoldToneImages = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingGoldToneImages(true);
+    try {
+      // 1단계: 골드톤 프롬프트 생성
+      const promptResponse = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          brandStrategy: {
+            persona: 'senior_premium',
+            customerChannel: 'offline',
+            brandWeight: '높음',
+            audienceTemperature: 'warm',
+            audienceWeight: '높음'
+          }
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('골드톤 프롬프트 생성 실패');
+      }
+
+      const promptData = await promptResponse.json();
+      const prompts = promptData.prompts || [];
+
+      if (prompts.length === 0) {
+        alert('생성된 골드톤 프롬프트가 없습니다.');
+        return;
+      }
+
+      // 2단계: 골드톤 이미지 생성
+      const imageResponse = await fetch('/api/generate-paragraph-images-with-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          prompts: prompts
+        })
+      });
+
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        setGeneratedImages(imageData.images || []);
+        setShowGeneratedImages(true);
+        alert(`${imageData.images?.length || 0}개의 골드톤 이미지가 생성되었습니다!`);
+      } else {
+        throw new Error('골드톤 이미지 생성 실패');
+      }
+    } catch (error) {
+      console.error('골드톤 이미지 생성 오류:', error);
+      alert('골드톤 이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingGoldToneImages(false);
+    }
+  };
+
+  // 10월 8일 버전 프롬프트 생성
+  const generateOctober8Prompts = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingParagraphImages(true);
+    try {
+      const response = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          brandStrategy: selectedPromptConfig ? selectedPromptConfig.brandStrategy : {
+            persona: 'tech_enthusiast',
+            customerChannel: 'online',
+            brandWeight: '중간',
+            audienceTemperature: 'cold',
+            audienceWeight: '중간'
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setParagraphPrompts(data.prompts || []);
+        setShowParagraphPromptPreview(true);
+        alert(`${data.prompts?.length || 0}개의 10월 8일 버전 프롬프트가 생성되었습니다!`);
+      } else {
+        throw new Error('10월 8일 버전 프롬프트 생성 실패');
+      }
+    } catch (error) {
+      console.error('10월 8일 버전 프롬프트 생성 오류:', error);
+      alert('10월 8일 버전 프롬프트 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingParagraphImages(false);
+    }
+  };
+
+  // 갤러리 관련 함수들
+  const loadAllImages = async () => {
+    try {
+      const response = await fetch('/api/admin/all-images');
+      if (response.ok) {
+        const data = await response.json();
+        return data.images || [];
+      }
+    } catch (error) {
+      console.error('이미지 로드 오류:', error);
+    }
+    return [];
+  };
+
+  const handleImageSelect = (image) => {
+    setSelectedImage(image);
+    setShowImageModal(true);
+  };
+
+  const handleImageInsert = (image) => {
+    if (editorInstance) {
+      const imageHtml = `<img src="${image.url || image.original_url}" alt="${image.alt_text || ''}" style="max-width: 100%; height: auto;" />`;
+      editorInstance.commands.insertContent(imageHtml);
+    }
+    setShowImageModal(false);
+    setShowInlineGalleryModal(false);
+  };
+
+  const handleImageEnlarge = (image) => {
+    setSelectedImage(image);
+    setShowImageModal(true);
+  };
+
+  const getPreferredVersionUrl = (image) => {
+    return image.url || image.original_url || image.thumbnail_url;
+  };
+
+  // SEO 최적화 함수들
+  const generateAIExcerpt = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingExcerpt(true);
+    try {
+      const response = await fetch('/api/blog/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: post.content,
+          title: post.title
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost({...post, excerpt: data.summary});
+        alert('AI 요약이 생성되었습니다!');
+      } else {
+        throw new Error('요약 생성 실패');
+      }
+    } catch (error) {
+      console.error('요약 생성 오류:', error);
+      alert('요약 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingExcerpt(false);
+    }
+  };
+
+  const generateAIMetaTitle = async () => {
+    if (!post.title) {
+      alert('제목이 없습니다.');
+      return;
+    }
+
+    setIsGeneratingMetaTitle(true);
+    try {
+      const response = await fetch('/api/blog/generate-metatags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          content: post.content
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost({...post, meta_title: data.metaTitle});
+        alert('AI 메타 제목이 생성되었습니다!');
+      } else {
+        throw new Error('메타 제목 생성 실패');
+      }
+    } catch (error) {
+      console.error('메타 제목 생성 오류:', error);
+      alert('메타 제목 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingMetaTitle(false);
+    }
+  };
+
+  const generateAIMetaDescription = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingMetaDescription(true);
+    try {
+      const response = await fetch('/api/blog/generate-metatags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          content: post.content
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost({...post, meta_description: data.metaDescription});
+        alert('AI 메타 설명이 생성되었습니다!');
+      } else {
+        throw new Error('메타 설명 생성 실패');
+      }
+    } catch (error) {
+      console.error('메타 설명 생성 오류:', error);
+      alert('메타 설명 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingMetaDescription(false);
+    }
+  };
+
+  const generateAIMetaKeywords = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingMetaKeywords(true);
+    try {
+      const response = await fetch('/api/blog/generate-metatags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          content: post.content
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost({...post, meta_keywords: data.metaKeywords});
+        alert('AI 메타 키워드가 생성되었습니다!');
+      } else {
+        throw new Error('메타 키워드 생성 실패');
+      }
+    } catch (error) {
+      console.error('메타 키워드 생성 오류:', error);
+      alert('메타 키워드 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingMetaKeywords(false);
+    }
+  };
+
+  const analyzeSEOQuality = async () => {
+    if (!post.title || !post.content) {
+      alert('제목과 콘텐츠가 필요합니다.');
+      return;
+    }
+
+    setIsAnalyzingSEO(true);
+    try {
+      const response = await fetch('/api/validate-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          content: post.content,
+          excerpt: post.excerpt,
+          metaTitle: post.meta_title,
+          metaDescription: post.meta_description,
+          metaKeywords: post.meta_keywords
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSeoAnalysis(data);
+        setSeoQualityResult(data.qualityScore);
+        setSeoAnalysisSuggestions(data.suggestions || []);
+        alert(`SEO 분석 완료! 점수: ${data.qualityScore}/100`);
+      } else {
+        throw new Error('SEO 분석 실패');
+      }
+    } catch (error) {
+      console.error('SEO 분석 오류:', error);
+      alert('SEO 분석 중 오류가 발생했습니다.');
+    } finally {
+      setIsAnalyzingSEO(false);
+    }
+  };
+
+  const generateAllSEO = async () => {
+    if (!post.content) {
+      alert('콘텐츠가 없습니다.');
+      return;
+    }
+
+    setIsGeneratingAllSEO(true);
+    try {
+      // 요약 생성
+      await generateAIExcerpt();
+      
+      // 메타데이터 생성
+      await generateAIMetaTitle();
+      await generateAIMetaDescription();
+      await generateAIMetaKeywords();
+      
+      alert('모든 SEO 요소가 생성되었습니다!');
+    } catch (error) {
+      console.error('SEO 생성 오류:', error);
+      alert('SEO 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingAllSEO(false);
+    }
+  };
+
+  // 프롬프트 설정 관리 함수들
+  const savePromptConfig = () => {
+    if (!newConfigName.trim()) {
+      alert('설정 이름을 입력해주세요.');
+      return;
+    }
+
+    const newConfig = {
+      id: Date.now().toString(),
+      name: newConfigName,
+      description: newConfigDescription,
+      brandStrategy: {
+        persona: selectedPersona,
+        customerChannel: 'online',
+        brandWeight: selectedBrandWeight,
+        audienceTemperature: audienceTemperature,
+        audienceWeight: '중간'
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedConfigs = [...savedConfigs, newConfig];
+    setSavedConfigs(updatedConfigs);
+    promptConfigManager.saveToStorage(updatedConfigs);
+    
+    setNewConfigName('');
+    setNewConfigDescription('');
+    setShowConfigModal(false);
+    alert('프롬프트 설정이 저장되었습니다!');
+  };
+
+  const deletePromptConfig = (configId) => {
+    if (!confirm('이 설정을 삭제하시겠습니까?')) return;
+    
+    const updatedConfigs = savedConfigs.filter(config => config.id !== configId);
+    setSavedConfigs(updatedConfigs);
+    promptConfigManager.saveToStorage(updatedConfigs);
+    alert('프롬프트 설정이 삭제되었습니다!');
+  };
+
+  const applyPromptConfig = (config) => {
+    setSelectedPromptConfig(config);
+    setSelectedPersona(config.brandStrategy.persona);
+    setSelectedBrandWeight(config.brandStrategy.brandWeight);
+    setAudienceTemperature(config.brandStrategy.audienceTemperature);
+    alert(`"${config.name}" 설정이 적용되었습니다!`);
   };
 
   // 허브 데이터 로드 함수
@@ -297,6 +1138,14 @@ export default function EditBlogPost() {
     }
   }, [id, loadPostForEdit]);
 
+  // 프롬프트 설정 초기화
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const configs = promptConfigManager.loadConfigs();
+      setSavedConfigs(configs);
+    }
+  }, []);
+
   // 로딩 중
   if (loading) {
     return (
@@ -414,6 +1263,207 @@ export default function EditBlogPost() {
             </div>
           )}
 
+          {/* AI 생성 기능 섹션 */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🤖 AI 생성 기능</h2>
+            
+            {/* 브랜드 전략 선택 */}
+            <div className="mb-6">
+              <BrandStrategySelector
+                onApplyStrategy={handleBrandStrategyApply}
+                isApplying={isApplyingBrandStrategy}
+              />
+            </div>
+
+            {/* 이미지 생성 섹션 */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">🎨 이미지 생성</h3>
+              
+              {/* 이미지 생성 개수 선택 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">생성할 이미지 개수</label>
+                <select
+                  value={imageGenerationCount}
+                  onChange={(e) => setImageGenerationCount(parseInt(e.target.value) as 1 | 2 | 3 | 4)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={1}>1개</option>
+                  <option value={2}>2개</option>
+                  <option value={3}>3개</option>
+                  <option value={4}>4개</option>
+                </select>
+              </div>
+
+              {/* AI 프리셋 선택 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">AI 프리셋</label>
+                <select
+                  value={aiPreset}
+                  onChange={(e) => setAiPreset(e.target.value as any)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="creative">창의적</option>
+                  <option value="balanced">균형</option>
+                  <option value="precise">정확</option>
+                  <option value="ultra_precise">초정확</option>
+                </select>
+              </div>
+
+              {/* 이미지 생성 버튼들 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={generateAIImage}
+                  disabled={isGeneratingImages}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isGeneratingImages ? '생성 중...' : 'AI 이미지 생성'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={generateFALAIImage}
+                  disabled={isGeneratingImages}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {isGeneratingImages ? '생성 중...' : 'FAL AI 이미지'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={generateOctober8Prompts}
+                  disabled={isGeneratingParagraphImages}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isGeneratingParagraphImages ? '생성 중...' : '10월 8일 버전'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowInlineGalleryModal(true)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  📁 갤러리 열기
+                </button>
+              </div>
+
+              {/* 단락별 이미지 생성 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={generateParagraphPrompts}
+                  disabled={isGeneratingParagraphImages}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {isGeneratingParagraphImages ? '생성 중...' : '단락별 프롬프트 미리보기 (블랙톤)'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleGenerateParagraphImages}
+                  disabled={isGeneratingParagraphImages}
+                  className="px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800 disabled:opacity-50"
+                >
+                  {isGeneratingParagraphImages ? '생성 중...' : '단락별 이미지 일괄생성 (블랙톤)'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={generateGoldTonePrompts}
+                  disabled={isGeneratingGoldToneImages}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50"
+                >
+                  {isGeneratingGoldToneImages ? '생성 중...' : '단락별 프롬프트 미리보기 (골드톤)'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleGenerateGoldToneImages}
+                  disabled={isGeneratingGoldToneImages}
+                  className="px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-800 disabled:opacity-50"
+                >
+                  {isGeneratingGoldToneImages ? '생성 중...' : '단락별 이미지 일괄생성 (골드톤)'}
+                </button>
+              </div>
+            </div>
+
+            {/* SEO 최적화 섹션 */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">🔍 SEO 최적화</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button
+                  type="button"
+                  onClick={generateAIExcerpt}
+                  disabled={isGeneratingExcerpt}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isGeneratingExcerpt ? '생성 중...' : 'AI 요약 생성'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={generateAIMetaTitle}
+                  disabled={isGeneratingMetaTitle}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isGeneratingMetaTitle ? '생성 중...' : '메타 제목 생성'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={generateAIMetaDescription}
+                  disabled={isGeneratingMetaDescription}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {isGeneratingMetaDescription ? '생성 중...' : '메타 설명 생성'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={generateAllSEO}
+                  disabled={isGeneratingAllSEO}
+                  className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
+                >
+                  {isGeneratingAllSEO ? '생성 중...' : '전체 SEO 생성'}
+                </button>
+              </div>
+            </div>
+
+            {/* 프롬프트 설정 관리 */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">⚙️ 프롬프트 설정 관리</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  + 새 설정
+                </button>
+                
+                {savedConfigs.map((config) => (
+                  <div key={config.id} className="flex items-center gap-2 bg-gray-100 rounded px-3 py-2">
+                    <span className="text-sm">{config.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => applyPromptConfig(config)}
+                      className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                    >
+                      ✅ 적용
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deletePromptConfig(config.id)}
+                      className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    >
+                      🗑️ 삭제
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* 편집 폼 */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -447,8 +1497,8 @@ export default function EditBlogPost() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
                 <div className="border border-gray-300 rounded-md">
                   <TipTapEditor
-                    content={post.content || ''}
-                    onChange={(content) => setPost({...post, content})}
+                    initialContent={post.content || ''}
+                    onContentChange={(content) => setPost({...post, content})}
                     placeholder="게시물 내용을 입력하세요"
                   />
                 </div>
@@ -481,6 +1531,107 @@ export default function EditBlogPost() {
                   <option value="published">발행</option>
                   <option value="archived">보관</option>
                 </select>
+              </div>
+
+              {/* SEO 메타데이터 */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">🔍 SEO 메타데이터</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">메타 제목</label>
+                    <div className="flex">
+                      <input
+                        type="text"
+                        value={post.meta_title || ''}
+                        onChange={(e) => setPost({...post, meta_title: e.target.value})}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="SEO 최적화된 제목"
+                      />
+                      <button
+                        type="button"
+                        onClick={generateAIMetaTitle}
+                        disabled={isGeneratingMetaTitle}
+                        className="px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {isGeneratingMetaTitle ? '생성 중...' : 'AI 생성'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">메타 설명</label>
+                    <div className="flex">
+                      <textarea
+                        value={post.meta_description || ''}
+                        onChange={(e) => setPost({...post, meta_description: e.target.value})}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="SEO 최적화된 설명"
+                        rows={2}
+                      />
+                      <button
+                        type="button"
+                        onClick={generateAIMetaDescription}
+                        disabled={isGeneratingMetaDescription}
+                        className="px-3 py-2 bg-purple-600 text-white rounded-r-md hover:bg-purple-700 disabled:opacity-50"
+                      >
+                        {isGeneratingMetaDescription ? '생성 중...' : 'AI 생성'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">메타 키워드</label>
+                  <div className="flex">
+                    <input
+                      type="text"
+                      value={post.meta_keywords || ''}
+                      onChange={(e) => setPost({...post, meta_keywords: e.target.value})}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="관련 키워드 (쉼표로 구분)"
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAIMetaKeywords}
+                      disabled={isGeneratingMetaKeywords}
+                      className="px-3 py-2 bg-green-600 text-white rounded-r-md hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {isGeneratingMetaKeywords ? '생성 중...' : 'AI 생성'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={analyzeSEOQuality}
+                    disabled={isAnalyzingSEO}
+                    className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
+                  >
+                    {isAnalyzingSEO ? '분석 중...' : 'SEO 품질 분석'}
+                  </button>
+                  
+                  {seoQualityResult && (
+                    <div className="text-sm">
+                      <span className="font-medium">SEO 점수: </span>
+                      <span className={`font-bold ${seoQualityResult >= 80 ? 'text-green-600' : seoQualityResult >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        {seoQualityResult}/100
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {seoAnalysisSuggestions.length > 0 && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-medium text-yellow-800 mb-2">SEO 개선 제안</h4>
+                    <ul className="text-sm text-yellow-700 space-y-1">
+                      {seoAnalysisSuggestions.map((suggestion, index) => (
+                        <li key={index}>• {suggestion}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* 이미지 관리 */}
@@ -614,6 +1765,259 @@ export default function EditBlogPost() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 생성된 이미지 갤러리 모달 */}
+      {showGeneratedImages && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">생성된 이미지</h3>
+              <button
+                onClick={() => setShowGeneratedImages(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {generatedImages.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={image.url || image.original_url}
+                    alt={`생성된 이미지 ${index + 1}`}
+                    className="w-full h-48 object-cover rounded border"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedGeneratedImage(image.url || image.original_url);
+                          setShowGeneratedImageModal(true);
+                        }}
+                        className="bg-white text-gray-800 px-3 py-2 rounded text-sm"
+                      >
+                        🔍 확대
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (editorInstance) {
+                            const imageHtml = `<img src="${image.url || image.original_url}" alt="생성된 이미지" style="max-width: 100%; height: auto;" />`;
+                            editorInstance.commands.insertContent(imageHtml);
+                          }
+                          setShowGeneratedImages(false);
+                        }}
+                        className="bg-blue-500 text-white px-3 py-2 rounded text-sm"
+                      >
+                        📝 삽입
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 이미지 확대 모달 */}
+      {showGeneratedImageModal && selectedGeneratedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">이미지 확대</h3>
+              <button
+                onClick={() => setShowGeneratedImageModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            <img
+              src={selectedGeneratedImage}
+              alt="확대된 이미지"
+              className="w-full h-auto rounded"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 단락별 프롬프트 미리보기 모달 */}
+      {showParagraphPromptPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">단락별 프롬프트 미리보기 (블랙톤)</h3>
+              <button
+                onClick={() => setShowParagraphPromptPreview(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {paragraphPrompts.map((prompt, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">단락 {index + 1}</h4>
+                  <p className="text-sm text-gray-600 mb-3">{prompt}</p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/generate-paragraph-images-with-prompts', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            content: post.content,
+                            prompts: [prompt]
+                          })
+                        });
+
+                        if (response.ok) {
+                          const data = await response.json();
+                          setGeneratedImages(data.images || []);
+                          setShowGeneratedImages(true);
+                          setShowParagraphPromptPreview(false);
+                          alert('이미지가 생성되었습니다!');
+                        } else {
+                          throw new Error('이미지 생성 실패');
+                        }
+                      } catch (error) {
+                        console.error('이미지 생성 오류:', error);
+                        alert('이미지 생성 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    수정된 프롬프트로 이미지 생성
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 골드톤 프롬프트 미리보기 모달 */}
+      {showGoldTonePrompts && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">단락별 프롬프트 미리보기 (골드톤)</h3>
+              <button
+                onClick={() => setShowGoldTonePrompts(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {goldTonePrompts.map((prompt, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">단락 {index + 1}</h4>
+                  <p className="text-sm text-gray-600 mb-3">{prompt}</p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/generate-paragraph-images-with-prompts', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            content: post.content,
+                            prompts: [prompt]
+                          })
+                        });
+
+                        if (response.ok) {
+                          const data = await response.json();
+                          setGeneratedImages(data.images || []);
+                          setShowGeneratedImages(true);
+                          setShowGoldTonePrompts(false);
+                          alert('골드톤 이미지가 생성되었습니다!');
+                        } else {
+                          throw new Error('골드톤 이미지 생성 실패');
+                        }
+                      } catch (error) {
+                        console.error('골드톤 이미지 생성 오류:', error);
+                        alert('골드톤 이미지 생성 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                  >
+                    수정된 프롬프트로 골드톤 이미지 생성
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 프롬프트 설정 모달 */}
+      {showConfigModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">새 프롬프트 설정</h3>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">설정 이름</label>
+                <input
+                  type="text"
+                  value={newConfigName}
+                  onChange={(e) => setNewConfigName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="설정 이름을 입력하세요"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">설정 설명</label>
+                <textarea
+                  value={newConfigDescription}
+                  onChange={(e) => setNewConfigDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="설정 설명을 입력하세요"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={savePromptConfig}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  저장
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 갤러리 피커 모달 */}
+      {showInlineGalleryModal && (
+        <GalleryPicker
+          isOpen={showInlineGalleryModal}
+          onClose={() => setShowInlineGalleryModal(false)}
+          onSelect={handleImageInsert}
+        />
       )}
     </>
   );
