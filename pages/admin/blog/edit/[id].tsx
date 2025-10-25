@@ -936,6 +936,18 @@ export default function EditBlogPost() {
         // 포스트 데이터 설정
         setPost(postData);
         
+        // 🔥 formData 설정 추가 (이전 소스 방식)
+        setFormData({
+          title: postData.title || '',
+          excerpt: postData.excerpt || '',
+          content: postData.content || '', // 이 부분이 누락되어 있었음!
+          category: postData.category || '골프 정보',
+          status: postData.status || 'draft',
+          meta_title: postData.meta_title || '',
+          meta_description: postData.meta_description || '',
+          meta_keywords: postData.meta_keywords || '',
+        });
+        
         // 게시물 이미지 로드
         await loadPostImages(postId);
         
