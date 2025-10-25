@@ -662,6 +662,14 @@ export default function BlogAdmin() {
   // 허브 연동 상태
   const [hubData, setHubData] = useState(null);
   const [isHubMode, setIsHubMode] = useState(false);
+  
+  // 허브 동기화 관련 상태
+  const [syncModalData, setSyncModalData] = useState({
+    isOpen: false,
+    blogPost: null,
+    hubId: null
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // 허브 데이터 로드 함수
   const loadHubData = async (hubId: string) => {
@@ -685,6 +693,85 @@ export default function BlogAdmin() {
       }
     } catch (error) {
       console.error('❌ 허브 데이터 로드 오류:', error);
+    }
+  };
+
+  // 허브 동기화 함수
+  const handleHubSync = async (post) => {
+    try {
+      // 동기화 모달 표시
+      setSyncModalData({
+        isOpen: true,
+        blogPost: post,
+        hubId: post.calendar_id
+      });
+    } catch (error) {
+      console.error('동기화 모달 오류:', error);
+      alert('동기화 모달을 열 수 없습니다.');
+    }
+  };
+
+  // AI 동기화 함수
+  const handleHubSyncWithAI = async (blogPost, hubId) => {
+    try {
+      setIsSyncing(true);
+      
+      const response = await fetch('/api/blog/sync-to-hub-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blogPostId: blogPost.id,
+          hubContentId: hubId,
+          title: blogPost.title,
+          content: blogPost.content,
+          excerpt: blogPost.excerpt
+        })
+      });
+      
+      if (response.ok) {
+        alert('🤖 AI로 허브 콘텐츠가 최적화되어 동기화되었습니다!');
+        setSyncModalData({ isOpen: false, blogPost: null, hubId: null });
+        fetchPosts(); // 목록 새로고침
+      } else {
+        throw new Error('AI 동기화 실패');
+      }
+    } catch (error) {
+      console.error('AI 동기화 오류:', error);
+      alert('AI 동기화에 실패했습니다.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // 직접 동기화 함수
+  const handleHubSyncDirect = async (blogPost, hubId) => {
+    try {
+      setIsSyncing(true);
+      
+      const response = await fetch('/api/blog/sync-to-hub-direct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blogPostId: blogPost.id,
+          hubContentId: hubId,
+          title: blogPost.title,
+          content: blogPost.content,
+          excerpt: blogPost.excerpt
+        })
+      });
+      
+      if (response.ok) {
+        alert('⚡ 직접 허브 콘텐츠가 동기화되었습니다!');
+        setSyncModalData({ isOpen: false, blogPost: null, hubId: null });
+        fetchPosts(); // 목록 새로고침
+      } else {
+        throw new Error('직접 동기화 실패');
+      }
+    } catch (error) {
+      console.error('직접 동기화 오류:', error);
+      alert('직접 동기화에 실패했습니다.');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -5226,6 +5313,16 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                                     >
                                       🔗 연결됨: {post.calendar_id.substring(0, 8)}...
                                     </span>
+                                    
+                                    {/* 🔄 허브 동기화 버튼 추가 */}
+                                    <button
+                                      onClick={() => handleHubSync(post)}
+                                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 flex items-center gap-1"
+                                      title="허브 콘텐츠 동기화"
+                                    >
+                                      🔄 동기화
+                                    </button>
+                                    
                                     <button
                                       onClick={() => {
                                         if (confirm('허브 연결을 해제하시겠습니까?')) {
@@ -7674,6 +7771,55 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
               >
                 저장
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 허브 동기화 모달 */}
+      {syncModalData.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">허브 콘텐츠 동기화</h3>
+              <button
+                onClick={() => setSyncModalData({ isOpen: false, blogPost: null, hubId: null })}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>블로그:</strong> {syncModalData.blogPost?.title}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>허브 ID:</strong> {syncModalData.hubId}
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleHubSyncWithAI(syncModalData.blogPost, syncModalData.hubId)}
+                disabled={isSyncing}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSyncing ? '🔄 동기화 중...' : '🤖 AI 동기화'}
+              </button>
+              
+              <button
+                onClick={() => handleHubSyncDirect(syncModalData.blogPost, syncModalData.hubId)}
+                disabled={isSyncing}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSyncing ? '🔄 동기화 중...' : '⚡ 직접 동기화'}
+              </button>
+            </div>
+            
+            <div className="mt-4 text-xs text-gray-500">
+              <p><strong>AI 동기화:</strong> 허브용으로 최적화된 요약/개요 생성</p>
+              <p><strong>직접 동기화:</strong> 현재 블로그 내용을 그대로 복사</p>
             </div>
           </div>
         </div>
