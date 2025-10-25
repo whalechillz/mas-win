@@ -663,6 +663,11 @@ export default function BlogAdmin() {
   });
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // 편집 모드 감지 함수
+  const isEditMode = () => {
+    return editingPost !== null || editingPostId !== null;
+  };
+
   // 허브 데이터 로드 함수
   const loadHubData = async (hubId: string) => {
     try {
@@ -1475,7 +1480,7 @@ export default function BlogAdmin() {
       setEditingPost(post);
       setEditingPostId(post.id);
       setShowForm(true);
-      setActiveTab('create');
+      setActiveTab('edit');
       
       // 🔄 포스트 데이터 로드 (허브 데이터 포함)
       await loadPostForEdit(post.id);
@@ -5410,7 +5415,17 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 </div>
 
                 {/* 허브 연동 정보 표시 */}
-                {isHubMode && hubData && (
+                {(() => {
+                  console.log('🔍 허브 연동 정보 표시 조건:', {
+                    isEditMode: isEditMode(),
+                    isHubMode,
+                    hubData,
+                    editingPost,
+                    editingPostId,
+                    activeTab
+                  });
+                  return isEditMode() && isHubMode && hubData;
+                })() && (
                   <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-center space-x-2 mb-3">
                       <span className="text-lg">🎯</span>
