@@ -6182,6 +6182,35 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       </button>
                     </div>
                   </div>
+
+                  {/* 기존 이미지 변형 기능 */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      🔄 기존 이미지 변형
+                    </h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      <button 
+                        type="button"
+                        onClick={() => setShowExistingImageModal(true)}
+                        disabled={isGeneratingExistingVariation}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingExistingVariation 
+                            ? 'bg-gray-300 text-white cursor-not-allowed' 
+                            : 'bg-purple-500 text-white hover:bg-purple-600'
+                        }`}
+                        title="기존 이미지를 변형하여 새로운 이미지 생성"
+                      >
+                        {isGeneratingExistingVariation ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            변형 중...
+                          </span>
+                        ) : (
+                          '🔄 기존 이미지 변형'
+                        )}
+                      </button>
+                    </div>
+                  </div>
                   
                   <p className="text-xs text-gray-500 mt-2 text-center">
                     먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다<br/>
