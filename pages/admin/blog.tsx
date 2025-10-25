@@ -1858,6 +1858,239 @@ export default function BlogAdmin() {
   const [goldTonePrompts, setGoldTonePrompts] = useState([]); // 골드톤 프롬프트 배열
   const [showGoldTonePromptPreview, setShowGoldTonePromptPreview] = useState(false);
   
+  // 프롬프트 설정 관리 상태
+  const [savedPromptConfigs, setSavedPromptConfigs] = useState({});
+  const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [newConfigDescription, setNewConfigDescription] = useState('');
+  
+  // 프롬프트 설정 관리 함수들
+  const promptConfigManager = {
+    configs: {},
+    
+    init() {
+      this.configs = this.loadConfigs();
+    },
+    
+    // 설정 저장
+    saveConfig(name, config) {
+      this.configs[name] = {
+        ...config,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      this.saveToStorage();
+      return this.configs[name];
+    },
+    
+    // 설정 불러오기
+    getConfig(name) {
+      return this.configs[name];
+    },
+    
+    // 모든 설정 목록
+    getAllConfigs() {
+      return Object.keys(this.configs).map(name => ({
+        name,
+        ...this.configs[name]
+      }));
+    },
+    
+    // 설정 삭제
+    deleteConfig(name) {
+      delete this.configs[name];
+      this.saveToStorage();
+    },
+    
+    // 로컬 스토리지에 저장
+    saveToStorage() {
+      try {
+        localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
+      } catch (error) {
+        console.error('설정 저장 실패:', error);
+        alert('설정 저장에 실패했습니다. 브라우저 저장 공간을 확인해주세요.');
+      }
+    },
+    
+    // 로컬 스토리지에서 불러오기
+    loadConfigs() {
+      try {
+        const stored = localStorage.getItem('promptConfigs');
+        return stored ? JSON.parse(stored) : {};
+      } catch (error) {
+        console.error('설정 불러오기 실패:', error);
+        return {};
+      }
+    },
+    
+    // JSON 파일로 내보내기
+    exportConfigs() {
+      try {
+        const dataStr = JSON.stringify(this.configs, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `prompt-configs-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        alert('설정이 성공적으로 내보내졌습니다!');
+      } catch (error) {
+        console.error('설정 내보내기 실패:', error);
+        alert('설정 내보내기에 실패했습니다.');
+      }
+    },
+    
+    // JSON 파일에서 가져오기
+    importConfigs(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const result = e.target?.result;
+            if (typeof result === 'string') {
+              const importedConfigs = JSON.parse(result);
+              this.configs = { ...this.configs, ...importedConfigs };
+              this.saveToStorage();
+              resolve(importedConfigs);
+            } else {
+              reject(new Error('파일 읽기 실패'));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.readAsText(file);
+      });
+    },
+    
+    // 설정 객체 직접 접근
+    getConfigs() {
+      return this.configs;
+    }
+  };
+  
+  // 프롬프트 설정 관리자 초기화
+  promptConfigManager.init();
+  
+  // 프롬프트 설정 저장
+  const savePromptConfig = (name, description, brandStrategy) => {
+    try {
+      const config = promptConfigManager.saveConfig(name, {
+        name,
+        description,
+        brandStrategy
+      });
+      setSavedPromptConfigs(promptConfigManager.getConfigs());
+      alert(`설정 "${name}"이 성공적으로 저장되었습니다!`);
+      return config;
+    } catch (error) {
+      console.error('설정 저장 실패:', error);
+      alert('설정 저장에 실패했습니다.');
+    }
+  };
+  
+  // 프롬프트 설정 불러오기
+  const loadPromptConfig = (configName) => {
+    return promptConfigManager.getConfig(configName);
+  };
+  
+  // 프롬프트 설정 삭제
+  const deletePromptConfig = (configName) => {
+    if (confirm(`설정 "${configName}"을 삭제하시겠습니까?`)) {
+      promptConfigManager.deleteConfig(configName);
+      setSavedPromptConfigs(promptConfigManager.getConfigs());
+      if (selectedPromptConfig === configName) {
+        setSelectedPromptConfig('');
+      }
+      alert(`설정 "${configName}"이 삭제되었습니다.`);
+    }
+  };
+  
+  // 프롬프트 설정 내보내기
+  const exportPromptConfigs = () => {
+    promptConfigManager.exportConfigs();
+  };
+  
+  // 프롬프트 설정 가져오기
+  const importPromptConfigs = (file) => {
+    promptConfigManager.importConfigs(file)
+      .then(() => {
+        setSavedPromptConfigs(promptConfigManager.getConfigs());
+        alert('설정이 성공적으로 가져와졌습니다!');
+      })
+      .catch((error) => {
+        console.error('설정 가져오기 실패:', error);
+        alert('설정 가져오기에 실패했습니다. 파일 형식을 확인해주세요.');
+      });
+  };
+  
+  // 컴포넌트 마운트 시 저장된 설정 불러오기
+  useEffect(() => {
+    setSavedPromptConfigs(promptConfigManager.getConfigs());
+  }, []);
+  
+  // 10월 8일 버전 프롬프트 생성 (안정적 생성)
+  const generateOctober8Prompts = async () => {
+    if (!formData.content || formData.content.trim().length < 30) {
+      alert('본문을 먼저 작성해주세요. (최소 30자)');
+      return;
+    }
+    
+    if (isGeneratingParagraphImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
+    try {
+      setImageGenerationStep('10월 8일 버전 프롬프트 생성 중...');
+      
+      const res = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content: formData.content,
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          imageCount: imageGenerationCount,
+          brandStrategy: { 
+            customerpersona: brandPersona, // 사용자 선택한 페르소나 사용 (10월 8일 버전과 동일)
+            customerChannel: 'local_customers', 
+            brandWeight: getBrandWeight(brandContentType),
+            audienceTemperature,
+            audienceWeight: getAudienceWeight(audienceTemperature)
+          }
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '10월 8일 버전 프롬프트 생성 실패');
+      }
+      
+      const data = await res.json();
+      console.log('📝 10월 8일 버전 API 응답 데이터:', data);
+      console.log('📝 10월 8일 버전 받은 프롬프트 개수:', data.prompts?.length || 0);
+      console.log('📝 10월 8일 버전 프롬프트 내용:', data.prompts?.map((p, i) => `단락 ${i+1}: ${p.prompt.substring(0, 50)}...`));
+      
+      setParagraphPrompts(data.prompts || []);
+      setShowParagraphPromptPreview(true);
+      setImageGenerationStep('✅ 10월 8일 버전 프롬프트 생성 완료! 수정 후 이미지 생성 버튼을 눌러주세요.');
+      
+    } catch (e: any) {
+      console.error('10월 8일 버전 프롬프트 생성 오류:', e);
+      alert('10월 8일 버전 프롬프트 생성 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsGeneratingParagraphImages(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+  
   // 단락별 프롬프트 미리 생성
   const generateParagraphPrompts = async () => {
     if (!formData.content || formData.content.trim().length < 30) {
@@ -6149,39 +6382,97 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     </div>
                   </div>
 
-                  {/* 톤앤매너 강화 버튼들 */}
+                  {/* 10월 8일 버전 (안정적 생성) */}
                   <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                      🎯 톤앤매너 강화 테스트
+                    <h4 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
+                      🗓️ 안정적 생성 (10월 8일 버전)
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={async () => {
-                          // 골드톤 시니어 매너 강화 테스트
-                          alert('골드톤 시니어 매너 강화 테스트를 시작합니다!\n\n골드톤 시니어 매너 프롬프트 미리보기를 클릭하여 테스트해보세요.');
-                          await generateGoldTonePrompts();
-                        }}
-                        className="px-4 py-3 rounded-lg text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-600"
-                        title="골드톤 시니어 매너 강화 테스트"
+                        onClick={generateOctober8Prompts}
+                        disabled={isGeneratingParagraphImages}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                          isGeneratingParagraphImages 
+                            ? 'bg-gray-300 text-white cursor-not-allowed' 
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                        title="10월 8일 버전의 안정적이고 다양한 이미지 생성 프롬프트를 미리 생성합니다"
                       >
-                        🏆 골드톤 시니어 매너 강화 테스트
+                        {isGeneratingParagraphImages ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            안정적 생성 중...
+                          </span>
+                        ) : (
+                          '📝 단락별 프롬프트 미리보기 (안정적 생성)'
+                        )}
                       </button>
                       
-                      <button 
-                        type="button"
-                        onClick={async () => {
-                          // 블랙톤 젊은 매너 강화 테스트
-                          alert('블랙톤 젊은 매너 강화 테스트를 시작합니다!\n\n블랙톤 젊은 매너 프롬프트 미리보기를 클릭하여 테스트해보세요.');
-                          await generateParagraphPrompts();
-                        }}
-                        className="px-4 py-3 rounded-lg text-sm font-medium bg-blue-500 text-white hover:bg-blue-600"
-                        title="블랙톤 젊은 매너 강화 테스트"
-                      >
-                        ⚡ 블랙톤 젊은 매너 강화 테스트
-                      </button>
                     </div>
                   </div>
+
+                  {/* 프롬프트 설정 관리 */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      ⚙️ 프롬프트 설정 관리
+                    </h4>
+                    <div className="space-y-4">
+                      {/* 프롬프트 설정 선택 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          저장된 프롬프트 설정 선택
+                        </label>
+                        <div className="flex gap-2">
+                          <select 
+                            value={selectedPromptConfig}
+                            onChange={(e) => setSelectedPromptConfig(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">기본 설정 사용</option>
+                            {Object.keys(savedPromptConfigs).map(configName => (
+                              <option key={configName} value={configName}>
+                                {savedPromptConfigs[configName].name} - {savedPromptConfigs[configName].description}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setShowConfigModal(true)}
+                            className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
+                          >
+                            + 새 설정
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* 설정 관리 버튼들 */}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={exportPromptConfigs}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                        >
+                          📤 설정 내보내기
+                        </button>
+                        <label className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm cursor-pointer">
+                          📥 설정 가져오기
+                          <input
+                            type="file"
+                            accept=".json"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                importPromptConfigs(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
 
                   {/* 기존 이미지 변형 기능 */}
                   <div className="mb-6">
@@ -7198,6 +7489,104 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         currentContent={formData.content || ''}
         brandStrategy={currentBrandStrategy}
       />
+
+      {/* 프롬프트 설정 저장 모달 */}
+      {showConfigModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">새 프롬프트 설정 저장</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfigModal(false);
+                  setNewConfigName('');
+                  setNewConfigDescription('');
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  설정 이름
+                </label>
+                <input
+                  type="text"
+                  value={newConfigName}
+                  onChange={(e) => setNewConfigName(e.target.value)}
+                  placeholder="예: 매장 이미지 최적화"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  설정 설명
+                </label>
+                <textarea
+                  value={newConfigDescription}
+                  onChange={(e) => setNewConfigDescription(e.target.value)}
+                  placeholder="이 설정의 용도와 특징을 설명해주세요"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-20"
+                />
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded-md">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">현재 브랜드 전략</h4>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <div>페르소나: {brandPersona}</div>
+                  <div>브랜드 강도: {getBrandWeight(brandContentType)}</div>
+                  <div>오디언스 온도: {audienceTemperature}</div>
+                  <div>오디언스 강도: {getAudienceWeight(audienceTemperature)}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfigModal(false);
+                  setNewConfigName('');
+                  setNewConfigDescription('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newConfigName.trim()) {
+                    alert('설정 이름을 입력해주세요.');
+                    return;
+                  }
+                  
+                  const brandStrategy = {
+                    customerpersona: brandPersona,
+                    customerChannel: 'local_customers',
+                    brandWeight: getBrandWeight(brandContentType),
+                    audienceTemperature,
+                    audienceWeight: getAudienceWeight(audienceTemperature)
+                  };
+                  
+                  savePromptConfig(newConfigName, newConfigDescription, brandStrategy);
+                  setShowConfigModal(false);
+                  setNewConfigName('');
+                  setNewConfigDescription('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   );
