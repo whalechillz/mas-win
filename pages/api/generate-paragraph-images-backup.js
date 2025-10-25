@@ -58,30 +58,64 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { content, title, excerpt, contentType, imageCount, brandStrategy } = req.body;
+    const { content, title, excerpt, contentType, imageCount, brandStrategy, blogPostId } = req.body;
 
-    if (!content || content.trim().length < 30) {
-      return res.status(400).json({ message: 'Content must be at least 30 characters long' });
+    if (!content) {
+      return res.status(400).json({ message: 'Content is required' });
     }
 
-    console.log('🎨 단락별 이미지 생성 시작...', { 
-      contentLength: content.length, 
-      imageCount: imageCount || 4,
-      brandStrategy: brandStrategy?.persona || 'default'
-    });
-
-    // 1단계: 지능적 단락 분리
-    const targetCount = Math.min(imageCount || 4, 4);
-    let paragraphs = await splitContentWithAI(content, targetCount, title, excerpt);
+    // 내용을 단락별로 분리 (HTML 태그 제거 후)
+    const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
     
-    if (!paragraphs) {
-      // AI 분리 실패 시 기본 분리 방식 사용
-      console.log('⚠️ AI 단락 분리 실패, 기본 분리 방식 사용');
-      const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
-      paragraphs = sentences.slice(0, targetCount);
+    // 여러 방법으로 단락 분리 시도
+    let paragraphs = [];
+    
+    // 방법 1: \n\n으로 분리
+    paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 30);
+    
+    // 방법 2: 문장 단위로 분리 (마침표 기준)
+    if (paragraphs.length <= 1) {
+      const sentences = cleanContent.split(/[.!?]\s+/).filter(s => s.trim().length > 20);
+      // 문장들을 2-3개씩 묶어서 단락 만들기
+      for (let i = 0; i < sentences.length; i += 2) {
+        const paragraph = sentences.slice(i, i + 2).join('. ') + '.';
+        if (paragraph.trim().length > 30) {
+          paragraphs.push(paragraph);
+        }
+      }
     }
     
-    if (!paragraphs || paragraphs.length < 2) {
+    // 3단계: ChatGPT를 활용한 지능적 분리 (내용이 충분히 길고 복잡할 때만)
+    if (paragraphs.length <= 1 && cleanContent.length > 500) {
+      try {
+        console.log('🧠 ChatGPT를 활용한 지능적 단락 분리 시도...');
+        const aiParagraphs = await splitContentWithAI(cleanContent, imageCount || 4, title, excerpt);
+        if (aiParagraphs && aiParagraphs.length > 1) {
+          paragraphs = aiParagraphs;
+          console.log('✅ ChatGPT 단락 분리 성공:', paragraphs.length, '개');
+        }
+      } catch (error) {
+        console.warn('⚠️ ChatGPT 단락 분리 실패, 규칙 기반으로 폴백:', error.message);
+      }
+    }
+    
+    // 4단계: 최후 수단 - 강제 균등 분할
+    if (paragraphs.length <= 1 && cleanContent.length > 200) {
+      const chunkSize = Math.ceil(cleanContent.length / (imageCount || 4));
+      for (let i = 0; i < cleanContent.length; i += chunkSize) {
+        const chunk = cleanContent.substring(i, i + chunkSize).trim();
+        if (chunk.length > 30) {
+          paragraphs.push(chunk);
+        }
+      }
+    }
+    
+    // 최소 50자 이상인 단락만 유지
+    paragraphs = paragraphs.filter(p => p.trim().length > 50);
+    
+    console.log(`📝 단락 분석: 총 ${paragraphs.length}개 단락 발견`);
+    
+    if (paragraphs.length === 0) {
       return res.status(400).json({ message: '이미지 생성에 적합한 단락이 없습니다. (최소 50자 이상)' });
     }
     
@@ -142,26 +176,26 @@ export default async function handler(req, res) {
         }
       }
 
-      const falResult = await falResponse.json();
-      console.log('✅ FAL AI hidream-i1-dev 응답:', falResult);
+        const falResult = await falResponse.json();
+        console.log('✅ FAL AI hidream-i1-dev 응답:', falResult);
 
-      // FAL AI 사용량 로깅
-      await logFALAIUsage('generate-paragraph-images', 'image-generation', {
-        paragraphIndex: i,
-        prompt: imagePrompt,
-        imageCount: 1,
-        durationMs: Date.now() - startedAt
-      });
+        // FAL AI 사용량 로깅
+        await logFALAIUsage('generate-paragraph-images', 'image-generation', {
+          paragraphIndex: i,
+          prompt: imagePrompt,
+          imageCount: 1,
+          durationMs: Date.now() - startedAt
+        });
 
-      // hidream-i1-dev는 동기식 응답
-      if (!falResult.images || falResult.images.length === 0) {
-        throw new Error('FAL AI에서 이미지를 생성하지 못했습니다.');
-      }
+        // hidream-i1-dev는 동기식 응답
+        if (!falResult.images || falResult.images.length === 0) {
+          throw new Error('FAL AI에서 이미지를 생성하지 못했습니다.');
+        }
 
-      const imageResponse = { data: [{ url: falResult.images[0].url }] };
+        const imageResponse = { data: [{ url: falResult.images[0].url }] };
 
-      // 이미지를 Supabase에 직접 저장 (다른 API들과 동일한 방식)
-      try {
+        // 이미지를 Supabase에 직접 저장 (다른 API들과 동일한 방식)
+        try {
         console.log(`🔄 단락 ${i + 1} 이미지 Supabase 저장 시작...`);
         
         // 외부 이미지 URL에서 이미지 데이터 다운로드
@@ -204,15 +238,20 @@ export default async function handler(req, res) {
           originalUrl: imageResponse.data[0].url, // 원본 URL도 보관
           prompt: imagePrompt
         });
-      } catch (saveError) {
-        console.error(`❌ 단락 ${i + 1} 이미지 저장 오류:`, saveError);
-        // 저장 실패 시 원본 URL 사용
-        paragraphImages.push({
-          paragraphIndex: i,
-          paragraph: paragraph.substring(0, 100) + '...',
-          imageUrl: imageResponse.data[0].url,
-          prompt: imagePrompt
-        });
+        } catch (saveError) {
+          console.error(`❌ 단락 ${i + 1} 이미지 저장 오류:`, saveError);
+          // 저장 실패 시 원본 URL 사용
+          paragraphImages.push({
+            paragraphIndex: i,
+            paragraph: paragraph.substring(0, 100) + '...',
+            imageUrl: imageResponse.data[0].url,
+            prompt: imagePrompt
+          });
+        }
+      } catch (imageError) {
+        console.error(`❌ 단락 ${i + 1} 이미지 생성/저장 전체 오류:`, imageError);
+        // 이미지 생성/저장 실패 시에도 다음 이미지 생성 시도
+        continue;
       }
     }
 
