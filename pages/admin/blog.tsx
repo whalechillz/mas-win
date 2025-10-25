@@ -5923,135 +5923,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     <span className="text-sm text-gray-500">제목과 내용을 바탕으로 AI가 이미지를 생성합니다</span>
                   </div>
 
-                  {/* 프롬프트 미리보기 */}
-                  <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="mb-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">프롬프트 미리보기</span>
-                    <button 
-                      type="button"
-                          onClick={async () => {
-                            try {
-                              // 기본 프롬프트 재생성: 제목/요약/콘텐츠유형/브랜드전략 기반
-                              setImageGenerationStep('프롬프트 초기화 중...');
-                              const res = await fetch('/api/preview-image-prompt', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  title: formData.title,
-                                  excerpt: formData.excerpt || formData.content?.slice(0, 200) || '',
-                                  contentType: brandContentType,
-                                  brandStrategy: {
-                                    brandPersona,
-                                    brandContentType,
-                                    brandWeight: getBrandWeight(brandContentType),
-                                    audienceTemperature,
-                                    audienceWeight: getAudienceWeight(audienceTemperature)
-                                  }
-                                })
-                              });
-                              if (res.ok) {
-                                const data = await res.json();
-                                setImageGenerationPrompt(data.prompt || '');
-                                setEditedPrompt('');
-                                setGeneratedImages([]);
-                                setSelectedGeneratedImage('');
-                                alert('프롬프트가 초기화되었습니다. 새로 이미지를 생성해보세요.');
-                              } else {
-                                alert('프롬프트 초기화에 실패했습니다.');
-                              }
-                            } catch (e) {
-                              console.error(e);
-                              alert('프롬프트 초기화 중 오류가 발생했습니다.');
-                            } finally {
-                              setImageGenerationStep('');
-                            }
-                          }}
-                          className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                        >
-                          ↺ 프롬프트 리셋
-                    </button>
-                    </div>
-                    </div>
-                    <div className="text-xs text-gray-600 break-words whitespace-pre-wrap">
-                      {imageGenerationPrompt || '아직 생성된 프롬프트가 없습니다. 먼저 한 번 생성하세요.'}
-                  </div>
-
-                    {/* 한글 수정사항 입력 */}
-                    {imageGenerationPrompt && (
-                      <div className="mt-3">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          한글 수정사항 (예: 배경을 여름 낮으로 변경, 더 밝게 만들어주세요)
-                        </label>
-                        <textarea
-                          className="w-full h-16 text-xs px-2 py-1 border border-gray-300 rounded"
-                          value={editedPrompt}
-                          onChange={(e) => setEditedPrompt(e.target.value)}
-                          placeholder="한글로 수정사항을 입력하세요. 예: 배경을 여름 낮으로 변경, 더 밝게 만들어주세요"
-                        />
-                        {editedPrompt && (
-                          <div className="mt-2 flex gap-2">
-                      <button 
-                        type="button"
-                              onClick={async () => {
-                                if (isImprovingPrompt) return;
-                                setIsImprovingPrompt(true);
-                                try {
-                                  const response = await fetch('/api/improve-prompt', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      originalPrompt: imageGenerationPrompt,
-                                      userImprovements: editedPrompt,
-                                      brandStrategy: {
-                                        brandPersona,
-                                        brandContentType,
-                                        brandWeight: getBrandWeight(brandContentType),
-                                        audienceTemperature,
-                                        audienceWeight: getAudienceWeight(audienceTemperature)
-                                      }
-                                    })
-                                  });
-                                  
-                                  if (response.ok) {
-                                    const result = await response.json();
-                                    setImageGenerationPrompt(result.improvedPrompt);
-                                    setEditedPrompt('');
-                                    
-                                    // 기존 이미지 변형 모드인지 확인
-                                    if (selectedExistingImage && showExistingImageModal === false) {
-                                      // 기존 이미지 변형 모드: 개선된 프롬프트로 변형 실행
-                                      alert('프롬프트가 개선되었습니다! 기존 이미지 변형을 시작합니다.');
-                                      handleLoadExistingImageAndPromptWithPrompt(result.improvedPrompt);
-                                    } else {
-                                      // 일반 모드: 재생성 안내
-                                      alert('프롬프트가 개선되었습니다! 원하는 모델로 재생성하세요.');
-                                    }
-                                  } else {
-                                    alert('프롬프트 개선에 실패했습니다.');
-                                  }
-                                } catch (error) {
-                                  console.error('프롬프트 개선 오류:', error);
-                                  alert('프롬프트 개선 중 오류가 발생했습니다.');
-                                } finally { setIsImprovingPrompt(false); }
-                              }}
-                              disabled={isImprovingPrompt}
-                              className={`px-3 py-1 text-xs rounded text-white ${isImprovingPrompt ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-                            >
-                              {isImprovingPrompt ? '개선 중...' : '🔄 프롬프트 개선'}
-                      </button>
-                      <button 
-                        type="button"
-                              onClick={() => setEditedPrompt('')}
-                              className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
-                            >
-                              취소
-                      </button>
-                    </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
 
                   {/* AI 생성 모드 선택 */}
                   <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
@@ -6101,22 +5972,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     </div>
                   </div>
 
-                  {/* AI 이미지 생성 버튼 */}
-                  <div className="mb-6">
-                    <button 
-                      type="button"
-                      onClick={() => generateFALAIImage(imageGenerationCount)}
-                      disabled={isGeneratingImages}
-                      className="w-full px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isGeneratingImages && imageGenerationModel === 'ChatGPT + FAL AI' ? (
-                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      ) : (
-                        <span>🎨</span>
-                      )}
-                      ChatGPT + FAL AI
-                    </button>
-                  </div>
 
                   {/* 골드톤 프롬프트 미리보기 */}
                   {showGoldTonePromptPreview && goldTonePrompts.length > 0 && (
@@ -6261,26 +6116,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                         )}
                       </button>
                       
-                      <button 
-                        type="button"
-                        onClick={handleGenerateGoldToneImages}
-                        disabled={isGeneratingGoldToneImages}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
-                          isGeneratingGoldToneImages 
-                            ? 'bg-yellow-300 text-white cursor-not-allowed' 
-                            : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                        }`}
-                        title="골드톤 시니어 매너 이미지를 일괄 생성"
-                      >
-                        {isGeneratingGoldToneImages ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            골드톤 생성 중...
-                          </span>
-                        ) : (
-                          '🎨 단락별 이미지 일괄 생성 (골드톤 시니어 매너)'
-                        )}
-                      </button>
                     </div>
                   </div>
 
@@ -6311,75 +6146,37 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                         )}
                       </button>
                       
-                      <button 
-                        type="button"
-                        onClick={handleGenerateParagraphImages}
-                        disabled={isGeneratingParagraphImages}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
-                          isGeneratingParagraphImages 
-                            ? 'bg-emerald-300 text-white cursor-not-allowed' 
-                            : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                        }`}
-                        title="블랙톤 젊은 매너 이미지를 일괄 생성"
-                      >
-                        {isGeneratingParagraphImages ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            블랙톤 생성 중...
-                          </span>
-                        ) : (
-                          '🎨 단락별 이미지 일괄 생성 (블랙톤 젊은 매너)'
-                        )}
-                      </button>
                     </div>
                   </div>
 
-                  {/* 기존 버튼들 (하단으로 이동) */}
+                  {/* 톤앤매너 강화 버튼들 */}
                   <div className="mb-6">
                     <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                      🔧 기존 기능
+                      🎯 톤앤매너 강화 테스트
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={() => generateFALAIImage(imageGenerationCount)}
-                        disabled={isGeneratingImages}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
-                          isGeneratingImages 
-                            ? 'bg-gray-300 text-white cursor-not-allowed' 
-                            : 'bg-purple-600 text-white hover:bg-purple-700'
-                        }`}
-                        title="골드톤 시니어 매너 이미지 여러 장 생성 (기존 기능)"
+                        onClick={() => {
+                          // 골드톤 시니어 매너 강화 테스트
+                          alert('골드톤 시니어 매너 강화 테스트를 시작합니다!\n\n골드톤 시니어 매너 프롬프트 미리보기를 클릭하여 테스트해보세요.');
+                        }}
+                        className="px-4 py-3 rounded-lg text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-600"
+                        title="골드톤 시니어 매너 강화 테스트"
                       >
-                        {isGeneratingImages && imageGenerationModel === 'ChatGPT + FAL AI' ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            골드톤 생성 중...
-                          </span>
-                        ) : (
-                          '🎨 ChatGPT + FAL AI (골드톤 시니어 매너)'
-                        )}
+                        🏆 골드톤 시니어 매너 강화 테스트
                       </button>
                       
                       <button 
                         type="button"
-                        onClick={() => setShowExistingImageModal(true)}
-                        disabled={isGeneratingExistingVariation}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium ${
-                          isGeneratingExistingVariation 
-                            ? 'bg-gray-300 text-white cursor-not-allowed' 
-                            : 'bg-purple-500 text-white hover:bg-purple-600'
-                        }`}
-                        title="기존 이미지를 변형하여 새로운 이미지 생성"
+                        onClick={() => {
+                          // 블랙톤 젊은 매너 강화 테스트
+                          alert('블랙톤 젊은 매너 강화 테스트를 시작합니다!\n\n블랙톤 젊은 매너 프롬프트 미리보기를 클릭하여 테스트해보세요.');
+                        }}
+                        className="px-4 py-3 rounded-lg text-sm font-medium bg-blue-500 text-white hover:bg-blue-600"
+                        title="블랙톤 젊은 매너 강화 테스트"
                       >
-                        {isGeneratingExistingVariation ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            변형 중...
-                          </span>
-                        ) : (
-                          '🔄 기존 이미지 변형'
-                        )}
+                        ⚡ 블랙톤 젊은 매너 강화 테스트
                       </button>
                     </div>
                   </div>
@@ -6387,7 +6184,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   <p className="text-xs text-gray-500 mt-2 text-center">
                     먼저 프롬프트를 미리보기하고 수정한 후 이미지를 생성하거나, 바로 이미지를 생성할 수 있습니다<br/>
                     <span className="text-blue-600 font-medium">생성할 이미지 개수: {imageGenerationCount}개</span> (단락 수와 연동)<br/>
-                    <span className="text-purple-600 font-medium">기존 이미지 변형:</span> 갤러리/파일/URL에서 이미지를 선택하여 비슷한 변형 생성
+                    <span className="text-purple-600 font-medium">톤앤매너 강화:</span> 골드톤과 블랙톤의 차별화된 이미지 생성 테스트
                   </p>
 
                   {/* 이미지 생성 과정 표시 */}
