@@ -858,6 +858,12 @@ export default function CreateBlogPost() {
                 <p className="mt-2 text-gray-600">새로운 게시물을 작성하세요</p>
               </div>
               <div className="flex gap-3">
+                <button
+                  onClick={() => router.push('/admin/blog')}
+                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                >
+                  × 닫기
+                </button>
                 <Link
                   href="/admin/blog"
                   className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
@@ -865,6 +871,59 @@ export default function CreateBlogPost() {
                   ← 목록으로 돌아가기
                 </Link>
               </div>
+            </div>
+          </div>
+
+          {/* 러프 콘텐츠 입력 섹션 - 맨 위로 이동 */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-2xl">⚡</span>
+              <h2 className="text-xl font-semibold text-gray-900">러프 콘텐츠 입력</h2>
+              <span className="text-sm text-gray-500">두서없이 써도 AI가 정리해드립니다</span>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                글감/아이디어/두서없는 내용 입력
+              </label>
+              <textarea
+                placeholder="예: 드라이버 비거리 늘리고 싶은데... 60대라서 힘들어... 마쓰구골프라는 브랜드가 있다고 들었는데... 초고반발이라고 하던데... 맞춤 피팅도 해준다고... 비싸긴 한데 효과가 있을까... 동료들이 추천해줬는데..."
+                value={roughContent}
+                onChange={(e) => setRoughContent(e.target.value)}
+                className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent h-32 resize-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                💡 두서없이 써도 AI가 제목, 요약, 본문으로 정리해드립니다
+              </p>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={handleRoughContentGenerate}
+                disabled={isGeneratingFromRough || !roughContent.trim()}
+                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {isGeneratingFromRough ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>정리 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🧹</span>
+                    <span>AI가 정리하기</span>
+                  </>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setRoughContent('')}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                지우기
+              </button>
             </div>
           </div>
 
@@ -964,58 +1023,6 @@ export default function CreateBlogPost() {
             </div>
           </div>
 
-          {/* 러프 콘텐츠 입력 섹션 */}
-          <div className="border-t border-gray-200 pt-8">
-            <div className="flex items-center space-x-2 mb-6">
-              <span className="text-2xl">⚡</span>
-              <h2 className="text-xl font-semibold text-gray-900">러프 콘텐츠 입력</h2>
-              <span className="text-sm text-gray-500">두서없이 써도 AI가 정리해드립니다</span>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                글감/아이디어/두서없는 내용 입력
-              </label>
-              <textarea
-                placeholder="예: 드라이버 비거리 늘리고 싶은데... 60대라서 힘들어... 마쓰구골프라는 브랜드가 있다고 들었는데... 초고반발이라고 하던데... 맞춤 피팅도 해준다고... 비싸긴 한데 효과가 있을까... 동료들이 추천해줬는데..."
-                value={roughContent}
-                onChange={(e) => setRoughContent(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent h-32 resize-none"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                💡 두서없이 써도 AI가 제목, 요약, 본문으로 정리해드립니다
-              </p>
-            </div>
-            
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                onClick={handleRoughContentGenerate}
-                disabled={isGeneratingFromRough || !roughContent.trim()}
-                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-              >
-                {isGeneratingFromRough ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>정리 중...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>🧹</span>
-                    <span>AI가 정리하기</span>
-                  </>
-                )}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setRoughContent('')}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-              >
-                지우기
-              </button>
-            </div>
-          </div>
 
           {/* 편집 폼 */}
           <div className="bg-white rounded-lg shadow-md p-6 mt-8">
