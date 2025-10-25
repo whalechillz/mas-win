@@ -4416,41 +4416,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 🔵 네이버 블로그 스크래퍼
               </button>
               <button
-                onClick={() => {
-                  // 새 게시물 작성 시 formData 초기화
-                  setFormData({
-                    title: '',
-                    content: '',
-                    excerpt: '',
-                    slug: '',
-                    category: '고객 후기',
-                    status: 'draft',
-                    featured_image: '',
-                    meta_title: '',
-                    meta_description: '',
-                    meta_keywords: '',
-                    tags: [] as string[],
-                    view_count: 0,
-                    is_featured: false,
-                    is_scheduled: false,
-                    scheduled_at: null as string | null,
-                    author: '마쓰구골프',
-                    summary: '',
-                    customerpersona: '',
-                    conversiongoal: 'homepage_visit',
-                    target_product: 'all',
-                    published_at: '',
-                    created_at: ''
-                  });
-                  // 편집 기능은 편집 페이지로 이동됨
-                  setActiveTab('create');
-                  setShowForm(true);
-                }}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'create'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                onClick={() => router.push('/admin/blog/create')}
+                className="py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               >
                 ✍️ 새 게시물 작성
               </button>
@@ -5138,8 +5105,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
             </div>
           )}
 
-          {/* 새 게시물 작성/수정 폼 */}
-          {showForm && (activeTab === 'create' || activeTab === 'edit') && (
+          {/* 생성 폼은 생성 페이지로 이동됨 */}
+          {false && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="mb-6 flex justify-between items-center">
                 <div>
