@@ -31,23 +31,6 @@ export default function BlogAdmin() {
   const [filterCategory, setFilterCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // AI 이미지 생성 관련 상태는 생성 페이지로 이동됨
-
-  // 네이버 블로그 스크래퍼 상태
-  const [naverScraperMode, setNaverScraperMode] = useState('urls');
-  const [naverBlogId, setNaverBlogId] = useState('');
-  const [naverPostUrls, setNaverPostUrls] = useState('');
-  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
-  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
-  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
-  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
-
-  // 블로그 마이그레이션 상태
-  const [migrationUrl, setMigrationUrl] = useState('');
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [migrationStatus, setMigrationStatus] = useState('');
-  const [scrapedData, setScrapedData] = useState(null);
-
   // AI 이미지 생성 관련 상태
   const [generatedImages, setGeneratedImages] = useState([]);
   const [showGeneratedImages, setShowGeneratedImages] = useState(false);
@@ -93,15 +76,22 @@ export default function BlogAdmin() {
   const [generatedBlog, setGeneratedBlog] = useState(null);
   const [generationProgress, setGenerationProgress] = useState('');
 
-  // 인라인 갤러리 모달 관련 상태
-  const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
-  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
-  const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
-  const [editorInstance, setEditorInstance] = useState<any>(null);
-  const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
-  const [multichannelPreview, setMultichannelPreview] = useState(null);
+  // 네이버 블로그 스크래퍼 상태
+  const [naverScraperMode, setNaverScraperMode] = useState('urls');
+  const [naverBlogId, setNaverBlogId] = useState('');
+  const [naverPostUrls, setNaverPostUrls] = useState('');
+  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
+  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
+  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
+  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
 
-  // 갤러리 관련 상태 추가
+  // 블로그 마이그레이션 상태
+  const [migrationUrl, setMigrationUrl] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
+  const [scrapedData, setScrapedData] = useState(null);
+
+  // 이미지 관리 관련 상태
   const [postImages, setPostImages] = useState([]);
   const [allImages, setAllImages] = useState([]);
   const [selectedImages, setSelectedImages] = useState(new Set());
@@ -109,16 +99,35 @@ export default function BlogAdmin() {
   const [showImageGroupModal, setShowImageGroupModal] = useState(false);
   const [selectedImageGroup, setSelectedImageGroup] = useState([]);
   const [totalImagesCount, setTotalImagesCount] = useState(0);
-  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
-  const [largeImageUrl, setLargeImageUrl] = useState('');
-  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const [imagesPerPage] = useState(20);
+  const [imagesPerPage] = useState(20); // 페이지당 20개 이미지
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   
-  // 갤러리 아코디언 상태 (중복 제거됨)
+  // 갤러리 아코디언 상태
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState('all'); // 'all', 'featured', 'search'
+  const [gallerySearchQuery, setGallerySearchQuery] = useState('');
+  const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
+  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
+  const [largeImageUrl, setLargeImageUrl] = useState('');
+  const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
+  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
+  const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
+  const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
+  const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
+  const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
+  const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
+  const galleryRecommendedTags = ['golf', 'driver', 'club', 'swing', 'masgolf', 'green', 'fairway'];
+
+  // 인라인 갤러리 모달 관련 상태
+  const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
+  const [multichannelPreview, setMultichannelPreview] = useState(null);
 
   // 연간 콘텐츠 자동생성 관련 상태
   const [annualGenerationPeriod, setAnnualGenerationPeriod] = useState('3months');
@@ -536,7 +545,11 @@ export default function BlogAdmin() {
 
   // 폼 데이터 상태 (중복 제거됨)
 
-  // loadPostForEdit 함수는 편집 페이지로 이동됨
+  // 특정 포스트 로드 (편집용) - 편집 페이지로 이동됨
+  const loadPostForEdit = useCallback(async (postId: string) => {
+    // 편집 페이지로 리다이렉트
+    router.push(`/admin/blog/edit/${postId}`);
+  }, [router]);
 
   // 게시물 목록 불러오기
   const fetchPosts = useCallback(async (currentSortBy = sortBy, currentSortOrder = sortOrder) => {
