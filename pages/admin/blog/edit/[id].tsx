@@ -192,6 +192,38 @@ export default function EditBlogPost() {
     }
   };
 
+  // 편집 폼 제출 함수
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/admin/blog/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          excerpt: post.excerpt,
+          content: post.content,
+          category: post.category,
+          status: post.status
+        })
+      });
+
+      if (response.ok) {
+        alert('게시물이 수정되었습니다.');
+        router.push('/admin/blog');
+      } else {
+        throw new Error('게시물 수정 실패');
+      }
+    } catch (error) {
+      console.error('게시물 수정 오류:', error);
+      alert('게시물 수정 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // 포스트 데이터 로드
   useEffect(() => {
     if (id && typeof id === 'string') {
@@ -318,54 +350,90 @@ export default function EditBlogPost() {
 
           {/* 편집 폼 */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">게시물 정보</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
-                  <input
-                    type="text"
-                    value={post.title || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
-                  <input
-                    type="text"
-                    value={post.status || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    readOnly
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* 제목 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
+                <input
+                  type="text"
+                  value={post.title || ''}
+                  onChange={(e) => setPost({...post, title: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="게시물 제목을 입력하세요"
+                  required
+                />
+              </div>
+
+              {/* 요약 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">요약</label>
+                <textarea
+                  value={post.excerpt || ''}
+                  onChange={(e) => setPost({...post, excerpt: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="게시물 요약을 입력하세요"
+                  rows={3}
+                />
+              </div>
+
+              {/* 내용 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
+                <div className="border border-gray-300 rounded-md">
+                  <TipTapEditor
+                    content={post.content || ''}
+                    onChange={(content) => setPost({...post, content})}
+                    placeholder="게시물 내용을 입력하세요"
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">내용</h3>
-              <div className="prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: post.content || '' }} />
+              {/* 카테고리 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+                <select
+                  value={post.category || 'blog'}
+                  onChange={(e) => setPost({...post, category: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="blog">블로그</option>
+                  <option value="고객 후기">고객 후기</option>
+                  <option value="골프 정보">골프 정보</option>
+                  <option value="제품 소개">제품 소개</option>
+                </select>
               </div>
-            </div>
 
-            <div className="flex justify-end space-x-3">
-              <Link
-                href="/admin/blog"
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                취소
-              </Link>
-              <button
-                onClick={() => {
-                  // 편집 기능은 추후 구현
-                  alert('편집 기능은 추후 구현됩니다.');
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                저장
-              </button>
-            </div>
+              {/* 상태 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
+                <select
+                  value={post.status || 'draft'}
+                  onChange={(e) => setPost({...post, status: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="draft">초안</option>
+                  <option value="published">발행</option>
+                  <option value="archived">보관</option>
+                </select>
+              </div>
+
+              {/* 버튼 */}
+              <div className="flex justify-end space-x-3">
+                <Link
+                  href="/admin/blog"
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  취소
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
