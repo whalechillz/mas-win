@@ -3659,40 +3659,29 @@ export default function BlogAdmin() {
     setMigratedPosts([]);
       
     try {
-      const response = await fetch('/api/migrate-blog-professional', {
+      // 원본 방식: 스크래핑된 데이터를 먼저 가져온 후 사용자가 선택
+      const response = await fetch('/api/naver-blog-scraper', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          url: naverBlogUrl
+          urls: [naverBlogUrl]
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         
-        if (data.success && data.data) {
-          // migrate-blog-professional.js 응답 형식에 맞게 수정
-          const migratedPost = {
-            id: data.data.id,
-            title: data.data.title,
-            content: data.data.content,
-            featured_image: data.data.featured_image,
-            slug: data.data.slug,
-            images: data.data.images || [],
-            tags: data.data.tags || [],
-            status: 'migrated'
-          };
-          
-          setMigratedPosts([migratedPost]);
-          setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
-          alert(`네이버 블로그 포스트를 성공적으로 가져왔습니다. 이미지 ${data.data.imageCount}개, 태그 ${data.data.tagCount}개가 포함되었습니다.`);
+        if (data.success && data.posts && data.posts.length > 0) {
+          setMigratedPosts(data.posts);
+          setMigrationProgress(`✅ ${data.posts.length}개의 포스트를 성공적으로 가져왔습니다!`);
+          alert(`${data.posts.length}개의 네이버 블로그 포스트를 가져왔습니다. 아래에서 확인하고 저장하세요.`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
         }
       } else {
         const error = await response.json();
-        throw new Error(error.error || '네이버 블로그 마이그레이션에 실패했습니다.');
+        throw new Error(error.message || '네이버 블로그 마이그레이션에 실패했습니다.');
       }
     } catch (error) {
       console.error('네이버 블로그 마이그레이션 오류:', error);
@@ -3705,18 +3694,57 @@ export default function BlogAdmin() {
 
   const saveMigratedPost = async (post) => {
     try {
-      // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
-      // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
-      alert(`"${post.title}" 포스트가 이미 데이터베이스에 저장되었습니다!`);
+      // 원본 방식: 각 포스트를 블로그 포스트로 변환하여 저장
+      const baseSlug = post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled';
+      const timestamp = Date.now();
+      const uniqueSlug = `${baseSlug}-${timestamp}`;
+      
+      const blogPost = {
+        title: post.title || '제목 없음',
+        slug: uniqueSlug,
+        excerpt: post.excerpt || '',
+        content: post.content || '',
+        featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
+        category: '고객 후기',
+        tags: ['네이버 블로그', '마이그레이션'],
+        status: 'draft', // 초안으로 저장
+        meta_title: post.title || '',
+        meta_description: post.excerpt || '',
+        meta_keywords: '네이버 블로그, 마이그레이션',
+        view_count: 0,
+        is_featured: false,
+        is_scheduled: false,
+        scheduled_at: null,
+        author: '마쓰구골프',
+        published_at: new Date().toISOString() // 작성일은 현재 시간으로 설정
+      };
+
+      // 블로그 포스트 생성 API 호출
+      const response = await fetch('/api/admin/blog', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(blogPost)
+      });
+
+      if (!response.ok) {
+        throw new Error(`포스트 생성 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('포스트 생성 성공:', result);
+      
+      alert(`"${post.title}" 포스트가 성공적으로 저장되었습니다!`);
       
       // 저장된 포스트를 목록에서 제거
-      setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
+      setMigratedPosts(prev => prev.filter(p => p !== post));
       
       // 포스트 목록 새로고침
       fetchPosts();
     } catch (error) {
-      console.error('포스트 처리 오류:', error);
-      alert('포스트 처리 중 오류가 발생했습니다: ' + error.message);
+      console.error('포스트 저장 오류:', error);
+      alert('포스트 저장 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
@@ -3726,15 +3754,58 @@ export default function BlogAdmin() {
       return;
     }
 
-    // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
-    // 여기서는 목록에서 제거하고 새로고침만 수행
-    alert(`${migratedPosts.length}개의 포스트가 이미 데이터베이스에 저장되었습니다!`);
-    
-    // 저장된 포스트들을 목록에서 제거
-    setMigratedPosts([]);
-    
-    // 포스트 목록 새로고침
-    fetchPosts();
+    try {
+      // 모든 포스트를 순차적으로 저장
+      for (const post of migratedPosts) {
+        const baseSlug = post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled';
+        const timestamp = Date.now();
+        const uniqueSlug = `${baseSlug}-${timestamp}`;
+        
+        const blogPost = {
+          title: post.title || '제목 없음',
+          slug: uniqueSlug,
+          excerpt: post.excerpt || '',
+          content: post.content || '',
+          featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
+          category: '고객 후기',
+          tags: ['네이버 블로그', '마이그레이션'],
+          status: 'draft', // 초안으로 저장
+          meta_title: post.title || '',
+          meta_description: post.excerpt || '',
+          meta_keywords: '네이버 블로그, 마이그레이션',
+          view_count: 0,
+          is_featured: false,
+          is_scheduled: false,
+          scheduled_at: null,
+          author: '마쓰구골프',
+          published_at: new Date().toISOString() // 작성일은 현재 시간으로 설정
+        };
+
+        // 블로그 포스트 생성 API 호출
+        const response = await fetch('/api/admin/blog', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(blogPost)
+        });
+
+        if (!response.ok) {
+          throw new Error(`포스트 "${post.title}" 생성 실패: ${response.status}`);
+        }
+      }
+      
+      alert(`${migratedPosts.length}개의 포스트가 성공적으로 저장되었습니다!`);
+      
+      // 저장된 포스트들을 목록에서 제거
+      setMigratedPosts([]);
+      
+      // 포스트 목록 새로고침
+      fetchPosts();
+    } catch (error) {
+      console.error('포스트 일괄 저장 오류:', error);
+      alert('포스트 일괄 저장 중 오류가 발생했습니다: ' + error.message);
+    }
   };
 
   // 고급 기능 함수들
