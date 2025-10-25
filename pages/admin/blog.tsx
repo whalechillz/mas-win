@@ -111,6 +111,7 @@ export default function BlogAdmin() {
   const [totalImagesCount, setTotalImagesCount] = useState(0);
   const [showLargeImageModal, setShowLargeImageModal] = useState(false);
   const [largeImageUrl, setLargeImageUrl] = useState('');
+  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
