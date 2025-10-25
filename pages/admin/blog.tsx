@@ -1883,11 +1883,11 @@ export default function BlogAdmin() {
           contentType: formData.category,
           imageCount: imageGenerationCount, // 생성할 이미지 개수 전달
           brandStrategy: { 
-            customerpersona: brandPersona, 
-            customerChannel: 'local_customers', 
-            brandWeight: getBrandWeight(brandContentType),
-            audienceTemperature,
-            audienceWeight: getAudienceWeight(audienceTemperature)
+            customerpersona: 'tech_enthusiast', // 블랙톤 젊은 매너 고정
+            customerChannel: 'online', 
+            brandWeight: '중간',
+            audienceTemperature: 'cold',
+            audienceWeight: '중간'
           }
         })
       });
@@ -6157,9 +6157,10 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           // 골드톤 시니어 매너 강화 테스트
                           alert('골드톤 시니어 매너 강화 테스트를 시작합니다!\n\n골드톤 시니어 매너 프롬프트 미리보기를 클릭하여 테스트해보세요.');
+                          await generateGoldTonePrompts();
                         }}
                         className="px-4 py-3 rounded-lg text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-600"
                         title="골드톤 시니어 매너 강화 테스트"
@@ -6169,9 +6170,10 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       
                       <button 
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           // 블랙톤 젊은 매너 강화 테스트
                           alert('블랙톤 젊은 매너 강화 테스트를 시작합니다!\n\n블랙톤 젊은 매너 프롬프트 미리보기를 클릭하여 테스트해보세요.');
+                          await generateParagraphPrompts();
                         }}
                         className="px-4 py-3 rounded-lg text-sm font-medium bg-blue-500 text-white hover:bg-blue-600"
                         title="블랙톤 젊은 매너 강화 테스트"
