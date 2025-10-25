@@ -35,6 +35,13 @@ export default function EditBlogPost() {
   });
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // 이미지 관리 관련 상태
+  const [postImages, setPostImages] = useState([]);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+
   // 편집 모드 감지 함수
   const isEditMode = () => {
     return post !== null;
@@ -88,6 +95,9 @@ export default function EditBlogPost() {
         // 포스트 데이터 설정
         setPost(postData);
         
+        // 게시물 이미지 로드
+        await loadPostImages(postId);
+        
         // 🔄 허브 데이터 로드 (개선된 로직)
         console.log('🔍 post.calendar_id:', postData.calendar_id);
         
@@ -110,6 +120,62 @@ export default function EditBlogPost() {
       setLoading(false);
     }
   }, []);
+
+  // 게시물 이미지 로드 함수
+  const loadPostImages = async (postId: string) => {
+    try {
+      const response = await fetch(`/api/images?postId=${postId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPostImages(data.images || []);
+      }
+    } catch (error) {
+      console.error('이미지 로드 오류:', error);
+    }
+  };
+
+  // 이미지 삭제 함수
+  const handleImageDelete = async (imageId: string) => {
+    if (!confirm('이미지를 삭제하시겠습니까?')) return;
+    
+    try {
+      const response = await fetch(`/api/images/${imageId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        setPostImages(prev => prev.filter(img => img.id !== imageId));
+        alert('이미지가 삭제되었습니다.');
+      } else {
+        alert('이미지 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('이미지 삭제 오류:', error);
+      alert('이미지 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 대표 이미지 설정 함수
+  const handleSetFeaturedImage = async (imageId: string) => {
+    try {
+      const response = await fetch(`/api/admin/blog/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featured_image_id: imageId })
+      });
+      
+      if (response.ok) {
+        alert('대표 이미지가 설정되었습니다.');
+        // 게시물 데이터 새로고침
+        await loadPostForEdit(id as string);
+      } else {
+        alert('대표 이미지 설정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('대표 이미지 설정 오류:', error);
+      alert('대표 이미지 설정 중 오류가 발생했습니다.');
+    }
+  };
 
   // 허브 동기화 함수
   const handleHubSync = async (post) => {
@@ -415,6 +481,69 @@ export default function EditBlogPost() {
                   <option value="published">발행</option>
                   <option value="archived">보관</option>
                 </select>
+              </div>
+
+              {/* 이미지 관리 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">이미지 관리</label>
+                <div className="border border-gray-300 rounded-md p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-medium text-gray-700">게시물 이미지</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowImageGallery(true)}
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                      >
+                        📁 갤러리에서 추가
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowImageUpload(true)}
+                        className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        📤 새 이미지 업로드
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {postImages.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {postImages.map((image) => (
+                        <div key={image.id} className="relative group">
+                          <img
+                            src={image.url || image.original_url}
+                            alt={image.alt_text || '게시물 이미지'}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
+                              <button
+                                onClick={() => handleSetFeaturedImage(image.id)}
+                                className="bg-white text-gray-800 px-2 py-1 rounded text-xs"
+                                title="대표 이미지로 설정"
+                              >
+                                ⭐
+                              </button>
+                              <button
+                                onClick={() => handleImageDelete(image.id)}
+                                className="bg-red-500 text-white px-2 py-1 rounded text-xs"
+                                title="이미지 삭제"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>등록된 이미지가 없습니다.</p>
+                      <p className="text-sm">갤러리에서 추가하거나 새로 업로드하세요.</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 버튼 */}

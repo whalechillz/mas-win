@@ -31,81 +31,9 @@ export default function BlogAdmin() {
   const [filterCategory, setFilterCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // AI 이미지 생성 관련 상태
-  const [generatedImages, setGeneratedImages] = useState([]);
-  const [showGeneratedImages, setShowGeneratedImages] = useState(false);
-  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
-  const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
-  const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
-  const [imageGenerationStep, setImageGenerationStep] = useState('');
-  const [isVarying, setIsVarying] = useState(false);
-  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
-  const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
-  const [imageGenerationModel, setImageGenerationModel] = useState('');
-  const [showGenerationProcess, setShowGenerationProcess] = useState(false);
-  const [editedPrompt, setEditedPrompt] = useState('');
+  // AI 이미지 생성 관련 상태는 생성 페이지로 이동됨
 
-   // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
-  const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
-
-  // 이미지 생성 개수 선택
-  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
-
-  // AI 프리셋 설정 (8단계 확장)
-  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
-  
-  // 러프 콘텐츠 관련 상태 (기존 기능 복원)
-  const [roughContent, setRoughContent] = useState('');
-  const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
-   const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
-
-  // 베리에이션 추천 모달 관련 상태
-  const [showVariationModal, setShowVariationModal] = useState(false);
-  const [currentBrandStrategy, setCurrentBrandStrategy] = useState(null);
-
-  // AI 블로그 생성 관련 상태
-  const [generationMode, setGenerationMode] = useState('auto'); // 'auto' | 'manual'
-  const [autoGenerateTopic, setAutoGenerateTopic] = useState('');
-  const [selectedContentType, setSelectedContentType] = useState('골프 정보');
-  const [selectedPersona, setSelectedPersona] = useState('중상급 골퍼');
-  const [selectedBrandWeight, setSelectedBrandWeight] = useState('medium');
-  const [selectedPainPoint, setSelectedPainPoint] = useState('비거리 부족');
-  const [selectedConversionGoal, setSelectedConversionGoal] = useState('consideration');
-  const [selectedStoryFramework, setSelectedStoryFramework] = useState('pixar');
-  const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
-  const [generatedBlog, setGeneratedBlog] = useState(null);
-  const [generationProgress, setGenerationProgress] = useState('');
-
-  // 인라인 갤러리 모달 관련 상태
-  const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
-  const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
-  const [editorInstance, setEditorInstance] = useState<any>(null);
-  const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
-  const [multichannelPreview, setMultichannelPreview] = useState(null);
-
-  // 연간 콘텐츠 자동생성 관련 상태
-  const [annualGenerationPeriod, setAnnualGenerationPeriod] = useState('3months');
-  const [annualContentCategory, setAnnualContentCategory] = useState('mixed');
-  const [annualPublishFrequency, setAnnualPublishFrequency] = useState('weekly');
-  const [isGeneratingAnnual, setIsGeneratingAnnual] = useState(false);
-  const [showAnnualPreview, setShowAnnualPreview] = useState(false);
-  const [annualGeneratedContent, setAnnualGeneratedContent] = useState(null);
-
-  // 네이버 블로그 스크래퍼 상태
-  const [naverScraperMode, setNaverScraperMode] = useState('urls');
-  const [naverBlogId, setNaverBlogId] = useState('');
-  const [naverPostUrls, setNaverPostUrls] = useState('');
-  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
-  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
-  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
-  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
-
-
-  // 블로그 마이그레이션 상태
-  const [migrationUrl, setMigrationUrl] = useState('');
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [migrationStatus, setMigrationStatus] = useState('');
-  const [scrapedData, setScrapedData] = useState(null);
+  // AI 생성 관련 상태는 생성 페이지로 이동됨
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {

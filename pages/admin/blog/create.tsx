@@ -118,6 +118,36 @@ export default function CreateBlogPost() {
   const [selectedExistingImage, setSelectedExistingImage] = useState('');
   const [improvedPrompt, setImprovedPrompt] = useState('');
 
+  // 갤러리 관련 상태
+  const [postImages, setPostImages] = useState([]);
+  const [allImages, setAllImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
+  const [totalImagesCount, setTotalImagesCount] = useState(0);
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [imagesPerPage] = useState(20);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  
+  // 갤러리 아코디언 상태
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState('all');
+  const [gallerySearchQuery, setGallerySearchQuery] = useState('');
+  const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
+  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
+  const [largeImageUrl, setLargeImageUrl] = useState('');
+  const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
+  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
+  const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
+  const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
+  const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
+  const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
+  const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
+  const galleryRecommendedTags = ['golf', 'driver', 'club', 'swing', 'masgolf', 'green', 'fairway'];
+
   // 프롬프트 설정 관리 관련 상태
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [newConfigName, setNewConfigName] = useState('');
@@ -262,6 +292,206 @@ export default function CreateBlogPost() {
         setImageGenerationStep('');
       }, 2000);
     }
+  };
+
+  // FAL AI 이미지 생성 함수
+  const generateFALAIImage = async (count = 4) => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      console.log('🎨 FAL AI 이미지 생성 시작...', count, '개');
+      setIsGeneratingImages(true);
+      setShowGenerationProcess(true);
+      setImageGenerationModel('FAL AI (hidream-i1-dev)');
+      
+      setImageGenerationStep('1단계: FAL AI 프롬프트 생성 중...');
+      const promptResponse = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          brandStrategy: currentBrandStrategy || {
+            customerpersona: selectedPersona,
+            customerChannel: 'local_customers',
+            brandWeight: selectedBrandWeight,
+            audienceTemperature: 'warm',
+            audienceWeight: 'high'
+          },
+          model: 'fal'
+        })
+      });
+
+      if (!promptResponse.ok) {
+        throw new Error('FAL AI 프롬프트 생성 실패');
+      }
+
+      const promptData = await promptResponse.json();
+      setImageGenerationPrompt(promptData.prompt);
+      
+      setImageGenerationStep('2단계: FAL AI 이미지 생성 중...');
+      const response = await fetch('/api/generate-blog-image-fal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          excerpt: formData.excerpt,
+          prompt: promptData.prompt,
+          count: count,
+          model: 'hidream-i1-dev'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('FAL AI 이미지 생성 실패');
+      }
+
+      const data = await response.json();
+      setGeneratedImages(data.images || []);
+      setShowGeneratedImages(true);
+      setImageGenerationStep('FAL AI 이미지 생성 완료!');
+      
+      setTimeout(() => {
+        setImageGenerationStep('');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('FAL AI 이미지 생성 오류:', error);
+      alert('FAL AI 이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingImages(false);
+      setShowGenerationProcess(false);
+    }
+  };
+
+  // 10월 8일 버전 프롬프트 생성
+  const generateOctober8Prompts = async () => {
+    if (!formData.content || formData.content.trim().length < 30) {
+      alert('본문을 먼저 작성해주세요. (최소 30자)');
+      return;
+    }
+    
+    if (isGeneratingImages) {
+      alert('이미 생성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+    
+    try {
+      setIsGeneratingImages(true);
+      setImageGenerationStep('10월 8일 버전 프롬프트 생성 중...');
+      
+      const brandStrategy = selectedPromptConfig?.brandStrategy || {
+        customerpersona: selectedPersona,
+        customerChannel: 'local_customers',
+        brandWeight: selectedBrandWeight,
+        audienceTemperature: 'warm',
+        audienceWeight: 'high'
+      };
+      
+      const res = await fetch('/api/generate-paragraph-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content: formData.content,
+          title: formData.title,
+          excerpt: formData.excerpt,
+          contentType: formData.category,
+          imageCount: imageGenerationCount,
+          brandStrategy
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || '10월 8일 버전 프롬프트 생성 실패');
+      }
+      
+      const data = await res.json();
+      console.log('📝 10월 8일 버전 API 응답 데이터:', data);
+      
+      if (data.prompts && data.prompts.length > 0) {
+        setImageGenerationStep('10월 8일 버전 프롬프트 생성 완료!');
+        // 프롬프트를 모달로 표시하거나 바로 이미지 생성으로 진행
+        alert(`10월 8일 버전 프롬프트 ${data.prompts.length}개가 생성되었습니다.`);
+      } else {
+        throw new Error('프롬프트가 생성되지 않았습니다.');
+      }
+      
+    } catch (error) {
+      console.error('10월 8일 버전 프롬프트 생성 오류:', error);
+      alert('10월 8일 버전 프롬프트 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingImages(false);
+      setTimeout(() => {
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // 갤러리 관련 함수들
+  const loadAllImages = async (page = 1, searchQuery = '') => {
+    try {
+      setIsLoadingImages(true);
+      const response = await fetch(`/api/images?page=${page}&limit=${imagesPerPage}&search=${encodeURIComponent(searchQuery)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAllImages(data.images || []);
+        setTotalImagesCount(data.totalCount || 0);
+        setCurrentPage(page);
+      }
+    } catch (error) {
+      console.error('이미지 로드 오류:', error);
+    } finally {
+      setIsLoadingImages(false);
+    }
+  };
+
+  const handleImageSelect = (imageUrl: string) => {
+    if (selectedImages.has(imageUrl)) {
+      setSelectedImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(imageUrl);
+        return newSet;
+      });
+    } else {
+      setSelectedImages(prev => new Set([...prev, imageUrl]));
+    }
+  };
+
+  const handleImageInsert = (imageUrl: string, alt = '', title = '') => {
+    if (pendingEditorImageInsert) {
+      pendingEditorImageInsert(imageUrl);
+      setPendingEditorImageInsert(null);
+    }
+    setShowSelectFromGalleryModal(false);
+    setShowUnifiedPicker(false);
+  };
+
+  const handleImageEnlarge = (imageUrl: string) => {
+    setLargeImageUrl(imageUrl);
+    setShowLargeImageModal(true);
+  };
+
+  const getPreferredVersionUrl = (img: any) => {
+    if (!img) return '';
+    
+    const preference = galleryInsertPreference;
+    if (preference === 'auto') {
+      return img.webp_url || img.medium_url || img.thumb_url || img.original_url;
+    } else if (preference === 'webp' && img.webp_url) {
+      return img.webp_url;
+    } else if (preference === 'medium' && img.medium_url) {
+      return img.medium_url;
+    } else if (preference === 'thumb' && img.thumb_url) {
+      return img.thumb_url;
+    }
+    
+    return img.original_url || img.webp_url || img.medium_url || img.thumb_url;
   };
 
   // 제출 상태
@@ -980,6 +1210,52 @@ export default function CreateBlogPost() {
                   </div>
                 </div>
 
+                {/* FAL AI 이미지 생성 */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">FAL AI 이미지 생성</h4>
+                  <button
+                    type="button"
+                    onClick={() => generateFALAIImage(imageGenerationCount)}
+                    disabled={isGeneratingImages}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 flex items-center space-x-2 text-sm"
+                  >
+                    {isGeneratingImages ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>생성 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🎨</span>
+                        <span>FAL AI 이미지 생성</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* 10월 8일 버전 */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">10월 8일 버전</h4>
+                  <button
+                    type="button"
+                    onClick={generateOctober8Prompts}
+                    disabled={isGeneratingImages}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2 text-sm"
+                  >
+                    {isGeneratingImages ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>생성 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>📅</span>
+                        <span>10월 8일 버전</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 {/* 기존 이미지 변형 */}
                 <div className="mt-6">
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">기존 이미지 변형</h4>
@@ -1042,6 +1318,27 @@ export default function CreateBlogPost() {
                   </div>
                 </div>
               )}
+
+              {/* 갤러리 기능 */}
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">이미지 갤러리</h4>
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowImageGallery(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                  >
+                    📁 갤러리 열기
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSelectFromGalleryModal(true)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                  >
+                    🖼️ 갤러리에서 선택
+                  </button>
+                </div>
+              </div>
 
               {/* 버튼 */}
               <div className="flex justify-end space-x-3">
