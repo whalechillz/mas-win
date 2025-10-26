@@ -5400,7 +5400,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       >
                         <option value="draft">초안</option>
                         <option value="published">발행</option>
-                        <option value="archived">보관</option>
                       </select>
                     </div>
                   </div>

@@ -506,6 +506,9 @@ export default function CreateBlogPost() {
 
   // 제출 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 슬러그 생성 관련 상태
+  const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
 
   // URL 파라미터 처리 (허브에서 온 경우)
   useEffect(() => {
@@ -688,6 +691,85 @@ export default function CreateBlogPost() {
       alert('브랜드 전략 적용 중 오류가 발생했습니다.');
     } finally {
       setIsApplyingBrandStrategy(false);
+    }
+  };
+
+  // 슬러그 생성 함수
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  // AI 슬러그 생성 (한글)
+  const generateAISlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingSlug(true);
+    try {
+      const response = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          type: 'slug'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, slug: data.slug || generateSlug(formData.title) }));
+        alert('AI가 슬러그를 생성했습니다!');
+      } else {
+        // API 실패시 기본 슬러그 생성
+        setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
+        alert('기본 슬러그가 생성되었습니다.');
+      }
+    } catch (error) {
+      console.error('AI 슬러그 생성 오류:', error);
+      // 오류시 기본 슬러그 생성
+      setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
+      alert('기본 슬러그가 생성되었습니다.');
+    } finally {
+      setIsGeneratingSlug(false);
+    }
+  };
+
+  // 영문 슬러그 생성
+  const generateEnglishSlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingSlug(true);
+    try {
+      const response = await fetch('/api/generate-slug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, slug: data.slug }));
+        alert('영문 슬러그가 생성되었습니다!');
+      } else {
+        throw new Error('영문 슬러그 생성 실패');
+      }
+    } catch (error) {
+      console.error('영문 슬러그 생성 오류:', error);
+      alert('영문 슬러그 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingSlug(false);
     }
   };
 
@@ -1130,6 +1212,39 @@ export default function CreateBlogPost() {
                 </div>
               </div>
 
+              {/* 슬러그 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">슬러그 (URL)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="url-friendly-slug"
+                  />
+                  <button
+                    type="button"
+                    onClick={generateAISlug}
+                    disabled={isGeneratingSlug}
+                    className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                  >
+                    {isGeneratingSlug ? '생성 중…' : '🤖 AI 슬러그'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={generateEnglishSlug}
+                    disabled={isGeneratingSlug}
+                    className="px-3 whitespace-nowrap rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+                  >
+                    {isGeneratingSlug ? '생성 중…' : '🌐 영문 슬러그'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  URL에 사용될 슬러그입니다. 공백은 하이픈(-)으로 변환됩니다.
+                </p>
+              </div>
+
               {/* 카테고리 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
@@ -1159,7 +1274,6 @@ export default function CreateBlogPost() {
                 >
                   <option value="draft">초안</option>
                   <option value="published">발행</option>
-                  <option value="archived">보관</option>
                 </select>
               </div>
 

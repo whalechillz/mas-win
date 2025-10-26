@@ -454,7 +454,7 @@ export default function BlogEdit() {
     }
   };
 
-  // AI 슬러그 생성
+  // AI 슬러그 생성 (한글)
   const generateAISlug = async () => {
     if (!formData.title) {
       alert('제목을 먼저 입력해주세요.');
@@ -486,6 +486,38 @@ export default function BlogEdit() {
       // 오류시 기본 슬러그 생성
       setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
       alert('기본 슬러그가 생성되었습니다.');
+    } finally {
+      setIsGeneratingSlug(false);
+    }
+  };
+
+  // 영문 슬러그 생성
+  const generateEnglishSlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingSlug(true);
+    try {
+      const response = await fetch('/api/generate-slug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, slug: data.slug }));
+        alert('영문 슬러그가 생성되었습니다!');
+      } else {
+        throw new Error('영문 슬러그 생성 실패');
+      }
+    } catch (error) {
+      console.error('영문 슬러그 생성 오류:', error);
+      alert('영문 슬러그 생성 중 오류가 발생했습니다.');
     } finally {
       setIsGeneratingSlug(false);
     }
@@ -993,6 +1025,14 @@ export default function BlogEdit() {
                 >
                   {isGeneratingSlug ? '생성 중…' : '🤖 AI 슬러그'}
                 </button>
+                <button
+                  type="button"
+                  onClick={generateEnglishSlug}
+                  disabled={isGeneratingSlug}
+                  className="px-3 whitespace-nowrap rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+                >
+                  {isGeneratingSlug ? '생성 중…' : '🌐 영문 슬러그'}
+                </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 URL에 사용될 슬러그입니다. 공백은 하이픈(-)으로 변환됩니다.
@@ -1035,7 +1075,6 @@ export default function BlogEdit() {
                   >
                     <option value="draft">초안</option>
                     <option value="published">발행됨</option>
-                    <option value="archived">보관됨</option>
                   </select>
                 </div>
               </div>
