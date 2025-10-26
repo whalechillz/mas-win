@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
-const TipTapEditor = dynamic(() => import('../../../components/admin/TipTapEditor'), { ssr: false });
-const GalleryPicker = dynamic(() => import('../../../components/admin/GalleryPicker'), { ssr: false });
+const TipTapEditor = dynamic(() => import('../../../../components/admin/TipTapEditor'), { ssr: false });
+const GalleryPicker = dynamic(() => import('../../../../components/admin/GalleryPicker'), { ssr: false });
 import Head from 'next/head';
-import AdminNav from '../../../components/admin/AdminNav';
+import AdminNav from '../../../../components/admin/AdminNav';
 import { useSession } from 'next-auth/react';
-import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../../lib/masgolf-brand-data';
-import BrandStrategySelector from '../../../components/admin/BrandStrategySelector';
-import VariationRecommendationModal from '../../../components/admin/VariationRecommendationModal';
+import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../../../lib/masgolf-brand-data';
+import BrandStrategySelector from '../../../../components/admin/BrandStrategySelector';
+import VariationRecommendationModal from '../../../../components/admin/VariationRecommendationModal';
 
 export default function BlogEdit() {
   const { data: session, status } = useSession();
@@ -924,13 +925,11 @@ export default function BlogEdit() {
             {/* 6. 편집창 (본문 에디터) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
-              <div className="border border-gray-300 rounded-lg">
-                <TipTapEditor
-                  initialContent={formData.content}
-                  onContentChange={(content) => setFormData({...formData, content})}
-                  placeholder="게시물 내용을 입력하세요"
-                />
-              </div>
+              {/* @ts-ignore */}
+              <TipTapEditor
+                valueMarkdown={formData.content}
+                onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
+              />
             </div>
 
             {/* 7. AI 콘텐츠 개선 */}
