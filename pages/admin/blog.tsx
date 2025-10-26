@@ -3938,6 +3938,7 @@ export default function BlogAdmin() {
         alert('✅ AI 메타 설명이 생성되었습니다!');
       } else {
         const errorData = await response.json();
+        console.error('메타 설명 생성 API 오류:', errorData);
         alert(`메타 설명 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
@@ -5462,19 +5463,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         메타 키워드 (SEO)
                       </label>
-                      <div className="flex gap-2">
+                      <div className="space-y-2">
                         <input
                           type="text"
                           value={formData.meta_keywords}
                           onChange={(e) => setFormData({ ...formData, meta_keywords: e.target.value })}
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="키워드1, 키워드2, 키워드3"
                         />
-                        <div className="flex flex-col gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <button
                             type="button"
                             onClick={generateAIMetaKeywords}
-                            className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                            className="px-4 py-2 rounded bg-purple-600 text-white text-sm hover:bg-purple-700 disabled:opacity-50"
                             disabled={isGeneratingMetaKeywords}
                           >
                             {isGeneratingMetaKeywords ? '생성 중…' : '🤖 AI 생성'}
@@ -5482,7 +5483,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                           <button
                             type="button"
                             onClick={generateBrandEnhancedKeywords}
-                            className="px-3 whitespace-nowrap rounded bg-orange-600 text-white text-sm hover:bg-orange-700"
+                            className="px-4 py-2 rounded bg-orange-600 text-white text-sm hover:bg-orange-700 disabled:opacity-50"
                             disabled={isGeneratingMetaKeywords}
                           >
                             {isGeneratingMetaKeywords ? '생성 중…' : '🏷️ 브랜드 강화'}
