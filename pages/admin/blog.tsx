@@ -10,6 +10,16 @@ import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../components/admin/VariationRecommendationModal';
+import { 
+  PUBLISH_CATEGORIES, 
+  BRAND_STRATEGY_CONTENT_TYPES,
+  getPublishCategory,
+  getBrandStrategyContentType,
+  CATEGORY_DESCRIPTIONS,
+  BRAND_STRATEGY_DESCRIPTIONS,
+  type PublishCategory,
+  type BrandStrategyContentType
+} from '../../lib/category-mapping';
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
@@ -4965,7 +4975,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">모든 카테고리</option>
-                    {categories.map(category => (
+                    {PUBLISH_CATEGORIES.map(category => (
                       <option key={category} value={category}>{category}</option>
                     ))}
                       </select>
