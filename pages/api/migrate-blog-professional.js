@@ -380,6 +380,62 @@ export default async function handler(req, res) {
       throw new Error(`데이터베이스 저장 실패: ${insertError.message}`);
     }
 
+    console.log(`✅ 블로그 포스트 생성 완료: ${post.id}`);
+
+    // 11. 허브 시스템에 연결 (cc_content_calendar에 저장)
+    try {
+      console.log('🔗 허브 시스템에 연결 중...');
+      
+      const { data: hubContent, error: hubError } = await supabase
+        .from('cc_content_calendar')
+        .insert({
+          title: title,
+          summary: fullTextContent.substring(0, 300) + "...",
+          content_body: cleanedContent,
+          content_date: publishedDate.toISOString().split('T')[0],
+          blog_post_id: post.id, // 🔥 핵심: blog_post_id 연결
+          channel_status: {
+            blog: {
+              status: '연결됨',
+              post_id: post.id,
+              created_at: new Date().toISOString()
+            },
+            sms: {
+              status: '미발행',
+              post_id: null,
+              created_at: null
+            },
+            naver_blog: {
+              status: '미발행',
+              post_id: null,
+              created_at: null
+            },
+            kakao: {
+              status: '미발행',
+              post_id: null,
+              created_at: null
+            }
+          },
+          is_hub_content: true,
+          hub_priority: 1,
+          auto_derive_channels: ['blog', 'sms', 'naver_blog', 'kakao'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (hubError) {
+        console.error('❌ 허브 시스템 연결 실패:', hubError);
+        // 허브 연결 실패해도 블로그 포스트는 성공으로 처리
+      } else {
+        console.log(`✅ 허브 시스템 연결 완료: ${hubContent.id}`);
+      }
+    } catch (hubError) {
+      console.error('❌ 허브 시스템 연결 중 오류:', hubError);
+      // 허브 연결 실패해도 블로그 포스트는 성공으로 처리
+    }
+
     console.log(`✅ 완전한 마이그레이션 완료: ${post.id}`);
 
     return res.status(200).json({
