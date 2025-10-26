@@ -382,62 +382,143 @@ export default async function handler(req, res) {
 
     console.log(`✅ 블로그 포스트 생성 완료: ${post.id}`);
 
-    // 11. 허브 시스템에 연결 (cc_content_calendar에 저장)
-    try {
-      console.log('🔗 허브 시스템에 연결 중...');
+    // 11. 허브 시스템에 연결 (cc_content_calendar에 저장) - 재시도 로직 포함
+    let hubContent = null;
+    let hubError = null;
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2초
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔗 허브 시스템에 연결 중... (시도 ${attempt}/${maxRetries})`);
+        
+        const { data, error } = await supabase
+          .from('cc_content_calendar')
+          .insert({
+            title: title,
+            summary: fullTextContent.substring(0, 300) + "...",
+            content_body: cleanedContent,
+            content_date: publishedDate.toISOString().split('T')[0],
+            blog_post_id: post.id, // 🔥 핵심: blog_post_id 연결
+            channel_status: {
+              blog: {
+                status: '연결됨',
+                post_id: post.id,
+                created_at: new Date().toISOString()
+              },
+              sms: {
+                status: '미발행',
+                post_id: null,
+                created_at: null
+              },
+              naver_blog: {
+                status: '미발행',
+                post_id: null,
+                created_at: null
+              },
+              kakao: {
+                status: '미발행',
+                post_id: null,
+                created_at: null
+              }
+            },
+            is_hub_content: true,
+            hub_priority: 1,
+            auto_derive_channels: ['blog', 'sms', 'naver_blog', 'kakao'],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        hubContent = data;
+        hubError = error;
+
+        if (hubError) {
+          console.error(`❌ 허브 시스템 연결 실패 (시도 ${attempt}/${maxRetries}):`, {
+            message: hubError.message,
+            details: hubError.details,
+            hint: hubError.hint,
+            code: hubError.code
+          });
+
+          // Supabase 사용량 초과나 일시적 오류인 경우 재시도
+          if (attempt < maxRetries && (
+            hubError.message.includes('rate limit') ||
+            hubError.message.includes('too many requests') ||
+            hubError.message.includes('exceeded') ||
+            hubError.message.includes('usage limits') ||
+            hubError.message.includes('quota') ||
+            hubError.message.includes('limit exceeded') ||
+            hubError.code === 'PGRST301' ||
+            hubError.code === 'PGRST302' ||
+            hubError.code === 'PGRST116' ||
+            hubError.code === 'PGRST117' ||
+            hubError.code === 'PGRST118'
+          )) {
+            console.log(`⏳ ${retryDelay}ms 후 재시도...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+            continue;
+          } else {
+            // 최종 실패 시 블로그 포스트 삭제
+            console.log('🗑️ 허브 연결 최종 실패로 인한 블로그 포스트 삭제 중...');
+            await supabase.from('blog_posts').delete().eq('id', post.id);
+            throw new Error(`허브 시스템 연결 실패 (${attempt}회 시도): ${hubError.message}`);
+          }
+        } else {
+          console.log(`✅ 허브 시스템 연결 완료: ${hubContent.id}`);
+          
+          // 🔥 허브 연결 성공 후 블로그 포스트를 정식 상태로 업데이트
+          const { error: updateError } = await supabase
+            .from('blog_posts')
+            .update({
+              calendar_id: hubContent.id,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', post.id);
+
+          if (updateError) {
+            console.error('⚠️ 블로그 포스트 calendar_id 업데이트 실패:', updateError);
+            // 이 경우는 허브는 연결되었지만 블로그 포스트 업데이트만 실패한 경우
+            // 전체를 실패로 처리하지 않고 경고만 출력
+          } else {
+            console.log(`✅ 블로그 포스트 calendar_id 업데이트 완료: ${hubContent.id}`);
+          }
+          
+          break; // 성공 시 루프 종료
+        }
+      } catch (hubError) {
+        console.error(`❌ 허브 시스템 연결 중 오류 (시도 ${attempt}/${maxRetries}):`, hubError);
+        
+        if (attempt < maxRetries) {
+          console.log(`⏳ ${retryDelay}ms 후 재시도...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        } else {
+          // 최종 실패 시 블로그 포스트 삭제
+          console.log('🗑️ 허브 연결 최종 실패로 인한 블로그 포스트 삭제 중...');
+          await supabase.from('blog_posts').delete().eq('id', post.id);
+          throw new Error(`허브 시스템 연결 중 오류 (${attempt}회 시도): ${hubError.message}`);
+        }
+      }
+    }
+
+    // 12. 최종 검증: blog_post_id가 제대로 연결되었는지 확인
+    if (hubContent && hubContent.id) {
+      console.log(`🔍 최종 검증: 허브 연결 상태 확인 중...`);
       
-      const { data: hubContent, error: hubError } = await supabase
+      const { data: verificationData, error: verificationError } = await supabase
         .from('cc_content_calendar')
-        .insert({
-          title: title,
-          summary: fullTextContent.substring(0, 300) + "...",
-          content_body: cleanedContent,
-          content_date: publishedDate.toISOString().split('T')[0],
-          blog_post_id: post.id, // 🔥 핵심: blog_post_id 연결
-          channel_status: {
-            blog: {
-              status: '연결됨',
-              post_id: post.id,
-              created_at: new Date().toISOString()
-            },
-            sms: {
-              status: '미발행',
-              post_id: null,
-              created_at: null
-            },
-            naver_blog: {
-              status: '미발행',
-              post_id: null,
-              created_at: null
-            },
-            kakao: {
-              status: '미발행',
-              post_id: null,
-              created_at: null
-            }
-          },
-          is_hub_content: true,
-          hub_priority: 1,
-          auto_derive_channels: ['blog', 'sms', 'naver_blog', 'kakao'],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
+        .select('id, blog_post_id, title')
+        .eq('id', hubContent.id)
         .single();
 
-      if (hubError) {
-        console.error('❌ 허브 시스템 연결 실패:', hubError);
-        // 🔥 수정: 허브 연결 실패 시 블로그 포스트 삭제 후 전체 마이그레이션 실패로 처리
-        console.log('🗑️ 허브 연결 실패로 인한 블로그 포스트 삭제 중...');
-        await supabase.from('blog_posts').delete().eq('id', post.id);
-        throw new Error(`허브 시스템 연결 실패: ${hubError.message}`);
+      if (verificationError) {
+        console.error('⚠️ 최종 검증 실패:', verificationError);
+      } else if (verificationData && verificationData.blog_post_id === post.id) {
+        console.log(`✅ 최종 검증 성공: blog_post_id ${post.id} 정상 연결됨`);
       } else {
-        console.log(`✅ 허브 시스템 연결 완료: ${hubContent.id}`);
+        console.error(`❌ 최종 검증 실패: blog_post_id 불일치 (예상: ${post.id}, 실제: ${verificationData?.blog_post_id})`);
       }
-    } catch (hubError) {
-      console.error('❌ 허브 시스템 연결 중 오류:', hubError);
-      // 🔥 수정: 허브 연결 실패 시 전체 마이그레이션 실패로 처리
-      throw new Error(`허브 시스템 연결 중 오류: ${hubError.message}`);
     }
 
     console.log(`✅ 완전한 마이그레이션 완료: ${post.id}`);
