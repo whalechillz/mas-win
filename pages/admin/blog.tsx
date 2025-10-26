@@ -206,7 +206,7 @@ export default function BlogAdmin() {
 
   // 브랜드 전략 1단계: 필수 설정 상태 (콘텐츠 유형, 페르소나) + 자동 브랜드 강도
   const [brandPersona, setBrandPersona] = useState<'high_rebound_enthusiast' | 'health_conscious_senior' | 'competitive_maintainer' | 'returning_60plus' | 'distance_seeking_beginner'>('competitive_maintainer');
-  const [brandContentType, setBrandContentType] = useState<'골프 정보' | '튜토리얼' | '고객 후기' | '고객 스토리' | '이벤트'>('골프 정보');
+  const [brandContentType, setBrandContentType] = useState<'골프 정보' | '제품 정보' | '고객 후기' | '브랜드 스토리' | '이벤트' | '기술 및 성능'>('골프 정보');
 
   // SEO 최적화: 한국어 제목을 영어 슬러그로 변환
   const generateSlug = (title) => {
@@ -4631,30 +4631,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 >
                   ← 메인 대시보드로 돌아가기
                 </Link>
-              </div>
-            </div>
-            
-            {/* 버전 선택 메뉴 */}
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900">블로그 관리 시스템</h3>
-                  <p className="text-sm text-blue-700">현재: 기존 통합 버전 (안정화됨)</p>
-                </div>
-                <div className="flex space-x-3">
-                  <Link
-                    href="/admin/blog"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    📊 기존 버전 (현재)
-                  </Link>
-                  <Link
-                    href="/admin/blog2"
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    🚀 신규 버전 (개발중)
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
