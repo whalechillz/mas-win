@@ -10,16 +10,6 @@ import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../components/admin/VariationRecommendationModal';
-import { 
-  PUBLISH_CATEGORIES, 
-  BRAND_STRATEGY_CONTENT_TYPES,
-  getPublishCategory,
-  getBrandStrategyContentType,
-  CATEGORY_DESCRIPTIONS,
-  BRAND_STRATEGY_DESCRIPTIONS,
-  type PublishCategory,
-  type BrandStrategyContentType
-} from '../../lib/category-mapping';
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
@@ -29,11 +19,8 @@ export default function BlogAdmin() {
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const [selectedPosts, setSelectedPosts] = useState([]);
-  // 편집 관련 상태는 편집 페이지로 이동됨
-  const editingPost = null; // 편집 기능은 편집 페이지로 이동됨
-  const editingPostId = null; // 편집 기능은 편집 페이지로 이동됨
-  const hubData = null; // 허브 기능은 편집 페이지로 이동됨
-  const isHubMode = false; // 허브 기능은 편집 페이지로 이동됨
+  const [editingPost, setEditingPost] = useState(null);
+  const [editingPostId, setEditingPostId] = useState(null);
   const [viewMode, setViewMode] = useState('list');
   const [sortBy, setSortBy] = useState('published_at');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -55,26 +42,26 @@ export default function BlogAdmin() {
   const [showGenerationProcess, setShowGenerationProcess] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
 
-  // 이미지 저장 상태 관리
+   // 이미지 저장 상태 관리 (확대 모달에서는 더 이상 사용하지 않음)
   const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
 
   // 이미지 생성 개수 선택
   const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
 
-  // AI 프리셋 설정
+  // AI 프리셋 설정 (8단계 확장)
   const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
   
-  // 러프 콘텐츠 관련 상태
+  // 러프 콘텐츠 관련 상태 (기존 기능 복원)
   const [roughContent, setRoughContent] = useState('');
   const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
-  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
+   const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
 
   // 베리에이션 추천 모달 관련 상태
   const [showVariationModal, setShowVariationModal] = useState(false);
   const [currentBrandStrategy, setCurrentBrandStrategy] = useState(null);
 
   // AI 블로그 생성 관련 상태
-  const [generationMode, setGenerationMode] = useState('auto');
+  const [generationMode, setGenerationMode] = useState('auto'); // 'auto' | 'manual'
   const [autoGenerateTopic, setAutoGenerateTopic] = useState('');
   const [selectedContentType, setSelectedContentType] = useState('골프 정보');
   const [selectedPersona, setSelectedPersona] = useState('중상급 골퍼');
@@ -86,54 +73,8 @@ export default function BlogAdmin() {
   const [generatedBlog, setGeneratedBlog] = useState(null);
   const [generationProgress, setGenerationProgress] = useState('');
 
-  // 네이버 블로그 스크래퍼 상태
-  const [naverScraperMode, setNaverScraperMode] = useState('urls');
-  const [naverBlogId, setNaverBlogId] = useState('');
-  const [naverPostUrls, setNaverPostUrls] = useState('');
-  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
-  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
-  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
-  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
-
-  // 블로그 마이그레이션 상태
-  const [migrationUrl, setMigrationUrl] = useState('');
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [migrationStatus, setMigrationStatus] = useState('');
-  const [scrapedData, setScrapedData] = useState(null);
-
-  // 이미지 관리 관련 상태
-  const [postImages, setPostImages] = useState([]);
-  const [allImages, setAllImages] = useState([]);
-  const [selectedImages, setSelectedImages] = useState(new Set());
-  const [showImageGallery, setShowImageGallery] = useState(false);
-  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
-  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
-  const [totalImagesCount, setTotalImagesCount] = useState(0);
-  
-  // 페이지네이션 상태
-  const [currentPage, setCurrentPage] = useState(1);
-  const [imagesPerPage] = useState(20); // 페이지당 20개 이미지
-  const [isLoadingImages, setIsLoadingImages] = useState(false);
-  
-  // 갤러리 아코디언 상태
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [galleryFilter, setGalleryFilter] = useState('all'); // 'all', 'featured', 'search'
-  const [gallerySearchQuery, setGallerySearchQuery] = useState('');
-  const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
-  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
-  const [largeImageUrl, setLargeImageUrl] = useState('');
-  const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
-  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
-  const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
-  const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
-  const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
-  const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
-  const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
-  const galleryRecommendedTags = ['golf', 'driver', 'club', 'swing', 'masgolf', 'green', 'fairway'];
-
   // 인라인 갤러리 모달 관련 상태
   const [showInlineGalleryModal, setShowInlineGalleryModal] = useState(false);
-  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
   const [editorCursorPosition, setEditorCursorPosition] = useState<number | null>(null);
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const [showMultichannelPreview, setShowMultichannelPreview] = useState(false);
@@ -147,50 +88,21 @@ export default function BlogAdmin() {
   const [showAnnualPreview, setShowAnnualPreview] = useState(false);
   const [annualGeneratedContent, setAnnualGeneratedContent] = useState(null);
 
+  // 네이버 블로그 스크래퍼 상태
+  const [naverScraperMode, setNaverScraperMode] = useState('urls');
+  const [naverBlogId, setNaverBlogId] = useState('');
+  const [naverPostUrls, setNaverPostUrls] = useState('');
+  const [isScrapingNaver, setIsScrapingNaver] = useState(false);
+  const [scrapedNaverPosts, setScrapedNaverPosts] = useState([]);
+  const [selectedNaverPosts, setSelectedNaverPosts] = useState(new Set());
+  const [naverScrapingStatus, setNaverScrapingStatus] = useState('');
 
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    slug: '',
-    category: '고객 후기',
-    status: 'draft',
-    featured_image: '',
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
-    tags: [] as string[],
-    view_count: 0,
-    is_featured: false,
-    is_scheduled: false,
-    scheduled_at: null as string | null,
-    calendar_id: null as string | null
-  });
 
-  // SEO 관련 상태 (중복 제거됨)
-
-  // 이미지 관련 상태
-  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
-  const [paragraphPrompts, setParagraphPrompts] = useState([]);
-  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
-  const [isGeneratingBlackToneImages, setIsGeneratingBlackToneImages] = useState(false);
-  const [goldTonePrompts, setGoldTonePrompts] = useState([]);
-  const [blackTonePrompts, setBlackTonePrompts] = useState([]);
-  const [showGoldTonePrompts, setShowGoldTonePrompts] = useState(false);
-  const [showBlackTonePrompts, setShowBlackTonePrompts] = useState(false);
-
-  // 기존 이미지 변형 관련 상태 (중복 제거됨)
-
-  // 프롬프트 설정 관리 관련 상태
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [newConfigName, setNewConfigName] = useState('');
-  const [newConfigDescription, setNewConfigDescription] = useState('');
-  const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
-  const [savedConfigs, setSavedConfigs] = useState({});
-  const [savedPromptConfigs, setSavedPromptConfigs] = useState({});
-
-  // SEO 관련 상태 추가 (중복 제거됨)
-
+  // 블로그 마이그레이션 상태
+  const [migrationUrl, setMigrationUrl] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
+  const [scrapedData, setScrapedData] = useState(null);
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
@@ -436,8 +348,35 @@ export default function BlogAdmin() {
     }
   };
 
+  // 이미지 관리 관련 상태
+  const [postImages, setPostImages] = useState([]);
+  const [allImages, setAllImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+  const [selectedImageGroup, setSelectedImageGroup] = useState([]);
+  const [totalImagesCount, setTotalImagesCount] = useState(0);
   
-  // 갤러리 아코디언 상태 (중복 제거됨)
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [imagesPerPage] = useState(20); // 페이지당 20개 이미지
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  
+  // 갤러리 아코디언 상태
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState('all'); // 'all', 'featured', 'search'
+  const [gallerySearchQuery, setGallerySearchQuery] = useState('');
+  const [pendingEditorImageInsert, setPendingEditorImageInsert] = useState<null | ((url: string) => void)>(null);
+  const [showLargeImageModal, setShowLargeImageModal] = useState(false);
+  const [largeImageUrl, setLargeImageUrl] = useState('');
+  const [showSelectFromGalleryModal, setShowSelectFromGalleryModal] = useState(false);
+  const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
+  const [galleryPickerFilter, setGalleryPickerFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
+  const [galleryPickerAlt, setGalleryPickerAlt] = useState('');
+  const [galleryPickerTitle, setGalleryPickerTitle] = useState('');
+  const [galleryPickerQuery, setGalleryPickerQuery] = useState('');
+  const [galleryInsertPreference, setGalleryInsertPreference] = useState<'auto' | 'original' | 'webp' | 'medium' | 'thumb'>('auto');
+  const galleryRecommendedTags = ['golf', 'driver', 'club', 'swing', 'masgolf', 'green', 'fairway'];
 
   // 이미지 버전 우선 삽입 URL 계산
   const getPreferredVersionUrl = (img: any): string => {
@@ -527,7 +466,10 @@ export default function BlogAdmin() {
   const [variationStrength, setVariationStrength] = useState(0.7);
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
   
-  // 기존 이미지 변형 관련 상태 (중복 제거됨)
+  // 기존 이미지 변형 관련 상태
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [selectedExistingImage, setSelectedExistingImage] = useState('');
+  const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
   
   // 간단 AI 이미지 개선 관련 상태
   const [simpleAIImageRequest, setSimpleAIImageRequest] = useState('');
@@ -547,19 +489,115 @@ export default function BlogAdmin() {
   const [migratedPosts, setMigratedPosts] = useState([]);
 
 
-  // 하이브리드 SEO 관련 상태 (중복 제거됨)
+  // 하이브리드 SEO 관련 상태
+  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+  const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
+  const [isGeneratingMetaTitle, setIsGeneratingMetaTitle] = useState(false);
+  const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
+  const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
+  const [isAnalyzingSEO, setIsAnalyzingSEO] = useState(false);
+  const [isGeneratingAllSEO, setIsGeneratingAllSEO] = useState(false);
+  const [seoQualityResult, setSeoQualityResult] = useState('');
+  const [seoAnalysisSuggestions, setSeoAnalysisSuggestions] = useState({
+    meta_title: '',
+    meta_description: '',
+    slug: '',
+    keywords: ''
+  });
 
   // 제목/슬러그 AI 관련 상태
   const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
   const [showTitleOptions, setShowTitleOptions] = useState(false);
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
-  // 폼 데이터 상태 (중복 제거됨)
+  // 폼 데이터 상태
+  const [formData, setFormData] = useState({
+    title: '',
+    slug: '',
+    excerpt: '',
+    content: '',
+    featured_image: '',
+    category: '고객 후기',
+    tags: [] as string[],
+    status: 'published',
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
+    view_count: 0,
+    is_featured: false,
+    is_scheduled: false,
+    scheduled_at: null as string | null,
+    author: '마쓰구골프',
+    // 추가 필드들
+    summary: '',
+    customerpersona: '',
+    conversiongoal: 'homepage_visit',
+    target_product: 'all',
+    published_at: '',
+    created_at: ''
+  });
 
-  // 특정 포스트 로드 (편집용) - 편집 페이지로 이동됨
+  // 특정 포스트 로드 (편집용)
   const loadPostForEdit = useCallback(async (postId: string) => {
-    // 편집 페이지로 리다이렉트
-    router.push(`/admin/blog/edit/${postId}`);
-  }, [router]);
+    try {
+      console.log('🔍 포스트 로드 중:', postId);
+      const response = await fetch(`/api/admin/blog/${postId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const post = data.post;
+        console.log('✅ 포스트 로드 성공:', post);
+        
+        // 편집할 포스트 객체 설정
+        setEditingPost(post);
+        
+        // 🔄 허브 데이터 로드 (개선된 로직)
+        console.log('🔍 post.calendar_id:', post.calendar_id);
+        
+        if (post.calendar_id) {
+          console.log('🔗 허브 모드 감지, 허브 데이터 로드 중...', post.calendar_id);
+          await loadHubData(post.calendar_id);
+        } else {
+          console.log('❌ 허브 연결 없음, 일반 편집 모드');
+          setIsHubMode(false);
+          setHubData(null);
+        }
+        
+        setFormData({
+          title: post.title || '',
+          slug: post.slug || '',
+          excerpt: post.excerpt || '',
+          content: post.content || '',
+          category: post.category || 'blog',
+          status: post.status || 'draft',
+          featured_image: post.featured_image || '',
+          tags: post.tags || [],
+          meta_title: post.meta_title || '',
+          meta_description: post.meta_description || '',
+          meta_keywords: post.meta_keywords || '',
+          view_count: post.view_count || 0,
+          is_featured: post.is_featured || false,
+          is_scheduled: post.is_scheduled || false,
+          scheduled_at: post.scheduled_at || null,
+          author: post.author || '마쓰구골프',
+          // 추가 필드들
+          summary: post.summary || '',
+          customerpersona: post.customer_persona || '',
+          conversiongoal: post.conversion_goal || 'awareness',
+          target_product: post.target_product || 'all',
+          published_at: post.published_at || '',
+          created_at: post.created_at || ''
+        });
+      } else {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        console.error('❌ 포스트 로드 실패:', response.status, errorData);
+        alert(`포스트를 불러올 수 없습니다: ${errorData.error || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('❌ 포스트 로드 오류:', error);
+      alert(`포스트 로드 중 오류가 발생했습니다: ${error.message}`);
+    }
+  }, []);
 
   // 게시물 목록 불러오기
   const fetchPosts = useCallback(async (currentSortBy = sortBy, currentSortOrder = sortOrder) => {
@@ -613,11 +651,175 @@ export default function BlogAdmin() {
     }
   }, [sortBy, sortOrder]);
 
-  // 허브 연동 관련 상태는 편집 페이지로 이동됨
+  // 허브 연동 상태
+  const [hubData, setHubData] = useState(null);
+  const [isHubMode, setIsHubMode] = useState(false);
+  
+  // 허브 동기화 관련 상태
+  const [syncModalData, setSyncModalData] = useState({
+    isOpen: false,
+    blogPost: null,
+    hubId: null
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // 허브 관련 함수들은 편집 페이지로 이동됨
+  // 편집 모드 감지 함수
+  const isEditMode = () => {
+    return editingPost !== null || editingPostId !== null;
+  };
 
-  // URL 파라미터 확인 (허브 연동) - 편집 페이지로 이동됨
+  // 허브 데이터 로드 함수
+  const loadHubData = async (hubId: string) => {
+    try {
+      console.log('🔍 허브 데이터 로드 중...', hubId);
+      
+      // 허브 상태 초기화
+      setHubData(null);
+      setIsHubMode(false);
+      
+      const response = await fetch(`/api/admin/content-calendar-hub?id=${hubId}`);
+      const data = await response.json();
+      
+      if (response.ok && data.data && data.data.length > 0) {
+        const hubContent = data.data[0]; // 첫 번째 항목이 해당 허브 콘텐츠
+        console.log('✅ 허브 데이터 로드 성공:', hubContent);
+        setHubData({
+          id: hubContent.id,
+          hubId: hubContent.id,
+          title: hubContent.title,
+          summary: hubContent.summary
+        });
+        setIsHubMode(true);
+      } else {
+        console.log('❌ 허브 데이터 없음, 일반 편집 모드');
+        setIsHubMode(false);
+        setHubData(null);
+      }
+    } catch (error) {
+      console.error('❌ 허브 데이터 로드 오류:', error);
+      setIsHubMode(false);
+      setHubData(null);
+    }
+  };
+
+  // 허브 동기화 함수
+  const handleHubSync = async (post) => {
+    try {
+      // 동기화 모달 표시
+      setSyncModalData({
+        isOpen: true,
+        blogPost: post,
+        hubId: post.calendar_id
+      });
+    } catch (error) {
+      console.error('동기화 모달 오류:', error);
+      alert('동기화 모달을 열 수 없습니다.');
+    }
+  };
+
+  // AI 동기화 함수
+  const handleHubSyncWithAI = async (blogPost, hubId) => {
+    try {
+      setIsSyncing(true);
+      
+      const response = await fetch('/api/blog/sync-to-hub-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blogPostId: blogPost.id,
+          hubContentId: hubId,
+          title: blogPost.title,
+          content: blogPost.content,
+          excerpt: blogPost.excerpt
+        })
+      });
+      
+      if (response.ok) {
+        alert('🤖 AI로 허브 콘텐츠가 최적화되어 동기화되었습니다!');
+        setSyncModalData({ isOpen: false, blogPost: null, hubId: null });
+        fetchPosts(); // 목록 새로고침
+      } else {
+        throw new Error('AI 동기화 실패');
+      }
+    } catch (error) {
+      console.error('AI 동기화 오류:', error);
+      alert('AI 동기화에 실패했습니다.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // 직접 동기화 함수
+  const handleHubSyncDirect = async (blogPost, hubId) => {
+    try {
+      setIsSyncing(true);
+      
+      const response = await fetch('/api/blog/sync-to-hub-direct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blogPostId: blogPost.id,
+          hubContentId: hubId,
+          title: blogPost.title,
+          content: blogPost.content,
+          excerpt: blogPost.excerpt
+        })
+      });
+      
+      if (response.ok) {
+        alert('⚡ 직접 허브 콘텐츠가 동기화되었습니다!');
+        setSyncModalData({ isOpen: false, blogPost: null, hubId: null });
+        fetchPosts(); // 목록 새로고침
+      } else {
+        throw new Error('직접 동기화 실패');
+      }
+    } catch (error) {
+      console.error('직접 동기화 오류:', error);
+      alert('직접 동기화에 실패했습니다.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // URL 파라미터 확인 (허브 연동)
+  useEffect(() => {
+    if (router.query.hub && router.query.title && router.query.summary) {
+      setIsHubMode(true);
+      setHubData({
+        hubId: router.query.hub,
+        title: decodeURIComponent(router.query.title as string),
+        summary: decodeURIComponent(router.query.summary as string)
+      });
+      setShowForm(true);
+      setActiveTab('create');
+      
+      // 허브 데이터로 폼 초기화
+      setFormData({
+        title: decodeURIComponent(router.query.title as string),
+        content: '',
+        excerpt: '',
+        slug: '',
+        featured_image: '',
+        category: '고객 후기',
+        tags: [] as string[],
+        status: 'draft',
+        meta_title: '',
+        meta_description: '',
+        meta_keywords: '',
+        view_count: 0,
+        is_featured: false,
+        is_scheduled: false,
+        scheduled_at: null as string | null,
+        author: '마쓰구골프',
+        summary: '',
+        customerpersona: '',
+        conversiongoal: 'homepage_visit',
+        target_product: 'all',
+        published_at: new Date().toISOString().slice(0, 16),
+        created_at: ''
+      });
+    }
+  }, [router.query]);
 
   // 콘텐츠 캘린더에서 데이터 불러오기
 
@@ -684,7 +886,7 @@ export default function BlogAdmin() {
       
       console.log('📝 저장 데이터:', { isHubMode, hubData, submitData });
       
-      if (false) { // 편집 기능은 편집 페이지로 이동됨
+      if (editingPost) {
         // 수정
         const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
@@ -823,7 +1025,7 @@ export default function BlogAdmin() {
       console.log('🔗 허브 연동 해제 중...', { hubId: hubData?.hubId });
       
       // 블로그에서 calendar_id 제거
-      if (false) { // 편집 기능은 편집 페이지로 이동됨
+      if (editingPost) {
         const response = await fetch(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -854,7 +1056,8 @@ export default function BlogAdmin() {
       }
       
       // 허브 모드 해제
-        // 허브 기능은 편집 페이지로 이동됨
+      setIsHubMode(false);
+      setHubData(null);
       alert('허브 연동이 해제되었습니다.');
       
     } catch (error) {
@@ -1264,19 +1467,29 @@ export default function BlogAdmin() {
     }
   };
 
-  // 게시물 수정 모드로 전환 (편집 페이지로 리다이렉트)
+  // 게시물 수정 모드로 전환
   const handleEdit = useCallback(async (post) => {
     try {
       console.log('📝 게시물 수정 모드 시작:', post.id);
       
-      // 편집 페이지로 리다이렉트
-      router.push(`/admin/blog/edit/${post.id}`);
+      // 🔄 허브 상태 초기화 (방안1 핵심)
+      setHubData(null);
+      setIsHubMode(false);
+      
+      // 편집 모드 설정
+      setEditingPost(post);
+      setEditingPostId(post.id);
+      setShowForm(true);
+      setActiveTab('edit');
+      
+      // 🔄 포스트 데이터 로드 (허브 데이터 포함)
+      await loadPostForEdit(post.id);
       
     } catch (error) {
       console.error('❌ 게시물 수정 모드 오류:', error);
       alert('게시물 수정 모드 진입 중 오류가 발생했습니다.');
     }
-  }, [router]);
+  }, []);
 
   // generateSlug 함수는 위에서 이미 정의됨 (SEO 최적화된 버전 사용)
 
@@ -1712,9 +1925,22 @@ export default function BlogAdmin() {
     );
   };
 
-  // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입 (중복 제거됨)
+  // 본문 단락별 이미지 일괄 생성 → TipTap에 순차 삽입
+  const [isGeneratingParagraphImages, setIsGeneratingParagraphImages] = useState(false);
+  const [paragraphPrompts, setParagraphPrompts] = useState([]); // 단락별 프롬프트 배열
+  const [showParagraphPromptPreview, setShowParagraphPromptPreview] = useState(false);
   
-  // 골드톤 시니어 매너 전용 상태 (중복 제거됨)
+  // 골드톤 시니어 매너 전용 상태
+  const [isGeneratingGoldToneImages, setIsGeneratingGoldToneImages] = useState(false);
+  const [goldTonePrompts, setGoldTonePrompts] = useState([]); // 골드톤 프롬프트 배열
+  const [showGoldTonePromptPreview, setShowGoldTonePromptPreview] = useState(false);
+  
+  // 프롬프트 설정 관리 상태
+  const [savedPromptConfigs, setSavedPromptConfigs] = useState({});
+  const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [newConfigDescription, setNewConfigDescription] = useState('');
   
   // 프롬프트 설정 관리 함수들
   const promptConfigManager = {
@@ -1756,9 +1982,10 @@ export default function BlogAdmin() {
     
     // 로컬 스토리지에 저장
     saveToStorage() {
-      if (typeof window === 'undefined') return;
       try {
-        localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
+        }
       } catch (error) {
         console.error('설정 저장 실패:', error);
         alert('설정 저장에 실패했습니다. 브라우저 저장 공간을 확인해주세요.');
@@ -1767,10 +1994,12 @@ export default function BlogAdmin() {
     
     // 로컬 스토리지에서 불러오기
     loadConfigs() {
-      if (typeof window === 'undefined') return {};
       try {
-        const stored = localStorage.getItem('promptConfigs');
-        return stored ? JSON.parse(stored) : {};
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('promptConfigs');
+          return stored ? JSON.parse(stored) : {};
+        }
+        return {};
       } catch (error) {
         console.error('설정 불러오기 실패:', error);
         return {};
@@ -1881,9 +2110,7 @@ export default function BlogAdmin() {
   
   // 컴포넌트 마운트 시 저장된 설정 불러오기
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setSavedPromptConfigs(promptConfigManager.loadConfigs());
-    }
+    setSavedPromptConfigs(promptConfigManager.getConfigs());
   }, []);
   
   // 10월 8일 버전 프롬프트 생성 (안정적 생성)
@@ -2041,7 +2268,7 @@ export default function BlogAdmin() {
             headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompts: paragraphPrompts,
-          blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+          blogPostId: editingPost?.id || null
         })
       });
       
@@ -2169,7 +2396,7 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompts: goldTonePrompts,
-          blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+          blogPostId: editingPost?.id || null
         })
       });
       
@@ -2268,7 +2495,7 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompts: prompts,
-          blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+          blogPostId: editingPost?.id || null
         })
       });
       
@@ -2390,7 +2617,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: imageUrls[i],
                 fileName: `dalle3-${Date.now()}-${i + 1}.png`,
-                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+                blogPostId: editingPost?.id || null
               })
             });
             
@@ -2556,7 +2783,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: result.imageUrls[i],
                 fileName: `fal-ai-image-${Date.now()}-${i + 1}.png`,
-                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+                blogPostId: editingPost?.id || null
               })
             });
             
@@ -2718,7 +2945,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                 imageUrl: result.imageUrls[i],
                 fileName: `google-ai-image-${Date.now()}-${i + 1}.png`,
-                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+                blogPostId: editingPost?.id || null
               })
             });
             
@@ -3143,10 +3370,10 @@ export default function BlogAdmin() {
         body: JSON.stringify({ 
           imageUrl: selectedExistingImage,
           prompt: improvedPrompt,
-          title: '새 게시물',
-          excerpt: '새 게시물',
-          contentType: 'blog',
-          brandStrategy: 'professional',
+          title: editingPost?.title || '이미지 변형',
+          excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
+          contentType: editingPost?.content_type || 'blog',
+          brandStrategy: editingPost?.brand_strategy || 'professional',
           preset: aiPreset
         })
       });
@@ -3393,8 +3620,8 @@ export default function BlogAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             imageUrl: selectedExistingImage,
-            title: '새 게시물',
-            excerpt: '새 게시물'
+            title: editingPost?.title || '이미지 변형',
+            excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트'
         })
       });
 
@@ -3448,10 +3675,10 @@ export default function BlogAdmin() {
     try {
       let apiEndpoint = '';
       let requestBody = {
-        title: '새 게시물',
-        excerpt: '새 게시물',
-        contentType: 'blog',
-        brandStrategy: 'professional',
+        title: editingPost?.title || '이미지 변형',
+        excerpt: editingPost?.excerpt || '이미지 변형을 위한 프롬프트',
+        contentType: editingPost?.content_type || 'blog',
+        brandStrategy: editingPost?.brand_strategy || 'professional',
         baseImageUrl: selectedBaseImage,
         variationStrength: variationStrength,
         variationCount: 1
@@ -3491,7 +3718,7 @@ export default function BlogAdmin() {
                 body: JSON.stringify({
                   imageUrl: result.images[i].originalUrl || result.images[i],
                   fileName: `${model.toLowerCase().replace(' ', '-')}-variation-${Date.now()}-${i + 1}.png`,
-                  blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+                  blogPostId: editingPost?.id || null
                 })
               });
               
@@ -3592,7 +3819,7 @@ export default function BlogAdmin() {
               body: JSON.stringify({
                   imageUrl: data.images[i],
                   fileName: `${model.toLowerCase().replace(' ', '-')}-improved-${Date.now()}-${i + 1}.png`,
-                blogPostId: null // 편집 기능은 편집 페이지로 이동됨 || null
+                blogPostId: editingPost?.id || null
               })
             });
             
@@ -3669,29 +3896,40 @@ export default function BlogAdmin() {
     setMigratedPosts([]);
       
     try {
-      // 원본 방식: 스크래핑된 데이터를 먼저 가져온 후 사용자가 선택
-      const response = await fetch('/api/naver-blog-scraper', {
+      const response = await fetch('/api/migrate-blog-professional', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          urls: [naverBlogUrl]
+          url: naverBlogUrl
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         
-        if (data.success && data.posts && data.posts.length > 0) {
-          setMigratedPosts(data.posts);
-          setMigrationProgress(`✅ ${data.posts.length}개의 포스트를 성공적으로 가져왔습니다!`);
-          alert(`${data.posts.length}개의 네이버 블로그 포스트를 가져왔습니다. 아래에서 확인하고 저장하세요.`);
+        if (data.success && data.data) {
+          // migrate-blog-professional.js 응답 형식에 맞게 수정
+          const migratedPost = {
+            id: data.data.id,
+            title: data.data.title,
+            content: data.data.content,
+            featured_image: data.data.featured_image,
+            slug: data.data.slug,
+            images: data.data.images || [],
+            tags: data.data.tags || [],
+            status: 'migrated'
+          };
+          
+          setMigratedPosts([migratedPost]);
+          setMigrationProgress(`✅ 네이버 블로그 포스트를 성공적으로 가져왔습니다!`);
+          alert(`네이버 블로그 포스트를 성공적으로 가져왔습니다. 이미지 ${data.data.imageCount}개, 태그 ${data.data.tagCount}개가 포함되었습니다.`);
         } else {
           setMigrationProgress('❌ 가져올 수 있는 포스트가 없습니다.');
           alert('가져올 수 있는 포스트가 없습니다. 블로그 URL을 확인해주세요.');
         }
       } else {
         const error = await response.json();
-        throw new Error(error.message || '네이버 블로그 마이그레이션에 실패했습니다.');
+        throw new Error(error.error || '네이버 블로그 마이그레이션에 실패했습니다.');
       }
     } catch (error) {
       console.error('네이버 블로그 마이그레이션 오류:', error);
@@ -3704,57 +3942,18 @@ export default function BlogAdmin() {
 
   const saveMigratedPost = async (post) => {
     try {
-      // 원본 방식: 각 포스트를 블로그 포스트로 변환하여 저장
-      const baseSlug = post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled';
-      const timestamp = Date.now();
-      const uniqueSlug = `${baseSlug}-${timestamp}`;
-      
-      const blogPost = {
-        title: post.title || '제목 없음',
-        slug: uniqueSlug,
-        excerpt: post.excerpt || '',
-        content: post.content || '',
-        featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
-        category: '고객 후기',
-        tags: ['네이버 블로그', '마이그레이션'],
-        status: 'draft', // 초안으로 저장
-        meta_title: post.title || '',
-        meta_description: post.excerpt || '',
-        meta_keywords: '네이버 블로그, 마이그레이션',
-        view_count: 0,
-        is_featured: false,
-        is_scheduled: false,
-        scheduled_at: null,
-        author: '마쓰구골프',
-        published_at: new Date().toISOString() // 작성일은 현재 시간으로 설정
-      };
-
-      // 블로그 포스트 생성 API 호출
-      const response = await fetch('/api/admin/blog', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(blogPost)
-      });
-
-      if (!response.ok) {
-        throw new Error(`포스트 생성 실패: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('포스트 생성 성공:', result);
-      
-      alert(`"${post.title}" 포스트가 성공적으로 저장되었습니다!`);
+      // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
+      // 여기서는 포스트 목록에서 제거하고 새로고침만 수행
+      alert(`"${post.title}" 포스트가 이미 데이터베이스에 저장되었습니다!`);
       
       // 저장된 포스트를 목록에서 제거
-      setMigratedPosts(prev => prev.filter(p => p !== post));
+      setMigratedPosts(prev => prev.filter(p => p.id !== post.id));
       
       // 포스트 목록 새로고침
       fetchPosts();
     } catch (error) {
-      console.error('포스트 저장 오류:', error);
-      alert('포스트 저장 중 오류가 발생했습니다: ' + error.message);
+      console.error('포스트 처리 오류:', error);
+      alert('포스트 처리 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
@@ -3764,58 +3963,15 @@ export default function BlogAdmin() {
       return;
     }
 
-    try {
-      // 모든 포스트를 순차적으로 저장
-      for (const post of migratedPosts) {
-        const baseSlug = post.title ? post.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : 'untitled';
-        const timestamp = Date.now();
-        const uniqueSlug = `${baseSlug}-${timestamp}`;
-        
-        const blogPost = {
-          title: post.title || '제목 없음',
-          slug: uniqueSlug,
-          excerpt: post.excerpt || '',
-          content: post.content || '',
-          featured_image: post.images && post.images.length > 0 ? post.images[0] : '',
-          category: '고객 후기',
-          tags: ['네이버 블로그', '마이그레이션'],
-          status: 'draft', // 초안으로 저장
-          meta_title: post.title || '',
-          meta_description: post.excerpt || '',
-          meta_keywords: '네이버 블로그, 마이그레이션',
-          view_count: 0,
-          is_featured: false,
-          is_scheduled: false,
-          scheduled_at: null,
-          author: '마쓰구골프',
-          published_at: new Date().toISOString() // 작성일은 현재 시간으로 설정
-        };
-
-        // 블로그 포스트 생성 API 호출
-        const response = await fetch('/api/admin/blog', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(blogPost)
-        });
-
-        if (!response.ok) {
-          throw new Error(`포스트 "${post.title}" 생성 실패: ${response.status}`);
-        }
-      }
-      
-      alert(`${migratedPosts.length}개의 포스트가 성공적으로 저장되었습니다!`);
-      
-      // 저장된 포스트들을 목록에서 제거
-      setMigratedPosts([]);
-      
-      // 포스트 목록 새로고침
-      fetchPosts();
-    } catch (error) {
-      console.error('포스트 일괄 저장 오류:', error);
-      alert('포스트 일괄 저장 중 오류가 발생했습니다: ' + error.message);
-    }
+    // migrate-blog-professional.js는 이미 데이터베이스에 저장하므로
+    // 여기서는 목록에서 제거하고 새로고침만 수행
+    alert(`${migratedPosts.length}개의 포스트가 이미 데이터베이스에 저장되었습니다!`);
+    
+    // 저장된 포스트들을 목록에서 제거
+    setMigratedPosts([]);
+    
+    // 포스트 목록 새로고침
+    fetchPosts();
   };
 
   // 고급 기능 함수들
@@ -3938,11 +4094,10 @@ export default function BlogAdmin() {
         alert('✅ AI 메타 설명이 생성되었습니다!');
       } else {
         const errorData = await response.json();
-        console.error('메타 설명 생성 API 오류:', errorData);
         alert(`메타 설명 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
-      console.error('AI 메타 설명 생성 오류:', error);
+      console.error('메타 설명 생성 오류:', error);
       alert('메타 설명 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingMetaDescription(false);
@@ -4308,19 +4463,31 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
       const { edit, id, new: isNew, title, content, category, status } = router.query;
       
       if (edit) {
-        // 기존 포스트 편집 모드 (edit 파라미터) - 편집 페이지로 리다이렉트
+        // 기존 포스트 편집 모드 (edit 파라미터) - 빠른 편집
         const postId = edit as string;
         console.log('🚀 빠른 편집 모드 진입 (edit):', postId);
+        console.log('🔍 현재 상태:', { showForm, activeTab, editingPost });
         
-        // 편집 페이지로 리다이렉트
-        router.push(`/admin/blog/edit/${postId}`);
+        setEditingPostId(postId);
+        setShowForm(true);
+        setActiveTab('edit');
+        console.log('✅ 편집 모드 설정 완료');
+        
+        // 포스트 데이터 로드
+        loadPostForEdit(postId);
       } else if (id) {
-        // 기존 포스트 편집 모드 (id 파라미터) - 편집 페이지로 리다이렉트
+        // 기존 포스트 편집 모드 (id 파라미터) - 허브에서 온 경우 (빠른 편집 적용)
         const postId = id as string;
         console.log('🚀 빠른 편집 모드 진입 (id):', postId);
         
-        // 편집 페이지로 리다이렉트
-        router.push(`/admin/blog/edit/${postId}`);
+        // 즉시 편집 모드 설정
+        setEditingPostId(postId);
+        setShowForm(true);
+        setActiveTab('edit');
+        console.log('✅ 편집 모드 즉시 설정 완료');
+        
+        // 포스트 데이터 로드 (백그라운드)
+        loadPostForEdit(postId);
       } else if (isNew === 'true') {
         // 새 포스트 생성 모드 (캘린더에서 온 경우)
         console.log('🔍 새 포스트 생성 모드 진입');
@@ -4498,8 +4665,41 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 🔵 네이버 블로그 스크래퍼
               </button>
               <button
-                onClick={() => router.push('/admin/blog/create')}
-                className="py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                onClick={() => {
+                  // 새 게시물 작성 시 formData 초기화
+                  setFormData({
+                    title: '',
+                    content: '',
+                    excerpt: '',
+                    slug: '',
+                    category: '고객 후기',
+                    status: 'draft',
+                    featured_image: '',
+                    meta_title: '',
+                    meta_description: '',
+                    meta_keywords: '',
+                    tags: [] as string[],
+                    view_count: 0,
+                    is_featured: false,
+                    is_scheduled: false,
+                    scheduled_at: null as string | null,
+                    author: '마쓰구골프',
+                    summary: '',
+                    customerpersona: '',
+                    conversiongoal: 'homepage_visit',
+                    target_product: 'all',
+                    published_at: '',
+                    created_at: ''
+                  });
+                  setEditingPost(null);
+                  setActiveTab('create');
+                  setShowForm(true);
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'create'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
                 ✍️ 새 게시물 작성
               </button>
@@ -4976,7 +5176,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">모든 카테고리</option>
-                    {PUBLISH_CATEGORIES.map(category => (
+                    {categories.map(category => (
                       <option key={category} value={category}>{category}</option>
                     ))}
                       </select>
@@ -5109,7 +5309,14 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                                       🔗 연결됨: {post.calendar_id.substring(0, 8)}...
                                     </span>
                                     
-                                    {/* 허브 동기화는 편집 페이지에서 처리됨 */}
+                                    {/* 🔄 허브 동기화 버튼 추가 */}
+                                    <button
+                                      onClick={() => handleHubSync(post)}
+                                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 flex items-center gap-1"
+                                      title="허브 콘텐츠 동기화"
+                                    >
+                                      🔄 동기화
+                                    </button>
                                     
                                     <button
                                       onClick={() => {
@@ -5187,23 +5394,23 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
             </div>
           )}
 
-          {/* 생성 폼은 생성 페이지로 이동됨 */}
-          {false && (
+          {/* 새 게시물 작성/수정 폼 */}
+          {showForm && (activeTab === 'create' || activeTab === 'edit') && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="mb-6 flex justify-between items-center">
                 <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                새 게시물 작성
+                {editingPost ? '게시물 수정' : '새 게시물 작성'}
               </h2>
                 <p className="text-gray-600 mt-1">
-                  새로운 게시물을 작성하세요.
+                  {editingPost ? '게시물을 수정하세요.' : '새로운 게시물을 작성하세요.'}
                   </p>
                 </div>
                 <button
                   onClick={() => {
                     setShowForm(false);
-                    // 편집 기능은 편집 페이지로 이동됨
-                    // 편집 기능은 편집 페이지로 이동됨
+                    setEditingPost(null);
+                    setEditingPostId(null);
                     setActiveTab('list');
                   }}
                   className="text-gray-500 hover:text-gray-700 text-sm"
@@ -5212,7 +5419,51 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 </button>
                 </div>
 
-                {/* 허브 연동 정보는 편집 페이지로 이동됨 */}
+                {/* 허브 연동 정보 표시 */}
+                {(() => {
+                  console.log('🔍 허브 연동 정보 표시 조건:', {
+                    isEditMode: isEditMode(),
+                    isHubMode,
+                    hubData,
+                    editingPost,
+                    editingPostId,
+                    activeTab
+                  });
+                  return isEditMode() && isHubMode && hubData;
+                })() && (
+                  <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <span className="text-lg">🎯</span>
+                      <h3 className="text-lg font-semibold text-blue-800">허브 콘텐츠 연동</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">허브 ID:</span>
+                        <span className="text-sm text-gray-900 font-mono">{hubData.id}</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">제목:</span>
+                        <span className="text-sm text-gray-900">{hubData.title}</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">요약:</span>
+                        <span className="text-sm text-gray-900">{hubData.summary}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={handleUnlinkHub}
+                          className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                        >
+                          허브 연동 해제
+                        </button>
+                        <span className="text-xs text-gray-500">
+                          초안 저장 시 자동으로 허브 상태가 동기화됩니다.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                     
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 러프 콘텐츠 입력 섹션 */}
@@ -5401,6 +5652,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       >
                         <option value="draft">초안</option>
                         <option value="published">발행</option>
+                        <option value="archived">보관</option>
                       </select>
                     </div>
                   </div>
@@ -5463,19 +5715,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         메타 키워드 (SEO)
                       </label>
-                      <div className="space-y-2">
+                      <div className="flex gap-2">
                         <input
                           type="text"
                           value={formData.meta_keywords}
                           onChange={(e) => setFormData({ ...formData, meta_keywords: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="키워드1, 키워드2, 키워드3"
                         />
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex flex-col gap-2">
                           <button
                             type="button"
                             onClick={generateAIMetaKeywords}
-                            className="px-4 py-2 rounded bg-purple-600 text-white text-sm hover:bg-purple-700 disabled:opacity-50"
+                            className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
                             disabled={isGeneratingMetaKeywords}
                           >
                             {isGeneratingMetaKeywords ? '생성 중…' : '🤖 AI 생성'}
@@ -5483,7 +5735,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                           <button
                             type="button"
                             onClick={generateBrandEnhancedKeywords}
-                            className="px-4 py-2 rounded bg-orange-600 text-white text-sm hover:bg-orange-700 disabled:opacity-50"
+                            className="px-3 whitespace-nowrap rounded bg-orange-600 text-white text-sm hover:bg-orange-700"
                             disabled={isGeneratingMetaKeywords}
                           >
                             {isGeneratingMetaKeywords ? '생성 중…' : '🏷️ 브랜드 강화'}
@@ -6861,7 +7113,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     {isSubmitting && (
                       <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     )}
-                      저장
+                      {editingPost ? '수정' : '저장'}
                     </button>
                 </div>
               </form>
@@ -7529,7 +7781,54 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         </div>
       )}
 
-      {/* 허브 동기화 모달은 편집 페이지로 이동됨 */}
+      {/* 허브 동기화 모달 */}
+      {syncModalData.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">허브 콘텐츠 동기화</h3>
+              <button
+                onClick={() => setSyncModalData({ isOpen: false, blogPost: null, hubId: null })}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>블로그:</strong> {syncModalData.blogPost?.title}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>허브 ID:</strong> {syncModalData.hubId}
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleHubSyncWithAI(syncModalData.blogPost, syncModalData.hubId)}
+                disabled={isSyncing}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSyncing ? '🔄 동기화 중...' : '🤖 AI 동기화'}
+              </button>
+              
+              <button
+                onClick={() => handleHubSyncDirect(syncModalData.blogPost, syncModalData.hubId)}
+                disabled={isSyncing}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSyncing ? '🔄 동기화 중...' : '⚡ 직접 동기화'}
+              </button>
+            </div>
+            
+            <div className="mt-4 text-xs text-gray-500">
+              <p><strong>AI 동기화:</strong> 허브용으로 최적화된 요약/개요 생성</p>
+              <p><strong>직접 동기화:</strong> 현재 블로그 내용을 그대로 복사</p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   );
