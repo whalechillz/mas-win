@@ -27,7 +27,7 @@ export default function CategoryManagement() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/categories');
+      const response = await fetch('/api/admin/blog-categories');
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories || []);
@@ -46,8 +46,8 @@ export default function CategoryManagement() {
     e.preventDefault();
     try {
       const url = editingCategory 
-        ? `/api/admin/categories?id=${editingCategory.id}`
-        : '/api/admin/categories';
+        ? `/api/admin/blog-categories?id=${editingCategory.id}`
+        : '/api/admin/blog-categories';
       
       const method = editingCategory ? 'PUT' : 'POST';
       
@@ -80,7 +80,7 @@ export default function CategoryManagement() {
     if (!confirm('정말로 이 카테고리를 삭제하시겠습니까?')) return;
     
     try {
-      const response = await fetch(`/api/admin/categories?id=${id}`, {
+      const response = await fetch(`/api/admin/blog-categories?id=${id}`, {
         method: 'DELETE',
       });
 
