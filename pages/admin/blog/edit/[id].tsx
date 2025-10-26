@@ -195,7 +195,10 @@ export default function BlogEdit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentSource: roughContent,
-          contentType: formData.category || '골프 정보'
+          contentType: formData.category || '골프 정보',
+          customerpersona: '중상급 골퍼',
+          customerChannel: 'local_customers',
+          brandWeight: 'low'
         })
       });
 
