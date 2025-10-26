@@ -50,7 +50,7 @@ export default function BrandStrategySelector({
   // 기본 설정
   const defaultConfig: BrandStrategyConfig = {
     brandName: '마쓰구',
-    contentTypes: ['골프 정보', '튜토리얼', '고객 후기', '고객 스토리', '이벤트'],
+    contentTypes: ['골프 정보', '제품 정보', '고객 후기', '브랜드 스토리', '이벤트', '기술 및 성능'],
     personas: PERSONA_STRUCTURE,
     frameworks: STORYTELLING_FRAMEWORKS,
     channels: CUSTOMER_CHANNEL_CTA,
