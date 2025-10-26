@@ -43,6 +43,7 @@ export default function BlogEdit() {
   // AI 제목 생성 관련 상태
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+  const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
   const [isGeneratingMetaTitle, setIsGeneratingMetaTitle] = useState(false);
   const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
   const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
@@ -178,6 +179,53 @@ export default function BlogEdit() {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  };
+
+  // 제목 스타일 분석 함수
+  const analyzeTitleStyle = (title: string) => {
+    const styles = [];
+    
+    // 호기심 격차
+    if (title.includes('아무도 모르는') || title.includes('숨겨진') || title.includes('비밀') || title.includes('놀라운 진실')) {
+      styles.push({ type: '호기심 격차', color: 'bg-purple-100 text-purple-800' });
+    }
+    
+    // 사회적 증명
+    if (title.includes('%') || title.includes('많은') || title.includes('인기') || title.includes('추천') || title.includes('후기')) {
+      styles.push({ type: '사회적 증명', color: 'bg-blue-100 text-blue-800' });
+    }
+    
+    // 본능적 생존
+    if (title.includes('위험') || title.includes('구할') || title.includes('안전') || title.includes('보호')) {
+      styles.push({ type: '본능적 생존', color: 'bg-red-100 text-red-800' });
+    }
+    
+    // 희소성/특별함
+    if (title.includes('한정') || title.includes('특별') || title.includes('독점') || title.includes('마감')) {
+      styles.push({ type: '희소성', color: 'bg-orange-100 text-orange-800' });
+    }
+    
+    // 권위/전문성
+    if (title.includes('전문가') || title.includes('교수') || title.includes('연구') || title.includes('데이터')) {
+      styles.push({ type: '권위', color: 'bg-green-100 text-green-800' });
+    }
+    
+    // 상호성/혜택
+    if (title.includes('무료') || title.includes('혜택') || title.includes('선물') || title.includes('감사')) {
+      styles.push({ type: '상호성', color: 'bg-yellow-100 text-yellow-800' });
+    }
+    
+    // 구체적 숫자
+    if (/\d+/.test(title)) {
+      styles.push({ type: '구체적 수치', color: 'bg-indigo-100 text-indigo-800' });
+    }
+    
+    // 질문형
+    if (title.includes('?') || title.includes('왜') || title.includes('어떻게') || title.includes('무엇')) {
+      styles.push({ type: '질문형', color: 'bg-pink-100 text-pink-800' });
+    }
+    
+    return styles.length > 0 ? styles : [{ type: '일반형', color: 'bg-gray-100 text-gray-800' }];
   };
 
   // 러프 콘텐츠에서 제목, 요약, 본문 생성 (원본 소스와 동일하게 수정)
@@ -393,6 +441,43 @@ export default function BlogEdit() {
       alert('요약 생성 중 오류가 발생했습니다.');
     } finally {
       setIsGeneratingExcerpt(false);
+    }
+  };
+
+  // AI 슬러그 생성
+  const generateAISlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingSlug(true);
+    try {
+      const response = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          type: 'slug'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, slug: data.slug || generateSlug(formData.title) }));
+        alert('AI가 슬러그를 생성했습니다!');
+      } else {
+        // API 실패시 기본 슬러그 생성
+        setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
+        alert('기본 슬러그가 생성되었습니다.');
+      }
+    } catch (error) {
+      console.error('AI 슬러그 생성 오류:', error);
+      // 오류시 기본 슬러그 생성
+      setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
+      alert('기본 슬러그가 생성되었습니다.');
+    } finally {
+      setIsGeneratingSlug(false);
     }
   };
 
@@ -851,6 +936,94 @@ export default function BlogEdit() {
               </p>
             </div>
 
+            {/* 4. 요약 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">요약</label>
+              <div className="flex gap-2">
+                <textarea
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  rows={3}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="게시물 요약을 입력하세요"
+                />
+                <button
+                  type="button"
+                  onClick={generateAIExcerpt}
+                  disabled={isGeneratingExcerpt}
+                  className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                >
+                  {isGeneratingExcerpt ? '생성 중…' : '🤖 AI 요약'}
+                </button>
+              </div>
+            </div>
+
+            {/* 5. 슬러그 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">슬러그 (URL)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="url-friendly-slug"
+                />
+                <button
+                  type="button"
+                  onClick={generateAISlug}
+                  disabled={isGeneratingSlug}
+                  className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                >
+                  {isGeneratingSlug ? '생성 중…' : '🤖 AI 슬러그'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                URL에 사용될 슬러그입니다. 공백은 하이픈(-)으로 변환됩니다.
+              </p>
+            </div>
+
+            {/* 6. 카테고리와 상태 */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 카테고리 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    카테고리
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="고객 후기">고객 후기</option>
+                    <option value="제품 정보">제품 정보</option>
+                    <option value="골프 팁">골프 팁</option>
+                    <option value="이벤트">이벤트</option>
+                    <option value="골프 정보">골프 정보</option>
+                    <option value="브랜드 스토리">브랜드 스토리</option>
+                    <option value="기술 및 성능">기술 및 성능</option>
+                  </select>
+                </div>
+
+                {/* 상태 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    상태
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="draft">초안</option>
+                    <option value="published">발행됨</option>
+                    <option value="archived">보관됨</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             {/* 3. SEO 메타 데이터 섹션 */}
             <div className="border-t border-gray-200 pt-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">🔍 SEO 메타데이터</h3>
@@ -1208,12 +1381,33 @@ export default function BlogEdit() {
               <button type="button" className="text-gray-500" onClick={() => setShowTitleOptions(false)}>✕</button>
             </div>
             <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
+              {/* 현재 제목 점수 카드 */}
+              {formData.title && (
+                <div className="border rounded-lg p-4 bg-blue-50/40">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="text-xs text-blue-700 mb-1">현재 제목</div>
+                      <div className="text-sm font-medium text-gray-900 mb-1">{formData.title}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-400 mt-1">{formData.title.length}자</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {generatedTitles.length === 0 && (
                 <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
               )}
-              {generatedTitles.map((title, index) => (
+              
+              {generatedTitles
+                .map((title, i) => {
+                  const styles = analyzeTitleStyle(title);
+                  return { title, styles };
+                })
+                .map(({ title, styles }, i) => (
                 <button
-                  key={index}
+                  key={i}
                   type="button"
                   onClick={() => {
                     setFormData(prev => ({
@@ -1228,26 +1422,38 @@ export default function BlogEdit() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900 mb-1">{title}</div>
+                      <div className="text-sm font-medium text-gray-900 mb-2">{title}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {styles.map((style, idx) => (
+                          <span
+                            key={idx}
+                            className={`px-2 py-1 text-xs rounded-full ${style.color}`}
+                          >
+                            {style.type}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-gray-400">{title.length}자</div>
+                      <div className="text-xs text-gray-400 mt-1">{title.length}자</div>
                     </div>
                   </div>
                 </button>
               ))}
             </div>
-            <div className="p-4 border-t">
-              <p className="text-sm text-gray-700">
-                각 제목은 로버트 치알디니의 6가지 영향력 원칙과 뇌과학 기반 후킹 기법을 적용했습니다.
-              </p>
-              <button 
-                type="button"
-                onClick={() => setShowTitleOptions(false)}
-                className="mt-3 w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-              >
-                닫기
-              </button>
+            <div className="p-4 border-t bg-gray-50">
+              <div className="text-xs text-gray-600 mb-2">
+                💡 각 제목은 로버트 치알디니의 6가지 영향력 원칙과 뇌과학 기반 후킹 기법을 적용했습니다.
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  type="button"
+                  onClick={() => setShowTitleOptions(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  닫기
+                </button>
+              </div>
             </div>
           </div>
         </div>
