@@ -48,6 +48,21 @@ export default function BlogEdit() {
   const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
   const [isAnalyzingSEO, setIsAnalyzingSEO] = useState(false);
   const [isGeneratingAllSEO, setIsGeneratingAllSEO] = useState(false);
+  
+  // 제목 추천 관련 상태
+  const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
+  const [showTitleOptions, setShowTitleOptions] = useState(false);
+
+  // 슬러그 생성 함수
+  const generateSlug = (title: string) => {
+    if (!title) return '';
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
 
   // SEO 품질 분석 관련 상태
   const [seoAnalysisResult, setSeoAnalysisResult] = useState(null);
@@ -298,45 +313,64 @@ export default function BlogEdit() {
     }
   };
 
-  // AI 제목 생성
+  // AI 제목 5개 생성
   const generateAITitle = async () => {
+    // 러프 소스가 있는 경우 우선 사용: 없으면 요약/제목으로 대체
     const contentSource = `${formData.excerpt}\n\n${formData.content?.slice(0, 500) || ''}`;
+    console.log('🔍 제목 생성 시작 - 콘텐츠 소스:', contentSource);
     
     if (!contentSource.trim()) {
       alert('제목/요약 또는 내용 일부를 먼저 입력해주세요.');
       return;
     }
-
+    
     setIsGeneratingTitle(true);
+    console.log('🚀 제목 생성 API 호출 시작...');
+    
     try {
+      const requestBody = { 
+        contentSource,
+        contentType: formData.category,
+        customerpersona: '중상급 골퍼',
+        customerChannel: 'local_customers',
+        brandWeight: 'low'
+      };
+      
+      console.log('📤 요청 데이터:', requestBody);
+      
       const response = await fetch('/api/generate-blog-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contentSource: contentSource,
-          contentType: formData.category || '골프 정보'
-        })
+        body: JSON.stringify(requestBody)
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.titles && data.titles.length > 0) {
-          const selectedTitle = data.titles[0];
-          setFormData(prev => ({
-            ...prev,
-            title: selectedTitle,
-            meta_title: selectedTitle
-          }));
-          alert('AI가 제목을 생성했습니다!');
-        }
-      } else {
-        throw new Error('제목 생성 실패');
+      
+      console.log('📥 응답 상태:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API 오류 응답:', errorText);
+        throw new Error(`제목 생성 실패 (${response.status}): ${errorText}`);
       }
-    } catch (error) {
-      console.error('AI 제목 생성 오류:', error);
-      alert('제목 생성 중 오류가 발생했습니다.');
+      
+      const data = await response.json();
+      console.log('✅ API 응답 데이터:', data);
+      
+      if (data.success && Array.isArray(data.titles)) {
+        console.log('📝 생성된 제목들:', data.titles);
+        setGeneratedTitles(data.titles);
+        setShowTitleOptions(true);
+        console.log('🎉 제목 생성 완료, 모달 표시');
+      } else {
+        console.error('❌ 잘못된 응답 형식:', data);
+        throw new Error('제목 생성 응답 형식이 올바르지 않습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ AI 제목 생성 오류:', error);
+      console.error('❌ 오류 스택:', error.stack);
+      alert(`AI 제목 생성 실패: ${error.message}`);
     } finally {
       setIsGeneratingTitle(false);
+      console.log('🏁 제목 생성 프로세스 완료');
     }
   };
 
@@ -809,6 +843,25 @@ export default function BlogEdit() {
               </div>
             </div>
 
+            {/* 3. 작성일 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                작성일
+              </label>
+              <input
+                type="date"
+                value={formData.created_at ? new Date(formData.created_at).toISOString().split('T')[0] : ''}
+                onChange={(e) => {
+                  setFormData({ ...formData, created_at: new Date(e.target.value).toISOString() });
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="작성일을 선택하세요"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                작성일을 수정할 수 있습니다. 리스트에서 표시되는 날짜입니다.
+              </p>
+            </div>
+
             {/* 3. SEO 메타 데이터 섹션 */}
             <div className="border-t border-gray-200 pt-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">🔍 SEO 메타데이터</h3>
@@ -1144,6 +1197,60 @@ export default function BlogEdit() {
             setShowVariationModal(false);
           }}
         />
+      )}
+
+      {/* 제목 추천 모달 */}
+      {showTitleOptions && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">🧠 심리학 기반 제목 추천</h3>
+              <button type="button" className="text-gray-500" onClick={() => setShowTitleOptions(false)}>✕</button>
+            </div>
+            <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
+              {generatedTitles.length === 0 && (
+                <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
+              )}
+              {generatedTitles.map((title, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      title: title,
+                      slug: generateSlug(title),
+                      meta_title: title
+                    }));
+                    setShowTitleOptions(false);
+                  }}
+                  className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900 mb-1">{title}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-400">{title.length}자</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="p-4 border-t">
+              <p className="text-sm text-gray-700">
+                각 제목은 로버트 치알디니의 6가지 영향력 원칙과 뇌과학 기반 후킹 기법을 적용했습니다.
+              </p>
+              <button 
+                type="button"
+                onClick={() => setShowTitleOptions(false)}
+                className="mt-3 w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
