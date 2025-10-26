@@ -1,0 +1,1545 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
+const TipTapEditor = dynamic(() => import('../../../../components/admin/TipTapEditor'), { ssr: false });
+const GalleryPicker = dynamic(() => import('../../../../components/admin/GalleryPicker'), { ssr: false });
+import Head from 'next/head';
+import AdminNav from '../../../../components/admin/AdminNav';
+import { useSession } from 'next-auth/react';
+import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../../../lib/masgolf-brand-data';
+import BrandStrategySelector from '../../../../components/admin/BrandStrategySelector';
+import VariationRecommendationModal from '../../../../components/admin/VariationRecommendationModal';
+import { 
+  PUBLISH_CATEGORIES, 
+  BRAND_STRATEGY_CONTENT_TYPES,
+  getPublishCategory,
+  getBrandStrategyContentType,
+  CATEGORY_DESCRIPTIONS,
+  BRAND_STRATEGY_DESCRIPTIONS,
+  type PublishCategory,
+  type BrandStrategyContentType
+} from '../../../../lib/category-mapping';
+
+export default function BlogEdit() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { id } = router.query;
+  
+  // 편집 관련 상태
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 폼 데이터 상태
+  const [formData, setFormData] = useState({
+    title: '',
+    excerpt: '',
+    content: '',
+    category: '골프 정보',
+    status: 'draft',
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
+    slug: '',
+    created_at: ''
+  });
+
+  // 러프 콘텐츠 관련 상태
+  const [roughContent, setRoughContent] = useState('');
+  const [isGeneratingFromRough, setIsGeneratingFromRough] = useState(false);
+  const [isApplyingBrandStrategy, setIsApplyingBrandStrategy] = useState(false);
+
+  // AI 제목 생성 관련 상태
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+  const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
+  const [isGeneratingMetaTitle, setIsGeneratingMetaTitle] = useState(false);
+  const [isGeneratingMetaDescription, setIsGeneratingMetaDescription] = useState(false);
+  const [isGeneratingMetaKeywords, setIsGeneratingMetaKeywords] = useState(false);
+  const [isAnalyzingSEO, setIsAnalyzingSEO] = useState(false);
+  const [isGeneratingAllSEO, setIsGeneratingAllSEO] = useState(false);
+  
+  // 제목 추천 관련 상태
+  const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
+  const [showTitleOptions, setShowTitleOptions] = useState(false);
+
+  // SEO 품질 분석 관련 상태
+  const [seoAnalysisResult, setSeoAnalysisResult] = useState(null);
+  const [seoAnalysisSuggestions, setSeoAnalysisSuggestions] = useState({
+    meta_title: '',
+    meta_description: '',
+    slug: '',
+    keywords: ''
+  });
+
+  // 갤러리 관련 상태
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [totalImagesCount, setTotalImagesCount] = useState(0);
+  const [postImages, setPostImages] = useState([]);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+
+  // AI 콘텐츠 개선 관련 상태
+  const [simpleAIRequest, setSimpleAIRequest] = useState('');
+  const [isImprovingContent, setIsImprovingContent] = useState(false);
+
+  // 브랜드 전략 관련 상태
+  const [brandContentType, setBrandContentType] = useState<BrandStrategyContentType>('골프 정보');
+  const [brandPersona, setBrandPersona] = useState('중상급 골퍼');
+  const [audienceTemperature, setAudienceTemperature] = useState('warm');
+  const [brandWeight, setBrandWeight] = useState('low');
+  const [customerChannel, setCustomerChannel] = useState('근거리 고객');
+  const [storyFramework, setStoryFramework] = useState('pixar');
+  const [conversionGoal, setConversionGoal] = useState('consideration');
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [currentBrandStrategy, setCurrentBrandStrategy] = useState(null);
+
+  // AI 이미지 생성 관련 상태
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [showGeneratedImages, setShowGeneratedImages] = useState(false);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [showGeneratedImageModal, setShowGeneratedImageModal] = useState(false);
+  const [selectedGeneratedImage, setSelectedGeneratedImage] = useState('');
+  const [imageGenerationStep, setImageGenerationStep] = useState('');
+  const [isVarying, setIsVarying] = useState(false);
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
+  const [imageGenerationModel, setImageGenerationModel] = useState('');
+  const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState('');
+  const [imageSavingStates, setImageSavingStates] = useState<{[key: number]: 'idle' | 'saving' | 'saved' | 'error'}>({});
+  const [imageGenerationCount, setImageGenerationCount] = useState<1 | 2 | 3 | 4>(1);
+  const [aiPreset, setAiPreset] = useState<'ultra_extreme_free' | 'extreme_max_free' | 'max_free' | 'ultra_free' | 'super_free' | 'hyper_free' | 'extreme_creative' | 'mega_creative' | 'free_creative' | 'creative' | 'balanced' | 'precise' | 'ultra_precise' | 'high_precision' | 'ultra_high_precision' | 'extreme_precision'>('creative');
+
+  // 허브 연동 상태
+  const [hubData, setHubData] = useState(null);
+  const [isHubMode, setIsHubMode] = useState(false);
+  const [syncModalData, setSyncModalData] = useState({
+    isOpen: false,
+    blogPost: null,
+    hubId: null
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // 편집 모드 감지
+  const isEditMode = () => {
+    return id && id !== 'new';
+  };
+
+  // 게시물 로드
+  const loadPostForEdit = async () => {
+    if (!id || id === 'new') return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/blog/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPost(data);
+        setFormData({
+          title: data.title || '',
+          excerpt: data.excerpt || '',
+          content: data.content || '',
+          category: data.category || '골프 정보',
+          status: data.status || 'draft',
+          meta_title: data.meta_title || '',
+          meta_description: data.meta_description || '',
+          meta_keywords: data.meta_keywords || '',
+          slug: data.slug || '',
+          created_at: data.created_at || ''
+        });
+        
+        // 허브 데이터 로드
+        if (data.calendar_id) {
+          loadHubData(data.calendar_id);
+        }
+      } else {
+        throw new Error('게시물을 불러올 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('게시물 로드 오류:', error);
+      alert('게시물을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 허브 데이터 로드
+  const loadHubData = async (calendarId) => {
+    try {
+      const response = await fetch(`/api/content-calendar-hub/${calendarId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setHubData(data);
+        setIsHubMode(true);
+      }
+    } catch (error) {
+      console.error('허브 데이터 로드 오류:', error);
+    }
+  };
+
+  // 슬러그 생성
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  // 제목 스타일 분석 함수
+  const analyzeTitleStyle = (title: string) => {
+    const styles = [];
+    
+    // 호기심 격차
+    if (title.includes('아무도 모르는') || title.includes('숨겨진') || title.includes('비밀') || title.includes('놀라운 진실')) {
+      styles.push({ type: '호기심 격차', color: 'bg-purple-100 text-purple-800' });
+    }
+    
+    // 사회적 증명
+    if (title.includes('%') || title.includes('많은') || title.includes('인기') || title.includes('추천') || title.includes('후기')) {
+      styles.push({ type: '사회적 증명', color: 'bg-blue-100 text-blue-800' });
+    }
+    
+    // 본능적 생존
+    if (title.includes('위험') || title.includes('구할') || title.includes('안전') || title.includes('보호')) {
+      styles.push({ type: '본능적 생존', color: 'bg-red-100 text-red-800' });
+    }
+    
+    // 희소성/특별함
+    if (title.includes('한정') || title.includes('특별') || title.includes('독점') || title.includes('마감')) {
+      styles.push({ type: '희소성', color: 'bg-orange-100 text-orange-800' });
+    }
+    
+    // 권위/전문성
+    if (title.includes('전문가') || title.includes('교수') || title.includes('연구') || title.includes('데이터')) {
+      styles.push({ type: '권위', color: 'bg-green-100 text-green-800' });
+    }
+    
+    // 상호성/혜택
+    if (title.includes('무료') || title.includes('혜택') || title.includes('선물') || title.includes('감사')) {
+      styles.push({ type: '상호성', color: 'bg-yellow-100 text-yellow-800' });
+    }
+    
+    // 구체적 숫자
+    if (/\d+/.test(title)) {
+      styles.push({ type: '구체적 수치', color: 'bg-indigo-100 text-indigo-800' });
+    }
+    
+    // 질문형
+    if (title.includes('?') || title.includes('왜') || title.includes('어떻게') || title.includes('무엇')) {
+      styles.push({ type: '질문형', color: 'bg-pink-100 text-pink-800' });
+    }
+    
+    return styles.length > 0 ? styles : [{ type: '일반형', color: 'bg-gray-100 text-gray-800' }];
+  };
+
+  // 러프 콘텐츠에서 제목, 요약, 본문 생성 (원본 소스와 동일하게 수정)
+  const handleRoughContentGenerate = async () => {
+    if (!roughContent.trim()) {
+      alert('러프 콘텐츠를 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingFromRough(true);
+    
+    try {
+      console.log('🚀 러프 콘텐츠 처리 시작...');
+      console.log('📝 입력된 콘텐츠:', roughContent);
+      
+      // 1단계: 제목 생성
+      const titleResponse = await fetch('/api/generate-blog-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentSource: roughContent,
+          contentType: formData.category || '골프 정보',
+          customerpersona: '중상급 골퍼',
+          customerChannel: 'local_customers',
+          brandWeight: 'low'
+        })
+      });
+
+      if (!titleResponse.ok) {
+        const errorData = await titleResponse.json();
+        console.error('❌ 제목 생성 실패:', errorData);
+        alert(`제목 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
+      }
+      
+      const titleData = await titleResponse.json();
+      console.log('✅ 제목 생성 성공:', titleData);
+      
+      if (!titleData.titles || titleData.titles.length === 0) {
+        alert('생성된 제목이 없습니다. 다시 시도해주세요.');
+        return;
+      }
+      
+      const selectedTitle = titleData.titles[0]; // 첫 번째 제목 선택
+      console.log('📌 선택된 제목:', selectedTitle);
+        
+      // 2단계: 요약 생성
+      const summaryResponse = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: selectedTitle,
+          type: 'excerpt',
+          keywords: roughContent,
+          contentType: formData.category || '골프 정보',
+          audienceTemp: 'warm',
+          brandWeight: 'low',
+          customerChannel: 'local_customers',
+          painPoint: null,
+          customerpersona: '중상급 골퍼',
+          enableWebSearch: true,
+          excerpt: roughContent
+        })
+      });
+        
+      if (!summaryResponse.ok) {
+        const errorData = await summaryResponse.json();
+        console.error('❌ 요약 생성 실패:', errorData);
+        alert(`요약 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
+      }
+      
+      const summaryData = await summaryResponse.json();
+      console.log('✅ 요약 생성 성공:', summaryData);
+          
+      // 3단계: 본문 생성
+      const contentResponse = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: selectedTitle,
+          type: 'content',
+          keywords: roughContent,
+          contentType: formData.category || '골프 정보',
+          audienceTemp: 'warm',
+          brandWeight: 'low',
+          customerChannel: 'local_customers',
+          painPoint: null,
+          customerpersona: '중상급 골퍼',
+          enableWebSearch: true,
+          excerpt: summaryData.content
+        })
+      });
+        
+      if (!contentResponse.ok) {
+        const errorData = await contentResponse.json();
+        console.error('❌ 본문 생성 실패:', errorData);
+        alert(`본문 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
+      }
+      
+      const contentData = await contentResponse.json();
+      console.log('✅ 본문 생성 성공:', contentData);
+
+      // 폼 데이터 업데이트
+      setFormData(prev => ({
+        ...prev,
+        title: selectedTitle,
+        excerpt: summaryData.content,
+        content: contentData.content,
+        meta_title: selectedTitle
+      }));
+      
+      alert('✅ 러프 콘텐츠가 제목, 요약, 본문으로 정리되었습니다!');
+      setRoughContent(''); // 입력창 초기화
+      
+    } catch (error) {
+      console.error('❌ 러프 콘텐츠 처리 오류:', error);
+      alert(`러프 콘텐츠 처리 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsGeneratingFromRough(false);
+    }
+  };
+
+  // AI 제목 5개 생성
+  const generateAITitle = async () => {
+    // 러프 소스가 있는 경우 우선 사용: 없으면 요약/제목으로 대체
+    const contentSource = `${formData.excerpt}\n\n${formData.content?.slice(0, 500) || ''}`;
+    console.log('🔍 제목 생성 시작 - 콘텐츠 소스:', contentSource);
+    
+    if (!contentSource.trim()) {
+      alert('제목/요약 또는 내용 일부를 먼저 입력해주세요.');
+      return;
+    }
+    
+    setIsGeneratingTitle(true);
+    console.log('🚀 제목 생성 API 호출 시작...');
+    
+    try {
+      const requestBody = { 
+        contentSource,
+        contentType: formData.category,
+        customerpersona: '중상급 골퍼',
+        customerChannel: 'local_customers',
+        brandWeight: 'low'
+      };
+      
+      console.log('📤 요청 데이터:', requestBody);
+      
+      const response = await fetch('/api/generate-blog-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('📥 응답 상태:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API 오류 응답:', errorText);
+        throw new Error(`제목 생성 실패 (${response.status}): ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ API 응답 데이터:', data);
+      
+      if (data.success && Array.isArray(data.titles)) {
+        console.log('📝 생성된 제목들:', data.titles);
+        setGeneratedTitles(data.titles);
+        setShowTitleOptions(true);
+        console.log('🎉 제목 생성 완료, 모달 표시');
+      } else {
+        console.error('❌ 잘못된 응답 형식:', data);
+        throw new Error('제목 생성 응답 형식이 올바르지 않습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ AI 제목 생성 오류:', error);
+      console.error('❌ 오류 스택:', error.stack);
+      alert(`AI 제목 생성 실패: ${error.message}`);
+    } finally {
+      setIsGeneratingTitle(false);
+      console.log('🏁 제목 생성 프로세스 완료');
+    }
+  };
+
+  // AI 요약 생성
+  const generateAIExcerpt = async () => {
+    if (!formData.content) {
+      alert('내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingExcerpt(true);
+    try {
+      const response = await fetch('/api/blog/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          title: formData.title
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, excerpt: data.summary }));
+        alert('AI가 요약을 생성했습니다!');
+      } else {
+        throw new Error('요약 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 요약 생성 오류:', error);
+      alert('요약 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingExcerpt(false);
+    }
+  };
+
+  // AI 슬러그 생성 (한글)
+  const generateAISlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingSlug(true);
+    try {
+      const response = await fetch('/api/generate-smart-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title,
+          type: 'slug'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, slug: data.slug || generateSlug(formData.title) }));
+        alert('AI가 슬러그를 생성했습니다!');
+      } else {
+        // API 실패시 기본 슬러그 생성
+        setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
+        alert('기본 슬러그가 생성되었습니다.');
+      }
+    } catch (error) {
+      console.error('AI 슬러그 생성 오류:', error);
+      // 오류시 기본 슬러그 생성
+      setFormData(prev => ({ ...prev, slug: generateSlug(formData.title) }));
+      alert('기본 슬러그가 생성되었습니다.');
+    } finally {
+      setIsGeneratingSlug(false);
+    }
+  };
+
+  // 영문 슬러그 생성
+  const generateEnglishSlug = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingSlug(true);
+    try {
+      const response = await fetch('/api/generate-slug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: formData.title
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, slug: data.slug }));
+        alert('영문 슬러그가 생성되었습니다!');
+      } else {
+        throw new Error('영문 슬러그 생성 실패');
+      }
+    } catch (error) {
+      console.error('영문 슬러그 생성 오류:', error);
+      alert('영문 슬러그 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingSlug(false);
+    }
+  };
+
+  // AI 메타 제목 생성
+  const generateAIMetaTitle = async () => {
+    if (!formData.title) {
+      alert('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingMetaTitle(true);
+    try {
+      const response = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'meta_title',
+          title: formData.title,
+          content: formData.content
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, meta_title: data.meta_title }));
+        alert('AI가 메타 제목을 생성했습니다!');
+      } else {
+        throw new Error('메타 제목 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 메타 제목 생성 오류:', error);
+      alert('메타 제목 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingMetaTitle(false);
+    }
+  };
+
+  // AI 메타 설명 생성
+  const generateAIMetaDescription = async () => {
+    if (!formData.content) {
+      alert('내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingMetaDescription(true);
+    try {
+      const response = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'meta_description',
+          title: formData.title,
+          content: formData.content
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, meta_description: data.meta_description }));
+        alert('AI가 메타 설명을 생성했습니다!');
+      } else {
+        throw new Error('메타 설명 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 메타 설명 생성 오류:', error);
+      alert('메타 설명 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingMetaDescription(false);
+    }
+  };
+
+  // AI 메타 키워드 생성
+  const generateAIMetaKeywords = async () => {
+    if (!formData.content) {
+      alert('내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingMetaKeywords(true);
+    try {
+      const response = await fetch('/api/generate-enhanced-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'meta_keywords',
+          title: formData.title,
+          content: formData.content
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, meta_keywords: data.meta_keywords }));
+        alert('AI가 메타 키워드를 생성했습니다!');
+      } else {
+        throw new Error('메타 키워드 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 메타 키워드 생성 오류:', error);
+      alert('메타 키워드 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingMetaKeywords(false);
+    }
+  };
+
+  // SEO 품질 분석
+  const analyzeSEOQuality = async () => {
+    if (!formData.title || !formData.content) {
+      alert('제목과 내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsAnalyzingSEO(true);
+    try {
+      const response = await fetch('/api/optimize-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          meta_title: formData.meta_title,
+          meta_description: formData.meta_description,
+          meta_keywords: formData.meta_keywords
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSeoAnalysisResult(data);
+        setSeoAnalysisSuggestions({
+          meta_title: data.suggestions?.meta_title || '',
+          meta_description: data.suggestions?.meta_description || '',
+          slug: data.suggestions?.slug || '',
+          keywords: data.suggestions?.keywords || ''
+        });
+        alert('SEO 품질 분석이 완료되었습니다!');
+      } else {
+        throw new Error('SEO 분석 실패');
+      }
+    } catch (error) {
+      console.error('SEO 품질 분석 오류:', error);
+      alert('SEO 품질 분석 중 오류가 발생했습니다.');
+    } finally {
+      setIsAnalyzingSEO(false);
+    }
+  };
+
+  // 전체 SEO 생성
+  const generateAllSEO = async () => {
+    if (!formData.title || !formData.content) {
+      alert('제목과 내용을 먼저 입력해주세요.');
+      return;
+    }
+
+    setIsGeneratingAllSEO(true);
+    try {
+      // 메타 제목 생성
+      await generateAIMetaTitle();
+      // 메타 설명 생성
+      await generateAIMetaDescription();
+      // 메타 키워드 생성
+      await generateAIMetaKeywords();
+      
+      alert('전체 SEO 메타데이터가 생성되었습니다!');
+    } catch (error) {
+      console.error('전체 SEO 생성 오류:', error);
+      alert('SEO 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingAllSEO(false);
+    }
+  };
+
+  // AI 콘텐츠 개선
+  const handleSimpleAIImprovement = async () => {
+    if (!simpleAIRequest.trim()) {
+      alert('개선 요청사항을 입력해주세요.');
+      return;
+    }
+
+    if (!formData.content) {
+      alert('개선할 내용이 없습니다.');
+      return;
+    }
+
+    setIsImprovingContent(true);
+    try {
+      const response = await fetch('/api/simple-ai-improvement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          request: simpleAIRequest
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, content: data.improvedContent }));
+        setSimpleAIRequest('');
+        alert('AI가 콘텐츠를 개선했습니다!');
+      } else {
+        throw new Error('콘텐츠 개선 실패');
+      }
+    } catch (error) {
+      console.error('AI 콘텐츠 개선 오류:', error);
+      alert('콘텐츠 개선 중 오류가 발생했습니다.');
+    } finally {
+      setIsImprovingContent(false);
+    }
+  };
+
+  // 브랜드 전략 콘텐츠 유형 변경시 카테고리 자동 매핑
+  useEffect(() => {
+    const mappedCategory = getPublishCategory(brandContentType);
+    setFormData(prev => ({ ...prev, category: mappedCategory }));
+  }, [brandContentType]);
+
+  // 브랜드 전략 적용
+  const handleBrandStrategyApply = async () => {
+    if (!formData.content) {
+      alert('브랜드 전략을 적용할 내용이 없습니다.');
+      return;
+    }
+
+    setIsApplyingBrandStrategy(true);
+    try {
+      const brandStrategy = {
+        contentType: brandContentType,
+        persona: brandPersona,
+        audienceTemperature: audienceTemperature,
+        brandWeight: brandWeight,
+        customerChannel: customerChannel,
+        storyFramework: storyFramework,
+        conversionGoal: conversionGoal
+      };
+
+      const response = await fetch('/api/admin/generate-variations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          brandStrategy: brandStrategy
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentBrandStrategy(brandStrategy);
+        setShowVariationModal(true);
+        alert('브랜드 전략이 적용되었습니다!');
+      } else {
+        throw new Error('브랜드 전략 적용 실패');
+      }
+    } catch (error) {
+      console.error('브랜드 전략 적용 오류:', error);
+      alert('브랜드 전략 적용 중 오류가 발생했습니다.');
+    } finally {
+      setIsApplyingBrandStrategy(false);
+    }
+  };
+
+  // AI 이미지 생성
+  const generateAIImage = async () => {
+    if (!formData.content) {
+      alert('이미지 생성을 위한 내용이 없습니다.');
+      return;
+    }
+
+    setIsGeneratingImages(true);
+    try {
+      const response = await fetch('/api/generate-blog-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: formData.content,
+          title: formData.title,
+          count: imageGenerationCount,
+          preset: aiPreset
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedImages(data.images || []);
+        setShowGeneratedImages(true);
+        alert('AI 이미지가 생성되었습니다!');
+      } else {
+        throw new Error('이미지 생성 실패');
+      }
+    } catch (error) {
+      console.error('AI 이미지 생성 오류:', error);
+      alert('이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingImages(false);
+    }
+  };
+
+  // 편집 폼 제출
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/admin/blog/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('게시물이 수정되었습니다!');
+        router.push('/admin/blog');
+      } else {
+        throw new Error('게시물 수정 실패');
+      }
+    } catch (error) {
+      console.error('게시물 수정 오류:', error);
+      alert('게시물 수정 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 초기 로드
+  useEffect(() => {
+    if (isEditMode()) {
+      loadPostForEdit();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">게시물을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Head>
+        <title>게시물 편집 - MASGOLF v2</title>
+      </Head>
+      
+      {/* 버전 선택 메뉴 */}
+      <div className="bg-green-50 border-b border-green-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-green-900">블로그 관리 시스템 v2</h3>
+              <p className="text-sm text-green-700">현재: 신규 분리 버전 - 게시물 편집</p>
+            </div>
+            <div className="flex space-x-3">
+              <Link
+                href="/admin/blog"
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                📊 기존 버전
+              </Link>
+              <Link
+                href="/admin/blog2"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                🚀 신규 버전 (현재)
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <AdminNav />
+      
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="bg-white rounded-lg shadow-md">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">게시물 편집</h1>
+                <p className="text-gray-600">게시물을 수정하세요</p>
+              </div>
+              <Link href="/admin/blog" className="text-blue-600 hover:text-blue-800">
+                ← 목록으로 돌아가기
+              </Link>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 1. 러프 콘텐츠 입력 섹션 */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex items-center space-x-2 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">✍️ 러프 콘텐츠 입력</h3>
+                <span className="text-sm text-gray-500">두서없이 써도 AI가 정리해드립니다</span>
+              </div>
+              
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    글감/아이디어/두서없는 내용 입력
+                  </label>
+                  <textarea
+                    placeholder="예: 드라이버 비거리 늘리고 싶은데... 60대라서 힘들어... 마쓰구골프라는 브랜드가 있다고 들었는데... 초고반발이라고 하던데... 맞춤 피팅도 해준다고... 비싸긴 한데 효과가 있을까... 동료들이 추천해줬는데..."
+                    value={roughContent}
+                    onChange={(e) => setRoughContent(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent h-32 resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 두서없이 써도 AI가 제목, 요약, 본문으로 정리해드립니다
+                  </p>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={handleRoughContentGenerate}
+                    disabled={isGeneratingFromRough || !roughContent.trim()}
+                    className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {isGeneratingFromRough ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>정리 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🧹</span>
+                        <span>AI가 정리하기</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setRoughContent('')}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200"
+                  >
+                    지우기
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. 제목 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    title: e.target.value,
+                    slug: formData.slug || generateSlug(e.target.value)
+                  })}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="게시물 제목을 입력하세요"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={generateAITitle}
+                  className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                  disabled={isGeneratingTitle}
+                >
+                  {isGeneratingTitle ? '생성 중…' : '🤖 제목 추천'}
+                </button>
+              </div>
+            </div>
+
+            {/* 3. 작성일 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                작성일
+              </label>
+              <input
+                type="date"
+                value={formData.created_at ? new Date(formData.created_at).toISOString().split('T')[0] : ''}
+                onChange={(e) => {
+                  setFormData({ ...formData, created_at: new Date(e.target.value).toISOString() });
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="작성일을 선택하세요"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                작성일을 수정할 수 있습니다. 리스트에서 표시되는 날짜입니다.
+              </p>
+            </div>
+
+            {/* 4. 요약 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">요약</label>
+              <div className="flex gap-2">
+                <textarea
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  rows={3}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="게시물 요약을 입력하세요"
+                />
+                <button
+                  type="button"
+                  onClick={generateAIExcerpt}
+                  disabled={isGeneratingExcerpt}
+                  className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                >
+                  {isGeneratingExcerpt ? '생성 중…' : '🤖 AI 요약'}
+                </button>
+              </div>
+            </div>
+
+            {/* 5. 슬러그 섹션 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">슬러그 (URL)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="url-friendly-slug"
+                />
+                <button
+                  type="button"
+                  onClick={generateAISlug}
+                  disabled={isGeneratingSlug}
+                  className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                >
+                  {isGeneratingSlug ? '생성 중…' : '🤖 AI 슬러그'}
+                </button>
+                <button
+                  type="button"
+                  onClick={generateEnglishSlug}
+                  disabled={isGeneratingSlug}
+                  className="px-3 whitespace-nowrap rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+                >
+                  {isGeneratingSlug ? '생성 중…' : '🌐 영문 슬러그'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                URL에 사용될 슬러그입니다. 공백은 하이픈(-)으로 변환됩니다.
+              </p>
+            </div>
+
+            {/* 6. 카테고리와 상태 */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 카테고리 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    카테고리
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {PUBLISH_CATEGORIES.map(category => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {CATEGORY_DESCRIPTIONS[formData.category as PublishCategory] || ''}
+                  </p>
+                </div>
+
+                {/* 상태 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    상태
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="draft">초안</option>
+                    <option value="published">발행됨</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. SEO 메타 데이터 섹션 */}
+            <div className="border-t border-gray-200 pt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">🔍 SEO 메타데이터</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">메타 제목 (SEO)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.meta_title}
+                      onChange={(e) => setFormData({...formData, meta_title: e.target.value})}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="SEO 최적화된 제목"
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAIMetaTitle}
+                      disabled={isGeneratingMetaTitle}
+                      className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                    >
+                      {isGeneratingMetaTitle ? '생성 중…' : 'AI 생성'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">메타 설명 (SEO)</label>
+                  <div className="flex gap-2">
+                    <textarea
+                      value={formData.meta_description}
+                      onChange={(e) => setFormData({...formData, meta_description: e.target.value})}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="SEO 최적화된 설명"
+                      rows={3}
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAIMetaDescription}
+                      disabled={isGeneratingMetaDescription}
+                      className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                    >
+                      {isGeneratingMetaDescription ? '생성 중…' : 'AI 생성'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">메타 키워드 (SEO)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.meta_keywords}
+                      onChange={(e) => setFormData({...formData, meta_keywords: e.target.value})}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="관련 키워드 (쉼표로 구분)"
+                    />
+                    <button
+                      type="button"
+                      onClick={generateAIMetaKeywords}
+                      disabled={isGeneratingMetaKeywords}
+                      className="px-3 whitespace-nowrap rounded bg-purple-600 text-white text-sm hover:bg-purple-700"
+                    >
+                      {isGeneratingMetaKeywords ? '생성 중…' : 'AI 생성'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. SEO 품질 분석 */}
+            <div className="border-t border-gray-200 pt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">📊 SEO 품질 분석</h3>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={analyzeSEOQuality}
+                    disabled={isAnalyzingSEO}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isAnalyzingSEO ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>분석 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>📊</span>
+                        <span>SEO 품질 분석</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={generateAllSEO}
+                    disabled={isGeneratingAllSEO}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isGeneratingAllSEO ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>생성 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🚀</span>
+                        <span>전체 SEO 생성</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {seoAnalysisResult && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">SEO 분석 결과</h4>
+                    <div className="text-sm text-blue-800">
+                      <p>점수: {seoAnalysisResult.score}/100</p>
+                      <p>제안사항: {seoAnalysisResult.suggestions}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 5. 갤러리 열기 */}
+            <div className="flex justify-center py-4">
+              <button
+                type="button"
+                onClick={() => setIsGalleryOpen(!isGalleryOpen)}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  isGalleryOpen 
+                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                }`}
+              >
+                {isGalleryOpen ? '📁 갤러리 닫기' : '📂 갤러리 열기'}
+                {totalImagesCount > 0 && (
+                  <span className="ml-2 text-xs opacity-75">
+                    ({totalImagesCount}개)
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* 6. 편집창 (본문 에디터) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
+              {/* @ts-ignore */}
+              <TipTapEditor
+                valueMarkdown={formData.content}
+                onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
+              />
+            </div>
+
+            {/* 7. AI 콘텐츠 개선 */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex items-center space-x-2 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">🤖 AI 콘텐츠 개선</h3>
+                <span className="text-sm text-gray-500">AI로 콘텐츠를 분석하고 개선할 수 있습니다</span>
+              </div>
+              
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    개선 요청사항
+                  </label>
+                  <textarea
+                    value={simpleAIRequest}
+                    onChange={(e) => setSimpleAIRequest(e.target.value)}
+                    placeholder="예: 더 매력적인 제목으로 바꿔주세요, SEO를 고려한 내용으로 개선해주세요, 더 읽기 쉽게 만들어주세요..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
+                  />
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handleSimpleAIImprovement}
+                  disabled={isImprovingContent || !simpleAIRequest.trim()}
+                  className="px-6 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {isImprovingContent ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>개선 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⚡</span>
+                      <span>간단 AI 개선</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* 8. 마쓰구 브랜드 전략 (하단) */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex items-center space-x-2 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">🎯 마쓰구 브랜드 전략</h3>
+                <span className="text-sm text-gray-500">페르소나와 오디언스 온도에 맞춘 맞춤형 콘텐츠 생성</span>
+              </div>
+              
+              <BrandStrategySelector 
+                isLoading={isApplyingBrandStrategy}
+                onStrategyChange={(strategy) => {
+                  setBrandContentType(strategy.contentType as BrandStrategyContentType);
+                  setBrandPersona(strategy.persona);
+                  setAudienceTemperature(strategy.audienceTemperature);
+                  setStoryFramework(strategy.framework);
+                  setConversionGoal(strategy.conversionGoal);
+                }}
+                onApplyStrategy={async (strategy) => {
+                  setIsApplyingBrandStrategy(true);
+                  try {
+                    // 브랜드 전략 적용 로직
+                    console.log('브랜드 전략 적용:', strategy);
+                  } catch (error) {
+                    console.error('브랜드 전략 적용 오류:', error);
+                  } finally {
+                    setIsApplyingBrandStrategy(false);
+                  }
+                }}
+              />
+              
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={handleBrandStrategyApply}
+                  disabled={isApplyingBrandStrategy}
+                  className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {isApplyingBrandStrategy ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>적용 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🎯</span>
+                      <span>브랜드 전략 적용</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* 9. AI 이미지 생성 섹션 (하단) */}
+            <div className="border-t border-gray-200 pt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">🎨 AI 이미지 생성</h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">생성할 이미지 개수</label>
+                    <select
+                      value={imageGenerationCount}
+                      onChange={(e) => setImageGenerationCount(Number(e.target.value) as 1 | 2 | 3 | 4)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value={1}>1개</option>
+                      <option value={2}>2개</option>
+                      <option value={3}>3개</option>
+                      <option value={4}>4개</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">AI 프리셋</label>
+                    <select
+                      value={aiPreset}
+                      onChange={(e) => setAiPreset(e.target.value as any)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="creative">창의적</option>
+                      <option value="balanced">균형</option>
+                      <option value="precise">정확</option>
+                      <option value="ultra_precise">초정확</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={generateAIImage}
+                    disabled={isGeneratingImages}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {isGeneratingImages ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>생성 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🎨</span>
+                        <span>AI 이미지 생성</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 폼 제출 버튼 */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex justify-end space-x-4">
+                <Link
+                  href="/admin/blog"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  취소
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* 베리에이션 추천 모달 */}
+      {showVariationModal && (
+        <VariationRecommendationModal
+          isOpen={showVariationModal}
+          onClose={() => setShowVariationModal(false)}
+          currentContent={formData.content}
+          brandStrategy={currentBrandStrategy}
+          onSelectVariation={async (selectedVariation) => {
+            try {
+              console.log('선택된 베리에이션:', selectedVariation);
+              // 베리에이션 적용 로직
+              setFormData(prev => ({ ...prev, content: selectedVariation as any }));
+              setShowVariationModal(false);
+            } catch (error) {
+              console.error('베리에이션 적용 오류:', error);
+            }
+          }}
+        />
+      )}
+
+      {/* 제목 추천 모달 */}
+      {showTitleOptions && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">🧠 심리학 기반 제목 추천</h3>
+              <button type="button" className="text-gray-500" onClick={() => setShowTitleOptions(false)}>✕</button>
+            </div>
+            <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
+              {/* 현재 제목 점수 카드 */}
+              {formData.title && (
+                <div className="border rounded-lg p-4 bg-blue-50/40">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="text-xs text-blue-700 mb-1">현재 제목</div>
+                      <div className="text-sm font-medium text-gray-900 mb-1">{formData.title}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-400 mt-1">{formData.title.length}자</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {generatedTitles.length === 0 && (
+                <div className="text-sm text-gray-500">추천 제목이 없습니다.</div>
+              )}
+              
+              {generatedTitles
+                .map((title, i) => {
+                  const styles = analyzeTitleStyle(title);
+                  return { title, styles };
+                })
+                .map(({ title, styles }, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      title: title,
+                      slug: generateSlug(title),
+                      meta_title: title
+                    }));
+                    setShowTitleOptions(false);
+                  }}
+                  className="w-full text-left p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900 mb-2">{title}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {styles.map((style, idx) => (
+                          <span
+                            key={idx}
+                            className={`px-2 py-1 text-xs rounded-full ${style.color}`}
+                          >
+                            {style.type}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-400 mt-1">{title.length}자</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="p-4 border-t bg-gray-50">
+              <div className="text-xs text-gray-600 mb-2">
+                💡 각 제목은 로버트 치알디니의 6가지 영향력 원칙과 뇌과학 기반 후킹 기법을 적용했습니다.
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  type="button"
+                  onClick={() => setShowTitleOptions(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
