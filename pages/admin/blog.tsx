@@ -10,6 +10,16 @@ import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../components/admin/VariationRecommendationModal';
+import { 
+  PUBLISH_CATEGORIES, 
+  BRAND_STRATEGY_CONTENT_TYPES,
+  getPublishCategory,
+  getBrandStrategyContentType,
+  CATEGORY_DESCRIPTIONS,
+  BRAND_STRATEGY_DESCRIPTIONS,
+  type PublishCategory,
+  type BrandStrategyContentType
+} from '../../lib/category-mapping';
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
@@ -27,6 +37,7 @@ export default function BlogAdmin() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState([]);
   
   // AI 이미지 생성 관련 상태
   const [generatedImages, setGeneratedImages] = useState([]);
@@ -650,6 +661,20 @@ export default function BlogAdmin() {
       setLoading(false);
     }
   }, [sortBy, sortOrder]);
+
+  // 카테고리 목록 로드
+  const loadCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/blog');
+      if (response.ok) {
+        const data = await response.json();
+        const categories = Array.from(new Set(data.posts.map(post => post.category))).filter(Boolean);
+        setAvailableCategories(categories);
+      }
+    } catch (error) {
+      console.error('카테고리 로드 오류:', error);
+    }
+  };
 
   // 허브 연동 상태
   const [hubData, setHubData] = useState(null);
@@ -4511,6 +4536,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   // 초기 로드
   useEffect(() => {
     fetchPosts();
+    loadCategories();
   }, []);
 
   // 페이지 전체 드래그앤드롭 방지
@@ -5632,12 +5658,27 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="고객 후기">고객 후기</option>
-                        <option value="제품 정보">제품 정보</option>
-                        <option value="골프 팁">골프 팁</option>
-                        <option value="이벤트">이벤트</option>
+                        {availableCategories.length > 0 ? (
+                          availableCategories.map(category => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="골프 정보">골프 정보</option>
+                            <option value="제품 정보">제품 정보</option>
+                            <option value="고객 후기">고객 후기</option>
+                            <option value="브랜드 스토리">브랜드 스토리</option>
+                            <option value="이벤트">이벤트</option>
+                            <option value="기술 및 성능">기술 및 성능</option>
+                          </>
+                        )}
                         <option value="공지사항">공지사항</option>
                       </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {CATEGORY_DESCRIPTIONS[formData.category as PublishCategory] || ''}
+                      </p>
                     </div>
 
                     {/* 상태 */}
