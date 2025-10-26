@@ -1983,9 +1983,7 @@ export default function BlogAdmin() {
     // 로컬 스토리지에 저장
     saveToStorage() {
       try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
-        }
+        localStorage.setItem('promptConfigs', JSON.stringify(this.configs));
       } catch (error) {
         console.error('설정 저장 실패:', error);
         alert('설정 저장에 실패했습니다. 브라우저 저장 공간을 확인해주세요.');
@@ -1995,11 +1993,8 @@ export default function BlogAdmin() {
     // 로컬 스토리지에서 불러오기
     loadConfigs() {
       try {
-        if (typeof window !== 'undefined') {
-          const stored = localStorage.getItem('promptConfigs');
-          return stored ? JSON.parse(stored) : {};
-        }
-        return {};
+        const stored = localStorage.getItem('promptConfigs');
+        return stored ? JSON.parse(stored) : {};
       } catch (error) {
         console.error('설정 불러오기 실패:', error);
         return {};
@@ -4623,7 +4618,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-gray-900">블로그 관리</h1>
+              <h1 className="text-3xl font-bold text-gray-900">블로그 관리 v2</h1>
               <div className="flex items-center space-x-4">
                 <Link 
                   href="/admin" 
@@ -4631,30 +4626,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                 >
                   ← 메인 대시보드로 돌아가기
                 </Link>
-              </div>
-            </div>
-            
-            {/* 버전 선택 메뉴 */}
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900">블로그 관리 시스템</h3>
-                  <p className="text-sm text-blue-700">현재: 기존 통합 버전 (안정화됨)</p>
-                </div>
-                <div className="flex space-x-3">
-                  <Link
-                    href="/admin/blog"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    📊 기존 버전 (현재)
-                  </Link>
-                  <Link
-                    href="/admin/blog2"
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    🚀 신규 버전 (개발중)
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
