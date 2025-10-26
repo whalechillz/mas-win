@@ -176,7 +176,7 @@ export default function BlogEdit() {
       .trim();
   };
 
-  // 러프 콘텐츠에서 제목, 요약, 본문 생성
+  // 러프 콘텐츠에서 제목, 요약, 본문 생성 (원본 소스와 동일하게 수정)
   const handleRoughContentGenerate = async () => {
     if (!roughContent.trim()) {
       alert('러프 콘텐츠를 먼저 입력해주세요.');
@@ -190,67 +190,97 @@ export default function BlogEdit() {
       console.log('📝 입력된 콘텐츠:', roughContent);
       
       // 1단계: 제목 생성
-      const titleResponse = await fetch('/api/generate-enhanced-content', {
+      const titleResponse = await fetch('/api/generate-blog-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'title',
-          title: roughContent,
+          contentSource: roughContent,
           contentType: formData.category || '골프 정보'
         })
       });
 
       if (!titleResponse.ok) {
-        throw new Error('제목 생성 실패');
+        const errorData = await titleResponse.json();
+        console.error('❌ 제목 생성 실패:', errorData);
+        alert(`제목 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
       }
-
+      
       const titleData = await titleResponse.json();
-      const selectedTitle = titleData.title;
-
+      console.log('✅ 제목 생성 성공:', titleData);
+      
+      if (!titleData.titles || titleData.titles.length === 0) {
+        alert('생성된 제목이 없습니다. 다시 시도해주세요.');
+        return;
+      }
+      
+      const selectedTitle = titleData.titles[0]; // 첫 번째 제목 선택
+      console.log('📌 선택된 제목:', selectedTitle);
+        
       // 2단계: 요약 생성
-      const excerptResponse = await fetch('/api/generate-enhanced-content', {
+      const summaryResponse = await fetch('/api/generate-enhanced-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'excerpt',
+        body: JSON.stringify({ 
           title: selectedTitle,
-          content: roughContent,
-          contentType: formData.category || '골프 정보'
+          type: 'excerpt',
+          keywords: roughContent,
+          contentType: formData.category || '골프 정보',
+          audienceTemp: 'warm',
+          brandWeight: 'low',
+          customerChannel: 'local_customers',
+          painPoint: null,
+          customerpersona: '중상급 골퍼',
+          enableWebSearch: true,
+          excerpt: roughContent
         })
       });
-
-      if (!excerptResponse.ok) {
-        throw new Error('요약 생성 실패');
+        
+      if (!summaryResponse.ok) {
+        const errorData = await summaryResponse.json();
+        console.error('❌ 요약 생성 실패:', errorData);
+        alert(`요약 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
       }
-
-      const excerptData = await excerptResponse.json();
-      const selectedExcerpt = excerptData.excerpt;
-
+      
+      const summaryData = await summaryResponse.json();
+      console.log('✅ 요약 생성 성공:', summaryData);
+          
       // 3단계: 본문 생성
       const contentResponse = await fetch('/api/generate-enhanced-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'content',
+        body: JSON.stringify({ 
           title: selectedTitle,
-          content: roughContent,
-          contentType: formData.category || '골프 정보'
+          type: 'content',
+          keywords: roughContent,
+          contentType: formData.category || '골프 정보',
+          audienceTemp: 'warm',
+          brandWeight: 'low',
+          customerChannel: 'local_customers',
+          painPoint: null,
+          customerpersona: '중상급 골퍼',
+          enableWebSearch: true,
+          excerpt: summaryData.content
         })
       });
-
+        
       if (!contentResponse.ok) {
-        throw new Error('본문 생성 실패');
+        const errorData = await contentResponse.json();
+        console.error('❌ 본문 생성 실패:', errorData);
+        alert(`본문 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
+        return;
       }
-
+      
       const contentData = await contentResponse.json();
-      const selectedContent = contentData.content;
+      console.log('✅ 본문 생성 성공:', contentData);
 
       // 폼 데이터 업데이트
       setFormData(prev => ({
         ...prev,
         title: selectedTitle,
-        excerpt: selectedExcerpt,
-        content: selectedContent,
+        excerpt: summaryData.content,
+        content: contentData.content,
         meta_title: selectedTitle
       }));
       
