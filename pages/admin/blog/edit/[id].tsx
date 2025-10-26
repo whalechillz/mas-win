@@ -53,17 +53,6 @@ export default function BlogEdit() {
   const [generatedTitles, setGeneratedTitles] = useState<string[]>([]);
   const [showTitleOptions, setShowTitleOptions] = useState(false);
 
-  // 슬러그 생성 함수
-  const generateSlug = (title: string) => {
-    if (!title) return '';
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9가-힣\s]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-
   // SEO 품질 분석 관련 상태
   const [seoAnalysisResult, setSeoAnalysisResult] = useState(null);
   const [seoAnalysisSuggestions, setSeoAnalysisSuggestions] = useState({
@@ -1066,21 +1055,26 @@ export default function BlogEdit() {
                 <span className="text-sm text-gray-500">페르소나와 오디언스 온도에 맞춘 맞춤형 콘텐츠 생성</span>
               </div>
               
-              <BrandStrategySelector
-                contentType={brandContentType}
-                setContentType={setBrandContentType}
-                persona={brandPersona}
-                setPersona={setBrandPersona}
-                audienceTemperature={audienceTemperature}
-                setAudienceTemperature={setAudienceTemperature}
-                brandWeight={brandWeight}
-                setBrandWeight={setBrandWeight}
-                customerChannel={customerChannel}
-                setCustomerChannel={setCustomerChannel}
-                storyFramework={storyFramework}
-                setStoryFramework={setStoryFramework}
-                conversionGoal={conversionGoal}
-                setConversionGoal={setConversionGoal}
+              <BrandStrategySelector 
+                isLoading={isApplyingBrandStrategy}
+                onStrategyChange={(strategy) => {
+                  setBrandContentType(strategy.contentType);
+                  setBrandPersona(strategy.persona);
+                  setAudienceTemperature(strategy.audienceTemperature);
+                  setStoryFramework(strategy.framework);
+                  setConversionGoal(strategy.conversionGoal);
+                }}
+                onApplyStrategy={async (strategy) => {
+                  setIsApplyingBrandStrategy(true);
+                  try {
+                    // 브랜드 전략 적용 로직
+                    console.log('브랜드 전략 적용:', strategy);
+                  } catch (error) {
+                    console.error('브랜드 전략 적용 오류:', error);
+                  } finally {
+                    setIsApplyingBrandStrategy(false);
+                  }
+                }}
               />
               
               <div className="mt-6">
@@ -1190,11 +1184,17 @@ export default function BlogEdit() {
         <VariationRecommendationModal
           isOpen={showVariationModal}
           onClose={() => setShowVariationModal(false)}
+          currentContent={formData.content}
           brandStrategy={currentBrandStrategy}
-          originalContent={formData.content}
-          onApplyVariation={(variation) => {
-            setFormData(prev => ({ ...prev, content: variation }));
-            setShowVariationModal(false);
+          onSelectVariation={async (selectedVariation) => {
+            try {
+              console.log('선택된 베리에이션:', selectedVariation);
+              // 베리에이션 적용 로직
+              setFormData(prev => ({ ...prev, content: selectedVariation as any }));
+              setShowVariationModal(false);
+            } catch (error) {
+              console.error('베리에이션 적용 오류:', error);
+            }
           }}
         />
       )}
