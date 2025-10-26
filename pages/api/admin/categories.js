@@ -16,9 +16,9 @@ export default async function handler(req, res) {
     // GET: 카테고리 목록 조회
     if (req.method === 'GET') {
       const { data, error } = await supabase
-        .from('image_categories')
+        .from('categories')
         .select('*')
-        .order('name', { ascending: true });
+        .order('sort_order', { ascending: true });
 
       if (error) {
         console.error('❌ 카테고리 조회 오류:', error);
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     // POST: 새 카테고리 생성
     if (req.method === 'POST') {
-      const { name, description } = req.body;
+      const { name, description, is_active, sort_order } = req.body;
 
       if (!name || name.trim() === '') {
         return res.status(400).json({
@@ -45,39 +45,15 @@ export default async function handler(req, res) {
         });
       }
 
-      // slug 생성 (한글을 영문으로 변환)
-      const slug = name.toLowerCase()
-        .replace(/[가-힣]/g, (match) => {
-          const koreanToEnglish = {
-            '골프': 'golf',
-            '장비': 'equipment',
-            '코스': 'course',
-            '이벤트': 'event',
-            '기타': 'etc',
-            '드라이버': 'driver',
-            '아이언': 'iron',
-            '퍼터': 'putter',
-            '웨지': 'wedge',
-            '볼': 'ball',
-            '악세서리': 'accessory',
-            '의류': 'clothing',
-            '신발': 'shoes',
-            '가방': 'bag',
-            '장갑': 'glove'
-          };
-          return koreanToEnglish[match] || match;
-        })
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-
       const { data, error } = await supabase
-        .from('image_categories')
+        .from('categories')
         .insert([
           {
             name: name.trim(),
-            slug: slug,
-            description: description || null
+            description: description || null,
+            is_active: is_active !== undefined ? is_active : true,
+            sort_order: sort_order || 0,
+            created_at: new Date().toISOString()
           }
         ])
         .select();
@@ -99,7 +75,7 @@ export default async function handler(req, res) {
 
     // PUT: 카테고리 수정
     if (req.method === 'PUT') {
-      const { id, name, description } = req.body;
+      const { id, name, description, is_active, sort_order } = req.body;
 
       if (!id || !name || name.trim() === '') {
         return res.status(400).json({
@@ -107,38 +83,13 @@ export default async function handler(req, res) {
         });
       }
 
-      // slug 생성
-      const slug = name.toLowerCase()
-        .replace(/[가-힣]/g, (match) => {
-          const koreanToEnglish = {
-            '골프': 'golf',
-            '장비': 'equipment',
-            '코스': 'course',
-            '이벤트': 'event',
-            '기타': 'etc',
-            '드라이버': 'driver',
-            '아이언': 'iron',
-            '퍼터': 'putter',
-            '웨지': 'wedge',
-            '볼': 'ball',
-            '악세서리': 'accessory',
-            '의류': 'clothing',
-            '신발': 'shoes',
-            '가방': 'bag',
-            '장갑': 'glove'
-          };
-          return koreanToEnglish[match] || match;
-        })
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-
       const { data, error } = await supabase
-        .from('image_categories')
+        .from('categories')
         .update({
           name: name.trim(),
-          slug: slug,
           description: description || null,
+          is_active: is_active !== undefined ? is_active : true,
+          sort_order: sort_order || 0,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -167,7 +118,7 @@ export default async function handler(req, res) {
 
     // DELETE: 카테고리 삭제
     if (req.method === 'DELETE') {
-      const { id } = req.body;
+      const { id } = req.query;
 
       if (!id) {
         return res.status(400).json({
@@ -175,28 +126,28 @@ export default async function handler(req, res) {
         });
       }
 
-      // 먼저 해당 카테고리를 사용하는 이미지가 있는지 확인
-      const { data: imageCount, error: countError } = await supabase
-        .from('image_metadata')
+      // 먼저 해당 카테고리를 사용하는 블로그 포스트가 있는지 확인
+      const { data: blogCount, error: countError } = await supabase
+        .from('blog_posts')
         .select('id', { count: 'exact' })
         .eq('category', id);
 
       if (countError) {
-        console.error('❌ 이미지 카운트 조회 오류:', countError);
+        console.error('❌ 블로그 카운트 조회 오류:', countError);
         return res.status(500).json({
           error: '카테고리 사용 현황 확인에 실패했습니다.',
           details: countError.message
         });
       }
 
-      if (imageCount && imageCount.length > 0) {
+      if (blogCount && blogCount.length > 0) {
         return res.status(400).json({
-          error: `이 카테고리를 사용하는 이미지가 ${imageCount.length}개 있습니다. 먼저 이미지의 카테고리를 변경해주세요.`
+          error: `이 카테고리를 사용하는 블로그 포스트가 ${blogCount.length}개 있습니다. 먼저 블로그 포스트의 카테고리를 변경해주세요.`
         });
       }
 
       const { error } = await supabase
-        .from('image_categories')
+        .from('categories')
         .delete()
         .eq('id', id);
 
