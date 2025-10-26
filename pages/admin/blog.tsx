@@ -3941,7 +3941,7 @@ export default function BlogAdmin() {
         alert(`메타 설명 생성에 실패했습니다: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
-      console.error('메타 설명 생성 오류:', error);
+      console.error('AI 메타 설명 생성 오류:', error);
       alert('메타 설명 생성 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingMetaDescription(false);
