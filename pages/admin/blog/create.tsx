@@ -8,6 +8,16 @@ import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../../components/admin/VariationRecommendationModal';
+import { 
+  PUBLISH_CATEGORIES, 
+  BRAND_STRATEGY_CONTENT_TYPES,
+  getPublishCategory,
+  getBrandStrategyContentType,
+  CATEGORY_DESCRIPTIONS,
+  BRAND_STRATEGY_DESCRIPTIONS,
+  type PublishCategory,
+  type BrandStrategyContentType
+} from '../../../lib/category-mapping';
 
 // 동적 임포트
 const TipTapEditor = dynamic(() => import('../../../components/admin/TipTapEditor'), { ssr: false });
@@ -1128,11 +1138,15 @@ export default function CreateBlogPost() {
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="blog">블로그</option>
-                  <option value="고객 후기">고객 후기</option>
-                  <option value="골프 정보">골프 정보</option>
-                  <option value="제품 소개">제품 소개</option>
+                  {PUBLISH_CATEGORIES.map(category => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  {CATEGORY_DESCRIPTIONS[formData.category as PublishCategory] || ''}
+                </p>
               </div>
 
               {/* 상태 */}

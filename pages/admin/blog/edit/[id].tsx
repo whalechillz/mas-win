@@ -10,6 +10,16 @@ import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../../../components/admin/VariationRecommendationModal';
+import { 
+  PUBLISH_CATEGORIES, 
+  BRAND_STRATEGY_CONTENT_TYPES,
+  getPublishCategory,
+  getBrandStrategyContentType,
+  CATEGORY_DESCRIPTIONS,
+  BRAND_STRATEGY_DESCRIPTIONS,
+  type PublishCategory,
+  type BrandStrategyContentType
+} from '../../../../lib/category-mapping';
 
 export default function BlogEdit() {
   const { data: session, status } = useSession();
@@ -77,7 +87,7 @@ export default function BlogEdit() {
   const [isImprovingContent, setIsImprovingContent] = useState(false);
 
   // 브랜드 전략 관련 상태
-  const [brandContentType, setBrandContentType] = useState('골프 정보');
+  const [brandContentType, setBrandContentType] = useState<BrandStrategyContentType>('골프 정보');
   const [brandPersona, setBrandPersona] = useState('중상급 골퍼');
   const [audienceTemperature, setAudienceTemperature] = useState('warm');
   const [brandWeight, setBrandWeight] = useState('low');
@@ -689,6 +699,12 @@ export default function BlogEdit() {
     }
   };
 
+  // 브랜드 전략 콘텐츠 유형 변경시 카테고리 자동 매핑
+  useEffect(() => {
+    const mappedCategory = getPublishCategory(brandContentType);
+    setFormData(prev => ({ ...prev, category: mappedCategory }));
+  }, [brandContentType]);
+
   // 브랜드 전략 적용
   const handleBrandStrategyApply = async () => {
     if (!formData.content) {
@@ -996,14 +1012,15 @@ export default function BlogEdit() {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="고객 후기">고객 후기</option>
-                    <option value="제품 정보">제품 정보</option>
-                    <option value="골프 팁">골프 팁</option>
-                    <option value="이벤트">이벤트</option>
-                    <option value="골프 정보">골프 정보</option>
-                    <option value="브랜드 스토리">브랜드 스토리</option>
-                    <option value="기술 및 성능">기술 및 성능</option>
+                    {PUBLISH_CATEGORIES.map(category => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {CATEGORY_DESCRIPTIONS[formData.category as PublishCategory] || ''}
+                  </p>
                 </div>
 
                 {/* 상태 */}
@@ -1231,7 +1248,7 @@ export default function BlogEdit() {
               <BrandStrategySelector 
                 isLoading={isApplyingBrandStrategy}
                 onStrategyChange={(strategy) => {
-                  setBrandContentType(strategy.contentType);
+                  setBrandContentType(strategy.contentType as BrandStrategyContentType);
                   setBrandPersona(strategy.persona);
                   setAudienceTemperature(strategy.audienceTemperature);
                   setStoryFramework(strategy.framework);
