@@ -427,13 +427,17 @@ export default async function handler(req, res) {
 
       if (hubError) {
         console.error('❌ 허브 시스템 연결 실패:', hubError);
-        // 허브 연결 실패해도 블로그 포스트는 성공으로 처리
+        // 🔥 수정: 허브 연결 실패 시 블로그 포스트 삭제 후 전체 마이그레이션 실패로 처리
+        console.log('🗑️ 허브 연결 실패로 인한 블로그 포스트 삭제 중...');
+        await supabase.from('blog_posts').delete().eq('id', post.id);
+        throw new Error(`허브 시스템 연결 실패: ${hubError.message}`);
       } else {
         console.log(`✅ 허브 시스템 연결 완료: ${hubContent.id}`);
       }
     } catch (hubError) {
       console.error('❌ 허브 시스템 연결 중 오류:', hubError);
-      // 허브 연결 실패해도 블로그 포스트는 성공으로 처리
+      // 🔥 수정: 허브 연결 실패 시 전체 마이그레이션 실패로 처리
+      throw new Error(`허브 시스템 연결 중 오류: ${hubError.message}`);
     }
 
     console.log(`✅ 완전한 마이그레이션 완료: ${post.id}`);
