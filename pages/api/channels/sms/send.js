@@ -1,9 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
+import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// 솔라피 API v4 HMAC-SHA256 인증 헤더 생성
+function generateSolapiAuthHeader(apiKey, apiSecret) {
+  const date = new Date().toISOString();
+  const salt = crypto.randomBytes(16).toString('hex');
+  const signature = crypto
+    .createHmac('sha256', apiSecret)
+    .update(date + salt)
+    .digest('hex');
+  
+  return `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -19,6 +32,19 @@ export default async function handler(req, res) {
       recipientNumbers,
       shortLink
     } = req.body;
+
+    // 환경 변수 검증
+    if (!process.env.SOLAPI_API_KEY || !process.env.SOLAPI_API_SECRET || !process.env.SOLAPI_SENDER) {
+      console.error('솔라피 환경 변수 누락:', {
+        hasApiKey: !!process.env.SOLAPI_API_KEY,
+        hasApiSecret: !!process.env.SOLAPI_API_SECRET,
+        hasSender: !!process.env.SOLAPI_SENDER
+      });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'SMS 서비스 설정이 완료되지 않았습니다.' 
+      });
+    }
 
     // 필수 필드 검증
     if (!channelPostId || !messageType || !messageText || !recipientNumbers?.length) {
@@ -46,30 +72,38 @@ export default async function handler(req, res) {
       finalMessage += `\n\n링크: ${shortLink}`;
     }
 
+    // 솔라피 API 타입 매핑
+    const solapiType = messageType === 'SMS300' ? 'SMS' : messageType;
+
     // 솔라피 API로 발송 (axios 사용)
     const messages = validNumbers.map(to => {
       const message = {
         to: to.replace(/-/g, ''), // 하이픈 제거
         from: process.env.SOLAPI_SENDER,
         text: finalMessage,
-        type: messageType
+        type: solapiType
       };
 
       // MMS인 경우 이미지 추가
-      if (messageType === 'MMS' && imageUrl) {
+      if (solapiType === 'MMS' && imageUrl) {
         message.imageId = imageUrl; // 이미지 ID 또는 URL
       }
 
       return message;
     });
 
-    // 솔라피 API 호출
+    // 솔라피 API 호출 (v4 방식 - HMAC-SHA256)
+    const authHeader = generateSolapiAuthHeader(
+      process.env.SOLAPI_API_KEY,
+      process.env.SOLAPI_API_SECRET
+    );
+    
     const result = await axios.post('https://api.solapi.com/messages/v4/send', {
-      message: messages
+      message: messages[0] // 첫 번째 메시지만 전송
     }, {
       headers: {
-        'Authorization': `HMAC-SHA256 apiKey=${process.env.SOLAPI_API_KEY}, date=${new Date().toISOString()}, salt=${Math.random().toString(36).substring(2, 15)}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': authHeader
       }
     });
 
@@ -104,7 +138,16 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('SMS 발송 오류:', error);
+    console.error('SMS 발송 오류:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      requestData: {
+        channelPostId: req.body.channelPostId,
+        messageType: req.body.messageType,
+        recipientCount: req.body.recipientNumbers?.length
+      }
+    });
     
     // 발송 실패 시 상태 업데이트
     if (req.body.channelPostId) {
@@ -122,10 +165,21 @@ export default async function handler(req, res) {
       }
     }
 
+    // 솔라피 API 오류인 경우 더 구체적인 메시지 제공
+    let errorMessage = 'SMS 발송 중 오류가 발생했습니다.';
+    if (error.response?.status === 401) {
+      errorMessage = 'SMS 서비스 인증에 실패했습니다. API 키를 확인해주세요.';
+    } else if (error.response?.status === 400) {
+      errorMessage = 'SMS 요청 형식이 올바르지 않습니다.';
+    } else if (error.response?.data?.errorList) {
+      errorMessage = `SMS 발송 실패: ${error.response.data.errorList.map(e => e.reason).join(', ')}`;
+    }
+
     return res.status(500).json({ 
       success: false, 
-      message: 'SMS 발송 중 오류가 발생했습니다.',
-      error: error.message 
+      message: errorMessage,
+      error: error.message,
+      details: error.response?.data
     });
   }
 }
