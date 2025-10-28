@@ -38,6 +38,8 @@ export default function AIManagement() {
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedAction, setSelectedAction] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('today');
+  const [solapi, setSolapi] = useState({ apiKey: '', apiSecret: '', sender: '' });
+  const [solapiStatus, setSolapiStatus] = useState<string>('');
 
   useEffect(() => {
     fetchAIUsageLogs();
@@ -257,6 +259,70 @@ export default function AIManagement() {
             </div>
           </div>
         )}
+
+        {/* Solapi 로그인/연결 섹션 */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Solapi 연결</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+              <input
+                type="text"
+                value={solapi.apiKey}
+                onChange={(e) => setSolapi((s) => ({ ...s, apiKey: e.target.value }))}
+                placeholder="SOLAPI_API_KEY"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">API Secret</label>
+              <input
+                type="password"
+                value={solapi.apiSecret}
+                onChange={(e) => setSolapi((s) => ({ ...s, apiSecret: e.target.value }))}
+                placeholder="SOLAPI_API_SECRET"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">발신번호(선택)</label>
+              <input
+                type="text"
+                value={solapi.sender}
+                onChange={(e) => setSolapi((s) => ({ ...s, sender: e.target.value }))}
+                placeholder="031-123-4567"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  setSolapiStatus('연결 확인 중...');
+                  const resp = await fetch('/api/admin/solapi-connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(solapi)
+                  });
+                  const json = await resp.json();
+                  if (json.success) {
+                    setSolapiStatus(`✅ ${json.message}`);
+                  } else {
+                    setSolapiStatus(`❌ ${json.message}`);
+                  }
+                } catch (e: any) {
+                  setSolapiStatus(`❌ 오류: ${e.message}`);
+                }
+              }}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Solapi 로그인/연결 확인
+            </button>
+            {solapiStatus && <span className="text-sm text-gray-700">{solapiStatus}</span>}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">입력한 값은 서버로 전송되어 인증만 확인합니다. 필요 시 환경 변수 설정으로 반영해주세요.</p>
+        </div>
 
         {/* 필터 */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
