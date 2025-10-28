@@ -29,22 +29,22 @@ module.exports = async function handler(req, res) {
     const cleanPhone = phoneNumber.replace(/[\-\s]/g, '');
     const cleanSender = SOLAPI_SENDER.replace(/[\-\s]/g, '');
 
-    // Solapi v3 API로 단순 발송
+    // Solapi v4 API로 단순 발송
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
-    const response = await fetch('https://api.solapi.com/messages/v3/send', {
+    const response = await fetch('https://api.solapi.com/messages/v4/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...authHeaders
       },
       body: JSON.stringify({
-        message: {
+        messages: [{
           to: cleanPhone,
           from: cleanSender,
           text: message,
           type: 'SMS'
-        }
+        }]
       })
     });
 
