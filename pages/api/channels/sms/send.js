@@ -92,17 +92,21 @@ export default async function handler(req, res) {
       return msg;
     });
 
-  // Solapi v3 API 사용 (수동 Basic Auth 헤더)
+  // Solapi v3 API 사용 (fetch API)
   const basicAuth = Buffer.from(`${process.env.SOLAPI_API_KEY}:${process.env.SOLAPI_API_SECRET}`).toString('base64');
   
-  const result = await axios.post('https://api.solapi.com/messages/v3/send', {
-    message: messages[0] // 첫 번째 메시지만 전송
-  }, {
+  const response = await fetch('https://api.solapi.com/messages/v3/send', {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Basic ${basicAuth}`
-    }
+    },
+    body: JSON.stringify({
+      message: messages[0] // 첫 번째 메시지만 전송
+    })
   });
+  
+  const result = { data: await response.json() };
 
     // 발송 결과를 데이터베이스에 업데이트
     const { error: updateError } = await supabase
