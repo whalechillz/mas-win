@@ -95,6 +95,10 @@ export default async function handler(req, res) {
   // Solapi v3 API 사용 (fetch API)
   const basicAuth = Buffer.from(`${process.env.SOLAPI_API_KEY}:${process.env.SOLAPI_API_SECRET}`).toString('base64');
   
+  console.log('API Key:', process.env.SOLAPI_API_KEY);
+  console.log('API Secret:', process.env.SOLAPI_API_SECRET);
+  console.log('Basic Auth:', basicAuth);
+  
   const response = await fetch('https://api.solapi.com/messages/v3/send', {
     method: 'POST',
     headers: {
