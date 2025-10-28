@@ -15,8 +15,8 @@ function generateSolapiAuthHeader(apiKey, apiSecret) {
     .update(date + salt)
     .digest('hex');
   
-  // 날짜를 따옴표로 감싸서 HTTP 헤더에서 유효하게 만듦
-  return `HMAC-SHA256 apiKey=${apiKey}, date="${date}", salt=${salt}, signature=${signature}`;
+  // 정확한 솔라피 API 형식 사용
+  return `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`;
 }
 
 export default async function handler(req, res) {
@@ -101,7 +101,7 @@ export default async function handler(req, res) {
       process.env.SOLAPI_API_SECRET
     );
     
-    const result = await axios.post('https://api.solapi.com/messages/v3/send', {
+    const result = await axios.post('https://api.solapi.com/messages/v4/send', {
       message: messages[0] // 첫 번째 메시지만 전송
     }, {
       headers: {
