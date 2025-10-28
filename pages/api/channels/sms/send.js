@@ -1,12 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
-import { createSolapiSignature } from '../../../../utils/solapiSignature';
+import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 그룹 발송 플로우 사용 (v4)
+// Solapi HMAC-SHA256 인증 함수들
+function generateSignature(apiSecret, dateTime, salt) {
+  const data = dateTime + salt;
+  return crypto
+    .createHmac('sha256', apiSecret)
+    .update(data)
+    .digest('hex');
+}
+
+function createAuthHeader(apiKey, apiSecret) {
+  const dateTime = new Date().toISOString();
+  const salt = crypto.randomBytes(16).toString('hex');
+  const signature = generateSignature(apiSecret, dateTime, salt);
+  
+  return `HMAC-SHA256 apiKey=${apiKey}, date=${dateTime}, salt=${salt}, signature=${signature}`;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -76,13 +91,15 @@ export default async function handler(req, res) {
       return msg;
     });
 
-      // Solapi v3 API 사용 (더 간단한 인증)
-      const result = await axios.post('https://api.solapi.com/messages/v3/send', {
+      // Solapi v4 API 사용 (HMAC-SHA256 인증)
+      const authHeader = createAuthHeader(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET);
+      
+      const result = await axios.post('https://api.solapi.com/messages/v4/send', {
         message: messages[0] // 첫 번째 메시지만 전송
       }, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${Buffer.from(`${process.env.SOLAPI_API_KEY}:${process.env.SOLAPI_API_SECRET}`).toString('base64')}`
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
         }
       });
 
