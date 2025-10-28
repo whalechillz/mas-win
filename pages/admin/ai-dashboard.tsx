@@ -553,6 +553,7 @@ export default function AIDashboard() {
                       <option value="naver-blog-scraper">네이버 블로그 스크래퍼</option>
                       <option value="ai-content-extractor">AI 콘텐츠 추출기</option>
                       <option value="blog-generator">블로그 생성기</option>
+                      <option value="solapi-sms">SMS 발송</option>
                     </select>
                   </div>
                   <div>
@@ -563,6 +564,9 @@ export default function AIDashboard() {
                       <option value="content-extraction-success">콘텐츠 추출 성공</option>
                       <option value="content-extraction-failed">콘텐츠 추출 실패</option>
                       <option value="content-extraction-error">콘텐츠 추출 오류</option>
+                      <option value="sms-send">SMS 발송</option>
+                      <option value="sms-send-success">SMS 발송 성공</option>
+                      <option value="sms-send-failed">SMS 발송 실패</option>
                     </select>
                   </div>
                   <div>
@@ -815,7 +819,13 @@ export default function AIDashboard() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.improvement_type}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.total_tokens.toLocaleString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {log.api_endpoint === 'solapi-sms' ? (
+                              <span className="text-blue-700 font-semibold">SMS</span>
+                            ) : (
+                              log.total_tokens.toLocaleString()
+                            )}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${log.cost.toFixed(4)}</td>
                         </tr>
                       ))}

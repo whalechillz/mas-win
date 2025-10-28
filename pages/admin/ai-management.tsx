@@ -202,7 +202,7 @@ export default function AIManagement() {
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">🤖 AI 사용량 관리</h1>
-          <p className="text-gray-600 mt-2">AI API 사용량을 모니터링하고 관리합니다.</p>
+          <p className="text-gray-600 mt-2">AI API 사용량을 모니터링하고 관리합니다. 이 페이지는 곧 <a href="/admin/ai-dashboard" className="text-blue-600 underline">AI & 블로그 대시보드</a>로 통합됩니다.</p>
         </div>
 
         {/* 통계 카드 */}
