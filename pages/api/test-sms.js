@@ -1,5 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-const { createSolapiSignature } = require('../../utils/solapiSignature.js');
+import { createClient } from '@supabase/supabase-js';
+import { createSolapiSignature } from '../../utils/solapiSignature.js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -9,7 +9,7 @@ const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
 const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "";
 const SOLAPI_SENDER = process.env.SOLAPI_SENDER || "";
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
@@ -39,12 +39,12 @@ module.exports = async function handler(req, res) {
         ...authHeaders
       },
       body: JSON.stringify({
-        messages: [{
+        message: {
           to: cleanPhone,
           from: cleanSender,
           text: message,
           type: 'SMS'
-        }]
+        }
       })
     });
 
