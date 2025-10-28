@@ -27,11 +27,11 @@ async function fetchFromGoogleSheets(sheetUrl: string, sheetName: string) {
     console.log('시트 이름:', sheetName);
     
     // 실제로는 Google Sheets API를 사용해야 함
-    // 현재는 예시 데이터 반환
+    // 현재는 예시 데이터 반환 (마쓰구골프 시트)
     return [
-      { name: '김고객', phone: '010-1234-5678' },
-      { name: '이고객', phone: '010-2345-6789' },
-      { name: '박고객', phone: '010-3456-7890' }
+      { name: '김마쓰', phone: '010-1234-5678' },
+      { name: '이마쓰', phone: '010-2345-6789' },
+      { name: '박마쓰', phone: '010-3456-7890' }
     ];
   } catch (error) {
     console.error('구글 시트 데이터 가져오기 오류:', error);
@@ -194,7 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      customers = await fetchFromGoogleSheets(googleSheetUrl, sheetName || '마쓱구골프');
+      customers = await fetchFromGoogleSheets(googleSheetUrl, sheetName || '마쓰구골프');
     }
 
     if (!customers || customers.length === 0) {
