@@ -35,3 +35,7 @@ next-env.d.ts
 
 # backup folder
 /backup-static google-ads-credentials.json
+
+# test tools
+tools/temp/*
+!tools/temp/.gitkeep
