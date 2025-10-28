@@ -1,13 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
-import { createSolapiSignature } from '../../../../utils/solapiSignature.js';
+import axios from 'axios';
+import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
-const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "";
-const SOLAPI_SENDER = process.env.SOLAPI_SENDER || "";
+// Solapi HMAC-SHA256 인증 함수들
+function generateSignature(apiSecret, dateTime, salt) {
+  const data = dateTime + salt;
+  return crypto
+    .createHmac('sha256', apiSecret)
+    .update(data)
+    .digest('hex');
+}
+
+function createAuthHeader(apiKey, apiSecret) {
+  const dateTime = new Date().toISOString();
+  const salt = crypto.randomBytes(16).toString('hex');
+  const signature = generateSignature(apiSecret, dateTime, salt);
+  
+  // HTTP 헤더에서 콜론을 제거하고 HMAC-SHA256 형식으로 구성
+  const dateWithoutColons = dateTime.replace(/:/g, '');
+  return `HMAC-SHA256 apiKey=${apiKey}, date=${dateWithoutColons}, salt=${salt}, signature=${signature}`;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,11 +42,11 @@ export default async function handler(req, res) {
     } = req.body;
 
     // 환경 변수 검증
-    if (!SOLAPI_API_KEY || !SOLAPI_API_SECRET || !SOLAPI_SENDER) {
+    if (!process.env.SOLAPI_API_KEY || !process.env.SOLAPI_API_SECRET || !process.env.SOLAPI_SENDER) {
       console.error('솔라피 환경 변수 누락:', {
-        hasApiKey: !!SOLAPI_API_KEY,
-        hasApiSecret: !!SOLAPI_API_SECRET,
-        hasSender: !!SOLAPI_SENDER
+        hasApiKey: !!process.env.SOLAPI_API_KEY,
+        hasApiSecret: !!process.env.SOLAPI_API_SECRET,
+        hasSender: !!process.env.SOLAPI_SENDER
       });
       return res.status(500).json({ 
         success: false, 
@@ -65,57 +81,57 @@ export default async function handler(req, res) {
       finalMessage += `\n\n링크: ${shortLink}`;
     }
 
-    // 메시지 타입 매핑
+    // 메시지 타입 매핑 및 메시지 배열 구성
     const solapiType = messageType === 'SMS300' ? 'SMS' : messageType;
-    const fromNumber = SOLAPI_SENDER.replace(/[\-\s]/g, '');
-
-    // Solapi v4 API로 발송 (성공한 test-sms 방식 사용)
-    const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
-
-    // 첫 번째 수신자에게만 발송 (기존 로직 유지)
-    const toNumber = validNumbers[0].replace(/[\-\s]/g, '');
-    
-    const messageData = {
-      message: {
-        to: toNumber,
-        from: fromNumber,
-        text: finalMessage,
-        type: solapiType
+    const fromNumber = (process.env.SOLAPI_SENDER || '0312150013').replace(/[^0-9]/g, '');
+    const messages = validNumbers.map(to => {
+      const toNumber = to.replace(/[^0-9]/g, '');
+      const msg = { to: toNumber, from: fromNumber, text: finalMessage, type: solapiType };
+      if (solapiType === 'MMS' && imageUrl) {
+        msg.imageId = imageUrl; // 사전 업로드된 imageId 필요
       }
-    };
-
-    // MMS인 경우 이미지 정보 추가
-    if (solapiType === 'MMS' && imageUrl) {
-      messageData.message.imageId = imageUrl;
-    }
-
-    const response = await fetch('https://api.solapi.com/messages/v4/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders
-      },
-      body: JSON.stringify(messageData)
+      return msg;
     });
 
-    const result = await response.json();
-    console.log('Solapi API 응답:', result);
-
-    if (!response.ok) {
-      throw new Error(`Solapi API 오류: ${response.status} - ${JSON.stringify(result)}`);
-    }
+  // Solapi v3 API 사용 (HMAC-SHA256 인증)
+  const authHeader = createAuthHeader(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET);
+  
+  console.log('API Key:', process.env.SOLAPI_API_KEY);
+  console.log('API Secret:', process.env.SOLAPI_API_SECRET);
+  console.log('Auth Header:', authHeader);
+  
+  const response = await fetch('https://api.solapi.com/messages/v3/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader
+    },
+    body: JSON.stringify({
+      message: messages[0] // 첫 번째 메시지만 전송
+    })
+  });
+  
+  const responseData = await response.json();
+  console.log('Solapi API 응답:', responseData);
+  console.log('응답 상태:', response.status);
+  
+  if (!response.ok) {
+    throw new Error(`Solapi API 오류: ${response.status} - ${JSON.stringify(responseData)}`);
+  }
+  
+  const result = { data: responseData };
 
     // 발송 결과를 데이터베이스에 업데이트
     const { error: updateError } = await supabase
       .from('channel_sms')
       .update({
         status: 'sent',
-        solapi_group_id: result.groupId,
-        solapi_message_id: result.messageId,
+        solapi_group_id: result.data.groupId,
+        solapi_message_id: result.data.messageId,
         sent_at: new Date().toISOString(),
         sent_count: validNumbers.length,
-        success_count: result.successCount || validNumbers.length,
-        fail_count: result.failCount || 0
+        success_count: result.data.successCount || validNumbers.length,
+        fail_count: result.data.failCount || 0
       })
       .eq('id', channelPostId);
 
@@ -149,17 +165,17 @@ export default async function handler(req, res) {
       console.error('AI 사용량 로깅 중 예외:', logError);
     }
 
-    return res.status(200).json({
-      success: true,
+    return res.status(200).json({ 
+      success: true, 
       result: {
-        groupId: result.groupId,
-        messageId: result.messageId,
+        groupId: result.data.groupId,
+        messageId: result.data.messageId,
         sentCount: validNumbers.length,
-        successCount: result.successCount || validNumbers.length,
-        failCount: result.failCount || 0
+        successCount: result.data.successCount || validNumbers.length,
+        failCount: result.data.failCount || 0
       },
       message: 'SMS가 성공적으로 발송되었습니다.',
-      solapiResponse: result // 디버깅을 위해 원본 응답도 포함
+      solapiResponse: result.data // 디버깅을 위해 원본 응답도 포함
     });
 
   } catch (error) {
@@ -173,7 +189,7 @@ export default async function handler(req, res) {
         recipientCount: req.body.recipientNumbers?.length
       }
     });
-
+    
     // 발송 실패 시 상태 업데이트
     if (req.body.channelPostId) {
       try {
@@ -218,16 +234,16 @@ export default async function handler(req, res) {
 
     // 솔라피 API 오류인 경우 더 구체적인 메시지 제공
     let errorMessage = 'SMS 발송 중 오류가 발생했습니다.';
-    if (error.message.includes('401')) {
+    if (error.response?.status === 401) {
       errorMessage = 'SMS 서비스 인증에 실패했습니다. API 키를 확인해주세요.';
-    } else if (error.message.includes('400')) {
+    } else if (error.response?.status === 400) {
       errorMessage = 'SMS 요청 형식이 올바르지 않습니다.';
-    } else if (error.message.includes('errorList')) {
-      errorMessage = `SMS 발송 실패: ${error.message}`;
+    } else if (error.response?.data?.errorList) {
+      errorMessage = `SMS 발송 실패: ${error.response.data.errorList.map(e => e.reason).join(', ')}`;
     }
 
-    return res.status(500).json({
-      success: false,
+    return res.status(500).json({ 
+      success: false, 
       message: errorMessage,
       error: error.message,
       details: error.response?.data
