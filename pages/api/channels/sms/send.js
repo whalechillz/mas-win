@@ -110,7 +110,15 @@ export default async function handler(req, res) {
     })
   });
   
-  const result = { data: await response.json() };
+  const responseData = await response.json();
+  console.log('Solapi API 응답:', responseData);
+  console.log('응답 상태:', response.status);
+  
+  if (!response.ok) {
+    throw new Error(`Solapi API 오류: ${response.status} - ${JSON.stringify(responseData)}`);
+  }
+  
+  const result = { data: responseData };
 
     // 발송 결과를 데이터베이스에 업데이트
     const { error: updateError } = await supabase
@@ -165,7 +173,8 @@ export default async function handler(req, res) {
         successCount: result.data.successCount || validNumbers.length,
         failCount: result.data.failCount || 0
       },
-      message: 'SMS가 성공적으로 발송되었습니다.' 
+      message: 'SMS가 성공적으로 발송되었습니다.',
+      solapiResponse: result.data // 디버깅을 위해 원본 응답도 포함
     });
 
   } catch (error) {
