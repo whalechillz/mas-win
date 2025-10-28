@@ -44,10 +44,17 @@ npm run dev
 
 ## 📚 중요 문서
 
-### SMS 관련 문제 해결
-- **[SMS 문제 해결 가이드](docs/sms-troubleshooting.md)** - SMS 발송 관련 자주 발생하는 문제들과 해결 방법
+### 🔥 현재 활성 문제 (2개)
+- **[네이버 블로그 스크래핑](docs/active/naver-blog-scraping.md)** - 네이버 블로그 콘텐츠 수집 문제
+- **[갤러리 이미지 관련](docs/active/gallery-images.md)** - 갤러리 이미지 표시 및 업로드 문제
+
+### ✅ 해결된 문제 (1개)
+- **[SMS 발송 문제](docs/resolved/2025-10-29-sms-troubleshooting.md)** - SMS 발송 관련 문제 해결 완료
+
+### 📖 참고 문서
 - **[Solapi 통합 가이드](docs/solapi-integration.md)** - Solapi API 통합 방법과 코드 예시
 - **[자주 발생하는 문제들](docs/common-issues.md)** - 전체적인 문제 해결 가이드
+- **[AI 명령어 가이드](docs/ai-commands.md)** - AI가 자동으로 문서를 업데이트하는 방법
 
 ## 🔧 주요 기능
 
