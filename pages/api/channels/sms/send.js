@@ -125,6 +125,32 @@ export default async function handler(req, res) {
       console.error('SMS 상태 업데이트 오류:', updateError);
     }
 
+    // AI 사용량 로그에도 SMS 발송 기록 추가
+    try {
+      const smsCost = validNumbers.length * 0.02; // SMS 1건당 0.02달러 가정
+      const { error: aiLogError } = await supabase
+        .from('ai_usage_logs')
+        .insert([{
+          api_endpoint: 'solapi-sms',
+          model: 'SMS',
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          cost: smsCost,
+          improvement_type: 'sms-send-success',
+          content_type: 'sms',
+          user_agent: 'sms-sender',
+          ip_address: null,
+          created_at: new Date().toISOString()
+        }]);
+
+      if (aiLogError) {
+        console.error('AI 사용량 로그 저장 오류:', aiLogError);
+      }
+    } catch (logError) {
+      console.error('AI 사용량 로깅 중 예외:', logError);
+    }
+
     return res.status(200).json({ 
       success: true, 
       result: {
@@ -163,6 +189,32 @@ export default async function handler(req, res) {
       } catch (updateError) {
         console.error('SMS 실패 상태 업데이트 오류:', updateError);
       }
+    }
+
+    // SMS 발송 실패도 AI 사용량 로그에 기록
+    try {
+      const smsCost = (req.body.recipientNumbers?.length || 0) * 0.02;
+      const { error: aiLogError } = await supabase
+        .from('ai_usage_logs')
+        .insert([{
+          api_endpoint: 'solapi-sms',
+          model: 'SMS',
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          cost: smsCost,
+          improvement_type: 'sms-send-failed',
+          content_type: 'sms',
+          user_agent: 'sms-sender',
+          ip_address: null,
+          created_at: new Date().toISOString()
+        }]);
+
+      if (aiLogError) {
+        console.error('AI 사용량 로그 저장 오류:', aiLogError);
+      }
+    } catch (logError) {
+      console.error('AI 사용량 로깅 중 예외:', logError);
     }
 
     // 솔라피 API 오류인 경우 더 구체적인 메시지 제공

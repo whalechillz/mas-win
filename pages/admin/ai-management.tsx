@@ -340,6 +340,7 @@ export default function AIManagement() {
                 <option value="ai-content-extractor">AI 콘텐츠 추출기</option>
                 <option value="blog-generator">블로그 생성기</option>
                 <option value="image-processor">이미지 처리기</option>
+                <option value="solapi-sms">SMS 발송</option>
               </select>
             </div>
 
@@ -357,6 +358,9 @@ export default function AIManagement() {
                 <option value="content-extraction-error">콘텐츠 추출 오류</option>
                 <option value="image-generation">이미지 생성</option>
                 <option value="text-improvement">텍스트 개선</option>
+                <option value="sms-send">SMS 발송</option>
+                <option value="sms-send-success">SMS 발송 성공</option>
+                <option value="sms-send-failed">SMS 발송 실패</option>
               </select>
             </div>
 
@@ -427,11 +431,18 @@ export default function AIManagement() {
                         {log.api_endpoint}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="text-xs">
-                          <div>입력: {log.input_tokens?.toLocaleString() || 0}</div>
-                          <div>출력: {log.output_tokens?.toLocaleString() || 0}</div>
-                          <div className="font-semibold">총: {log.total_tokens?.toLocaleString() || 0}</div>
-                        </div>
+                        {log.api_endpoint === 'solapi-sms' ? (
+                          <div className="text-xs">
+                            <div className="font-semibold text-blue-600">SMS 발송</div>
+                            <div>비용: ${log.cost?.toFixed(4) || '0.0000'}</div>
+                          </div>
+                        ) : (
+                          <div className="text-xs">
+                            <div>입력: {log.input_tokens?.toLocaleString() || 0}</div>
+                            <div>출력: {log.output_tokens?.toLocaleString() || 0}</div>
+                            <div className="font-semibold">총: {log.total_tokens?.toLocaleString() || 0}</div>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <span className="font-semibold text-green-600">
