@@ -28,6 +28,7 @@ export default async function handler(req, res) {
       channelPostId,
       messageType,
       messageText,
+      content, // formData에서 오는 필드명
       imageUrl,
       recipientNumbers,
       shortLink
@@ -47,7 +48,8 @@ export default async function handler(req, res) {
     }
 
     // 필수 필드 검증
-    if (!channelPostId || !messageType || !messageText || !recipientNumbers?.length) {
+    const messageContent = messageText || content;
+    if (!channelPostId || !messageType || !messageContent || !recipientNumbers?.length) {
       return res.status(400).json({ 
         success: false, 
         message: '필수 필드가 누락되었습니다.' 
@@ -67,7 +69,7 @@ export default async function handler(req, res) {
     }
 
     // 솔라피 발송 메시지 구성
-    let finalMessage = messageText;
+    let finalMessage = messageContent;
     if (shortLink) {
       finalMessage += `\n\n링크: ${shortLink}`;
     }
