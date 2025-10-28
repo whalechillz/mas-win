@@ -44,9 +44,8 @@ npm run dev
 
 ## 📚 중요 문서
 
-### 🔥 현재 활성 문제 (2개)
-- **[네이버 블로그 스크래핑](docs/active/naver-blog-scraping.md)** - 네이버 블로그 콘텐츠 수집 문제
-- **[갤러리 이미지 관련](docs/active/gallery-images.md)** - 갤러리 이미지 표시 및 업로드 문제
+### 🔥 현재 활성 문제 (0개)
+- 모든 문제가 해결되었습니다! 🎉
 
 ### ✅ 해결된 문제 (1개)
 - **[SMS 발송 문제](docs/resolved/2025-10-29-sms-troubleshooting.md)** - SMS 발송 관련 문제 해결 완료

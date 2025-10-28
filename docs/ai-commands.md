@@ -79,7 +79,8 @@ tree docs/
 
 ### 현재 활성 문제 수:
 ```bash
-ls docs/active/ | wc -l
+# .gitkeep 파일 제외하고 실제 문제 파일만 카운트
+ls docs/active/ | grep -v ".gitkeep" | wc -l
 ```
 
 ### 이번 달 해결된 문제 수:

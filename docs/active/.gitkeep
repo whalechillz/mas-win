@@ -1,0 +1,7 @@
+# 이 폴더는 현재 활성 문제들을 저장합니다.
+# 실제 문제가 발생하면 이 폴더에 문제별 문서를 생성하세요.
+
+# 사용 방법:
+# 1. ./scripts/update-docs.sh [문제명] new
+# 2. docs/active/[문제명].md 파일에 상세 정보 입력
+# 3. 문제 해결 시 ./scripts/update-docs.sh [문제명] resolved
