@@ -9,6 +9,7 @@ export default function CustomerImport() {
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const [customers, setCustomers] = useState([]);
+  const [sheetName, setSheetName] = useState('마쓰구골프');
 
   if (status === 'loading') {
     return <div>로딩 중...</div>;
@@ -30,7 +31,7 @@ export default function CustomerImport() {
         },
         body: JSON.stringify({
           googleSheetUrl: googleSheetUrl,
-          sheetName: '마쓱구골프'
+          sheetName: sheetName
         })
       });
 
@@ -125,11 +126,12 @@ export default function CustomerImport() {
                   </label>
                   <input
                     type="text"
-                    value="마쓱구골프"
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                    value={sheetName}
+                    onChange={(e) => setSheetName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="마쓰구골프"
                   />
-                  <p className="text-xs text-gray-500 mt-1">고정값: 마쓱구골프</p>
+                  <p className="text-xs text-gray-500 mt-1">기본값: 마쓰구골프</p>
                 </div>
 
                 <button
