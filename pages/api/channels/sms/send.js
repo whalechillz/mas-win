@@ -76,23 +76,14 @@ export default async function handler(req, res) {
       return msg;
     });
 
-    // 1) 그룹 생성
-    const groupRes = await axios.post('https://api.solapi.com/messages/v4/groups', null, {
-      headers: { ...createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET) }
-    });
-    const groupId = groupRes.data.groupId;
-
-    // 2) 메시지 추가
-    await axios.put(`https://api.solapi.com/messages/v4/groups/${groupId}/messages`, { messages }, {
+    // 단건 발송으로 변경 (v3 API)
+    const result = await axios.post('https://api.solapi.com/messages/v3/send', {
+      message: messages[0] // 첫 번째 메시지만 전송
+    }, {
       headers: {
         'Content-Type': 'application/json',
         ...createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET)
       }
-    });
-
-    // 3) 그룹 발송
-    const sendRes = await axios.post(`https://api.solapi.com/messages/v4/groups/${groupId}/send`, null, {
-      headers: { ...createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET) }
     });
 
     // 발송 결과를 데이터베이스에 업데이트
@@ -100,12 +91,12 @@ export default async function handler(req, res) {
       .from('channel_sms')
       .update({
         status: 'sent',
-        solapi_group_id: groupId,
-        solapi_message_id: sendRes.data?.messageId || null,
+        solapi_group_id: result.data.groupId,
+        solapi_message_id: result.data.messageId,
         sent_at: new Date().toISOString(),
         sent_count: validNumbers.length,
-        success_count: sendRes.data?.successCount || validNumbers.length,
-        fail_count: sendRes.data?.failCount || 0
+        success_count: result.data.successCount || validNumbers.length,
+        fail_count: result.data.failCount || 0
       })
       .eq('id', channelPostId);
 
@@ -142,11 +133,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ 
       success: true, 
       result: {
-        groupId,
-        messageId: sendRes.data?.messageId || null,
+        groupId: result.data.groupId,
+        messageId: result.data.messageId,
         sentCount: validNumbers.length,
-        successCount: sendRes.data?.successCount || validNumbers.length,
-        failCount: sendRes.data?.failCount || 0
+        successCount: result.data.successCount || validNumbers.length,
+        failCount: result.data.failCount || 0
       },
       message: 'SMS가 성공적으로 발송되었습니다.' 
     });
