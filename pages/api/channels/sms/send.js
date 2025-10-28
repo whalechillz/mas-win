@@ -20,8 +20,9 @@ function createAuthHeader(apiKey, apiSecret) {
   const salt = crypto.randomBytes(16).toString('hex');
   const signature = generateSignature(apiSecret, dateTime, salt);
   
-  // Authorization 헤더를 따옴표로 감싸서 구성
-  return `HMAC-SHA256 apiKey="${apiKey}", date="${dateTime}", salt="${salt}", signature="${signature}"`;
+  // HTTP 헤더에서 콜론을 제거하고 HMAC-SHA256 형식으로 구성
+  const dateWithoutColons = dateTime.replace(/:/g, '');
+  return `HMAC-SHA256 apiKey=${apiKey}, date=${dateWithoutColons}, salt=${salt}, signature=${signature}`;
 }
 
 export default async function handler(req, res) {
@@ -92,18 +93,18 @@ export default async function handler(req, res) {
       return msg;
     });
 
-  // Solapi v3 API 사용 (fetch API)
-  const basicAuth = Buffer.from(`${process.env.SOLAPI_API_KEY}:${process.env.SOLAPI_API_SECRET}`).toString('base64');
+  // Solapi v3 API 사용 (HMAC-SHA256 인증)
+  const authHeader = createAuthHeader(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET);
   
   console.log('API Key:', process.env.SOLAPI_API_KEY);
   console.log('API Secret:', process.env.SOLAPI_API_SECRET);
-  console.log('Basic Auth:', basicAuth);
+  console.log('Auth Header:', authHeader);
   
   const response = await fetch('https://api.solapi.com/messages/v3/send', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Basic ${basicAuth}`
+      'Authorization': authHeader
     },
     body: JSON.stringify({
       message: messages[0] // 첫 번째 메시지만 전송
