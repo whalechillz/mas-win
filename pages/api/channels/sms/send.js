@@ -1,24 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
-import crypto from 'crypto';
+import { createSolapiSignature } from '../../../../utils/solapiSignature';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 솔라피 API v4 HMAC-SHA256 인증 헤더 생성
-function generateSolapiAuthHeader(apiKey, apiSecret) {
-  const date = new Date().toISOString();
-  const salt = crypto.randomBytes(16).toString('hex');
-  const signature = crypto
-    .createHmac('sha256', apiSecret)
-    .update(date + salt)
-    .digest('hex');
-  
-  // 콜론을 URL 인코딩하여 HTTP 헤더에서 유효하게 만듦
-  const encodedDate = date.replace(/:/g, '%3A');
-  return `HMAC-SHA256 apiKey=${apiKey}, date=${encodedDate}, salt=${salt}, signature=${signature}`;
-}
+// 그룹 발송 플로우 사용 (v4)
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -76,39 +64,35 @@ export default async function handler(req, res) {
       finalMessage += `\n\n링크: ${shortLink}`;
     }
 
-    // 솔라피 API 타입 매핑
+    // 메시지 타입 매핑 및 메시지 배열 구성
     const solapiType = messageType === 'SMS300' ? 'SMS' : messageType;
-
-    // 솔라피 API로 발송 (axios 사용)
+    const fromNumber = (process.env.SOLAPI_SENDER || '0312150013').replace(/[^0-9]/g, '');
     const messages = validNumbers.map(to => {
-      const message = {
-        to: to.replace(/-/g, ''), // 하이픈 제거
-        from: process.env.SOLAPI_SENDER,
-        text: finalMessage,
-        type: solapiType
-      };
-
-      // MMS인 경우 이미지 추가
+      const toNumber = to.replace(/[^0-9]/g, '');
+      const msg = { to: toNumber, from: fromNumber, text: finalMessage, type: solapiType };
       if (solapiType === 'MMS' && imageUrl) {
-        message.imageId = imageUrl; // 이미지 ID 또는 URL
+        msg.imageId = imageUrl; // 사전 업로드된 imageId 필요
       }
-
-      return message;
+      return msg;
     });
 
-    // 솔라피 API 호출 (v4 방식 - HMAC-SHA256)
-    const authHeader = generateSolapiAuthHeader(
-      process.env.SOLAPI_API_KEY,
-      process.env.SOLAPI_API_SECRET
-    );
-    
-    const result = await axios.post('https://api.solapi.com/messages/v3/send', {
-      message: messages[0] // 첫 번째 메시지만 전송
-    }, {
+    // 1) 그룹 생성
+    const groupRes = await axios.post('https://api.solapi.com/messages/v4/groups', null, {
+      headers: { ...createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET) }
+    });
+    const groupId = groupRes.data.groupId;
+
+    // 2) 메시지 추가
+    await axios.put(`https://api.solapi.com/messages/v4/groups/${groupId}/messages`, { messages }, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': authHeader
+        ...createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET)
       }
+    });
+
+    // 3) 그룹 발송
+    const sendRes = await axios.post(`https://api.solapi.com/messages/v4/groups/${groupId}/send`, null, {
+      headers: { ...createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET) }
     });
 
     // 발송 결과를 데이터베이스에 업데이트
@@ -116,12 +100,12 @@ export default async function handler(req, res) {
       .from('channel_sms')
       .update({
         status: 'sent',
-        solapi_group_id: result.data.groupId,
-        solapi_message_id: result.data.messageId,
+        solapi_group_id: groupId,
+        solapi_message_id: sendRes.data?.messageId || null,
         sent_at: new Date().toISOString(),
         sent_count: validNumbers.length,
-        success_count: result.data.successCount || validNumbers.length,
-        fail_count: result.data.failCount || 0
+        success_count: sendRes.data?.successCount || validNumbers.length,
+        fail_count: sendRes.data?.failCount || 0
       })
       .eq('id', channelPostId);
 
@@ -158,11 +142,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ 
       success: true, 
       result: {
-        groupId: result.data.groupId,
-        messageId: result.data.messageId,
+        groupId,
+        messageId: sendRes.data?.messageId || null,
         sentCount: validNumbers.length,
-        successCount: result.data.successCount || validNumbers.length,
-        failCount: result.data.failCount || 0
+        successCount: sendRes.data?.successCount || validNumbers.length,
+        failCount: sendRes.data?.failCount || 0
       },
       message: 'SMS가 성공적으로 발송되었습니다.' 
     });
