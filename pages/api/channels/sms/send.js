@@ -20,7 +20,10 @@ function createAuthHeader(apiKey, apiSecret) {
   const salt = crypto.randomBytes(16).toString('hex');
   const signature = generateSignature(apiSecret, dateTime, salt);
   
-  return `HMAC-SHA256 apiKey=${apiKey}, date=${dateTime}, salt=${salt}, signature=${signature}`;
+  // HTTP 헤더에서 콜론을 URL 인코딩
+  const encodedDateTime = dateTime.replace(/:/g, '%3A');
+  
+  return `HMAC-SHA256 apiKey=${apiKey}, date=${encodedDateTime}, salt=${salt}, signature=${signature}`;
 }
 
 export default async function handler(req, res) {
