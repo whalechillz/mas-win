@@ -76,12 +76,18 @@ export default async function handler(req, res) {
       return msg;
     });
 
-    // v4 API로 다시 변경
-    const result = await axios.post('https://api.solapi.com/messages/v4/send', {
-      message: messages[0] // 첫 번째 메시지만 전송
-    }, {
-      headers: createSolapiSignature(process.env.SOLAPI_API_KEY, process.env.SOLAPI_API_SECRET)
-    });
+      // Basic Authentication 사용
+      const result = await axios.post('https://api.solapi.com/messages/v4/send', {
+        message: messages[0] // 첫 번째 메시지만 전송
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        auth: {
+          username: process.env.SOLAPI_API_KEY,
+          password: process.env.SOLAPI_API_SECRET
+        }
+      });
 
     // 발송 결과를 데이터베이스에 업데이트
     const { error: updateError } = await supabase
