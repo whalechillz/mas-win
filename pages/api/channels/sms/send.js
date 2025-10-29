@@ -85,8 +85,15 @@ export default async function handler(req, res) {
     };
 
     // MMS인 경우 이미지 정보 추가
-    if (solapiType === 'MMS' && imageUrl) {
-      messageData.message.imageId = imageUrl;
+    if (solapiType === 'MMS') {
+      if (imageUrl) {
+        messageData.message.imageId = imageUrl;
+        console.log('MMS 이미지 ID 추가:', imageUrl);
+      } else {
+        // MMS인데 이미지가 없으면 LMS로 변경
+        console.log('MMS인데 이미지가 없어서 LMS로 변경');
+        messageData.message.type = 'LMS';
+      }
     }
 
     const response = await fetch('https://api.solapi.com/messages/v4/send', {
