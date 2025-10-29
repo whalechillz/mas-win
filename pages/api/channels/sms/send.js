@@ -75,28 +75,29 @@ export default async function handler(req, res) {
     // 첫 번째 수신자에게만 발송 (기존 로직 유지)
     const toNumber = validNumbers[0].replace(/[\-\s]/g, '');
     
+    // Solapi v4 API는 messages 배열을 사용
     const messageData = {
-      message: {
+      messages: [{
         to: toNumber,
         from: fromNumber,
         text: finalMessage,
         type: solapiType
-      }
+      }]
     };
 
     // MMS인 경우 이미지 정보 추가
     if (solapiType === 'MMS') {
       if (imageUrl) {
-        messageData.message.imageId = imageUrl;
+        messageData.messages[0].imageId = imageUrl;
         console.log('MMS 이미지 ID 추가:', imageUrl);
       } else {
         // MMS인데 이미지가 없으면 LMS로 변경
         console.log('MMS인데 이미지가 없어서 LMS로 변경');
-        messageData.message.type = 'LMS';
+        messageData.messages[0].type = 'LMS';
       }
     }
 
-    const response = await fetch('https://api.solapi.com/messages/v4/send', {
+    const response = await fetch('https://api.solapi.com/messages/v4/send-many/detail', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -117,12 +118,12 @@ export default async function handler(req, res) {
       .from('channel_sms')
       .update({
         status: 'sent',
-        solapi_group_id: result.groupId,
-        solapi_message_id: result.messageId,
+        solapi_group_id: result.groupInfo?.groupId,
+        solapi_message_id: result.messages?.[0]?.messageId,
         sent_at: new Date().toISOString(),
         sent_count: validNumbers.length,
-        success_count: result.successCount || validNumbers.length,
-        fail_count: result.failCount || 0
+        success_count: result.groupInfo?.successCount || validNumbers.length,
+        fail_count: result.groupInfo?.failCount || 0
       })
       .eq('id', channelPostId);
 
@@ -159,11 +160,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       result: {
-        groupId: result.groupId,
-        messageId: result.messageId,
+        groupId: result.groupInfo?.groupId,
+        messageId: result.messages?.[0]?.messageId,
         sentCount: validNumbers.length,
-        successCount: result.successCount || validNumbers.length,
-        failCount: result.failCount || 0
+        successCount: result.groupInfo?.successCount || validNumbers.length,
+        failCount: result.groupInfo?.failCount || 0
       },
       message: 'SMS가 성공적으로 발송되었습니다.',
       solapiResponse: result // 디버깅을 위해 원본 응답도 포함
