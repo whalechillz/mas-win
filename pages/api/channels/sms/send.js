@@ -65,8 +65,8 @@ export default async function handler(req, res) {
       finalMessage += `\n\n링크: ${shortLink}`;
     }
 
-    // 메시지 타입 매핑
-    const solapiType = messageType === 'SMS300' ? 'SMS' : messageType;
+    // 메시지 타입 매핑 (SMS300은 지원하지 않으므로 LMS로 변환)
+    const solapiType = messageType === 'SMS300' ? 'LMS' : messageType;
     const fromNumber = SOLAPI_SENDER.replace(/[\-\s]/g, '');
 
     // Solapi v4 API로 발송 (성공한 test-sms 방식 사용)
