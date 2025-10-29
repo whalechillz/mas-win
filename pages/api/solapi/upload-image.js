@@ -54,26 +54,26 @@ export default async function handler(req, res) {
     // Solapi에 이미지 업로드
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
     
-    // 파일을 Buffer로 읽어서 FormData에 추가
+    // 파일을 Buffer로 읽어서 base64로 인코딩
     const fileBuffer = fs.readFileSync(file.filepath);
-    const uploadFormData = new FormData();
+    const base64Data = fileBuffer.toString('base64');
     
-    // Node.js 환경에서 FormData에 Buffer 직접 추가
-    uploadFormData.append('file', fileBuffer, {
-      filename: file.originalFilename,
-      contentType: file.mimetype
-    });
-
     console.log('Solapi 업로드 시작...');
     console.log('Auth headers:', authHeaders);
+    console.log('File size:', file.size, 'bytes');
     
+    // Solapi storage API에 base64 데이터로 업로드
     const response = await fetch('https://api.solapi.com/storage/v1/files', {
       method: 'POST',
       headers: {
         ...authHeaders,
-        // Content-Type을 제거하여 FormData가 자동으로 설정되도록 함
+        'Content-Type': 'application/json'
       },
-      body: uploadFormData
+      body: JSON.stringify({
+        file: base64Data,
+        name: file.originalFilename,
+        type: file.mimetype
+      })
     });
 
     const result = await response.json();
