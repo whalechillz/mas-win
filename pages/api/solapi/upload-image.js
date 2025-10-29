@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         file: base64Data,
         name: file.originalFilename,
-        type: file.mimetype
+        type: 'MMS' // Solapi에서 요구하는 타입
       })
     });
 
