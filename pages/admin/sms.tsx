@@ -40,7 +40,11 @@ export default function SMSAdmin() {
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
     console.log('SMS 에디터 - 현재 messageType:', formData.messageType);
-  }, [formData.messageType]);
+    // SMS300이 설정되어 있으면 LMS로 변경
+    if (formData.messageType === 'SMS300') {
+      updateFormData({ messageType: 'LMS' });
+    }
+  }, [formData.messageType, updateFormData]);
 
   // 모바일 미리보기 텍스트 추출 및 업데이트
   useEffect(() => {
@@ -145,7 +149,6 @@ export default function SMSAdmin() {
     console.log('getMaxLength - messageType:', messageType);
     switch (messageType) {
       case 'SMS': return 90;
-      case 'SMS300': return 300;
       case 'LMS': return 2000;
       case 'MMS': return 2000;
       default: return 90;
@@ -419,10 +422,9 @@ export default function SMSAdmin() {
                     현재: {formData.messageType || 'SMS'}
                   </span>
                 </div>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   {[
                     { type: 'SMS', limit: '90자' },
-                    { type: 'SMS300', limit: '300자' },
                     { type: 'LMS', limit: '2000자' },
                     { type: 'MMS', limit: '2000자' }
                   ].map(({ type, limit }) => (
