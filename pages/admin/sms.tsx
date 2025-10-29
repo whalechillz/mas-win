@@ -36,6 +36,9 @@ export default function SMSAdmin() {
   const [psychologyMessages, setPsychologyMessages] = useState([]);
   const [showPsychologyModal, setShowPsychologyModal] = useState(false);
   const [mobilePreviewText, setMobilePreviewText] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imageId, setImageId] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -45,6 +48,46 @@ export default function SMSAdmin() {
       updateFormData({ messageType: 'LMS' });
     }
   }, [formData.messageType, updateFormData]);
+
+  // 이미지 업로드 함수
+  const handleImageUpload = async (file) => {
+    try {
+      setIsUploadingImage(true);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/solapi/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setImageId(result.imageId);
+        setSelectedImage(file);
+        // formData에 imageId 저장
+        updateFormData({ imageUrl: result.imageId });
+        alert('이미지가 업로드되었습니다.');
+      } else {
+        alert('이미지 업로드에 실패했습니다: ' + result.message);
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // 이미지 제거 함수
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setImageId('');
+    // formData에서도 imageUrl 제거
+    updateFormData({ imageUrl: '' });
+  };
 
   // 모바일 미리보기 텍스트 추출 및 업데이트
   useEffect(() => {
@@ -433,6 +476,10 @@ export default function SMSAdmin() {
                       onClick={() => {
                         console.log('메시지 타입 변경:', type);
                         updateFormData({ messageType: type });
+                        // MMS가 아닌 경우 이미지 제거
+                        if (type !== 'MMS') {
+                          handleImageRemove();
+                        }
                       }}
                       className={`p-3 border rounded-lg text-center ${
                         formData.messageType === type
@@ -446,6 +493,101 @@ export default function SMSAdmin() {
                   ))}
                 </div>
               </div>
+
+              {/* 이미지 업로드 (MMS만) */}
+              {formData.messageType === 'MMS' && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3">이미지 첨부 (MMS)</h3>
+                  
+                  {!selectedImage ? (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="image-upload"
+                        disabled={isUploadingImage}
+                      />
+                      <label
+                        htmlFor="image-upload"
+                        className={`cursor-pointer ${isUploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <div className="text-gray-400 mb-2">
+                          {isUploadingImage ? (
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                          ) : (
+                            <svg className="mx-auto h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {isUploadingImage ? '업로드 중...' : '이미지를 선택하거나 드래그하세요'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF (최대 5MB)</p>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <img 
+                          src={URL.createObjectURL(selectedImage)} 
+                          alt="미리보기" 
+                          className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={handleImageRemove}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">
+                          <strong>파일명:</strong> {selectedImage.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          <strong>크기:</strong> {(selectedImage.size / 1024 / 1024).toFixed(2)}MB
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          <strong>이미지 ID:</strong> {imageId}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      💡 <strong>MMS 안내:</strong> 이미지가 포함된 메시지입니다. 이미지를 업로드해주세요.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 메시지 타입별 안내 */}
+              {formData.messageType === 'SMS' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm text-blue-800">
+                    💡 <strong>SMS:</strong> 90자 이하의 단문 메시지입니다.
+                  </p>
+                </div>
+              )}
+
+              {formData.messageType === 'LMS' && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                  <p className="text-sm text-green-800">
+                    💡 <strong>LMS:</strong> 2000자 이하의 장문 메시지입니다.
+                  </p>
+                </div>
+              )}
 
               {/* 메시지 내용 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
