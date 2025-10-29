@@ -58,14 +58,21 @@ export default async function handler(req, res) {
     const fileBuffer = fs.readFileSync(file.filepath);
     const uploadFormData = new FormData();
     
-    // Blob 객체 생성하여 FormData에 추가
-    const blob = new Blob([fileBuffer], { type: file.mimetype });
-    uploadFormData.append('file', blob, file.originalFilename);
+    // Node.js 환경에서 FormData에 Buffer 직접 추가
+    uploadFormData.append('file', fileBuffer, {
+      filename: file.originalFilename,
+      contentType: file.mimetype
+    });
 
     console.log('Solapi 업로드 시작...');
+    console.log('Auth headers:', authHeaders);
+    
     const response = await fetch('https://api.solapi.com/storage/v1/files', {
       method: 'POST',
-      headers: authHeaders,
+      headers: {
+        ...authHeaders,
+        // Content-Type을 제거하여 FormData가 자동으로 설정되도록 함
+      },
       body: uploadFormData
     });
 
