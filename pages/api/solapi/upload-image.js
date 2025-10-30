@@ -29,20 +29,40 @@ export default async function handler(req, res) {
     // formidable을 사용하여 multipart/form-data 파싱
     const form = formidable({
       maxFileSize: 5 * 1024 * 1024, // 5MB 제한
+      keepExtensions: true,
       filter: ({ mimetype }) => {
-        // 이미지 파일만 허용
-        return mimetype && mimetype.startsWith('image/');
+        // 이미지 파일만 허용 (JPG, PNG, GIF)
+        if (!mimetype) return false;
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        return allowedTypes.includes(mimetype.toLowerCase());
       }
     });
 
-    const [fields, files] = await form.parse(req);
+    // Promise 래퍼로 변환 (formidable 버전 호환성)
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
+    });
     
     // 파일이 업로드되었는지 확인
-    if (!files.file || !files.file[0]) {
+    if (!files.file || !Array.isArray(files.file) || files.file.length === 0) {
       return res.status(400).json({ success: false, message: '파일이 필요합니다.' });
     }
 
     const file = files.file[0];
+    
+    // JPG 파일만 허용 (Solapi MMS 요구사항)
+    if (!file.mimetype || !['image/jpeg', 'image/jpg'].includes(file.mimetype.toLowerCase())) {
+      if (file.filepath) {
+        try { fs.unlinkSync(file.filepath); } catch (e) {}
+      }
+      return res.status(400).json({ 
+        success: false, 
+        message: 'JPG 형식의 파일만 사용가능합니다.' 
+      });
+    }
 
     console.log('업로드된 파일 정보:', {
       originalFilename: file.originalFilename,
