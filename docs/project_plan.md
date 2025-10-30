@@ -85,8 +85,30 @@
 - Opt-out(수신거부) UI 토글 및 세그먼트 조건 반영
 - VIP 레벨 산정 배치 작업
 - 관리자 UI(세그먼트/템플릿/스케줄)
-- MMS 업로드 UX/검증 강화
 - 운영/장애 대응 문서 보강
+
+---
+
+## 📦 2025-10-31 버그 수정 및 시스템 강화
+
+### 수정 사항
+- **GoTrueClient 중복 인스턴스 경고 해결**: RealtimeMetrics, ai-management에서 통합 클라이언트 사용
+  - 파일: `components/admin/dashboard/RealtimeMetrics.tsx`, `pages/admin/ai-management.tsx`
+  - 해결: `lib/supabase-client.ts`의 통합 인스턴스 사용
+  - 문서: `docs/resolved/2025-10-31-gotrue-fix.md`
+
+- **MMS 이미지 업로드 에러 핸들링 강화**: formidable Promise 래퍼, JPG 파일 검증 추가
+  - 파일: `pages/api/solapi/upload-image.js`
+  - 해결: Promise 래퍼 추가, JPG 파일 검증 강화, 에러 메시지 개선
+  - 문서: `docs/resolved/2025-10-31-mms-upload-fix.md`
+
+### 변경 파일
+- `components/admin/dashboard/RealtimeMetrics.tsx`
+- `pages/admin/ai-management.tsx`
+- `pages/api/solapi/upload-image.js`
+- `docs/project_plan.md`
+- `docs/resolved/2025-10-31-gotrue-fix.md` (신규)
+- `docs/resolved/2025-10-31-mms-upload-fix.md` (신규)
 
 ## 🔒 보안 이슈 해결 (2025-01-27)
 
