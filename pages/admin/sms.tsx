@@ -5,6 +5,7 @@ import { TitleScorer } from '../../components/shared/TitleScorer';
 import { ShortLinkGenerator } from '../../components/shared/ShortLinkGenerator';
 import { AIImagePicker } from '../../components/shared/AIImagePicker';
 import { MessageOptimizer } from '../../components/shared/MessageOptimizer';
+import { CustomerSelector } from '../../components/admin/CustomerSelector';
 import { useChannelEditor } from '../../lib/hooks/useChannelEditor';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -39,6 +40,7 @@ export default function SMSAdmin() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageId, setImageId] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showCustomerSelector, setShowCustomerSelector] = useState(false);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -711,7 +713,15 @@ export default function SMSAdmin() {
 
               {/* 수신자 번호 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">수신자 번호</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-800">수신자 번호</h3>
+                  <button
+                    onClick={() => setShowCustomerSelector(true)}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                  >
+                    👥 고객 DB에서 선택
+                  </button>
+                </div>
                 <div className="space-y-2">
                   {(formData.recipientNumbers || []).map((number, index) => (
                     <div key={index} className="flex gap-2">
@@ -860,6 +870,22 @@ export default function SMSAdmin() {
       </div>
 
       {/* 심리학 기반 메시지 추천 모달 */}
+      {/* 고객 선택 모달 */}
+      {showCustomerSelector && (
+        <CustomerSelector
+          onSelect={(customers) => {
+            const newNumbers = [
+              ...(formData.recipientNumbers || []),
+              ...customers.map(c => c.phone).filter(p => !formData.recipientNumbers?.includes(p))
+            ];
+            updateFormData({ recipientNumbers: newNumbers });
+            setShowCustomerSelector(false);
+          }}
+          onClose={() => setShowCustomerSelector(false)}
+          selectedPhones={formData.recipientNumbers || []}
+        />
+      )}
+
       {showPsychologyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
