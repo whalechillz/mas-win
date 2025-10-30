@@ -25,6 +25,7 @@ const AdminNav = () => {
         <Link href="/admin/content-calendar-hub" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar-hub') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>🎯 허브 시스템</Link>
             <Link href="/admin/multichannel-dashboard" className={`px-2 py-1 rounded ${isActive('/admin/multichannel-dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📊 멀티채널 대시보드</Link>
             <Link href="/admin/ai-dashboard" className={`px-2 py-1 rounded ${isActive('/admin/ai-dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>AI 관리</Link>
+            <Link href="/admin/customers" className={`px-2 py-1 rounded ${isActive('/admin/customers') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>👥 고객</Link>
           </div>
           
           {/* 사용자 정보 및 로그아웃 버튼 */}

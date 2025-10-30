@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import multer from 'multer';
 import csv from 'csv-parser';
 import { Readable } from 'stream';
+import type { IncomingMessage } from 'http';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -18,21 +19,36 @@ export const config = {
   },
 };
 
-// 구글 시트에서 데이터 가져오기 (간단한 구현)
+// JSON Body 수동 파싱 (bodyParser:false 환경)
+async function readJsonBody<T = any>(req: IncomingMessage): Promise<T> {
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of req) chunks.push(chunk as Uint8Array);
+  const raw = Buffer.concat(chunks).toString('utf8') || '{}';
+  try { return JSON.parse(raw); } catch {
+    return {} as T;
+  }
+}
+
+// 구글 시트에서 데이터 가져오기 - 공유 URL → CSV export로 변환 후 파싱
 async function fetchFromGoogleSheets(sheetUrl: string, sheetName: string) {
   try {
-    // 실제 구현에서는 Google Sheets API를 사용해야 하지만,
-    // 여기서는 간단한 예시 데이터를 반환
-    console.log('구글 시트 URL:', sheetUrl);
-    console.log('시트 이름:', sheetName);
-    
-    // 실제로는 Google Sheets API를 사용해야 함
-    // 현재는 예시 데이터 반환 (마쓰구골프 시트)
-    return [
-      { name: '김마쓰', phone: '010-1234-5678' },
-      { name: '이마쓰', phone: '010-2345-6789' },
-      { name: '박마쓰', phone: '010-3456-7890' }
-    ];
+    // sheetName은 현재 사용하지 않고 gid를 우선 사용 (MASSGOO 탭 지정)
+    // 공유 URL 예: https://docs.google.com/spreadsheets/d/{id}/edit?gid=0#gid=0
+    const idMatch = sheetUrl.match(/\/spreadsheets\/d\/([^/]+)/);
+    const gidMatch = sheetUrl.match(/[?&#]gid=(\d+)/);
+    const sheetId = idMatch?.[1];
+    const gid = gidMatch?.[1] || '0';
+    if (!sheetId) throw new Error('유효하지 않은 구글 시트 URL입니다.');
+
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+    const resp = await fetch(exportUrl);
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`구글 시트 CSV 다운로드 실패: ${resp.status} - ${text}`);
+    }
+    const csvBuffer = Buffer.from(await resp.arrayBuffer());
+    const rows = await parseCsvFile(csvBuffer);
+    return rows;
   } catch (error) {
     console.error('구글 시트 데이터 가져오기 오류:', error);
     throw new Error('구글 시트에서 데이터를 가져올 수 없습니다.');
@@ -42,21 +58,15 @@ async function fetchFromGoogleSheets(sheetUrl: string, sheetName: string) {
 // CSV 파일 파싱
 async function parseCsvFile(buffer: Buffer) {
   return new Promise((resolve, reject) => {
-    const results = [];
+    const results: any[] = [];
     const stream = Readable.from(buffer.toString());
     
     stream
       .pipe(csv())
       .on('data', (data) => {
-        // CSV 컬럼명에 따라 매핑
-        const customer = {
-          name: data['고객명'] || data['name'] || data['Name'] || '',
-          phone: data['전화번호'] || data['phone'] || data['Phone'] || ''
-        };
-        
-        if (customer.name && customer.phone) {
-          results.push(customer);
-        }
+        // MASSGOO 탭 스키마 매핑
+        const customer = mapRawToCustomer(data);
+        if (customer.name && customer.phone) results.push(customer);
       })
       .on('end', () => {
         resolve(results);
@@ -67,86 +77,90 @@ async function parseCsvFile(buffer: Buffer) {
   });
 }
 
-// 고객 데이터를 데이터베이스에 저장
-async function saveCustomers(customers: Array<{name: string, phone: string}>) {
-  const results = [];
-  
-  for (const customer of customers) {
-    try {
-      // 전화번호 정리
-      const cleanPhone = customer.phone.replace(/[\-\s]/g, '');
-      
-      // 기존 고객 확인
-      const { data: existingCustomer } = await supabase
-        .from('customer_profiles')
-        .select('id')
-        .eq('phone', cleanPhone)
-        .single();
+// 컬럼 매핑 및 정규화
+function mapRawToCustomer(row: Record<string, any>) {
+  const get = (k: string) => row[k] ?? row[k.trim()] ?? '';
+  const name = get('이름') || get('고객명') || get('name') || '';
+  const phone = cleanPhone(get('연락처') || get('전화번호') || get('phone') || '');
+  const address = get('주소지') || get('주소') || '';
+  const purchaseFlag = get('구매내역'); // 텍스트 [구매이력]
+  const firstInquiryDate = parseDate(get('최초문의일'));
+  const firstPurchaseDate = parseDate(get('최초구매일'));
+  const lastPurchaseDate = parseDate(get('마지막구매일'));
+  const lastServiceDate = parseDate(get('마지막A/S출고일'));
+  const lastContactDate = parseDate(get('최근연락내역'));
 
-      if (existingCustomer) {
-        // 기존 고객 업데이트
-        const { error: updateError } = await supabase
-          .from('customer_profiles')
-          .update({
-            name: customer.name,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingCustomer.id);
+  return {
+    name,
+    phone,
+    address,
+    purchaseFlag,
+    firstInquiryDate,
+    firstPurchaseDate,
+    lastPurchaseDate,
+    lastServiceDate,
+    lastContactDate,
+  };
+}
 
-        if (updateError) {
-          results.push({
-            name: customer.name,
-            phone: customer.phone,
-            status: 'failed',
-            error: updateError.message
-          });
-        } else {
-          results.push({
-            name: customer.name,
-            phone: customer.phone,
-            status: 'success',
-            action: 'updated'
-          });
-        }
-      } else {
-        // 새 고객 생성
-        const { data: newCustomer, error: insertError } = await supabase
-          .from('customer_profiles')
-          .insert({
-            name: customer.name,
-            phone: cleanPhone,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select()
-          .single();
+function cleanPhone(v: string) {
+  const only = String(v || '').replace(/[^0-9]/g, '');
+  // 10~11자리만 수용, 아니면 빈 값
+  if (!only) return '';
+  return only.length === 10 || only.length === 11 ? only : '';
+}
 
-        if (insertError) {
-          results.push({
-            name: customer.name,
-            phone: customer.phone,
-            status: 'failed',
-            error: insertError.message
-          });
-        } else {
-          results.push({
-            name: customer.name,
-            phone: customer.phone,
-            status: 'success',
-            action: 'created'
-          });
+function parseDate(v: string) {
+  if (!v) return null as unknown as string | null;
+  const s = String(v).trim();
+  if (!s) return null as unknown as string | null;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null as unknown as string | null;
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+// 고객 데이터를 배치 Upsert (phone 고유)
+async function saveCustomers(customers: Array<any>) {
+  const results: any[] = [];
+  const CHUNK = 500;
+  for (let i = 0; i < customers.length; i += CHUNK) {
+    const batch = customers.slice(i, i + CHUNK)
+      .filter(c => c.name && c.phone);
+
+    // 무결성 보정: 날짜 순서 점검
+    batch.forEach(c => {
+      if (c.firstPurchaseDate && c.lastPurchaseDate) {
+        if (c.firstPurchaseDate > c.lastPurchaseDate) {
+          const tmp = c.firstPurchaseDate; c.firstPurchaseDate = c.lastPurchaseDate; c.lastPurchaseDate = tmp;
         }
       }
-    } catch (error) {
-      results.push({
-        name: customer.name,
-        phone: customer.phone,
-        status: 'failed',
-        error: error.message
-      });
+    });
+
+    // Supabase upsert (없는 컬럼이 있으면 에러가 날 수 있으므로 안전 컬럼만)
+    const upsertPayload = batch.map(c => ({
+      name: c.name,
+      phone: c.phone,
+      address: c.address || null,
+      first_inquiry_date: c.firstInquiryDate || null,
+      first_purchase_date: c.firstPurchaseDate || null,
+      last_purchase_date: c.lastPurchaseDate || null,
+      last_service_date: c.lastServiceDate || null,
+      last_contact_date: c.lastContactDate || null,
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase
+      .from('customer_profiles')
+      // @ts-ignore upsert 옵션
+      .upsert(upsertPayload, { onConflict: 'phone' });
+
+    if (error) {
+      results.push({ status: 'failed', count: batch.length, error: error.message });
+    } else {
+      results.push({ status: 'success', count: batch.length });
     }
   }
-  
   return results;
 }
 
@@ -156,7 +170,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    let customers = [];
+    let customers: any[] = [];
 
     // Content-Type 확인
     const contentType = req.headers['content-type'] || '';
@@ -166,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const uploadMiddleware = upload.single('file');
       
       await new Promise((resolve, reject) => {
-        uploadMiddleware(req, res, (err) => {
+        (uploadMiddleware as unknown as any)(req as any, res as any, (err: any) => {
           if (err) {
             reject(err);
           } else {
@@ -175,17 +189,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       });
 
-      if (!req.file) {
+      if (!(req as any).file) {
         return res.status(400).json({
           success: false,
           message: 'CSV 파일이 선택되지 않았습니다.'
         });
       }
 
-      customers = await parseCsvFile(req.file.buffer);
+      customers = await parseCsvFile((req as any).file.buffer) as any[];
     } else {
       // 구글 시트 연동
-      const { googleSheetUrl, sheetName } = req.body;
+      const body = await readJsonBody<any>(req);
+      const { googleSheetUrl, sheetName } = body || {};
       
       if (!googleSheetUrl) {
         return res.status(400).json({
@@ -194,7 +209,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      customers = await fetchFromGoogleSheets(googleSheetUrl, sheetName || '마쓰구골프');
+      customers = await fetchFromGoogleSheets(googleSheetUrl, sheetName || 'MASSGOO') as any[];
     }
 
     if (!customers || customers.length === 0) {

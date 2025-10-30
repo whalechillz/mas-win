@@ -69,48 +69,100 @@ export default async function handler(req, res) {
     const solapiType = messageType === 'SMS300' ? 'LMS' : messageType;
     const fromNumber = SOLAPI_SENDER.replace(/[\-\s]/g, '');
 
+    // 1) 수신거부(Opt-out) 고객 제외 처리
+    let candidates = validNumbers.map(n => n.replace(/[\-\s]/g, ''));
+    try {
+      const { data: optedOut, error: optErr } = await supabase
+        .from('customers')
+        .select('phone')
+        .in('phone', candidates)
+        .eq('opt_out', true);
+      if (optErr) {
+        console.error('opt-out 조회 오류(무시하고 진행):', optErr);
+      } else if (optedOut && optedOut.length) {
+        const blocked = new Set(optedOut.map(o => String(o.phone)));
+        candidates = candidates.filter(p => !blocked.has(p));
+      }
+    } catch (e) {
+      console.error('opt-out 필터링 예외(무시하고 진행):', e);
+    }
+
+    if (candidates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '수신거부 제외 후 발송 가능한 수신자가 없습니다.'
+      });
+    }
+
     // Solapi v4 API로 발송 (성공한 test-sms 방식 사용)
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
-    // 첫 번째 수신자에게만 발송 (기존 로직 유지)
-    const toNumber = validNumbers[0].replace(/[\-\s]/g, '');
-    
-    // Solapi v4 API는 messages 배열을 사용
-    const messageData = {
-      messages: [{
-        to: toNumber,
-        from: fromNumber,
-        text: finalMessage,
-        type: solapiType
-      }]
-    };
+    // 전체 수신자 messages 구성
+    const allMessages = candidates.map(num => ({
+      to: num,
+      from: fromNumber,
+      text: finalMessage,
+      type: solapiType,
+      ...(solapiType === 'MMS' && imageUrl ? { imageId: imageUrl } : {})
+    }));
 
-    // MMS인 경우 이미지 정보 추가
-    if (solapiType === 'MMS') {
-      if (imageUrl) {
-        messageData.messages[0].imageId = imageUrl;
-        console.log('MMS 이미지 ID 추가:', imageUrl);
-      } else {
-        // MMS인데 이미지가 없으면 LMS로 변경
-        console.log('MMS인데 이미지가 없어서 LMS로 변경');
-        messageData.messages[0].type = 'LMS';
-      }
+    // MMS인데 이미지가 없으면 LMS로 변경
+    if (solapiType === 'MMS' && !imageUrl) {
+      for (const m of allMessages) m.type = 'LMS';
     }
 
-    const response = await fetch('https://api.solapi.com/messages/v4/send-many/detail', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders
-      },
-      body: JSON.stringify(messageData)
-    });
+    // 200건씩 청크 전송 및 응답 집계
+    const chunkSize = 200;
+    let aggregated = { groupIds: [], messageResults: [], successCount: 0, failCount: 0 };
+    for (let i = 0; i < allMessages.length; i += chunkSize) {
+      const chunk = allMessages.slice(i, i + chunkSize);
+      const payload = { messages: chunk };
+      const resp = await fetch('https://api.solapi.com/messages/v4/send-many/detail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(payload)
+      });
+      const json = await resp.json();
+      console.log('Solapi chunk 응답:', json);
+      if (!resp.ok) {
+        throw new Error(`Solapi API 오류: ${resp.status} - ${JSON.stringify(json)}`);
+      }
+      aggregated.groupIds.push(json.groupInfo?.groupId);
+      aggregated.messageResults.push(...(json.messages || []));
+      aggregated.successCount += json.groupInfo?.successCount || 0;
+      aggregated.failCount += json.groupInfo?.failCount || 0;
+    }
 
-    const result = await response.json();
-    console.log('Solapi API 응답:', result);
-
-    if (!response.ok) {
-      throw new Error(`Solapi API 오류: ${response.status} - ${JSON.stringify(result)}`);
+    // per-recipient 로그 및 연락 이벤트 기록 (고객 매핑은 후속 단계에서 강화)
+    try {
+      const nowIso = new Date().toISOString();
+      const logsToInsert = aggregated.messageResults.map(r => ({
+        customer_id: null,
+        message_type: (solapiType || 'SMS').toLowerCase(),
+        status: (r.status || 'sent'),
+        channel: 'solapi',
+        sent_at: nowIso
+      }));
+      if (logsToInsert.length) {
+        const { error: logErr } = await supabase.from('message_logs').insert(logsToInsert);
+        if (logErr) console.error('message_logs 적재 오류:', logErr);
+      }
+      const successCount = aggregated.messageResults.filter(r => (r.status || '').toLowerCase() !== 'failed').length;
+      if (successCount > 0) {
+        const { error: ceErr } = await supabase.from('contact_events').insert([
+          {
+            customer_id: null,
+            occurred_at: nowIso,
+            direction: 'outbound',
+            channel: 'sms',
+            note: `발송 ${successCount}건 (groupIds: ${aggregated.groupIds.filter(Boolean).join(',')})`,
+            source: 'system'
+          }
+        ]);
+        if (ceErr) console.error('contact_events 적재 오류:', ceErr);
+      }
+    } catch (e) {
+      console.error('per-recipient 로깅 오류:', e);
     }
 
     // 발송 결과를 데이터베이스에 업데이트
@@ -118,12 +170,12 @@ export default async function handler(req, res) {
       .from('channel_sms')
       .update({
         status: 'sent',
-        solapi_group_id: result.groupInfo?.groupId,
-        solapi_message_id: result.messages?.[0]?.messageId,
+        solapi_group_id: aggregated.groupIds[0] || null,
+        solapi_message_id: null,
         sent_at: new Date().toISOString(),
-        sent_count: validNumbers.length,
-        success_count: result.groupInfo?.successCount || validNumbers.length,
-        fail_count: result.groupInfo?.failCount || 0
+        sent_count: candidates.length,
+        success_count: aggregated.successCount || candidates.length,
+        fail_count: aggregated.failCount || 0
       })
       .eq('id', channelPostId);
 
@@ -160,14 +212,13 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       result: {
-        groupId: result.groupInfo?.groupId,
-        messageId: result.messages?.[0]?.messageId,
-        sentCount: validNumbers.length,
-        successCount: result.groupInfo?.successCount || validNumbers.length,
-        failCount: result.groupInfo?.failCount || 0
+        groupIds: aggregated.groupIds,
+        sentCount: candidates.length,
+        successCount: aggregated.successCount || candidates.length,
+        failCount: aggregated.failCount || 0
       },
       message: 'SMS가 성공적으로 발송되었습니다.',
-      solapiResponse: result // 디버깅을 위해 원본 응답도 포함
+      solapiResponse: aggregated
     });
 
   } catch (error) {

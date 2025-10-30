@@ -65,6 +65,29 @@
 - `components/admin/AdminNav.tsx` (업데이트)
 - `docs/project_plan.md` (업데이트)
 
+---
+
+## 📦 2025-10-30 SMS 시스템 고도화 — 1차 구현
+
+### 무엇을 했나
+- `pages/api/channels/sms/send.js`: 단일 수신자 → 전체 수신자 대량 발송으로 확장, 200건 청크 전송, 성공/실패 집계, per-recipient 로그/연락 이벤트 적재 추가.
+- `pages/api/solapi/webhook.js` (신규): Solapi 배달/실패 웹훅 수신 엔드포인트 추가(요약 이벤트 기록, 원본 페이로드 로그).
+ - `pages/api/channels/sms/send.js`: 수신거부(Opt-out) 고객 자동 제외 로직 추가(`customers.opt_out`).
+
+### 왜 했나
+- 안정적인 대량 발송(청크/집계)과 이후 운영 가시성(로그/연락 이벤트) 확보를 위해.
+
+### 변경 파일
+- `pages/api/channels/sms/send.js`
+- `pages/api/solapi/webhook.js`
+
+### 남은 일
+- Opt-out(수신거부) UI 토글 및 세그먼트 조건 반영
+- VIP 레벨 산정 배치 작업
+- 관리자 UI(세그먼트/템플릿/스케줄)
+- MMS 업로드 UX/검증 강화
+- 운영/장애 대응 문서 보강
+
 ## 🔒 보안 이슈 해결 (2025-01-27)
 
 ### Supabase Security Advisor 오류 해결
