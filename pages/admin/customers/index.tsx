@@ -23,6 +23,13 @@ export default function CustomersPage() {
   const [pageSize] = useState(20);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importMethod, setImportMethod] = useState<'csv' | 'google' | null>(null);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [googleSheetUrl, setGoogleSheetUrl] = useState('');
+  const [sheetName, setSheetName] = useState('MASSGOO');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number} | null>(null);
 
   const fetchCustomers = async (nextPage = page) => {
     setLoading(true);
@@ -54,6 +61,74 @@ export default function CustomersPage() {
     }
   };
 
+  const handleImport = async () => {
+    if (!importMethod) return;
+    
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      let res: Response;
+
+      if (importMethod === 'csv') {
+        if (!importFile) {
+          alert('CSV 파일을 선택해주세요.');
+          setImporting(false);
+          return;
+        }
+        const formData = new FormData();
+        formData.append('file', importFile);
+        res = await fetch('/api/admin/import-customers', {
+          method: 'POST',
+          body: formData
+        });
+      } else {
+        // 구글 시트
+        if (!googleSheetUrl) {
+          alert('구글 시트 URL을 입력해주세요.');
+          setImporting(false);
+          return;
+        }
+        res = await fetch('/api/admin/import-customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            googleSheetUrl,
+            sheetName
+          })
+        });
+      }
+
+      const json = await res.json();
+      setImportResult({
+        success: json.success,
+        message: json.message,
+        count: json.count,
+        total: json.total
+      });
+
+      if (json.success) {
+        // 성공 시 고객 목록 새로고침
+        await fetchCustomers(1);
+        // 3초 후 모달 닫기
+        setTimeout(() => {
+          setShowImportModal(false);
+          setImportMethod(null);
+          setImportFile(null);
+          setGoogleSheetUrl('');
+          setImportResult(null);
+        }, 3000);
+      }
+    } catch (error: any) {
+      setImportResult({
+        success: false,
+        message: error.message || '가져오기 중 오류가 발생했습니다.'
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
 
   return (
@@ -76,6 +151,12 @@ export default function CustomersPage() {
                 수신거부만
               </label>
               <button onClick={() => fetchCustomers(1)} className="px-4 py-2 bg-blue-600 text-white rounded">검색</button>
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                📥 고객 데이터 가져오기
+              </button>
             </div>
           </div>
 
@@ -123,6 +204,152 @@ export default function CustomersPage() {
           </div>
         </div>
       </div>
+
+      {/* 고객 데이터 가져오기 모달 */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">고객 데이터 가져오기</h2>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportMethod(null);
+                  setImportFile(null);
+                  setGoogleSheetUrl('');
+                  setImportResult(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            {!importMethod ? (
+              <div className="space-y-4">
+                <p className="text-gray-600">데이터 가져오기 방법을 선택하세요:</p>
+                <button
+                  onClick={() => setImportMethod('csv')}
+                  className="w-full p-4 border-2 border-blue-500 rounded-lg hover:bg-blue-50 flex items-center justify-between"
+                >
+                  <span className="text-lg">📄 CSV 파일 업로드</span>
+                  <span className="text-gray-500">→</span>
+                </button>
+                <button
+                  onClick={() => setImportMethod('google')}
+                  className="w-full p-4 border-2 border-green-500 rounded-lg hover:bg-green-50 flex items-center justify-between"
+                >
+                  <span className="text-lg">📊 구글 시트 연동</span>
+                  <span className="text-gray-500">→</span>
+                </button>
+              </div>
+            ) : importMethod === 'csv' ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    CSV 파일 선택
+                  </label>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    CSV 형식: 이름,연락처,주소지,최초문의일,최초구매일,마지막지불일,마지막A/S출고일,최근연락내역
+                  </p>
+                </div>
+                {importResult && (
+                  <div className={`p-3 rounded-md ${importResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                    <p className="font-medium">{importResult.message}</p>
+                    {importResult.count !== undefined && (
+                      <p className="text-sm mt-1">
+                        성공: {importResult.count}명 / 전체: {importResult.total}명
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setImportMethod(null);
+                      setImportFile(null);
+                      setImportResult(null);
+                    }}
+                    className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50"
+                  >
+                    뒤로
+                  </button>
+                  <button
+                    onClick={handleImport}
+                    disabled={importing || !importFile}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {importing ? '가져오는 중...' : '가져오기'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    구글 시트 URL
+                  </label>
+                  <input
+                    type="text"
+                    value={googleSheetUrl}
+                    onChange={(e) => setGoogleSheetUrl(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    시트 이름 (선택사항)
+                  </label>
+                  <input
+                    type="text"
+                    value={sheetName}
+                    onChange={(e) => setSheetName(e.target.value)}
+                    placeholder="MASSGOO"
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+                {importResult && (
+                  <div className={`p-3 rounded-md ${importResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                    <p className="font-medium">{importResult.message}</p>
+                    {importResult.count !== undefined && (
+                      <p className="text-sm mt-1">
+                        성공: {importResult.count}명 / 전체: {importResult.total}명
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setImportMethod(null);
+                      setGoogleSheetUrl('');
+                      setSheetName('MASSGOO');
+                      setImportResult(null);
+                    }}
+                    className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50"
+                  >
+                    뒤로
+                  </button>
+                  <button
+                    onClick={handleImport}
+                    disabled={importing || !googleSheetUrl}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {importing ? '가져오는 중...' : '가져오기'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
