@@ -86,7 +86,8 @@ function mapRawToCustomer(row: Record<string, any>) {
   const purchaseFlag = get('구매내역'); // 텍스트 [구매이력]
   const firstInquiryDate = parseDate(get('최초문의일'));
   const firstPurchaseDate = parseDate(get('최초구매일'));
-  const lastPurchaseDate = parseDate(get('마지막구매일'));
+  // CSV에는 "마지막지불일"로 되어 있지만 코드에서는 "마지막구매일"로 찾음
+  const lastPurchaseDate = parseDate(get('마지막구매일') || get('마지막지불일'));
   const lastServiceDate = parseDate(get('마지막A/S출고일'));
   const lastContactDate = parseDate(get('최근연락내역'));
 
