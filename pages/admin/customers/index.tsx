@@ -23,7 +23,12 @@ export default function CustomersPage() {
   const [pageSize] = useState(20);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState('updated_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [importMethod, setImportMethod] = useState<'csv' | 'google' | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
@@ -33,7 +38,7 @@ export default function CustomersPage() {
 
   const fetchCustomers = async (nextPage = page) => {
     setLoading(true);
-    const params = new URLSearchParams({ q, page: String(nextPage), pageSize: String(pageSize) });
+    const params = new URLSearchParams({ q, page: String(nextPage), pageSize: String(pageSize), sortBy, sortOrder });
     if (onlyOptOut) params.set('optout', 'true');
     const res = await fetch(`/api/admin/customers?${params.toString()}`);
     const json = await res.json();
@@ -45,7 +50,17 @@ export default function CustomersPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchCustomers(1); }, []);
+  useEffect(() => { fetchCustomers(1); }, [sortBy, sortOrder, q, onlyOptOut]);
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+    fetchCustomers(1);
+  };
 
   const handleToggleOptOut = async (c: Customer) => {
     const res = await fetch('/api/admin/customers', {
@@ -59,6 +74,23 @@ export default function CustomersPage() {
     } else {
       alert(json.message || '업데이트 실패');
     }
+  };
+
+  const handleDelete = async (c: Customer) => {
+    if (!confirm(`정말 ${c.name} 고객을 삭제하시겠습니까?`)) return;
+    const res = await fetch(`/api/admin/customers?id=${c.id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      alert('고객이 삭제되었습니다.');
+      fetchCustomers(page);
+    } else {
+      alert(json.message || '삭제 실패');
+    }
+  };
+
+  const handleEdit = (c: Customer) => {
+    setEditingCustomer(c);
+    setShowEditModal(true);
   };
 
   const handleImport = async () => {
@@ -172,6 +204,12 @@ export default function CustomersPage() {
               </label>
               <button onClick={() => fetchCustomers(1)} className="px-4 py-2 bg-blue-600 text-white rounded">검색</button>
               <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              >
+                ➕ 고객 추가
+              </button>
+              <button
                 onClick={() => setShowImportModal(true)}
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
@@ -184,10 +222,18 @@ export default function CustomersPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-2 text-left">이름</th>
-                  <th className="p-2 text-left">전화</th>
-                  <th className="p-2 text-left">VIP</th>
-                  <th className="p-2 text-left">최근 연락</th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('name')}>
+                    이름 {sortBy === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('phone')}>
+                    전화 {sortBy === 'phone' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('vip_level')}>
+                    VIP {sortBy === 'vip_level' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('last_contact_date')}>
+                    최근 연락 {sortBy === 'last_contact_date' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
                   <th className="p-2 text-left">수신거부</th>
                   <th className="p-2 text-left">액션</th>
                 </tr>
@@ -201,9 +247,17 @@ export default function CustomersPage() {
                     <td className="p-2">{c.last_contact_date ? new Date(c.last_contact_date).toLocaleString('ko-KR') : '-'}</td>
                     <td className="p-2">{c.opt_out ? '예' : '아니오'}</td>
                     <td className="p-2">
-                      <button onClick={() => handleToggleOptOut(c)} className="px-3 py-1 border rounded">
-                        {c.opt_out ? '수신 허용' : '수신 거부'}
-                      </button>
+                      <div className="flex gap-1">
+                        <button onClick={() => handleEdit(c)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
+                          수정
+                        </button>
+                        <button onClick={() => handleDelete(c)} className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
+                          삭제
+                        </button>
+                        <button onClick={() => handleToggleOptOut(c)} className="px-2 py-1 text-xs border rounded hover:bg-gray-100">
+                          {c.opt_out ? '수신허용' : '수신거부'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -390,7 +444,228 @@ export default function CustomersPage() {
           </div>
         </div>
       )}
+
+      {/* 고객 추가 모달 */}
+      {showCreateModal && (
+        <CustomerFormModal
+          mode="create"
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            fetchCustomers(1);
+          }}
+        />
+      )}
+
+      {/* 고객 수정 모달 */}
+      {showEditModal && editingCustomer && (
+        <CustomerFormModal
+          mode="edit"
+          customer={editingCustomer}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingCustomer(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setEditingCustomer(null);
+            fetchCustomers(page);
+          }}
+        />
+      )}
     </>
+  );
+}
+
+// 고객 추가/수정 폼 모달 컴포넌트
+function CustomerFormModal({ mode, customer, onClose, onSuccess }: {
+  mode: 'create' | 'edit';
+  customer?: Customer | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '';
+    try {
+      return dateStr.substring(0, 10);
+    } catch {
+      return '';
+    }
+  };
+
+  const [name, setName] = useState(customer?.name || '');
+  const [phone, setPhone] = useState(customer?.phone || '');
+  const [address, setAddress] = useState(customer?.address || '');
+  const [firstInquiryDate, setFirstInquiryDate] = useState(formatDate((customer as any)?.first_inquiry_date));
+  const [firstPurchaseDate, setFirstPurchaseDate] = useState(formatDate(customer?.first_purchase_date));
+  const [lastPurchaseDate, setLastPurchaseDate] = useState(formatDate(customer?.last_purchase_date));
+  const [lastServiceDate, setLastServiceDate] = useState(formatDate((customer as any)?.last_service_date));
+  const [lastContactDate, setLastContactDate] = useState(formatDate(customer?.last_contact_date));
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !phone) {
+      alert('이름과 전화번호는 필수입니다.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const url = mode === 'create' ? '/api/admin/customers' : '/api/admin/customers';
+      const method = mode === 'create' ? 'POST' : 'PATCH';
+      const body = mode === 'create' ? {
+        name,
+        phone,
+        address: address || null,
+        first_inquiry_date: firstInquiryDate || null,
+        first_purchase_date: firstPurchaseDate || null,
+        last_purchase_date: lastPurchaseDate || null,
+        last_service_date: lastServiceDate || null,
+        last_contact_date: lastContactDate || null,
+      } : {
+        id: customer!.id,
+        update: {
+          name,
+          phone,
+          address: address || null,
+          first_inquiry_date: firstInquiryDate || null,
+          first_purchase_date: firstPurchaseDate || null,
+          last_purchase_date: lastPurchaseDate || null,
+          last_service_date: lastServiceDate || null,
+          last_contact_date: lastContactDate || null,
+        }
+      };
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert(mode === 'create' ? '고객이 추가되었습니다.' : '고객 정보가 수정되었습니다.');
+        onSuccess();
+      } else {
+        alert(json.message || '저장 실패');
+      }
+    } catch (error: any) {
+      alert(error.message || '저장 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">
+            {mode === 'create' ? '고객 추가' : '고객 수정'}
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">전화번호 *</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+              placeholder="01012345678"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">최초 문의일</label>
+              <input
+                type="date"
+                value={firstInquiryDate}
+                onChange={(e) => setFirstInquiryDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">최초 구매일</label>
+              <input
+                type="date"
+                value={firstPurchaseDate}
+                onChange={(e) => setFirstPurchaseDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">마지막 구매일</label>
+              <input
+                type="date"
+                value={lastPurchaseDate}
+                onChange={(e) => setLastPurchaseDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">마지막 A/S 출고일</label>
+              <input
+                type="date"
+                value={lastServiceDate}
+                onChange={(e) => setLastServiceDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">최근 연락일</label>
+            <input
+              type="date"
+              value={lastContactDate}
+              onChange={(e) => setLastContactDate(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? '저장 중...' : mode === 'create' ? '추가' : '수정'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
