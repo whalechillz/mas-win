@@ -24,15 +24,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ success: false, message: dbError.message });
     }
 
-    const dbPhones = new Set(dbCustomers?.map(c => c.phone) || []);
-    
-    // 2. CSV 파일 읽기
+    // 2. CSV 파일 읽기 (모든 고객 데이터 로드)
     const csvPath = path.join(process.cwd(), 'database', '마스골프 고객 DB - MASSGOO.csv');
     if (!fs.existsSync(csvPath)) {
       return res.status(404).json({ success: false, message: 'CSV 파일을 찾을 수 없습니다.' });
     }
 
-    const missingCustomers: any[] = [];
+    const allCustomers: any[] = [];
+    const dbPhones = new Set(dbCustomers?.map(c => c.phone) || []);
 
     await new Promise((resolve, reject) => {
       fs.createReadStream(csvPath, { encoding: 'utf-8' })
@@ -42,9 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const phoneRaw = row['연락처']?.trim() || '';
           const phoneClean = phoneRaw.replace(/[^0-9]/g, '');
           
-          // DB에 없는 고객만 추가
-          if (phoneClean.length >= 10 && phoneClean.length <= 11 && name && !dbPhones.has(phoneClean)) {
-            missingCustomers.push({
+          // 유효한 고객 데이터면 모두 추가 (중복은 upsert로 자동 처리)
+          if (phoneClean.length >= 10 && phoneClean.length <= 11 && name) {
+            allCustomers.push({
               name,
               phone: phoneClean,
               address: row['주소지']?.trim() || null,
@@ -53,6 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               lastPurchaseDate: parseDate(row['마지막지불일'] || row['마지막구매일']),
               lastServiceDate: parseDate(row['마지막A/S출고일']),
               lastContactDate: parseDate(row['최근연락내역']),
+              isMissing: !dbPhones.has(phoneClean) // 누락 여부 추적용
             });
           }
         })
@@ -60,21 +60,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .on('error', reject);
     });
 
-    if (missingCustomers.length === 0) {
+    if (allCustomers.length === 0) {
       return res.status(200).json({
         success: true,
-        message: '누락된 고객이 없습니다.',
-        count: 0
+        message: 'CSV 파일에 유효한 고객 데이터가 없습니다.',
+        count: 0,
+        stats: { found: 0, imported: 0, missing: 0 }
       });
     }
 
-    // 3. 누락된 고객들을 배치로 저장
+    // 3. 모든 고객을 배치로 upsert (중복 자동 처리)
     const CHUNK = 500;
     const results: any[] = [];
+    const now = new Date().toISOString();
+
+    // upsert로 중복 자동 처리: 전화번호가 이미 있으면 업데이트, 없으면 추가
+    const missingCount = allCustomers.filter(c => c.isMissing).length;
     
-    for (let i = 0; i < missingCustomers.length; i += CHUNK) {
-      const batch = missingCustomers.slice(i, i + CHUNK);
-      const now = new Date().toISOString();
+    for (let i = 0; i < allCustomers.length; i += CHUNK) {
+      const batch = allCustomers.slice(i, i + CHUNK);
 
       const upsertPayload = batch.map(c => ({
         name: c.name,
@@ -92,7 +96,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { error } = await supabase
         .from('customers')
-        .upsert(upsertPayload, { onConflict: 'phone' });
+        .upsert(upsertPayload, { 
+          onConflict: 'phone',
+          ignoreDuplicates: false // false로 설정하면 중복 시 업데이트하지 않음 (기존 데이터 유지)
+        });
 
       if (error) {
         console.error(`배치 ${i}-${i + batch.length} 업로드 오류:`, error);
@@ -115,10 +122,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({
       success: true,
-      message: `누락된 고객 ${missingCustomers.length}명 중 ${totalSuccess}명 저장 완료`,
+      message: `CSV 총 ${allCustomers.length}명 중 ${totalSuccess}명 처리 완료 (누락: ${missingCount}명 추가됨)`,
       stats: {
-        found: missingCustomers.length,
+        csvTotal: allCustomers.length,
+        dbBefore: dbPhones.size,
         imported: totalSuccess,
+        missing: missingCount,
         failed: totalFailed
       },
       results
