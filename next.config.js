@@ -86,7 +86,8 @@ module.exports = {
   // 빌드 성능 최적화
   swcMinify: true,
   // 정적 생성 설정 (Vercel 호환)
-  trailingSlash: true,
+  // trailingSlash: true로 인한 웹훅 308 리다이렉트 문제 해결을 위해 false로 변경
+  trailingSlash: false,
   // 정적 HTML 내보내기 비활성화 (Vercel 서버리스 함수 사용)
   // output: 'export',
   // 리다이렉트 제거 - 메인 페이지가 index.js를 직접 사용하도록 함
