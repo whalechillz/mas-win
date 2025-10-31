@@ -947,7 +947,7 @@ export default function SMSAdmin() {
                     </select>
                   </div>
                   
-                  {/* 세그먼트 적용 버튼 */}
+                  {/* 세그먼트 적용 버튼 (자동 페이징 수집) */}
                   <button
                     onClick={async () => {
                       setSegmentLoading(true);
@@ -959,27 +959,31 @@ export default function SMSAdmin() {
                         if (segmentFilter.contactDays) params.set('contactDays', segmentFilter.contactDays);
                         if (segmentFilter.vipLevel) params.set('vipLevel', segmentFilter.vipLevel);
                         params.set('optout', 'false'); // 수신거부 제외
-                        
-                        const res = await fetch(`/api/admin/customers?${params.toString()}`);
-                        const json = await res.json();
-                        
-                        if (json.success && json.data) {
-                          const phones = json.data.map((c: any) => {
-                            const phone = c.phone;
-                            // 하이픈 형식으로 변환
-                            if (phone.length === 11) {
-                              return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
-                            } else if (phone.length === 10) {
-                              return `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6)}`;
-                            }
+                        // 전체 페이지 순회 수집
+                        let allPhones: string[] = [];
+                        let pageNum = 1;
+                        let hasMore = true;
+                        let totalCount = 0;
+                        while (hasMore) {
+                          params.set('page', String(pageNum));
+                          const res = await fetch(`/api/admin/customers?${params.toString()}`);
+                          const json = await res.json();
+                          if (!json.success) break;
+                          totalCount = json.count || totalCount;
+                          const phones = (json.data || []).map((c: any) => {
+                            const phone: string = c.phone;
+                            if (phone?.length === 11) return `${phone.slice(0,3)}-${phone.slice(3,7)}-${phone.slice(7)}`;
+                            if (phone?.length === 10) return `${phone.slice(0,3)}-${phone.slice(3,6)}-${phone.slice(6)}`;
                             return phone;
                           });
-                          
-                          updateFormData({ recipientNumbers: phones });
-                          alert(`세그먼트에서 ${json.count}명의 고객이 선택되었습니다.`);
-                        } else {
-                          alert('세그먼트 고객을 불러오는데 실패했습니다.');
+                          allPhones = allPhones.concat(phones);
+                          const totalPages = Math.ceil((json.count || 0) / 1000);
+                          hasMore = pageNum < totalPages;
+                          pageNum += 1;
                         }
+                        const uniquePhones = Array.from(new Set(allPhones));
+                        updateFormData({ recipientNumbers: uniquePhones });
+                        alert(`세그먼트 수집 완료: ${uniquePhones.length}명 / 전체 ${(totalCount || uniquePhones.length).toLocaleString()}명`);
                       } catch (error) {
                         console.error('세그먼트 로드 오류:', error);
                         alert('세그먼트 고객을 불러오는 중 오류가 발생했습니다.');
@@ -991,6 +995,25 @@ export default function SMSAdmin() {
                     className="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
                   >
                     {segmentLoading ? '로딩 중...' : '✅ 세그먼트 적용하여 수신자 자동 선택'}
+                  </button>
+                  {/* 발송 이력 버튼 */}
+                  <button
+                    onClick={async () => {
+                      try {
+                        const contentId = String((formData as any)?.id || (router.query as any)?.id || (router.query as any)?.edit || '');
+                        if (!contentId) return alert('허브콘텐츠 ID를 찾을 수 없습니다.');
+                        const r = await fetch(`/api/admin/sms/history?contentId=${contentId}&page=1&pageSize=100`);
+                        const j = await r.json();
+                        if (!j.success) return alert('발송 이력 조회 실패');
+                        alert(`이력: 총 ${j.count}건 (성공 ${j.sent}, 실패 ${j.failed})`);
+                      } catch (e) {
+                        console.error('이력 조회 오류:', e);
+                        alert('발송 이력 조회 중 오류가 발생했습니다.');
+                      }
+                    }}
+                    className="w-full mt-2 px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+                  >
+                    발송 이력 보기
                   </button>
                 </div>
               </div>

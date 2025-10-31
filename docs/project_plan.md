@@ -218,3 +218,9 @@
   - `pages/api/migrate-naver-blog-preview.js`
   - `pages/muziik/index_backup_20251021_082924.tsx`
 - 목적: 메뉴에 없는 테스트 경로 외부 접근 차단, 혼선/보안 리스크 축소
+
+### 2025-10-31 SMS 발송 안정화 (허브콘텐츠 1회 원칙)
+- 허브콘텐츠별 중복 발송 방지: `message_logs(content_id, customer_phone)` 유니크 인덱스 전제, `send.js`에서 중복 제외 후 발송, 로그는 upsert로 갱신
+- 발송 이력 조회 API 추가: `GET /api/admin/sms/history?contentId=...` (총건수/성공/실패/목록)
+- 에디터 개선: 세그먼트 “자동 페이징 수집(1000 단위)”로 전체 대상 수집, “발송 이력 보기” 버튼 추가
+- 응답 개선: 중복 제외 수(duplicates), 최종 sent/failed 카운트 반환
