@@ -18,7 +18,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2) 도메인 라우팅 처리
+  // 2) /admin/login은 먼저 처리 (리다이렉트 루프 방지)
+  if (pathname === '/admin/login' || pathname.startsWith('/admin/login')) {
+    return NextResponse.next();
+  }
+
+  // 3) 도메인 라우팅 처리
   if (hostname === 'masgolf.co.kr') {
     return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`);
   }
@@ -32,8 +37,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url));
   }
 
-  // 3) /admin/* 보호 (로그인 필요). /admin/login 은 예외
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+  // 4) /admin/* 보호 (로그인 필요). /admin/login 은 위에서 이미 처리됨
+  if (pathname.startsWith('/admin')) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
       const url = new URL('/admin/login', request.url);
