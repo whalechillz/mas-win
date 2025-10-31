@@ -132,6 +132,25 @@ export default function CustomersPage() {
     }
   };
 
+  // 최근 연락 날짜 포맷팅 (시간 포함, 초 제거)
+  const formatContactDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      // 오전/오후 시간:분 형식 (초 제거)
+      return date.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch {
+      return '-';
+    }
+  };
+
   const handleImport = async () => {
     if (!importMethod) return;
     
@@ -306,7 +325,7 @@ export default function CustomersPage() {
                     <td className="p-2">{formatDate((c as any).first_purchase_date)}</td>
                     <td className="p-2">{formatDate(c.last_purchase_date)}</td>
                     <td className="p-2">{formatDate((c as any).last_service_date)}</td>
-                    <td className="p-2">{c.last_contact_date ? new Date(c.last_contact_date).toLocaleString('ko-KR') : '-'}</td>
+                    <td className="p-2">{formatContactDate(c.last_contact_date)}</td>
                     <td className="p-2">{c.opt_out ? '예' : '아니오'}</td>
                     <td className="p-2">
                       <div className="flex gap-1">
