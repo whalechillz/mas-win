@@ -36,6 +36,7 @@ export default function CustomersPage() {
   const [importing, setImporting] = useState(false);
   const [importingMissing, setImportingMissing] = useState(false);
   const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number; errors?: string[]} | null>(null);
+  const [updatingVipLevels, setUpdatingVipLevels] = useState(false);
 
   const fetchCustomers = async (nextPage = page) => {
     setLoading(true);
@@ -351,8 +352,32 @@ export default function CustomersPage() {
                 <option value={1000}>1000개씩</option>
               </select>
               <button
+                onClick={async () => {
+                  setUpdatingVipLevels(true);
+                  try {
+                    const res = await fetch('/api/admin/customers/update-vip-levels', { method: 'POST' });
+                    const json = await res.json();
+                    if (json.success) {
+                      alert(`VIP 레벨 업데이트 완료!\n${json.message}\n\n분포:\n- Platinum: ${json.stats?.distribution?.platinum || 0}명\n- Gold: ${json.stats?.distribution?.gold || 0}명\n- Silver: ${json.stats?.distribution?.silver || 0}명\n- Bronze: ${json.stats?.distribution?.bronze || 0}명\n- 비구매자: ${json.stats?.distribution?.noPurchase || 0}명`);
+                      fetchCustomers(1);
+                    } else {
+                      alert('VIP 레벨 업데이트 실패: ' + json.message);
+                    }
+                  } catch (error) {
+                    console.error('VIP 레벨 업데이트 오류:', error);
+                    alert('VIP 레벨 업데이트 중 오류가 발생했습니다.');
+                  } finally {
+                    setUpdatingVipLevels(false);
+                  }
+                }}
+                disabled={updatingVipLevels}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+              >
+                {updatingVipLevels ? '업데이트 중...' : '⭐ VIP 레벨 자동 업데이트'}
+              </button>
+              <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 ➕ 고객 추가
               </button>

@@ -23,6 +23,11 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
   const [onlyOptIn, setOnlyOptIn] = useState(true); // 수신거부 아닌 고객만
+  const [segmentFilter, setSegmentFilter] = useState({
+    purchased: '', // 구매자/비구매자 필터
+    purchaseYears: '', // 구매 경과 기간
+    vipLevel: '' // VIP 레벨
+  });
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [page, setPage] = useState(1);
@@ -38,6 +43,16 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
     });
     if (onlyOptIn) {
       params.set('optout', 'false');
+    }
+    // 세그먼트 필터 추가
+    if (segmentFilter.purchased) {
+      params.set('purchased', segmentFilter.purchased);
+    }
+    if (segmentFilter.purchaseYears) {
+      params.set('purchaseYears', segmentFilter.purchaseYears);
+    }
+    if (segmentFilter.vipLevel) {
+      params.set('vipLevel', segmentFilter.vipLevel);
     }
     try {
       const res = await fetch(`/api/admin/customers?${params.toString()}`);
@@ -63,7 +78,7 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
 
   useEffect(() => {
     fetchCustomers();
-  }, [page, onlyOptIn]);
+  }, [page, onlyOptIn, segmentFilter.purchased, segmentFilter.purchaseYears, segmentFilter.vipLevel]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -97,20 +112,82 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
-        <div className="p-4 border-b flex items-center justify-between">
+        <div className="p-4 border-b bg-gray-50">
           <h2 className="text-xl font-bold text-gray-900">고객 선택</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
         </div>
-
-        {/* 검색 영역 */}
-        <div className="p-4 border-b">
+        
+        {/* 세그먼트 필터 */}
+        <div className="p-4 border-b bg-gray-50 space-y-3">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">구매 여부</label>
+              <select
+                value={segmentFilter.purchased}
+                onChange={(e) => {
+                  setSegmentFilter({ ...segmentFilter, purchased: e.target.value, purchaseYears: '' });
+                  setPage(1);
+                }}
+                className="w-full px-2 py-1 border rounded text-sm"
+              >
+                <option value="">전체</option>
+                <option value="true">구매자만</option>
+                <option value="false">비구매자만</option>
+              </select>
+            </div>
+            
+            {segmentFilter.purchased === 'true' && (
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">구매 경과 기간</label>
+                <select
+                  value={segmentFilter.purchaseYears}
+                  onChange={(e) => {
+                    setSegmentFilter({ ...segmentFilter, purchaseYears: e.target.value });
+                    setPage(1);
+                  }}
+                  className="w-full px-2 py-1 border rounded text-sm"
+                >
+                  <option value="">전체</option>
+                  <option value="0-1">1년 미만</option>
+                  <option value="1-3">1-3년</option>
+                  <option value="3-5">3-5년</option>
+                  <option value="5+">5년 이상</option>
+                </select>
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">VIP 레벨</label>
+              <select
+                value={segmentFilter.vipLevel}
+                onChange={(e) => {
+                  setSegmentFilter({ ...segmentFilter, vipLevel: e.target.value });
+                  setPage(1);
+                }}
+                className="w-full px-2 py-1 border rounded text-sm"
+              >
+                <option value="">전체</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        {/* 검색 및 필터 */}
+        <div className="p-4 border-b bg-white">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-700">검색</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ✕
+            </button>
+          </div>
           <div className="flex gap-2">
             <input
               type="text"

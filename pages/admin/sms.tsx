@@ -41,6 +41,14 @@ export default function SMSAdmin() {
   const [imageId, setImageId] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
+  
+  // 세그먼트 필터 상태
+  const [segmentFilter, setSegmentFilter] = useState({
+    purchased: '', // 'true' = 구매자만, 'false' = 비구매자만, '' = 전체
+    purchaseYears: '', // '0-1', '1-3', '3-5', '5+', '' = 전체
+    vipLevel: '' // 'bronze', 'silver', 'gold', 'platinum', '' = 전체
+  });
+  const [segmentLoading, setSegmentLoading] = useState(false);
 
   // 메시지 타입 초기값 설정 (useChannelEditor에서 이미 설정됨)
   useEffect(() => {
@@ -708,6 +716,104 @@ export default function SMSAdmin() {
                       style={{ width: `${Math.min((getMessageLength() / getMaxLength()) * 100, 100)}%` }}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* 세그먼트 선택 */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                <h3 className="font-semibold text-gray-800 mb-3">🎯 고객 세그먼트 선택</h3>
+                <div className="space-y-3">
+                  {/* 구매자/비구매자 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">구매 여부</label>
+                    <select
+                      value={segmentFilter.purchased}
+                      onChange={(e) => setSegmentFilter({ ...segmentFilter, purchased: e.target.value, purchaseYears: '' })}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    >
+                      <option value="">전체</option>
+                      <option value="true">구매자만</option>
+                      <option value="false">비구매자만</option>
+                    </select>
+                  </div>
+                  
+                  {/* 구매 경과 기간 (구매자 선택 시에만 표시) */}
+                  {segmentFilter.purchased === 'true' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">마지막 구매 경과 기간</label>
+                      <select
+                        value={segmentFilter.purchaseYears}
+                        onChange={(e) => setSegmentFilter({ ...segmentFilter, purchaseYears: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-md text-sm"
+                      >
+                        <option value="">전체 구매자</option>
+                        <option value="0-1">1년 미만</option>
+                        <option value="1-3">1-3년</option>
+                        <option value="3-5">3-5년</option>
+                        <option value="5+">5년 이상</option>
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* VIP 레벨 (선택 사항) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">VIP 레벨</label>
+                    <select
+                      value={segmentFilter.vipLevel}
+                      onChange={(e) => setSegmentFilter({ ...segmentFilter, vipLevel: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    >
+                      <option value="">전체</option>
+                      <option value="bronze">Bronze</option>
+                      <option value="silver">Silver</option>
+                      <option value="gold">Gold</option>
+                      <option value="platinum">Platinum</option>
+                    </select>
+                  </div>
+                  
+                  {/* 세그먼트 적용 버튼 */}
+                  <button
+                    onClick={async () => {
+                      setSegmentLoading(true);
+                      try {
+                        const params = new URLSearchParams({ page: '1', pageSize: '1000' });
+                        if (segmentFilter.purchased) params.set('purchased', segmentFilter.purchased);
+                        if (segmentFilter.purchaseYears) params.set('purchaseYears', segmentFilter.purchaseYears);
+                        if (segmentFilter.vipLevel) params.set('vipLevel', segmentFilter.vipLevel);
+                        params.set('optout', 'false'); // 수신거부 제외
+                        
+                        const res = await fetch(`/api/admin/customers?${params.toString()}`);
+                        const json = await res.json();
+                        
+                        if (json.success && json.data) {
+                          const phones = json.data.map((c: any) => {
+                            const phone = c.phone;
+                            // 하이픈 형식으로 변환
+                            if (phone.length === 11) {
+                              return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
+                            } else if (phone.length === 10) {
+                              return `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6)}`;
+                            }
+                            return phone;
+                          });
+                          
+                          updateFormData({ recipientNumbers: phones });
+                          alert(`세그먼트에서 ${json.count}명의 고객이 선택되었습니다.`);
+                        } else {
+                          alert('세그먼트 고객을 불러오는데 실패했습니다.');
+                        }
+                      } catch (error) {
+                        console.error('세그먼트 로드 오류:', error);
+                        alert('세그먼트 고객을 불러오는 중 오류가 발생했습니다.');
+                      } finally {
+                        setSegmentLoading(false);
+                      }
+                    }}
+                    disabled={segmentLoading}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {segmentLoading ? '로딩 중...' : '✅ 세그먼트 적용하여 수신자 자동 선택'}
+                  </button>
                 </div>
               </div>
 
