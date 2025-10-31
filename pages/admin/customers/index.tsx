@@ -45,7 +45,11 @@ export default function CustomersPage() {
     const json = await res.json();
     if (json.success) {
       setCustomers(json.data || []);
-      setCount(json.count || 0);
+      // count가 0보다 큰 경우에만 업데이트 (0이면 이전 값 유지)
+      if (json.count !== undefined && json.count !== null) {
+        setCount(json.count);
+        console.log('고객 목록 업데이트:', { count: json.count, page: json.page });
+      }
       setPage(json.page || nextPage);
     }
     setLoading(false);
@@ -148,14 +152,20 @@ export default function CustomersPage() {
       // 성공 시 고객 목록 새로고침 (count 업데이트 포함)
       await fetchCustomers(1);
       
-      // count가 업데이트되지 않으면 API에서 직접 가져오기
-      if (json.stats?.csvTotal) {
-        const countRes = await fetch(`/api/admin/customers?page=1&pageSize=1`);
-        const countJson = await countRes.json();
-        if (countJson.success && countJson.count) {
-          setCount(countJson.count);
+      // count가 제대로 업데이트되도록 추가 확인
+      // API에서 직접 count 가져오기 (조금 지연 후 확인)
+      setTimeout(async () => {
+        try {
+          const countRes = await fetch(`/api/admin/customers?page=1&pageSize=1`);
+          const countJson = await countRes.json();
+          if (countJson.success && countJson.count) {
+            setCount(countJson.count);
+            console.log('총계 업데이트:', countJson.count);
+          }
+        } catch (e) {
+          console.error('총계 업데이트 오류:', e);
         }
-      }
+      }, 1000); // 1초 후 재확인
       
       // 5초 후 결과 메시지 제거
       setTimeout(() => {
@@ -313,7 +323,10 @@ export default function CustomersPage() {
         <AdminNav />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
+              <p className="text-sm text-gray-600 mt-1">총 {count.toLocaleString()}명</p>
+            </div>
             <div className="flex gap-2">
               <input
                 value={q}
@@ -434,7 +447,7 @@ export default function CustomersPage() {
           </div>
 
           <div className="mt-4 flex items-center justify-between text-sm">
-            <div>총 {count}명</div>
+            <div>총 {count.toLocaleString()}명</div>
             <div className="flex gap-2">
               <button disabled={page<=1} onClick={() => fetchCustomers(page-1)} className="px-3 py-1 border rounded disabled:opacity-50">이전</button>
               <div>{page} / {totalPages}</div>
