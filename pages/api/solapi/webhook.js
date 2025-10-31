@@ -13,6 +13,16 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  // CORS 헤더 설정 (Solapi 요청 허용)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Solapi-Secret');
+
+  // OPTIONS 요청 처리 (CORS preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // GET 핑(헬스체크/브라우저 확인용) 지원 -> 200 반환
   if (req.method === 'GET') {
     return res.status(200).json({ success: true, message: 'solapi webhook ok' });
@@ -25,16 +35,25 @@ export default async function handler(req, res) {
   try {
     // 선택적 Secret 헤더 검증 (대시보드에서 설정한 값과 비교)
     const expectedSecret = process.env.SOLAPI_WEBHOOK_SECRET;
-    const providedSecret = req.headers['x-solapi-secret'];
+    const providedSecret = req.headers['x-solapi-secret'] || req.headers['X-Solapi-Secret'];
+    
+    // Secret이 환경변수에 설정되어 있으면 반드시 검증
     if (expectedSecret && expectedSecret.length > 0) {
-      if (!providedSecret || String(providedSecret) !== String(expectedSecret)) {
+      if (!providedSecret || String(providedSecret).trim() !== String(expectedSecret).trim()) {
+        console.error('웹훅 Secret 검증 실패:', {
+          expected: expectedSecret ? '설정됨' : '없음',
+          provided: providedSecret ? '제공됨' : '없음'
+        });
         return res.status(401).json({ success: false, message: 'invalid webhook secret' });
       }
+    } else {
+      // Secret이 설정되지 않았으면 경고만 로그
+      console.warn('SOLAPI_WEBHOOK_SECRET 환경변수가 설정되지 않아 Secret 검증을 건너뜁니다.');
     }
 
     const payload = req.body || {};
     // Solapi의 콜백은 다양한 포맷이 가능하므로, 우선 원본을 기록
-    console.log('Solapi webhook payload:', payload);
+    console.log('Solapi webhook payload 수신:', JSON.stringify(payload).substring(0, 500));
 
     // 간단 요약 정보 작성
     const events = Array.isArray(payload.messages) ? payload.messages : [payload];
@@ -42,22 +61,35 @@ export default async function handler(req, res) {
     const failCnt = events.filter(e => String(e.status || '').toLowerCase() === 'failed').length;
 
     const note = `Solapi 웹훅 수신 - delivered:${successCnt}, failed:${failCnt}`;
-    const { error: ceErr } = await supabase.from('contact_events').insert([
-      {
-        customer_id: null,
-        occurred_at: new Date().toISOString(),
-        direction: 'outbound',
-        channel: 'sms',
-        note,
-        source: 'solapi'
+    
+    // Supabase에 기록 (에러가 나도 웹훅은 성공으로 처리)
+    try {
+      const { error: ceErr } = await supabase.from('contact_events').insert([
+        {
+          customer_id: null,
+          occurred_at: new Date().toISOString(),
+          direction: 'outbound',
+          channel: 'sms',
+          note,
+          source: 'solapi'
+        }
+      ]);
+      if (ceErr) {
+        console.error('webhook contact_events 적재 오류:', ceErr);
+      } else {
+        console.log('웹훅 contact_events 적재 성공:', note);
       }
-    ]);
-    if (ceErr) console.error('webhook contact_events 적재 오류:', ceErr);
+    } catch (dbErr) {
+      // DB 에러는 로그만 남기고 웹훅은 성공으로 처리
+      console.error('웹훅 DB 적재 예외:', dbErr);
+    }
 
-    return res.status(200).json({ success: true });
+    // 항상 200 응답 반환 (Solapi가 재시도하지 않도록)
+    return res.status(200).json({ success: true, message: 'webhook processed' });
   } catch (e) {
-    console.error('Solapi webhook 처리 오류:', e);
-    return res.status(500).json({ success: false, message: 'webhook 처리 오류', error: e.message });
+    console.error('Solapi webhook 처리 예외:', e);
+    // 예외 발생 시에도 200 응답 반환 (재시도 방지)
+    return res.status(200).json({ success: false, message: 'webhook 처리 오류', error: e.message });
   }
 }
 
