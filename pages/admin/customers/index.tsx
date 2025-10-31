@@ -20,7 +20,7 @@ export default function CustomersPage() {
   const [onlyOptOut, setOnlyOptOut] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50); // 기본값 50개
+  const [pageSize, setPageSize] = useState(100); // 기본값 100개
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('updated_at');
@@ -333,8 +333,6 @@ export default function CustomersPage() {
                 }}
                 className="px-3 py-2 border rounded-md text-sm"
               >
-                <option value={20}>20개씩</option>
-                <option value={50}>50개씩</option>
                 <option value={100}>100개씩</option>
                 <option value={500}>500개씩</option>
                 <option value={1000}>1000개씩</option>
