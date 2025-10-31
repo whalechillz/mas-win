@@ -39,15 +39,22 @@ export default async function handler(req, res) {
     
     // Secret이 환경변수에 설정되어 있으면 반드시 검증
     if (expectedSecret && expectedSecret.length > 0) {
-      if (!providedSecret || String(providedSecret).trim() !== String(expectedSecret).trim()) {
+      const expectedTrimmed = String(expectedSecret).trim();
+      const providedTrimmed = providedSecret ? String(providedSecret).trim() : '';
+      
+      if (!providedSecret || providedTrimmed !== expectedTrimmed) {
         console.error('웹훅 Secret 검증 실패:', {
-          expected: expectedSecret ? '설정됨' : '없음',
-          provided: providedSecret ? '제공됨' : '없음'
+          expectedLength: expectedTrimmed.length,
+          expectedPreview: expectedTrimmed.substring(0, 10) + '...',
+          providedLength: providedTrimmed.length,
+          providedPreview: providedTrimmed.substring(0, 10) + '...',
+          match: providedTrimmed === expectedTrimmed
         });
         return res.status(401).json({ success: false, message: 'invalid webhook secret' });
       }
+      console.log('웹훅 Secret 검증 성공');
     } else {
-      // Secret이 설정되지 않았으면 경고만 로그
+      // Secret이 설정되지 않았으면 경고만 로그 (운영 환경에서는 권장하지 않음)
       console.warn('SOLAPI_WEBHOOK_SECRET 환경변수가 설정되지 않아 Secret 검증을 건너뜁니다.');
     }
 
