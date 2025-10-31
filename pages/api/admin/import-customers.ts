@@ -38,20 +38,38 @@ async function fetchFromGoogleSheets(sheetUrl: string, sheetName: string) {
     const gidMatch = sheetUrl.match(/[?&#]gid=(\d+)/);
     const sheetId = idMatch?.[1];
     const gid = gidMatch?.[1] || '0';
-    if (!sheetId) throw new Error('유효하지 않은 구글 시트 URL입니다.');
+    if (!sheetId) {
+      throw new Error('유효하지 않은 구글 시트 URL입니다. URL 형식을 확인해주세요.');
+    }
 
     const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+    console.log('구글 시트 CSV 다운로드 시도:', exportUrl);
+    
     const resp = await fetch(exportUrl);
     if (!resp.ok) {
       const text = await resp.text();
-      throw new Error(`구글 시트 CSV 다운로드 실패: ${resp.status} - ${text}`);
+      console.error('구글 시트 CSV 다운로드 실패:', resp.status, text.substring(0, 200));
+      
+      if (resp.status === 403) {
+        throw new Error('구글 시트 접근 권한이 없습니다. 시트가 "링크가 있는 모든 사용자"로 공개 설정되어 있는지 확인해주세요.');
+      } else if (resp.status === 404) {
+        throw new Error('구글 시트를 찾을 수 없습니다. URL이 올바른지 확인해주세요.');
+      } else {
+        throw new Error(`구글 시트 CSV 다운로드 실패 (${resp.status}): 시트가 공개 설정되어 있는지 확인해주세요.`);
+      }
     }
+    
     const csvBuffer = Buffer.from(await resp.arrayBuffer());
-    const rows = await parseCsvFile(csvBuffer);
+    if (csvBuffer.length === 0) {
+      throw new Error('구글 시트에서 데이터를 가져올 수 없습니다. 시트가 비어있거나 접근 권한이 없습니다.');
+    }
+    
+    const rows = await parseCsvFile(csvBuffer) as any[];
+    console.log(`구글 시트에서 ${rows.length}개의 행을 가져왔습니다.`);
     return rows;
-  } catch (error) {
+  } catch (error: any) {
     console.error('구글 시트 데이터 가져오기 오류:', error);
-    throw new Error('구글 시트에서 데이터를 가져올 수 없습니다.');
+    throw error; // 원본 에러 메시지 전달
   }
 }
 
@@ -59,21 +77,47 @@ async function fetchFromGoogleSheets(sheetUrl: string, sheetName: string) {
 async function parseCsvFile(buffer: Buffer) {
   return new Promise((resolve, reject) => {
     const results: any[] = [];
-    const stream = Readable.from(buffer.toString());
+    const errors: string[] = [];
+    let rowCount = 0;
     
-    stream
-      .pipe(csv())
-      .on('data', (data) => {
-        // MASSGOO 탭 스키마 매핑
-        const customer = mapRawToCustomer(data);
-        if (customer.name && customer.phone) results.push(customer);
-      })
-      .on('end', () => {
-        resolve(results);
-      })
-      .on('error', (error) => {
-        reject(error);
-      });
+    try {
+      const stream = Readable.from(buffer.toString('utf-8'));
+      
+      stream
+        .pipe(csv())
+        .on('data', (data) => {
+          rowCount++;
+          try {
+            // MASSGOO 탭 스키마 매핑
+            const customer = mapRawToCustomer(data);
+            if (customer.name && customer.phone) {
+              results.push(customer);
+            } else {
+              if (rowCount <= 10) { // 처음 10개 행만 에러 로깅
+                errors.push(`행 ${rowCount}: 이름 또는 전화번호 없음`);
+              }
+            }
+          } catch (err: any) {
+            if (rowCount <= 10) {
+              errors.push(`행 ${rowCount}: ${err.message || '파싱 오류'}`);
+            }
+          }
+        })
+        .on('end', () => {
+          if (errors.length > 0) {
+            console.warn('CSV 파싱 중 일부 행에서 오류 발생:', errors.slice(0, 10));
+          }
+          console.log(`CSV 파싱 완료: ${results.length}개 성공, ${rowCount - results.length}개 스킵`);
+          resolve(results);
+        })
+        .on('error', (error) => {
+          console.error('CSV 스트림 오류:', error);
+          reject(new Error(`CSV 파일 파싱 오류: ${error.message}`));
+        });
+    } catch (error: any) {
+      console.error('CSV 파싱 초기화 오류:', error);
+      reject(new Error(`CSV 파일 읽기 오류: ${error.message}`));
+    }
   });
 }
 
@@ -151,12 +195,13 @@ async function saveCustomers(customers: Array<any>) {
       created_at: new Date().toISOString(),
     }));
 
-    const { error } = await supabase
-      .from('customer_profiles')
+    const { error, data } = await supabase
+      .from('customers')
       // @ts-ignore upsert 옵션
       .upsert(upsertPayload, { onConflict: 'phone' });
 
     if (error) {
+      console.error(`배치 업로드 오류 (${i}-${i + batch.length}):`, error);
       results.push({ status: 'failed', count: batch.length, error: error.message });
     } else {
       results.push({ status: 'success', count: batch.length });
@@ -221,25 +266,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 고객 데이터 저장
+    console.log(`고객 데이터 저장 시작: ${customers.length}명`);
     const results = await saveCustomers(customers);
     
-    const successCount = results.filter(r => r.status === 'success').length;
-    const failCount = results.filter(r => r.status === 'failed').length;
+    // 결과 집계
+    let totalSuccess = 0;
+    let totalFailed = 0;
+    const errorMessages: string[] = [];
+    
+    results.forEach(r => {
+      if (r.status === 'success') {
+        totalSuccess += r.count;
+      } else {
+        totalFailed += r.count;
+        if (r.error) {
+          errorMessages.push(r.error);
+        }
+      }
+    });
+
+    console.log(`고객 데이터 저장 완료: 성공 ${totalSuccess}명, 실패 ${totalFailed}명`);
 
     return res.status(200).json({
       success: true,
-      message: `고객 데이터 가져오기 완료. 성공: ${successCount}명, 실패: ${failCount}명`,
-      count: successCount,
+      message: `고객 데이터 가져오기 완료. 성공: ${totalSuccess}명, 실패: ${totalFailed}명`,
+      count: totalSuccess,
       total: customers.length,
+      errors: errorMessages.slice(0, 5), // 최대 5개 에러만 전송
       customers: results
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('고객 데이터 가져오기 오류:', error);
+    const errorMessage = error?.message || '알 수 없는 오류가 발생했습니다.';
     return res.status(500).json({
       success: false,
-      message: '고객 데이터 가져오기 중 오류가 발생했습니다.',
-      error: error.message
+      message: `고객 데이터 가져오기 중 오류가 발생했습니다: ${errorMessage}`,
+      error: errorMessage
     });
   }
 }
