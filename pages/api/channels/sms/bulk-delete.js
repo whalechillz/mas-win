@@ -16,17 +16,29 @@ export default async function handler(req, res) {
     }
 
     const now = new Date().toISOString();
-    const { error } = await supabase
+    // 대상 상태/연동 여부 조회
+    const { data: rows, error: readErr } = await supabase
       .from('channel_sms')
-      .update({ deleted_at: now })
+      .select('id, status, solapi_group_id, solapi_message_id')
       .in('id', ids);
+    if (readErr) return res.status(500).json({ success: false, message: readErr.message });
 
-    if (error) {
-      console.error('SMS 일괄 삭제 오류:', error);
-      return res.status(500).json({ success: false, message: error.message });
+    const hardIds = (rows || []).filter(r => !(r.solapi_group_id || r.solapi_message_id)).map(r => r.id);
+    const softIds = (rows || []).filter(r => (r.solapi_group_id || r.solapi_message_id)).map(r => r.id);
+
+    if (hardIds.length) {
+      const { error: delErr } = await supabase.from('channel_sms').delete().in('id', hardIds);
+      if (delErr) return res.status(500).json({ success: false, message: delErr.message });
+    }
+    if (softIds.length) {
+      const { error: updErr } = await supabase
+        .from('channel_sms')
+        .update({ deleted_at: now })
+        .in('id', softIds);
+      if (updErr) return res.status(500).json({ success: false, message: updErr.message });
     }
 
-    return res.status(200).json({ success: true, message: `총 ${ids.length}건 보관(삭제) 처리` });
+    return res.status(200).json({ success: true, message: `완전 삭제 ${hardIds.length}건, 보관 처리 ${softIds.length}건` });
   } catch (e) {
     console.error('SMS 일괄 삭제 예외:', e);
     return res.status(500).json({ success: false, message: e.message });
