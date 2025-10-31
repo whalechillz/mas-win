@@ -1450,8 +1450,14 @@ export default function ContentCalendarHub() {
                 ) : (
                   contents.map((content) => (
                     <tr key={content.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{content.title}</div>
+                      <td className="px-6 py-3 whitespace-normal align-top">
+                        <div
+                          className="text-sm font-medium text-gray-900 break-words"
+                          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                          title={content.title}
+                        >
+                          {content.title}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900 max-w-xs truncate">
