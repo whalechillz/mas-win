@@ -19,11 +19,30 @@ export default async function handler(req, res) {
       });
     }
 
-    // 소프트 삭제: deleted_at 설정
-    const { error } = await supabase
+    // Solapi 연동 여부 조회 (group_id가 있으면 연동된 것으로 판단)
+    const { data: row, error: readErr } = await supabase
       .from('channel_sms')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+      .select('status, solapi_group_id, solapi_message_id')
+      .eq('id', id)
+      .single();
+    if (readErr) {
+      console.error('삭제 전 조회 오류:', readErr);
+      return res.status(500).json({ success: false, message: readErr.message });
+    }
+
+    const linkedWithSolapi = !!(row?.solapi_group_id || row?.solapi_message_id);
+
+    let error;
+    if (!linkedWithSolapi) {
+      // 실제 삭제 (초안 또는 Solapi 미연동 데이터)
+      ({ error } = await supabase.from('channel_sms').delete().eq('id', id));
+    } else {
+      // 보관(소프트 삭제)
+      ({ error } = await supabase
+        .from('channel_sms')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id));
+    }
 
     if (error) {
       console.error('SMS 삭제 오류:', error);
@@ -36,7 +55,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'SMS가 성공적으로 삭제(보관)되었습니다.'
+      message: linkedWithSolapi ? '보관 처리되었습니다.' : '완전 삭제되었습니다.'
     });
 
   } catch (error) {
