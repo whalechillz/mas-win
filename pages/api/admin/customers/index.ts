@@ -7,8 +7,29 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // VIP 레벨 자동 업데이트 요청
+    if (req.method === 'POST' && req.query.action === 'update-vip-levels') {
+      // VIP 레벨 업데이트는 별도 API로 처리
+      const updateRes = await fetch(`${req.headers.host ? `http://${req.headers.host}` : 'http://localhost:3000'}/api/admin/customers/update-vip-levels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const updateJson = await updateRes.json();
+      return res.status(updateRes.status).json(updateJson);
+    }
+
     if (req.method === 'GET') {
-      const { q = '', page = '1', pageSize = '100', optout, sortBy = 'updated_at', sortOrder = 'desc' } = req.query as Record<string, string>;
+      const { 
+        q = '', 
+        page = '1', 
+        pageSize = '100', 
+        optout, 
+        sortBy = 'updated_at', 
+        sortOrder = 'desc',
+        purchased, // 'true' = 구매자만, 'false' = 비구매자만, 없으면 전체
+        purchaseYears, // '0-1', '1-3', '3-5', '5+' = 구매 경과 기간
+        vipLevel // 'bronze', 'silver', 'gold', 'platinum' = VIP 레벨
+      } = req.query as Record<string, string>;
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
       const sizeNum = Math.min(1000, Math.max(1, parseInt(pageSize as string, 10) || 100)); // 최대 1000개, 기본값 100개
       const from = (pageNum - 1) * sizeNum;
@@ -39,6 +60,56 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           query = query.or(`name.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%`);
         }
       }
+      
+      // 구매자/비구매자 필터
+      if (purchased === 'true') {
+        // 구매자만: first_purchase_date 또는 last_purchase_date가 있으면
+        query = query.or('first_purchase_date.not.is.null,last_purchase_date.not.is.null');
+      } else if (purchased === 'false') {
+        // 비구매자만: first_purchase_date와 last_purchase_date 모두 null
+        query = query.is('first_purchase_date', null).is('last_purchase_date', null);
+      }
+      
+      // 구매 경과 기간 필터 (last_purchase_date 기준)
+      if (purchaseYears) {
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        
+        if (purchaseYears === '0-1') {
+          // 1년 미만: last_purchase_date >= 1년 전
+          const oneYearAgo = new Date(now);
+          oneYearAgo.setFullYear(now.getFullYear() - 1);
+          const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
+          query = query.gte('last_purchase_date', oneYearAgoStr);
+        } else if (purchaseYears === '1-3') {
+          // 1-3년: last_purchase_date >= 3년 전 AND < 1년 전
+          const threeYearsAgo = new Date(now);
+          threeYearsAgo.setFullYear(now.getFullYear() - 3);
+          const oneYearAgo = new Date(now);
+          oneYearAgo.setFullYear(now.getFullYear() - 1);
+          query = query.gte('last_purchase_date', threeYearsAgo.toISOString().slice(0, 10))
+                      .lt('last_purchase_date', oneYearAgo.toISOString().slice(0, 10));
+        } else if (purchaseYears === '3-5') {
+          // 3-5년: last_purchase_date >= 5년 전 AND < 3년 전
+          const fiveYearsAgo = new Date(now);
+          fiveYearsAgo.setFullYear(now.getFullYear() - 5);
+          const threeYearsAgo = new Date(now);
+          threeYearsAgo.setFullYear(now.getFullYear() - 3);
+          query = query.gte('last_purchase_date', fiveYearsAgo.toISOString().slice(0, 10))
+                      .lt('last_purchase_date', threeYearsAgo.toISOString().slice(0, 10));
+        } else if (purchaseYears === '5+') {
+          // 5년 이상: last_purchase_date < 5년 전
+          const fiveYearsAgo = new Date(now);
+          fiveYearsAgo.setFullYear(now.getFullYear() - 5);
+          query = query.lt('last_purchase_date', fiveYearsAgo.toISOString().slice(0, 10));
+        }
+      }
+      
+      // VIP 레벨 필터
+      if (vipLevel) {
+        query = query.eq('vip_level', vipLevel);
+      }
+      
       if (typeof optout !== 'undefined') {
         query = query.eq('opt_out', optout === 'true');
       }
