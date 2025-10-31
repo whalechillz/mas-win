@@ -34,7 +34,6 @@ export default function CustomersPage() {
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
   const [sheetName, setSheetName] = useState('MASSGOO');
   const [importing, setImporting] = useState(false);
-  const [importingMissing, setImportingMissing] = useState(false);
   const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number; errors?: string[]} | null>(null);
   const [updatingVipLevels, setUpdatingVipLevels] = useState(false);
 
@@ -386,13 +385,6 @@ export default function CustomersPage() {
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 📥 고객 데이터 가져오기
-              </button>
-              <button
-                onClick={handleImportMissing}
-                disabled={importingMissing}
-                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
-              >
-                {importingMissing ? '임포트 중...' : '📋 누락된 고객 추가'}
               </button>
             </div>
           </div>
