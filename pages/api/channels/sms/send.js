@@ -94,11 +94,36 @@ export default async function handler(req, res) {
       });
     }
 
+    // [신규] 동일 허브콘텐츠(content_id)로 이미 보낸 번호는 제외 (내용과 무관하게 1회 원칙)
+    let uniqueToSend = candidates;
+    try {
+      const { data: already } = await supabase
+        .from('message_logs')
+        .select('customer_phone')
+        .eq('content_id', String(channelPostId))
+        .in('customer_phone', candidates);
+      if (already && already.length) {
+        const sentSet = new Set(already.map(r => String(r.customer_phone)));
+        uniqueToSend = candidates.filter(p => !sentSet.has(p));
+      }
+    } catch (e) {
+      console.error('중복 발송 필터링 오류(무시하고 진행):', e);
+    }
+
+    if (uniqueToSend.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: '동일 허브콘텐츠로 이미 모든 대상에게 발송되어 중복 제외되었습니다.',
+        result: { groupIds: [], sentCount: 0, successCount: 0, failCount: 0 },
+        duplicates: candidates.length
+      });
+    }
+
     // Solapi v4 API로 발송 (성공한 test-sms 방식 사용)
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
     // 전체 수신자 messages 구성
-    const allMessages = candidates.map(num => ({
+    const allMessages = uniqueToSend.map(num => ({
       to: num,
       from: fromNumber,
       text: finalMessage,
@@ -136,7 +161,9 @@ export default async function handler(req, res) {
     // per-recipient 로그 및 연락 이벤트 기록 (고객 매핑은 후속 단계에서 강화)
     try {
       const nowIso = new Date().toISOString();
-      const logsToInsert = aggregated.messageResults.map(r => ({
+      const logsToInsert = aggregated.messageResults.map((r, idx) => ({
+        content_id: String(channelPostId),
+        customer_phone: uniqueToSend[idx] || null,
         customer_id: null,
         message_type: (solapiType || 'SMS').toLowerCase(),
         status: (r.status || 'sent'),
@@ -144,7 +171,10 @@ export default async function handler(req, res) {
         sent_at: nowIso
       }));
       if (logsToInsert.length) {
-        const { error: logErr } = await supabase.from('message_logs').insert(logsToInsert);
+        // 동일 content_id+phone은 1회만 기록(재시도 시 갱신)
+        const { error: logErr } = await supabase
+          .from('message_logs')
+          .upsert(logsToInsert, { onConflict: 'content_id,customer_phone' });
         if (logErr) console.error('message_logs 적재 오류:', logErr);
       }
       const successCount = aggregated.messageResults.filter(r => (r.status || '').toLowerCase() !== 'failed').length;
@@ -173,8 +203,8 @@ export default async function handler(req, res) {
         solapi_group_id: aggregated.groupIds[0] || null,
         solapi_message_id: null,
         sent_at: new Date().toISOString(),
-        sent_count: candidates.length,
-        success_count: aggregated.successCount || candidates.length,
+        sent_count: uniqueToSend.length,
+        success_count: aggregated.successCount || uniqueToSend.length,
         fail_count: aggregated.failCount || 0
       })
       .eq('id', channelPostId);
@@ -213,10 +243,11 @@ export default async function handler(req, res) {
       success: true,
       result: {
         groupIds: aggregated.groupIds,
-        sentCount: candidates.length,
-        successCount: aggregated.successCount || candidates.length,
+        sentCount: uniqueToSend.length,
+        successCount: aggregated.successCount || uniqueToSend.length,
         failCount: aggregated.failCount || 0
       },
+      duplicates: candidates.length - uniqueToSend.length,
       message: 'SMS가 성공적으로 발송되었습니다.',
       solapiResponse: aggregated
     });
