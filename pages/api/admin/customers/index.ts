@@ -34,6 +34,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { data, error, count } = await query;
       if (error) return res.status(500).json({ success: false, message: error.message });
+      
+      // 전화번호 목록만 필요할 때 (compare=true 파라미터)
+      if (req.query.compare === 'true') {
+        const phones = (data || []).map(c => c.phone);
+        return res.status(200).json({ success: true, phones, count: phones.length });
+      }
+      
       return res.status(200).json({ success: true, data, count, page: pageNum, pageSize: sizeNum });
     }
 
