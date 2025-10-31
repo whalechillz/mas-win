@@ -51,15 +51,13 @@ export default function CustomersPage() {
   };
 
   // 초기 로드
-  useEffect(() => { fetchCustomers(1); }, []);
+  useEffect(() => { fetchCustomers(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 정렬/페이지사이즈 변경 시 자동 로드
   useEffect(() => { 
-    if (page === 1) {
-      fetchCustomers(1);
-    } else {
-      setPage(1);
-    }
+    setPage(1);
+    fetchCustomers(1);
+    // eslint-disable-line react-hooks/exhaustive-deps
   }, [sortBy, sortOrder, pageSize]);
 
   // 실시간 검색 (debounce 적용)
@@ -68,6 +66,7 @@ export default function CustomersPage() {
       fetchCustomers(1);
     }, 300); // 300ms 지연
     return () => clearTimeout(timer);
+    // eslint-disable-line react-hooks/exhaustive-deps
   }, [q, onlyOptOut]);
 
   const handleSort = (column: string) => {
