@@ -50,7 +50,8 @@ export default function CustomersPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchCustomers(1); }, [sortBy, sortOrder, q, onlyOptOut]);
+  // 초기 로드 및 정렬 변경 시에만 자동 로드
+  useEffect(() => { fetchCustomers(1); }, [sortBy, sortOrder]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
