@@ -69,16 +69,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 3. 모든 고객을 배치로 upsert (중복 자동 처리)
+    // 3. 중복 전화번호 제거 (같은 전화번호가 여러 번 나오면 마지막 것만 남김)
+    const phoneMap = new Map<string, any>();
+    allCustomers.forEach(c => {
+      phoneMap.set(c.phone, c); // 같은 전화번호면 나중 값으로 덮어쓰기
+    });
+    const uniqueCustomers = Array.from(phoneMap.values());
+    console.log(`중복 제거: ${allCustomers.length}명 → ${uniqueCustomers.length}명`);
+    
+    // 4. 모든 고객을 배치로 upsert (중복 자동 처리)
     const CHUNK = 500;
     const results: any[] = [];
     const now = new Date().toISOString();
 
     // upsert로 중복 자동 처리: 전화번호가 이미 있으면 업데이트, 없으면 추가
-    const missingCount = allCustomers.filter(c => c.isMissing).length;
+    const missingCount = uniqueCustomers.filter(c => c.isMissing).length;
     
-    for (let i = 0; i < allCustomers.length; i += CHUNK) {
-      const batch = allCustomers.slice(i, i + CHUNK);
+    for (let i = 0; i < uniqueCustomers.length; i += CHUNK) {
+      const batch = uniqueCustomers.slice(i, i + CHUNK);
 
       const upsertPayload = batch.map(c => ({
         name: c.name,
@@ -122,9 +130,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({
       success: true,
-      message: `CSV 총 ${allCustomers.length}명 중 ${totalSuccess}명 처리 완료 (누락: ${missingCount}명 추가됨)`,
+      message: `CSV 총 ${allCustomers.length}명 (중복 제거 후 ${uniqueCustomers.length}명) 중 ${totalSuccess}명 처리 완료 (누락: ${missingCount}명 추가됨)`,
       stats: {
         csvTotal: allCustomers.length,
+        uniqueTotal: uniqueCustomers.length,
         dbBefore: dbPhones.size,
         imported: totalSuccess,
         missing: missingCount,
