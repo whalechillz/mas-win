@@ -141,13 +141,23 @@ export default function CustomersPage() {
         success: true,
         message: json.message,
         count: json.stats?.imported || 0,
-        total: json.stats?.found || 0,
+        total: json.stats?.missing || json.stats?.found || 0,
         errors: []
       });
 
-      // 성공 시 고객 목록 새로고침
+      // 성공 시 고객 목록 새로고침 (count 업데이트 포함)
       await fetchCustomers(1);
-      // 3초 후 결과 메시지 제거
+      
+      // count가 업데이트되지 않으면 API에서 직접 가져오기
+      if (json.stats?.csvTotal) {
+        const countRes = await fetch(`/api/admin/customers?page=1&pageSize=1`);
+        const countJson = await countRes.json();
+        if (countJson.success && countJson.count) {
+          setCount(countJson.count);
+        }
+      }
+      
+      // 5초 후 결과 메시지 제거
       setTimeout(() => {
         setImportResult(null);
       }, 5000);
@@ -326,6 +336,8 @@ export default function CustomersPage() {
                 <option value={20}>20개씩</option>
                 <option value={50}>50개씩</option>
                 <option value={100}>100개씩</option>
+                <option value={500}>500개씩</option>
+                <option value={1000}>1000개씩</option>
               </select>
               <button
                 onClick={() => setShowCreateModal(true)}
