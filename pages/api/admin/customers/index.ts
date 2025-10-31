@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const to = from + sizeNum - 1;
 
       // 정렬 컬럼 검증
-      const allowedSortColumns = ['name', 'phone', 'updated_at', 'created_at', 'last_contact_date', 'last_purchase_date', 'vip_level'];
+      const allowedSortColumns = ['name', 'phone', 'updated_at', 'created_at', 'last_contact_date', 'last_purchase_date', 'first_purchase_date', 'last_service_date', 'vip_level'];
       const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'updated_at';
       const ascending = sortOrder === 'asc';
 
