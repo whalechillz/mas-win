@@ -8,9 +8,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
-      const { q = '', page = '1', pageSize = '20', optout, sortBy = 'updated_at', sortOrder = 'desc' } = req.query as Record<string, string>;
+      const { q = '', page = '1', pageSize = '50', optout, sortBy = 'updated_at', sortOrder = 'desc' } = req.query as Record<string, string>;
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
-      const sizeNum = Math.min(100, Math.max(1, parseInt(pageSize as string, 10) || 20));
+      const sizeNum = Math.min(100, Math.max(1, parseInt(pageSize as string, 10) || 50)); // 기본값 50개
       const from = (pageNum - 1) * sizeNum;
       const to = from + sizeNum - 1;
 
