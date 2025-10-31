@@ -1431,11 +1431,11 @@ export default function ContentCalendarHub() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요약</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">제목</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">요약</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">날짜</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">채널별 상태</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">액션</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -1450,20 +1450,24 @@ export default function ContentCalendarHub() {
                 ) : (
                   contents.map((content) => (
                     <tr key={content.id}>
-                      <td className="px-6 py-3 whitespace-normal align-top">
+                      <td className="px-6 py-3 whitespace-normal align-top w-2/5">
                         <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
                           {content.title}
                         </div>
                       </td>
-                      <td className="px-6 py-3 whitespace-normal align-top">
-                        <div className="text-sm text-gray-900 break-words" title={content.summary || content.content_body}>
+                      <td className="px-6 py-3 whitespace-normal align-top w-2/5">
+                        <div
+                          className="text-sm text-gray-900 break-words"
+                          style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                          title={content.summary || content.content_body}
+                        >
                           {content.summary || content.content_body || '내용 없음'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 w-24 align-top">
                         {content.content_date}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-3 whitespace-nowrap align-top">
                         <div className="space-y-2">
                           {/* 기본 채널들만 표시 (중복 제거) */}
                           <div className="space-y-1">
@@ -1504,7 +1508,7 @@ export default function ContentCalendarHub() {
                           {renderDynamicChannelsCollapsed(content)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28">
                         <button
                           onClick={() => editContent(content)}
                           className="text-blue-600 hover:text-blue-900 mr-3"
