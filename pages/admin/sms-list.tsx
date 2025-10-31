@@ -26,6 +26,8 @@ export default function SMSListAdmin() {
   const [messages, setMessages] = useState<SMSMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'draft' | 'sent'>('all');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const allChecked = messages.length > 0 && selectedIds.length === messages.length;
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -74,6 +76,35 @@ export default function SMSListAdmin() {
     } catch (error) {
       console.error('삭제 오류:', error);
       alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleToggleAll = () => {
+    if (allChecked) setSelectedIds([]);
+    else setSelectedIds(messages.map(m => m.id));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return alert('선택된 항목이 없습니다.');
+    if (!confirm(`선택한 ${selectedIds.length}건을 삭제(보관)하시겠습니까?`)) return;
+    try {
+      const resp = await fetch('/api/channels/sms/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds })
+      });
+      const json = await resp.json();
+      if (!resp.ok || !json.success) throw new Error(json.message || '삭제 실패');
+      alert(json.message || '삭제되었습니다.');
+      setSelectedIds([]);
+      fetchMessages();
+    } catch (e:any) {
+      console.error('일괄 삭제 오류:', e);
+      alert(`일괄 삭제 중 오류: ${e.message}`);
     }
   };
 
@@ -134,12 +165,21 @@ export default function SMSListAdmin() {
                 <h1 className="text-3xl font-bold text-gray-900">SMS/MMS 관리</h1>
                 <p className="mt-2 text-gray-600">저장된 SMS/MMS 메시지를 관리하세요</p>
               </div>
-              <button
+              <div className="flex items-center space-x-3">
+                <button
                 onClick={() => router.push('/admin/sms')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 새 메시지 작성
               </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-4 py-2 bg-red-50 text-red-700 rounded-lg border border-red-200 hover:bg-red-100 disabled:opacity-50"
+                  disabled={selectedIds.length === 0}
+                >
+                  선택 삭제
+                </button>
+              </div>
             </div>
           </div>
 
@@ -198,6 +238,9 @@ export default function SMSListAdmin() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-6 py-3">
+                        <input type="checkbox" checked={allChecked} onChange={handleToggleAll} />
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         메시지
                       </th>
@@ -230,6 +273,13 @@ export default function SMSListAdmin() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {messages.map((message) => (
                       <tr key={message.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(message.id)}
+                            onChange={() => handleToggleSelect(message.id)}
+                          />
+                        </td>
                         <td className="px-6 py-4">
                           <div className="max-w-xs">
                             <p className="text-sm font-medium text-gray-900 truncate">
