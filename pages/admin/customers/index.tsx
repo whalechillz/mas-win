@@ -34,6 +34,7 @@ export default function CustomersPage() {
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
   const [sheetName, setSheetName] = useState('MASSGOO');
   const [importing, setImporting] = useState(false);
+  const [importingMissing, setImportingMissing] = useState(false);
   const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number; errors?: string[]} | null>(null);
 
   const fetchCustomers = async (nextPage = page) => {
@@ -108,6 +109,60 @@ export default function CustomersPage() {
   const handleEdit = (c: Customer) => {
     setEditingCustomer(c);
     setShowEditModal(true);
+  };
+
+  const handleImportMissing = async () => {
+    if (!confirm('누락된 고객을 CSV 파일에서 찾아서 추가하시겠습니까?')) return;
+    
+    setImportingMissing(true);
+    setImportResult(null);
+
+    try {
+      const res = await fetch('/api/admin/customers/import-missing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const json = await res.json();
+      
+      if (!res.ok || !json.success) {
+        setImportResult({
+          success: false,
+          message: json.message || '누락 고객 임포트 중 오류가 발생했습니다.',
+          count: json.stats?.imported || 0,
+          total: json.stats?.found || 0,
+          errors: []
+        });
+        setImportingMissing(false);
+        return;
+      }
+
+      setImportResult({
+        success: true,
+        message: json.message,
+        count: json.stats?.imported || 0,
+        total: json.stats?.found || 0,
+        errors: []
+      });
+
+      // 성공 시 고객 목록 새로고침
+      await fetchCustomers(1);
+      // 3초 후 결과 메시지 제거
+      setTimeout(() => {
+        setImportResult(null);
+      }, 5000);
+    } catch (error: any) {
+      console.error('누락 고객 임포트 오류:', error);
+      setImportResult({
+        success: false,
+        message: error.message || '누락 고객 임포트 중 오류가 발생했습니다.',
+        count: 0,
+        total: 0,
+        errors: []
+      });
+    } finally {
+      setImportingMissing(false);
+    }
   };
 
   // 전화번호 포맷팅 (하이픈 추가)
@@ -284,8 +339,27 @@ export default function CustomersPage() {
               >
                 📥 고객 데이터 가져오기
               </button>
+              <button
+                onClick={handleImportMissing}
+                disabled={importingMissing}
+                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
+              >
+                {importingMissing ? '임포트 중...' : '📋 누락된 고객 추가'}
+              </button>
             </div>
           </div>
+
+          {/* 누락 고객 임포트 결과 메시지 */}
+          {importResult && importResult.total !== undefined && (
+            <div className={`mb-4 p-3 rounded-md ${importResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+              <p className="font-medium">{importResult.message}</p>
+              {importResult.count !== undefined && (
+                <p className="text-sm mt-1">
+                  임포트: {importResult.count}명 / 찾은 누락: {importResult.total}명
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="min-w-full text-sm">
