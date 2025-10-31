@@ -25,8 +25,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .range(from, to);
 
       if (q && q.trim().length > 0) {
-        // 간단 검색: 이름/전화번호/주소
-        query = query.ilike('name', `%${q}%`).or(`phone.ilike.%${q}%,address.ilike.%${q}%`);
+        // 검색어에서 전화번호 형식 정규화 (하이픈 제거)
+        const searchTerm = q.trim();
+        const cleanSearchTerm = searchTerm.replace(/[^0-9]/g, '');
+        
+        // 이름/주소 검색 (원본 검색어 사용)
+        query = query.ilike('name', `%${searchTerm}%`)
+          .or(`address.ilike.%${searchTerm}%`);
+        
+        // 전화번호 검색 (하이픈 제거된 검색어 사용 - 숫자만)
+        if (cleanSearchTerm.length > 0) {
+          query = query.or(`phone.ilike.%${cleanSearchTerm}%`);
+        }
       }
       if (typeof optout !== 'undefined') {
         query = query.eq('opt_out', optout === 'true');
