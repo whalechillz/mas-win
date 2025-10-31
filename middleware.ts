@@ -1,53 +1,52 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host') || ''
-  const pathname = request.nextUrl.pathname
-  
-  // 정적 파일과 API 라우트는 제외
+export async function middleware(request: NextRequest) {
+  const hostname = request.headers.get('host') || '';
+  const pathname = request.nextUrl.pathname;
+
+  // 1) 정적/이미지/API는 통과
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.')
+    pathname.includes('.') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/images')
   ) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
-  
-  // 도메인별 라우팅
+
+  // 2) 도메인 라우팅 처리
   if (hostname === 'masgolf.co.kr') {
-    // www가 없으면 www로 리다이렉트
-    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`)
+    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`);
   }
-  
-  // muziik.masgolf.co.kr 도메인 라우팅 - 리라이트 방식
   if (hostname === 'muziik.masgolf.co.kr') {
-    // 루트 경로를 /muziik으로 리라이트 (리다이렉트 X)
     if (pathname === '/') {
-      return NextResponse.rewrite(new URL('/muziik', request.url))
+      return NextResponse.rewrite(new URL('/muziik', request.url));
     }
-    // /muziik 경로를 /muziik으로 리라이트
     if (pathname.startsWith('/muziik')) {
-      return NextResponse.rewrite(new URL(pathname, request.url))
+      return NextResponse.rewrite(new URL(pathname, request.url));
     }
-    // 다른 경로들도 /muziik으로 리라이트
-    return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url))
+    return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url));
   }
-  
-  // 모든 도메인은 기본 라우트 사용 (pages/index.js)
-  return NextResponse.next()
+
+  // 3) /admin/* 보호 (로그인 필요). /admin/login 은 예외
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      const url = new URL('/admin/login', request.url);
+      url.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
-}
+};
