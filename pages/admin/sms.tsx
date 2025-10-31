@@ -138,6 +138,7 @@ export default function SMSAdmin() {
     purchased: '', // 'true' = 구매자만, 'false' = 비구매자만, '' = 전체
     purchaseYears: '', // '0-1', '1-3', '3-5', '5+', '' = 전체 (구매자용)
     contactYears: '', // '0-1', '1-3', '3-5', '5+', '' = 전체 (비구매자용)
+    contactDays: '', // '7','14','30','90' 등 최근 연락 일수(선택)
     vipLevel: '' // 'bronze', 'silver', 'gold', 'platinum', '' = 전체
   });
   const [segmentLoading, setSegmentLoading] = useState(false);
@@ -912,6 +913,21 @@ export default function SMSAdmin() {
                       <p className="text-xs text-gray-500 mt-1">
                         💡 최근 연락일(last_contact_date) 또는 최초 문의일(first_inquiry_date) 기준
                       </p>
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">최근 연락(일)</label>
+                        <select
+                          value={segmentFilter.contactDays || ''}
+                          onChange={(e) => setSegmentFilter({ ...segmentFilter, contactDays: e.target.value })}
+                          className="w-full px-3 py-2 border rounded-md text-sm"
+                        >
+                          <option value="">전체</option>
+                          <option value="7">7일 이내</option>
+                          <option value="14">14일 이내</option>
+                          <option value="30">30일 이내</option>
+                          <option value="90">90일 이내</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">예: 30일 이내에 전화/문의가 있었던 비구매자 타겟팅</p>
+                      </div>
                     </div>
                   )}
                   
@@ -940,6 +956,7 @@ export default function SMSAdmin() {
                         if (segmentFilter.purchased) params.set('purchased', segmentFilter.purchased);
                         if (segmentFilter.purchaseYears) params.set('purchaseYears', segmentFilter.purchaseYears);
                         if (segmentFilter.contactYears) params.set('contactYears', segmentFilter.contactYears);
+                        if (segmentFilter.contactDays) params.set('contactDays', segmentFilter.contactDays);
                         if (segmentFilter.vipLevel) params.set('vipLevel', segmentFilter.vipLevel);
                         params.set('optout', 'false'); // 수신거부 제외
                         

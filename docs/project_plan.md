@@ -201,3 +201,20 @@
 - 변경 파일:
   - `pages/test-sms.tsx` 삭제
 - 참고: 동일 성격의 숨은 경로 추가 점검 예정 (`/pages/test-auth.tsx`, `/pages/test-db.js` 등)
+
+### 🧹 추가 정리 (2025-10-31)
+- 테스트/디버그/마이그레이션 보조 파일 운영 노출 방지를 위해 백업 확장자로 리네임
+- 백업된 항목(.backup.20251031):
+  - `pages/test-db.js`
+  - `pages/debug-404.tsx`
+  - `pages/test-auth.tsx`
+  - `pages/api/test-auth.js`
+  - `pages/api/test-supabase.js`
+  - `pages/api/ga4-test.ts`
+  - `pages/api/debug-image-status.js`
+  - `pages/api/debug-storage.js`
+  - `pages/api/preview-image-prompt.js`
+  - `pages/api/migrate-wix-images-playwright.js`
+  - `pages/api/migrate-naver-blog-preview.js`
+  - `pages/muziik/index_backup_20251021_082924.tsx`
+- 목적: 메뉴에 없는 테스트 경로 외부 접근 차단, 혼선/보안 리스크 축소
