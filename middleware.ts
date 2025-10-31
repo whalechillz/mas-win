@@ -24,8 +24,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // 2.5) 관리자 경로는 도메인 리다이렉트 대상에서 제외 (루프 방지)
-  // 임시: 관리자 보호 해제(루프 원인 추적). 문제 해결 후 다시 활성화 예정
+  // /admin/* 보호 (로그인 필요). /admin/login 은 위에서 이미 통과
   if (pathname.startsWith('/admin')) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      const url = new URL('/admin/login', request.url);
+      url.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next();
   }
 
@@ -50,7 +56,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  // 관리자 경로에만 적용하여 예기치 않은 리다이렉트 방지
+  matcher: ['/admin/:path*'],
 };
