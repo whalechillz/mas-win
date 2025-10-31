@@ -95,6 +95,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         update.phone = cleanPhone;
       }
 
+      // TODO: 나중에 판매 히스토리/서비스 히스토리 추가 시 
+      // 해당 히스토리 생성 시 last_contact_date를 자동으로 현재 시간으로 업데이트하도록 구현
+      // 예: purchase_events 테이블에 INSERT 시 trigger로 자동 업데이트
+      // 예: service_events 테이블에 INSERT 시 trigger로 자동 업데이트
+
       update.updated_at = new Date().toISOString();
       const { data, error } = await supabase.from('customers').update(update).eq('id', id).select().single();
       if (error) return res.status(500).json({ success: false, message: error.message });
