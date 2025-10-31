@@ -20,7 +20,7 @@ export default function CustomersPage() {
   const [onlyOptOut, setOnlyOptOut] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(20);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('updated_at');
@@ -50,8 +50,25 @@ export default function CustomersPage() {
     setLoading(false);
   };
 
-  // 초기 로드 및 정렬 변경 시에만 자동 로드
-  useEffect(() => { fetchCustomers(1); }, [sortBy, sortOrder]);
+  // 초기 로드
+  useEffect(() => { fetchCustomers(1); }, []);
+
+  // 정렬/페이지사이즈 변경 시 자동 로드
+  useEffect(() => { 
+    if (page === 1) {
+      fetchCustomers(1);
+    } else {
+      setPage(1);
+    }
+  }, [sortBy, sortOrder, pageSize]);
+
+  // 실시간 검색 (debounce 적용)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchCustomers(1);
+    }, 300); // 300ms 지연
+    return () => clearTimeout(timer);
+  }, [q, onlyOptOut]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -92,6 +109,28 @@ export default function CustomersPage() {
   const handleEdit = (c: Customer) => {
     setEditingCustomer(c);
     setShowEditModal(true);
+  };
+
+  // 전화번호 포맷팅 (하이픈 추가)
+  const formatPhone = (phone: string) => {
+    if (!phone) return '';
+    const cleaned = phone.replace(/[^0-9]/g, '');
+    if (cleaned.length === 10) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    } else if (cleaned.length === 11) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`;
+    }
+    return phone;
+  };
+
+  // 날짜 포맷팅
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '-';
+    try {
+      return new Date(dateStr).toLocaleDateString('ko-KR');
+    } catch {
+      return '-';
+    }
   };
 
   const handleImport = async () => {
@@ -196,14 +235,25 @@ export default function CustomersPage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="이름/번호/주소 검색"
+                placeholder="이름/번호/주소 검색 (실시간)"
                 className="px-3 py-2 border rounded-md"
               />
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input type="checkbox" checked={onlyOptOut} onChange={() => setOnlyOptOut(!onlyOptOut)} />
                 수신거부만
               </label>
-              <button onClick={() => fetchCustomers(1)} className="px-4 py-2 bg-blue-600 text-white rounded">검색</button>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-3 py-2 border rounded-md text-sm"
+              >
+                <option value={20}>20개씩</option>
+                <option value={50}>50개씩</option>
+                <option value={100}>100개씩</option>
+              </select>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
@@ -232,6 +282,15 @@ export default function CustomersPage() {
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('vip_level')}>
                     VIP {sortBy === 'vip_level' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('first_purchase_date')}>
+                    최초구매일 {sortBy === 'first_purchase_date' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('last_purchase_date')}>
+                    마지막지불일 {sortBy === 'last_purchase_date' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('last_service_date')}>
+                    마지막A/S출고일 {sortBy === 'last_service_date' && (sortOrder === 'asc' ? '▲' : '▼')}
+                  </th>
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('last_contact_date')}>
                     최근 연락 {sortBy === 'last_contact_date' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
@@ -243,8 +302,11 @@ export default function CustomersPage() {
                 {customers.map(c => (
                   <tr key={c.id} className="border-t">
                     <td className="p-2">{c.name}</td>
-                    <td className="p-2">{c.phone}</td>
+                    <td className="p-2">{formatPhone(c.phone)}</td>
                     <td className="p-2">{c.vip_level || 'NONE'}</td>
+                    <td className="p-2">{formatDate((c as any).first_purchase_date)}</td>
+                    <td className="p-2">{formatDate(c.last_purchase_date)}</td>
+                    <td className="p-2">{formatDate((c as any).last_service_date)}</td>
                     <td className="p-2">{c.last_contact_date ? new Date(c.last_contact_date).toLocaleString('ko-KR') : '-'}</td>
                     <td className="p-2">{c.opt_out ? '예' : '아니오'}</td>
                     <td className="p-2">
@@ -263,7 +325,7 @@ export default function CustomersPage() {
                   </tr>
                 ))}
                 {customers.length === 0 && (
-                  <tr><td className="p-4 text-center text-gray-500" colSpan={6}>{loading ? '로딩 중...' : '데이터 없음'}</td></tr>
+                  <tr><td className="p-4 text-center text-gray-500" colSpan={9}>{loading ? '로딩 중...' : '데이터 없음'}</td></tr>
                 )}
               </tbody>
             </table>
