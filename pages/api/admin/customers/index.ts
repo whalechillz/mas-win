@@ -29,7 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         purchased, // 'true' = 구매자만, 'false' = 비구매자만, 없으면 전체
         purchaseYears, // '0-1', '1-3', '3-5', '5+' = 구매 경과 기간 (구매자용)
         contactYears, // '0-1', '1-3', '3-5', '5+' = 최근 연락/저장 내역 기간 (비구매자용)
-        vipLevel // 'bronze', 'silver', 'gold', 'platinum' = VIP 레벨
+        vipLevel, // 'bronze', 'silver', 'gold', 'platinum' = VIP 레벨
+        contactDays // 최근 연락 일수(정수). 예: 7, 14, 30, 90
       } = req.query as Record<string, string>;
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
       const sizeNum = Math.min(1000, Math.max(1, parseInt(pageSize as string, 10) || 100)); // 최대 1000개, 기본값 100개
@@ -147,6 +148,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const fiveYearsAgoStr = fiveYearsAgo.toISOString().slice(0, 10);
           // last_contact_date < 5년 전 OR first_inquiry_date < 5년 전
           query = query.or(`last_contact_date.lt.${fiveYearsAgoStr},first_inquiry_date.lt.${fiveYearsAgoStr}`);
+        }
+      }
+
+      // 최근 연락 일수(contactDays) 필터: last_contact_date 또는 first_inquiry_date가 N일 이내
+      if (contactDays) {
+        const daysNum = Math.max(1, parseInt(contactDays as string, 10) || 0);
+        if (daysNum > 0) {
+          const now = new Date();
+          const since = new Date(now.getTime() - daysNum * 24 * 60 * 60 * 1000);
+          const sinceStr = since.toISOString().slice(0, 10);
+          // OR 조건으로 최근 연락 또는 최초 문의 기준
+          query = query.or(`last_contact_date.gte.${sinceStr},first_inquiry_date.gte.${sinceStr}`);
         }
       }
       
