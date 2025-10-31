@@ -1451,17 +1451,13 @@ export default function ContentCalendarHub() {
                   contents.map((content) => (
                     <tr key={content.id}>
                       <td className="px-6 py-3 whitespace-normal align-top">
-                        <div
-                          className="text-sm font-medium text-gray-900 break-words"
-                          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-                          title={content.title}
-                        >
+                        <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
                           {content.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate">
-                          {content.summary || content.content_body?.substring(0, 50) + '...' || '내용 없음'}
+                      <td className="px-6 py-3 whitespace-normal align-top">
+                        <div className="text-sm text-gray-900 break-words" title={content.summary || content.content_body}>
+                          {content.summary || content.content_body || '내용 없음'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
