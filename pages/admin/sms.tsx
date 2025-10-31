@@ -45,7 +45,8 @@ export default function SMSAdmin() {
   // 세그먼트 필터 상태
   const [segmentFilter, setSegmentFilter] = useState({
     purchased: '', // 'true' = 구매자만, 'false' = 비구매자만, '' = 전체
-    purchaseYears: '', // '0-1', '1-3', '3-5', '5+', '' = 전체
+    purchaseYears: '', // '0-1', '1-3', '3-5', '5+', '' = 전체 (구매자용)
+    contactYears: '', // '0-1', '1-3', '3-5', '5+', '' = 전체 (비구매자용)
     vipLevel: '' // 'bronze', 'silver', 'gold', 'platinum', '' = 전체
   });
   const [segmentLoading, setSegmentLoading] = useState(false);
@@ -755,6 +756,27 @@ export default function SMSAdmin() {
                     </div>
                   )}
                   
+                  {/* 최근 연락/저장 내역 기간 (비구매자 선택 시에만 표시) */}
+                  {segmentFilter.purchased === 'false' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">최근 연락/저장 내역 기간</label>
+                      <select
+                        value={segmentFilter.contactYears || ''}
+                        onChange={(e) => setSegmentFilter({ ...segmentFilter, contactYears: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-md text-sm"
+                      >
+                        <option value="">전체 비구매자</option>
+                        <option value="0-1">1년 미만</option>
+                        <option value="1-3">1-3년</option>
+                        <option value="3-5">3-5년</option>
+                        <option value="5+">5년 이상</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 최근 연락일(last_contact_date) 또는 최초 문의일(first_inquiry_date) 기준
+                      </p>
+                    </div>
+                  )}
+                  
                   {/* VIP 레벨 (선택 사항) */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">VIP 레벨</label>
@@ -779,6 +801,7 @@ export default function SMSAdmin() {
                         const params = new URLSearchParams({ page: '1', pageSize: '1000' });
                         if (segmentFilter.purchased) params.set('purchased', segmentFilter.purchased);
                         if (segmentFilter.purchaseYears) params.set('purchaseYears', segmentFilter.purchaseYears);
+                        if (segmentFilter.contactYears) params.set('contactYears', segmentFilter.contactYears);
                         if (segmentFilter.vipLevel) params.set('vipLevel', segmentFilter.vipLevel);
                         params.set('optout', 'false'); // 수신거부 제외
                         
@@ -820,7 +843,12 @@ export default function SMSAdmin() {
               {/* 수신자 번호 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-800">수신자 번호</h3>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">수신자 번호</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      현재 <span className="font-bold text-blue-600">{formData.recipientNumbers?.length || 0}명</span> 선택됨
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowCustomerSelector(true)}
                     className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
