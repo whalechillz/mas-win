@@ -41,6 +41,97 @@ export default function SMSAdmin() {
   const [imageId, setImageId] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
+  // 길이 프리셋/사용자 지정
+  const [targetLength, setTargetLength] = useState<number | ''>('');
+  const [lengthOptions, setLengthOptions] = useState({
+    optimizeLineBreaks: true,
+    psychologyTone: true,
+    emphasizeCTA: true
+  });
+
+  const applyLengthPreset = (len: number) => {
+    setTargetLength(len);
+    handleApplyTarget(len);
+  };
+
+  const handleApplyTarget = (len?: number) => {
+    const base = len ?? (typeof targetLength === 'number' ? targetLength : 0);
+    if (!base || base < 20) return;
+    const lower = Math.max(10, base - 20);
+    const upper = Math.max(15, base - 5);
+    const optimized = compressToRange(formData.content || '', lower, upper, lengthOptions);
+    updateFormData({ content: optimized });
+  };
+
+  const adjustByPercent = (percent: number) => {
+    const current = typeof targetLength === 'number' && targetLength > 0 ? targetLength : getMessageLength();
+    const next = Math.max(30, Math.round(current * (1 + percent)));
+    setTargetLength(next);
+    handleApplyTarget(next);
+  };
+
+  const compressToRange = (
+    text: string,
+    lower: number,
+    upper: number,
+    options: { optimizeLineBreaks: boolean; psychologyTone: boolean; emphasizeCTA: boolean }
+  ) => {
+    if (!text) return text;
+    let t = text
+      .replace(/[\t ]+/g, ' ')
+      .replace(/\s+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    // 줄바꿈 최적화: 문장 단위로 2~4단락 구성
+    if (options.optimizeLineBreaks) {
+      const sentences = t.split(/(?<=[.!?…\u3002\uFF01\uFF1F])\s+/);
+      if (sentences.length > 1) {
+        const mid = Math.ceil(sentences.length / 2);
+        const para1 = sentences.slice(0, mid).join(' ');
+        const para2 = sentences.slice(mid).join(' ');
+        t = [para1, para2].filter(Boolean).join('\n\n');
+      }
+    }
+
+    const cutSmart = (s: string, max: number) => {
+      if (s.length <= max) return s;
+      // 문장 경계 또는 공백 기준으로 절단
+      const hard = s.slice(0, max);
+      const lastPunct = Math.max(hard.lastIndexOf('。'), hard.lastIndexOf('.'), hard.lastIndexOf('!'), hard.lastIndexOf('?'));
+      const lastSpace = hard.lastIndexOf(' ');
+      const idx = Math.max(lastPunct, lastSpace, Math.min(max - 1, hard.length - 1));
+      return hard.slice(0, Math.max(0, idx)).trimEnd() + '…';
+    };
+
+    if (t.length > upper) {
+      // 문장 단위로 누적하여 upper에 가깝게
+      const parts = t.split(/(\n\n|(?<=[.!?…\u3002\uFF01\uFF1F])\s+)/);
+      let acc = '';
+      for (const p of parts) {
+        if ((acc + p).length <= upper) acc += p;
+        else break;
+      }
+      if (!acc) acc = cutSmart(t, upper);
+      t = acc.trim();
+    }
+
+    // CTA 강조(옵션): 너무 짧지 않다면 마지막 줄에 한 줄 CTA 유지
+    if (options.emphasizeCTA) {
+      const hasCTA = /(문의|예약|상담|지금|바로)/.test(t);
+      if (!hasCTA && t.length <= upper - 8) {
+        t = `${t}\n\n지금 확인해보세요.`;
+      }
+    }
+
+    // 심리학 톤(옵션): 과도한 기호 제약
+    if (options.psychologyTone) {
+      t = t.replace(/[~]{2,}/g, '~').replace(/!{3,}/g, '!!');
+    }
+
+    // 하한보다 길면 유지, 너무 짧으면 그대로 반환(인위적 증가는 하지 않음)
+    return t;
+  };
   
   // 세그먼트 필터 상태
   const [segmentFilter, setSegmentFilter] = useState({
@@ -710,6 +801,53 @@ export default function SMSAdmin() {
                   placeholder="메시지 내용을 입력하세요..."
                   maxLength={getMaxLength()}
                 />
+              {/* 길이 프리셋 / 사용자 지정 */}
+              <div className="mt-3 p-3 bg-gray-50 border rounded-md">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-gray-700">목표 길이 선택</div>
+                  <div className="text-sm text-gray-500">현재 {getMessageLength()}자 / 최대 {getMaxLength()}자</div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[100, 200, 300, 500, 1000, 2000].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => applyLengthPreset(n)}
+                      className={`px-2 py-1 text-xs rounded border ${targetLength === n ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-100'}`}
+                    >
+                      {n}자
+                    </button>
+                  ))}
+                  <div className="flex items-center gap-2 ml-auto">
+                    <input
+                      type="number"
+                      value={typeof targetLength === 'number' ? targetLength : ''}
+                      onChange={(e) => setTargetLength(e.target.value ? parseInt(e.target.value, 10) : '')}
+                      className="w-24 px-2 py-1 text-sm border rounded"
+                      placeholder="직접입력"
+                      min={20}
+                    />
+                    <button
+                      onClick={() => handleApplyTarget()}
+                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      적용
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <button onClick={() => adjustByPercent(-0.1)} className="px-2 py-1 text-xs border rounded hover:bg-gray-100">조금 더 짧게 (-10%)</button>
+                  <button onClick={() => adjustByPercent(0.1)} className="px-2 py-1 text-xs border rounded hover:bg-gray-100">조금 더 길게 (+10%)</button>
+                  <label className="ml-3 text-xs text-gray-700 flex items-center gap-1">
+                    <input type="checkbox" checked={lengthOptions.optimizeLineBreaks} onChange={(e) => setLengthOptions({ ...lengthOptions, optimizeLineBreaks: e.target.checked })} /> 줄바꿈 최적화
+                  </label>
+                  <label className="text-xs text-gray-700 flex items-center gap-1">
+                    <input type="checkbox" checked={lengthOptions.psychologyTone} onChange={(e) => setLengthOptions({ ...lengthOptions, psychologyTone: e.target.checked })} /> 심리학 톤
+                  </label>
+                  <label className="text-xs text-gray-700 flex items-center gap-1">
+                    <input type="checkbox" checked={lengthOptions.emphasizeCTA} onChange={(e) => setLengthOptions({ ...lengthOptions, emphasizeCTA: e.target.checked })} /> CTA 강조
+                  </label>
+                </div>
+              </div>
                 <div className="mt-2">
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
