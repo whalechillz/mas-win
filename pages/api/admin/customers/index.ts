@@ -27,7 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sortBy = 'updated_at', 
         sortOrder = 'desc',
         purchased, // 'true' = 구매자만, 'false' = 비구매자만, 없으면 전체
-        purchaseYears, // '0-1', '1-3', '3-5', '5+' = 구매 경과 기간
+        purchaseYears, // '0-1', '1-3', '3-5', '5+' = 구매 경과 기간 (구매자용)
+        contactYears, // '0-1', '1-3', '3-5', '5+' = 최근 연락/저장 내역 기간 (비구매자용)
         vipLevel // 'bronze', 'silver', 'gold', 'platinum' = VIP 레벨
       } = req.query as Record<string, string>;
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
@@ -73,7 +74,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 구매 경과 기간 필터 (last_purchase_date 기준)
       if (purchaseYears) {
         const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         
         if (purchaseYears === '0-1') {
           // 1년 미만: last_purchase_date >= 1년 전
@@ -102,6 +102,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const fiveYearsAgo = new Date(now);
           fiveYearsAgo.setFullYear(now.getFullYear() - 5);
           query = query.lt('last_purchase_date', fiveYearsAgo.toISOString().slice(0, 10));
+        }
+      }
+      
+      // 최근 연락/저장 내역 기간 필터 (비구매자용: last_contact_date 또는 first_inquiry_date 기준)
+      if (contactYears) {
+        const now = new Date();
+        
+        if (contactYears === '0-1') {
+          // 1년 미만: last_contact_date 또는 first_inquiry_date >= 1년 전
+          const oneYearAgo = new Date(now);
+          oneYearAgo.setFullYear(now.getFullYear() - 1);
+          const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
+          // OR 조건: last_contact_date >= 1년 전 OR first_inquiry_date >= 1년 전
+          query = query.or(`last_contact_date.gte.${oneYearAgoStr},first_inquiry_date.gte.${oneYearAgoStr}`);
+        } else if (contactYears === '1-3') {
+          // 1-3년: >= 3년 전 AND < 1년 전
+          const threeYearsAgo = new Date(now);
+          threeYearsAgo.setFullYear(now.getFullYear() - 3);
+          const oneYearAgo = new Date(now);
+          oneYearAgo.setFullYear(now.getFullYear() - 1);
+          const threeYearsAgoStr = threeYearsAgo.toISOString().slice(0, 10);
+          const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
+          // (last_contact_date >= 3년 전 AND < 1년 전) OR (first_inquiry_date >= 3년 전 AND < 1년 전)
+          // Supabase에서는 복잡한 OR 조건을 직접 지원하지 않으므로, 두 조건을 별도로 처리
+          query = query.or(`last_contact_date.gte.${threeYearsAgoStr},first_inquiry_date.gte.${threeYearsAgoStr}`)
+                      .lt('last_contact_date', oneYearAgoStr)
+                      .lt('first_inquiry_date', oneYearAgoStr);
+        } else if (contactYears === '3-5') {
+          // 3-5년: >= 5년 전 AND < 3년 전
+          const fiveYearsAgo = new Date(now);
+          fiveYearsAgo.setFullYear(now.getFullYear() - 5);
+          const threeYearsAgo = new Date(now);
+          threeYearsAgo.setFullYear(now.getFullYear() - 3);
+          const fiveYearsAgoStr = fiveYearsAgo.toISOString().slice(0, 10);
+          const threeYearsAgoStr = threeYearsAgo.toISOString().slice(0, 10);
+          query = query.or(`last_contact_date.gte.${fiveYearsAgoStr},first_inquiry_date.gte.${fiveYearsAgoStr}`)
+                      .lt('last_contact_date', threeYearsAgoStr)
+                      .lt('first_inquiry_date', threeYearsAgoStr);
+        } else if (contactYears === '5+') {
+          // 5년 이상: < 5년 전
+          const fiveYearsAgo = new Date(now);
+          fiveYearsAgo.setFullYear(now.getFullYear() - 5);
+          const fiveYearsAgoStr = fiveYearsAgo.toISOString().slice(0, 10);
+          // last_contact_date < 5년 전 OR first_inquiry_date < 5년 전
+          query = query.or(`last_contact_date.lt.${fiveYearsAgoStr},first_inquiry_date.lt.${fiveYearsAgoStr}`);
         }
       }
       
