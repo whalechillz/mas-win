@@ -168,9 +168,19 @@ function parseDate(v: string) {
 async function saveCustomers(customers: Array<any>) {
   const results: any[] = [];
   const CHUNK = 500;
-  for (let i = 0; i < customers.length; i += CHUNK) {
-    const batch = customers.slice(i, i + CHUNK)
-      .filter(c => c.name && c.phone);
+  
+  // 전체 고객에서 중복 전화번호 제거 (같은 전화번호가 여러 번 나오면 마지막 것만 남김)
+  const phoneMap = new Map<string, any>();
+  customers.forEach(c => {
+    if (c.name && c.phone) {
+      phoneMap.set(c.phone, c); // 같은 전화번호면 나중 값으로 덮어쓰기
+    }
+  });
+  const uniqueCustomers = Array.from(phoneMap.values());
+  console.log(`중복 제거: ${customers.length}명 → ${uniqueCustomers.length}명`);
+  
+  for (let i = 0; i < uniqueCustomers.length; i += CHUNK) {
+    const batch = uniqueCustomers.slice(i, i + CHUNK);
 
     // 무결성 보정: 날짜 순서 점검
     batch.forEach(c => {
@@ -265,7 +275,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 고객 데이터 저장
+    // 고객 데이터 저장 (중복 제거 포함)
     console.log(`고객 데이터 저장 시작: ${customers.length}명`);
     const results = await saveCustomers(customers);
     
@@ -279,7 +289,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         totalSuccess += r.count;
       } else {
         totalFailed += r.count;
-        if (r.error) {
+        if (r.error && !errorMessages.includes(r.error)) {
           errorMessages.push(r.error);
         }
       }
