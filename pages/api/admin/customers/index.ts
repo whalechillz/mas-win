@@ -29,13 +29,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const searchTerm = q.trim();
         const cleanSearchTerm = searchTerm.replace(/[^0-9]/g, '');
         
-        // 이름/주소 검색 (원본 검색어 사용)
-        query = query.ilike('name', `%${searchTerm}%`)
-          .or(`address.ilike.%${searchTerm}%`);
-        
-        // 전화번호 검색 (하이픈 제거된 검색어 사용 - 숫자만)
+        // Supabase의 or()는 여러 조건을 OR로 묶을 때 사용
+        // 이름, 주소, 전화번호 중 하나라도 매치되면 검색
         if (cleanSearchTerm.length > 0) {
-          query = query.or(`phone.ilike.%${cleanSearchTerm}%`);
+          // 숫자가 포함된 경우: 이름, 주소(원본), 전화번호(하이픈 제거)
+          query = query.or(`name.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%,phone.ilike.%${cleanSearchTerm}%`);
+        } else {
+          // 숫자가 없는 경우: 이름, 주소만 검색
+          query = query.or(`name.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%`);
         }
       }
       if (typeof optout !== 'undefined') {
