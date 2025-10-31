@@ -20,7 +20,7 @@ export default function CustomersPage() {
   const [onlyOptOut, setOnlyOptOut] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(50); // 기본값 50개
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('updated_at');
