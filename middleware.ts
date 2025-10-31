@@ -34,11 +34,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3) 도메인 라우팅 처리
-  if (hostname === 'masgolf.co.kr') {
+  // 3) (임시) 도메인 리다이렉트 비활성화 - 루프 원인 제거
+  // 필요 시 도메인 정규화는 Vercel Redirects 설정으로만 처리
+  if (false && hostname === 'masgolf.co.kr') {
     return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`);
   }
-  if (hostname === 'muziik.masgolf.co.kr') {
+  if (false && hostname === 'muziik.masgolf.co.kr') {
     if (pathname === '/') {
       return NextResponse.rewrite(new URL('/muziik', request.url));
     }
