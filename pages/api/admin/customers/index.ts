@@ -51,6 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ success: false, message: '전화번호는 10-11자리 숫자여야 합니다.' });
       }
 
+      // 신규 고객 등록 시 최근 연락일을 현재 시간으로 자동 설정
+      const now = new Date().toISOString();
+
       const { data, error } = await supabase
         .from('customers')
         .insert({
@@ -61,10 +64,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           first_purchase_date: first_purchase_date || null,
           last_purchase_date: last_purchase_date || null,
           last_service_date: last_service_date || null,
-          last_contact_date: last_contact_date || null,
+          last_contact_date: last_contact_date || now, // 명시적으로 지정하지 않으면 현재 시간
           opt_out: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: now,
+          updated_at: now,
         })
         .select()
         .single();
