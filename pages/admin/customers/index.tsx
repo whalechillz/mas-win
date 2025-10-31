@@ -29,7 +29,7 @@ export default function CustomersPage() {
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
   const [sheetName, setSheetName] = useState('MASSGOO');
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number} | null>(null);
+  const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number; errors?: string[]} | null>(null);
 
   const fetchCustomers = async (nextPage = page) => {
     setLoading(true);
@@ -100,11 +100,27 @@ export default function CustomersPage() {
       }
 
       const json = await res.json();
+      
+      if (!res.ok || !json.success) {
+        // 에러 응답 처리
+        const errorMsg = json.message || json.error || '가져오기 중 오류가 발생했습니다.';
+        setImportResult({
+          success: false,
+          message: errorMsg,
+          count: json.count || 0,
+          total: json.total || 0,
+          errors: json.errors || []
+        });
+        setImporting(false);
+        return;
+      }
+
       setImportResult({
         success: json.success,
         message: json.message,
         count: json.count,
-        total: json.total
+        total: json.total,
+        errors: json.errors || []
       });
 
       if (json.success) {
@@ -120,9 +136,13 @@ export default function CustomersPage() {
         }, 3000);
       }
     } catch (error: any) {
+      console.error('고객 데이터 가져오기 오류:', error);
       setImportResult({
         success: false,
-        message: error.message || '가져오기 중 오류가 발생했습니다.'
+        message: error.message || '가져오기 중 오류가 발생했습니다.',
+        count: 0,
+        total: 0,
+        errors: []
       });
     } finally {
       setImporting(false);
@@ -267,6 +287,16 @@ export default function CustomersPage() {
                         성공: {importResult.count}명 / 전체: {importResult.total}명
                       </p>
                     )}
+                    {importResult.errors && importResult.errors.length > 0 && (
+                      <div className="mt-2 text-sm">
+                        <p className="font-semibold mb-1">오류 상세:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {importResult.errors.slice(0, 5).map((err: string, idx: number) => (
+                            <li key={idx}>{err}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="flex justify-end gap-2">
@@ -322,6 +352,16 @@ export default function CustomersPage() {
                       <p className="text-sm mt-1">
                         성공: {importResult.count}명 / 전체: {importResult.total}명
                       </p>
+                    )}
+                    {importResult.errors && importResult.errors.length > 0 && (
+                      <div className="mt-2 text-sm">
+                        <p className="font-semibold mb-1">오류 상세:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {importResult.errors.slice(0, 5).map((err: string, idx: number) => (
+                            <li key={idx}>{err}</li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
                 )}
