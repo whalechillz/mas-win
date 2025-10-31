@@ -19,10 +19,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // SMS 메시지 삭제
+    // 소프트 삭제: deleted_at 설정
     const { error } = await supabase
       .from('channel_sms')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'SMS가 성공적으로 삭제되었습니다.'
+      message: 'SMS가 성공적으로 삭제(보관)되었습니다.'
     });
 
   } catch (error) {

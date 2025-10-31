@@ -17,6 +17,9 @@ export default async function handler(req, res) {
       .select('*, calendar_id')
       .order('created_at', { ascending: false });
 
+    // 소프트 삭제 제외
+    query = query.is('deleted_at', null);
+
     // 상태별 필터링
     if (status !== 'all') {
       query = query.eq('status', status);
