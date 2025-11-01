@@ -698,31 +698,30 @@ export default function GalleryAdmin() {
   const saveEdit = async () => {
     if (!editingImage) return;
     
-    // 🔍 저장 전 유효성 검사 (SEO 최적화 강제)
-    const categoryStr = String(editForm.category || '');
-    if (!categoryStr || categoryStr.trim() === '') {
-      alert('카테고리를 선택해주세요.');
-      return;
-    }
+    // ✅ 카테고리 필수 검사 제거 (카테고리 체크박스 제거됨)
+    // 카테고리 정보는 키워드에 포함되어 있음
     
-    // 글자 수 제한 검사
+    // ✅ 글자 수 제한 검사 완화 (이미 모달에서 검증하므로 여기서는 경고만)
     const validationErrors = [];
-    if (editForm.alt_text && editForm.alt_text.length > 50) {
-      validationErrors.push(`ALT 텍스트가 너무 깁니다 (${editForm.alt_text.length}자, 50자 이하 강제)`);
+    if (editForm.alt_text && editForm.alt_text.length > 200) {
+      validationErrors.push(`ALT 텍스트가 너무 깁니다 (${editForm.alt_text.length}자, 200자 이하 권장)`);
     }
-    if (editForm.keywords && editForm.keywords.length > 20) {
-      validationErrors.push(`키워드가 너무 깁니다 (${editForm.keywords.length}자, 20자 이하 강제)`);
+    if (editForm.keywords && editForm.keywords.length > 200) {
+      validationErrors.push(`키워드가 너무 깁니다 (${editForm.keywords.length}자, 200자 이하 권장)`);
     }
-    if (editForm.title && editForm.title.length > 30) {
-      validationErrors.push(`제목이 너무 깁니다 (${editForm.title.length}자, 30자 이하 강제)`);
+    if (editForm.title && editForm.title.length > 100) {
+      validationErrors.push(`제목이 너무 깁니다 (${editForm.title.length}자, 100자 이하 권장)`);
     }
-    if (editForm.description && editForm.description.length > 100) {
-      validationErrors.push(`설명이 너무 깁니다 (${editForm.description.length}자, 100자 이하 강제)`);
+    if (editForm.description && editForm.description.length > 200) {
+      validationErrors.push(`설명이 너무 깁니다 (${editForm.description.length}자, 200자 이하 권장)`);
     }
     
+    // 경고만 표시하고 저장은 계속 진행
     if (validationErrors.length > 0) {
-      alert(`SEO 최적화 글자 수 제한을 초과했습니다:\n\n${validationErrors.join('\n')}`);
-      return;
+      const shouldContinue = confirm(`글자 수 제한 경고:\n\n${validationErrors.join('\n')}\n\n계속 저장하시겠습니까?`);
+      if (!shouldContinue) {
+        return;
+      }
     }
     
     try {
@@ -847,13 +846,31 @@ export default function GalleryAdmin() {
         finalKeywords: finalKeywords
       });
       
+      // ✅ 제목이 파일명과 같은 경우 빈 문자열로 처리 (파일명이 제목으로 잘못 저장되는 것 방지)
+      let titleValue = editForm.title || '';
+      const filenameWithoutExt = updatedImageName?.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+      const titleWithoutExt = titleValue.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+      
+      if (titleValue === updatedImageName || titleValue === image.name || 
+          titleWithoutExt === filenameWithoutExt) {
+        console.warn('⚠️ 제목이 파일명과 동일하여 빈 문자열로 처리:', titleValue);
+        titleValue = '';
+      }
+      
+      // ✅ 메타데이터가 비어있는지 확인 (파일명 변경 후 메타데이터가 사라지는 문제 방지)
+      if (!editForm.alt_text && finalKeywords.length === 0 && !titleValue && !editForm.description) {
+        console.warn('⚠️ 메타데이터가 모두 비어있습니다. 저장을 취소합니다.');
+        alert('메타데이터가 비어있습니다. ALT 텍스트, 키워드, 제목, 설명 중 최소 하나는 입력해주세요.');
+        return;
+      }
+      
       const requestData = {
         imageName: updatedImageName,  // 파일명 변경 시 업데이트된 파일명 사용
         imageUrl: updatedImageUrl,  // 파일명 변경 시 업데이트된 URL 사용
-        alt_text: editForm.alt_text,
-        keywords: finalKeywords,  // 카테고리를 포함한 키워드
-        title: editForm.title,
-        description: editForm.description,
+        alt_text: editForm.alt_text || '',
+        keywords: finalKeywords.length > 0 ? finalKeywords : [],
+        title: titleValue,  // 파일명과 같으면 빈 문자열
+        description: editForm.description || '',
         category: categoryString,  // 하위 호환성: 문자열로 전송
         categories: categoriesArray  // 다중 선택: 배열로 전송
       };
@@ -1822,13 +1839,32 @@ export default function GalleryAdmin() {
               finalKeywords: finalKeywords
             });
             
+            // ✅ 제목이 파일명과 같은 경우 빈 문자열로 처리 (파일명이 제목으로 잘못 저장되는 것 방지)
+            const finalFileName = metadata.filename || image.name;
+            let titleValue = metadata.title || '';
+            const filenameWithoutExt = finalFileName?.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+            const titleWithoutExt = titleValue.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+            
+            if (titleValue === finalFileName || titleValue === image.name || 
+                titleWithoutExt === filenameWithoutExt) {
+              console.warn('⚠️ 제목이 파일명과 동일하여 빈 문자열로 처리:', titleValue);
+              titleValue = '';
+            }
+            
+            // ✅ 메타데이터가 비어있는지 확인 (파일명 변경 후 메타데이터가 사라지는 문제 방지)
+            if (!metadata.alt_text && finalKeywords.length === 0 && !titleValue && !metadata.description) {
+              console.warn('⚠️ 메타데이터가 모두 비어있습니다. 저장을 취소합니다.');
+              alert('메타데이터가 비어있습니다. ALT 텍스트, 키워드, 제목, 설명 중 최소 하나는 입력해주세요.');
+              return;
+            }
+            
             const requestData = {
-              imageName: metadata.filename || image.name,
+              imageName: finalFileName,
               imageUrl: image.url,
-              alt_text: metadata.alt_text,
-              keywords: finalKeywords,  // 카테고리를 포함한 키워드
-              title: metadata.title,
-              description: metadata.description,
+              alt_text: metadata.alt_text || '',
+              keywords: finalKeywords.length > 0 ? finalKeywords : [],
+              title: titleValue,  // 파일명과 같으면 빈 문자열
+              description: metadata.description || '',
               category: categoryString,  // 하위 호환성: 문자열로 전송
               categories: categoriesArray  // 다중 선택: 배열로 전송
             };
