@@ -234,11 +234,24 @@ export const useAIGeneration = () => {
           let processedText = cleanedText;
           if (field === 'title') {
             // 제목은 25-60자 범위로 처리
-            if (cleanedText.length < 25 && cleanedText.length > 0) {
-              // 제목이 너무 짧으면 보완
-              processedText = cleanedText + ' - 골프 전문 매장';
+            let titleText = cleanedText;
+            
+            // 제목이 너무 짧으면 강제로 보완
+            if (titleText.length < 25) {
+              if (titleText.length === 0) {
+                titleText = '골프 전문 매장 이미지';
+              } else {
+                // 키워드나 설명이 있는지 확인하여 보완
+                titleText = `${titleText} - 골프 전문 매장 MASSGOO`.trim();
+                
+                // 여전히 짧으면 추가 보완
+                if (titleText.length < 25) {
+                  titleText = `${titleText} 이미지`.trim();
+                }
+              }
             }
-            processedText = truncateText(processedText, 60); // 최대 60자로 제한
+            
+            processedText = truncateText(titleText, 60); // 최대 60자로 제한
           } else if (field === 'alt_text') {
             processedText = truncateText(cleanedText, 125);
           } else if (field === 'description') {
