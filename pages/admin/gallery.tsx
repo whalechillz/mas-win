@@ -752,6 +752,9 @@ export default function GalleryAdmin() {
       // 편집 중인 이미지 정보 확인
 
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
+      let updatedImageUrl = image.url;  // 기본값은 원본 URL
+      let updatedImageName = image.name;  // 기본값은 원본 파일명
+      
       if (editForm.filename && editForm.filename !== image.name) {
         // 파일명 변경 처리
         
@@ -799,6 +802,10 @@ export default function GalleryAdmin() {
           newUrl: newUrl
         });
         
+        // 파일명 변경 후 메타데이터 저장에 사용할 변수 업데이트
+        updatedImageUrl = newUrl || image.url;
+        updatedImageName = finalFileName;
+        
         // 파일명 변경 후 로컬 상태 즉시 업데이트
         setImages(prev => prev.map(img => 
           img.name === image.name 
@@ -821,8 +828,8 @@ export default function GalleryAdmin() {
       const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : categoryValue;
       
       const requestData = {
-        imageName: editForm.filename || image.name,  // 실제 데이터베이스의 파일명 사용
-        imageUrl: image.url,  // URL은 파일명 변경 시 이미 업데이트됨
+        imageName: updatedImageName,  // 파일명 변경 시 업데이트된 파일명 사용
+        imageUrl: updatedImageUrl,  // 파일명 변경 시 업데이트된 URL 사용
         alt_text: editForm.alt_text,
         keywords: keywords,
         title: editForm.title,
