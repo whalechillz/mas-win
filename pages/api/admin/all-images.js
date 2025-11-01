@@ -251,24 +251,45 @@ export default async function handler(req, res) {
       }
 
       // 메타데이터를 URL 및 file_name 기준으로 매핑
-      const metadataMap = new Map();
-      const metadataByFileName = new Map();
+      const metadataMap = new Map(); // URL -> metadata
+      const metadataByFileName = new Map(); // file_name -> metadata
+      const metadataByNormalizedUrl = new Map(); // normalized URL -> metadata
       
-      if (allMetadata) {
+      if (allMetadata && allMetadata.length > 0) {
         allMetadata.forEach(meta => {
-          // URL 기준 매핑 (정규화된 URL)
+          // URL 기준 매핑 (정확한 URL)
           if (meta.image_url) {
-            const normalizedMetaUrl = normalizeUrl(meta.image_url);
             metadataMap.set(meta.image_url, meta);
-            metadataMap.set(normalizedMetaUrl, meta);
+            
+            // 정규화된 URL로도 매핑
+            const normalizedMetaUrl = normalizeUrl(meta.image_url);
+            if (normalizedMetaUrl) {
+              metadataByNormalizedUrl.set(normalizedMetaUrl, meta);
+            }
+            
+            // URL에서 파일명 추출하여 매핑 (예: /blog-images/file.png -> file.png)
+            try {
+              const urlObj = new URL(meta.image_url);
+              const pathParts = urlObj.pathname.split('/');
+              const fileName = pathParts[pathParts.length - 1];
+              if (fileName && !metadataByFileName.has(fileName)) {
+                metadataByFileName.set(fileName, meta);
+              }
+            } catch (e) {
+              // URL 파싱 실패 시 무시
+            }
           }
           
-          // file_name 기준 매핑 (폴백용)
+          // file_name 기준 매핑 (직접 매칭)
           if (meta.file_name) {
-            metadataByFileName.set(meta.file_name, meta);
+            if (!metadataByFileName.has(meta.file_name)) {
+              metadataByFileName.set(meta.file_name, meta);
+            }
           }
         });
       }
+      
+      console.log(`📊 메타데이터 매핑 완료: ${allMetadata.length}개 메타데이터, ${metadataMap.size}개 URL 매핑, ${metadataByFileName.size}개 파일명 매핑, ${metadataByNormalizedUrl.size}개 정규화 URL 매핑`);
 
       // 이미지 데이터 생성 (URL 매칭 개선: 정규화된 URL 및 file_name 폴백)
       const imagesWithUrl = imageUrls.map(({ file, url, fullPath }) => {
