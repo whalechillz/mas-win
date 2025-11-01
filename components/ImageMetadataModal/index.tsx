@@ -127,13 +127,17 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           // AI 기반 최적화 시도
           const aiFileName = await generateAIFileName(image.url, form.title, form.keywords);
           if (aiFileName && aiFileName.length > 0) {
-            finalFileName = aiFileName;
+            // AI 파일명에서 확장자 제거 (있을 경우)
+            finalFileName = aiFileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
           }
         } catch (aiError) {
           console.warn('AI 파일명 생성 실패, 규칙 기반 사용:', aiError);
           // AI 실패 시 규칙 기반 결과 사용
         }
       }
+      
+      // finalFileName에서 확장자 제거 (중복 방지)
+      finalFileName = finalFileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
 
       // 확장자 추가 (기존 확장자 유지)
       const finalFileNameWithExtension = finalFileName + extension;
@@ -324,10 +328,17 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         categoryString
       });
       
+      // 제목이 파일명과 같은 경우 빈 문자열로 처리 (파일명이 제목으로 잘못 저장된 경우 방지)
+      let titleValue = image.title || '';
+      if (titleValue === image.name || titleValue.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '') === image.name?.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '')) {
+        console.warn('⚠️ 제목이 파일명과 동일하여 빈 문자열로 처리:', titleValue);
+        titleValue = '';
+      }
+      
       const newForm: MetadataForm = {
         alt_text: image.alt_text || '',
         keywords: image.keywords?.join(', ') || '',
-        title: image.title || '',
+        title: titleValue,  // 파일명과 같으면 빈 문자열
         description: image.description || '',
         category: categoryString,  // 하위 호환성 유지
         categories: imageCategories,  // 다중 선택용
