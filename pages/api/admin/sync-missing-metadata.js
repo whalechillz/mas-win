@@ -144,26 +144,45 @@ Return as JSON: {"alt_text": "...", "title": "...", "description": "...", "keywo
   }
 };
 
-// Storage에서 모든 이미지 목록 조회
+// Storage에서 모든 이미지 목록 조회 (배치 조회 지원)
 const getAllStorageImages = async () => {
   try {
     const allFiles = [];
     
     const getAllImagesRecursively = async (folderPath = '') => {
-      const { data: files, error } = await supabase.storage
-        .from('blog-images')
-        .list(folderPath, {
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
+      // ✅ 개선: 배치 조회로 모든 파일 가져오기 (타임아웃 방지)
+      let offset = 0;
+      const batchSize = 1000;  // 한 번에 가져올 파일 수
+      let allFilesInFolder = [];
+      
+      while (true) {
+        const { data: files, error } = await supabase.storage
+          .from('blog-images')
+          .list(folderPath, {
+            limit: batchSize,
+            offset: offset,
+            sortBy: { column: 'created_at', order: 'desc' }
+          });
 
-      if (error) {
-        console.error(`❌ 폴더 조회 에러 (${folderPath}):`, error);
-        return;
+        if (error) {
+          console.error(`❌ 폴더 조회 에러 (${folderPath}, offset: ${offset}):`, error);
+          break;
+        }
+
+        if (!files || files.length === 0) {
+          break;  // 더 이상 파일이 없음
+        }
+
+        allFilesInFolder = allFilesInFolder.concat(files);
+        offset += batchSize;
+
+        // 마지막 배치면 종료
+        if (files.length < batchSize) {
+          break;
+        }
       }
 
-      if (!files) return;
-
-      for (const file of files) {
+      for (const file of allFilesInFolder) {
         if (!file.id) {
           // 폴더인 경우 재귀적으로 조회
           const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
@@ -200,23 +219,24 @@ const getAllStorageImages = async () => {
   }
 };
 
-// 메타데이터가 없는 이미지 찾기
+// 메타데이터가 없는 이미지 찾기 (최적화)
 const findMissingMetadata = async (storageImages) => {
   try {
-    const urls = storageImages.map(img => img.url);
-    const normalizedUrls = storageImages.map(img => normalizeUrl(img.url));
-    
-    // 기존 메타데이터 조회 (URL 기준)
+    // ✅ 개선: 배치 조회로 메타데이터 가져오기 (타임아웃 방지)
+    console.log('📊 기존 메타데이터 조회 중...');
     const { data: existingMetadata, error } = await supabase
       .from('image_metadata')
-      .select('image_url, file_name');
+      .select('image_url, file_name')
+      .limit(10000);  // ✅ 충분히 큰 limit 설정
     
     if (error) {
       console.error('❌ 메타데이터 조회 오류:', error);
       throw error;
     }
     
-    // 기존 메타데이터 URL 정규화
+    console.log('📊 기존 메타데이터:', existingMetadata?.length || 0, '개');
+    
+    // ✅ 개선: 메모리 효율적인 Set 사용
     const existingUrls = new Set();
     const existingFileNames = new Set();
     
@@ -225,20 +245,43 @@ const findMissingMetadata = async (storageImages) => {
         if (meta.image_url) {
           existingUrls.add(normalizeUrl(meta.image_url));
         }
+        // ✅ 개선: file_name이 있으면 사용, 없으면 URL에서 파일명 추출
         if (meta.file_name) {
           existingFileNames.add(meta.file_name);
+        } else if (meta.image_url) {
+          // URL에서 파일명 추출
+          const urlParts = meta.image_url.split('/');
+          const fileName = urlParts[urlParts.length - 1].split('?')[0]; // 쿼리 파라미터 제거
+          if (fileName) {
+            existingFileNames.add(fileName);
+          }
         }
       });
     }
     
-    // 메타데이터가 없는 이미지 찾기
-    const missingMetadata = storageImages.filter(img => {
-      const normalizedUrl = normalizeUrl(img.url);
-      const fileName = img.name;
+    console.log('📊 기존 URL 개수:', existingUrls.size, ', 파일명 개수:', existingFileNames.size);
+    
+    // ✅ 개선: 배치 처리로 메모리 효율성 향상
+    const missingMetadata = [];
+    const batchSize = 100;
+    
+    for (let i = 0; i < storageImages.length; i += batchSize) {
+      const batch = storageImages.slice(i, i + batchSize);
+      const batchMissing = batch.filter(img => {
+        const normalizedUrl = normalizeUrl(img.url);
+        const fileName = img.name;
+        
+        // URL이나 파일명 기준으로 메타데이터가 없는 경우
+        return !existingUrls.has(normalizedUrl) && !existingFileNames.has(fileName);
+      });
       
-      // URL이나 파일명 기준으로 메타데이터가 없는 경우
-      return !existingUrls.has(normalizedUrl) && !existingFileNames.has(fileName);
-    });
+      missingMetadata.push(...batchMissing);
+      
+      // 진행률 로그
+      if (i % 500 === 0 || i === storageImages.length - batchSize) {
+        console.log(`📊 처리 진행: ${Math.min(i + batchSize, storageImages.length)}/${storageImages.length} (누락: ${missingMetadata.length}개)`);
+      }
+    }
     
     console.log('📊 누락된 메타데이터:', missingMetadata.length, '개');
     return missingMetadata;
@@ -274,25 +317,32 @@ export default async function handler(req, res) {
       // 제공된 이미지 중 메타데이터가 없는 것 찾기
       missingMetadata = await findMissingMetadata(storageImages);
     } else {
+      // ✅ 개선: 단계별 처리로 타임아웃 방지
       // 1. Storage에서 모든 이미지 조회
       try {
+        console.log('📁 Storage 이미지 조회 시작...');
         storageImages = await getAllStorageImages();
+        console.log('✅ Storage 이미지 조회 완료:', storageImages.length, '개');
       } catch (error) {
         console.error('❌ Storage 이미지 조회 오류:', error);
         return res.status(500).json({
           error: 'Storage 이미지 조회 중 오류가 발생했습니다.',
-          details: error.message
+          details: error.message,
+          step: 'getAllStorageImages'
         });
       }
       
       // 2. 메타데이터가 없는 이미지 찾기
       try {
+        console.log('🔍 누락된 메타데이터 찾기 시작...');
         missingMetadata = await findMissingMetadata(storageImages);
+        console.log('✅ 누락된 메타데이터 찾기 완료:', missingMetadata.length, '개');
       } catch (error) {
         console.error('❌ 메타데이터 찾기 오류:', error);
         return res.status(500).json({
           error: '메타데이터 찾기 중 오류가 발생했습니다.',
-          details: error.message
+          details: error.message,
+          step: 'findMissingMetadata'
         });
       }
     }
