@@ -176,10 +176,11 @@ export default async function handler(req, res) {
       }
 
       // 먼저 해당 카테고리를 사용하는 이미지가 있는지 확인
+      // 주의: image_metadata 테이블에는 category 컬럼이 없고 category_id 컬럼이 있음
       const { data: imageCount, error: countError } = await supabase
         .from('image_metadata')
         .select('id', { count: 'exact' })
-        .eq('category', id);
+        .eq('category_id', id);
 
       if (countError) {
         console.error('❌ 이미지 카운트 조회 오류:', countError);
