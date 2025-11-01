@@ -117,11 +117,11 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       
       // 3. Storage에서 해당 이미지 찾기 (최적화: 타임아웃 방지)
       const storageImages = [];
-      const maxSearchTime = 8000; // ✅ 각 블로그 글당 최대 8초 (전체 API 타임아웃 9초 고려)
+      const maxSearchTime = 6000; // ✅ 각 블로그 글당 최대 6초 (전체 API 타임아웃 8초 고려)
       const startTime = Date.now();
       
       // ✅ 최적화: 처음 몇 개 이미지만 처리 (타임아웃 방지)
-      const imagesToProcess = images.slice(0, 20); // 최대 20개 이미지만 처리
+      const imagesToProcess = images.slice(0, 10); // ✅ 최대 10개 이미지만 처리 (타임아웃 방지)
       
       for (const img of imagesToProcess) {
         // 타임아웃 체크
@@ -135,10 +135,10 @@ const organizeImagesByBlog = async (blogPostId = null) => {
           const urlParts = img.url.split('/');
           const fileName = urlParts[urlParts.length - 1].split('?')[0];
           
-          // ✅ 최적화: 짧은 타임아웃으로 이미지 찾기 (각 이미지당 최대 2초)
+          // ✅ 최적화: 짧은 타임아웃으로 이미지 찾기 (각 이미지당 최대 1초)
           const found = await Promise.race([
-            findImageInStorage(fileName, 2000), // 각 이미지당 최대 2초
-            new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 2000))
+            findImageInStorage(fileName, 1000), // ✅ 각 이미지당 최대 1초
+            new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 1000))
           ]).catch(err => {
             console.warn(`⚠️ 이미지 검색 타임아웃 (${fileName}):`, err.message);
             return null;
@@ -187,7 +187,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
 };
 
 // Storage에서 이미지 찾기 (최적화: 타임아웃 방지)
-const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
+const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
   try {
     let foundImage = null;
     const startTime = Date.now();
@@ -199,9 +199,9 @@ const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
       // ✅ 파일명과 정확히 일치하는 것부터 검색
       const exactFileName = fileName.toLowerCase();
       
-      // 루트 폴더에서 파일명으로 검색 (최대 500개만)
+      // 루트 폴더에서 파일명으로 검색 (최대 200개만)
       let rootOffset = 0;
-      const searchLimit = 500; // ✅ 검색 제한 (타임아웃 방지)
+      const searchLimit = 200; // ✅ 검색 제한 (타임아웃 방지)
       
       while (!foundImage && rootOffset < searchLimit && (Date.now() - startTime) < maxSearchTime) {
         const { data: files, error } = await supabase.storage
@@ -376,8 +376,9 @@ export default async function handler(req, res) {
   console.log('📁 블로그 글별 이미지 폴더 정렬 API 요청:', req.method, req.url);
   
   // ✅ 타임아웃 방지: Vercel 제한(10초) 고려하여 빠른 응답 보장
+  // ✅ Vercel 실제 제한이 더 짧을 수 있으므로 8초로 설정
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (10초 제한)')), 9000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (8초 제한)')), 8000);
   });
   
   try {
