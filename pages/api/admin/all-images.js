@@ -135,7 +135,9 @@ export default async function handler(req, res) {
           }
         };
 
-        if (includeChildren === 'true') {
+        // includeChildren 파라미터 처리 (boolean 또는 문자열 모두 지원)
+        const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
+        if (shouldIncludeChildren) {
           await getAllImagesForPagination(prefix || '');
         } else {
           // 현재 폴더만(하위 미포함)

@@ -125,13 +125,19 @@ export default function GalleryAdmin() {
     
     // 폴더 필터
     if (folderFilter !== 'all') {
-      console.log('🔍 폴더 필터 적용:', folderFilter);
+      console.log('🔍 폴더 필터 적용:', folderFilter, '하위 폴더 포함:', includeChildren);
       console.log('🔍 필터링 전 이미지 수:', filtered.length);
       
       if (folderFilter === 'root') {
-        // 루트 폴더 (폴더 경로가 없는 이미지들)
-        filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
-        console.log('🔍 루트 폴더 필터링 후:', filtered.length);
+        // 루트 폴더 필터
+        if (includeChildren) {
+          // "하위 폴더 포함"이 체크되어 있으면 모든 이미지 표시 (필터 없음)
+          console.log('🔍 하위 폴더 포함: 모든 이미지 표시');
+        } else {
+          // 하위 폴더 포함이 아니면 루트 폴더만 (폴더 경로가 없는 이미지들)
+          filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
+          console.log('🔍 루트 폴더만 필터링 후:', filtered.length);
+        }
       } else {
         // 특정 폴더
         const beforeCount = filtered.length;
@@ -493,7 +499,8 @@ export default function GalleryAdmin() {
       
       const offset = (page - 1) * imagesPerPage;
       const prefix = folderFilter === 'all' ? '' : (folderFilter === 'root' ? '' : encodeURIComponent(folderFilter));
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren}`);
+      // includeChildren을 명시적으로 문자열로 변환하여 API에 전달
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren ? 'true' : 'false'}`);
       const data = await response.json();
       
       if (response.ok) {
