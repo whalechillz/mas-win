@@ -121,28 +121,71 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      // 모든 이미지 조회
-      const { data: files, error } = await supabase.storage
-        .from('blog-images')
-        .list('', {
-          limit: 1000,
-          offset: 0,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
+      // ✅ 개선: 모든 이미지 조회 (배치 조회로 1,166개 모두 조회)
+      const allFiles = [];
+      let offset = 0;
+      const batchSize = 1000;
+      
+      // 재귀적으로 모든 폴더의 이미지 조회
+      const getAllImagesRecursively = async (folderPath = '') => {
+        let folderOffset = 0;
+        
+        while (true) {
+          const { data: files, error } = await supabase.storage
+            .from('blog-images')
+            .list(folderPath, {
+              limit: batchSize,
+              offset: folderOffset,
+              sortBy: { column: 'created_at', order: 'desc' }
+            });
 
-      if (error) {
-        console.error('❌ 이미지 조회 에러:', error);
-        return res.status(500).json({
-          error: '이미지 목록을 불러올 수 없습니다.',
-          details: error.message
-        });
-      }
+          if (error) {
+            console.error(`❌ 폴더 조회 에러 (${folderPath}, offset: ${folderOffset}):`, error);
+            break;
+          }
 
-      // 이미지 URL 생성
-      const imagesWithUrl = files.map(file => {
+          if (!files || files.length === 0) {
+            break;
+          }
+
+          for (const file of files) {
+            if (!file.id) {
+              // 폴더인 경우 재귀적으로 조회
+              const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+              await getAllImagesRecursively(subFolderPath);
+            } else {
+              // 이미지 파일인 경우
+              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              
+              if (isImage) {
+                const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+                allFiles.push({
+                  ...file,
+                  folderPath: folderPath,
+                  fullPath: fullPath
+                });
+              }
+            }
+          }
+          
+          folderOffset += batchSize;
+          
+          if (files.length < batchSize) {
+            break;
+          }
+        }
+      };
+      
+      await getAllImagesRecursively('');
+      console.log(`📊 총 이미지 조회: ${allFiles.length}개`);
+
+      // 이미지 URL 생성 및 해시 계산
+      const imagesWithUrl = allFiles.map(file => {
+        const fullPath = file.fullPath || (file.folderPath ? `${file.folderPath}/${file.name}` : file.name);
         const { data: urlData } = supabase.storage
           .from('blog-images')
-          .getPublicUrl(file.name);
+          .getPublicUrl(fullPath);
         
         return {
           id: file.id,
@@ -151,11 +194,13 @@ export default async function handler(req, res) {
           created_at: file.created_at,
           updated_at: file.updated_at,
           url: urlData.publicUrl,
+          folder_path: file.folderPath || '',
+          full_path: fullPath,
           hash: calculateImageHash(file.name)
         };
       });
 
-      // 중복 이미지 찾기
+      // ✅ 중복 이미지 찾기 (파일명 기준 - 폴더 경로 무시)
       const duplicates = findDuplicateImages(imagesWithUrl);
       
       console.log('✅ 중복 이미지 분석 완료:', duplicates.length, '개 그룹');
