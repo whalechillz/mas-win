@@ -330,8 +330,37 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       // 카테고리 필드는 category와 categories를 동기화
       if (field === 'categories' && Array.isArray(value)) {
         updated.category = value.join(',');  // 하위 호환성 유지
+        
+        // ✅ 카테고리 변경 시 키워드에 자동 추가
+        const currentKeywords = (prev.keywords || '').split(',').map(k => k.trim()).filter(k => k);
+        const categoryKeywords = value.map(c => c.trim()).filter(c => c);
+        
+        // 기존 키워드와 카테고리를 합쳐서 중복 제거
+        const allKeywords = [...new Set([...currentKeywords, ...categoryKeywords])];
+        updated.keywords = allKeywords.join(', ');
+        
+        console.log('📝 카테고리 변경 → 키워드 자동 추가:', {
+          categories: value,
+          previousKeywords: currentKeywords,
+          newKeywords: allKeywords
+        });
       } else if (field === 'category' && typeof value === 'string') {
         updated.categories = value ? value.split(',').map(c => c.trim()).filter(c => c) : [];
+        
+        // ✅ 카테고리 변경 시 키워드에 자동 추가
+        const currentKeywords = (prev.keywords || '').split(',').map(k => k.trim()).filter(k => k);
+        const categoryKeywords = updated.categories;
+        
+        // 기존 키워드와 카테고리를 합쳐서 중복 제거
+        const allKeywords = [...new Set([...currentKeywords, ...categoryKeywords])];
+        updated.keywords = allKeywords.join(', ');
+        
+        console.log('📝 카테고리 변경 → 키워드 자동 추가:', {
+          category: value,
+          categories: updated.categories,
+          previousKeywords: currentKeywords,
+          newKeywords: allKeywords
+        });
       }
       return updated;
     });
@@ -376,7 +405,28 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
   // 저장
   const handleSave = useCallback(async () => {
-    const errors = validateForm(form);
+    // ✅ 저장 전에 카테고리를 키워드에 포함시킴
+    const categoriesArray = Array.isArray(form.categories) && form.categories.length > 0
+      ? form.categories
+      : (form.category ? form.category.split(',').map(c => c.trim()).filter(c => c) : []);
+    
+    const currentKeywords = (form.keywords || '').split(',').map(k => k.trim()).filter(k => k);
+    const allKeywords = [...new Set([...currentKeywords, ...categoriesArray])];
+    const updatedKeywords = allKeywords.join(', ');
+    
+    const formWithKeywords = {
+      ...form,
+      keywords: updatedKeywords  // 카테고리를 포함한 키워드
+    };
+    
+    console.log('💾 저장 전 키워드 업데이트:', {
+      categories: categoriesArray,
+      previousKeywords: currentKeywords,
+      updatedKeywords: allKeywords,
+      finalKeywords: updatedKeywords
+    });
+    
+    const errors = validateForm(formWithKeywords);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
@@ -385,12 +435,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     setIsSaving(true);
     try {
       // 파일명이 변경된 경우 먼저 파일명 변경
-      if (image && form.filename !== image.name && onRename) {
-        await onRename(form.filename);
+      if (image && formWithKeywords.filename !== image.name && onRename) {
+        await onRename(formWithKeywords.filename);
       }
       
-      // 모든 메타데이터 저장
-      await onSave(form);
+      // 모든 메타데이터 저장 (카테고리가 키워드에 포함된 버전)
+      await onSave(formWithKeywords);
       setHasChanges(false);
       onClose();
     } catch (error) {

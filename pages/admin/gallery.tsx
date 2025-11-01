@@ -835,11 +835,23 @@ export default function GalleryAdmin() {
         (categoryValue ? categoryValue.split(',').map((c: string) => c.trim()).filter((c: string) => c) : []);
       const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : categoryValue;
       
+      // ✅ 카테고리를 키워드에 포함 (중복 제거)
+      const currentKeywordsList = keywords;
+      const allKeywordsList = [...new Set([...currentKeywordsList, ...categoriesArray])];
+      const finalKeywords = allKeywordsList;
+      
+      console.log('💾 저장 시 키워드 업데이트 (saveEdit):', {
+        categories: categoriesArray,
+        previousKeywords: currentKeywordsList,
+        updatedKeywords: allKeywordsList,
+        finalKeywords: finalKeywords
+      });
+      
       const requestData = {
         imageName: updatedImageName,  // 파일명 변경 시 업데이트된 파일명 사용
         imageUrl: updatedImageUrl,  // 파일명 변경 시 업데이트된 URL 사용
         alt_text: editForm.alt_text,
-        keywords: keywords,
+        keywords: finalKeywords,  // 카테고리를 포함한 키워드
         title: editForm.title,
         description: editForm.description,
         category: categoryString,  // 하위 호환성: 문자열로 전송
@@ -1798,11 +1810,23 @@ export default function GalleryAdmin() {
               (metadata.category ? metadata.category.split(',').map((c: string) => c.trim()).filter((c: string) => c) : []);
             const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : metadata.category || '';
             
+            // ✅ 카테고리를 키워드에 포함 (중복 제거)
+            const currentKeywordsList = keywords;
+            const allKeywordsList = [...new Set([...currentKeywordsList, ...categoriesArray])];
+            const finalKeywords = allKeywordsList;
+            
+            console.log('💾 저장 시 키워드 업데이트 (onSave):', {
+              categories: categoriesArray,
+              previousKeywords: currentKeywordsList,
+              updatedKeywords: allKeywordsList,
+              finalKeywords: finalKeywords
+            });
+            
             const requestData = {
               imageName: metadata.filename || image.name,
               imageUrl: image.url,
               alt_text: metadata.alt_text,
-              keywords: keywords,
+              keywords: finalKeywords,  // 카테고리를 포함한 키워드
               title: metadata.title,
               description: metadata.description,
               category: categoryString,  // 하위 호환성: 문자열로 전송
