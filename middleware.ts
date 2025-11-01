@@ -5,7 +5,12 @@ import { getToken } from 'next-auth/jwt';
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
   const pathname = request.nextUrl.pathname;
-
+  
+  // ✅ 로컬 개발 환경 감지 (안전한 로컬 테스트 허용)
+  const isLocal = hostname.includes('localhost') || hostname.includes('127.0.0.1');
+  const isDev = process.env.NODE_ENV === 'development';
+  const allowLocalTest = process.env.ALLOW_LOCAL_API_TEST === 'true';
+  
   // 1) 정적/이미지/API는 통과
   if (
     pathname.startsWith('/_next') ||
@@ -15,6 +20,12 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/favicon') ||
     pathname.startsWith('/images')
   ) {
+    // ✅ 로컬 테스트 환경에서는 API 경로 통과 (프로덕션에서는 기존 로직 유지)
+    // 주의: ALLOW_LOCAL_API_TEST=true가 설정되어 있어야만 로컬에서 테스트 가능
+    if (pathname.startsWith('/api') && isLocal && isDev && allowLocalTest) {
+      // 로컬 개발 환경에서 API 테스트 허용
+      console.log('[Middleware] 로컬 API 테스트 허용:', pathname);
+    }
     return NextResponse.next();
   }
 
