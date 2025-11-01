@@ -127,17 +127,13 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           // AI 기반 최적화 시도
           const aiFileName = await generateAIFileName(image.url, form.title, form.keywords);
           if (aiFileName && aiFileName.length > 0) {
-            // AI 파일명에서 확장자 제거 (있을 경우)
-            finalFileName = aiFileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+            finalFileName = aiFileName;
           }
         } catch (aiError) {
           console.warn('AI 파일명 생성 실패, 규칙 기반 사용:', aiError);
           // AI 실패 시 규칙 기반 결과 사용
         }
       }
-      
-      // finalFileName에서 확장자 제거 (중복 방지)
-      finalFileName = finalFileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
 
       // 확장자 추가 (기존 확장자 유지)
       const finalFileNameWithExtension = finalFileName + extension;
@@ -307,40 +303,17 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   // 이미지 변경 시 폼 초기화
   useEffect(() => {
     if (image) {
-      // 카테고리 처리: 
-      // 1. image.categories 배열이 있으면 우선 사용
-      // 2. image.category가 배열이면 사용
-      // 3. image.category가 문자열이면 쉼표로 분리하여 배열로 변환
-      // 4. 모두 없으면 빈 배열
-      const imageCategories = Array.isArray(image.categories) && image.categories.length > 0
-        ? image.categories
-        : Array.isArray(image.category)
-        ? image.category
+      // 카테고리 처리: 문자열이면 배열로 변환, 이미 배열이면 그대로 사용
+      const imageCategories = Array.isArray(image.category) 
+        ? image.category 
         : (image.category ? image.category.split(',').map(c => c.trim()).filter(c => c) : []);
-      
-      // category는 문자열로 변환 (하위 호환성)
-      const categoryString = imageCategories.join(',');
-      
-      console.log('📋 이미지 카테고리 초기화:', {
-        imageCategory: image.category,
-        imageCategories: image.categories,
-        parsedCategories: imageCategories,
-        categoryString
-      });
-      
-      // 제목이 파일명과 같은 경우 빈 문자열로 처리 (파일명이 제목으로 잘못 저장된 경우 방지)
-      let titleValue = image.title || '';
-      if (titleValue === image.name || titleValue.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '') === image.name?.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '')) {
-        console.warn('⚠️ 제목이 파일명과 동일하여 빈 문자열로 처리:', titleValue);
-        titleValue = '';
-      }
       
       const newForm: MetadataForm = {
         alt_text: image.alt_text || '',
         keywords: image.keywords?.join(', ') || '',
-        title: titleValue,  // 파일명과 같으면 빈 문자열
+        title: image.title || '',
         description: image.description || '',
-        category: categoryString,  // 하위 호환성 유지
+        category: image.category || '',  // 하위 호환성 유지
         categories: imageCategories,  // 다중 선택용
         filename: image.name || ''
       };
@@ -380,33 +353,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     });
 
     if (result.success && result.data) {
-      // 폼 상태 업데이트
-      setForm(prev => {
-        const updated = { ...prev, ...result.data };
-        // 카테고리 동기화
-        if (result.data.categories && Array.isArray(result.data.categories)) {
-          updated.categories = result.data.categories;
-          updated.category = result.data.categories.join(',');
-        }
-        return updated;
-      });
+      setForm(prev => ({ ...prev, ...result.data }));
       setHasChanges(true);
-      
-      // AI 생성 완료 후 자동으로 SEO 파일명 생성
-      // 약간의 지연을 두어 폼 상태가 업데이트된 후 실행
-      // 폼 상태가 완전히 업데이트된 후 실행하기 위해 더 긴 지연 사용
-      setTimeout(async () => {
-        try {
-          await handleGenerateSEOFileName();
-          console.log('✅ SEO 파일명 자동 생성 완료');
-        } catch (error) {
-          console.warn('⚠️ SEO 파일명 자동 생성 실패:', error);
-        }
-      }, 1000);
     } else {
       alert(`AI 생성에 실패했습니다: ${result.error}`);
     }
-  }, [image, generateAllMetadata, handleGenerateSEOFileName]);
+  }, [image, generateAllMetadata]);
 
   // 개별 필드 AI 생성
   const handleGenerateField = useCallback(async (field: keyof MetadataForm, language: 'korean' | 'english') => {
