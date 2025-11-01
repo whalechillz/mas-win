@@ -19,7 +19,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
     if (blogPostId) {
       const { data: post, error } = await supabase
         .from('blog_posts')
-        .select('id, title, slug, content, featured_image')
+        .select('id, title, slug, content, featured_image, created_at')
         .eq('id', blogPostId)
         .single();
       
