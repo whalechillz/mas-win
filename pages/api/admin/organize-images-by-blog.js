@@ -131,18 +131,99 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         }
         
         try {
-          // URL에서 파일명 추출
-          const urlParts = img.url.split('/');
-          const fileName = urlParts[urlParts.length - 1].split('?')[0];
+          // URL에서 파일 경로 추출
+          // 예: https://...supabase.co/storage/v1/object/public/blog-images/path/to/file.jpg
+          // → path/to/file.jpg 또는 file.jpg
+          let imagePath = null;
+          let fileName = null;
           
-          // ✅ 최적화: 짧은 타임아웃으로 이미지 찾기 (각 이미지당 최대 1초)
-          const found = await Promise.race([
-            findImageInStorage(fileName, 1000), // ✅ 각 이미지당 최대 1초
-            new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 1000))
-          ]).catch(err => {
-            console.warn(`⚠️ 이미지 검색 타임아웃 (${fileName}):`, err.message);
-            return null;
-          });
+          if (img.url.includes('/storage/v1/object/public/blog-images/')) {
+            // Supabase Storage URL인 경우 경로 직접 추출
+            const urlMatch = img.url.match(/\/blog-images\/(.+)$/);
+            if (urlMatch) {
+              imagePath = urlMatch[1].split('?')[0]; // 쿼리 파라미터 제거
+              fileName = imagePath.split('/').pop(); // 마지막 파일명만
+            }
+          }
+          
+          // URL에서 파일명만 추출 (fallback)
+          if (!fileName) {
+            const urlParts = img.url.split('/');
+            fileName = urlParts[urlParts.length - 1].split('?')[0];
+          }
+          
+          // ✅ 개선: URL에서 직접 경로 추출한 경우, 파일명으로 검색
+          // 경로가 있으면 경로로 직접 접근 시도
+          let found = null;
+          
+          if (imagePath) {
+            // ✅ 개선: URL에서 직접 경로 추출했으면 getPublicUrl로 파일 존재 확인
+            try {
+              // 경로로 직접 접근 시도
+              const { data: urlData } = supabase.storage
+                .from('blog-images')
+                .getPublicUrl(imagePath);
+              
+              // HEAD 요청으로 파일 존재 확인
+              const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
+              if (response.ok) {
+                // 파일이 존재하면 경로에서 파일 정보 추출
+                const pathParts = imagePath.split('/');
+                const pathFileName = pathParts[pathParts.length - 1];
+                const folderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
+                
+                // 파일 정보 조회 (크기 등)
+                try {
+                  const folderFiles = folderPath ? await supabase.storage
+                    .from('blog-images')
+                    .list(folderPath, { limit: 1000 }) : await supabase.storage
+                    .from('blog-images')
+                    .list('', { limit: 1000 });
+                  
+                  const fileInfo = folderFiles.data?.find(f => 
+                    f.id && (f.name === pathFileName || f.name.toLowerCase() === pathFileName.toLowerCase())
+                  );
+                  
+                  found = {
+                    id: fileInfo?.id || pathFileName,
+                    name: pathFileName,
+                    currentPath: imagePath,
+                    folderPath: folderPath,
+                    url: urlData.publicUrl,
+                    size: fileInfo?.metadata?.size || response.headers.get('content-length') || 0,
+                    created_at: fileInfo?.created_at || new Date().toISOString()
+                  };
+                } catch (listError) {
+                  // list 실패해도 URL로 찾았으면 경로 정보만 사용
+                  found = {
+                    id: pathFileName,
+                    name: pathFileName,
+                    currentPath: imagePath,
+                    folderPath: folderPath,
+                    url: urlData.publicUrl,
+                    size: response.headers.get('content-length') || 0,
+                    created_at: new Date().toISOString()
+                  };
+                }
+              }
+            } catch (error) {
+              console.warn(`⚠️ URL 직접 확인 실패 (${imagePath}):`, error.message);
+            }
+          }
+          
+          // 경로로 찾지 못했으면 파일명으로 검색
+          if (!found) {
+            // ✅ 개선: 검색 시간 증가 (3초로 확대)
+            const foundResult = await Promise.race([
+              findImageInStorage(fileName, 3000), // ✅ 각 이미지당 최대 3초
+              new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 3000))
+            ]).catch(err => {
+              console.warn(`⚠️ 이미지 검색 타임아웃 (${fileName}):`, err.message);
+              return null;
+            });
+            
+            found = foundResult;
+          }
           
           if (found) {
             storageImages.push({
@@ -199,9 +280,9 @@ const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
       // ✅ 파일명과 정확히 일치하는 것부터 검색
       const exactFileName = fileName.toLowerCase();
       
-      // 루트 폴더에서 파일명으로 검색 (최대 200개만)
+      // 루트 폴더에서 파일명으로 검색 (최대 1000개로 확대)
       let rootOffset = 0;
-      const searchLimit = 200; // ✅ 검색 제한 (타임아웃 방지)
+      const searchLimit = 1000; // ✅ 검색 제한 확대 (이미지 찾기 성공률 향상)
       
       while (!foundImage && rootOffset < searchLimit && (Date.now() - startTime) < maxSearchTime) {
         const { data: files, error } = await supabase.storage
