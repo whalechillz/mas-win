@@ -175,11 +175,21 @@ export default function GalleryAdmin() {
         break;
       case 'duplicates':
         // 중복 이미지 필터링 (같은 이름을 가진 이미지들)
+        // ✅ 개선: 파일명 기준으로 정확하게 중복 감지 (폴더 경로 무시)
         const nameCounts = filtered.reduce((acc, img) => {
-          acc[img.name] = (acc[img.name] || 0) + 1;
+          // 파일명만 추출 (폴더 경로 제외)
+          const fileName = img.name || img.url?.split('/').pop() || '';
+          acc[fileName] = (acc[fileName] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
-        filtered = filtered.filter(img => nameCounts[img.name] > 1);
+        
+        // ✅ 개선: 로그 추가로 디버깅 용이
+        console.log('🔍 중복 이미지 필터링:', Object.keys(nameCounts).filter(name => nameCounts[name] > 1).length, '개 중복 그룹');
+        
+        filtered = filtered.filter(img => {
+          const fileName = img.name || img.url?.split('/').pop() || '';
+          return nameCounts[fileName] > 1;
+        });
         break;
       case 'category':
         if (selectedCategoryFilter !== null) {
