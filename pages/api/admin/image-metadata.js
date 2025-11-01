@@ -315,7 +315,8 @@ export default async function handler(req, res) {
           hint: upsertError.hint,
           code: upsertError.code,
           imageUrl: imageUrl,
-          fileName: fileName,
+          file_name: finalFileName,
+          imageName: imageName,
           insertData: JSON.stringify(insertData, null, 2)
         });
         return res.status(500).json({ 
