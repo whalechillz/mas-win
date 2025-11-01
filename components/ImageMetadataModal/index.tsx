@@ -397,7 +397,19 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     });
 
     if (result.success && result.data) {
-      setForm(prev => ({ ...prev, ...result.data }));
+      // ✅ 제목이 파일명 형식인지 확인 및 처리
+      let titleValue = result.data.title || '';
+      const isFilenameFormat = /^[a-z0-9-]+\.(jpg|jpeg|png|gif|webp)$/i.test(titleValue);
+      if (isFilenameFormat) {
+        console.warn('⚠️ AI 생성된 제목이 파일명 형식입니다. 빈 문자열로 처리:', titleValue);
+        titleValue = '';
+      }
+      
+      setForm(prev => ({ 
+        ...prev, 
+        ...result.data,
+        title: titleValue  // 파일명 형식이면 빈 문자열로 덮어쓰기
+      }));
       setHasChanges(true);
     } else {
       alert(`AI 생성에 실패했습니다: ${result.error}`);
