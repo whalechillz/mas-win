@@ -28,6 +28,16 @@ interface ImageMetadata {
   optimized_versions?: any;
   // 메타데이터 존재 여부 (API에서 제공)
   has_metadata?: boolean;
+  // ✅ 메타데이터 품질 정보 (1단계 추가)
+  has_quality_metadata?: boolean;
+  metadata_quality?: {
+    score: number;  // 0-100점
+    has_alt_text: boolean;
+    has_title: boolean;
+    has_description: boolean;
+    has_keywords: boolean;
+    issues: string[];  // 품질 이슈 목록
+  };
 }
 
 export default function GalleryAdmin() {
@@ -1755,10 +1765,28 @@ export default function GalleryAdmin() {
                       
                       {/* 이미지 정보 */}
                       <div className="p-3">
-                        {/* 메타데이터 없음 표시 */}
+                        {/* ✅ 메타데이터 품질 표시 (1단계 추가) */}
                         {image.has_metadata === false && (
                           <div className="mb-2 px-2 py-1 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
                             ⚠️ 메타데이터 없음
+                          </div>
+                        )}
+                        {/* 메타데이터는 있지만 품질이 낮은 경우 */}
+                        {image.has_metadata === true && image.has_quality_metadata === false && image.metadata_quality && (
+                          <div className="mb-2 px-2 py-1 bg-orange-100 border border-orange-300 rounded text-xs text-orange-800">
+                            ⚠️ 메타데이터 불완전 ({image.metadata_quality.score}점)
+                            {image.metadata_quality.issues.length > 0 && (
+                              <div className="mt-1 text-xs">
+                                {image.metadata_quality.issues.slice(0, 2).join(', ')}
+                                {image.metadata_quality.issues.length > 2 && ` +${image.metadata_quality.issues.length - 2}개`}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {/* 메타데이터 품질이 양호한 경우 (선택적 표시) */}
+                        {image.has_quality_metadata === true && image.metadata_quality && image.metadata_quality.score >= 75 && (
+                          <div className="mb-2 px-2 py-1 bg-green-100 border border-green-300 rounded text-xs text-green-800">
+                            ✅ 메타데이터 양호 ({image.metadata_quality.score}점)
                           </div>
                         )}
                         {/* 폴더 경로 표시 */}
