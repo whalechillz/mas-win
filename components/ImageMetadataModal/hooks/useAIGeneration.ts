@@ -49,8 +49,8 @@ export const useAIGeneration = () => {
       const isEnglish = options.language === 'english';
       const language = isEnglish ? 'English' : 'Korean';
       
-      // 모든 AI 요청을 병렬로 실행
-      const [altResponse, keywordResponse, titleResponse, descResponse] = await Promise.allSettled([
+      // 모든 AI 요청을 병렬로 실행 (연령대 분석 추가)
+      const [altResponse, keywordResponse, titleResponse, descResponse, ageAnalysisResponse] = await Promise.allSettled([
         fetch('/api/analyze-image-prompt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -87,6 +87,18 @@ export const useAIGeneration = () => {
             title: isEnglish ? 'General image description' : '이미지 일반 설명',
             excerpt: isEnglish ? 'Generate general description or background information about the image. Please respond in English only.' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
           })
+        }),
+        // 연령대 분석 (이미지에서 직접 판별)
+        fetch('/api/analyze-image-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl,
+            title: isEnglish ? 'Age estimation' : '연령대 판별',
+            excerpt: isEnglish 
+              ? 'Analyze the image and estimate the age range of any people visible. Respond with ONLY one of: "young" (appears 20-40 years old), "senior" (appears 50+ years old), or "none" (no people visible). Do not include any other text.' 
+              : '이미지를 분석하여 보이는 사람들의 연령대를 판별해주세요. 다음 중 하나만 선택해서 답변하세요: "젊은" (20-40대로 보임), "시니어" (50대 이상으로 보임), "없음" (사람이 보이지 않음). 다른 설명은 포함하지 마세요.'
+          })
         })
       ]);
 
@@ -95,6 +107,7 @@ export const useAIGeneration = () => {
       let keywords = '';
       let title = '';
       let description = '';
+      let ageEstimation = '';
 
       if (altResponse.status === 'fulfilled' && altResponse.value.ok) {
         const data = await altResponse.value.json();
@@ -119,8 +132,15 @@ export const useAIGeneration = () => {
         description = cleanAIText(data.prompt || '');
       }
 
-      // 카테고리 자동 선택 (다중 선택)
-      const selectedCategories = determineCategory(altText, keywords, title, description);
+      // 연령대 분석 결과 추출
+      if (ageAnalysisResponse.status === 'fulfilled' && ageAnalysisResponse.value.ok) {
+        const data = await ageAnalysisResponse.value.json();
+        ageEstimation = cleanAIText(data.prompt || '').toLowerCase().trim();
+        console.log('🔍 이미지 연령대 분석 결과:', ageEstimation);
+      }
+
+      // 카테고리 자동 선택 (다중 선택) - 이미지 연령대 분석 결과 포함
+      const selectedCategories = determineCategory(altText, keywords, title, description, ageEstimation);
 
       // 제목 길이 검증 및 보완 (25-60자 범위)
       let finalTitle = cleanAIText(title);
@@ -319,8 +339,8 @@ const cleanAIText = (text: string): string => {
     .trim();
 };
 
-// 카테고리 자동 결정 (다중 선택 지원)
-const determineCategory = (altText: string, keywords: string, title: string, description: string): string[] => {
+// 카테고리 자동 결정 (다중 선택 지원) - 이미지 연령대 분석 결과 포함
+const determineCategory = (altText: string, keywords: string, title: string, description: string, ageEstimation?: string): string[] => {
   const combinedText = `${altText} ${keywords} ${title} ${description}`.toLowerCase();
   const selectedCategories: string[] = [];
   
@@ -329,12 +349,25 @@ const determineCategory = (altText: string, keywords: string, title: string, des
     selectedCategories.push('골프코스');
   }
   
-  // 골퍼 연령대
-  if (combinedText.includes('젊은') || combinedText.includes('young') || combinedText.includes('청년') || combinedText.includes('20대') || combinedText.includes('30대')) {
-    selectedCategories.push('젊은 골퍼');
+  // 골퍼 연령대 (이미지 분석 결과 우선 사용)
+  // 이미지에서 직접 분석한 연령대 정보가 있으면 우선 사용
+  if (ageEstimation) {
+    const ageLower = ageEstimation.toLowerCase();
+    if (ageLower.includes('젊은') || ageLower.includes('young') || ageLower === 'young' || ageLower === '젊은') {
+      selectedCategories.push('젊은 골퍼');
+    } else if (ageLower.includes('시니어') || ageLower.includes('senior') || ageLower === 'senior' || ageLower === '시니어') {
+      selectedCategories.push('시니어 골퍼');
+    }
   }
-  if (combinedText.includes('시니어') || combinedText.includes('senior') || combinedText.includes('50대') || combinedText.includes('60대') || combinedText.includes('중년')) {
-    selectedCategories.push('시니어 골퍼');
+  
+  // 이미지 분석 결과가 없거나 '없음'인 경우 텍스트 기반 판별 사용
+  if (!ageEstimation || ageEstimation.includes('없음') || ageEstimation.includes('none')) {
+    if (combinedText.includes('젊은') || combinedText.includes('young') || combinedText.includes('청년') || combinedText.includes('20대') || combinedText.includes('30대')) {
+      selectedCategories.push('젊은 골퍼');
+    }
+    if (combinedText.includes('시니어') || combinedText.includes('senior') || combinedText.includes('50대') || combinedText.includes('60대') || combinedText.includes('중년')) {
+      selectedCategories.push('시니어 골퍼');
+    }
   }
   
   // 스윙
