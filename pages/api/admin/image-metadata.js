@@ -162,22 +162,13 @@ export default async function handler(req, res) {
       
     } else if (req.method === 'POST') {
       // 이미지 메타데이터 생성/업데이트
-      const { imageName, imageUrl, file_name, alt_text, keywords, title, description, category, categories } = req.body;
+      const { imageName, imageUrl, alt_text, keywords, title, description, category, categories } = req.body;
       
       if (!imageName || !imageUrl) {
         return res.status(400).json({
           error: 'imageName과 imageUrl이 필요합니다.'
         });
       }
-      
-      // 파일명 정규화 함수 (중복 확장자 제거)
-      const normalizeFileName = (fileName) => {
-        if (!fileName) return '';
-        return fileName.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
-      };
-      
-      // 저장할 파일명 결정 (file_name이 있으면 사용, 없으면 imageName 사용)
-      const finalFileName = normalizeFileName(file_name || imageName);
 
       // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
       const categoriesArray = Array.isArray(categories) && categories.length > 0
@@ -250,11 +241,10 @@ export default async function handler(req, res) {
       }
 
       // 데이터베이스에 메타데이터 저장/업데이트
-      // image_url이 UNIQUE이므로 image_url로 조회/업데이트
-      // file_name도 저장하여 파일명 기반 조회 지원
+      // 주의: image_metadata 테이블 스키마에는 file_name, category 컬럼이 없음
+      // image_url이 UNIQUE이므로 image_url로만 조회/업데이트
       const metadataData = {
         image_url: imageUrl,
-        file_name: finalFileName,  // ✅ 정규화된 파일명 저장
         alt_text: alt_text || '',
         tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []),
         title: title || '',
@@ -297,11 +287,10 @@ export default async function handler(req, res) {
       }
       
       // upsert 사용: image_url이 있으면 업데이트, 없으면 생성
-      // onConflict에 file_name도 추가하여 file_name으로도 업데이트 가능하도록
       const { data: result, error: upsertError } = await supabase
         .from('image_metadata')
         .upsert(insertData, {
-          onConflict: 'image_url',  // image_url 우선, 없으면 file_name으로도 시도
+          onConflict: 'image_url',
           ignoreDuplicates: false
         })
         .select()
@@ -315,8 +304,7 @@ export default async function handler(req, res) {
           hint: upsertError.hint,
           code: upsertError.code,
           imageUrl: imageUrl,
-          file_name: finalFileName,
-          imageName: imageName,
+          fileName: fileName,
           insertData: JSON.stringify(insertData, null, 2)
         });
         return res.status(500).json({ 
