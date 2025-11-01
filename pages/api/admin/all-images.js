@@ -208,7 +208,7 @@ export default async function handler(req, res) {
         .in('image_url', urls);
       
       // 2. file_name 기준 조회 (URL로 찾지 못한 경우)
-      const { data: metadataByFileName } = await supabase
+      const { data: metadataByFileNameFromDb } = await supabase
         .from('image_metadata')
         .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status')
         .in('file_name', fileNames);
@@ -221,8 +221,8 @@ export default async function handler(req, res) {
           if (key) allMetadataMap.set(key, meta);
         });
       }
-      if (metadataByFileName) {
-        metadataByFileName.forEach(meta => {
+      if (metadataByFileNameFromDb) {
+        metadataByFileNameFromDb.forEach(meta => {
           const key = meta.image_url || meta.file_name || '';
           if (key && !allMetadataMap.has(key)) {
             allMetadataMap.set(key, meta);
