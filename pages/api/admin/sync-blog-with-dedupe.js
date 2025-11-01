@@ -62,7 +62,7 @@ const syncBlogPostWithDedupe = async (blogPostId, options = {}) => {
     // 1. 블로그 글 조회
     const { data: post, error: postError } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, content, featured_image')
+      .select('id, title, slug, content, featured_image, created_at')
       .eq('id', blogPostId)
       .single();
     
@@ -70,7 +70,13 @@ const syncBlogPostWithDedupe = async (blogPostId, options = {}) => {
       throw new Error(`블로그 글을 찾을 수 없습니다: ${blogPostId}`);
     }
     
-    const postFolderName = `blog-${post.slug || post.id}`;
+    // ✅ 계획된 구조: originals/blog/YYYY-MM/
+    // 블로그 글의 작성일 기준으로 폴더 생성
+    const postDate = post.created_at ? new Date(post.created_at) : new Date();
+    const year = postDate.getFullYear();
+    const month = String(postDate.getMonth() + 1).padStart(2, '0');
+    const dateFolder = `${year}-${month}`;
+    const postFolderName = `originals/blog/${dateFolder}`;
     const images = [];
     
     // 2. 블로그 글의 이미지 찾기
