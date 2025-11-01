@@ -478,11 +478,42 @@ let globalPage = null;
           const titleBefore = await page.$eval('input[placeholder*="제목"]', el => el.value).catch(() => '');
           const descriptionBefore = await page.$eval('textarea[placeholder*="설명"]', el => el.value).catch(() => '');
           
+          // 파일명 입력 필드 확인 및 변경 테스트 (첫 번째 이미지만)
+          let filenameBefore = '';
+          let testFilename = '';
+          if (imgIndex === 0) {
+            try {
+              // 파일명 입력 필드 찾기
+              const filenameInput = await page.$('input[placeholder*="파일명"], label:has-text("파일명") + input, input[name*="filename"]').catch(() => null);
+              if (filenameInput) {
+                filenameBefore = await filenameInput.inputValue();
+                console.log(`  📝 현재 파일명: ${filenameBefore.substring(0, 50)}...`);
+                
+                // 파일명 변경 테스트 (확장자 유지)
+                const extension = filenameBefore.includes('.') ? filenameBefore.split('.').pop() : 'png';
+                const timestamp = Date.now();
+                testFilename = `test-rename-${timestamp}.${extension}`;
+                
+                console.log(`  📝 파일명 변경 테스트: ${filenameBefore} → ${testFilename}`);
+                await filenameInput.fill(testFilename);
+                await page.waitForTimeout(500);
+                console.log('  ✅ 파일명 변경 완료');
+              } else {
+                console.log('  ℹ️ 파일명 입력 필드를 찾을 수 없습니다 (선택사항)');
+              }
+            } catch (e) {
+              console.log('  ⚠️ 파일명 변경 테스트 실패:', e.message);
+            }
+          }
+          
           console.log('  📝 저장 전 데이터:');
           console.log(`    - ALT 텍스트: ${altTextBefore.substring(0, 50)}...`);
           console.log(`    - 키워드: ${keywordsBefore.substring(0, 50)}...`);
           console.log(`    - 제목: ${titleBefore.substring(0, 50)}...`);
           console.log(`    - 설명: ${descriptionBefore.substring(0, 50)}...`);
+          if (testFilename) {
+            console.log(`    - 파일명 (변경됨): ${testFilename}`);
+          }
         } catch (e) {
           console.log('  ⚠️ 저장 전 데이터 읽기 실패:', e.message);
         }
@@ -493,6 +524,25 @@ let globalPage = null;
           console.log('  ⚠️ 저장 전 "개선이 필요합니다" 메시지가 표시됩니다.');
         }
         
+        // 네트워크 응답 모니터링 (저장 성공 여부 확인) - 저장 버튼 클릭 전에 등록
+        let saveResponseStatus = null;
+        let saveResponseData = null;
+        
+        const responseHandler = async (response) => {
+          const url = response.url();
+          if (url.includes('/api/admin/image-metadata') || url.includes('/api/admin/rename-image')) {
+            saveResponseStatus = response.status();
+            try {
+              saveResponseData = await response.json();
+            } catch (e) {
+              saveResponseData = await response.text();
+            }
+            console.log(`  📡 API 응답 감지: ${url} - 상태: ${saveResponseStatus}`);
+          }
+        };
+        
+        page.on('response', responseHandler);
+        
         // 저장 버튼 클릭
         console.log('  💾 저장 버튼 클릭 중...');
         await saveButton.click();
@@ -501,20 +551,61 @@ let globalPage = null;
         // 저장 완료 대기 (성공 메시지 또는 모달 닫힘 확인)
         await page.waitForTimeout(3000);
         
+        // 브라우저 콘솔 로그 확인 (저장 성공 여부)
+        const consoleLogs = [];
+        page.on('console', msg => {
+          const text = msg.text();
+          if (text.includes('저장') || text.includes('성공') || text.includes('메타데이터') || text.includes('파일명 변경')) {
+            consoleLogs.push(text);
+          }
+        });
+        
+        // 추가 대기 (네트워크 요청 완료 대기)
+        await page.waitForTimeout(3000);
+        
+        // 이벤트 리스너 제거
+        page.off('response', responseHandler);
+        
+        // 네트워크 응답 확인
+        if (saveResponseStatus !== null) {
+          console.log(`  📡 저장 API 응답 상태: ${saveResponseStatus}`);
+          if (saveResponseStatus === 200 || saveResponseStatus === 201) {
+            console.log(`  ✅ 저장 API 응답: 성공 (${saveResponseStatus})`);
+            if (saveResponseData && typeof saveResponseData === 'object') {
+              const responseStr = JSON.stringify(saveResponseData);
+              console.log(`  📋 저장 API 응답 데이터: ${responseStr.substring(0, 200)}${responseStr.length > 200 ? '...' : ''}`);
+            } else if (saveResponseData) {
+              console.log(`  📋 저장 API 응답 데이터: ${String(saveResponseData).substring(0, 200)}`);
+            }
+          } else {
+            console.log(`  ⚠️ 저장 API 응답: 실패 (${saveResponseStatus})`);
+            if (saveResponseData) {
+              const errorStr = typeof saveResponseData === 'object' ? JSON.stringify(saveResponseData) : String(saveResponseData);
+              console.log(`  📋 저장 API 오류: ${errorStr.substring(0, 200)}${errorStr.length > 200 ? '...' : ''}`);
+            }
+          }
+        } else {
+          console.log('  ⚠️ 저장 API 응답을 받지 못했습니다.');
+        }
+        
         // 저장 성공 확인
         const successMessages = [
           'text=저장되었습니다',
-          'text=성공',
+          'text=성공적으로 저장',
+          'text=메타데이터가 성공적으로 저장',
           'text=저장 완료',
+          'text=성공',
           '[class*="success"]'
         ];
         
         let saved = false;
+        let successMessageText = '';
         for (const selector of successMessages) {
           try {
             const successMsg = await page.$(selector);
             if (successMsg) {
               const text = await successMsg.textContent();
+              successMessageText = text;
               console.log(`  ✅ 저장 성공 확인: ${text}`);
               saved = true;
               break;
@@ -530,8 +621,18 @@ let globalPage = null;
           if (!modalStillOpen) {
             console.log('  ✅ 모달이 닫혔습니다. 저장 성공으로 간주합니다.');
             saved = true;
+            
+            // 콘솔 로그 출력
+            if (consoleLogs.length > 0) {
+              console.log('  📋 브라우저 콘솔 로그:');
+              consoleLogs.forEach(log => console.log(`    - ${log}`));
+            }
           } else {
             console.log('  ⚠️ 저장 성공 메시지를 찾지 못했습니다.');
+            if (consoleLogs.length > 0) {
+              console.log('  📋 브라우저 콘솔 로그:');
+              consoleLogs.forEach(log => console.log(`    - ${log}`));
+            }
           }
         }
         
@@ -551,25 +652,62 @@ let globalPage = null;
         
         // 저장된 내용 재확인 (모달 다시 열기)
         console.log(`\n9️⃣ 이미지 ${imgIndex + 1} - 저장된 내용 재확인 (모달 다시 열기)...`);
-        await page.waitForTimeout(2000); // 저장 완료 대기
+        await page.waitForTimeout(3000); // 저장 완료 대기 (더 긴 대기)
         
-        // 다시 이미지에 호버하여 편집 버튼 클릭
-        const currentImageForVerify = images[imgIndex];
+        // 페이지 리로드하여 최신 데이터 확인 (선택적)
+        // await page.reload({ waitUntil: 'networkidle' });
+        // await page.waitForTimeout(2000);
+        
+        // 이미지 목록 다시 가져오기
+        const imagesForVerify = await page.$$('div[class*="group"][class*="border"] img');
+        if (imagesForVerify.length === 0) {
+          console.log('  ⚠️ 재확인용 이미지를 찾을 수 없습니다.');
+          await page.waitForTimeout(2000);
+          continue; // 다음 이미지로
+        }
+        
+        // 같은 인덱스의 이미지에 접근 (또는 첫 번째 이미지)
+        const verifyImageIndex = Math.min(imgIndex, imagesForVerify.length - 1);
+        const currentImageForVerify = imagesForVerify[verifyImageIndex];
         const imageContainerForVerify = await currentImageForVerify.evaluateHandle(el => el.closest('div[class*="group"]'));
         
         if (imageContainerForVerify) {
           const containerElement = await imageContainerForVerify.asElement();
           if (containerElement) {
+            // 컨테이너에 호버하여 편집 버튼 표시
             await containerElement.hover();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(1000); // 호버 효과 대기
           }
         } else {
           await currentImageForVerify.hover();
-          await page.waitForTimeout(500);
+          await page.waitForTimeout(1000);
         }
         
-        // 편집 버튼 클릭
-        const editButtonForVerify = await page.$('button:has-text("✏️"), button[title="편집"]');
+        // 편집 버튼 찾기 (여러 방식 시도)
+        const editButtonSelectors = [
+          'button[title="편집"]',
+          'button:has-text("✏️")',
+          'button[aria-label="편집"]',
+          '.group:hover button:has-text("✏️")',
+          'button.p-1.bg-white.rounded.shadow-sm:has-text("✏️")'
+        ];
+        
+        let editButtonForVerify = null;
+        for (const selector of editButtonSelectors) {
+          try {
+            editButtonForVerify = await page.$(selector);
+            if (editButtonForVerify) {
+              const isVisible = await editButtonForVerify.isVisible();
+              if (isVisible) {
+                console.log(`  ✅ 편집 버튼 발견: ${selector}`);
+                break;
+              }
+            }
+          } catch (e) {
+            // 계속 시도
+          }
+        }
+        
         if (editButtonForVerify) {
           await editButtonForVerify.click();
           await page.waitForTimeout(2000);

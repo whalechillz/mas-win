@@ -18,6 +18,7 @@ interface ImageMetadata {
   title?: string;
   description?: string;
   category?: string | number; // 숫자 ID 또는 이름
+  categories?: string[]; // 카테고리 배열 (체크박스용)
   is_featured?: boolean;
   usage_count?: number;
   used_in_posts?: string[];
@@ -77,7 +78,7 @@ export default function GalleryAdmin() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
-  const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
+  const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함 (기본값: true - 모든 이미지 표시)
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
