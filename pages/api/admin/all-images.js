@@ -183,10 +183,11 @@ export default async function handler(req, res) {
       });
 
       // 모든 URL을 한 번에 조회하여 메타데이터 가져오기
+      // 주의: image_metadata 테이블 스키마에 맞춰 컬럼 조회
       const urls = imageUrls.map(item => item.url);
       const { data: allMetadata } = await supabase
         .from('image_metadata')
-        .select('id, alt_text, title, excerpt, content_type, brand_strategy, usage_count, is_featured, category_id, image_url')
+        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
         .in('image_url', urls);
 
       // 메타데이터를 URL 기준으로 매핑
@@ -209,13 +210,14 @@ export default async function handler(req, res) {
           updated_at: file.updated_at,
           url: url,
           folder_path: file.folderPath || '',
-          is_featured: metadata?.is_featured || false,
           alt_text: metadata?.alt_text || '',
           title: metadata?.title || '',
-          description: metadata?.excerpt || '',
-          content_type: metadata?.content_type || '',
-          brand_strategy: metadata?.brand_strategy || '',
-          usage_count: metadata?.usage_count || 0
+          description: metadata?.description || '',
+          keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
+          category: metadata?.category_id || '',
+          usage_count: metadata?.usage_count || 0,
+          upload_source: metadata?.upload_source || 'manual',
+          status: metadata?.status || 'active'
         };
       });
 

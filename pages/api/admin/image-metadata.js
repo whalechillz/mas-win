@@ -265,86 +265,58 @@ export default async function handler(req, res) {
         category_id: metadataData.category_id
       });
 
-      // 기존 메타데이터가 있는지 확인
-      console.log('🔍 기존 메타데이터 확인 중:', imageUrl);
-      const { data: existingData, error: checkError } = await supabase
+      // image_url이 UNIQUE이므로 upsert 사용 (중복 방지 및 안전한 저장)
+      console.log('🔍 메타데이터 upsert 시작:', imageUrl);
+      
+      const insertData = {
+        ...metadataData,
+        created_at: new Date().toISOString()
+      };
+      
+      // 기존 레코드 확인 (로깅용)
+      const { data: existingCheck } = await supabase
         .from('image_metadata')
         .select('id')
         .eq('image_url', imageUrl)
         .single();
       
-      console.log('🔍 기존 메타데이터 확인 결과:', { existingData, checkError });
-
-      let result;
-      if (existingData) {
-        // 기존 메타데이터 업데이트
-        console.log('🔄 기존 메타데이터 업데이트 중:', metadataData);
-        const { data, error } = await supabase
-          .from('image_metadata')
-          .update(metadataData)
-          .eq('image_url', imageUrl)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error('❌ 메타데이터 업데이트 오류:', error);
-          console.error('오류 상세:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
-            imageUrl: imageUrl,
-            fileName: fileName,
-            metadataData: JSON.stringify(metadataData, null, 2)
-          });
-          return res.status(500).json({ 
-            error: '메타데이터 업데이트 실패', 
-            details: error.message || '알 수 없는 오류',
-            code: error.code,
-            hint: error.hint,
-            imageUrl: imageUrl
-          });
-        }
-        result = data;
-        console.log('✅ 메타데이터 업데이트 완료:', result);
+      if (existingCheck) {
+        console.log('🔄 기존 메타데이터 발견, 업데이트 예정:', existingCheck.id);
       } else {
-        // 새 메타데이터 생성
-        console.log('➕ 새 메타데이터 생성 중:', metadataData);
-        const insertData = {
-          ...metadataData,
-          created_at: new Date().toISOString()
-        };
-        
-        console.log('📤 INSERT 데이터:', JSON.stringify(insertData, null, 2));
-        
-        const { data, error } = await supabase
-          .from('image_metadata')
-          .insert([insertData])
-          .select()
-          .single();
-        
-        if (error) {
-          console.error('❌ 메타데이터 생성 오류:', error);
-          console.error('오류 상세:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
-            imageUrl: imageUrl,
-            fileName: fileName,
-            insertData: JSON.stringify(insertData, null, 2)
-          });
-          return res.status(500).json({ 
-            error: '메타데이터 생성 실패', 
-            details: error.message || '알 수 없는 오류',
-            code: error.code,
-            hint: error.hint,
-            imageUrl: imageUrl
-          });
-        }
-        result = data;
-        console.log('✅ 메타데이터 생성 완료:', result);
+        console.log('➕ 새 메타데이터 생성 예정');
       }
+      
+      // upsert 사용: image_url이 있으면 업데이트, 없으면 생성
+      const { data: result, error: upsertError } = await supabase
+        .from('image_metadata')
+        .upsert(insertData, {
+          onConflict: 'image_url',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+      
+      if (upsertError) {
+        console.error('❌ 메타데이터 upsert 오류:', upsertError);
+        console.error('오류 상세:', {
+          message: upsertError.message,
+          details: upsertError.details,
+          hint: upsertError.hint,
+          code: upsertError.code,
+          imageUrl: imageUrl,
+          fileName: fileName,
+          insertData: JSON.stringify(insertData, null, 2)
+        });
+        return res.status(500).json({ 
+          error: '메타데이터 저장 실패', 
+          details: upsertError.message || '알 수 없는 오류',
+          code: upsertError.code,
+          hint: upsertError.hint,
+          imageUrl: imageUrl
+        });
+      }
+      
+      console.log('✅ 메타데이터 upsert 완료:', result);
 
       // 🔍 저장된 데이터 검증
       if (result) {
