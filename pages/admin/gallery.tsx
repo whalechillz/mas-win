@@ -1883,12 +1883,19 @@ export default function GalleryAdmin() {
               
               alert('메타데이터가 성공적으로 저장되었습니다!');
             } else {
-              const errorData = await response.json();
+              let errorData;
+              try {
+                errorData = await response.json();
+              } catch (parseError) {
+                errorData = { error: `서버 오류 (${response.status})` };
+              }
+              
               console.error('❌ 저장 API 오류 응답:', {
                 status: response.status,
                 statusText: response.statusText,
                 errorData: errorData
               });
+              
               let errorMessage = `저장에 실패했습니다.\n상태: ${response.status}\n`;
               
               if (errorData.details && Array.isArray(errorData.details)) {
