@@ -72,17 +72,20 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       const dateFolder = `${year}-${month}`;
       const postFolderName = `originals/blog/${dateFolder}`;
       const images = [];
+      const imageUrlSet = new Set(); // ✅ 중복 체크용 Set (더 빠른 검색)
       
-      // 1. featured_image 확인
+      // 1. featured_image 확인 (대표이미지)
       if (post.featured_image) {
         images.push({
           url: post.featured_image,
           type: 'featured',
           source: 'featured_image'
         });
+        imageUrlSet.add(post.featured_image);
+        console.log(`📸 대표이미지 추가: ${post.featured_image}`);
       }
       
-      // 2. content에서 이미지 URL 추출
+      // 2. content에서 이미지 URL 추출 (대표이미지가 본문에 중복 포함될 수 있음)
       if (post.content) {
         // HTML 태그에서 이미지 URL 추출
         const imgRegex = /<img[^>]+src=["']([^"']+)["']/gi;
@@ -90,12 +93,16 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         
         for (const match of matches) {
           const imageUrl = match[1];
-          if (imageUrl && !images.find(img => img.url === imageUrl)) {
+          // ✅ 중복 체크: 대표이미지가 본문에 있어도 한 번만 처리
+          if (imageUrl && !imageUrlSet.has(imageUrl)) {
             images.push({
               url: imageUrl,
               type: 'content',
               source: 'content_html'
             });
+            imageUrlSet.add(imageUrl);
+          } else if (imageUrl && imageUrlSet.has(imageUrl)) {
+            console.log(`⏭️ 중복 이미지 스킵 (본문): ${imageUrl}`);
           }
         }
         
@@ -105,15 +112,21 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         
         for (const match of markdownMatches) {
           const imageUrl = match[1];
-          if (imageUrl && !images.find(img => img.url === imageUrl)) {
+          // ✅ 중복 체크: 대표이미지가 본문에 있어도 한 번만 처리
+          if (imageUrl && !imageUrlSet.has(imageUrl)) {
             images.push({
               url: imageUrl,
               type: 'content',
               source: 'content_markdown'
             });
+            imageUrlSet.add(imageUrl);
+          } else if (imageUrl && imageUrlSet.has(imageUrl)) {
+            console.log(`⏭️ 중복 이미지 스킵 (마크다운): ${imageUrl}`);
           }
         }
       }
+      
+      console.log(`📊 추출된 이미지 (중복 제거 후): ${images.length}개 (대표이미지 포함)`);
       
       // 3. Storage에서 해당 이미지 찾기 (최적화: 타임아웃 방지)
       const storageImages = [];
