@@ -1346,10 +1346,11 @@ export default function GalleryAdmin() {
                   
                   try {
                     // 1단계: 누락된 메타데이터 확인 (배치 모드)
+                    // ✅ 개선: limit을 충분히 크게 설정하여 모든 누락 메타데이터 확인
                     const checkResponse = await fetch('/api/admin/sync-missing-metadata', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ batch: true, limit: 100 })
+                      body: JSON.stringify({ batch: true, limit: 1000 })  // ✅ limit 증가
                     });
                     
                     if (!checkResponse.ok) {
@@ -1357,23 +1358,28 @@ export default function GalleryAdmin() {
                     }
                     
                     const checkData = await checkResponse.json();
+                    const missingCount = checkData.missing || checkData.missing_count || 0;
+                    
                     setSyncProgress({
                       total: checkData.total || 0,
-                      missing: checkData.missing || 0,
+                      missing: missingCount,
                       processed: 0
                     });
                     
-                    if (checkData.missing === 0) {
+                    if (missingCount === 0) {
                       setSyncStatus('누락된 메타데이터가 없습니다.');
                       setIsSyncingMetadata(false);
                       alert('모든 이미지에 메타데이터가 있습니다.');
                       return;
                     }
                     
+                    // ✅ 개선: 모든 누락 메타데이터 개수 표시
+                    const displayMessage = checkData.has_more 
+                      ? `누락된 메타데이터 ${missingCount}개가 발견되었습니다.\n\n(현재 ${checkData.display_limit || checkData.images?.length || 0}개 표시, 나머지는 처리 중 표시)\n\nAI를 사용하여 메타데이터를 생성하시겠습니까?\n\n처리 시간이 소요될 수 있습니다.`
+                      : `누락된 메타데이터 ${missingCount}개가 발견되었습니다.\n\nAI를 사용하여 메타데이터를 생성하시겠습니까?\n\n처리 시간이 소요될 수 있습니다.`;
+                    
                     // 2단계: 사용자 확인
-                    const shouldProceed = confirm(
-                      `누락된 메타데이터 ${checkData.missing}개가 발견되었습니다.\n\nAI를 사용하여 메타데이터를 생성하시겠습니까?\n\n처리 시간이 소요될 수 있습니다.`
-                    );
+                    const shouldProceed = confirm(displayMessage);
                     
                     if (!shouldProceed) {
                       setIsSyncingMetadata(false);
