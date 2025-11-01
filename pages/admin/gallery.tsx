@@ -18,7 +18,6 @@ interface ImageMetadata {
   title?: string;
   description?: string;
   category?: string | number; // 숫자 ID 또는 이름
-  categories?: string[]; // 카테고리 배열 (체크박스용)
   is_featured?: boolean;
   usage_count?: number;
   used_in_posts?: string[];
@@ -78,7 +77,7 @@ export default function GalleryAdmin() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
-  const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함 (기본값: true - 모든 이미지 표시)
+  const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -88,22 +87,16 @@ export default function GalleryAdmin() {
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   
-  // 폴더 목록 상태 (Storage에서 직접 조회)
-  const [availableFolders, setAvailableFolders] = useState<string[]>([]);
-  
-  // 폴더 목록 로드
-  const fetchFolders = async () => {
-    try {
-      const response = await fetch('/api/admin/folders-list');
-      const data = await response.json();
-      if (response.ok && data.folders) {
-        setAvailableFolders(data.folders);
-        console.log('✅ 폴더 목록 로드 완료:', data.folders.length, '개');
+  // 폴더 목록 계산
+  const availableFolders = useMemo(() => {
+    const folders = new Set<string>();
+    images.forEach(img => {
+      if (img.folder_path && img.folder_path !== '') {
+        folders.add(img.folder_path);
       }
-    } catch (error) {
-      console.error('❌ 폴더 목록 로드 오류:', error);
-    }
-  };
+    });
+    return Array.from(folders).sort();
+  }, [images]);
   
   // 가상화를 위한 상태
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
@@ -132,19 +125,13 @@ export default function GalleryAdmin() {
     
     // 폴더 필터
     if (folderFilter !== 'all') {
-      console.log('🔍 폴더 필터 적용:', folderFilter, '하위 폴더 포함:', includeChildren);
+      console.log('🔍 폴더 필터 적용:', folderFilter);
       console.log('🔍 필터링 전 이미지 수:', filtered.length);
       
       if (folderFilter === 'root') {
-        // 루트 폴더 필터
-        if (includeChildren) {
-          // "하위 폴더 포함"이 체크되어 있으면 모든 이미지 표시 (필터 없음)
-          console.log('🔍 하위 폴더 포함: 모든 이미지 표시');
-        } else {
-          // 하위 폴더 포함이 아니면 루트 폴더만 (폴더 경로가 없는 이미지들)
-          filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
-          console.log('🔍 루트 폴더만 필터링 후:', filtered.length);
-        }
+        // 루트 폴더 (폴더 경로가 없는 이미지들)
+        filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
+        console.log('🔍 루트 폴더 필터링 후:', filtered.length);
       } else {
         // 특정 폴더
         const beforeCount = filtered.length;
@@ -506,8 +493,7 @@ export default function GalleryAdmin() {
       
       const offset = (page - 1) * imagesPerPage;
       const prefix = folderFilter === 'all' ? '' : (folderFilter === 'root' ? '' : encodeURIComponent(folderFilter));
-      // includeChildren을 명시적으로 문자열로 변환하여 API에 전달
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren ? 'true' : 'false'}`);
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -635,9 +621,8 @@ export default function GalleryAdmin() {
     
     const initializeGallery = async () => {
       try {
-        // 병렬로 데이터 로드 (폴더 목록 먼저)
+        // 병렬로 데이터 로드
         await Promise.all([
-          fetchFolders(),
           fetchImages(1, true),
           loadDynamicCategories(),
           fetch('/api/admin/image-categories').then(res => res.json()).then(data => setCategories(data.categories || [])).catch(() => {}),
@@ -850,23 +835,12 @@ export default function GalleryAdmin() {
         (categoryValue ? categoryValue.split(',').map((c: string) => c.trim()).filter((c: string) => c) : []);
       const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : categoryValue;
       
-      // 제목이 파일명과 같은 경우 경고 (파일명이 제목으로 잘못 저장되는 것 방지)
-      let titleValue = editForm.title || '';
-      const filenameWithoutExt = updatedImageName?.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
-      const titleWithoutExt = titleValue.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
-      
-      if (titleValue === updatedImageName || titleValue === image.name || 
-          titleWithoutExt === filenameWithoutExt) {
-        console.warn('⚠️ 제목이 파일명과 동일하여 빈 문자열로 처리:', titleValue);
-        titleValue = '';
-      }
-      
       const requestData = {
         imageName: updatedImageName,  // 파일명 변경 시 업데이트된 파일명 사용
         imageUrl: updatedImageUrl,  // 파일명 변경 시 업데이트된 URL 사용
         alt_text: editForm.alt_text,
         keywords: keywords,
-        title: titleValue,  // 파일명과 같으면 빈 문자열
+        title: editForm.title,
         description: editForm.description,
         category: categoryString,  // 하위 호환성: 문자열로 전송
         categories: categoriesArray  // 다중 선택: 배열로 전송
@@ -893,28 +867,16 @@ export default function GalleryAdmin() {
           
           if (matchKey !== currentKey) return img as ImageMetadata;
           
-          // 카테고리 처리: categories 배열과 category 문자열 동기화
-          const updatedCategories = categoriesArray.length > 0 ? categoriesArray : [];
-          const updatedCategory = categoryString || '';
-          
           const updated: ImageMetadata = {
             ...img,
             alt_text: editForm.alt_text,
             title: editForm.title,
             description: editForm.description,
-            category: updatedCategory,  // 문자열 (하위 호환성)
-            categories: updatedCategories,  // 배열 (체크박스용) - 중요!
+            category: editForm.category as any,
             keywords,
             name: updatedImageName,  // 업데이트된 파일명 사용
             url: updatedImageUrl  // 업데이트된 URL 사용
           };
-          
-          console.log('✅ 로컬 상태 업데이트:', {
-            name: updated.name,
-            category: updated.category,
-            categories: updated.categories
-          });
-          
           return updated;
         }));
         setEditingImage(null);
@@ -1836,27 +1798,16 @@ export default function GalleryAdmin() {
               (metadata.category ? metadata.category.split(',').map((c: string) => c.trim()).filter((c: string) => c) : []);
             const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : metadata.category || '';
             
-      // 제목이 파일명과 같은 경우 경고 (파일명이 제목으로 잘못 저장되는 것 방지)
-      let titleValue = metadata.title || '';
-      const filenameWithoutExt = (metadata.filename || image.name)?.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
-      const titleWithoutExt = titleValue.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
-      
-      if (titleValue === metadata.filename || titleValue === image.name || 
-          titleWithoutExt === filenameWithoutExt) {
-        console.warn('⚠️ 제목이 파일명과 동일하여 빈 문자열로 처리:', titleValue);
-        titleValue = '';
-      }
-      
-      const requestData = {
-        imageName: metadata.filename || image.name,
-        imageUrl: image.url,
-        alt_text: metadata.alt_text,
-        keywords: keywords,
-        title: titleValue,  // 파일명과 같으면 빈 문자열
-        description: metadata.description,
-        category: categoryString,  // 하위 호환성: 문자열로 전송
-        categories: categoriesArray  // 다중 선택: 배열로 전송
-      };
+            const requestData = {
+              imageName: metadata.filename || image.name,
+              imageUrl: image.url,
+              alt_text: metadata.alt_text,
+              keywords: keywords,
+              title: metadata.title,
+              description: metadata.description,
+              category: categoryString,  // 하위 호환성: 문자열로 전송
+              categories: categoriesArray  // 다중 선택: 배열로 전송
+            };
             
             console.log('📤 저장 요청 데이터:', requestData);
             
@@ -1872,28 +1823,20 @@ export default function GalleryAdmin() {
               const responseData = await response.json();
               console.log('✅ 저장 API 응답 데이터:', responseData);
               
-              // 로컬 상태 업데이트 (categories 배열 포함)
-              setImages(prev => prev.map(img => {
-                if (img.name === editingImage) {
-                  const updatedName = metadata.filename || img.name;
-                  console.log('✅ 로컬 상태 업데이트 (onSave):', {
-                    name: updatedName,
-                    category: categoryString,
-                    categories: categoriesArray
-                  });
-                  return { 
-                    ...img, 
-                    alt_text: metadata.alt_text,
-                    keywords: keywords,
-                    title: metadata.title,
-                    description: metadata.description,
-                    category: categoryString,  // 문자열 (하위 호환성)
-                    categories: categoriesArray,  // 배열 (체크박스용) - 중요!
-                    name: updatedName
-                  };
-                }
-                return img;
-              }));
+              // 로컬 상태 업데이트
+              setImages(prev => prev.map(img => 
+                img.name === editingImage 
+                  ? { 
+                      ...img, 
+                      alt_text: metadata.alt_text,
+                      keywords: keywords,
+                      title: metadata.title,
+                      description: metadata.description,
+                      category: metadata.category,
+                      name: metadata.filename || img.name
+                    }
+                  : img
+              ));
               
               // 편집 모달 닫기
               setEditingImage(null);
@@ -1905,19 +1848,12 @@ export default function GalleryAdmin() {
               
               alert('메타데이터가 성공적으로 저장되었습니다!');
             } else {
-              let errorData;
-              try {
-                errorData = await response.json();
-              } catch (parseError) {
-                errorData = { error: `서버 오류 (${response.status})` };
-              }
-              
+              const errorData = await response.json();
               console.error('❌ 저장 API 오류 응답:', {
                 status: response.status,
                 statusText: response.statusText,
                 errorData: errorData
               });
-              
               let errorMessage = `저장에 실패했습니다.\n상태: ${response.status}\n`;
               
               if (errorData.details && Array.isArray(errorData.details)) {
