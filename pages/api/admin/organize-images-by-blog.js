@@ -350,7 +350,12 @@ export default async function handler(req, res) {
       const { blogPostId } = req.query;
       
       console.log('📊 블로그 글별 이미지 정렬 정보 조회 중...');
-      const results = await organizeImagesByBlog(blogPostId || null);
+      
+      // ✅ 타임아웃과 함께 실행
+      const results = await Promise.race([
+        organizeImagesByBlog(blogPostId || null),
+        timeoutPromise
+      ]);
       
       return res.status(200).json({
         success: true,
