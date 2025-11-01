@@ -754,6 +754,7 @@ export default function GalleryAdmin() {
       // 파일명이 변경된 경우 먼저 파일명 변경 처리
       let updatedImageUrl = image.url;  // 기본값은 원본 URL
       let updatedImageName = image.name;  // 기본값은 원본 파일명
+      let currentImage = image;  // 현재 이미지 객체 (파일명 변경 시 업데이트됨)
       
       if (editForm.filename && editForm.filename !== image.name) {
         // 파일명 변경 처리
@@ -806,6 +807,13 @@ export default function GalleryAdmin() {
         updatedImageUrl = newUrl || image.url;
         updatedImageName = finalFileName;
         
+        // 이미지 객체도 즉시 업데이트 (저장 시 참조용)
+        currentImage = {
+          ...image,
+          name: finalFileName,
+          url: newUrl || image.url
+        };
+        
         // 파일명 변경 후 로컬 상태 즉시 업데이트
         setImages(prev => prev.map(img => 
           img.name === image.name 
@@ -853,7 +861,12 @@ export default function GalleryAdmin() {
         console.log('✅ 저장 API 응답 데이터:', responseData);
         // 로컬 상태 업데이트 (파일명 변경 시 URL도 함께 업데이트)
         setImages(prev => prev.map(img => {
-          if (img.name !== image.name) return img as ImageMetadata;
+          // 파일명 변경 후에는 currentImage를 기준으로 비교
+          const matchKey = currentImage.id ? img.id : (currentImage.url ? img.url : img.name);
+          const currentKey = currentImage.id ? currentImage.id : (currentImage.url ? currentImage.url : currentImage.name);
+          
+          if (matchKey !== currentKey) return img as ImageMetadata;
+          
           const updated: ImageMetadata = {
             ...img,
             alt_text: editForm.alt_text,
@@ -861,9 +874,8 @@ export default function GalleryAdmin() {
             description: editForm.description,
             category: editForm.category as any,
             keywords,
-            name: editForm.filename || image.name,
-            url: editForm.filename && editForm.filename !== image.name ? 
-              `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/${editForm.filename}` : img.url
+            name: updatedImageName,  // 업데이트된 파일명 사용
+            url: updatedImageUrl  // 업데이트된 URL 사용
           };
           return updated;
         }));
