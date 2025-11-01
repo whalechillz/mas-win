@@ -303,17 +303,33 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   // 이미지 변경 시 폼 초기화
   useEffect(() => {
     if (image) {
-      // 카테고리 처리: 문자열이면 배열로 변환, 이미 배열이면 그대로 사용
-      const imageCategories = Array.isArray(image.category) 
-        ? image.category 
+      // 카테고리 처리: 
+      // 1. image.categories 배열이 있으면 우선 사용
+      // 2. image.category가 배열이면 사용
+      // 3. image.category가 문자열이면 쉼표로 분리하여 배열로 변환
+      // 4. 모두 없으면 빈 배열
+      const imageCategories = Array.isArray(image.categories) && image.categories.length > 0
+        ? image.categories
+        : Array.isArray(image.category)
+        ? image.category
         : (image.category ? image.category.split(',').map(c => c.trim()).filter(c => c) : []);
+      
+      // category는 문자열로 변환 (하위 호환성)
+      const categoryString = imageCategories.join(',');
+      
+      console.log('📋 이미지 카테고리 초기화:', {
+        imageCategory: image.category,
+        imageCategories: image.categories,
+        parsedCategories: imageCategories,
+        categoryString
+      });
       
       const newForm: MetadataForm = {
         alt_text: image.alt_text || '',
         keywords: image.keywords?.join(', ') || '',
         title: image.title || '',
         description: image.description || '',
-        category: image.category || '',  // 하위 호환성 유지
+        category: categoryString,  // 하위 호환성 유지
         categories: imageCategories,  // 다중 선택용
         filename: image.name || ''
       };
@@ -353,12 +369,27 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     });
 
     if (result.success && result.data) {
-      setForm(prev => ({ ...prev, ...result.data }));
+      // 폼 상태 업데이트
+      setForm(prev => {
+        const updated = { ...prev, ...result.data };
+        // 카테고리 동기화
+        if (result.data.categories && Array.isArray(result.data.categories)) {
+          updated.categories = result.data.categories;
+          updated.category = result.data.categories.join(',');
+        }
+        return updated;
+      });
       setHasChanges(true);
+      
+      // AI 생성 완료 후 자동으로 SEO 파일명 생성
+      // 약간의 지연을 두어 폼 상태가 업데이트된 후 실행
+      setTimeout(() => {
+        handleGenerateSEOFileName();
+      }, 500);
     } else {
       alert(`AI 생성에 실패했습니다: ${result.error}`);
     }
-  }, [image, generateAllMetadata]);
+  }, [image, generateAllMetadata, handleGenerateSEOFileName]);
 
   // 개별 필드 AI 생성
   const handleGenerateField = useCallback(async (field: keyof MetadataForm, language: 'korean' | 'english') => {

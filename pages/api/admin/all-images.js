@@ -192,6 +192,23 @@ export default async function handler(req, res) {
         .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
         .in('image_url', urls);
 
+      // 카테고리 매핑 (category_id -> 카테고리 이름)
+      const categoryIdMap = new Map();
+      if (allMetadata && allMetadata.length > 0) {
+        const categoryIds = [...new Set(allMetadata.map(m => m.category_id).filter(Boolean))];
+        if (categoryIds.length > 0) {
+          const { data: categories } = await supabase
+            .from('image_categories')
+            .select('id, name')
+            .in('id', categoryIds);
+          if (categories) {
+            categories.forEach(cat => {
+              categoryIdMap.set(cat.id, cat.name);
+            });
+          }
+        }
+      }
+
       // 메타데이터를 URL 기준으로 매핑
       const metadataMap = new Map();
       if (allMetadata) {
@@ -216,7 +233,11 @@ export default async function handler(req, res) {
           title: metadata?.title || '',
           description: metadata?.description || '',
           keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
-          category: metadata?.category_id || '',
+          // category는 category_id를 기반으로 카테고리 이름 반환 (하위 호환성)
+          // 실제로는 카테고리 체크박스에서 categories 배열을 사용하므로, category_id가 있으면 해당 카테고리 이름을 배열로 반환
+          category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
+          // categories는 배열 형태로 반환 (카테고리 체크박스용)
+          categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
           usage_count: metadata?.usage_count || 0,
           upload_source: metadata?.upload_source || 'manual',
           status: metadata?.status || 'active'
