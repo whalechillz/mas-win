@@ -1851,26 +1851,27 @@ export default function GalleryAdmin() {
               console.log('✅ 저장 API 응답 데이터:', responseData);
               
               // 로컬 상태 업데이트 (categories 배열 포함)
-              setImages(prev => prev.map(img => 
-                img.name === editingImage 
-                  ? { 
-                      ...img, 
-                      alt_text: metadata.alt_text,
-                      keywords: keywords,
-                      title: metadata.title,
-                      description: metadata.description,
-                      category: categoryString,  // 문자열 (하위 호환성)
-                      categories: categoriesArray,  // 배열 (체크박스용) - 중요!
-                      name: metadata.filename || img.name
-                    }
-                  : img
-              ));
-              
-              console.log('✅ 로컬 상태 업데이트 (onSave):', {
-                name: metadata.filename || img.name,
-                category: categoryString,
-                categories: categoriesArray
-              });
+              setImages(prev => prev.map(img => {
+                if (img.name === editingImage) {
+                  const updatedName = metadata.filename || img.name;
+                  console.log('✅ 로컬 상태 업데이트 (onSave):', {
+                    name: updatedName,
+                    category: categoryString,
+                    categories: categoriesArray
+                  });
+                  return { 
+                    ...img, 
+                    alt_text: metadata.alt_text,
+                    keywords: keywords,
+                    title: metadata.title,
+                    description: metadata.description,
+                    category: categoryString,  // 문자열 (하위 호환성)
+                    categories: categoriesArray,  // 배열 (체크박스용) - 중요!
+                    name: updatedName
+                  };
+                }
+                return img;
+              }));
               
               // 편집 모달 닫기
               setEditingImage(null);
