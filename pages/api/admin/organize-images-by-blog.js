@@ -164,27 +164,27 @@ const organizeImagesByBlog = async (blogPostId = null) => {
   }
 };
 
-// Storage에서 이미지 찾기 (재귀적으로 모든 폴더에서)
-const findImageInStorage = async (fileName) => {
+// Storage에서 이미지 찾기 (최적화: 타임아웃 방지)
+const findImageInStorage = async (fileName, maxSearchTime = 30000) => {
   try {
     let foundImage = null;
-    let offset = 0;
+    const startTime = Date.now();
     const batchSize = 1000;
     
-    const searchRecursively = async (folderPath = '') => {
-      let folderOffset = 0;
-      
-      while (true && !foundImage) {
+    // ✅ 최적화: 먼저 루트 폴더에서 검색 (대부분의 이미지가 루트에 있음)
+    try {
+      let rootOffset = 0;
+      while (true && !foundImage && (Date.now() - startTime) < maxSearchTime) {
         const { data: files, error } = await supabase.storage
           .from('blog-images')
-          .list(folderPath, {
+          .list('', {
             limit: batchSize,
-            offset: folderOffset,
-            sortBy: { column: 'created_at', order: 'desc' }
+            offset: rootOffset,
+            sortBy: { column: 'name', order: 'asc' }
           });
         
         if (error) {
-          console.error(`❌ 폴더 조회 에러 (${folderPath}):`, error);
+          console.error(`❌ 루트 폴더 조회 에러:`, error);
           break;
         }
         
@@ -192,47 +192,111 @@ const findImageInStorage = async (fileName) => {
           break;
         }
         
+        // 파일만 검색 (폴더 제외)
         for (const file of files) {
-          if (!file.id) {
-            // 폴더인 경우 재귀적으로 조회
-            const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
-            await searchRecursively(subFolderPath);
-            if (foundImage) return; // 이미 찾았으면 종료
-          } else {
-            // 파일인 경우 파일명 비교 (대소문자 무시, 확장자 포함)
+          if (file.id) {
+            // 파일인 경우 파일명 비교
             const fileLower = file.name.toLowerCase();
             const searchLower = fileName.toLowerCase();
             
-            // 정확한 파일명 또는 확장자 제외 비교
             if (fileLower === searchLower || fileLower.includes(searchLower)) {
-              const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
               const { data: urlData } = supabase.storage
                 .from('blog-images')
-                .getPublicUrl(fullPath);
+                .getPublicUrl(file.name);
               
               foundImage = {
                 id: file.id,
                 name: file.name,
-                currentPath: fullPath,
-                folderPath: folderPath,
+                currentPath: file.name,
+                folderPath: '',
                 url: urlData.publicUrl,
                 size: file.metadata?.size || 0,
                 created_at: file.created_at
               };
-              return; // 찾았으면 종료
+              return foundImage; // 찾았으면 즉시 반환
             }
           }
         }
         
-        folderOffset += batchSize;
+        rootOffset += batchSize;
         
         if (files.length < batchSize) {
           break;
         }
+        
+        // 타임아웃 체크
+        if ((Date.now() - startTime) >= maxSearchTime) {
+          console.warn(`⚠️ 이미지 검색 타임아웃 (${maxSearchTime}ms): 루트 폴더만 검색 완료`);
+          break;
+        }
       }
-    };
+    } catch (error) {
+      console.error('❌ 루트 폴더 검색 오류:', error);
+    }
     
-    await searchRecursively('');
+    // ✅ 찾지 못했고 시간이 남아있으면 하위 폴더 검색 (제한적으로)
+    if (!foundImage && (Date.now() - startTime) < maxSearchTime / 2) {
+      try {
+        const { data: rootFolders } = await supabase.storage
+          .from('blog-images')
+          .list('', {
+            limit: 100, // 최대 100개 폴더만 검색
+            sortBy: { column: 'created_at', order: 'desc' }
+          });
+        
+        if (rootFolders) {
+          // 폴더만 필터링
+          const folders = rootFolders.filter(f => !f.id);
+          
+          // 주요 폴더만 검색 (최신 순으로 10개)
+          for (const folder of folders.slice(0, 10)) {
+            if (foundImage || (Date.now() - startTime) >= maxSearchTime) break;
+            
+            try {
+              const { data: folderFiles } = await supabase.storage
+                .from('blog-images')
+                .list(folder.name, {
+                  limit: 500, // 폴더당 최대 500개 파일
+                  sortBy: { column: 'name', order: 'asc' }
+                });
+              
+              if (folderFiles) {
+                for (const file of folderFiles) {
+                  if (file.id) {
+                    const fileLower = file.name.toLowerCase();
+                    const searchLower = fileName.toLowerCase();
+                    
+                    if (fileLower === searchLower || fileLower.includes(searchLower)) {
+                      const fullPath = `${folder.name}/${file.name}`;
+                      const { data: urlData } = supabase.storage
+                        .from('blog-images')
+                        .getPublicUrl(fullPath);
+                      
+                      foundImage = {
+                        id: file.id,
+                        name: file.name,
+                        currentPath: fullPath,
+                        folderPath: folder.name,
+                        url: urlData.publicUrl,
+                        size: file.metadata?.size || 0,
+                        created_at: file.created_at
+                      };
+                      return foundImage;
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`❌ 폴더 검색 오류 (${folder.name}):`, error);
+              continue;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ 하위 폴더 검색 오류:', error);
+      }
+    }
+    
     return foundImage;
     
   } catch (error) {
@@ -300,7 +364,12 @@ export default async function handler(req, res) {
       const { blogPostId, moveImages = false } = req.body;
       
       console.log('📁 블로그 글별 이미지 폴더 정렬 시작...');
-      const results = await organizeImagesByBlog(blogPostId || null);
+      
+      // ✅ 타임아웃과 함께 실행
+      const results = await Promise.race([
+        organizeImagesByBlog(blogPostId || null),
+        timeoutPromise
+      ]);
       
       if (moveImages) {
         // 실제로 이미지 이동
