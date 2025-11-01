@@ -145,6 +145,19 @@ export const useAIGeneration = () => {
       // 제목 길이 검증 및 보완 (25-60자 범위)
       let finalTitle = cleanAIText(title);
       
+      // ✅ 제목이 파일명 형식인지 확인 (확장자 포함 파일명이 제목으로 들어가는 것 방지)
+      const isFilenameFormat = /^[a-z0-9-]+\.(jpg|jpeg|png|gif|webp)$/i.test(finalTitle);
+      if (isFilenameFormat) {
+        console.warn('⚠️ AI 생성된 제목이 파일명 형식입니다. 키워드와 설명에서 재생성:', finalTitle);
+        // 파일명 형식이면 키워드와 설명에서 제목 재생성
+        const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+        const firstKeywords = keywordsList.slice(0, 3).join(' ');
+        const descSnippet = description ? description.substring(0, 40).trim() : '';
+        finalTitle = firstKeywords && descSnippet 
+          ? `${firstKeywords} ${descSnippet}`.trim()
+          : (firstKeywords || descSnippet || '골프 이미지');
+      }
+      
       // 제목이 너무 짧으면 강제로 보완 (최소 25자 목표)
       if (finalTitle.length < 25) {
         if (finalTitle.length === 0) {
