@@ -882,16 +882,28 @@ export default function GalleryAdmin() {
           
           if (matchKey !== currentKey) return img as ImageMetadata;
           
+          // 카테고리 처리: categories 배열과 category 문자열 동기화
+          const updatedCategories = categoriesArray.length > 0 ? categoriesArray : [];
+          const updatedCategory = categoryString || '';
+          
           const updated: ImageMetadata = {
             ...img,
             alt_text: editForm.alt_text,
             title: editForm.title,
             description: editForm.description,
-            category: editForm.category as any,
+            category: updatedCategory,  // 문자열 (하위 호환성)
+            categories: updatedCategories,  // 배열 (체크박스용) - 중요!
             keywords,
             name: updatedImageName,  // 업데이트된 파일명 사용
             url: updatedImageUrl  // 업데이트된 URL 사용
           };
+          
+          console.log('✅ 로컬 상태 업데이트:', {
+            name: updated.name,
+            category: updated.category,
+            categories: updated.categories
+          });
+          
           return updated;
         }));
         setEditingImage(null);
@@ -1838,7 +1850,7 @@ export default function GalleryAdmin() {
               const responseData = await response.json();
               console.log('✅ 저장 API 응답 데이터:', responseData);
               
-              // 로컬 상태 업데이트
+              // 로컬 상태 업데이트 (categories 배열 포함)
               setImages(prev => prev.map(img => 
                 img.name === editingImage 
                   ? { 
@@ -1847,11 +1859,18 @@ export default function GalleryAdmin() {
                       keywords: keywords,
                       title: metadata.title,
                       description: metadata.description,
-                      category: metadata.category,
+                      category: categoryString,  // 문자열 (하위 호환성)
+                      categories: categoriesArray,  // 배열 (체크박스용) - 중요!
                       name: metadata.filename || img.name
                     }
                   : img
               ));
+              
+              console.log('✅ 로컬 상태 업데이트 (onSave):', {
+                name: metadata.filename || img.name,
+                category: categoryString,
+                categories: categoriesArray
+              });
               
               // 편집 모달 닫기
               setEditingImage(null);
