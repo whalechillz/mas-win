@@ -48,21 +48,27 @@ export default async function handler(req, res) {
       fetchError = error;
     }
     
-    // ID로 조회 실패하거나 ID가 없는 경우 file_name 또는 image_url로 조회
+    // ID로 조회 실패하거나 ID가 없는 경우 image_url로 조회
+    // 주의: image_metadata 테이블에는 file_name 컬럼이 없고 image_url만 있음
     if (!currentImage) {
-      if (currentFileName) {
-        const { data, error } = await supabase
-          .from('image_metadata')
-          .select('*')
-          .eq('file_name', currentFileName)
-          .single();
-        currentImage = data;
-        fetchError = error;
-      } else if (imageUrl) {
+      if (imageUrl) {
         const { data, error } = await supabase
           .from('image_metadata')
           .select('*')
           .eq('image_url', imageUrl)
+          .single();
+        currentImage = data;
+        fetchError = error;
+      } else if (currentFileName) {
+        // currentFileName이 제공된 경우, image_url에서 파일 경로 추출하여 매칭 시도
+        // Storage URL 형식: https://...supabase.co/storage/v1/object/public/blog-images/path/to/file.jpg
+        const storageBaseUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/`;
+        const constructedUrl = `${storageBaseUrl}${currentFileName}`;
+        
+        const { data, error } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('image_url', constructedUrl)
           .single();
         currentImage = data;
         fetchError = error;
@@ -78,18 +84,40 @@ export default async function handler(req, res) {
           imageId,
           currentFileName,
           imageUrl,
-          searchMethod: imageId && !imageId.toString().startsWith('temp-') ? 'id' : (currentFileName ? 'file_name' : 'image_url')
+          searchMethod: imageId && !imageId.toString().startsWith('temp-') ? 'id' : 'image_url'
         }
       });
     }
 
+    // 2. image_url에서 Storage 경로 추출
+    // Storage URL 형식: https://...supabase.co/storage/v1/object/public/blog-images/path/to/file.jpg
+    const storageBaseUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/`;
+    let currentPath;
+    
+    if (currentImage.image_url && currentImage.image_url.includes(storageBaseUrl)) {
+      // image_url에서 Storage 경로 추출
+      currentPath = currentImage.image_url.replace(storageBaseUrl, '');
+    } else if (currentFileName) {
+      // image_url이 없거나 형식이 다른 경우 currentFileName 사용
+      currentPath = currentFileName;
+    } else {
+      // URL에서 직접 추출 시도 (다른 형식의 URL인 경우)
+      const urlMatch = currentImage.image_url?.match(/blog-images\/(.+)$/);
+      currentPath = urlMatch ? urlMatch[1] : null;
+    }
+    
+    if (!currentPath) {
+      console.error('❌ Storage 경로를 추출할 수 없습니다:', currentImage.image_url);
+      return res.status(400).json({
+        error: 'Storage 경로를 추출할 수 없습니다.',
+        imageUrl: currentImage.image_url
+      });
+    }
+    
     console.log('✅ 현재 이미지 정보:', {
-      currentFileName: currentImage.file_name,
-      currentUrl: currentImage.image_url
+      imageUrl: currentImage.image_url,
+      extractedPath: currentPath
     });
-
-    // 2. 현재 파일 경로에서 새 파일 경로 생성
-    const currentPath = currentImage.file_name;
     const pathParts = currentPath.split('/');
     const folderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
     const fileExtension = pathParts[pathParts.length - 1].split('.').pop();
@@ -152,28 +180,27 @@ export default async function handler(req, res) {
     }
 
     // 7. 메타데이터 업데이트
-    // ID로 업데이트 시도, 실패하면 file_name 또는 image_url로 업데이트
+    // image_metadata 테이블에는 file_name 컬럼이 없고 image_url만 있음
+    // image_url을 새 URL로 업데이트하고 title도 새 파일명으로 업데이트
     let updateError;
     if (currentImage.id && !isNaN(currentImage.id)) {
       const { error } = await supabase
         .from('image_metadata')
         .update({
-          file_name: newFilePath,
           image_url: urlData.publicUrl,
           title: newFileName // 제목도 새 파일명으로 업데이트
         })
         .eq('id', currentImage.id);
       updateError = error;
     } else {
-      // ID가 없거나 유효하지 않은 경우 file_name으로 업데이트
+      // ID가 없거나 유효하지 않은 경우 image_url로 업데이트
       const { error } = await supabase
         .from('image_metadata')
         .update({
-          file_name: newFilePath,
           image_url: urlData.publicUrl,
           title: newFileName
         })
-        .eq('file_name', currentPath);
+        .eq('image_url', currentImage.image_url);
       updateError = error;
     }
 
