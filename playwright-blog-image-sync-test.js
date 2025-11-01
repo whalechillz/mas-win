@@ -2,6 +2,7 @@
 const { chromium } = require('playwright');
 
 const BASE_URL = 'https://masgolf.co.kr';
+const ADMIN_LOGIN_URL = `${BASE_URL}/admin/login`;
 const ADMIN_BLOG_URL = `${BASE_URL}/admin/blog`;
 const LOGIN_PHONE = '01066699000';
 const LOGIN_PASSWORD = '66699000';
@@ -14,81 +15,34 @@ async function runBlogImageSyncTest() {
   const page = await context.newPage();
   
   try {
-    // 1. 로그인
+    // 1. 로그인 (/admin/login으로 직접 이동)
     console.log('📝 1단계: 로그인...');
     
-    // 여러 로그인 URL 시도
-    const loginUrls = [
-      `${BASE_URL}/auth/signin`,
-      `${BASE_URL}/auth/login`,
-      `${BASE_URL}/login`,
-      `${BASE_URL}/admin/login`,
-    ];
-    
-    let loginSuccess = false;
-    
-    for (const loginUrl of loginUrls) {
-      try {
-        console.log(`로그인 시도: ${loginUrl}`);
-        await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
-        await page.waitForTimeout(3000);
-        
-        // 로그인 폼 확인 (여러 선택자 시도)
-        const formSelectors = [
-          'input[type="tel"]',
-          'input[type="password"]',
-          'input[name*="phone"]',
-          'input[placeholder*="전화"]',
-          'input[type="text"]',
-        ];
-        
-        let foundForm = false;
-        for (const selector of formSelectors) {
-          const count = await page.locator(selector).count();
-          if (count > 0) {
-            foundForm = true;
-            console.log(`✅ 로그인 폼 찾기 성공: ${selector}`);
-            break;
-          }
-        }
-        
-        if (foundForm) {
-          // 전화번호 입력
-          const phoneInput = page.locator('input[type="tel"], input[name*="phone"], input[placeholder*="전화"], input[type="text"]').first();
-          await phoneInput.fill(LOGIN_PHONE);
-          await page.waitForTimeout(1000);
-          
-          // 비밀번호 입력
-          const passwordInput = page.locator('input[type="password"]').first();
-          await passwordInput.fill(LOGIN_PASSWORD);
-          await page.waitForTimeout(1000);
-          
-          // 로그인 버튼 클릭
-          const loginButton = page.locator('button:has-text("로그인"), button[type="submit"], button:has-text("Login")').first();
-          await loginButton.click();
-          
-          // 로그인 후 리다이렉트 대기
-          try {
-            await page.waitForURL(/\/admin|\/dashboard/, { timeout: 15000 });
-            loginSuccess = true;
-            console.log('✅ 로그인 성공');
-            break;
-          } catch (error) {
-            console.log('⚠️ 리다이렉트 실패, 다음 URL 시도...');
-          }
-        }
-      } catch (error) {
-        console.log(`⚠️ 로그인 URL 실패: ${loginUrl}`, error.message);
-        continue;
-      }
-    }
-    
-    if (!loginSuccess) {
-      await page.screenshot({ path: 'login-failed.png', fullPage: true });
-      throw new Error('로그인 실패. login-failed.png를 확인하세요.');
-    }
-    
+    console.log(`로그인 페이지 이동: ${ADMIN_LOGIN_URL}`);
+    await page.goto(ADMIN_LOGIN_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForTimeout(3000);
+    
+    // 로그인 폼 확인
+    await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+    
+    // 전화번호 입력
+    const phoneInput = page.locator('input[type="tel"], input[name*="phone"], input[placeholder*="전화"], input[type="text"], input[placeholder*="아이디"]').first();
+    await phoneInput.fill(LOGIN_PHONE);
+    await page.waitForTimeout(1000);
+    
+    // 비밀번호 입력
+    const passwordInput = page.locator('input[type="password"]').first();
+    await passwordInput.fill(LOGIN_PASSWORD);
+    await page.waitForTimeout(1000);
+    
+    // 로그인 버튼 클릭
+    const loginButton = page.locator('button:has-text("로그인"), button[type="submit"]').first();
+    await loginButton.click();
+    
+    // 로그인 후 리다이렉트 대기
+    await page.waitForURL(/\/admin/, { timeout: 15000 });
+    await page.waitForTimeout(3000);
+    
     console.log('✅ 로그인 완료\n');
     
     // 2. 블로그 관리 페이지 이동
@@ -163,15 +117,15 @@ async function runBlogImageSyncTest() {
     const postTitle = await firstPost.locator('h3, h2, td, [class*="title"]').first().textContent().catch(() => '블로그 글');
     console.log(`✅ 첫 번째 블로그 글: ${postTitle}\n`);
     
-    // 4. 이미지 정렬 버튼 클릭 및 오류 확인
-    console.log('📁 4단계: 이미지 정렬 버튼 클릭 및 오류 확인...');
+    // 4. 우상단 버튼만 클릭 (이미지 정렬, 메타 동기화)
+    console.log('📁 4단계: 우상단 버튼 클릭 테스트 (이미지 정렬, 메타 동기화)...');
     
     // 네트워크 요청 모니터링 설정
     const networkErrors = [];
     const apiRequests = [];
     
     page.on('request', request => {
-      if (request.url().includes('organize-images')) {
+      if (request.url().includes('organize-images') || request.url().includes('sync-metadata')) {
         apiRequests.push({
           url: request.url(),
           method: request.method(),
@@ -182,10 +136,13 @@ async function runBlogImageSyncTest() {
     });
     
     page.on('response', response => {
-      if (response.url().includes('organize-images')) {
+      if (response.url().includes('organize-images') || response.url().includes('sync-metadata')) {
         const status = response.status();
-        apiRequests[apiRequests.length - 1].status = status;
-        apiRequests[apiRequests.length - 1].responseTime = Date.now() - apiRequests[apiRequests.length - 1].time;
+        const lastRequest = apiRequests[apiRequests.length - 1];
+        if (lastRequest) {
+          lastRequest.status = status;
+          lastRequest.responseTime = Date.now() - lastRequest.time;
+        }
         
         if (status >= 400) {
           networkErrors.push({
@@ -203,7 +160,7 @@ async function runBlogImageSyncTest() {
     // 콘솔 메시지 모니터링
     page.on('console', msg => {
       const text = msg.text();
-      if (text.includes('이미지 정렬') || text.includes('오류') || text.includes('error') || text.includes('Error')) {
+      if (text.includes('이미지 정렬') || text.includes('메타') || text.includes('동기화') || text.includes('오류') || text.includes('error') || text.includes('Error')) {
         console.log(`🖥️ 콘솔: ${msg.type()} - ${text}`);
       }
     });
@@ -218,42 +175,85 @@ async function runBlogImageSyncTest() {
       });
     });
     
-    // 버튼 찾기 (여러 방법 시도)
-    let organizeButton = firstPost.locator('button:has-text("이미지 정렬"), button:has-text("📁"), button[title*="이미지"], button[title*="정렬"]').first();
-    
-    if (await organizeButton.count() === 0) {
-      // 페이지 전체에서 찾기
-      organizeButton = page.locator('button:has-text("이미지 정렬"), button:has-text("📁")').first();
-    }
-    
-    if (await organizeButton.count() === 0) {
-      await page.screenshot({ path: 'button-not-found.png', fullPage: true });
-      throw new Error('이미지 정렬 버튼을 찾을 수 없습니다. button-not-found.png를 확인하세요.');
-    }
-    
-    await organizeButton.scrollIntoViewIfNeeded();
-    
     // 확인 다이얼로그 처리 설정
-    let dialogHandled = false;
+    let dialogCount = 0;
     page.on('dialog', async dialog => {
-      if (!dialogHandled) {
-        dialogHandled = true;
-        console.log(`📋 다이얼로그: ${dialog.message()}`);
-        if (dialog.type() === 'confirm') {
-          await dialog.accept();
-          console.log('✅ 확인 다이얼로그 수락');
-        }
+      dialogCount++;
+      console.log(`📋 다이얼로그 ${dialogCount}: ${dialog.message()}`);
+      if (dialog.type() === 'confirm') {
+        await dialog.accept();
+        console.log(`✅ 확인 다이얼로그 ${dialogCount} 수락`);
       }
     });
     
-    // 버튼 클릭
+    // ✅ 우상단 이미지 정렬 버튼 클릭
+    console.log('\n📁 4-1. 이미지 정렬 버튼 클릭...');
+    
+    // 첫 번째 블로그 글의 우상단 버튼 찾기 (오른쪽에 있는 버튼)
+    const actionButtons = firstPost.locator('button').all();
+    const buttons = await actionButtons;
+    
+    let organizeButton = null;
+    let syncButton = null;
+    
+    // 버튼 텍스트로 찾기
+    for (const button of buttons) {
+      const text = await button.textContent().catch(() => '');
+      if (text.includes('이미지 정렬') || text.includes('📁')) {
+        organizeButton = button;
+        console.log(`✅ 이미지 정렬 버튼 찾기 성공: "${text}"`);
+      }
+      if (text.includes('메타 동기화') || text.includes('🔄') || text.includes('메타 동기화')) {
+        syncButton = button;
+        console.log(`✅ 메타 동기화 버튼 찾기 성공: "${text}"`);
+      }
+    }
+    
+    // 버튼을 찾지 못하면 선택자로 찾기
+    if (!organizeButton) {
+      organizeButton = firstPost.locator('button:has-text("이미지 정렬"), button:has-text("📁"), button[title*="이미지"], button[title*="정렬"]').first();
+      if (await organizeButton.count() === 0) {
+        organizeButton = page.locator('button:has-text("이미지 정렬"), button:has-text("📁")').first();
+      }
+    }
+    
+    if (!organizeButton || (await organizeButton.count()) === 0) {
+      await page.screenshot({ path: 'organize-button-not-found.png', fullPage: true });
+      throw new Error('이미지 정렬 버튼을 찾을 수 없습니다. organize-button-not-found.png를 확인하세요.');
+    }
+    
+    await organizeButton.scrollIntoViewIfNeeded();
     console.log('🖱️ 이미지 정렬 버튼 클릭...');
     await organizeButton.click();
     await page.waitForTimeout(2000); // 다이얼로그 대기
     
-    // API 요청 완료 대기 (최대 15초)
-    console.log('⏳ API 응답 대기 중...');
-    await page.waitForTimeout(12000); // API 처리 시간 대기
+    // API 응답 대기
+    console.log('⏳ API 응답 대기 중... (최대 10초)');
+    await page.waitForTimeout(10000);
+    
+    // ✅ 우상단 메타 동기화 버튼 클릭
+    console.log('\n🔄 4-2. 메타 동기화 버튼 클릭...');
+    
+    if (!syncButton) {
+      syncButton = firstPost.locator('button:has-text("메타 동기화"), button:has-text("🔄"), button[title*="메타"], button[title*="동기화"]').first();
+      if (await syncButton.count() === 0) {
+        syncButton = page.locator('button:has-text("메타 동기화"), button:has-text("🔄")').first();
+      }
+    }
+    
+    if (!syncButton || (await syncButton.count()) === 0) {
+      await page.screenshot({ path: 'sync-button-not-found.png', fullPage: true });
+      throw new Error('메타데이터 동기화 버튼을 찾을 수 없습니다. sync-button-not-found.png를 확인하세요.');
+    }
+    
+    await syncButton.scrollIntoViewIfNeeded();
+    console.log('🖱️ 메타 동기화 버튼 클릭...');
+    await syncButton.click();
+    await page.waitForTimeout(2000); // 다이얼로그 대기
+    
+    // API 응답 대기
+    console.log('⏳ API 응답 대기 중... (최대 10초)');
+    await page.waitForTimeout(10000);
     
     // 오류 확인
     if (networkErrors.length > 0) {
@@ -264,78 +264,19 @@ async function runBlogImageSyncTest() {
       });
       
       // 오류 스크린샷 저장
-      await page.screenshot({ path: 'image-organize-error.png', fullPage: true });
-      console.log('📸 오류 스크린샷 저장: image-organize-error.png');
-      
-      // API 요청 정보 출력
-      console.log('\n📊 API 요청 정보:');
-      apiRequests.forEach((req, idx) => {
-        console.log(`  ${idx + 1}. ${req.method} ${req.url}`);
-        console.log(`     상태: ${req.status || '대기 중'}`);
-        console.log(`     응답 시간: ${req.responseTime || 'N/A'}ms`);
-      });
+      await page.screenshot({ path: 'buttons-error.png', fullPage: true });
+      console.log('📸 오류 스크린샷 저장: buttons-error.png');
     } else {
-      console.log('✅ 이미지 정렬 버튼 클릭 완료 (오류 없음)');
+      console.log('✅ 우상단 버튼 클릭 완료 (오류 없음)');
     }
     
-    // 5. 메타데이터 동기화 버튼 클릭
-    console.log('\n🔄 5단계: 메타데이터 동기화 버튼 클릭...');
-    await page.waitForTimeout(3000);
-    
-    // 버튼 찾기 (여러 방법 시도)
-    let syncButton = firstPost.locator('button:has-text("메타 동기화"), button:has-text("🔄"), button[title*="메타"], button[title*="동기화"]').first();
-    
-    if (await syncButton.count() === 0) {
-      // 페이지 전체에서 찾기
-      syncButton = page.locator('button:has-text("메타 동기화"), button:has-text("🔄")').first();
-    }
-    
-    if (await syncButton.count() === 0) {
-      await page.screenshot({ path: 'sync-button-not-found.png', fullPage: true });
-      throw new Error('메타데이터 동기화 버튼을 찾을 수 없습니다. sync-button-not-found.png를 확인하세요.');
-    }
-    
-    await syncButton.scrollIntoViewIfNeeded();
-    await syncButton.click();
-    console.log('✅ 메타데이터 동기화 버튼 클릭 완료');
-    await page.waitForTimeout(3000);
-    
-    // 확인 다이얼로그 처리
-    page.on('dialog', async dialog => {
-      console.log(`📋 다이얼로그: ${dialog.message()}`);
-      if (dialog.type() === 'confirm') {
-        await dialog.accept();
-        console.log('✅ 확인 다이얼로그 수락');
-      }
+    // API 요청 정보 출력
+    console.log('\n📊 API 요청 정보:');
+    apiRequests.forEach((req, idx) => {
+      console.log(`  ${idx + 1}. ${req.method} ${req.url}`);
+      console.log(`     상태: ${req.status || '대기 중'}`);
+      console.log(`     응답 시간: ${req.responseTime || 'N/A'}ms`);
     });
-    
-    // 진행 상태 확인
-    await page.waitForTimeout(10000);
-    
-    // 완료 메시지 확인
-    const syncSuccessMessage = page.locator('text=완료, text=처리').first();
-    if (await syncSuccessMessage.count() > 0) {
-      console.log('✅ 메타데이터 동기화 완료 메시지 확인');
-    }
-    
-    // 6. 중복 이미지 제거 확인
-    console.log('\n🗑️ 6단계: 중복 이미지 제거 가능 여부 확인...');
-    
-    // 갤러리 관리 페이지 이동
-    await page.goto(`${BASE_URL}/admin/gallery`);
-    await page.waitForTimeout(3000);
-    
-    // 중복 이미지 필터 확인
-    const duplicateFilter = page.locator('select option:has-text("중복 이미지")').first();
-    if (await duplicateFilter.count() > 0) {
-      console.log('✅ 중복 이미지 필터 확인');
-    }
-    
-    // 중복 이미지 찾기 버튼 확인
-    const findDuplicatesButton = page.locator('button:has-text("중복"), button:has-text("제거")').first();
-    if (await findDuplicatesButton.count() > 0) {
-      console.log('✅ 중복 이미지 제거 기능 확인');
-    }
     
     // 최종 결과 요약
     console.log('\n📊 테스트 결과 요약:');
