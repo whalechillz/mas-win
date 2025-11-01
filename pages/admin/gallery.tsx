@@ -768,13 +768,14 @@ export default function GalleryAdmin() {
           currentFileName: image.name
         });
         
-        const renameResponse = await fetch('/api/admin/rename-image/', {
+        const renameResponse = await fetch('/api/admin/rename-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            imageId: image.id,  // API가 기대하는 파라미터
+            imageId: image.id,  // API가 기대하는 파라미터 (있으면 사용)
             newFileName: editForm.filename,
-            currentFileName: image.name
+            currentFileName: image.name,
+            imageUrl: image.url  // imageId가 없을 경우 대체 조회용
           })
         });
         
@@ -1860,13 +1861,14 @@ export default function GalleryAdmin() {
             const image = images.find(img => img.name === editingImage);
             if (!image) return;
             
-            const response = await fetch('/api/admin/rename-image/', {
+            const response = await fetch('/api/admin/rename-image', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 imageId: image.id,
                 newFileName: newFilename,
-                currentFileName: image.name
+                currentFileName: image.name,
+                imageUrl: image.url  // imageId가 없을 경우 대체 조회용
               })
             });
             
