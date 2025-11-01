@@ -354,6 +354,15 @@ export default async function handler(req, res) {
         // 메타데이터가 없을 경우 기본값 설정
         const defaultTitle = metadata?.title || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
         
+        // has_metadata 판단: 실제 메타데이터 필드에 값이 있는지 확인
+        // 단순히 매칭 여부가 아니라, 실제로 의미 있는 데이터가 있는지 확인
+        const hasRealMetadata = metadata && (
+          (metadata.alt_text && metadata.alt_text.trim() && metadata.alt_text !== defaultTitle) ||
+          (metadata.description && metadata.description.trim()) ||
+          (Array.isArray(metadata.tags) && metadata.tags.length > 0) ||
+          (metadata.tags && metadata.tags.length > 0)
+        );
+        
         return {
           id: file.id,
           name: file.name,
@@ -363,7 +372,7 @@ export default async function handler(req, res) {
           url: url,
           folder_path: file.folderPath || '',
           alt_text: metadata?.alt_text || defaultTitle,
-          title: defaultTitle,
+          title: metadata?.title || defaultTitle,
           description: metadata?.description || '',
           keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
           // category는 category_id를 기반으로 카테고리 이름 반환 (하위 호환성)
@@ -375,7 +384,8 @@ export default async function handler(req, res) {
           upload_source: metadata?.upload_source || 'manual',
           status: metadata?.status || 'active',
           // 메타데이터 존재 여부 표시 (UI에서 "메타데이터 없음" 표시용)
-          has_metadata: !!metadata
+          // 실제 의미 있는 데이터가 있는지 확인 (기본값 제외)
+          has_metadata: !!hasRealMetadata
         };
       });
 
