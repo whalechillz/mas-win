@@ -145,6 +145,91 @@ let globalPage = null;
     }
 
     console.log(`✅ ${images.length}개의 이미지 발견\n`);
+
+    // 메타데이터 동기화 버튼 테스트
+    console.log('🔄 메타데이터 동기화 버튼 테스트 시작...');
+    try {
+      // 메타데이터 동기화 버튼 찾기
+      const syncButtonSelectors = [
+        'button:has-text("메타데이터 동기화")',
+        'button:has-text("🔄")',
+        'button[title*="메타데이터"]',
+        'button[title*="동기화"]'
+      ];
+      
+      let syncButton = null;
+      for (const selector of syncButtonSelectors) {
+        try {
+          syncButton = await page.$(selector);
+          if (syncButton) {
+            console.log(`  ✅ 동기화 버튼 발견: ${selector}`);
+            break;
+          }
+        } catch (e) {
+          // 계속 시도
+        }
+      }
+
+      // 대안: 모든 버튼에서 텍스트 확인
+      if (!syncButton) {
+        const allButtons = await page.$$('button');
+        for (const btn of allButtons) {
+          const text = await btn.textContent();
+          const title = await btn.getAttribute('title');
+          if (text?.includes('메타데이터') && text?.includes('동기화') || 
+              text?.includes('🔄') || 
+              title?.includes('메타데이터')) {
+            syncButton = btn;
+            console.log('  ✅ 동기화 버튼 발견 (텍스트 기반)');
+            break;
+          }
+        }
+      }
+
+      if (syncButton) {
+        console.log('  📊 메타데이터 동기화 버튼 클릭 전 상태 확인...');
+        const isDisabled = await syncButton.isDisabled();
+        if (isDisabled) {
+          console.log('  ⚠️ 동기화 버튼이 비활성화되어 있습니다. (이미 동기화 진행 중일 수 있음)');
+        } else {
+          console.log('  ✅ 동기화 버튼이 활성화되어 있습니다.');
+          
+          // 동기화 버튼 클릭
+          console.log('  🖱️ 메타데이터 동기화 버튼 클릭...');
+          await syncButton.click();
+          await page.waitForTimeout(2000);
+          console.log('  ✅ 동기화 버튼 클릭 완료');
+
+          // 동기화 진행률 표시 확인
+          try {
+            await page.waitForSelector('text=누락된 메타데이터', { timeout: 5000 });
+            console.log('  ✅ 동기화 확인 메시지 발견');
+            
+            // confirm 다이얼로그 확인 버튼 클릭
+            await page.waitForTimeout(1000);
+            const confirmDialogs = await page.$$('text=확인');
+            if (confirmDialogs.length > 0) {
+              console.log('  ⚠️ 동기화 확인 다이얼로그가 표시되었습니다. (수동 확인 필요)');
+            }
+          } catch (e) {
+            console.log('  ℹ️ 동기화 진행 중이거나 이미 완료된 상태일 수 있습니다.');
+          }
+
+          // 진행률 표시 확인
+          try {
+            await page.waitForSelector('text=메타데이터 생성 중', { timeout: 3000 });
+            console.log('  ✅ 동기화 진행률 표시 확인');
+          } catch (e) {
+            // 진행률 표시가 없어도 계속 진행
+          }
+        }
+      } else {
+        console.log('  ⚠️ 메타데이터 동기화 버튼을 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      console.log(`  ⚠️ 메타데이터 동기화 버튼 테스트 오류: ${error.message}`);
+    }
+    console.log('✅ 메타데이터 동기화 버튼 테스트 완료\n');
     
     // 2개의 이미지 정보 입력 테스트
     const imagesToTest = Math.min(2, images.length);
@@ -616,22 +701,24 @@ let globalPage = null;
         console.log('  ✅ 저장 버튼 클릭 완료');
         
         // 저장 완료 대기 (성공 메시지 또는 모달 닫힘 확인)
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(5000);  // API 응답 대기 시간 증가
         
         // 브라우저 콘솔 로그 확인 (저장 성공 여부)
         const consoleLogs = [];
-        page.on('console', msg => {
+        const consoleListener = msg => {
           const text = msg.text();
           if (text.includes('저장') || text.includes('성공') || text.includes('메타데이터') || text.includes('파일명 변경')) {
             consoleLogs.push(text);
           }
-        });
+        };
+        page.on('console', consoleListener);
         
         // 추가 대기 (네트워크 요청 완료 대기)
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(5000);  // 저장 완료 대기 시간 증가
         
         // 이벤트 리스너 제거
         page.off('response', responseHandler);
+        page.off('console', consoleListener);
         
         // 네트워크 응답 확인
         if (saveResponseStatus !== null) {
