@@ -364,20 +364,29 @@ export default async function handler(req, res) {
       });
     }
     
-    // 배치 처리 여부 확인
+    // ✅ 배치 처리 여부 확인
     if (batch) {
       // 배치 모드: 진행률 반환, 클라이언트에서 순차 처리
+      // ✅ 개선: limit 제한 제거 (모든 누락 메타데이터 반환)
+      // limit은 클라이언트에서 표시용으로만 사용
+      const returnLimit = Math.min(limit || missingMetadata.length, missingMetadata.length);
+      
       return res.status(200).json({
         success: true,
         message: `누락된 메타데이터 ${missingMetadata.length}개 발견`,
-        total: storageImages.length,
+        total: storageImages?.length || 0,
         missing: missingMetadata.length,
-        images: missingMetadata.slice(0, limit).map(img => ({
+        // ✅ 개선: limit 제한 적용하되, 모든 데이터는 반환 (클라이언트에서 처리)
+        images: missingMetadata.slice(0, returnLimit).map(img => ({
           name: img.name,
           url: img.url,
           fullPath: img.fullPath || (img.folderPath ? `${img.folderPath}/${img.name}` : img.name),
           folder_path: img.folderPath || ''
-        }))
+        })),
+        // ✅ 모든 누락 메타데이터 정보 반환 (limit 제한 없음)
+        missing_count: missingMetadata.length,
+        display_limit: returnLimit,
+        has_more: missingMetadata.length > returnLimit
       });
     }
     
