@@ -272,8 +272,15 @@ export default async function handler(req, res) {
               const urlObj = new URL(meta.image_url);
               const pathParts = urlObj.pathname.split('/');
               const fileName = pathParts[pathParts.length - 1];
-              if (fileName && !metadataByFileName.has(fileName)) {
-                metadataByFileName.set(fileName, meta);
+              if (fileName) {
+                // 파일명 정규화 (.png.png 같은 중복 확장자 제거)
+                const normalizedFileName = fileName.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
+                if (!metadataByFileName.has(fileName) && !metadataByFileName.has(normalizedFileName)) {
+                  metadataByFileName.set(fileName, meta);
+                  if (normalizedFileName !== fileName) {
+                    metadataByFileName.set(normalizedFileName, meta);
+                  }
+                }
               }
             } catch (e) {
               // URL 파싱 실패 시 무시
@@ -282,8 +289,12 @@ export default async function handler(req, res) {
           
           // file_name 기준 매핑 (직접 매칭)
           if (meta.file_name) {
+            const normalizedFileName = meta.file_name.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
             if (!metadataByFileName.has(meta.file_name)) {
               metadataByFileName.set(meta.file_name, meta);
+            }
+            if (normalizedFileName !== meta.file_name && !metadataByFileName.has(normalizedFileName)) {
+              metadataByFileName.set(normalizedFileName, meta);
             }
           }
         });
@@ -311,16 +322,19 @@ export default async function handler(req, res) {
             const pathParts = urlObj.pathname.split('/');
             const fileName = pathParts[pathParts.length - 1];
             if (fileName) {
-              metadata = metadataByFileName.get(fileName);
+              // 파일명 정규화 (.png.png 같은 중복 확장자 제거)
+              const normalizedFileName = fileName.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
+              metadata = metadataByFileName.get(fileName) || metadataByFileName.get(normalizedFileName);
             }
           } catch (e) {
             // URL 파싱 실패 시 무시
           }
         }
         
-        // 4차: file_name 기반 직접 매칭
+        // 4차: file_name 기반 직접 매칭 (파일명 정규화 포함)
         if (!metadata) {
-          metadata = metadataByFileName.get(file.name);
+          const normalizedFileFileName = file.name.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
+          metadata = metadataByFileName.get(file.name) || metadataByFileName.get(normalizedFileFileName);
         }
         
         // 메타데이터가 없을 경우 기본값 설정
