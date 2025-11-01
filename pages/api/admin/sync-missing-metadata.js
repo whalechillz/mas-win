@@ -235,7 +235,7 @@ const findMissingMetadata = async (storageImages) => {
       throw error;
     }
     
-    console.log('📊 기존 메타데이터:', existingMetadata?.length || 0, '개');
+    console.log('📊 기존 메타데이터:', existingMetadata.length, '개');
     
     // ✅ 개선: 메모리 효율적인 Set 사용
     const existingUrls = new Set();
