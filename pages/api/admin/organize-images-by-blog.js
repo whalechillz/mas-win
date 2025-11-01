@@ -117,16 +117,21 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       
       // 3. Storage에서 해당 이미지 찾기 (최적화: 타임아웃 방지)
       const storageImages = [];
-      const maxSearchTime = 6000; // ✅ 각 블로그 글당 최대 6초 (전체 API 타임아웃 8초 고려)
+      const maxSearchTime = 7000; // ✅ 각 블로그 글당 최대 7초 (전체 API 타임아웃 8초 고려)
       const startTime = Date.now();
       
-      // ✅ 최적화: 처음 몇 개 이미지만 처리 (타임아웃 방지)
-      const imagesToProcess = images.slice(0, 10); // ✅ 최대 10개 이미지만 처리 (타임아웃 방지)
+      // ✅ 개선: 모든 이미지 처리 (타임아웃 발생 시 일부만 처리)
+      // 이미지가 많을 경우 타임아웃 방지를 위해 시간 체크
+      const imagesToProcess = images; // ✅ 모든 이미지 처리 (타임아웃 시 일부만 처리)
       
-      for (const img of imagesToProcess) {
+      console.log(`📊 블로그 글 "${post.title}" 이미지 처리 시작: ${images.length}개`);
+      
+      for (let i = 0; i < imagesToProcess.length; i++) {
+        const img = imagesToProcess[i];
         // 타임아웃 체크
         if ((Date.now() - startTime) >= maxSearchTime) {
-          console.warn(`⚠️ 이미지 검색 타임아웃: ${imagesToProcess.indexOf(img)}/${imagesToProcess.length}개 처리 완료`);
+          console.warn(`⚠️ 이미지 검색 타임아웃: ${i + 1}/${imagesToProcess.length}개 처리 완료 (${storageImages.length}개 찾음)`);
+          console.warn(`   남은 ${imagesToProcess.length - i - 1}개 이미지는 타임아웃으로 인해 처리하지 못했습니다.`);
           break;
         }
         
@@ -242,9 +247,15 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         }
       }
       
-      // 처리하지 못한 이미지가 있으면 경고
-      if (images.length > imagesToProcess.length) {
-        console.warn(`⚠️ 이미지 일부만 처리: ${storageImages.length}/${images.length}개 (타임아웃 방지)`);
+      // 처리 결과 로그
+      console.log(`📊 이미지 처리 완료: ${storageImages.length}/${images.length}개 찾음`);
+      if (storageImages.length < images.length) {
+        console.warn(`⚠️ 일부 이미지를 찾지 못했습니다: ${images.length - storageImages.length}개 누락`);
+        const foundUrls = storageImages.map(img => img.url);
+        const missingUrls = images.filter(img => !foundUrls.includes(img.url));
+        missingUrls.forEach(missing => {
+          console.warn(`   - 누락: ${missing.url}`);
+        });
       }
       
       results.push({

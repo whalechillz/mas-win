@@ -92,7 +92,34 @@ npm run dev
 
 ## 🧪 테스트 방법
 
-### 로컬 테스트
+### 로컬 개발 환경 테스트
+
+#### 이미지 갤러리 및 블로그 이미지 정리 테스트
+
+로컬에서 이미지 정렬 및 메타데이터 동기화 기능을 테스트하려면:
+
+1. **환경 변수 설정** (`.env.local`)
+   ```bash
+   ALLOW_LOCAL_API_TEST=true
+   ```
+
+2. **자동 테스트 실행**
+   ```bash
+   bash test-local-playwright.sh
+   ```
+
+3. **수동 테스트**
+   ```bash
+   npm run dev
+   # 다른 터미널에서
+   node playwright-blog-image-check-local.js
+   ```
+
+**⚠️ 주의**: 이 설정은 로컬(localhost)에서만 작동하며, 프로덕션에서는 자동으로 무시됩니다.
+
+자세한 내용: [로컬 테스트 가이드](docs/local-testing.md)
+
+### 기타 로컬 테스트
 ```bash
 curl -X POST http://localhost:3000/api/test-sms/ \
   -H "Content-Type: application/json" \
