@@ -184,13 +184,26 @@ export default async function handler(req, res) {
         };
       });
 
+      // URL 정규화 함수 (도메인 제거, 경로만 비교)
+      const normalizeUrl = (url) => {
+        if (!url) return '';
+        try {
+          const urlObj = new URL(url);
+          return urlObj.pathname;
+        } catch {
+          return url;
+        }
+      };
+
       // 모든 URL을 한 번에 조회하여 메타데이터 가져오기
       // 주의: image_metadata 테이블 스키마에 맞춰 컬럼 조회
       const urls = imageUrls.map(item => item.url);
+      const normalizedUrls = urls.map(url => normalizeUrl(url));
+      
+      // URL과 file_name 기준으로 메타데이터 조회
       const { data: allMetadata } = await supabase
         .from('image_metadata')
-        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
-        .in('image_url', urls);
+        .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status');
 
       // 카테고리 매핑 (category_id -> 카테고리 이름)
       const categoryIdMap = new Map();
@@ -209,17 +222,44 @@ export default async function handler(req, res) {
         }
       }
 
-      // 메타데이터를 URL 기준으로 매핑
+      // 메타데이터를 URL 및 file_name 기준으로 매핑
       const metadataMap = new Map();
+      const metadataByFileName = new Map();
+      
       if (allMetadata) {
         allMetadata.forEach(meta => {
-          metadataMap.set(meta.image_url, meta);
+          // URL 기준 매핑 (정규화된 URL)
+          if (meta.image_url) {
+            const normalizedMetaUrl = normalizeUrl(meta.image_url);
+            metadataMap.set(meta.image_url, meta);
+            metadataMap.set(normalizedMetaUrl, meta);
+          }
+          
+          // file_name 기준 매핑 (폴백용)
+          if (meta.file_name) {
+            metadataByFileName.set(meta.file_name, meta);
+          }
         });
       }
 
-      // 이미지 데이터 생성
+      // 이미지 데이터 생성 (URL 매칭 개선: 정규화된 URL 및 file_name 폴백)
       const imagesWithUrl = imageUrls.map(({ file, url, fullPath }) => {
-        const metadata = metadataMap.get(url);
+        // 1차: 정확한 URL 매칭
+        let metadata = metadataMap.get(url);
+        
+        // 2차: 정규화된 URL 매칭 (도메인 제거)
+        if (!metadata) {
+          const normalizedUrl = normalizeUrl(url);
+          metadata = metadataMap.get(normalizedUrl);
+        }
+        
+        // 3차: file_name 기반 폴백 매칭
+        if (!metadata) {
+          metadata = metadataByFileName.get(file.name);
+        }
+        
+        // 메타데이터가 없을 경우 기본값 설정
+        const defaultTitle = metadata?.title || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
         
         return {
           id: file.id,
@@ -229,8 +269,8 @@ export default async function handler(req, res) {
           updated_at: file.updated_at,
           url: url,
           folder_path: file.folderPath || '',
-          alt_text: metadata?.alt_text || '',
-          title: metadata?.title || '',
+          alt_text: metadata?.alt_text || defaultTitle,
+          title: defaultTitle,
           description: metadata?.description || '',
           keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
           // category는 category_id를 기반으로 카테고리 이름 반환 (하위 호환성)
@@ -240,7 +280,9 @@ export default async function handler(req, res) {
           categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
           usage_count: metadata?.usage_count || 0,
           upload_source: metadata?.upload_source || 'manual',
-          status: metadata?.status || 'active'
+          status: metadata?.status || 'active',
+          // 메타데이터 존재 여부 표시 (UI에서 "메타데이터 없음" 표시용)
+          has_metadata: !!metadata
         };
       });
 

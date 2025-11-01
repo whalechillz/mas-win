@@ -26,6 +26,8 @@ interface ImageMetadata {
   width?: number;
   height?: number;
   optimized_versions?: any;
+  // 메타데이터 존재 여부 (API에서 제공)
+  has_metadata?: boolean;
 }
 
 export default function GalleryAdmin() {
@@ -86,6 +88,11 @@ export default function GalleryAdmin() {
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
+  
+  // 메타데이터 동기화 상태
+  const [isSyncingMetadata, setIsSyncingMetadata] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<{ total: number; missing: number; processed: number } | null>(null);
+  const [syncStatus, setSyncStatus] = useState<string>('');
   
   // 폴더 목록 계산
   const availableFolders = useMemo(() => {
@@ -524,7 +531,9 @@ export default function GalleryAdmin() {
             folder_path: img.folder_path || inferredFolder,
             is_featured: img.is_featured || false,
             usage_count: img.usage_count || 0,
-            used_in_posts: img.used_in_posts || []
+            used_in_posts: img.used_in_posts || [],
+            // 메타데이터 존재 여부 (API에서 제공되는 경우)
+            has_metadata: img.has_metadata !== false
           };
         });
         
@@ -1276,7 +1285,7 @@ export default function GalleryAdmin() {
                 <h1 className="text-2xl font-bold text-gray-900">🖼️ 이미지 갤러리 관리</h1>
                 <p className="text-sm text-gray-600 mt-1">이미지 메타데이터 관리 및 최적화</p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 relative">
                 <Link 
                   href="/admin/blog"
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
@@ -1296,6 +1305,140 @@ export default function GalleryAdmin() {
               <button onClick={()=>{
                 setFolderModalOpen(true);
               }} className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm">📁 폴더 관리</button>
+              <div className="relative">
+              <button
+                onClick={async () => {
+                  if (isSyncingMetadata) return;
+                  
+                  setIsSyncingMetadata(true);
+                  setSyncStatus('누락된 메타데이터 확인 중...');
+                  setSyncProgress(null);
+                  
+                  try {
+                    // 1단계: 누락된 메타데이터 확인 (배치 모드)
+                    const checkResponse = await fetch('/api/admin/sync-missing-metadata', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ batch: true, limit: 100 })
+                    });
+                    
+                    if (!checkResponse.ok) {
+                      throw new Error('메타데이터 확인 실패');
+                    }
+                    
+                    const checkData = await checkResponse.json();
+                    setSyncProgress({
+                      total: checkData.total || 0,
+                      missing: checkData.missing || 0,
+                      processed: 0
+                    });
+                    
+                    if (checkData.missing === 0) {
+                      setSyncStatus('누락된 메타데이터가 없습니다.');
+                      setIsSyncingMetadata(false);
+                      alert('모든 이미지에 메타데이터가 있습니다.');
+                      return;
+                    }
+                    
+                    // 2단계: 사용자 확인
+                    const shouldProceed = confirm(
+                      `누락된 메타데이터 ${checkData.missing}개가 발견되었습니다.\n\nAI를 사용하여 메타데이터를 생성하시겠습니까?\n\n처리 시간이 소요될 수 있습니다.`
+                    );
+                    
+                    if (!shouldProceed) {
+                      setIsSyncingMetadata(false);
+                      setSyncStatus('');
+                      setSyncProgress(null);
+                      return;
+                    }
+                    
+                    // 3단계: 메타데이터 생성 및 저장 (한 번에 처리)
+                    setSyncStatus(`메타데이터 생성 중... (0/${checkData.missing})`);
+                    
+                    // 한 번에 처리할 개수 제한 (API 호출 제한 방지)
+                    const processLimit = Math.min(50, checkData.missing);
+                    
+                    const syncResponse = await fetch('/api/admin/sync-missing-metadata', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        batch: false, 
+                        limit: processLimit 
+                      })
+                    });
+                    
+                    if (!syncResponse.ok) {
+                      const errorData = await syncResponse.json();
+                      throw new Error(errorData.error || '메타데이터 생성 실패');
+                    }
+                    
+                    const syncData = await syncResponse.json();
+                    const processedCount = syncData.processed || 0;
+                    
+                    setSyncStatus(`동기화 완료: ${processedCount}개 처리`);
+                    setSyncProgress(prev => prev ? {
+                      ...prev,
+                      processed: processedCount
+                    } : null);
+                    
+                    // 갤러리 새로고침
+                    await fetchImages(1, true);
+                    
+                    const remaining = checkData.missing - processedCount;
+                    if (remaining > 0) {
+                      alert(`메타데이터 동기화 진행!\n\n처리된 이미지: ${processedCount}개\n남은 이미지: ${remaining}개\n\n남은 이미지는 다시 동기화 버튼을 눌러 처리하세요.`);
+                    } else {
+                      alert(`메타데이터 동기화 완료!\n\n처리된 이미지: ${processedCount}개`);
+                    }
+                    
+                  } catch (error) {
+                    console.error('메타데이터 동기화 오류:', error);
+                    setSyncStatus('동기화 실패');
+                    alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
+                  } finally {
+                    setIsSyncingMetadata(false);
+                    setTimeout(() => {
+                      setSyncStatus('');
+                      setSyncProgress(null);
+                    }, 5000);
+                  }
+                }}
+                disabled={isSyncingMetadata}
+                className={`px-4 py-2 rounded-lg text-sm ${
+                  isSyncingMetadata
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-orange-500 text-white hover:bg-orange-600'
+                }`}
+                title="Storage에 있는 이미지 중 메타데이터가 없는 이미지에 대해 AI로 메타데이터를 자동 생성합니다."
+              >
+                {isSyncingMetadata ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    {syncStatus || '동기화 중...'}
+                  </span>
+                ) : (
+                  '🔄 메타데이터 동기화'
+                )}
+              </button>
+              {syncProgress && (
+                <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                  <div className="text-sm text-gray-700 mb-2">
+                    {syncStatus}
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${syncProgress.missing > 0 ? (syncProgress.processed / syncProgress.missing) * 100 : 0}%`
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    전체: {syncProgress.total}개 | 누락: {syncProgress.missing}개 | 처리됨: {syncProgress.processed}개
+                  </div>
+                </div>
+              )}
+              </div>
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
             </div>
@@ -1602,6 +1745,12 @@ export default function GalleryAdmin() {
                       
                       {/* 이미지 정보 */}
                       <div className="p-3">
+                        {/* 메타데이터 없음 표시 */}
+                        {image.has_metadata === false && (
+                          <div className="mb-2 px-2 py-1 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            ⚠️ 메타데이터 없음
+                          </div>
+                        )}
                         {/* 폴더 경로 표시 */}
                         {image.folder_path && (
                           <div className="text-xs text-blue-600 mb-1 truncate" title={`폴더: ${image.folder_path}`}>
