@@ -125,21 +125,41 @@ export const useAIGeneration = () => {
       // 제목 길이 검증 및 보완 (25-60자 범위)
       let finalTitle = cleanAIText(title);
       
-      // 제목이 너무 짧으면 보완 (최소 25자 목표)
-      if (finalTitle.length < 25 && finalTitle.length > 0) {
-        // 제목을 더 자세하게 만들기 위해 설명이나 키워드 활용
-        const additionalInfo = `${keywords} ${description}`.trim().substring(0, 30);
-        if (additionalInfo) {
-          finalTitle = `${finalTitle} ${additionalInfo}`.trim();
+      // 제목이 너무 짧으면 강제로 보완 (최소 25자 목표)
+      if (finalTitle.length < 25) {
+        if (finalTitle.length === 0) {
+          // 제목이 비어있으면 키워드와 설명에서 생성
+          const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+          const firstKeywords = keywordsList.slice(0, 2).join(' ');
+          const descSnippet = description ? description.substring(0, 40).trim() : '';
+          finalTitle = firstKeywords && descSnippet 
+            ? `${firstKeywords} ${descSnippet}`.trim()
+            : (firstKeywords || descSnippet || '골프 이미지');
+        } else {
+          // 제목이 있지만 짧으면 설명이나 키워드로 보완
+          const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+          const additionalKeywords = keywordsList.slice(0, 2).join(', ');
+          const descSnippet = description ? description.substring(0, 30).trim() : '';
+          
+          if (additionalKeywords) {
+            finalTitle = `${finalTitle} - ${additionalKeywords}`.trim();
+          } else if (descSnippet) {
+            finalTitle = `${finalTitle} ${descSnippet}`.trim();
+          } else {
+            finalTitle = `${finalTitle} - 골프 전문 매장 MASSGOO`.trim();
+          }
+        }
+        
+        // 여전히 짧으면 추가 보완
+        if (finalTitle.length < 25) {
+          finalTitle = `${finalTitle} - 골프 전문 매장`.trim();
         }
       }
       
       // 최대 60자로 제한 (권장 범위 초과 방지)
       const processedTitle = finalTitle.length > 60 
         ? truncateText(finalTitle, 60)
-        : (finalTitle.length < 25 && finalTitle.length > 0 
-          ? finalTitle + ' - 골프 전문 매장'  // 최소 길이 보장을 위한 기본 텍스트 추가
-          : finalTitle);
+        : finalTitle;
 
       const result: AIGenerationResult = {
         success: true,
