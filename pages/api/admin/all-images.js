@@ -20,6 +20,79 @@ let imagesCache = new Map();
 let imagesCacheTimestamp = 0;
 const IMAGES_CACHE_DURATION = 5 * 60 * 1000; // 5분
 
+// ✅ 메타데이터 품질 검증 함수
+const hasQualityMetadata = (metadata) => {
+  if (!metadata) return false;
+  
+  // 의미 있는 메타데이터가 하나 이상 있는지 확인
+  const hasAltText = metadata.alt_text && metadata.alt_text.trim().length > 0;
+  const hasTitle = metadata.title && metadata.title.trim().length > 0;
+  const hasDescription = metadata.description && metadata.description.trim().length > 0;
+  const hasKeywords = metadata.tags && (
+    Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
+  );
+  
+  return hasAltText || hasTitle || hasDescription || hasKeywords;
+};
+
+// ✅ 메타데이터 품질 점수 계산 함수 (0-100점)
+const calculateMetadataQualityScore = (metadata) => {
+  if (!metadata) return 0;
+  
+  let score = 0;
+  
+  if (metadata.alt_text && metadata.alt_text.trim().length > 0) {
+    score += 25; // ALT 텍스트 있음
+  }
+  
+  if (metadata.title && metadata.title.trim().length > 0) {
+    score += 25; // 제목 있음
+  }
+  
+  if (metadata.description && metadata.description.trim().length > 0) {
+    score += 25; // 설명 있음
+  }
+  
+  const hasKeywords = metadata.tags && (
+    Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
+  );
+  if (hasKeywords) {
+    score += 25; // 키워드 있음
+  }
+  
+  return score;
+};
+
+// ✅ 메타데이터 품질 이슈 목록 생성
+const getMetadataQualityIssues = (metadata) => {
+  const issues = [];
+  
+  if (!metadata) {
+    return ['메타데이터 없음'];
+  }
+  
+  if (!metadata.alt_text || metadata.alt_text.trim().length === 0) {
+    issues.push('ALT 텍스트 없음');
+  }
+  
+  if (!metadata.title || metadata.title.trim().length === 0) {
+    issues.push('제목 없음');
+  }
+  
+  if (!metadata.description || metadata.description.trim().length === 0) {
+    issues.push('설명 없음');
+  }
+  
+  const hasKeywords = metadata.tags && (
+    Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
+  );
+  if (!hasKeywords) {
+    issues.push('키워드 없음');
+  }
+  
+  return issues.length > 0 ? issues : ['품질 양호'];
+};
+
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
@@ -287,6 +360,11 @@ export default async function handler(req, res) {
       const imagesWithUrl = imageUrls.map(({ file, url, fullPath }) => {
         const metadata = metadataMap.get(url);
         
+        // ✅ 메타데이터 품질 검증
+        const hasQualityMeta = hasQualityMetadata(metadata);
+        const qualityScore = calculateMetadataQualityScore(metadata);
+        const qualityIssues = getMetadataQualityIssues(metadata);
+        
         return {
           id: file.id,
           name: file.name,
@@ -306,7 +384,20 @@ export default async function handler(req, res) {
           categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
           usage_count: metadata?.usage_count || 0,
           upload_source: metadata?.upload_source || 'manual',
-          status: metadata?.status || 'active'
+          status: metadata?.status || 'active',
+          // ✅ 메타데이터 품질 정보 추가
+          has_metadata: !!metadata,
+          has_quality_metadata: hasQualityMeta,  // 의미 있는 메타데이터 존재 여부
+          metadata_quality: {
+            score: qualityScore,  // 0-100점
+            has_alt_text: !!(metadata?.alt_text && metadata.alt_text.trim().length > 0),
+            has_title: !!(metadata?.title && metadata.title.trim().length > 0),
+            has_description: !!(metadata?.description && metadata.description.trim().length > 0),
+            has_keywords: !!(metadata?.tags && (
+              Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
+            )),
+            issues: qualityIssues  // 품질 이슈 목록
+          }
         };
       });
 
