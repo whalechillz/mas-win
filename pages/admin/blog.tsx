@@ -727,6 +727,89 @@ export default function BlogAdmin() {
     }
   };
 
+  // ✅ 블로그 글별 이미지 정렬 함수
+  const handleOrganizeImages = async (post) => {
+    if (!confirm(`"${post.title}"의 이미지를 폴더로 정렬하시겠습니까?\n\n이미지를 blog-${post.slug || post.id} 폴더로 이동합니다.`)) {
+      return;
+    }
+    
+    setOrganizingImages(prev => ({ ...prev, [post.id]: true }));
+    
+    try {
+      // 1. 이미지 정렬 정보 조회
+      const checkResponse = await fetch(`/api/admin/organize-images-by-blog?blogPostId=${post.id}`);
+      if (!checkResponse.ok) {
+        throw new Error('이미지 정렬 정보 조회 실패');
+      }
+      
+      const checkData = await checkResponse.json();
+      const imageCount = checkData.results[0]?.totalImages || 0;
+      
+      if (imageCount === 0) {
+        alert('이 블로그 글에 연결된 이미지가 없습니다.');
+        setOrganizingImages(prev => ({ ...prev, [post.id]: false }));
+        return;
+      }
+      
+      // 2. 실제로 이미지 이동
+      const moveResponse = await fetch('/api/admin/organize-images-by-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blogPostId: post.id, moveImages: true })
+      });
+      
+      if (!moveResponse.ok) {
+        throw new Error('이미지 이동 실패');
+      }
+      
+      const moveData = await moveResponse.json();
+      const movedCount = moveData.summary?.moved || 0;
+      const skippedCount = moveData.summary?.skipped || 0;
+      
+      alert(`✅ 이미지 정렬 완료!\n\n이동: ${movedCount}개\n스킵: ${skippedCount}개`);
+      
+    } catch (error) {
+      console.error('❌ 이미지 정렬 오류:', error);
+      alert(`이미지 정렬 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setOrganizingImages(prev => ({ ...prev, [post.id]: false }));
+    }
+  };
+  
+  // ✅ 블로그 글별 메타데이터 동기화 함수
+  const handleSyncMetadata = async (post) => {
+    if (!confirm(`"${post.title}"의 이미지 메타데이터를 동기화하시겠습니까?\n\nAI로 메타데이터를 생성합니다.`)) {
+      return;
+    }
+    
+    setSyncingMetadata(prev => ({ ...prev, [post.id]: true }));
+    
+    try {
+      const response = await fetch('/api/admin/sync-metadata-by-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blogPostId: post.id })
+      });
+      
+      if (!response.ok) {
+        throw new Error('메타데이터 동기화 실패');
+      }
+      
+      const data = await response.json();
+      const processed = data.summary?.processed || 0;
+      const skipped = data.summary?.skipped || 0;
+      const errors = data.summary?.errors || 0;
+      
+      alert(`✅ 메타데이터 동기화 완료!\n\n처리: ${processed}개\n스킵: ${skipped}개\n오류: ${errors}개`);
+      
+    } catch (error) {
+      console.error('❌ 메타데이터 동기화 오류:', error);
+      alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setSyncingMetadata(prev => ({ ...prev, [post.id]: false }));
+    }
+  };
+  
   // 허브 동기화 함수
   const handleHubSync = async (post) => {
     try {
@@ -5410,6 +5493,43 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                           >
                             <span>📥</span>
                             <span>다운로드</span>
+                          </button>
+                          {/* ✅ 블로그 글별 이미지 관리 버튼 */}
+                          <button
+                            onClick={() => handleOrganizeImages(post)}
+                            disabled={organizingImages[post.id]}
+                            className="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                            title="블로그 글별 이미지 폴더 정렬"
+                          >
+                            {organizingImages[post.id] ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                <span>정렬 중...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📁</span>
+                                <span>이미지 정렬</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleSyncMetadata(post)}
+                            disabled={syncingMetadata[post.id]}
+                            className="bg-teal-500 text-white px-3 py-1 rounded text-sm hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                            title="블로그 글별 메타데이터 동기화"
+                          >
+                            {syncingMetadata[post.id] ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                <span>동기화 중...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🔄</span>
+                                <span>메타 동기화</span>
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
