@@ -229,9 +229,9 @@ export default async function handler(req, res) {
       
       // 카테고리 필수 입력 검증 (완화)
       if (categoriesArray.length === 0 && (!category || category.trim() === '')) {
-        console.warn('⚠️ 카테고리가 선택되지 않았습니다. 기본값으로 설정합니다.');
-        // 카테고리가 없으면 기본값으로 설정
-        categoryId = 5; // '기타' 카테고리
+        console.warn('⚠️ 카테고리가 선택되지 않았습니다. category_id를 NULL로 설정합니다.');
+        // 카테고리가 없으면 NULL로 설정 (외래키 제약이 없는 경우)
+        categoryId = null;
       }
       
       // 경고만 표시하고 저장은 허용 (SEO 최적화는 권장사항)
@@ -241,17 +241,21 @@ export default async function handler(req, res) {
       }
 
       // 데이터베이스에 메타데이터 저장/업데이트
+      // 주의: image_metadata 테이블 스키마에는 file_name, category 컬럼이 없음
+      // image_url이 UNIQUE이므로 image_url로만 조회/업데이트
       const metadataData = {
         image_url: imageUrl,
         alt_text: alt_text || '',
-        tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
+        tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []),
         title: title || '',
         description: description || '',
-        category_id: categoryId,
-        // categories 배열은 문자열로 저장 (하위 호환성: 기존 category 필드에 저장)
-        category: categoryString || null,
         updated_at: new Date().toISOString()
       };
+      
+      // category_id는 NULL일 수 있으므로 있을 때만 추가
+      if (categoryId !== null && categoryId !== undefined) {
+        metadataData.category_id = categoryId;
+      }
       
       console.log('📊 최종 저장 데이터:', {
         alt_text_length: metadataData.alt_text.length,
@@ -288,12 +292,17 @@ export default async function handler(req, res) {
             message: error.message,
             details: error.details,
             hint: error.hint,
-            code: error.code
+            code: error.code,
+            imageUrl: imageUrl,
+            fileName: fileName,
+            metadataData: JSON.stringify(metadataData, null, 2)
           });
           return res.status(500).json({ 
             error: '메타데이터 업데이트 실패', 
-            details: error.message,
-            code: error.code
+            details: error.message || '알 수 없는 오류',
+            code: error.code,
+            hint: error.hint,
+            imageUrl: imageUrl
           });
         }
         result = data;
@@ -301,12 +310,16 @@ export default async function handler(req, res) {
       } else {
         // 새 메타데이터 생성
         console.log('➕ 새 메타데이터 생성 중:', metadataData);
+        const insertData = {
+          ...metadataData,
+          created_at: new Date().toISOString()
+        };
+        
+        console.log('📤 INSERT 데이터:', JSON.stringify(insertData, null, 2));
+        
         const { data, error } = await supabase
           .from('image_metadata')
-          .insert([{
-            ...metadataData,
-            created_at: new Date().toISOString()
-          }])
+          .insert([insertData])
           .select()
           .single();
         
@@ -316,12 +329,17 @@ export default async function handler(req, res) {
             message: error.message,
             details: error.details,
             hint: error.hint,
-            code: error.code
+            code: error.code,
+            imageUrl: imageUrl,
+            fileName: fileName,
+            insertData: JSON.stringify(insertData, null, 2)
           });
           return res.status(500).json({ 
             error: '메타데이터 생성 실패', 
-            details: error.message,
-            code: error.code
+            details: error.message || '알 수 없는 오류',
+            code: error.code,
+            hint: error.hint,
+            imageUrl: imageUrl
           });
         }
         result = data;
