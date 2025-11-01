@@ -274,12 +274,13 @@ export default async function handler(req, res) {
               const fileName = pathParts[pathParts.length - 1];
               if (fileName) {
                 // 파일명 정규화 (.png.png 같은 중복 확장자 제거)
-                const normalizedFileName = fileName.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
-                if (!metadataByFileName.has(fileName) && !metadataByFileName.has(normalizedFileName)) {
+                // 예: golf-driver-male-massgoo-395.png.png -> golf-driver-male-massgoo-395.png
+                const normalizedFileName = fileName.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
+                if (!metadataByFileName.has(fileName)) {
                   metadataByFileName.set(fileName, meta);
-                  if (normalizedFileName !== fileName) {
-                    metadataByFileName.set(normalizedFileName, meta);
-                  }
+                }
+                if (normalizedFileName !== fileName && !metadataByFileName.has(normalizedFileName)) {
+                  metadataByFileName.set(normalizedFileName, meta);
                 }
               }
             } catch (e) {
@@ -289,7 +290,8 @@ export default async function handler(req, res) {
           
           // file_name 기준 매핑 (직접 매칭)
           if (meta.file_name) {
-            const normalizedFileName = meta.file_name.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
+            // 파일명 정규화 (.png.png 같은 중복 확장자 제거)
+            const normalizedFileName = meta.file_name.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
             if (!metadataByFileName.has(meta.file_name)) {
               metadataByFileName.set(meta.file_name, meta);
             }
@@ -323,7 +325,7 @@ export default async function handler(req, res) {
             const fileName = pathParts[pathParts.length - 1];
             if (fileName) {
               // 파일명 정규화 (.png.png 같은 중복 확장자 제거)
-              const normalizedFileName = fileName.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
+              const normalizedFileName = fileName.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
               metadata = metadataByFileName.get(fileName) || metadataByFileName.get(normalizedFileName);
             }
           } catch (e) {
@@ -333,7 +335,7 @@ export default async function handler(req, res) {
         
         // 4차: file_name 기반 직접 매칭 (파일명 정규화 포함)
         if (!metadata) {
-          const normalizedFileFileName = file.name.replace(/\.(png|jpg|jpeg|gif|webp)\1+$/i, (match, ext) => `.${ext}`);
+          const normalizedFileFileName = file.name.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
           metadata = metadataByFileName.get(file.name) || metadataByFileName.get(normalizedFileFileName);
         }
         
