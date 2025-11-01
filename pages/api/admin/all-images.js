@@ -44,23 +44,42 @@ export default async function handler(req, res) {
       const getAllImagesRecursively = async (folderPath = '') => {
           console.log(`📁 폴더 조회 중: ${folderPath || '루트'}`);
           
-          // Supabase Storage .list()는 기본적으로 limit이 1000개로 제한됨
-          // 모든 파일을 가져오기 위해 limit을 명시적으로 설정
-          const { data: files, error } = await supabase.storage
-            .from('blog-images')
-            .list(folderPath, {
-              limit: 10000,  // ✅ 충분히 큰 limit 설정 (모든 파일 조회)
-              sortBy: { column: 'created_at', order: 'desc' }
-            });
+          // Supabase Storage .list()는 기본적으로 한 번에 1000개까지만 반환
+          // 모든 파일을 가져오기 위해 배치 조회 (offset 사용)
+          let offset = 0;
+          const batchSize = 1000;  // 한 번에 가져올 파일 수
+          let allFilesInFolder = [];
+          
+          while (true) {
+            const { data: files, error } = await supabase.storage
+              .from('blog-images')
+              .list(folderPath, {
+                limit: batchSize,
+                offset: offset,
+                sortBy: { column: 'created_at', order: 'desc' }
+              });
 
-          if (error) {
-            console.error(`❌ 폴더 조회 에러 (${folderPath}):`, error);
-            return;
+            if (error) {
+              console.error(`❌ 폴더 조회 에러 (${folderPath}, offset: ${offset}):`, error);
+              break;
+            }
+
+            if (!files || files.length === 0) {
+              break;  // 더 이상 파일이 없음
+            }
+
+            allFilesInFolder = allFilesInFolder.concat(files);
+            offset += batchSize;
+
+            // 마지막 배치면 종료
+            if (files.length < batchSize) {
+              break;
+            }
           }
 
-          if (!files) return;
+          console.log(`✅ 폴더 조회 완료 (${folderPath || '루트'}): ${allFilesInFolder.length}개 파일/폴더`);
 
-          for (const file of files) {
+          for (const file of allFilesInFolder) {
             if (!file.id) {
               // 폴더인 경우 재귀적으로 조회
               const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
@@ -105,23 +124,40 @@ export default async function handler(req, res) {
         
         // 재귀적으로 모든 폴더의 이미지 조회 (페이지네이션용)
         const getAllImagesForPagination = async (folderPath = '') => {
-          // Supabase Storage .list()는 기본적으로 limit이 1000개로 제한됨
-          // 모든 파일을 가져오기 위해 limit을 명시적으로 설정
-          const { data: files, error } = await supabase.storage
-            .from('blog-images')
-            .list(folderPath, {
-              limit: 10000,  // ✅ 충분히 큰 limit 설정 (모든 파일 조회)
-              sortBy: { column: 'created_at', order: 'desc' }
-            });
+          // Supabase Storage .list()는 기본적으로 한 번에 1000개까지만 반환
+          // 모든 파일을 가져오기 위해 배치 조회 (offset 사용)
+          let offset = 0;
+          const batchSize = 1000;  // 한 번에 가져올 파일 수
+          let allFilesInFolder = [];
+          
+          while (true) {
+            const { data: files, error } = await supabase.storage
+              .from('blog-images')
+              .list(folderPath, {
+                limit: batchSize,
+                offset: offset,
+                sortBy: { column: 'created_at', order: 'desc' }
+              });
 
-          if (error) {
-            console.error(`❌ 폴더 조회 에러 (${folderPath}):`, error);
-            return;
+            if (error) {
+              console.error(`❌ 폴더 조회 에러 (${folderPath}, offset: ${offset}):`, error);
+              break;
+            }
+
+            if (!files || files.length === 0) {
+              break;  // 더 이상 파일이 없음
+            }
+
+            allFilesInFolder = allFilesInFolder.concat(files);
+            offset += batchSize;
+
+            // 마지막 배치면 종료
+            if (files.length < batchSize) {
+              break;
+            }
           }
 
-          if (!files) return;
-
-          for (const file of files) {
+          for (const file of allFilesInFolder) {
             if (!file.id) {
               // 폴더인 경우 재귀적으로 조회
               const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
@@ -146,14 +182,28 @@ export default async function handler(req, res) {
         if (shouldIncludeChildren) {
           await getAllImagesForPagination(prefix || '');
         } else {
-          // 현재 폴더만(하위 미포함)
-          const { data: files, error } = await supabase.storage
-            .from('blog-images')
-            .list(prefix || '', { 
-              limit: 10000,  // ✅ 충분히 큰 limit 설정 (모든 파일 조회)
-              sortBy: { column: 'created_at', order: 'desc' } 
-            });
-          if (!error && files) {
+          // 현재 폴더만(하위 미포함) - 배치 조회로 모든 파일 가져오기
+          let offset = 0;
+          const batchSize = 1000;
+          
+          while (true) {
+            const { data: files, error } = await supabase.storage
+              .from('blog-images')
+              .list(prefix || '', { 
+                limit: batchSize,
+                offset: offset,
+                sortBy: { column: 'created_at', order: 'desc' } 
+              });
+            
+            if (error) {
+              console.error(`❌ 폴더 조회 에러 (${prefix || '루트'}, offset: ${offset}):`, error);
+              break;
+            }
+            
+            if (!files || files.length === 0) {
+              break;  // 더 이상 파일이 없음
+            }
+            
             for (const file of files) {
               if (file.id) {
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
@@ -162,6 +212,13 @@ export default async function handler(req, res) {
                   allFilesForPagination.push({ ...file, folderPath: prefix || '' });
                 }
               }
+            }
+            
+            offset += batchSize;
+            
+            // 마지막 배치면 종료
+            if (files.length < batchSize) {
+              break;
             }
           }
         }
