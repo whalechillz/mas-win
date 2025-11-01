@@ -113,16 +113,19 @@ export default async function handler(req, res) {
     }
 
     // 3. 메타데이터 업데이트
+    // 주의: image_metadata 테이블에는 file_name 컬럼이 없고 image_url만 있음
     let metadataUpdated = 0;
     if (movedFiles.length > 0) {
       for (const movedFile of movedFiles) {
+        const oldImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${movedFile.oldPath}`;
+        const newImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${movedFile.newPath}`;
+        
         const { error: metadataError } = await supabase
           .from('image_metadata')
           .update({
-            file_name: movedFile.newPath,
-            image_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${movedFile.newPath}`
+            image_url: newImageUrl
           })
-          .like('file_name', `%${movedFile.oldPath}%`);
+          .eq('image_url', oldImageUrl);
 
         if (metadataError) {
           console.warn('⚠️ 메타데이터 업데이트 실패:', movedFile.fileName, metadataError);
