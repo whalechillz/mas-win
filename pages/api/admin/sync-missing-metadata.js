@@ -265,11 +265,21 @@ const findMissingMetadata = async (storageImages) => {
     for (let i = 0; i < storageImages.length; i += batchSize) {
       const batch = storageImages.slice(i, i + batchSize);
       const batchMissing = batch.filter(img => {
-        const normalizedUrl = normalizeUrl(img.url);
-        const fileName = img.name;
-        
-        // URL이나 파일명 기준으로 메타데이터가 없는 경우
-        return !existingUrls.has(normalizedUrl) && !existingFileNames.has(fileName);
+        try {
+          const normalizedUrl = normalizeUrl(img.url);
+          const fileName = img.name || img.url?.split('/').pop()?.split('?')[0] || '';
+          
+          // ✅ URL 기준으로 먼저 확인, 없으면 파일명으로 확인
+          const hasUrlMatch = existingUrls.has(normalizedUrl);
+          const hasFileNameMatch = fileName && existingFileNames.has(fileName);
+          
+          // 메타데이터가 없는 경우 (URL도 파일명도 매칭 안됨)
+          return !hasUrlMatch && !hasFileNameMatch;
+        } catch (error) {
+          console.error(`❌ 이미지 필터링 오류 (${img.name}):`, error);
+          // 에러 발생 시 해당 이미지는 누락된 것으로 간주
+          return true;
+        }
       });
       
       missingMetadata.push(...batchMissing);
