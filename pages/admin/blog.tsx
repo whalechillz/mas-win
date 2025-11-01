@@ -687,6 +687,10 @@ export default function BlogAdmin() {
     hubId: null
   });
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // ✅ 블로그 글별 이미지 관리 상태
+  const [organizingImages, setOrganizingImages] = useState<{[key: string]: boolean}>({});
+  const [syncingMetadata, setSyncingMetadata] = useState<{[key: string]: boolean}>({});
 
   // 편집 모드 감지 함수
   const isEditMode = () => {
