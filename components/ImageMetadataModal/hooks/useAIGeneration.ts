@@ -117,8 +117,8 @@ export const useAIGeneration = () => {
         description = cleanAIText(data.prompt || '');
       }
 
-      // 카테고리 자동 선택
-      const selectedCategory = determineCategory(altText, keywords, title, description);
+      // 카테고리 자동 선택 (다중 선택)
+      const selectedCategories = determineCategory(altText, keywords, title, description);
 
       const result: AIGenerationResult = {
         success: true,
@@ -127,7 +127,8 @@ export const useAIGeneration = () => {
           keywords,
           title: truncateText(title, 30), // 제목을 30자로 제한
           description: truncateText(altText, 160), // 설명을 160자로 제한
-          category: selectedCategory
+          category: selectedCategories.join(','),  // 하위 호환성: 문자열로 변환
+          categories: selectedCategories  // 다중 선택용: 배열로 저장
         }
       };
 
@@ -175,19 +176,34 @@ export const useAIGeneration = () => {
         const data = await response.json();
         const cleanedText = cleanAIText(data.prompt || '');
         
-        // 필드별 길이 제한 적용
-        let processedText = cleanedText;
-        if (field === 'title') {
-          processedText = truncateText(cleanedText, 30);
-        } else if (field === 'alt_text') {
-          processedText = truncateText(cleanedText, 125);
-        } else if (field === 'description') {
-          processedText = truncateText(cleanedText, 160);
+        // 필드별 처리
+        let resultData: Partial<MetadataForm> = {};
+        
+        if (field === 'category') {
+          // 카테고리 필드는 여러 메타데이터를 활용하여 결정
+          // 단일 필드 생성에서는 현재 필드 값만 사용할 수 없으므로, 
+          // 전체 메타데이터 생성을 권장하거나 기본값 사용
+          const selectedCategories = determineCategory(cleanedText, cleanedText, cleanedText, cleanedText);
+          resultData = {
+            category: selectedCategories.join(','),
+            categories: selectedCategories
+          };
+        } else {
+          // 필드별 길이 제한 적용
+          let processedText = cleanedText;
+          if (field === 'title') {
+            processedText = truncateText(cleanedText, 30);
+          } else if (field === 'alt_text') {
+            processedText = truncateText(cleanedText, 125);
+          } else if (field === 'description') {
+            processedText = truncateText(cleanedText, 160);
+          }
+          resultData = { [field]: processedText };
         }
         
         const result: AIGenerationResult = {
           success: true,
-          data: { [field]: processedText }
+          data: resultData
         };
         
         setGenerationHistory(prev => [...prev, result]);
@@ -244,21 +260,47 @@ const cleanAIText = (text: string): string => {
     .trim();
 };
 
-// 카테고리 자동 결정
-const determineCategory = (altText: string, keywords: string, title: string, description: string): string => {
+// 카테고리 자동 결정 (다중 선택 지원)
+const determineCategory = (altText: string, keywords: string, title: string, description: string): string[] => {
   const combinedText = `${altText} ${keywords} ${title} ${description}`.toLowerCase();
+  const selectedCategories: string[] = [];
   
-  if (combinedText.includes('골프') || combinedText.includes('golf')) {
-    return '골프';
-  } else if (combinedText.includes('장비') || combinedText.includes('equipment') || combinedText.includes('클럽') || combinedText.includes('드라이버')) {
-    return '장비';
-  } else if (combinedText.includes('코스') || combinedText.includes('course') || combinedText.includes('골프장')) {
-    return '코스';
-  } else if (combinedText.includes('이벤트') || combinedText.includes('event') || combinedText.includes('대회')) {
-    return '이벤트';
-  } else {
-    return '기타';
+  // 골프코스 관련
+  if (combinedText.includes('코스') || combinedText.includes('course') || combinedText.includes('골프장')) {
+    selectedCategories.push('골프코스');
   }
+  
+  // 골퍼 연령대
+  if (combinedText.includes('젊은') || combinedText.includes('young') || combinedText.includes('청년') || combinedText.includes('20대') || combinedText.includes('30대')) {
+    selectedCategories.push('젊은 골퍼');
+  }
+  if (combinedText.includes('시니어') || combinedText.includes('senior') || combinedText.includes('50대') || combinedText.includes('60대') || combinedText.includes('중년')) {
+    selectedCategories.push('시니어 골퍼');
+  }
+  
+  // 스윙
+  if (combinedText.includes('스윙') || combinedText.includes('swing') || combinedText.includes('타격') || combinedText.includes('연습')) {
+    selectedCategories.push('스윙');
+  }
+  
+  // 장비
+  if (combinedText.includes('장비') || combinedText.includes('equipment') || combinedText.includes('클럽') || combinedText.includes('아이언')) {
+    selectedCategories.push('장비');
+  }
+  
+  // 드라이버
+  if (combinedText.includes('드라이버') || combinedText.includes('driver')) {
+    selectedCategories.push('드라이버');
+  }
+  
+  // 드라이버샷 (드라이버 타격 장면)
+  if ((combinedText.includes('드라이버') || combinedText.includes('driver')) && 
+      (combinedText.includes('타격') || combinedText.includes('샷') || combinedText.includes('shot') || combinedText.includes('타구'))) {
+    selectedCategories.push('드라이버샷');
+  }
+  
+  // 기본값: 아무것도 매칭되지 않으면 빈 배열 반환 (또는 '기타' 추가 가능)
+  return selectedCategories.length > 0 ? selectedCategories : [];
 };
 
 // 필드별 프롬프트 생성

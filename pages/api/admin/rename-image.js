@@ -131,6 +131,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: '파일명이 성공적으로 변경되었습니다.',
+      newName: newFilePath,  // 하위 호환성 유지
+      newUrl: urlData.publicUrl,  // 하위 호환성 유지
       data: {
         oldFileName: currentPath,
         newFileName: newFilePath,

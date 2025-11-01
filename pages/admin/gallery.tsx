@@ -788,8 +788,9 @@ export default function GalleryAdmin() {
         }
         
         const renameResult = await renameResponse.json();
-        const finalFileName = renameResult.newName || editForm.filename;
-        const newUrl = renameResult.newUrl;
+        // API 응답 형식: { success: true, data: { newFileName, newUrl } }
+        const finalFileName = renameResult.data?.newFileName || renameResult.newName || editForm.filename;
+        const newUrl = renameResult.data?.newUrl || renameResult.newUrl;
         
         console.log('✅ 파일명 변경 완료:', {
           oldName: image.name,
@@ -812,6 +813,12 @@ export default function GalleryAdmin() {
         setEditingImage(finalFileName);
       }
 
+      // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
+      const categoryValue = typeof editForm.category === 'string' ? editForm.category : String(editForm.category || '');
+      const categoriesArray = (editForm as any).categories || 
+        (categoryValue ? categoryValue.split(',').map((c: string) => c.trim()).filter((c: string) => c) : []);
+      const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : categoryValue;
+      
       const requestData = {
         imageName: editForm.filename || image.name,  // 실제 데이터베이스의 파일명 사용
         imageUrl: image.url,  // URL은 파일명 변경 시 이미 업데이트됨
@@ -819,7 +826,8 @@ export default function GalleryAdmin() {
         keywords: keywords,
         title: editForm.title,
         description: editForm.description,
-        category: editForm.category
+        category: categoryString,  // 하위 호환성: 문자열로 전송
+        categories: categoriesArray  // 다중 선택: 배열로 전송
       };
       
       console.log('📤 저장 요청 데이터:', requestData);
@@ -1765,6 +1773,11 @@ export default function GalleryAdmin() {
           try {
             // 메타데이터 저장 시작
             
+            // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
+            const categoriesArray = (metadata as any).categories || 
+              (metadata.category ? metadata.category.split(',').map((c: string) => c.trim()).filter((c: string) => c) : []);
+            const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : metadata.category || '';
+            
             const requestData = {
               imageName: metadata.filename || image.name,
               imageUrl: image.url,
@@ -1772,7 +1785,8 @@ export default function GalleryAdmin() {
               keywords: keywords,
               title: metadata.title,
               description: metadata.description,
-              category: metadata.category
+              category: categoryString,  // 하위 호환성: 문자열로 전송
+              categories: categoriesArray  // 다중 선택: 배열로 전송
             };
             
             console.log('📤 저장 요청 데이터:', requestData);
@@ -1860,10 +1874,14 @@ export default function GalleryAdmin() {
               const result = await response.json();
               console.log('✅ 파일명 변경 성공:', result);
               
+              // API 응답 형식: { success: true, data: { newFileName, newUrl } }
+              const newFileName = result.data?.newFileName || result.newName || newFilename;
+              const newUrl = result.data?.newUrl || result.newUrl;
+              
               // 로컬 상태 업데이트
               setImages(prev => prev.map(img => 
                 img.name === editingImage 
-                  ? { ...img, name: result.newName, url: result.newUrl }
+                  ? { ...img, name: newFileName, url: newUrl }
                   : img
               ));
               

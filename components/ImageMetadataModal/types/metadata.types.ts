@@ -21,7 +21,8 @@ export interface MetadataForm {
   keywords: string;
   title: string;
   description: string;
-  category: string;
+  category: string;  // 단일 선택용 (하위 호환성)
+  categories?: string[];  // 다중 선택용 (새로운 방식)
   filename: string;
 }
 
@@ -53,11 +54,12 @@ export interface AIGenerationOptions {
 export interface FieldConfig {
   label: string;
   placeholder: string;
-  type: 'text' | 'textarea' | 'select';
+  type: 'text' | 'textarea' | 'select' | 'checkbox';
   maxLength?: number;
   required?: boolean;
   aiEnabled?: boolean;
   seoOptimized?: boolean;
+  options?: Array<{ value: string; label: string }>;  // 체크박스용 옵션
 }
 
 export interface ModalState {

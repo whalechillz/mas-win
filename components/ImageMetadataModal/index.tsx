@@ -51,9 +51,18 @@ const FIELD_CONFIGS: Record<keyof MetadataForm, FieldConfig> = {
   category: {
     label: '카테고리',
     placeholder: '카테고리 선택',
-    type: 'select',
-    required: true,
-    aiEnabled: true
+    type: 'checkbox',
+    required: false,
+    aiEnabled: true,
+    options: [
+      { value: '골프코스', label: '골프코스' },
+      { value: '젊은 골퍼', label: '젊은 골퍼' },
+      { value: '시니어 골퍼', label: '시니어 골퍼' },
+      { value: '스윙', label: '스윙' },
+      { value: '장비', label: '장비' },
+      { value: '드라이버', label: '드라이버' },
+      { value: '드라이버샷', label: '드라이버샷' }
+    ]
   },
   filename: {
     label: '파일명',
@@ -77,6 +86,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     title: '',
     description: '',
     category: '',
+    categories: [],  // 다중 선택용
     filename: ''
   });
 
@@ -293,12 +303,18 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   // 이미지 변경 시 폼 초기화
   useEffect(() => {
     if (image) {
+      // 카테고리 처리: 문자열이면 배열로 변환, 이미 배열이면 그대로 사용
+      const imageCategories = Array.isArray(image.category) 
+        ? image.category 
+        : (image.category ? image.category.split(',').map(c => c.trim()).filter(c => c) : []);
+      
       const newForm: MetadataForm = {
         alt_text: image.alt_text || '',
         keywords: image.keywords?.join(', ') || '',
         title: image.title || '',
         description: image.description || '',
-        category: image.category || '',
+        category: image.category || '',  // 하위 호환성 유지
+        categories: imageCategories,  // 다중 선택용
         filename: image.name || ''
       };
       setForm(newForm);
@@ -307,9 +323,18 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     }
   }, [image]);
 
-  // 폼 변경 감지
-  const handleFormChange = useCallback((field: keyof MetadataForm, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+  // 폼 변경 감지 (string 또는 string[] 지원)
+  const handleFormChange = useCallback((field: keyof MetadataForm, value: string | string[]) => {
+    setForm(prev => {
+      const updated = { ...prev, [field]: value };
+      // 카테고리 필드는 category와 categories를 동기화
+      if (field === 'categories' && Array.isArray(value)) {
+        updated.category = value.join(',');  // 하위 호환성 유지
+      } else if (field === 'category' && typeof value === 'string') {
+        updated.categories = value ? value.split(',').map(c => c.trim()).filter(c => c) : [];
+      }
+      return updated;
+    });
     setHasChanges(true);
     
     // 실시간 유효성 검사
@@ -419,20 +444,33 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           {/* 메인 폼 */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="space-y-6">
-              {Object.entries(FIELD_CONFIGS).map(([field, config]) => (
-                <FieldGroup
-                  key={field}
-                  field={field as keyof MetadataForm}
-                  config={config}
-                  value={form[field as keyof MetadataForm]}
-                  onChange={(value) => handleFormChange(field as keyof MetadataForm, value)}
-                  onAIGenerate={config.aiEnabled ? handleGenerateField : undefined}
-                  error={validationErrors[field]}
-                  seoScore={config.seoOptimized ? seoScore : undefined}
-                  isGenerating={isGenerating}
-                  categories={categories}
-                />
-              ))}
+              {Object.entries(FIELD_CONFIGS).map(([field, config]) => {
+                // 카테고리 필드는 배열 형태로 전달
+                const fieldValue = field === 'category' && config.type === 'checkbox'
+                  ? (form.categories || [])
+                  : form[field as keyof MetadataForm];
+                return (
+                  <FieldGroup
+                    key={field}
+                    field={field as keyof MetadataForm}
+                    config={config}
+                    value={fieldValue as string | string[]}
+                    onChange={(value) => {
+                      if (field === 'category' && config.type === 'checkbox') {
+                        // 체크박스는 categories 필드에 저장
+                        handleFormChange('categories', value as string[]);
+                      } else {
+                        handleFormChange(field as keyof MetadataForm, value);
+                      }
+                    }}
+                    onAIGenerate={config.aiEnabled ? handleGenerateField : undefined}
+                    error={validationErrors[field]}
+                    seoScore={config.seoOptimized ? seoScore : undefined}
+                    isGenerating={isGenerating}
+                    categories={categories}
+                  />
+                );
+              })}
               
               {/* SEO 파일명 자동 생성 버튼 */}
               <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-200">

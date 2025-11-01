@@ -162,13 +162,19 @@ export default async function handler(req, res) {
       
     } else if (req.method === 'POST') {
       // 이미지 메타데이터 생성/업데이트
-      const { imageName, imageUrl, alt_text, keywords, title, description, category } = req.body;
+      const { imageName, imageUrl, alt_text, keywords, title, description, category, categories } = req.body;
       
       if (!imageName || !imageUrl) {
         return res.status(400).json({
           error: 'imageName과 imageUrl이 필요합니다.'
         });
       }
+
+      // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
+      const categoriesArray = Array.isArray(categories) && categories.length > 0
+        ? categories
+        : (category ? category.split(',').map(c => c.trim()).filter(c => c) : []);
+      const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : category || '';
 
       console.log('📝 메타데이터 저장 시작:', { 
         imageName, 
@@ -177,23 +183,28 @@ export default async function handler(req, res) {
         keywords: keywords ? `${keywords.length}개 키워드` : null,
         title: title ? `${title.substring(0, 30)}... (길이: ${title.length})` : null,
         description: description ? `${description.substring(0, 50)}... (길이: ${description.length})` : null,
-        category,
+        category: categoryString,
+        categories: categoriesArray,
         requestBody: req.body
       });
 
-      // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
+      // 카테고리 문자열을 ID로 변환 (첫 번째 카테고리를 category_id로 사용, 하위 호환성 유지)
       let categoryId = 5; // 기본값: '기타'
-      if (category && category !== '') {
+      if (categoryString && categoryString !== '') {
+        const firstCategory = categoriesArray.length > 0 ? categoriesArray[0] : categoryString.split(',')[0].trim();
         // 한글/영문 카테고리를 숫자 ID로 변환
         const categoryMap = {
-          // 한글 카테고리
+          // 한글 카테고리 (기존 매핑)
           '골프': 1, '장비': 2, '코스': 3, '이벤트': 4, '기타': 5,
+          // 새로운 다중 카테고리
+          '골프코스': 3, '젊은 골퍼': 1, '시니어 골퍼': 1, '스윙': 1,
+          '드라이버': 2, '드라이버샷': 2,
           // 영문 카테고리
           'golf': 1, 'equipment': 2, 'course': 3, 'event': 4, 'other': 5,
           // 추가 영문 카테고리
           'general': 5, 'instruction': 1
         };
-        categoryId = categoryMap[category.toLowerCase()] || 5; // 기본값: '기타'
+        categoryId = categoryMap[firstCategory.toLowerCase()] || 5; // 기본값: '기타'
       }
 
       // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준 - 완화된 제한)
@@ -217,7 +228,7 @@ export default async function handler(req, res) {
       }
       
       // 카테고리 필수 입력 검증 (완화)
-      if (!category || category.trim() === '') {
+      if (categoriesArray.length === 0 && (!category || category.trim() === '')) {
         console.warn('⚠️ 카테고리가 선택되지 않았습니다. 기본값으로 설정합니다.');
         // 카테고리가 없으면 기본값으로 설정
         categoryId = 5; // '기타' 카테고리
@@ -237,6 +248,8 @@ export default async function handler(req, res) {
         title: title || '',
         description: description || '',
         category_id: categoryId,
+        // categories 배열은 문자열로 저장 (하위 호환성: 기존 category 필드에 저장)
+        category: categoryString || null,
         updated_at: new Date().toISOString()
       };
       
@@ -344,21 +357,31 @@ export default async function handler(req, res) {
         });
       }
 
-      console.log('📝 메타데이터 업데이트 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category });
+      // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
+      const categoriesArray = Array.isArray(categories) && categories.length > 0
+        ? categories
+        : (category ? category.split(',').map(c => c.trim()).filter(c => c) : []);
+      const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : category || '';
 
-      // 카테고리 문자열을 ID로 변환 (한글/영문 모두 지원)
+      console.log('📝 메타데이터 업데이트 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category: categoryString, categories: categoriesArray });
+
+      // 카테고리 문자열을 ID로 변환 (첫 번째 카테고리를 category_id로 사용, 하위 호환성 유지)
       let categoryId = 5; // 기본값: '기타'
-      if (category && category !== '') {
+      if (categoryString && categoryString !== '') {
+        const firstCategory = categoriesArray.length > 0 ? categoriesArray[0] : categoryString.split(',')[0].trim();
         // 한글/영문 카테고리를 숫자 ID로 변환
         const categoryMap = {
-          // 한글 카테고리
+          // 한글 카테고리 (기존 매핑)
           '골프': 1, '장비': 2, '코스': 3, '이벤트': 4, '기타': 5,
+          // 새로운 다중 카테고리
+          '골프코스': 3, '젊은 골퍼': 1, '시니어 골퍼': 1, '스윙': 1,
+          '드라이버': 2, '드라이버샷': 2,
           // 영문 카테고리
           'golf': 1, 'equipment': 2, 'course': 3, 'event': 4, 'other': 5,
           // 추가 영문 카테고리
           'general': 5, 'instruction': 1
         };
-        categoryId = categoryMap[category.toLowerCase()] || 5; // 기본값: '기타'
+        categoryId = categoryMap[firstCategory.toLowerCase()] || 5; // 기본값: '기타'
       }
 
       // 데이터베이스에서 메타데이터 업데이트
@@ -369,6 +392,8 @@ export default async function handler(req, res) {
         title: title || '',
         description: description || '',
         category_id: categoryId,
+        // categories 배열은 문자열로 저장 (하위 호환성: 기존 category 필드에 저장)
+        category: categoryString || null,
         updated_at: new Date().toISOString()
       };
 

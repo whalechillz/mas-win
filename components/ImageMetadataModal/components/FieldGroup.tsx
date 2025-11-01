@@ -5,8 +5,8 @@ import { getScoreColor, getScoreBgColor } from '../utils/validation';
 interface FieldGroupProps {
   field: keyof MetadataForm;
   config: FieldConfig;
-  value: string;
-  onChange: (value: string) => void;
+  value: string | string[];  // 체크박스는 배열
+  onChange: (value: string | string[]) => void;
   onAIGenerate?: (field: keyof MetadataForm, language: 'korean' | 'english') => Promise<void>;
   error?: string;
   seoScore?: number;
@@ -68,7 +68,7 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
     if (config.type === 'select') {
       return (
         <select
-          value={value}
+          value={typeof value === 'string' ? value : ''}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
         >
@@ -82,10 +82,51 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
       );
     }
 
+    if (config.type === 'checkbox' && config.options) {
+      const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
+      return (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {config.options.map((option) => {
+              const isChecked = selectedValues.includes(option.value);
+              return (
+                <label
+                  key={option.value}
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors ${
+                    isChecked
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'bg-white border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      const newValues = e.target.checked
+                        ? [...selectedValues, option.value]
+                        : selectedValues.filter((v) => v !== option.value);
+                      onChange(newValues);
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium">{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
+          {selectedValues.length > 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              선택됨: {selectedValues.join(', ')}
+            </p>
+          )}
+        </div>
+      );
+    }
+
     return (
       <input
         type="text"
-        value={value}
+        value={typeof value === 'string' ? value : ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder={config.placeholder}
         className={baseClasses}
