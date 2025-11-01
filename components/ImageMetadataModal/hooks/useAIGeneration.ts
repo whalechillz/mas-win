@@ -181,11 +181,26 @@ export const useAIGeneration = () => {
         ? truncateText(finalTitle, 60)
         : finalTitle;
 
+      // ✅ 카테고리를 키워드에 자동 추가
+      const currentKeywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+      const categoryKeywords = selectedCategories.map(c => c.trim()).filter(c => c);
+      
+      // 기존 키워드와 카테고리를 합쳐서 중복 제거
+      const allKeywords = [...new Set([...currentKeywordsList, ...categoryKeywords])];
+      const updatedKeywords = allKeywords.join(', ');
+      
+      console.log('🤖 AI 생성 - 카테고리를 키워드에 추가:', {
+        originalKeywords: currentKeywordsList,
+        categories: selectedCategories,
+        updatedKeywords: allKeywords,
+        finalKeywords: updatedKeywords
+      });
+
       const result: AIGenerationResult = {
         success: true,
         data: {
           alt_text: truncateText(description, 125), // ALT 텍스트를 125자로 제한
-          keywords,
+          keywords: updatedKeywords,  // 카테고리를 포함한 키워드
           title: processedTitle, // 제목을 25-60자 범위로 처리
           description: truncateText(altText, 160), // 설명을 160자로 제한
           category: selectedCategories.join(','),  // 하위 호환성: 문자열로 변환
