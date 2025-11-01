@@ -74,7 +74,9 @@ export const useAIGeneration = () => {
           body: JSON.stringify({ 
             imageUrl,
             title: isEnglish ? 'Image title' : '이미지 제목',
-            excerpt: isEnglish ? 'Generate an image title. Please respond in English only.' : '이미지 제목 생성'
+            excerpt: isEnglish 
+              ? 'Generate a catchy, SEO-friendly image title in English only. The title must be between 25-60 characters. Make it descriptive and engaging. Do not use Korean.' 
+              : '이미지 제목을 생성하세요. 제목은 25-60자 사이여야 합니다. 간결하고 매력적이며 설명적인 제목을 작성하세요.'
           })
         }),
         fetch('/api/analyze-image-prompt', {
@@ -120,12 +122,31 @@ export const useAIGeneration = () => {
       // 카테고리 자동 선택 (다중 선택)
       const selectedCategories = determineCategory(altText, keywords, title, description);
 
+      // 제목 길이 검증 및 보완 (25-60자 범위)
+      let finalTitle = cleanAIText(title);
+      
+      // 제목이 너무 짧으면 보완 (최소 25자 목표)
+      if (finalTitle.length < 25 && finalTitle.length > 0) {
+        // 제목을 더 자세하게 만들기 위해 설명이나 키워드 활용
+        const additionalInfo = `${keywords} ${description}`.trim().substring(0, 30);
+        if (additionalInfo) {
+          finalTitle = `${finalTitle} ${additionalInfo}`.trim();
+        }
+      }
+      
+      // 최대 60자로 제한 (권장 범위 초과 방지)
+      const processedTitle = finalTitle.length > 60 
+        ? truncateText(finalTitle, 60)
+        : (finalTitle.length < 25 && finalTitle.length > 0 
+          ? finalTitle + ' - 골프 전문 매장'  // 최소 길이 보장을 위한 기본 텍스트 추가
+          : finalTitle);
+
       const result: AIGenerationResult = {
         success: true,
         data: {
           alt_text: truncateText(description, 125), // ALT 텍스트를 125자로 제한
           keywords,
-          title: truncateText(title, 30), // 제목을 30자로 제한
+          title: processedTitle, // 제목을 25-60자 범위로 처리
           description: truncateText(altText, 160), // 설명을 160자로 제한
           category: selectedCategories.join(','),  // 하위 호환성: 문자열로 변환
           categories: selectedCategories  // 다중 선택용: 배열로 저장
@@ -192,7 +213,12 @@ export const useAIGeneration = () => {
           // 필드별 길이 제한 적용
           let processedText = cleanedText;
           if (field === 'title') {
-            processedText = truncateText(cleanedText, 30);
+            // 제목은 25-60자 범위로 처리
+            if (cleanedText.length < 25 && cleanedText.length > 0) {
+              // 제목이 너무 짧으면 보완
+              processedText = cleanedText + ' - 골프 전문 매장';
+            }
+            processedText = truncateText(processedText, 60); // 최대 60자로 제한
           } else if (field === 'alt_text') {
             processedText = truncateText(cleanedText, 125);
           } else if (field === 'description') {
@@ -312,7 +338,9 @@ const getFieldPrompts = (field: keyof MetadataForm, isEnglish: boolean) => {
     },
     title: {
       title: isEnglish ? 'Image title' : '이미지 제목',
-      excerpt: isEnglish ? 'Generate a short, catchy image title in English only. Maximum 60 characters. Do not use Korean.' : '이미지 제목 생성'
+      excerpt: isEnglish 
+        ? 'Generate a catchy, SEO-friendly image title in English only. The title must be between 25-60 characters. Make it descriptive and engaging. Do not use Korean.' 
+        : '이미지 제목을 생성하세요. 제목은 25-60자 사이여야 합니다. 간결하고 매력적이며 설명적인 제목을 작성하세요.'
     },
     description: {
       title: isEnglish ? 'General image description' : '이미지 일반 설명',
