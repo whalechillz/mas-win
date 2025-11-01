@@ -275,10 +275,26 @@ export default async function handler(req, res) {
       missingMetadata = await findMissingMetadata(storageImages);
     } else {
       // 1. Storage에서 모든 이미지 조회
-      storageImages = await getAllStorageImages();
+      try {
+        storageImages = await getAllStorageImages();
+      } catch (error) {
+        console.error('❌ Storage 이미지 조회 오류:', error);
+        return res.status(500).json({
+          error: 'Storage 이미지 조회 중 오류가 발생했습니다.',
+          details: error.message
+        });
+      }
       
       // 2. 메타데이터가 없는 이미지 찾기
-      missingMetadata = await findMissingMetadata(storageImages);
+      try {
+        missingMetadata = await findMissingMetadata(storageImages);
+      } catch (error) {
+        console.error('❌ 메타데이터 찾기 오류:', error);
+        return res.status(500).json({
+          error: '메타데이터 찾기 중 오류가 발생했습니다.',
+          details: error.message
+        });
+      }
     }
     
     if (missingMetadata.length === 0) {
