@@ -120,14 +120,27 @@ export default async function handler(req, res) {
     });
     const pathParts = currentPath.split('/');
     const folderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
-    const fileExtension = pathParts[pathParts.length - 1].split('.').pop();
-    const newFilePath = folderPath ? `${folderPath}/${newFileName}.${fileExtension}` : `${newFileName}.${fileExtension}`;
-
-    console.log('📁 파일 경로 정보:', {
-      currentPath,
-      folderPath,
-      newFilePath,
-      fileExtension
+    const currentFileNameOnly = pathParts[pathParts.length - 1];
+    
+    // ✅ newFileName에 이미 확장자가 있는지 확인 (중복 확장자 방지)
+    let cleanNewFileName = newFileName;
+    const hasExtension = /\.(jpg|jpeg|png|gif|webp)$/i.test(newFileName);
+    
+    if (hasExtension) {
+      // 이미 확장자가 있으면 확장자 제거 (나중에 다시 추가)
+      cleanNewFileName = newFileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+      console.log('📝 새 파일명에서 확장자 제거:', cleanNewFileName);
+    }
+    
+    // 기존 파일의 확장자 추출
+    const fileExtension = currentFileNameOnly.split('.').pop();
+    const newFilePath = folderPath ? `${folderPath}/${cleanNewFileName}.${fileExtension}` : `${cleanNewFileName}.${fileExtension}`;
+    
+    console.log('📁 파일 경로 정보 (확장자 처리):', {
+      originalNewFileName: newFileName,
+      cleanNewFileName,
+      fileExtension,
+      newFilePath
     });
 
     // 3. 파일 다운로드

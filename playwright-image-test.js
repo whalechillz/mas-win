@@ -317,6 +317,8 @@ let globalPage = null;
 
       // 한글 AI 생성 버튼 클릭 및 테스트
       console.log(`7️⃣ 이미지 ${imgIndex + 1} - 한글 AI 생성 버튼 클릭 및 테스트...`);
+      
+      // 🔍 테스트 시나리오: "한글 AI 생성" → "하이브리드 SEO 파일명 생성" → "저장"
     
     // 여러 방식으로 AI 생성 버튼 찾기
     const aiButtonSelectors = [
@@ -454,6 +456,71 @@ let globalPage = null;
           console.log(`  ⚠️ 이미지 ${imgIndex + 1} AI 생성이 완료되지 않았습니다.`);
         } else {
           console.log(`  ✅ 이미지 ${imgIndex + 1} AI 생성 완료!`);
+          
+          // ✅ 하이브리드 SEO 파일명 생성 버튼 클릭 (첫 번째 이미지만)
+          if (imgIndex === 0) {
+            console.log(`\n  🔍 하이브리드 SEO 파일명 생성 버튼 클릭 테스트...`);
+            
+            const seoButtonSelectors = [
+              'button:has-text("하이브리드 SEO 파일명 생성")',
+              'button:has-text("SEO 파일명 생성")',
+              'button:has-text("파일명 생성")',
+              'button[aria-label*="SEO"]',
+              'button[aria-label*="파일명"]'
+            ];
+            
+            let seoButton = null;
+            for (const selector of seoButtonSelectors) {
+              try {
+                seoButton = await page.$(selector);
+                if (seoButton) {
+                  console.log(`    ✅ 하이브리드 SEO 파일명 생성 버튼 발견: ${selector}`);
+                  break;
+                }
+              } catch (e) {
+                // 계속 시도
+              }
+            }
+            
+            if (!seoButton) {
+              const buttons = await page.$$('button');
+              for (const btn of buttons) {
+                const text = await btn.textContent();
+                if (text && (text.includes('하이브리드') || text.includes('SEO 파일명'))) {
+                  seoButton = btn;
+                  console.log('    ✅ 하이브리드 SEO 파일명 생성 버튼 발견 (텍스트 기반)');
+                  break;
+                }
+              }
+            }
+            
+            if (seoButton) {
+              console.log('    🚀 하이브리드 SEO 파일명 생성 버튼 클릭 중...');
+              await seoButton.click({ timeout: 5000 });
+              console.log('    ✅ 하이브리드 SEO 파일명 생성 버튼 클릭 완료');
+              
+              // 파일명 생성 완료 대기
+              await page.waitForTimeout(2000);
+              
+              // 파일명 필드 확인
+              try {
+                const filenameInput = await page.$('input[placeholder*="파일명"], label:has-text("파일명") + input, input[name*="filename"]');
+                if (filenameInput) {
+                  const generatedFilename = await filenameInput.inputValue();
+                  console.log(`    📝 생성된 파일명: ${generatedFilename.substring(0, 50)}...`);
+                  
+                  // 중복 확장자 확인
+                  if (/\.(jpg|jpeg|png|gif|webp)\.(jpg|jpeg|png|gif|webp)$/i.test(generatedFilename)) {
+                    console.log('    ⚠️ 경고: 파일명에 중복 확장자가 감지되었습니다!');
+                  }
+                }
+              } catch (e) {
+                console.log('    ⚠️ 파일명 필드 확인 실패:', e.message);
+              }
+            } else {
+              console.log('    ⚠️ 하이브리드 SEO 파일명 생성 버튼을 찾을 수 없습니다.');
+            }
+          }
         }
         
       } catch (error) {
