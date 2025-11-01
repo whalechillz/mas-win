@@ -87,16 +87,22 @@ export default function GalleryAdmin() {
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   
-  // 폴더 목록 계산
-  const availableFolders = useMemo(() => {
-    const folders = new Set<string>();
-    images.forEach(img => {
-      if (img.folder_path && img.folder_path !== '') {
-        folders.add(img.folder_path);
+  // 폴더 목록 상태 (Storage에서 직접 조회)
+  const [availableFolders, setAvailableFolders] = useState<string[]>([]);
+  
+  // 폴더 목록 로드
+  const fetchFolders = async () => {
+    try {
+      const response = await fetch('/api/admin/folders-list');
+      const data = await response.json();
+      if (response.ok && data.folders) {
+        setAvailableFolders(data.folders);
+        console.log('✅ 폴더 목록 로드 완료:', data.folders.length, '개');
       }
-    });
-    return Array.from(folders).sort();
-  }, [images]);
+    } catch (error) {
+      console.error('❌ 폴더 목록 로드 오류:', error);
+    }
+  };
   
   // 가상화를 위한 상태
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
@@ -628,8 +634,9 @@ export default function GalleryAdmin() {
     
     const initializeGallery = async () => {
       try {
-        // 병렬로 데이터 로드
+        // 병렬로 데이터 로드 (폴더 목록 먼저)
         await Promise.all([
+          fetchFolders(),
           fetchImages(1, true),
           loadDynamicCategories(),
           fetch('/api/admin/image-categories').then(res => res.json()).then(data => setCategories(data.categories || [])).catch(() => {}),
