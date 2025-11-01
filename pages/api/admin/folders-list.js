@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      const folders = new Set<string>();
+      const folders = new Set();
       
       // 재귀적으로 모든 폴더 조회
       const getAllFolders = async (prefix = '') => {
