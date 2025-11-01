@@ -302,8 +302,30 @@ export default async function handler(req, res) {
         let skippedCount = 0;
         let errorCount = 0;
         
+        // ✅ 중복 이미지 추적 (블로그 글별)
+        const duplicateGroups = [];
+        const fileNameMap = new Map();
+        
         for (const result of results) {
           const targetFolder = result.blogPost.folderName;
+          
+          // ✅ 같은 파일명을 가진 이미지 찾기 (중복 감지)
+          for (const image of result.images) {
+            const fileName = image.name || image.currentPath?.split('/').pop();
+            if (fileName) {
+              if (fileNameMap.has(fileName)) {
+                // 중복 발견
+                const existingImage = fileNameMap.get(fileName);
+                duplicateGroups.push({
+                  fileName,
+                  blogPost: result.blogPost,
+                  duplicates: [existingImage, image]
+                });
+              } else {
+                fileNameMap.set(fileName, image);
+              }
+            }
+          }
           
           for (const image of result.images) {
             try {
@@ -332,7 +354,13 @@ export default async function handler(req, res) {
             totalImages: results.reduce((sum, r) => sum + r.totalImages, 0),
             moved: movedCount,
             skipped: skippedCount,
-            errors: errorCount
+            errors: errorCount,
+            // ✅ 중복 이미지 정보 반환
+            duplicates: duplicateGroups.length > 0 ? {
+              groups: duplicateGroups.length,
+              totalDuplicates: duplicateGroups.reduce((sum, g) => sum + g.duplicates.length, 0),
+              images: duplicateGroups
+            } : null
           }
         });
       } else {
