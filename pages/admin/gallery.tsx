@@ -837,7 +837,7 @@ export default function GalleryAdmin() {
       
       // ✅ 카테고리를 키워드에 포함 (중복 제거)
       const currentKeywordsList = keywords;
-      const allKeywordsList = [...new Set([...currentKeywordsList, ...categoriesArray])];
+      const allKeywordsList = Array.from(new Set([...currentKeywordsList, ...categoriesArray]));
       const finalKeywords = allKeywordsList;
       
       console.log('💾 저장 시 키워드 업데이트 (saveEdit):', {
@@ -1812,7 +1812,7 @@ export default function GalleryAdmin() {
             
             // ✅ 카테고리를 키워드에 포함 (중복 제거)
             const currentKeywordsList = keywords;
-            const allKeywordsList = [...new Set([...currentKeywordsList, ...categoriesArray])];
+            const allKeywordsList = Array.from(new Set([...currentKeywordsList, ...categoriesArray]));
             const finalKeywords = allKeywordsList;
             
             console.log('💾 저장 시 키워드 업데이트 (onSave):', {
