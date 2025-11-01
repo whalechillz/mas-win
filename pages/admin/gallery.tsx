@@ -873,9 +873,19 @@ export default function GalleryAdmin() {
         return;
       }
       
+      // 파일명 정규화 함수 (중복 확장자 제거)
+      const normalizeFileName = (fileName: string) => {
+        if (!fileName) return '';
+        return fileName.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
+      };
+      
+      // 저장 시 파일명 정규화 (중복 확장자 제거)
+      const normalizedFileName = normalizeFileName(updatedImageName);
+      
       const requestData = {
         imageName: updatedImageName,  // 파일명 변경 시 업데이트된 파일명 사용
         imageUrl: updatedImageUrl,  // 파일명 변경 시 업데이트된 URL 사용
+        file_name: normalizedFileName,  // ✅ 정규화된 파일명 사용 (중복 확장자 제거)
         alt_text: editForm.alt_text || '',
         keywords: finalKeywords.length > 0 ? finalKeywords : [],
         title: titleValue,  // 파일명과 같으면 빈 문자열
