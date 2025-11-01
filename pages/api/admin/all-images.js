@@ -200,6 +200,16 @@ export default async function handler(req, res) {
       const urls = imageUrls.map(item => item.url);
       const fileNames = imageUrls.map(item => item.file.name);
       
+      // 파일명 정규화 함수 (중복 확장자 제거)
+      const normalizeFileName = (fileName) => {
+        if (!fileName) return '';
+        return fileName.replace(/(\.(png|jpg|jpeg|gif|webp))\1+$/i, '$1');
+      };
+      
+      // 정규화된 파일명 배열 생성
+      const normalizedFileNames = fileNames.map(normalizeFileName);
+      const allFileNames = [...new Set([...fileNames, ...normalizedFileNames])].filter(Boolean);
+      
       // URL과 file_name 기준으로 메타데이터 조회 (필터링하여 효율성 향상)
       // 1. URL 기준 조회
       const { data: metadataByUrl } = await supabase
@@ -207,11 +217,13 @@ export default async function handler(req, res) {
         .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status')
         .in('image_url', urls);
       
-      // 2. file_name 기준 조회 (URL로 찾지 못한 경우)
+      // 2. file_name 기준 조회 (URL로 찾지 못한 경우, 정규화된 파일명 포함)
       const { data: metadataByFileNameFromDb } = await supabase
         .from('image_metadata')
         .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status')
-        .in('file_name', fileNames);
+        .in('file_name', allFileNames);
+      
+      console.log(`🔍 메타데이터 조회: URL 기준 ${metadataByUrl?.length || 0}개, file_name 기준 ${metadataByFileNameFromDb?.length || 0}개 (조회한 파일명: ${allFileNames.length}개)`);
       
       // 두 결과 병합 (중복 제거)
       const allMetadataMap = new Map();
