@@ -383,9 +383,15 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       
       // AI 생성 완료 후 자동으로 SEO 파일명 생성
       // 약간의 지연을 두어 폼 상태가 업데이트된 후 실행
-      setTimeout(() => {
-        handleGenerateSEOFileName();
-      }, 500);
+      // 폼 상태가 완전히 업데이트된 후 실행하기 위해 더 긴 지연 사용
+      setTimeout(async () => {
+        try {
+          await handleGenerateSEOFileName();
+          console.log('✅ SEO 파일명 자동 생성 완료');
+        } catch (error) {
+          console.warn('⚠️ SEO 파일명 자동 생성 실패:', error);
+        }
+      }, 1000);
     } else {
       alert(`AI 생성에 실패했습니다: ${result.error}`);
     }
