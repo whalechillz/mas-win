@@ -44,9 +44,12 @@ export default async function handler(req, res) {
       const getAllImagesRecursively = async (folderPath = '') => {
           console.log(`📁 폴더 조회 중: ${folderPath || '루트'}`);
           
+          // Supabase Storage .list()는 기본적으로 limit이 1000개로 제한됨
+          // 모든 파일을 가져오기 위해 limit을 명시적으로 설정
           const { data: files, error } = await supabase.storage
             .from('blog-images')
             .list(folderPath, {
+              limit: 10000,  // ✅ 충분히 큰 limit 설정 (모든 파일 조회)
               sortBy: { column: 'created_at', order: 'desc' }
             });
 
@@ -102,9 +105,12 @@ export default async function handler(req, res) {
         
         // 재귀적으로 모든 폴더의 이미지 조회 (페이지네이션용)
         const getAllImagesForPagination = async (folderPath = '') => {
+          // Supabase Storage .list()는 기본적으로 limit이 1000개로 제한됨
+          // 모든 파일을 가져오기 위해 limit을 명시적으로 설정
           const { data: files, error } = await supabase.storage
             .from('blog-images')
             .list(folderPath, {
+              limit: 10000,  // ✅ 충분히 큰 limit 설정 (모든 파일 조회)
               sortBy: { column: 'created_at', order: 'desc' }
             });
 
@@ -143,7 +149,10 @@ export default async function handler(req, res) {
           // 현재 폴더만(하위 미포함)
           const { data: files, error } = await supabase.storage
             .from('blog-images')
-            .list(prefix || '', { sortBy: { column: 'created_at', order: 'desc' } });
+            .list(prefix || '', { 
+              limit: 10000,  // ✅ 충분히 큰 limit 설정 (모든 파일 조회)
+              sortBy: { column: 'created_at', order: 'desc' } 
+            });
           if (!error && files) {
             for (const file of files) {
               if (file.id) {
