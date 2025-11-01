@@ -6,11 +6,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { imageId, newFileName, currentFileName } = req.body;
+    const { imageId, newFileName, currentFileName, imageUrl } = req.body;
 
-    if (!imageId || !newFileName) {
+    if (!newFileName) {
       return res.status(400).json({ 
-        error: 'imageId와 newFileName이 필요합니다.' 
+        error: 'newFileName이 필요합니다.' 
+      });
+    }
+
+    // currentFileName 또는 imageUrl이 없으면 오류
+    if (!currentFileName && !imageUrl) {
+      return res.status(400).json({ 
+        error: 'currentFileName 또는 imageUrl이 필요합니다.' 
       });
     }
 
@@ -23,20 +30,56 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    console.log('📝 이미지 파일명 변경 시작:', { imageId, newFileName, currentFileName });
+    console.log('📝 이미지 파일명 변경 시작:', { imageId, newFileName, currentFileName, imageUrl });
 
     // 1. 현재 이미지 메타데이터 조회
-    const { data: currentImage, error: fetchError } = await supabase
-      .from('image_metadata')
-      .select('*')
-      .eq('id', imageId)
-      .single();
+    // imageId가 있고 temp-로 시작하지 않으면 ID로 조회, 아니면 file_name 또는 image_url로 조회
+    let currentImage;
+    let fetchError;
+    
+    if (imageId && !imageId.toString().startsWith('temp-') && !isNaN(imageId)) {
+      // 숫자 ID로 조회 시도
+      const { data, error } = await supabase
+        .from('image_metadata')
+        .select('*')
+        .eq('id', parseInt(imageId))
+        .single();
+      currentImage = data;
+      fetchError = error;
+    }
+    
+    // ID로 조회 실패하거나 ID가 없는 경우 file_name 또는 image_url로 조회
+    if (!currentImage) {
+      if (currentFileName) {
+        const { data, error } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('file_name', currentFileName)
+          .single();
+        currentImage = data;
+        fetchError = error;
+      } else if (imageUrl) {
+        const { data, error } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('image_url', imageUrl)
+          .single();
+        currentImage = data;
+        fetchError = error;
+      }
+    }
 
     if (fetchError || !currentImage) {
       console.error('❌ 이미지 메타데이터 조회 실패:', fetchError);
       return res.status(404).json({
         error: '이미지를 찾을 수 없습니다.',
-        details: fetchError?.message
+        details: fetchError?.message,
+        debug: {
+          imageId,
+          currentFileName,
+          imageUrl,
+          searchMethod: imageId && !imageId.toString().startsWith('temp-') ? 'id' : (currentFileName ? 'file_name' : 'image_url')
+        }
       });
     }
 
@@ -109,14 +152,30 @@ export default async function handler(req, res) {
     }
 
     // 7. 메타데이터 업데이트
-    const { error: updateError } = await supabase
-      .from('image_metadata')
-      .update({
-        file_name: newFilePath,
-        image_url: urlData.publicUrl,
-        title: newFileName // 제목도 새 파일명으로 업데이트
-      })
-      .eq('id', imageId);
+    // ID로 업데이트 시도, 실패하면 file_name 또는 image_url로 업데이트
+    let updateError;
+    if (currentImage.id && !isNaN(currentImage.id)) {
+      const { error } = await supabase
+        .from('image_metadata')
+        .update({
+          file_name: newFilePath,
+          image_url: urlData.publicUrl,
+          title: newFileName // 제목도 새 파일명으로 업데이트
+        })
+        .eq('id', currentImage.id);
+      updateError = error;
+    } else {
+      // ID가 없거나 유효하지 않은 경우 file_name으로 업데이트
+      const { error } = await supabase
+        .from('image_metadata')
+        .update({
+          file_name: newFilePath,
+          image_url: urlData.publicUrl,
+          title: newFileName
+        })
+        .eq('file_name', currentPath);
+      updateError = error;
+    }
 
     if (updateError) {
       console.error('❌ 메타데이터 업데이트 실패:', updateError);
