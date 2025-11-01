@@ -279,10 +279,10 @@ const findMissingMetadata = async (storageImages) => {
     
     // ✅ 개선: 배치 처리로 메모리 효율성 향상
     const missingMetadata = [];
-    const batchSize = 100;
+    const filterBatchSize = 100;
     
-    for (let i = 0; i < storageImages.length; i += batchSize) {
-      const batch = storageImages.slice(i, i + batchSize);
+    for (let i = 0; i < storageImages.length; i += filterBatchSize) {
+      const batch = storageImages.slice(i, i + filterBatchSize);
       const batchMissing = batch.filter(img => {
         try {
           const normalizedUrl = normalizeUrl(img.url);
@@ -304,8 +304,8 @@ const findMissingMetadata = async (storageImages) => {
       missingMetadata.push(...batchMissing);
       
       // 진행률 로그
-      if (i % 500 === 0 || i === storageImages.length - batchSize) {
-        console.log(`📊 처리 진행: ${Math.min(i + batchSize, storageImages.length)}/${storageImages.length} (누락: ${missingMetadata.length}개)`);
+      if (i % 500 === 0 || i === storageImages.length - filterBatchSize) {
+        console.log(`📊 처리 진행: ${Math.min(i + filterBatchSize, storageImages.length)}/${storageImages.length} (누락: ${missingMetadata.length}개)`);
       }
     }
     
