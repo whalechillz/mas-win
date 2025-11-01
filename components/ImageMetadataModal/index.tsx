@@ -28,7 +28,7 @@ const FIELD_CONFIGS: Record<keyof MetadataForm, FieldConfig> = {
     label: '키워드',
     placeholder: '쉼표로 구분하여 관련 키워드를 입력하세요',
     type: 'text',
-    maxLength: 50,
+    maxLength: 200,  // ✅ 키워드 길이 제한 증가 (50 → 200자, 카테고리 자동 추가 대응)
     aiEnabled: true,
     seoOptimized: true
   },
@@ -413,23 +413,64 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     
     const currentKeywords = (form.keywords || '').split(',').map(k => k.trim()).filter(k => k);
     const allKeywords = [...new Set([...currentKeywords, ...categoriesArray])];
-    const updatedKeywords = allKeywords.join(', ');
+    let updatedKeywords = allKeywords.join(', ');
+    
+    // ✅ 키워드 길이 제한 (200자 초과 시 자동으로 줄임)
+    const MAX_KEYWORDS_LENGTH = 200;
+    if (updatedKeywords.length > MAX_KEYWORDS_LENGTH) {
+      console.warn('⚠️ 키워드가 너무 깁니다. 자동으로 줄입니다:', {
+        originalLength: updatedKeywords.length,
+        maxLength: MAX_KEYWORDS_LENGTH
+      });
+      
+      // 키워드를 우선순위에 따라 정렬 후 앞에서부터 선택
+      // 카테고리 키워드 우선 유지, 나머지는 자동 선택
+      const categorySet = new Set(categoriesArray);
+      const prioritizedKeywords = [
+        ...allKeywords.filter(k => categorySet.has(k)),  // 카테고리 키워드 우선
+        ...allKeywords.filter(k => !categorySet.has(k))  // 나머지 키워드
+      ];
+      
+      let trimmedKeywords: string[] = [];
+      let currentLength = 0;
+      
+      for (const keyword of prioritizedKeywords) {
+        const keywordWithComma = trimmedKeywords.length > 0 ? `, ${keyword}` : keyword;
+        if (currentLength + keywordWithComma.length <= MAX_KEYWORDS_LENGTH) {
+          trimmedKeywords.push(keyword);
+          currentLength += keywordWithComma.length;
+        } else {
+          break;
+        }
+      }
+      
+      updatedKeywords = trimmedKeywords.join(', ');
+      
+      console.log('✂️ 키워드 자동 줄임:', {
+        original: allKeywords,
+        trimmed: trimmedKeywords,
+        originalLength: allKeywords.join(', ').length,
+        trimmedLength: updatedKeywords.length
+      });
+    }
     
     const formWithKeywords = {
       ...form,
-      keywords: updatedKeywords  // 카테고리를 포함한 키워드
+      keywords: updatedKeywords  // 카테고리를 포함한 키워드 (길이 제한 적용)
     };
     
     console.log('💾 저장 전 키워드 업데이트:', {
       categories: categoriesArray,
       previousKeywords: currentKeywords,
       updatedKeywords: allKeywords,
-      finalKeywords: updatedKeywords
+      finalKeywords: updatedKeywords,
+      finalLength: updatedKeywords.length
     });
     
     const errors = validateForm(formWithKeywords);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
+      console.error('❌ 검증 오류:', errors);
       return;
     }
 

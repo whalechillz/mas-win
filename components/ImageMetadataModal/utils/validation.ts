@@ -18,9 +18,9 @@ export const VALIDATION_RULES: ValidationRule[] = [
   },
   {
     field: 'keywords',
-    maxLength: 50,
+    maxLength: 200,  // ✅ 키워드 길이 제한 증가 (50 → 200자, 카테고리 자동 추가 대응)
     required: false,
-    message: '키워드는 50자 이하로 입력해주세요'
+    message: '키워드는 200자 이하로 입력해주세요'
   },
   {
     field: 'title',
