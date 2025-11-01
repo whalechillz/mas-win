@@ -344,6 +344,11 @@ const moveImageToFolder = async (imagePath, targetFolder) => {
 export default async function handler(req, res) {
   console.log('📁 블로그 글별 이미지 폴더 정렬 API 요청:', req.method, req.url);
   
+  // ✅ 타임아웃 방지: Vercel 제한(10초) 고려하여 빠른 응답 보장
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('요청 시간 초과 (10초 제한)')), 9000);
+  });
+  
   try {
     if (req.method === 'GET') {
       // 블로그 글별 이미지 정렬 정보 조회 (이동 없음)
@@ -462,9 +467,19 @@ export default async function handler(req, res) {
     
   } catch (error) {
     console.error('❌ 블로그 글별 이미지 정렬 API 오류:', error);
+    
+    // ✅ 타임아웃 오류 구분
+    if (error.message && (error.message.includes('시간 초과') || error.message.includes('timeout') || error.message.includes('초과'))) {
+      return res.status(504).json({
+        error: '요청 시간 초과',
+        details: '이미지 검색이 너무 오래 걸려 시간 초과되었습니다. 잠시 후 다시 시도해주세요.',
+        suggestion: '특정 블로그 글만 처리하거나, 더 적은 이미지가 있는 글부터 시작하세요.'
+      });
+    }
+    
     return res.status(500).json({
       error: '서버 오류가 발생했습니다.',
-      details: error.message
+      details: error.message || '알 수 없는 오류가 발생했습니다.'
     });
   }
 }

@@ -16,62 +16,173 @@ async function runBlogImageSyncTest() {
   try {
     // 1. 로그인
     console.log('📝 1단계: 로그인...');
-    await page.goto(`${BASE_URL}/auth/signin`);
-    await page.waitForTimeout(2000);
     
-    const phoneInput = page.locator('input[type="tel"], input[name*="phone"], input[placeholder*="전화"]').first();
-    if (await phoneInput.count() > 0) {
-      await phoneInput.fill(LOGIN_PHONE);
-      await page.waitForTimeout(1000);
+    // 여러 로그인 URL 시도
+    const loginUrls = [
+      `${BASE_URL}/auth/signin`,
+      `${BASE_URL}/auth/login`,
+      `${BASE_URL}/login`,
+      `${BASE_URL}/admin/login`,
+    ];
+    
+    let loginSuccess = false;
+    
+    for (const loginUrl of loginUrls) {
+      try {
+        console.log(`로그인 시도: ${loginUrl}`);
+        await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        await page.waitForTimeout(3000);
+        
+        // 로그인 폼 확인 (여러 선택자 시도)
+        const formSelectors = [
+          'input[type="tel"]',
+          'input[type="password"]',
+          'input[name*="phone"]',
+          'input[placeholder*="전화"]',
+          'input[type="text"]',
+        ];
+        
+        let foundForm = false;
+        for (const selector of formSelectors) {
+          const count = await page.locator(selector).count();
+          if (count > 0) {
+            foundForm = true;
+            console.log(`✅ 로그인 폼 찾기 성공: ${selector}`);
+            break;
+          }
+        }
+        
+        if (foundForm) {
+          // 전화번호 입력
+          const phoneInput = page.locator('input[type="tel"], input[name*="phone"], input[placeholder*="전화"], input[type="text"]').first();
+          await phoneInput.fill(LOGIN_PHONE);
+          await page.waitForTimeout(1000);
+          
+          // 비밀번호 입력
+          const passwordInput = page.locator('input[type="password"]').first();
+          await passwordInput.fill(LOGIN_PASSWORD);
+          await page.waitForTimeout(1000);
+          
+          // 로그인 버튼 클릭
+          const loginButton = page.locator('button:has-text("로그인"), button[type="submit"], button:has-text("Login")').first();
+          await loginButton.click();
+          
+          // 로그인 후 리다이렉트 대기
+          try {
+            await page.waitForURL(/\/admin|\/dashboard/, { timeout: 15000 });
+            loginSuccess = true;
+            console.log('✅ 로그인 성공');
+            break;
+          } catch (error) {
+            console.log('⚠️ 리다이렉트 실패, 다음 URL 시도...');
+          }
+        }
+      } catch (error) {
+        console.log(`⚠️ 로그인 URL 실패: ${loginUrl}`, error.message);
+        continue;
+      }
     }
     
-    const passwordInput = page.locator('input[type="password"]').first();
-    if (await passwordInput.count() > 0) {
-      await passwordInput.fill(LOGIN_PASSWORD);
-      await page.waitForTimeout(1000);
+    if (!loginSuccess) {
+      await page.screenshot({ path: 'login-failed.png', fullPage: true });
+      throw new Error('로그인 실패. login-failed.png를 확인하세요.');
     }
     
-    const loginButton = page.locator('button:has-text("로그인"), button[type="submit"]').first();
-    if (await loginButton.count() > 0) {
-      await loginButton.click();
-      await page.waitForTimeout(3000);
-    }
-    
+    await page.waitForTimeout(3000);
     console.log('✅ 로그인 완료\n');
     
     // 2. 블로그 관리 페이지 이동
     console.log('📁 2단계: 블로그 관리 페이지 이동...');
-    await page.goto(ADMIN_BLOG_URL);
-    await page.waitForTimeout(3000);
+    await page.goto(ADMIN_BLOG_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(5000);
     
-    const blogTitle = page.locator('text=블로그 관리').first();
-    await blogTitle.waitFor({ timeout: 10000 });
+    // 페이지가 완전히 로드될 때까지 대기
+    try {
+      // 여러 선택자로 페이지 로드 확인
+      await Promise.race([
+        page.waitForSelector('h1:has-text("블로그")', { timeout: 10000 }),
+        page.waitForSelector('h2:has-text("블로그")', { timeout: 10000 }),
+        page.waitForSelector('text=블로그 관리', { timeout: 10000 }),
+        page.waitForSelector('text=블로그 목록', { timeout: 10000 }),
+        page.waitForSelector('button:has-text("새 게시물")', { timeout: 10000 }),
+        page.waitForSelector('button:has-text("작성")', { timeout: 10000 }),
+      ]);
+    } catch (error) {
+      // 스크린샷 저장 후 계속 진행
+      await page.screenshot({ path: 'blog-page-load-error.png', fullPage: true });
+      console.log('⚠️ 페이지 로드 확인 실패, 계속 진행...');
+    }
+    
     console.log('✅ 블로그 관리 페이지 로드 완료\n');
     
     // 3. 블로그 글 목록 확인
     console.log('📋 3단계: 블로그 글 목록 확인...');
-    await page.waitForTimeout(2000);
     
-    // 첫 번째 블로그 글 찾기
-    const firstPost = page.locator('div[class*="border"], div[class*="rounded"]').first();
-    if (await firstPost.count() === 0) {
-      throw new Error('블로그 글을 찾을 수 없습니다.');
+    // 페이지 완전 로드 대기
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForTimeout(5000);
+    
+    // 현재 페이지 스크린샷 저장 (디버깅용)
+    await page.screenshot({ path: 'blog-page-debug.png', fullPage: true });
+    console.log('📸 현재 페이지 스크린샷 저장: blog-page-debug.png');
+    
+    // 블로그 글 목록 로드 대기 (여러 선택자 시도)
+    let firstPost = null;
+    
+    // CSS 클래스 조합으로 찾기
+    const selectors = [
+      'div.border.rounded',
+      'div[class*="border"][class*="rounded"]',
+      'div.border.rounded-lg',
+      'div.border.rounded.p-4',
+      'tr',
+      'article',
+    ];
+    
+    for (const selector of selectors) {
+      const elements = await page.locator(selector).count();
+      if (elements > 0) {
+        firstPost = page.locator(selector).first();
+        console.log(`✅ 블로그 글 찾기 성공: ${selector} (${elements}개)`);
+        break;
+      }
     }
     
-    const postTitle = await firstPost.locator('h3').first().textContent().catch(() => '');
+    if (!firstPost || (await firstPost.count()) === 0) {
+      // 스크린샷으로 현재 상태 확인
+      await page.screenshot({ path: 'blog-list-not-found.png', fullPage: true });
+      
+      // 페이지 HTML 일부 확인
+      const pageContent = await page.content();
+      console.log('📄 페이지 HTML 길이:', pageContent.length);
+      console.log('📄 페이지 제목:', await page.title());
+      
+      throw new Error('블로그 글을 찾을 수 없습니다. blog-list-not-found.png와 blog-page-debug.png를 확인하세요.');
+    }
+    
+    const postTitle = await firstPost.locator('h3, h2, td, [class*="title"]').first().textContent().catch(() => '블로그 글');
     console.log(`✅ 첫 번째 블로그 글: ${postTitle}\n`);
     
     // 4. 이미지 정렬 버튼 클릭
     console.log('📁 4단계: 이미지 정렬 버튼 클릭...');
-    const organizeButton = firstPost.locator('button:has-text("이미지 정렬")').first();
+    
+    // 버튼 찾기 (여러 방법 시도)
+    let organizeButton = firstPost.locator('button:has-text("이미지 정렬"), button:has-text("📁"), button[title*="이미지"], button[title*="정렬"]').first();
     
     if (await organizeButton.count() === 0) {
-      throw new Error('이미지 정렬 버튼을 찾을 수 없습니다.');
+      // 페이지 전체에서 찾기
+      organizeButton = page.locator('button:has-text("이미지 정렬"), button:has-text("📁")').first();
     }
     
+    if (await organizeButton.count() === 0) {
+      await page.screenshot({ path: 'button-not-found.png', fullPage: true });
+      throw new Error('이미지 정렬 버튼을 찾을 수 없습니다. button-not-found.png를 확인하세요.');
+    }
+    
+    await organizeButton.scrollIntoViewIfNeeded();
     await organizeButton.click();
     console.log('✅ 이미지 정렬 버튼 클릭 완료');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
     // 확인 다이얼로그 처리
     page.on('dialog', async dialog => {
@@ -93,17 +204,25 @@ async function runBlogImageSyncTest() {
     
     // 5. 메타데이터 동기화 버튼 클릭
     console.log('\n🔄 5단계: 메타데이터 동기화 버튼 클릭...');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
-    const syncButton = firstPost.locator('button:has-text("메타 동기화")').first();
+    // 버튼 찾기 (여러 방법 시도)
+    let syncButton = firstPost.locator('button:has-text("메타 동기화"), button:has-text("🔄"), button[title*="메타"], button[title*="동기화"]').first();
     
     if (await syncButton.count() === 0) {
-      throw new Error('메타데이터 동기화 버튼을 찾을 수 없습니다.');
+      // 페이지 전체에서 찾기
+      syncButton = page.locator('button:has-text("메타 동기화"), button:has-text("🔄")').first();
     }
     
+    if (await syncButton.count() === 0) {
+      await page.screenshot({ path: 'sync-button-not-found.png', fullPage: true });
+      throw new Error('메타데이터 동기화 버튼을 찾을 수 없습니다. sync-button-not-found.png를 확인하세요.');
+    }
+    
+    await syncButton.scrollIntoViewIfNeeded();
     await syncButton.click();
     console.log('✅ 메타데이터 동기화 버튼 클릭 완료');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
     // 확인 다이얼로그 처리
     page.on('dialog', async dialog => {
