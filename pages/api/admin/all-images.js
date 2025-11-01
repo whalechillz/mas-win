@@ -198,12 +198,40 @@ export default async function handler(req, res) {
       // 모든 URL을 한 번에 조회하여 메타데이터 가져오기
       // 주의: image_metadata 테이블 스키마에 맞춰 컬럼 조회
       const urls = imageUrls.map(item => item.url);
-      const normalizedUrls = urls.map(url => normalizeUrl(url));
+      const fileNames = imageUrls.map(item => item.file.name);
       
-      // URL과 file_name 기준으로 메타데이터 조회
-      const { data: allMetadata } = await supabase
+      // URL과 file_name 기준으로 메타데이터 조회 (필터링하여 효율성 향상)
+      // 1. URL 기준 조회
+      const { data: metadataByUrl } = await supabase
         .from('image_metadata')
-        .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status');
+        .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status')
+        .in('image_url', urls);
+      
+      // 2. file_name 기준 조회 (URL로 찾지 못한 경우)
+      const { data: metadataByFileName } = await supabase
+        .from('image_metadata')
+        .select('id, alt_text, title, description, tags, category_id, image_url, file_name, usage_count, upload_source, status')
+        .in('file_name', fileNames);
+      
+      // 두 결과 병합 (중복 제거)
+      const allMetadataMap = new Map();
+      if (metadataByUrl) {
+        metadataByUrl.forEach(meta => {
+          const key = meta.image_url || meta.file_name || '';
+          if (key) allMetadataMap.set(key, meta);
+        });
+      }
+      if (metadataByFileName) {
+        metadataByFileName.forEach(meta => {
+          const key = meta.image_url || meta.file_name || '';
+          if (key && !allMetadataMap.has(key)) {
+            allMetadataMap.set(key, meta);
+          }
+        });
+      }
+      
+      // Map을 배열로 변환
+      const allMetadata = Array.from(allMetadataMap.values());
 
       // 카테고리 매핑 (category_id -> 카테고리 이름)
       const categoryIdMap = new Map();
@@ -247,13 +275,29 @@ export default async function handler(req, res) {
         // 1차: 정확한 URL 매칭
         let metadata = metadataMap.get(url);
         
-        // 2차: 정규화된 URL 매칭 (도메인 제거)
+        // 2차: 정규화된 URL 매칭 (도메인 제거, 경로만 비교)
         if (!metadata) {
           const normalizedUrl = normalizeUrl(url);
-          metadata = metadataMap.get(normalizedUrl);
+          if (normalizedUrl) {
+            metadata = metadataByNormalizedUrl.get(normalizedUrl);
+          }
         }
         
-        // 3차: file_name 기반 폴백 매칭
+        // 3차: URL에서 파일명 추출하여 매칭
+        if (!metadata) {
+          try {
+            const urlObj = new URL(url);
+            const pathParts = urlObj.pathname.split('/');
+            const fileName = pathParts[pathParts.length - 1];
+            if (fileName) {
+              metadata = metadataByFileName.get(fileName);
+            }
+          } catch (e) {
+            // URL 파싱 실패 시 무시
+          }
+        }
+        
+        // 4차: file_name 기반 직접 매칭
         if (!metadata) {
           metadata = metadataByFileName.get(file.name);
         }
