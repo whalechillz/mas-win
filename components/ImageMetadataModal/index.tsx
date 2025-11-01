@@ -502,25 +502,9 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
     setIsSaving(true);
     try {
-      // ✅ 파일명이 변경된 경우 먼저 파일명 변경 (타임아웃 처리 포함)
-      if (image && formWithKeywords.filename !== image.name && onRename) {
-        try {
-          // 파일명 변경에 타임아웃 추가 (30초)
-          const renamePromise = onRename(formWithKeywords.filename);
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('파일명 변경 시간이 초과되었습니다. (30초)')), 30000)
-          );
-          
-          await Promise.race([renamePromise, timeoutPromise]);
-          console.log('✅ 파일명 변경 완료');
-        } catch (renameError) {
-          console.error('❌ 파일명 변경 오류:', renameError);
-          // 파일명 변경 실패 시에도 메타데이터 저장은 시도 (파일명은 기존 파일명 사용)
-          alert(`파일명 변경에 실패했습니다: ${renameError.message}\n\n기존 파일명으로 메타데이터를 저장합니다.`);
-          // 파일명을 원래 파일명으로 되돌림
-          formWithKeywords.filename = image.name;
-        }
-      }
+      // ✅ 파일명 변경 기능 비활성화 - SEO 파일명은 메타데이터에만 저장 (title 필드에 저장됨)
+      // 실제 파일명은 변경하지 않음 (복잡성 감소 및 버그 방지)
+      // formWithKeywords.filename은 메타데이터 저장용으로만 사용
       
       // 모든 메타데이터 저장 (카테고리가 키워드에 포함된 버전)
       await onSave(formWithKeywords);
@@ -612,7 +596,10 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               
               {/* SEO 파일명 자동 생성 버튼 */}
               <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-200">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">🎯 파일명 자동 생성</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">🎯 SEO 파일명 생성 (참고용)</h3>
+                <p className="text-xs text-gray-600 mb-2">
+                  ⚠️ 참고: 실제 파일명은 변경되지 않습니다. SEO 최적화 파일명은 메타데이터에만 저장됩니다.
+                </p>
                 <button
                   onClick={handleGenerateSEOFileName}
                   disabled={isGenerating}
