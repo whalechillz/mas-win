@@ -15,7 +15,8 @@ interface ImageMetadataModalProps {
 }
 
 // 필드 설정
-const FIELD_CONFIGS: Record<keyof MetadataForm, FieldConfig> = {
+// 주의: category와 categories 필드는 제거되었으므로 Partial 타입 사용
+const FIELD_CONFIGS: Partial<Record<keyof MetadataForm, FieldConfig>> = {
   alt_text: {
     label: 'ALT 텍스트',
     placeholder: '이미지를 설명하는 대체 텍스트를 입력하세요',
@@ -337,7 +338,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         const categoryKeywords = value.map(c => c.trim()).filter(c => c);
         
         // 기존 키워드와 카테고리를 합쳐서 중복 제거
-        const allKeywords = [...new Set([...currentKeywords, ...categoryKeywords])];
+        const allKeywords = Array.from(new Set([...currentKeywords, ...categoryKeywords]));
         updated.keywords = allKeywords.join(', ');
         
         console.log('📝 카테고리 변경 → 키워드 자동 추가:', {
@@ -353,7 +354,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         const categoryKeywords = updated.categories;
         
         // 기존 키워드와 카테고리를 합쳐서 중복 제거
-        const allKeywords = [...new Set([...currentKeywords, ...categoryKeywords])];
+        const allKeywords = Array.from(new Set([...currentKeywords, ...categoryKeywords]));
         updated.keywords = allKeywords.join(', ');
         
         console.log('📝 카테고리 변경 → 키워드 자동 추가:', {
@@ -412,7 +413,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       : (form.category ? form.category.split(',').map(c => c.trim()).filter(c => c) : []);
     
     const currentKeywords = (form.keywords || '').split(',').map(k => k.trim()).filter(k => k);
-    const allKeywords = [...new Set([...currentKeywords, ...categoriesArray])];
+    const allKeywords = Array.from(new Set([...currentKeywords, ...categoriesArray]));
     let updatedKeywords = allKeywords.join(', ');
     
     // ✅ 키워드 길이 제한 (200자 초과 시 자동으로 줄임)
