@@ -225,16 +225,35 @@ const findMissingMetadata = async (storageImages) => {
     // ✅ 개선: 배치 조회로 메타데이터 가져오기 (타임아웃 방지)
     console.log('📊 기존 메타데이터 조회 중...');
     // ✅ 수정: image_metadata 테이블에는 file_name 컬럼이 없으므로 image_url만 조회
-    const { data: existingMetadata, error } = await supabase
-      .from('image_metadata')
-      .select('image_url')
-      .limit(10000);  // ✅ 충분히 큰 limit 설정
+    // ✅ 개선: 모든 메타데이터 조회 (배치 조회)
+    let offset = 0;
+    const batchSize = 1000;
+    const allExistingMetadata = [];
     
-    if (error) {
-      console.error('❌ 메타데이터 조회 오류:', error);
-      throw error;
+    while (true) {
+      const { data: metadata, error } = await supabase
+        .from('image_metadata')
+        .select('image_url')
+        .range(offset, offset + batchSize - 1);
+      
+      if (error) {
+        console.error('❌ 메타데이터 조회 오류:', error);
+        throw error;
+      }
+      
+      if (!metadata || metadata.length === 0) {
+        break;
+      }
+      
+      allExistingMetadata.push(...metadata);
+      offset += batchSize;
+      
+      if (metadata.length < batchSize) {
+        break;
+      }
     }
     
+    const existingMetadata = allExistingMetadata;
     console.log('📊 기존 메타데이터:', existingMetadata.length, '개');
     
     // ✅ 개선: 메모리 효율적인 Set 사용
