@@ -733,7 +733,15 @@ export default function BlogAdmin() {
 
   // ✅ 블로그 글별 이미지 정렬 함수
   const handleOrganizeImages = async (post) => {
-    if (!confirm(`"${post.title}"의 이미지를 폴더로 정렬하시겠습니까?\n\n이미지를 blog-${post.slug || post.id} 폴더로 이동합니다.`)) {
+    // ✅ 계획된 구조: originals/blog/YYYY-MM/
+    // 블로그 글의 작성일 기준으로 폴더 생성
+    const postDate = post.created_at ? new Date(post.created_at) : new Date();
+    const year = postDate.getFullYear();
+    const month = String(postDate.getMonth() + 1).padStart(2, '0');
+    const dateFolder = `${year}-${month}`;
+    const targetFolder = `originals/blog/${dateFolder}`;
+    
+    if (!confirm(`"${post.title}"의 이미지를 폴더로 정렬하시겠습니까?\n\n이미지를 ${targetFolder} 폴더로 이동합니다.`)) {
       return;
     }
     
