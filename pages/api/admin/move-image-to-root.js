@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       error: fetchError?.message,
       imageData: currentImage ? {
         id: currentImage.id,
-        file_name: currentImage.file_name,
+        // file_name 컬럼 없음, image_url만 사용
         image_url: currentImage.image_url
       } : null
     });
@@ -181,10 +181,10 @@ export default async function handler(req, res) {
     }
 
     // 7. 메타데이터 업데이트
+    // 주의: image_metadata 테이블에는 file_name 컬럼이 없고 image_url만 있음
     const { error: updateError } = await supabase
       .from('image_metadata')
       .update({
-        file_name: newPath,
         image_url: urlData.publicUrl
       })
       .eq('id', imageId);

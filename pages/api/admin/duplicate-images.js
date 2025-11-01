@@ -104,23 +104,32 @@ export default async function handler(req, res) {
           .getPublicUrl(fullPath);
 
         // 6. 메타데이터 저장
+        // 주의: image_metadata 테이블 스키마에 맞춰 필드 제한
         const metadata = {
           image_url: urlData.publicUrl,
-          original_url: image.url,
           prompt: `복제된 이미지: ${image.title || image.name}`,
           title: image.title || `복제본 - ${baseName}`,
-          excerpt: image.description || `원본 이미지의 복제본입니다.`,
-          content_type: 'duplicated',
-          brand_strategy: 'gallery-copy',
-          created_at: new Date().toISOString(),
-          usage_count: 0,
-          is_featured: false,
+          description: image.description || `원본 이미지의 복제본입니다.`,
           alt_text: image.alt_text || `복제된 이미지: ${baseName}`,
-          keywords: Array.isArray(image.keywords) ? image.keywords.join(', ') : (image.keywords || ''),
-          category: image.category || 'duplicated',
-          file_name: newFileName,
-          file_size: imageBuffer.byteLength
+          tags: Array.isArray(image.keywords) ? image.keywords : (image.keywords ? [image.keywords] : []),
+          file_size: imageBuffer.byteLength,
+          upload_source: 'duplicate',
+          status: 'active'
         };
+        
+        // category_id가 필요한 경우 동적으로 조회
+        if (image.category) {
+          // 카테고리 이름을 ID로 변환 (선택사항)
+          const { data: categoryData } = await supabase
+            .from('image_categories')
+            .select('id')
+            .eq('name', image.category)
+            .single();
+          
+          if (categoryData) {
+            metadata.category_id = categoryData.id;
+          }
+        }
 
         const { error: metadataError } = await supabase
           .from('image_metadata')
