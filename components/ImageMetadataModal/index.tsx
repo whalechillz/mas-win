@@ -48,22 +48,23 @@ const FIELD_CONFIGS: Record<keyof MetadataForm, FieldConfig> = {
     aiEnabled: true,
     seoOptimized: true
   },
-  category: {
-    label: '카테고리',
-    placeholder: '카테고리 선택',
-    type: 'checkbox',
-    required: false,
-    aiEnabled: true,
-    options: [
-      { value: '골프코스', label: '골프코스' },
-      { value: '젊은 골퍼', label: '젊은 골퍼' },
-      { value: '시니어 골퍼', label: '시니어 골퍼' },
-      { value: '스윙', label: '스윙' },
-      { value: '장비', label: '장비' },
-      { value: '드라이버', label: '드라이버' },
-      { value: '드라이버샷', label: '드라이버샷' }
-    ]
-  },
+  // 카테고리 체크박스 제거 - 키워드 중심으로 전환
+  // category: {
+  //   label: '카테고리',
+  //   placeholder: '카테고리 선택',
+  //   type: 'checkbox',
+  //   required: false,
+  //   aiEnabled: true,
+  //   options: [
+  //     { value: '골프코스', label: '골프코스' },
+  //     { value: '젊은 골퍼', label: '젊은 골퍼' },
+  //     { value: '시니어 골퍼', label: '시니어 골퍼' },
+  //     { value: '스윙', label: '스윙' },
+  //     { value: '장비', label: '장비' },
+  //     { value: '드라이버', label: '드라이버' },
+  //     { value: '드라이버샷', label: '드라이버샷' }
+  //   ]
+  // },
   filename: {
     label: '파일명',
     placeholder: '파일명',
@@ -495,10 +496,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="space-y-6">
               {Object.entries(FIELD_CONFIGS).map(([field, config]) => {
-                // 카테고리 필드는 배열 형태로 전달
-                const fieldValue = field === 'category' && config.type === 'checkbox'
-                  ? (form.categories || [])
-                  : form[field as keyof MetadataForm];
+                // 카테고리 필드 제외 (키워드 중심으로 전환)
+                if (field === 'category') {
+                  return null;
+                }
+                
+                const fieldValue = form[field as keyof MetadataForm];
                 return (
                   <FieldGroup
                     key={field}
@@ -506,12 +509,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                     config={config}
                     value={fieldValue as string | string[]}
                     onChange={(value) => {
-                      if (field === 'category' && config.type === 'checkbox') {
-                        // 체크박스는 categories 필드에 저장
-                        handleFormChange('categories', value as string[]);
-                      } else {
-                        handleFormChange(field as keyof MetadataForm, value);
-                      }
+                      handleFormChange(field as keyof MetadataForm, value);
                     }}
                     onAIGenerate={config.aiEnabled ? handleGenerateField : undefined}
                     error={validationErrors[field]}
@@ -521,6 +519,14 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   />
                 );
               })}
+              
+              {/* 키워드 자동 완성 안내 */}
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  💡 <strong>키워드 입력 팁:</strong> 카테고리 정보(골프코스, 스윙, 드라이버 등)는 키워드 필드에 직접 입력하세요. 
+                  AI 생성 시 자동으로 관련 키워드가 추가됩니다.
+                </p>
+              </div>
               
               {/* SEO 파일명 자동 생성 버튼 */}
               <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-200">
