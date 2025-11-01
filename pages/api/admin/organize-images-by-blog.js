@@ -115,17 +115,34 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         }
       }
       
-      // 3. Storage에서 해당 이미지 찾기
+      // 3. Storage에서 해당 이미지 찾기 (최적화: 타임아웃 방지)
       const storageImages = [];
+      const maxSearchTime = 8000; // ✅ 각 블로그 글당 최대 8초 (전체 API 타임아웃 9초 고려)
+      const startTime = Date.now();
       
-      for (const img of images) {
+      // ✅ 최적화: 처음 몇 개 이미지만 처리 (타임아웃 방지)
+      const imagesToProcess = images.slice(0, 20); // 최대 20개 이미지만 처리
+      
+      for (const img of imagesToProcess) {
+        // 타임아웃 체크
+        if ((Date.now() - startTime) >= maxSearchTime) {
+          console.warn(`⚠️ 이미지 검색 타임아웃: ${imagesToProcess.indexOf(img)}/${imagesToProcess.length}개 처리 완료`);
+          break;
+        }
+        
         try {
           // URL에서 파일명 추출
           const urlParts = img.url.split('/');
           const fileName = urlParts[urlParts.length - 1].split('?')[0];
           
-          // Storage에서 이미지 찾기 (재귀적으로 모든 폴더에서)
-          const found = await findImageInStorage(fileName);
+          // ✅ 최적화: 짧은 타임아웃으로 이미지 찾기 (각 이미지당 최대 2초)
+          const found = await Promise.race([
+            findImageInStorage(fileName, 2000), // 각 이미지당 최대 2초
+            new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 2000))
+          ]).catch(err => {
+            console.warn(`⚠️ 이미지 검색 타임아웃 (${fileName}):`, err.message);
+            return null;
+          });
           
           if (found) {
             storageImages.push({
@@ -142,6 +159,11 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         } catch (error) {
           console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
         }
+      }
+      
+      // 처리하지 못한 이미지가 있으면 경고
+      if (images.length > imagesToProcess.length) {
+        console.warn(`⚠️ 이미지 일부만 처리: ${storageImages.length}/${images.length}개 (타임아웃 방지)`);
       }
       
       results.push({
@@ -165,20 +187,27 @@ const organizeImagesByBlog = async (blogPostId = null) => {
 };
 
 // Storage에서 이미지 찾기 (최적화: 타임아웃 방지)
-const findImageInStorage = async (fileName, maxSearchTime = 30000) => {
+const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
   try {
     let foundImage = null;
     const startTime = Date.now();
     const batchSize = 1000;
     
     // ✅ 최적화: 먼저 루트 폴더에서 검색 (대부분의 이미지가 루트에 있음)
+    // ✅ 최적화: 파일명으로 직접 검색 (인덱스 사용)
     try {
+      // ✅ 파일명과 정확히 일치하는 것부터 검색
+      const exactFileName = fileName.toLowerCase();
+      
+      // 루트 폴더에서 파일명으로 검색 (최대 500개만)
       let rootOffset = 0;
-      while (true && !foundImage && (Date.now() - startTime) < maxSearchTime) {
+      const searchLimit = 500; // ✅ 검색 제한 (타임아웃 방지)
+      
+      while (!foundImage && rootOffset < searchLimit && (Date.now() - startTime) < maxSearchTime) {
         const { data: files, error } = await supabase.storage
           .from('blog-images')
           .list('', {
-            limit: batchSize,
+            limit: Math.min(batchSize, searchLimit - rootOffset),
             offset: rootOffset,
             sortBy: { column: 'name', order: 'asc' }
           });
@@ -195,11 +224,13 @@ const findImageInStorage = async (fileName, maxSearchTime = 30000) => {
         // 파일만 검색 (폴더 제외)
         for (const file of files) {
           if (file.id) {
-            // 파일인 경우 파일명 비교
             const fileLower = file.name.toLowerCase();
-            const searchLower = fileName.toLowerCase();
             
-            if (fileLower === searchLower || fileLower.includes(searchLower)) {
+            // ✅ 정확한 파일명 매칭 우선 (확장자 제외 포함)
+            const fileNameWithoutExt = exactFileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+            const fileWithoutExt = fileLower.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+            
+            if (fileLower === exactFileName || fileWithoutExt === fileNameWithoutExt || fileLower.includes(exactFileName)) {
               const { data: urlData } = supabase.storage
                 .from('blog-images')
                 .getPublicUrl(file.name);
@@ -218,7 +249,7 @@ const findImageInStorage = async (fileName, maxSearchTime = 30000) => {
           }
         }
         
-        rootOffset += batchSize;
+        rootOffset += files.length;
         
         if (files.length < batchSize) {
           break;
@@ -226,7 +257,7 @@ const findImageInStorage = async (fileName, maxSearchTime = 30000) => {
         
         // 타임아웃 체크
         if ((Date.now() - startTime) >= maxSearchTime) {
-          console.warn(`⚠️ 이미지 검색 타임아웃 (${maxSearchTime}ms): 루트 폴더만 검색 완료`);
+          console.warn(`⚠️ 이미지 검색 타임아웃 (${maxSearchTime}ms): ${rootOffset}개 검색 완료`);
           break;
         }
       }

@@ -163,8 +163,60 @@ async function runBlogImageSyncTest() {
     const postTitle = await firstPost.locator('h3, h2, td, [class*="title"]').first().textContent().catch(() => '블로그 글');
     console.log(`✅ 첫 번째 블로그 글: ${postTitle}\n`);
     
-    // 4. 이미지 정렬 버튼 클릭
-    console.log('📁 4단계: 이미지 정렬 버튼 클릭...');
+    // 4. 이미지 정렬 버튼 클릭 및 오류 확인
+    console.log('📁 4단계: 이미지 정렬 버튼 클릭 및 오류 확인...');
+    
+    // 네트워크 요청 모니터링 설정
+    const networkErrors = [];
+    const apiRequests = [];
+    
+    page.on('request', request => {
+      if (request.url().includes('organize-images')) {
+        apiRequests.push({
+          url: request.url(),
+          method: request.method(),
+          time: Date.now()
+        });
+        console.log(`📡 API 요청: ${request.method()} ${request.url()}`);
+      }
+    });
+    
+    page.on('response', response => {
+      if (response.url().includes('organize-images')) {
+        const status = response.status();
+        apiRequests[apiRequests.length - 1].status = status;
+        apiRequests[apiRequests.length - 1].responseTime = Date.now() - apiRequests[apiRequests.length - 1].time;
+        
+        if (status >= 400) {
+          networkErrors.push({
+            url: response.url(),
+            status,
+            statusText: response.statusText()
+          });
+          console.error(`❌ API 오류 응답: ${status} ${response.statusText()} - ${response.url()}`);
+        } else {
+          console.log(`✅ API 성공 응답: ${status} - ${response.url()}`);
+        }
+      }
+    });
+    
+    // 콘솔 메시지 모니터링
+    page.on('console', msg => {
+      const text = msg.text();
+      if (text.includes('이미지 정렬') || text.includes('오류') || text.includes('error') || text.includes('Error')) {
+        console.log(`🖥️ 콘솔: ${msg.type()} - ${text}`);
+      }
+    });
+    
+    // 페이지 오류 모니터링
+    page.on('pageerror', error => {
+      console.error(`💥 페이지 오류: ${error.message}`);
+      networkErrors.push({
+        type: 'pageerror',
+        message: error.message,
+        stack: error.stack
+      });
+    });
     
     // 버튼 찾기 (여러 방법 시도)
     let organizeButton = firstPost.locator('button:has-text("이미지 정렬"), button:has-text("📁"), button[title*="이미지"], button[title*="정렬"]').first();
@@ -180,26 +232,50 @@ async function runBlogImageSyncTest() {
     }
     
     await organizeButton.scrollIntoViewIfNeeded();
-    await organizeButton.click();
-    console.log('✅ 이미지 정렬 버튼 클릭 완료');
-    await page.waitForTimeout(3000);
     
-    // 확인 다이얼로그 처리
+    // 확인 다이얼로그 처리 설정
+    let dialogHandled = false;
     page.on('dialog', async dialog => {
-      console.log(`📋 다이얼로그: ${dialog.message()}`);
-      if (dialog.type() === 'confirm') {
-        await dialog.accept();
-        console.log('✅ 확인 다이얼로그 수락');
+      if (!dialogHandled) {
+        dialogHandled = true;
+        console.log(`📋 다이얼로그: ${dialog.message()}`);
+        if (dialog.type() === 'confirm') {
+          await dialog.accept();
+          console.log('✅ 확인 다이얼로그 수락');
+        }
       }
     });
     
-    // 진행 상태 확인
-    await page.waitForTimeout(5000);
+    // 버튼 클릭
+    console.log('🖱️ 이미지 정렬 버튼 클릭...');
+    await organizeButton.click();
+    await page.waitForTimeout(2000); // 다이얼로그 대기
     
-    // 완료 메시지 확인
-    const successMessage = page.locator('text=완료, text=이동').first();
-    if (await successMessage.count() > 0) {
-      console.log('✅ 이미지 정렬 완료 메시지 확인');
+    // API 요청 완료 대기 (최대 15초)
+    console.log('⏳ API 응답 대기 중...');
+    await page.waitForTimeout(12000); // API 처리 시간 대기
+    
+    // 오류 확인
+    if (networkErrors.length > 0) {
+      console.error('\n❌ 네트워크 오류 발견:');
+      networkErrors.forEach((err, idx) => {
+        console.error(`  ${idx + 1}. ${err.status || 'N/A'} ${err.statusText || err.message || 'N/A'}`);
+        console.error(`     URL: ${err.url || 'N/A'}`);
+      });
+      
+      // 오류 스크린샷 저장
+      await page.screenshot({ path: 'image-organize-error.png', fullPage: true });
+      console.log('📸 오류 스크린샷 저장: image-organize-error.png');
+      
+      // API 요청 정보 출력
+      console.log('\n📊 API 요청 정보:');
+      apiRequests.forEach((req, idx) => {
+        console.log(`  ${idx + 1}. ${req.method} ${req.url}`);
+        console.log(`     상태: ${req.status || '대기 중'}`);
+        console.log(`     응답 시간: ${req.responseTime || 'N/A'}ms`);
+      });
+    } else {
+      console.log('✅ 이미지 정렬 버튼 클릭 완료 (오류 없음)');
     }
     
     // 5. 메타데이터 동기화 버튼 클릭
@@ -261,7 +337,17 @@ async function runBlogImageSyncTest() {
       console.log('✅ 중복 이미지 제거 기능 확인');
     }
     
-    console.log('\n✅ 블로그 글별 이미지 관리 테스트 완료!');
+    // 최종 결과 요약
+    console.log('\n📊 테스트 결과 요약:');
+    console.log(`  - 네트워크 오류: ${networkErrors.length}개`);
+    console.log(`  - API 요청: ${apiRequests.length}개`);
+    
+    if (networkErrors.length === 0) {
+      console.log('\n✅ 블로그 글별 이미지 관리 테스트 완료!');
+    } else {
+      console.log('\n⚠️ 테스트 완료 (일부 오류 발생):');
+      console.log('   오류 상세 정보는 위의 로그를 참고하세요.');
+    }
     
   } catch (error) {
     console.error('\n❌ 테스트 실패:', error.message);
