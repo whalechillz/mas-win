@@ -224,9 +224,10 @@ const findMissingMetadata = async (storageImages) => {
   try {
     // ✅ 개선: 배치 조회로 메타데이터 가져오기 (타임아웃 방지)
     console.log('📊 기존 메타데이터 조회 중...');
+    // ✅ 수정: image_metadata 테이블에는 file_name 컬럼이 없으므로 image_url만 조회
     const { data: existingMetadata, error } = await supabase
       .from('image_metadata')
-      .select('image_url, file_name')
+      .select('image_url')
       .limit(10000);  // ✅ 충분히 큰 limit 설정
     
     if (error) {
@@ -244,12 +245,8 @@ const findMissingMetadata = async (storageImages) => {
       existingMetadata.forEach(meta => {
         if (meta.image_url) {
           existingUrls.add(normalizeUrl(meta.image_url));
-        }
-        // ✅ 개선: file_name이 있으면 사용, 없으면 URL에서 파일명 추출
-        if (meta.file_name) {
-          existingFileNames.add(meta.file_name);
-        } else if (meta.image_url) {
-          // URL에서 파일명 추출
+          
+          // ✅ 개선: URL에서 파일명 추출 (image_metadata 테이블에는 file_name 컬럼이 없음)
           const urlParts = meta.image_url.split('/');
           const fileName = urlParts[urlParts.length - 1].split('?')[0]; // 쿼리 파라미터 제거
           if (fileName) {
@@ -411,24 +408,23 @@ export default async function handler(req, res) {
           ...filenameKeywords
         ])].slice(0, 10);
         
-        // 메타데이터 저장
+        // ✅ 메타데이터 저장 (image_metadata 테이블에는 file_name 컬럼이 없음)
         const metadataPayload = {
-          file_name: image.name,
-          image_url: image.url,
-          folder_path: image.folderPath || '',
+          image_url: image.url,  // ✅ UNIQUE 컬럼 (onConflict 기준)
           alt_text: metadata.alt_text || '',
           title: metadata.title || '',
           description: metadata.description || '',
-          tags: allKeywords,
-          source: 'sync',
+          tags: allKeywords,  // ✅ 배열 타입
           upload_source: 'manual',
           status: 'active',
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          created_at: new Date().toISOString()  // ✅ 새 레코드 생성 시 필요
         };
         
+        // ✅ image_url이 UNIQUE이므로 image_url 기준으로 upsert
         const { error: upsertError } = await supabase
           .from('image_metadata')
-          .upsert(metadataPayload, { onConflict: 'file_name' });
+          .upsert(metadataPayload, { onConflict: 'image_url' });
         
         if (upsertError) {
           console.error(`❌ 메타데이터 저장 실패 (${image.name}):`, upsertError);
