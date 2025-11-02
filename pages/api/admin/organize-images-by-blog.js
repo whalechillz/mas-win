@@ -481,9 +481,10 @@ export default async function handler(req, res) {
   console.log('📁 블로그 글별 이미지 폴더 정렬 API 요청:', req.method, req.url);
   
   // ✅ 타임아웃 방지: Vercel 제한(10초) 고려하여 빠른 응답 보장
-  // ✅ Vercel 실제 제한이 더 짧을 수 있으므로 8초로 설정
+  // ✅ GET 요청은 더 짧게 설정 (이미지 검색만 수행, 이동 없음)
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (8초 제한)')), 8000);
+    const timeout = req.method === 'GET' ? 6000 : 8000; // GET은 6초, POST는 8초
+    setTimeout(() => reject(new Error(`요청 시간 초과 (${timeout/1000}초 제한)`)), timeout);
   });
   
   try {
