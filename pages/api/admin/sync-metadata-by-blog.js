@@ -38,9 +38,10 @@ const extractKeywordsFromFilename = (filename) => {
 // OpenAI Vision API로 이미지 분석
 const analyzeImageWithOpenAI = async (imageUrl) => {
   try {
-    // ✅ OpenAI API 호출 타임아웃 설정 (5초) - Promise.race 사용
+    // ✅ OpenAI API 호출 타임아웃 설정 (10초) - Promise.race 사용
+    // 성공을 최대 목표로 하므로 충분한 시간 제공
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (5초 초과)')), 5000);
+      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (10초 초과)')), 10000);
     });
     
     const apiPromise = openai.chat.completions.create({
@@ -244,8 +245,8 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         }
         
         // API 호출 제한 방지 (OpenAI Vision API는 비용이 비싸므로 짧은 간격)
-        // 타임아웃으로 빠르게 처리하기 위해 대기 시간 최소화
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // 성공을 최대 목표로 하므로 적절한 간격 유지
+        await new Promise(resolve => setTimeout(resolve, 500));
         
       } catch (error) {
         console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
@@ -282,9 +283,10 @@ const syncMetadataForBlogPost = async (blogPostId) => {
 export default async function handler(req, res) {
   console.log('🔄 블로그 글별 메타데이터 동기화 API 요청:', req.method, req.url);
   
-  // ✅ 타임아웃 설정: Vercel 제한(30초) 고려
+  // ✅ 타임아웃 설정: 이미지 정렬과 마찬가지로 넉넉하게 설정 (성공 최대 목표)
+  // Vercel Pro 플랜은 60초 제한이지만, 안전하게 50초로 설정
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (25초 제한)')), 25000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (50초 제한)')), 50000);
   });
   
   try {

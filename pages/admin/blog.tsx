@@ -885,6 +885,7 @@ export default function BlogAdmin() {
   
   // ✅ 블로그 글별 메타데이터 동기화 함수
   const handleSyncMetadata = async (post) => {
+    // ✅ 클라이언트 사이드 타임아웃도 충분히 설정 (성공 최대 목표)
     if (!confirm(`"${post.title}"의 이미지 메타데이터를 동기화하시겠습니까?\n\nAI로 메타데이터를 생성합니다.`)) {
       return;
     }
@@ -892,11 +893,18 @@ export default function BlogAdmin() {
     setSyncingMetadata(prev => ({ ...prev, [post.id]: true }));
     
     try {
+      // ✅ AbortController로 클라이언트 사이드 타임아웃 설정 (60초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
       const response = await fetch('/api/admin/sync-metadata-by-blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blogPostId: post.id })
+        body: JSON.stringify({ blogPostId: post.id }),
+        signal: controller.signal // ✅ 타임아웃 신호 전달
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error('메타데이터 동기화 실패');
@@ -910,8 +918,15 @@ export default function BlogAdmin() {
       alert(`✅ 메타데이터 동기화 완료!\n\n처리: ${processed}개\n스킵: ${skipped}개\n오류: ${errors}개`);
       
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('❌ 메타데이터 동기화 오류:', error);
-      alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
+      
+      // ✅ 타임아웃 오류 구분
+      if (error.name === 'AbortError') {
+        alert('메타데이터 동기화가 시간 초과되었습니다.\n이미지가 많은 경우 시간이 오래 걸릴 수 있습니다.\n다시 시도해주세요.');
+      } else {
+        alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
+      }
     } finally {
       setSyncingMetadata(prev => ({ ...prev, [post.id]: false }));
     }
