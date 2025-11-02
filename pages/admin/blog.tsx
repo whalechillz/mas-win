@@ -5509,13 +5509,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1 cursor-pointer"
                           />
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                              {post.title}
-                            </h3>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {post.title}
+                              </h3>
+                              <span className="px-2 py-0.5 text-xs font-mono bg-gray-100 text-gray-600 rounded border border-gray-300">
+                                ID: {post.id}
+                              </span>
+                            </div>
                             <p className="text-gray-600 text-sm mb-2">
                               {post.excerpt}
                             </p>
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
+                              <span className="font-semibold text-gray-700">블로그 ID: {post.id}</span>
                               <span>카테고리: {post.category}</span>
                               <span>작성자: {post.author}</span>
                               <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
