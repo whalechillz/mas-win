@@ -152,11 +152,10 @@ const syncMetadataForBlogPost = async (blogPostId) => {
     
     console.log(`📊 블로그 글 "${post.title}" 이미지: ${images.length}개`);
     
-    // 각 이미지에 대해 메타데이터 동기화
-    const results = [];
-    let processed = 0;
-    let skipped = 0;
-    let errors = [];
+    // ✅ 기존 메타데이터가 있는 이미지 먼저 확인하여 스킵 (시간 절약)
+    console.log(`📊 총 ${images.length}개 이미지 중 기존 메타데이터 확인 중...`);
+    const imagesToProcess = [];
+    const imagesToSkip = [];
     
     for (const img of images) {
       try {
@@ -170,14 +169,36 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         
         if (existingMetadata) {
           console.log(`⏭️ 이미지 메타데이터 이미 존재: ${img.url}`);
-          skipped++;
-          results.push({
-            url: img.url,
-            status: 'skipped',
-            reason: 'already_exists'
-          });
-          continue;
+          imagesToSkip.push(img);
+        } else {
+          imagesToProcess.push(img);
         }
+      } catch (error) {
+        // 오류 발생 시 처리 대상에 추가
+        imagesToProcess.push(img);
+      }
+    }
+    
+    console.log(`✅ 처리 대상: ${imagesToProcess.length}개, 스킵: ${imagesToSkip.length}개`);
+    
+    // ✅ 처리 결과 배열 초기화
+    const results = [];
+    let processed = 0;
+    let skipped = imagesToSkip.length;
+    let errors = [];
+    
+    // 스킵된 이미지 결과 추가
+    for (const img of imagesToSkip) {
+      results.push({
+        url: img.url,
+        status: 'skipped',
+        reason: 'already_exists'
+      });
+    }
+    
+    // ✅ 처리 대상 이미지만 처리
+    for (const img of imagesToProcess) {
+      try {
         
         // URL에서 파일명 추출
         const urlParts = img.url.split('/');
