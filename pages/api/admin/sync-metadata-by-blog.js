@@ -38,10 +38,10 @@ const extractKeywordsFromFilename = (filename) => {
 // OpenAI Vision API로 이미지 분석
 const analyzeImageWithOpenAI = async (imageUrl) => {
   try {
-    // ✅ OpenAI API 호출 타임아웃 설정 (10초) - Promise.race 사용
-    // 성공을 최대 목표로 하므로 충분한 시간 제공
+    // ✅ OpenAI API 호출 타임아웃 설정 (5초) - Promise.race 사용
+    // 이미지가 많은 경우를 고려하여 적절한 시간 제공
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (10초 초과)')), 10000);
+      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (5초 초과)')), 5000);
     });
     
     const apiPromise = openai.chat.completions.create({
@@ -87,7 +87,7 @@ const analyzeImageWithOpenAI = async (imageUrl) => {
   } catch (error) {
     // ✅ 타임아웃 오류 구분
     if (error.message && (error.message.includes('타임아웃') || error.message.includes('timeout') || error.message.includes('초과'))) {
-      console.warn('⚠️ OpenAI Vision API 타임아웃 (10초 초과):', imageUrl);
+      console.warn('⚠️ OpenAI Vision API 타임아웃 (5초 초과):', imageUrl);
       return null;
     }
     console.error('❌ OpenAI Vision API 오류:', error);
@@ -243,8 +243,8 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         }
         
         // API 호출 제한 방지 (OpenAI Vision API는 비용이 비싸므로 짧은 간격)
-        // 성공을 최대 목표로 하므로 적절한 간격 유지
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 타임아웃 내 완료를 위해 간격 최소화
+        await new Promise(resolve => setTimeout(resolve, 200));
         
       } catch (error) {
         console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
