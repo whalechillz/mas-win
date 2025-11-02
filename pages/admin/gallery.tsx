@@ -192,9 +192,17 @@ export default function GalleryAdmin() {
           const imgFolderPath = String(img.folder_path || '').trim();
           const filterPath = String(folderFilter || '').trim();
           
+          // 빈 값 처리
+          if (!imgFolderPath || !filterPath) {
+            return false;
+          }
+          
           let matches = false;
           if (includeChildren) {
             // 하위 폴더 포함: 정확히 일치하거나 하위 경로로 시작하는 경우
+            // 예: filterPath='originals/blog/2025-09'
+            // - 'originals/blog/2025-09' → 정확히 일치 ✓
+            // - 'originals/blog/2025-09/subfolder' → 하위 경로로 시작 ✓
             matches = imgFolderPath === filterPath || 
                      (imgFolderPath.startsWith(filterPath + '/') && imgFolderPath.length > filterPath.length);
           } else {
@@ -202,9 +210,21 @@ export default function GalleryAdmin() {
             matches = imgFolderPath === filterPath;
           }
           
+          // 디버깅: 불일치 시 상세 로그 (처음 5개만)
           if (!matches && imgFolderPath && filterPath) {
-            console.log('🔍 폴더 불일치:', imgFolderPath, 'vs', filterPath);
-            console.log('   includeChildren:', includeChildren);
+            const logKey = `${imgFolderPath}::${filterPath}::${includeChildren}`;
+            if (!window._filterDebugLog || !window._filterDebugLog.has(logKey)) {
+              if (!window._filterDebugLog) window._filterDebugLog = new Set();
+              if (window._filterDebugLog.size < 5) {
+                window._filterDebugLog.add(logKey);
+                console.log('🔍 폴더 불일치:', {
+                  imgFolderPath,
+                  filterPath,
+                  includeChildren,
+                  imgName: img.name
+                });
+              }
+            }
           }
           return matches;
         });
@@ -724,14 +744,34 @@ export default function GalleryAdmin() {
   }, []);
   
   // 폴더 필터 또는 includeChildren 변경 시 이미지 재로드 (초기 로드 이후)
+  // 주의: 드롭다운과 체크박스의 onChange에서 이미 fetchImages를 호출하므로,
+  // 여기서는 중복 호출을 방지하기 위해 제거 (또는 debounce 적용)
   const isInitialMount = useRef(true);
+  const prevFolderFilter = useRef<string>('all');
+  const prevIncludeChildren = useRef<boolean>(true);
+  
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      prevFolderFilter.current = folderFilter;
+      prevIncludeChildren.current = includeChildren;
       return; // 초기 마운트는 위의 useEffect에서 처리
     }
-    // 폴더 필터나 includeChildren이 변경되면 이미지 재로드
-    fetchImages(1, true);
+    
+    // 실제로 변경되었을 때만 재로드 (중복 호출 방지)
+    if (prevFolderFilter.current !== folderFilter || prevIncludeChildren.current !== includeChildren) {
+      console.log('🔄 폴더 필터 또는 includeChildren 변경 감지:', {
+        folderFilter: `${prevFolderFilter.current} → ${folderFilter}`,
+        includeChildren: `${prevIncludeChildren.current} → ${includeChildren}`
+      });
+      prevFolderFilter.current = folderFilter;
+      prevIncludeChildren.current = includeChildren;
+      // debounce를 위해 짧은 지연 추가
+      const timer = setTimeout(() => {
+        fetchImages(1, true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
   }, [folderFilter, includeChildren]);
 
   // 이미지 선택/해제
