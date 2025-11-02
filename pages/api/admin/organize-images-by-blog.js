@@ -128,9 +128,9 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       
       console.log(`📊 추출된 이미지 (중복 제거 후): ${images.length}개 (대표이미지 포함)`);
       
-      // 3. Storage에서 해당 이미지 찾기 (최적화: 타임아웃 방지)
+      // 3. Storage에서 해당 이미지 찾기 (넉넉한 시간 제공)
       const storageImages = [];
-      const maxSearchTime = 6000; // ✅ 각 블로그 글당 최대 6초 (전체 API 타임아웃 8초 고려)
+      const maxSearchTime = 20000; // ✅ 각 블로그 글당 최대 20초 (충분한 시간 제공)
       const startTime = Date.now();
       
       // ✅ 개선: 모든 이미지 처리 (타임아웃 발생 시 일부만 처리)
@@ -286,8 +286,8 @@ const organizeImagesByBlog = async (blogPostId = null) => {
   }
 };
 
-// Storage에서 이미지 찾기 (최적화: 타임아웃 방지)
-const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
+// Storage에서 이미지 찾기 (넉넉한 시간으로 정확한 검색)
+const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
   try {
     let foundImage = null;
     const startTime = Date.now();
@@ -299,9 +299,9 @@ const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
       // ✅ 파일명과 정확히 일치하는 것부터 검색
       const exactFileName = fileName.toLowerCase();
       
-      // 루트 폴더에서 파일명으로 검색 (최대 1000개로 확대)
+      // 루트 폴더에서 파일명으로 검색 (충분한 범위 검색)
       let rootOffset = 0;
-      const searchLimit = 1000; // ✅ 검색 제한 확대 (이미지 찾기 성공률 향상)
+      const searchLimit = 2000; // ✅ 충분한 범위 검색 (정확성 우선)
       
       while (!foundImage && rootOffset < searchLimit && (Date.now() - startTime) < maxSearchTime) {
         const { data: files, error } = await supabase.storage
