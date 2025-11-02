@@ -1732,7 +1732,11 @@ export default function GalleryAdmin() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">폴더</label>
                 <select
                   value={folderFilter}
-                  onChange={(e) => setFolderFilter(e.target.value)}
+                  onChange={(e) => {
+                    setFolderFilter(e.target.value);
+                    setCurrentPage(1); // 페이지 초기화
+                    fetchImages(1, true); // 폴더 변경 시 이미지 다시 로드
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="all">전체 폴더</option>
