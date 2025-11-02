@@ -64,13 +64,10 @@ const organizeImagesByBlog = async (blogPostId = null) => {
     
     // 각 블로그 글에 대해 이미지 찾기 및 폴더 정렬
     for (const post of blogPosts) {
-      // ✅ 계획된 구조: originals/blog/YYYY-MM/
-      // 블로그 글의 작성일 기준으로 폴더 생성
-      const postDate = post.created_at ? new Date(post.created_at) : new Date();
-      const year = postDate.getFullYear();
-      const month = String(postDate.getMonth() + 1).padStart(2, '0');
-      const dateFolder = `${year}-${month}`;
-      const postFolderName = `originals/blog/${dateFolder}`;
+      // ✅ 개선된 구조: originals/blog/{blog-id}/ (단순화)
+      // 블로그 ID 기반 폴더 생성 (관리 용이)
+      // 날짜별 정렬이 필요하면 메타데이터로 관리
+      const postFolderName = `originals/blog/${post.id}`;
       const images = [];
       const imageUrlSet = new Set(); // ✅ 중복 체크용 Set (더 빠른 검색)
       
