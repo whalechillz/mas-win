@@ -182,9 +182,9 @@ const organizeImagesByBlog = async (blogPostId = null) => {
                 .from('blog-images')
                 .getPublicUrl(imagePath);
               
-              // ✅ 최적화: HEAD 요청에 타임아웃 추가 (500ms로 단축)
+              // ✅ HEAD 요청 타임아웃: 넉넉히 설정 (3초)
               const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 500);
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
               
               try {
                 const response = await fetch(urlData.publicUrl, { 
@@ -224,10 +224,10 @@ const organizeImagesByBlog = async (blogPostId = null) => {
           
           // 경로로 찾지 못했으면 파일명으로 검색
           if (!found) {
-            // ✅ 개선: 검색 시간 단축 (1초로 축소, 타임아웃 방지)
+            // ✅ 검색 시간 넉넉히 설정: 각 이미지당 최대 5초
             const foundResult = await Promise.race([
-              findImageInStorage(fileName, 1000), // ✅ 각 이미지당 최대 1초
-              new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 1000))
+              findImageInStorage(fileName, 5000), // ✅ 각 이미지당 최대 5초 (넉넉히)
+              new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 5000))
             ]).catch(err => {
               console.warn(`⚠️ 이미지 검색 타임아웃 (${fileName}):`, err.message);
               return null;
@@ -365,13 +365,13 @@ const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
       console.error('❌ 루트 폴더 검색 오류:', error);
     }
     
-    // ✅ 찾지 못했고 시간이 남아있으면 하위 폴더 검색 (제한적으로)
-    if (!foundImage && (Date.now() - startTime) < maxSearchTime / 2) {
+    // ✅ 찾지 못했고 시간이 남아있으면 하위 폴더 검색 (넉넉히)
+    if (!foundImage && (Date.now() - startTime) < maxSearchTime * 0.8) {
       try {
         const { data: rootFolders } = await supabase.storage
           .from('blog-images')
           .list('', {
-            limit: 100, // 최대 100개 폴더만 검색
+            limit: 200, // ✅ 충분한 폴더 검색
             sortBy: { column: 'created_at', order: 'desc' }
           });
         
@@ -379,15 +379,15 @@ const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
           // 폴더만 필터링
           const folders = rootFolders.filter(f => !f.id);
           
-          // 주요 폴더만 검색 (최신 순으로 10개)
-          for (const folder of folders.slice(0, 10)) {
+          // ✅ 더 많은 폴더 검색 (최신 순으로 20개)
+          for (const folder of folders.slice(0, 20)) {
             if (foundImage || (Date.now() - startTime) >= maxSearchTime) break;
             
             try {
               const { data: folderFiles } = await supabase.storage
                 .from('blog-images')
                 .list(folder.name, {
-                  limit: 500, // 폴더당 최대 500개 파일
+                  limit: 1000, // ✅ 폴더당 충분한 파일 검색
                   sortBy: { column: 'name', order: 'asc' }
                 });
               
@@ -568,10 +568,10 @@ const moveImageToFolder = async (imagePath, targetFolder) => {
 export default async function handler(req, res) {
   console.log('📁 블로그 글별 이미지 폴더 정렬 API 요청:', req.method, req.url);
   
-  // ✅ 타임아웃 방지: Vercel 제한(10초) 고려하여 빠른 응답 보장
-  // ✅ GET 요청 타임아웃 증가 (9초로 확대, POST는 8초 유지)
+  // ✅ 타임아웃 넉넉히 설정: 오류 없이 완료되도록 충분한 시간 제공
+  // Vercel Pro 플랜은 60초 제한, Hobby는 10초이지만 최대한 활용
   const timeoutPromise = new Promise((_, reject) => {
-    const timeout = req.method === 'GET' ? 9000 : 8000; // GET은 9초, POST는 8초
+    const timeout = req.method === 'GET' ? 25000 : 25000; // GET, POST 모두 25초 (넉넉히)
     setTimeout(() => reject(new Error(`요청 시간 초과 (${timeout/1000}초 제한)`)), timeout);
   });
   
