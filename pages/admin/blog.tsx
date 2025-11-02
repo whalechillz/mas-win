@@ -751,11 +751,27 @@ export default function BlogAdmin() {
       // 1. 이미지 정렬 정보 조회
       const checkResponse = await fetch(`/api/admin/organize-images-by-blog?blogPostId=${post.id}`);
       if (!checkResponse.ok) {
-        throw new Error('이미지 정렬 정보 조회 실패');
+        // ✅ 개선: 에러 응답의 상세 메시지 추출
+        let errorMessage = '이미지 정렬 정보 조회 실패';
+        try {
+          const errorData = await checkResponse.json();
+          errorMessage = errorData.details || errorData.error || errorMessage;
+          if (checkResponse.status === 504) {
+            errorMessage = `요청 시간 초과: ${errorMessage}`;
+          }
+        } catch (e) {
+          // JSON 파싱 실패 시 상태 코드 기반 메시지
+          if (checkResponse.status === 504) {
+            errorMessage = '요청 시간 초과: 이미지 검색이 너무 오래 걸렸습니다.';
+          } else if (checkResponse.status === 500) {
+            errorMessage = '서버 오류가 발생했습니다.';
+          }
+        }
+        throw new Error(errorMessage);
       }
       
       const checkData = await checkResponse.json();
-      const imageCount = checkData.results[0]?.totalImages || 0;
+      const imageCount = checkData.results?.[0]?.totalImages || 0;
       
       if (imageCount === 0) {
         alert('이 블로그 글에 연결된 이미지가 없습니다.');
@@ -771,7 +787,23 @@ export default function BlogAdmin() {
       });
       
       if (!moveResponse.ok) {
-        throw new Error('이미지 이동 실패');
+        // ✅ 개선: 에러 응답의 상세 메시지 추출
+        let errorMessage = '이미지 이동 실패';
+        try {
+          const errorData = await moveResponse.json();
+          errorMessage = errorData.details || errorData.error || errorMessage;
+          if (moveResponse.status === 504) {
+            errorMessage = `요청 시간 초과: ${errorMessage}`;
+          }
+        } catch (e) {
+          // JSON 파싱 실패 시 상태 코드 기반 메시지
+          if (moveResponse.status === 504) {
+            errorMessage = '요청 시간 초과: 이미지 이동이 너무 오래 걸렸습니다.';
+          } else if (moveResponse.status === 500) {
+            errorMessage = '서버 오류가 발생했습니다.';
+          }
+        }
+        throw new Error(errorMessage);
       }
       
       const moveData = await moveResponse.json();
@@ -796,16 +828,8 @@ export default function BlogAdmin() {
     } catch (error: any) {
       console.error('❌ 이미지 정렬 오류:', error);
       
-      // ✅ 개선: 에러 응답이면 상세 메시지 추출
-      let errorMessage = error.message || '알 수 없는 오류';
-      if (error.response) {
-        try {
-          const errorData = await error.response.json();
-          errorMessage = errorData.details || errorData.error || errorMessage;
-        } catch (e) {
-          // JSON 파싱 실패 시 원본 메시지 사용
-        }
-      }
+      // ✅ 개선: 에러 메시지 추출 (fetch API는 response 속성이 없음)
+      const errorMessage = error.message || '알 수 없는 오류';
       
       alert(`이미지 정렬 중 오류가 발생했습니다: ${errorMessage}`);
     } finally {
