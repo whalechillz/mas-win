@@ -362,6 +362,21 @@ const analyzeAllBlogImages = async (dryRun = true) => {
       const batchResults = await Promise.all(
         batch.map(async (img) => {
           const path = extractPathFromUrl(img.url);
+          
+          // 경로 추출 실패 시 (외부 URL 등)
+          if (!path) {
+            return {
+              ...img,
+              path: null,
+              fileName: img.url.split('/').pop()?.split('?')[0] || 'unknown',
+              url: img.url,
+              storageExists: false,
+              storageUrl: null,
+              isExternalUrl: !img.url.includes('supabase.co'),
+              extractionFailed: true
+            };
+          }
+          
           const fileInfo = await findFileInStorage(path);
           
           return {
@@ -370,7 +385,9 @@ const analyzeAllBlogImages = async (dryRun = true) => {
             fileName: fileInfo?.fileName || path?.split('/').pop() || 'unknown',
             url: img.url,
             storageExists: fileInfo?.exists || false,
-            storageUrl: fileInfo?.url
+            storageUrl: fileInfo?.url,
+            isExternalUrl: false,
+            extractionFailed: false
           };
         })
       );
@@ -378,15 +395,16 @@ const analyzeAllBlogImages = async (dryRun = true) => {
       imageResults.push(...batchResults);
       
       foundCount += batchResults.filter(r => r.storageExists).length;
-      notFoundCount += batchResults.filter(r => !r.storageExists).length;
+      notFoundCount += batchResults.filter(r => !r.storageExists && r.path).length; // path가 있는 경우만 카운트
       
-      console.log(`📦 배치 ${Math.floor(i / batchLimit) + 1}: ${batchResults.length}개 처리 (찾음: ${foundCount}, 없음: ${notFoundCount})`);
+      const skippedCount = batchResults.filter(r => !r.path).length; // 경로 추출 실패
       
-      // 진행 상황이 느리면 일부만 처리하고 반환
-      if (i + batchLimit < imageArray.length && (i + batchLimit) > 100) {
-        console.log(`⚠️ 처리량 제한: 100개까지만 처리하고 중단`);
-        break;
-      }
+      console.log(`📦 배치 ${Math.floor(i / batchLimit) + 1}: ${batchResults.length}개 처리 (찾음: ${foundCount}, 없음: ${notFoundCount}, 경로 추출 실패: ${skippedCount})`);
+      
+      // ✅ 개선: 타임아웃 방지를 위해 더 큰 제한 사용 (Vercel 10초 제한 고려)
+      // 배치당 약 2초 소요 가정 시, 최대 4-5 배치 처리 가능 (약 200-250개)
+      // 하지만 전체 처리보다는 안전하게 처리하는 것이 중요
+      // 제한 제거하고 전체 처리 (타임아웃 발생 시 사용자에게 알림)
     }
     
     console.log(`✅ Storage 파일 찾기 완료: 찾음 ${foundCount}개, 없음 ${notFoundCount}개`);
@@ -398,12 +416,16 @@ const analyzeAllBlogImages = async (dryRun = true) => {
     
     console.log(`✅ 중복 이미지 그룹 생성 완료: ${duplicateGroups.length}개 그룹`);
     
-    // 5. 블로그에 연결되지 않은 이미지 찾기
+    // 5. 경로 추출 실패 (외부 URL 등) 분류
+    const externalUrls = imageResults.filter(img => img.extractionFailed || img.isExternalUrl);
+    const extractionFailed = imageResults.filter(img => img.extractionFailed);
+    
+    // 6. 블로그에 연결되지 않은 이미지 찾기
     const unlinkedImages = imageResults.filter(img => 
       (!img.blogPostIds || img.blogPostIds.length === 0) && img.storageExists
     );
     
-    // 6. Storage에 있지만 블로그에 연결되지 않은 이미지
+    // 7. Storage에 있지만 블로그에 연결되지 않은 이미지
     const unlinkedStorageImages = imageResults.filter(img => 
       img.storageExists && (!img.blogPostIds || img.blogPostIds.length === 0)
     );
@@ -412,8 +434,11 @@ const analyzeAllBlogImages = async (dryRun = true) => {
     const summary = {
       totalBlogPosts: allBlogPosts.length,
       totalUniqueImageUrls: allImageUrls.size,
+      totalImagesProcessed: imageResults.length,
       totalImagesFoundInStorage: foundCount,
       totalImagesNotFoundInStorage: notFoundCount,
+      totalExternalUrls: externalUrls.length, // 외부 URL (다른 도메인)
+      totalExtractionFailed: extractionFailed.length, // 경로 추출 실패
       duplicateGroupsCount: duplicateGroups.length,
       totalDuplicateImages: duplicateGroups.reduce((sum, group) => sum + group.count, 0),
       unlinkedImagesCount: unlinkedImages.length,
@@ -427,10 +452,14 @@ const analyzeAllBlogImages = async (dryRun = true) => {
       duplicateGroups: duplicateGroups.slice(0, 50), // 처음 50개 그룹만 반환
       unlinkedImages: unlinkedImages.slice(0, 50), // 처음 50개만 반환
       unlinkedStorageImages: unlinkedStorageImages.slice(0, 50), // 처음 50개만 반환
+      externalUrls: externalUrls.slice(0, 50), // 외부 URL 샘플
+      extractionFailed: extractionFailed.slice(0, 50), // 경로 추출 실패 샘플
       hasMore: {
         duplicateGroups: duplicateGroups.length > 50,
         unlinkedImages: unlinkedImages.length > 50,
-        unlinkedStorageImages: unlinkedStorageImages.length > 50
+        unlinkedStorageImages: unlinkedStorageImages.length > 50,
+        externalUrls: externalUrls.length > 50,
+        extractionFailed: extractionFailed.length > 50
       },
       message: dryRun 
         ? '분석 완료 (드라이런 모드 - 실제 변경 없음)'

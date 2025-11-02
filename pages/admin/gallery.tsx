@@ -1516,8 +1516,11 @@ export default function GalleryAdmin() {
                     const message = `블로그 이미지 분석 완료!\n\n` +
                       `📊 총 블로그 글: ${summary.totalBlogPosts || 0}개\n` +
                       `🖼️ 고유 이미지 URL: ${summary.totalUniqueImageUrls || 0}개\n` +
+                      `📦 처리된 이미지: ${summary.totalImagesProcessed || 0}개\n` +
                       `✅ Storage에서 찾음: ${summary.totalImagesFoundInStorage || 0}개\n` +
                       `❌ Storage에서 못 찾음: ${summary.totalImagesNotFoundInStorage || 0}개\n` +
+                      `${summary.totalExternalUrls ? `🌐 외부 URL (다른 도메인): ${summary.totalExternalUrls}개\n` : ''}` +
+                      `${summary.totalExtractionFailed ? `⚠️ 경로 추출 실패: ${summary.totalExtractionFailed}개\n` : ''}` +
                       `🔄 중복 이미지 그룹: ${summary.duplicateGroupsCount || 0}개\n` +
                       `🔗 연결되지 않은 이미지: ${summary.unlinkedImagesCount || 0}개\n\n` +
                       `상세 결과는 개발자 콘솔을 확인하세요.`;
@@ -1562,8 +1565,15 @@ export default function GalleryAdmin() {
                     <div className="text-xs text-gray-600 space-y-1">
                       <div>블로그 글: {analysisResult.summary.totalBlogPosts}개</div>
                       <div>고유 이미지: {analysisResult.summary.totalUniqueImageUrls}개</div>
+                      <div>처리된 이미지: {analysisResult.summary.totalImagesProcessed}개</div>
                       <div>Storage에서 찾음: {analysisResult.summary.totalImagesFoundInStorage}개</div>
                       <div>Storage에서 못 찾음: {analysisResult.summary.totalImagesNotFoundInStorage}개</div>
+                      {analysisResult.summary.totalExternalUrls > 0 && (
+                        <div className="text-orange-600">외부 URL: {analysisResult.summary.totalExternalUrls}개</div>
+                      )}
+                      {analysisResult.summary.totalExtractionFailed > 0 && (
+                        <div className="text-red-600">경로 추출 실패: {analysisResult.summary.totalExtractionFailed}개</div>
+                      )}
                       <div>중복 그룹: {analysisResult.summary.duplicateGroupsCount}개</div>
                       <div>연결 안 된 이미지: {analysisResult.summary.unlinkedImagesCount}개</div>
                     </div>
