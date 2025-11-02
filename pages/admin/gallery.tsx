@@ -1791,6 +1791,33 @@ export default function GalleryAdmin() {
                   setCurrentPage(1);
                   fetchImages(1, true, folderFilter, include, searchQuery);
                 }}
+                onImageDrop={async (imageData, targetFolder) => {
+                  try {
+                    console.log('📁 이미지 드롭:', { imageData, targetFolder });
+                    
+                    const response = await fetch('/api/admin/move-image-to-folder', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        imageUrl: imageData.url,
+                        targetFolder: targetFolder
+                      })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                      alert(`✅ 이미지가 "${targetFolder}" 폴더로 이동되었습니다.`);
+                      // 이미지 목록 새로고침
+                      fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
+                    } else {
+                      alert(`❌ 이미지 이동 실패: ${result.error || result.details}`);
+                    }
+                  } catch (error) {
+                    console.error('❌ 이미지 이동 오류:', error);
+                    alert(`❌ 이미지 이동 중 오류가 발생했습니다: ${error.message}`);
+                  }
+                }}
               />
             </div>
 
@@ -2065,6 +2092,18 @@ export default function GalleryAdmin() {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => toggleImageSelection(image)}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('image', JSON.stringify({
+                          name: image.name,
+                          url: image.url,
+                          folder_path: image.folder_path
+                        }));
+                        e.currentTarget.style.opacity = '0.5';
+                      }}
+                      onDragEnd={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
                     >
                       {/* 선택 표시 */}
                       {selectedImages.has(getImageUniqueId(image)) && (
