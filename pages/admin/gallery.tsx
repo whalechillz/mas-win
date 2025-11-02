@@ -745,36 +745,10 @@ export default function GalleryAdmin() {
     initializeGallery();
   }, []);
   
-  // 폴더 필터 또는 includeChildren 변경 시 이미지 재로드 (초기 로드 이후)
+  // 폴더 필터 또는 includeChildren 변경 시 이미지 재로드
   // 주의: 드롭다운과 체크박스의 onChange에서 이미 fetchImages를 호출하므로,
-  // 여기서는 중복 호출을 방지하기 위해 제거 (또는 debounce 적용)
-  const isInitialMount = useRef(true);
-  const prevFolderFilter = useRef<string>('all');
-  const prevIncludeChildren = useRef<boolean>(true);
-  
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      prevFolderFilter.current = folderFilter;
-      prevIncludeChildren.current = includeChildren;
-      return; // 초기 마운트는 위의 useEffect에서 처리
-    }
-    
-    // 실제로 변경되었을 때만 재로드 (중복 호출 방지)
-    if (prevFolderFilter.current !== folderFilter || prevIncludeChildren.current !== includeChildren) {
-      console.log('🔄 폴더 필터 또는 includeChildren 변경 감지:', {
-        folderFilter: `${prevFolderFilter.current} → ${folderFilter}`,
-        includeChildren: `${prevIncludeChildren.current} → ${includeChildren}`
-      });
-      prevFolderFilter.current = folderFilter;
-      prevIncludeChildren.current = includeChildren;
-      // debounce를 위해 짧은 지연 추가
-      const timer = setTimeout(() => {
-        fetchImages(1, true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [folderFilter, includeChildren]);
+  // useEffect에서는 제거 (중복 호출 방지)
+  // 필요 시 프로그래밍 방식으로 변경할 때만 여기서 처리
 
   // 이미지 선택/해제
   const toggleImageSelection = (image: ImageMetadata) => {
