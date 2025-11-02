@@ -564,8 +564,8 @@ export default function GalleryAdmin() {
     try {
       if (reset || page === 1) {
         setIsLoading(true);
-        // 새로고침 시 필터를 "전체"로 초기화
-        if (reset) {
+        // 새로고침 시 필터를 "전체"로 초기화 (단, 검색어는 보존)
+        if (reset && customSearchQuery === undefined) {
           setFilterType('all');
           setSearchQuery('');
         }
