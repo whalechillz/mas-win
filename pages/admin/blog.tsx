@@ -5522,7 +5522,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                               {post.excerpt}
                             </p>
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
-                              <span className="font-semibold text-gray-700">블로그 ID: {post.id}</span>
                               <span>카테고리: {post.category}</span>
                               <span>작성자: {post.author}</span>
                               <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>

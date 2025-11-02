@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'Post ID is required' });
     }
 
-    // 1. 블로그 포스트 정보 가져오기
+    // 1. 블로그 포스트 정보 가져오기 (최신 저장된 내용)
     const { data: post, error: postError } = await supabase
       .from('blog_posts')
       .select('*')
@@ -28,8 +28,22 @@ export default async function handler(req, res) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    // 2. 블로그 포스트 내용에서 이미지 URL 추출
-    const imageUrls = extractImageUrls(post.content);
+    // 2. 블로그 포스트 내용에서 이미지 URL 추출 (최신 저장된 content 사용)
+    const imageUrls = [];
+    
+    // 2-1. featured_image 추가
+    if (post.featured_image) {
+      imageUrls.push(post.featured_image);
+    }
+    
+    // 2-2. content에서 이미지 URL 추출
+    const contentImageUrls = extractImageUrls(post.content);
+    for (const url of contentImageUrls) {
+      if (!imageUrls.includes(url)) {
+        imageUrls.push(url);
+      }
+    }
+    
     console.log(`포스트 ${postId}에서 발견된 이미지 URL 개수: ${imageUrls.length}`);
     console.log('이미지 URL들:', imageUrls);
 
@@ -49,18 +63,55 @@ export default async function handler(req, res) {
         try {
           console.log(`이미지 다운로드 시도: ${imageUrl}`);
           
+          // ✅ 최신 저장된 이미지 경로 확인 (Storage에서 직접 가져오기)
+          let actualImageUrl = imageUrl;
+          let imageBuffer = null;
+          
+          // Storage URL인지 확인 (Supabase Storage URL 패턴)
+          const storageMatch = imageUrl.match(/\/storage\/v1\/object\/public\/blog-images\/(.+)$/);
+          if (storageMatch) {
+            // ✅ Storage에 있는 이미지 직접 다운로드
+            const imagePath = storageMatch[1];
+            try {
+              const { data: downloadData, error: downloadError } = await supabase.storage
+                .from('blog-images')
+                .download(imagePath);
+              
+              if (!downloadError && downloadData) {
+                imageBuffer = await downloadData.arrayBuffer();
+                console.log(`✅ Storage에서 이미지 다운로드 성공: ${imagePath}`);
+              } else {
+                console.warn(`⚠️ Storage에서 이미지 찾기 실패, URL로 시도: ${imagePath}`);
+              }
+            } catch (storageError) {
+              console.warn(`⚠️ Storage 다운로드 오류, URL로 시도:`, storageError.message);
+            }
+          }
+          
+          // Storage에서 가져오지 못했으면 URL로 다운로드 시도
+          if (!imageBuffer) {
+            const imageResponse = await fetch(imageUrl, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+              }
+            });
+            if (imageResponse.ok) {
+              imageBuffer = await imageResponse.arrayBuffer();
+              console.log(`✅ URL에서 이미지 다운로드 성공: ${imageUrl}`);
+            } else {
+              console.error(`❌ 이미지 다운로드 실패: ${imageUrl} (상태: ${imageResponse.status})`);
+              continue; // 다음 이미지로
+            }
+          }
+          
           // 이미지 파일명 생성 (순서대로)
           const fileExtension = getFileExtension(imageUrl);
           const fileName = `image_${i + 1}${fileExtension}`;
           
-          // 이미지 다운로드
-          const imageResponse = await fetch(imageUrl);
-          if (imageResponse.ok) {
-            const imageBuffer = await imageResponse.arrayBuffer();
+          // ZIP에 이미지 추가
+          if (imageBuffer) {
             imagesFolder.file(fileName, imageBuffer);
-            console.log(`✅ 이미지 다운로드 성공: ${fileName} (${imageBuffer.byteLength} bytes)`);
-          } else {
-            console.error(`❌ 이미지 다운로드 실패: ${imageUrl} (상태: ${imageResponse.status})`);
+            console.log(`✅ 이미지 ZIP 추가 성공: ${fileName} (${imageBuffer.byteLength} bytes)`);
           }
         } catch (error) {
           console.error(`❌ 이미지 다운로드 오류 (${imageUrl}):`, error);
