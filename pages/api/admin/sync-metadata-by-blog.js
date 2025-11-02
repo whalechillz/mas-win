@@ -227,8 +227,8 @@ const syncMetadataForBlogPost = async (blogPostId) => {
           });
         }
         
-        // API 호출 제한 방지
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // API 호출 제한 방지 (OpenAI Vision API는 비용이 비싸므로 짧은 간격)
+        await new Promise(resolve => setTimeout(resolve, 300));
         
       } catch (error) {
         console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
@@ -264,6 +264,11 @@ const syncMetadataForBlogPost = async (blogPostId) => {
 
 export default async function handler(req, res) {
   console.log('🔄 블로그 글별 메타데이터 동기화 API 요청:', req.method, req.url);
+  
+  // ✅ 타임아웃 설정: Vercel 제한(30초) 고려
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('요청 시간 초과 (25초 제한)')), 25000);
+  });
   
   try {
     if (req.method === 'POST') {
@@ -313,7 +318,11 @@ export default async function handler(req, res) {
         // 단일 블로그 글 동기화
         console.log(`📊 블로그 글 메타데이터 동기화 시작: ${blogPostId}`);
         
-        const result = await syncMetadataForBlogPost(blogPostId);
+        // ✅ 타임아웃과 함께 실행
+        const result = await Promise.race([
+          syncMetadataForBlogPost(blogPostId),
+          timeoutPromise
+        ]);
         
         return res.status(200).json({
           success: true,
@@ -334,6 +343,16 @@ export default async function handler(req, res) {
     
   } catch (error) {
     console.error('❌ 블로그 글별 메타데이터 동기화 API 오류:', error);
+    
+    // ✅ 타임아웃 오류 구분
+    if (error.message && (error.message.includes('시간 초과') || error.message.includes('timeout') || error.message.includes('초과'))) {
+      return res.status(504).json({
+        error: '요청 시간 초과',
+        details: '메타데이터 동기화가 너무 오래 걸려 시간 초과되었습니다. 잠시 후 다시 시도해주세요.',
+        suggestion: '이미지 수가 많은 경우 여러 번 실행하거나, 특정 이미지만 동기화하세요.'
+      });
+    }
+    
     return res.status(500).json({
       error: '서버 오류가 발생했습니다.',
       details: error.message
