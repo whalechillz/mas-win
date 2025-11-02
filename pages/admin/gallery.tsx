@@ -188,11 +188,14 @@ export default function GalleryAdmin() {
         // 특정 폴더
         const beforeCount = filtered.length;
         filtered = filtered.filter(img => {
+          // folder_path가 문자열인지 확인하고, 정확히 일치하는지 또는 하위 경로인지 확인
+          const imgFolderPath = img.folder_path || '';
           const matches = includeChildren
-            ? (img.folder_path === folderFilter || (img.folder_path && img.folder_path.startsWith(folderFilter + '/')))
-            : img.folder_path === folderFilter;
+            ? (imgFolderPath === folderFilter || imgFolderPath.startsWith(folderFilter + '/'))
+            : imgFolderPath === folderFilter;
           if (!matches) {
-            console.log('🔍 폴더 불일치:', img.folder_path, 'vs', folderFilter);
+            console.log('🔍 폴더 불일치:', imgFolderPath, '(타입:', typeof imgFolderPath, ') vs', folderFilter, '(타입:', typeof folderFilter, ')');
+            console.log('   이미지 전체 정보:', { name: img.name, folder_path: img.folder_path, url: img.url?.substring(0, 50) });
           }
           return matches;
         });
@@ -570,9 +573,11 @@ export default function GalleryAdmin() {
         
         // 메타데이터는 이미 API에서 포함되어 있으므로 별도 호출 불필요
         const imagesWithMetadata = list.map((img: any) => {
-          // 폴더 경로 추론(메타데이터가 없을 때 name에서 유추)
-          const inferredFolder = img.folder_path
-            || (typeof img.name === 'string' && img.name.includes('/')
+          // folder_path는 API에서 제공되므로 그대로 사용
+          // name에 '/'가 포함된 경우에만 추론 (API가 제공하지 않은 경우만)
+          const inferredFolder = img.folder_path 
+            ? img.folder_path
+            : (typeof img.name === 'string' && img.name.includes('/')
               ? img.name.substring(0, img.name.lastIndexOf('/'))
               : '');
           return {
@@ -583,7 +588,7 @@ export default function GalleryAdmin() {
             title: img.title || '',
             description: img.description || '',
             category: img.category || '',
-            folder_path: img.folder_path || inferredFolder,
+            folder_path: inferredFolder, // API에서 제공된 folder_path 우선 사용
             is_featured: img.is_featured || false,
             usage_count: img.usage_count || 0,
             used_in_posts: img.used_in_posts || [],
