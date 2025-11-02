@@ -182,46 +182,39 @@ const organizeImagesByBlog = async (blogPostId = null) => {
                 .from('blog-images')
                 .getPublicUrl(imagePath);
               
-              // HEAD 요청으로 파일 존재 확인
-              const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
-              if (response.ok) {
-                // 파일이 존재하면 경로에서 파일 정보 추출
-                const pathParts = imagePath.split('/');
-                const pathFileName = pathParts[pathParts.length - 1];
-                const folderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
+              // ✅ 최적화: HEAD 요청에 타임아웃 추가 (1초)
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 1000);
+              
+              try {
+                const response = await fetch(urlData.publicUrl, { 
+                  method: 'HEAD',
+                  signal: controller.signal
+                });
+                clearTimeout(timeoutId);
                 
-                // 파일 정보 조회 (크기 등)
-                try {
-                  const folderFiles = folderPath ? await supabase.storage
-                    .from('blog-images')
-                    .list(folderPath, { limit: 1000 }) : await supabase.storage
-                    .from('blog-images')
-                    .list('', { limit: 1000 });
+                if (response.ok) {
+                  // ✅ 최적화: 파일 정보 조회 제거 (너무 느림)
+                  // HEAD 요청으로 파일 존재 확인만 하고 즉시 반환
+                  const pathParts = imagePath.split('/');
+                  const pathFileName = pathParts[pathParts.length - 1];
+                  const folderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
                   
-                  const fileInfo = folderFiles.data?.find(f => 
-                    f.id && (f.name === pathFileName || f.name.toLowerCase() === pathFileName.toLowerCase())
-                  );
-                  
-                  found = {
-                    id: fileInfo?.id || pathFileName,
-                    name: pathFileName,
-                    currentPath: imagePath,
-                    folderPath: folderPath,
-                    url: urlData.publicUrl,
-                    size: fileInfo?.metadata?.size || response.headers.get('content-length') || 0,
-                    created_at: fileInfo?.created_at || new Date().toISOString()
-                  };
-                } catch (listError) {
-                  // list 실패해도 URL로 찾았으면 경로 정보만 사용
                   found = {
                     id: pathFileName,
                     name: pathFileName,
                     currentPath: imagePath,
                     folderPath: folderPath,
                     url: urlData.publicUrl,
-                    size: response.headers.get('content-length') || 0,
+                    size: parseInt(response.headers.get('content-length') || '0'),
                     created_at: new Date().toISOString()
                   };
+                }
+              } catch (fetchError) {
+                clearTimeout(timeoutId);
+                // 타임아웃이면 다음 단계로
+                if (fetchError.name !== 'AbortError') {
+                  console.warn(`⚠️ HEAD 요청 실패 (${imagePath}):`, fetchError.message);
                 }
               }
             } catch (error) {
