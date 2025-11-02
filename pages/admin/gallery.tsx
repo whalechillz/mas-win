@@ -4,6 +4,7 @@ import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import { CategoryManagementModal } from '../../components/CategoryManagementModal';
+import { useDebounce } from '../../components/admin/marketing/PerformanceUtils';
 
 interface ImageMetadata {
   id?: string;
@@ -51,6 +52,9 @@ export default function GalleryAdmin() {
   const [imagesPerPage] = useState(20); // 성능 최적화를 위해 페이지당 이미지 수 감소
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
+  // 초기 로드 추적을 위한 ref
+  const initialLoadRef = useRef(true);
+  
   // SEO 최적화된 파일명 생성 함수 (한글 자동 영문 변환)
   const generateSEOFileName = (title, keywords, index = 1) => {
     // 한글-영문 변환 라이브러리 사용
@@ -87,6 +91,8 @@ export default function GalleryAdmin() {
   
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
+  // 검색어 디바운싱 (500ms 지연)
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
@@ -148,6 +154,26 @@ export default function GalleryAdmin() {
     
     fetchFolders();
   }, []); // 컴포넌트 마운트 시 한 번만 실행
+  
+  // 디바운스된 검색어가 변경될 때만 검색 실행
+  useEffect(() => {
+    // 초기 마운트 시에는 검색어가 없으면 호출하지 않음 (기존 초기 로드는 다른 곳에서 처리)
+    // 검색어가 변경되었을 때만 실행
+    if (debouncedSearchQuery !== undefined && debouncedSearchQuery !== searchQuery) {
+      // 디바운스된 검색어가 실제 검색어와 다를 때만 실행 (디바운싱 완료 후)
+      fetchImages(1, true, folderFilter, includeChildren, debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // 폴더 필터 또는 하위 폴더 포함 옵션이 변경될 때 검색어를 유지하면서 재검색
+  useEffect(() => {
+    // 초기 마운트 시에는 실행하지 않음 (useRef로 추적)
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+    fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+  }, [folderFilter, includeChildren]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // 가상화를 위한 상태
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
@@ -709,12 +735,17 @@ export default function GalleryAdmin() {
     };
   }, [isLoading, isLoadingMore, hasMoreImages]);
 
-  // currentPage 변경 시 이미지 로드
+  // 초기 로드 및 currentPage 변경 시 이미지 로드
   useEffect(() => {
-    if (currentPage > 1) {
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      // 초기 로드: 검색어 없이 전체 이미지 로드
+      fetchImages(1, true);
+    } else if (currentPage > 1) {
+      // 페이지 변경 시 추가 로드
       fetchImages(currentPage);
     }
-  }, [currentPage]);
+  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 성능 모니터링
   const [performanceMetrics, setPerformanceMetrics] = useState({
@@ -723,15 +754,15 @@ export default function GalleryAdmin() {
     cacheHitRate: 0
   });
 
-  // 초기 로드 (성능 최적화)
+  // 초기 로드 (성능 최적화) - fetchImages는 다른 useEffect에서 처리하므로 제거
   useEffect(() => {
     const startTime = performance.now();
     
     const initializeGallery = async () => {
       try {
-        // 병렬로 데이터 로드
+        // 병렬로 데이터 로드 (fetchImages는 initialLoadRef useEffect에서 처리)
         await Promise.all([
-          fetchImages(1, true),
+          // fetchImages(1, true), // initialLoadRef useEffect에서 처리하므로 제거
           loadDynamicCategories(),
           fetch('/api/admin/image-categories').then(res => res.json()).then(data => setCategories(data.categories || [])).catch(() => {}),
           fetch('/api/admin/image-tags').then(res => res.json()).then(data => setTags(data.tags || [])).catch(() => {})
@@ -1724,12 +1755,11 @@ export default function GalleryAdmin() {
                       const newSearchQuery = e.target.value;
                       setSearchQuery(newSearchQuery);
                       setCurrentPage(1);
-                      // 검색어가 변경되면 서버에서 검색 (서버 사이드 검색)
-                      fetchImages(1, true, folderFilter, includeChildren, newSearchQuery);
+                      // 검색어 변경은 디바운싱으로 처리 (onChange에서는 상태만 업데이트)
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        // Enter 키 입력 시 검색 실행
+                        // Enter 키 입력 시 즉시 검색 실행 (디바운싱 우회)
                         fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                       }
                     }}
