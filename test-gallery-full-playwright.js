@@ -62,17 +62,27 @@ require('dotenv').config({ path: '.env.local' });
     // 테스트 시나리오 1: 전체 폴더 상태에서 "해변" 검색
     console.log('\n📋 테스트 1: 전체 폴더 상태에서 "해변" 검색');
     
-    // 폴더 필터 확인
-    const folderSelect = page.locator('select').filter({ has: page.locator('option[value="all"]') }).first();
+    // 폴더 필터 확인 (더 안전한 선택자 사용)
+    const folderSelect = page.locator('select').filter({ hasText: '전체 폴더' }).first();
+    if (await folderSelect.count() === 0) {
+      // 다른 선택자 시도
+      const folderSelectAlt = page.locator('label:has-text("폴더") + select, label:has-text("폴더") ~ select').first();
+      if (await folderSelectAlt.count() > 0) {
+        const folderSelect = folderSelectAlt;
+      }
+    }
+    
     if (await folderSelect.count() > 0) {
       const currentValue = await folderSelect.inputValue();
       if (currentValue !== 'all') {
         console.log(`   폴더 필터 변경: ${currentValue} -> all`);
         await folderSelect.selectOption('all');
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(3000); // API 호출 대기
       } else {
         console.log('   폴더 필터: 전체 폴더 (올바름)');
       }
+    } else {
+      console.log('   ⚠️ 폴더 필터 선택자를 찾을 수 없음');
     }
     
     // 하위 폴더 포함 체크박스 확인

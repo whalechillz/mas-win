@@ -722,6 +722,17 @@ export default function GalleryAdmin() {
     
     initializeGallery();
   }, []);
+  
+  // 폴더 필터 또는 includeChildren 변경 시 이미지 재로드 (초기 로드 이후)
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return; // 초기 마운트는 위의 useEffect에서 처리
+    }
+    // 폴더 필터나 includeChildren이 변경되면 이미지 재로드
+    fetchImages(1, true);
+  }, [folderFilter, includeChildren]);
 
   // 이미지 선택/해제
   const toggleImageSelection = (image: ImageMetadata) => {
