@@ -274,7 +274,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
         },
         images: storageImages,
         totalImages: storageImages.length,
-        totalExtractedImages // ✅ 추출된 전체 이미지 수 (찾지 못한 것 포함)
+        totalExtractedImages: totalExtractedImages || images.length // ✅ 추출된 전체 이미지 수 (찾지 못한 것 포함)
       });
     }
     
