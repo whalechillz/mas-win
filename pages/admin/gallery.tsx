@@ -104,6 +104,11 @@ export default function GalleryAdmin() {
   const [syncProgress, setSyncProgress] = useState<{ total: number; missing: number; processed: number } | null>(null);
   const [syncStatus, setSyncStatus] = useState<string>('');
   
+  // 블로그 이미지 분석 상태
+  const [isAnalyzingBlogImages, setIsAnalyzingBlogImages] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<string>('');
+  
   // 폴더 목록 계산
   const availableFolders = useMemo(() => {
     const folders = new Set<string>();
@@ -1475,6 +1480,98 @@ export default function GalleryAdmin() {
                 </div>
               )}
               </div>
+              
+              {/* 블로그 이미지 분석 버튼 */}
+              <div className="relative">
+              <button
+                onClick={async () => {
+                  if (isAnalyzingBlogImages) return;
+                  
+                  if (!confirm('모든 블로그 이미지를 분석하시겠습니까?\n\n이 작업은 시간이 소요될 수 있습니다.')) {
+                    return;
+                  }
+                  
+                  setIsAnalyzingBlogImages(true);
+                  setAnalysisStatus('블로그 이미지 분석 중...');
+                  setAnalysisResult(null);
+                  
+                  try {
+                    const response = await fetch('/api/admin/analyze-all-blog-images', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ dryRun: true })
+                    });
+                    
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || errorData.details || '분석 실패');
+                    }
+                    
+                    const data = await response.json();
+                    setAnalysisResult(data);
+                    setAnalysisStatus('분석 완료');
+                    
+                    // 결과 요약 표시
+                    const summary = data.summary || {};
+                    const message = `블로그 이미지 분석 완료!\n\n` +
+                      `📊 총 블로그 글: ${summary.totalBlogPosts || 0}개\n` +
+                      `🖼️ 고유 이미지 URL: ${summary.totalUniqueImageUrls || 0}개\n` +
+                      `✅ Storage에서 찾음: ${summary.totalImagesFoundInStorage || 0}개\n` +
+                      `❌ Storage에서 못 찾음: ${summary.totalImagesNotFoundInStorage || 0}개\n` +
+                      `🔄 중복 이미지 그룹: ${summary.duplicateGroupsCount || 0}개\n` +
+                      `🔗 연결되지 않은 이미지: ${summary.unlinkedImagesCount || 0}개\n\n` +
+                      `상세 결과는 개발자 콘솔을 확인하세요.`;
+                    
+                    alert(message);
+                    console.log('📊 블로그 이미지 분석 결과:', data);
+                    
+                  } catch (error: any) {
+                    console.error('블로그 이미지 분석 오류:', error);
+                    setAnalysisStatus('분석 실패');
+                    alert(`블로그 이미지 분석 중 오류가 발생했습니다: ${error.message}`);
+                  } finally {
+                    setIsAnalyzingBlogImages(false);
+                    setTimeout(() => {
+                      setAnalysisStatus('');
+                    }, 5000);
+                  }
+                }}
+                disabled={isAnalyzingBlogImages}
+                className={`px-4 py-2 rounded-lg text-sm ${
+                  isAnalyzingBlogImages
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+                title="모든 블로그 글에서 이미지 URL을 추출하고, Storage에서 실제 파일을 찾으며, 중복 이미지를 감지합니다."
+              >
+                {isAnalyzingBlogImages ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    {analysisStatus || '분석 중...'}
+                  </span>
+                ) : (
+                  '📊 블로그 이미지 분석'
+                )}
+              </button>
+              {analysisResult && (
+                <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 max-h-96 overflow-y-auto">
+                  <div className="text-sm text-gray-700 mb-2 font-semibold">
+                    분석 결과
+                  </div>
+                  {analysisResult.summary && (
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <div>블로그 글: {analysisResult.summary.totalBlogPosts}개</div>
+                      <div>고유 이미지: {analysisResult.summary.totalUniqueImageUrls}개</div>
+                      <div>Storage에서 찾음: {analysisResult.summary.totalImagesFoundInStorage}개</div>
+                      <div>Storage에서 못 찾음: {analysisResult.summary.totalImagesNotFoundInStorage}개</div>
+                      <div>중복 그룹: {analysisResult.summary.duplicateGroupsCount}개</div>
+                      <div>연결 안 된 이미지: {analysisResult.summary.unlinkedImagesCount}개</div>
+                    </div>
+                  )}
+                </div>
+              )}
+              </div>
+              
               {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
               </div>
             </div>
