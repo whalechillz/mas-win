@@ -173,24 +173,35 @@ export default function GalleryAdmin() {
     fetchFolders();
   }, []); // 컴포넌트 마운트 시 한 번만 실행
   
+  // 초기 로드 (컴포넌트 마운트 시 한 번만 실행)
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      // 초기 로드: 검색어 없이 전체 이미지 로드
+      fetchImages(1, true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  
   // 디바운스된 검색어가 변경될 때만 검색 실행
   useEffect(() => {
-    // 초기 마운트 시에는 검색어가 없으면 호출하지 않음
+    // 초기 로드가 완료된 후에만 검색 실행 (초기 로드 시에는 실행하지 않음)
     if (initialLoadRef.current) {
-      if (debouncedSearchQuery.trim() === '') {
-        return; // 초기 로드는 다른 곳에서 처리
-      }
+      return; // 초기 로드는 위의 useEffect에서 처리
     }
     // 디바운스된 검색어가 변경되었을 때만 검색 실행
-    fetchImages(1, true, folderFilter, includeChildren, debouncedSearchQuery);
+    if (debouncedSearchQuery.trim() !== '') {
+      fetchImages(1, true, folderFilter, includeChildren, debouncedSearchQuery);
+    } else {
+      // 검색어가 비어있으면 전체 이미지 로드
+      fetchImages(1, true, folderFilter, includeChildren, '');
+    }
   }, [debouncedSearchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // 폴더 필터 또는 하위 폴더 포함 옵션이 변경될 때 검색어를 유지하면서 재검색
   useEffect(() => {
-    // 초기 마운트 시에는 실행하지 않음 (useRef로 추적)
+    // 초기 로드가 완료된 후에만 실행
     if (initialLoadRef.current) {
-      initialLoadRef.current = false;
-      return;
+      return; // 초기 로드는 위의 useEffect에서 처리
     }
     fetchImages(1, true, folderFilter, includeChildren, searchQuery);
   }, [folderFilter, includeChildren]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -755,13 +766,12 @@ export default function GalleryAdmin() {
     };
   }, [isLoading, isLoadingMore, hasMoreImages]);
 
-  // 초기 로드 및 currentPage 변경 시 이미지 로드
+  // currentPage 변경 시 추가 이미지 로드 (초기 로드는 위에서 처리)
   useEffect(() => {
     if (initialLoadRef.current) {
-      initialLoadRef.current = false;
-      // 초기 로드: 검색어 없이 전체 이미지 로드
-      fetchImages(1, true);
-    } else if (currentPage > 1) {
+      return; // 초기 로드는 위의 useEffect에서 처리
+    }
+    if (currentPage > 1) {
       // 페이지 변경 시 추가 로드
       fetchImages(currentPage);
     }

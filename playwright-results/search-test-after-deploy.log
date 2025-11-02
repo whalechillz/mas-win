@@ -1,0 +1,51 @@
+🔍 검색 로딩 동작 테스트 시작...
+
+1️⃣ 로그인 중...
+✅ 로그인 완료
+
+2️⃣ 갤러리 페이지로 이동 중...
+✅ 갤러리 페이지 로드 완료
+
+3️⃣ "전체 폴더" 확인 중...
+   현재 폴더: 전체 폴더
+
+4️⃣ 검색 입력 필드 확인 중...
+✅ 검색 입력 필드 찾음
+
+5️⃣ "마쓰구" 입력 중 (한 글자씩)...
+   📝 콘솔: 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📡 API 요청 #1: GET https://www.masgolf.co.kr/api/admin/all-images?limit=20&offset=0&prefix=&includeChildren=true&searchQuery=%EB%A7%88
+   "마" 입력 후 API 호출 횟수: 1
+   📝 콘솔: 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📡 API 요청 #2: GET https://www.masgolf.co.kr/api/admin/all-images?limit=20&offset=0&prefix=&includeChildren=true&searchQuery=%EB%A7%88%EC%93%B0
+   "쓰" 입력 후 API 호출 횟수: 2
+   📝 콘솔: 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📡 API 요청 #3: GET https://www.masgolf.co.kr/api/admin/all-images?limit=20&offset=0&prefix=&includeChildren=true&searchQuery=%EB%A7%88%EC%93%B0%EA%B5%AC
+   📥 API 응답 #3: 200 - total: 9, images: 9
+   "구" 입력 후 API 호출 횟수: 3
+
+   📊 총 API 호출 횟수: 3회
+   📊 콘솔 메시지 수: 3개
+
+6️⃣ 최종 검색 결과 확인 중...
+   검색어: "마쓰구"
+   검색 결과: 0개 이미지
+   ❌ 검색 실패
+
+7️⃣ 네트워크 요청 상세:
+   1. GET - searchQuery: 마
+   2. GET - searchQuery: 마쓰
+   3. GET - searchQuery: 마쓰구
+
+📸 스크린샷 저장: playwright-results/search-loading-behavior.png
+
+✅ 테스트 완료!
+
+📊 결과 요약:
+   - 총 API 호출 횟수: 3회
+   - 최종 검색어: "마쓰구"
+   - 검색 결과: 0개 이미지
+
+✅ API 호출 횟수가 적절합니다 (3회).
+   📥 API 응답 #3: 200 - total: 8, images: 8
+   📥 API 응답 #3: 200 - total: 8, images: 8
