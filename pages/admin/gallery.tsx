@@ -1682,12 +1682,16 @@ export default function GalleryAdmin() {
               {/* 검색 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">검색</label>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="파일명, ALT 텍스트, 키워드로 검색..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      // 검색어 변경 시 페이지 초기화 (필터링은 filteredImages에서 처리)
+                      setCurrentPage(1);
+                    }}
+                    placeholder="파일명, ALT 텍스트, 키워드로 검색..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               
