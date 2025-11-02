@@ -593,6 +593,18 @@ export default function GalleryAdmin() {
       
       const offset = (page - 1) * imagesPerPage;
       const prefix = effectiveFolderFilter === 'all' ? '' : (effectiveFolderFilter === 'root' ? '' : encodeURIComponent(effectiveFolderFilter));
+      
+      // 디버깅 로그
+      if (customFolderFilter !== undefined || customIncludeChildren !== undefined) {
+        console.log('🔄 fetchImages 호출:', {
+          customFolderFilter,
+          effectiveFolderFilter,
+          prefix,
+          customIncludeChildren,
+          effectiveIncludeChildren
+        });
+      }
+      
       const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}`);
       const data = await response.json();
       
