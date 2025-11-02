@@ -38,35 +38,34 @@ const extractKeywordsFromFilename = (filename) => {
 // OpenAI Vision API로 이미지 분석
 const analyzeImageWithOpenAI = async (imageUrl) => {
   try {
-    // ✅ OpenAI API 호출 타임아웃 설정 (5초)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    // ✅ OpenAI API 호출 타임아웃 설정 (5초) - Promise.race 사용
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (5초 초과)')), 5000);
+    });
     
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: '이 이미지를 분석하여 다음 정보를 한국어로 제공해주세요:\n1. ALT 텍스트 (25-60자, SEO 최적화)\n2. 제목 (25-60자)\n3. 설명 (100-200자)\n4. 키워드 (5-10개, 쉼표로 구분)\n\nJSON 형식으로 반환: {"alt_text": "...", "title": "...", "description": "...", "keywords": ["...", "..."]}'
-              },
-              {
-                type: 'image_url',
-                image_url: { url: imageUrl }
-              }
-            ]
-          }
-        ],
-        max_tokens: 300, // ✅ 토큰 수 줄여서 응답 시간 단축
-        temperature: 0.3 // ✅ 일관성 높이고 응답 시간 단축
-      }, {
-        signal: controller.signal // ✅ 타임아웃 신호 전달
-      });
-      
-      clearTimeout(timeoutId);
+    const apiPromise = openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: '이 이미지를 분석하여 다음 정보를 한국어로 제공해주세요:\n1. ALT 텍스트 (25-60자, SEO 최적화)\n2. 제목 (25-60자)\n3. 설명 (100-200자)\n4. 키워드 (5-10개, 쉼표로 구분)\n\nJSON 형식으로 반환: {"alt_text": "...", "title": "...", "description": "...", "keywords": ["...", "..."]}'
+            },
+            {
+              type: 'image_url',
+              image_url: { url: imageUrl }
+            }
+          ]
+        }
+      ],
+      max_tokens: 300, // ✅ 토큰 수 줄여서 응답 시간 단축
+      temperature: 0.3 // ✅ 일관성 높이고 응답 시간 단축
+    });
+    
+    // ✅ 타임아웃과 함께 실행
+    const response = await Promise.race([apiPromise, timeoutPromise]);
 
     const content = response.choices[0]?.message?.content;
     if (!content) return null;
@@ -85,8 +84,7 @@ const analyzeImageWithOpenAI = async (imageUrl) => {
 
       return null;
     } catch (error) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
+      if (error.message && (error.message.includes('타임아웃') || error.message.includes('timeout') || error.message.includes('초과'))) {
         console.warn('⚠️ OpenAI Vision API 타임아웃 (5초 초과):', imageUrl);
         return null;
       }
