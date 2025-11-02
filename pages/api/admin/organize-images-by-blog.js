@@ -685,25 +685,62 @@ export default async function handler(req, res) {
                 let updatedContent = currentPost.content;
                 let urlUpdated = false;
                 
-                // ✅ featured_image URL 업데이트
+                // ✅ featured_image URL 업데이트 (정확한 URL 매칭)
                 if (currentPost.featured_image) {
                   for (const [oldUrl, newUrl] of urlMapping.entries()) {
-                    if (currentPost.featured_image.includes(oldUrl) || 
-                        currentPost.featured_image === oldUrl) {
-                      updatedFeaturedImage = currentPost.featured_image.replace(oldUrl, newUrl);
+                    // ✅ URL 정규화: 쿼리 파라미터 및 프래그먼트 제거
+                    const normalizedOldUrl = oldUrl.split('?')[0].split('#')[0];
+                    const normalizedFeaturedImage = currentPost.featured_image.split('?')[0].split('#')[0];
+                    
+                    // ✅ 정확한 URL 매칭 (정규화된 URL 기준)
+                    if (normalizedFeaturedImage === normalizedOldUrl || 
+                        currentPost.featured_image.includes(normalizedOldUrl)) {
+                      updatedFeaturedImage = currentPost.featured_image.replace(
+                        new RegExp(oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), 
+                        newUrl
+                      );
                       urlUpdated = true;
                       console.log(`✅ featured_image URL 업데이트: ${blogPost.id}`);
+                      console.log(`   ${oldUrl.substring(0, 80)}... -> ${newUrl.substring(0, 80)}...`);
                       break;
                     }
                   }
                 }
                 
-                // ✅ content 내의 모든 이미지 URL 업데이트
+                // ✅ content 내의 모든 이미지 URL 업데이트 (HTML, Markdown 모두)
                 if (currentPost.content) {
                   for (const [oldUrl, newUrl] of urlMapping.entries()) {
-                    if (currentPost.content.includes(oldUrl)) {
-                      updatedContent = currentPost.content.replace(new RegExp(oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), newUrl);
+                    // ✅ HTML img 태그 업데이트: <img src="oldUrl" ...> -> <img src="newUrl" ...>
+                    const htmlImgPattern = new RegExp(
+                      `(<img[^>]+src=["'])${oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(["'][^>]*>)`, 
+                      'gi'
+                    );
+                    if (htmlImgPattern.test(currentPost.content)) {
+                      updatedContent = currentPost.content.replace(htmlImgPattern, `$1${newUrl}$2`);
                       urlUpdated = true;
+                      console.log(`✅ HTML img 태그 URL 업데이트: ${blogPost.id}`);
+                    }
+                    
+                    // ✅ 마크다운 이미지 업데이트: ![alt](oldUrl) -> ![alt](newUrl)
+                    const markdownImgPattern = new RegExp(
+                      `(!\\[[^\\]]*\\]\\()${oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\))`, 
+                      'gi'
+                    );
+                    if (markdownImgPattern.test(updatedContent)) {
+                      updatedContent = updatedContent.replace(markdownImgPattern, `$1${newUrl}$2`);
+                      urlUpdated = true;
+                      console.log(`✅ Markdown 이미지 URL 업데이트: ${blogPost.id}`);
+                    }
+                    
+                    // ✅ 일반 URL 교체 (다른 형식의 이미지 참조)
+                    const generalPattern = new RegExp(
+                      oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 
+                      'gi'
+                    );
+                    if (generalPattern.test(updatedContent) && !updatedContent.includes(newUrl)) {
+                      updatedContent = updatedContent.replace(generalPattern, newUrl);
+                      urlUpdated = true;
+                      console.log(`✅ 일반 URL 업데이트: ${blogPost.id}`);
                     }
                   }
                 }
