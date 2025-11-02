@@ -636,6 +636,9 @@ export default async function handler(req, res) {
             }
           }
           
+          // ✅ 이미지 URL 매핑: 원본 URL -> 새 URL
+          const urlMapping = new Map();
+          
           for (const image of result.images) {
             try {
               const moveResult = await moveImageToFolder(image.currentPath, targetFolder);
@@ -643,6 +646,17 @@ export default async function handler(req, res) {
               if (moveResult.moved) {
                 movedCount++;
                 image.newPath = moveResult.newPath;
+                
+                // ✅ URL 매핑 추가: 원본 URL -> 새 URL
+                const originalUrl = image.url || image.originalUrl;
+                const { data: newUrlData } = supabase.storage
+                  .from('blog-images')
+                  .getPublicUrl(moveResult.newPath);
+                
+                if (originalUrl && newUrlData?.publicUrl) {
+                  urlMapping.set(originalUrl, newUrlData.publicUrl);
+                  console.log(`📝 URL 매핑: ${originalUrl.substring(0, 80)}... -> ${newUrlData.publicUrl.substring(0, 80)}...`);
+                }
               } else {
                 skippedCount++;
                 image.skipReason = moveResult.message;
@@ -651,6 +665,66 @@ export default async function handler(req, res) {
               errorCount++;
               image.error = error.message;
               console.error(`❌ 이미지 이동 실패 (${image.currentPath}):`, error);
+            }
+          }
+          
+          // ✅ 블로그 글의 이미지 URL 업데이트
+          if (urlMapping.size > 0) {
+            try {
+              const blogPost = result.blogPost;
+              const { data: currentPost, error: fetchError } = await supabase
+                .from('blog_posts')
+                .select('id, featured_image, content')
+                .eq('id', blogPost.id)
+                .single();
+              
+              if (!fetchError && currentPost) {
+                let updatedFeaturedImage = currentPost.featured_image;
+                let updatedContent = currentPost.content;
+                let urlUpdated = false;
+                
+                // ✅ featured_image URL 업데이트
+                if (currentPost.featured_image) {
+                  for (const [oldUrl, newUrl] of urlMapping.entries()) {
+                    if (currentPost.featured_image.includes(oldUrl) || 
+                        currentPost.featured_image === oldUrl) {
+                      updatedFeaturedImage = currentPost.featured_image.replace(oldUrl, newUrl);
+                      urlUpdated = true;
+                      console.log(`✅ featured_image URL 업데이트: ${blogPost.id}`);
+                      break;
+                    }
+                  }
+                }
+                
+                // ✅ content 내의 모든 이미지 URL 업데이트
+                if (currentPost.content) {
+                  for (const [oldUrl, newUrl] of urlMapping.entries()) {
+                    if (currentPost.content.includes(oldUrl)) {
+                      updatedContent = currentPost.content.replace(new RegExp(oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), newUrl);
+                      urlUpdated = true;
+                    }
+                  }
+                }
+                
+                // ✅ URL이 변경되었으면 블로그 글 업데이트
+                if (urlUpdated) {
+                  const { error: updateError } = await supabase
+                    .from('blog_posts')
+                    .update({
+                      featured_image: updatedFeaturedImage,
+                      content: updatedContent
+                    })
+                    .eq('id', blogPost.id);
+                  
+                  if (updateError) {
+                    console.error(`❌ 블로그 글 URL 업데이트 실패 (${blogPost.id}):`, updateError);
+                  } else {
+                    console.log(`✅ 블로그 글 URL 업데이트 완료: ${blogPost.id}`);
+                  }
+                }
+              }
+            } catch (updateError) {
+              console.error(`❌ 블로그 글 URL 업데이트 오류:`, updateError);
             }
           }
         }

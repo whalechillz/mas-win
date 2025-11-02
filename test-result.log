@@ -1,0 +1,35 @@
+🔍 배포된 사이트 접속 중...
+⏳ 로그인 페이지 로드 대기...
+🔐 로그인 시도...
+⏳ 로그인 처리 대기...
+📋 블로그 관리 페이지 접속 중...
+⏳ 페이지 로드 대기...
+🔍 "이미지 정렬" 버튼 찾기...
+✅ 버튼 발견: button:has-text("이미지 정렬")
+📋 버튼 텍스트: 📁이미지 정렬
+✅ 이미지 정렬 버튼 클릭...
+📋 다이얼로그 (confirm): "가을 골프 시즌 특가! MASGOLF 고반발드라이버 + Royal Salute 위스키 증정"의 이미지를 폴더로 정렬하시겠습니까?
+
+이미지를 originals/blog/2025-0...
+✅ 확인 다이얼로그 수락
+⏳ 이미지 정렬 프로세스 대기 중...
+📡 API 응답: 200 https://www.masgolf.co.kr/api/admin/organize-images-by-blog?blogPostId=309
+✅ API 성공 응답: {
+  "success": true,
+  "results": [
+    {
+      "blogPost": {
+        "id": 309,
+        "title": "가을 골프 시즌 특가! MASGOLF 고반발드라이버 + Royal Salute 위스키 증정",
+        "slug": "fall-golf-special-masgolf-driver-whiskey",
+        "folderName": "originals/blog/2025-09"
+      },
+      "images": [
+        {
+          "id": "04c0f0fe-fb90-4b09-ac13-2e3c7a9dd374",
+          "name": "blog-upload-1758694497380-hero2-1200x628.jpg",
+          "currentPath": "blog-upload-1758694497380-hero2-1200x628.jpg",
+         
+
+📊 테스트 완료
+📸 스크린샷 저장: screenshot-after-test.png
