@@ -189,13 +189,22 @@ export default function GalleryAdmin() {
         const beforeCount = filtered.length;
         filtered = filtered.filter(img => {
           // folder_path가 문자열인지 확인하고, 정확히 일치하는지 또는 하위 경로인지 확인
-          const imgFolderPath = img.folder_path || '';
-          const matches = includeChildren
-            ? (imgFolderPath === folderFilter || imgFolderPath.startsWith(folderFilter + '/'))
-            : imgFolderPath === folderFilter;
-          if (!matches) {
-            console.log('🔍 폴더 불일치:', imgFolderPath, '(타입:', typeof imgFolderPath, ') vs', folderFilter, '(타입:', typeof folderFilter, ')');
-            console.log('   이미지 전체 정보:', { name: img.name, folder_path: img.folder_path, url: img.url?.substring(0, 50) });
+          const imgFolderPath = String(img.folder_path || '').trim();
+          const filterPath = String(folderFilter || '').trim();
+          
+          let matches = false;
+          if (includeChildren) {
+            // 하위 폴더 포함: 정확히 일치하거나 하위 경로로 시작하는 경우
+            matches = imgFolderPath === filterPath || 
+                     (imgFolderPath.startsWith(filterPath + '/') && imgFolderPath.length > filterPath.length);
+          } else {
+            // 하위 폴더 제외: 정확히 일치하는 경우만
+            matches = imgFolderPath === filterPath;
+          }
+          
+          if (!matches && imgFolderPath && filterPath) {
+            console.log('🔍 폴더 불일치:', imgFolderPath, 'vs', filterPath);
+            console.log('   includeChildren:', includeChildren);
           }
           return matches;
         });
