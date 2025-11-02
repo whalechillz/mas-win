@@ -771,12 +771,24 @@ export default function BlogAdmin() {
       }
       
       const checkData = await checkResponse.json();
-      const imageCount = checkData.results?.[0]?.totalImages || 0;
+      const result = checkData.results?.[0];
+      const imageCount = result?.totalImages || 0;
+      const extractedCount = result?.totalExtractedImages || imageCount;
       
-      if (imageCount === 0) {
+      // ✅ 개선: 추출된 이미지가 있으면 진행 (Storage에서 찾지 못한 것도 포함)
+      if (extractedCount === 0) {
         alert('이 블로그 글에 연결된 이미지가 없습니다.');
         setOrganizingImages(prev => ({ ...prev, [post.id]: false }));
         return;
+      }
+      
+      // ✅ 찾은 이미지가 없으면 경고하지만 진행
+      if (imageCount === 0 && extractedCount > 0) {
+        const confirm = window.confirm(`⚠️ 경고: ${extractedCount}개 이미지를 추출했지만 Storage에서 찾지 못했습니다.\n\n계속 진행하시겠습니까?`);
+        if (!confirm) {
+          setOrganizingImages(prev => ({ ...prev, [post.id]: false }));
+          return;
+        }
       }
       
       // 2. 실제로 이미지 이동
