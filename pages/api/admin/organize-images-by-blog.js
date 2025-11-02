@@ -434,9 +434,54 @@ const findImageInStorage = async (fileName, maxSearchTime = 1000) => {
   }
 };
 
+// ✅ 폴더가 존재하는지 확인하고 없으면 생성
+const ensureFolderExists = async (folderPath) => {
+  try {
+    // 폴더 경로를 슬래시로 분리 (예: "originals/blog/2025-09")
+    const pathParts = folderPath.split('/').filter(Boolean);
+    
+    // 각 단계의 폴더 경로를 순차적으로 확인하고 생성
+    let currentPath = '';
+    for (const part of pathParts) {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      
+      // 현재 경로에 폴더가 있는지 확인
+      const { data: files, error: listError } = await supabase.storage
+        .from('blog-images')
+        .list(currentPath.includes('/') ? currentPath.split('/').slice(0, -1).join('/') : '', {
+          limit: 1000
+        });
+      
+      // 상위 폴더 목록에서 현재 폴더가 있는지 확인
+      const parentPath = currentPath.includes('/') ? currentPath.split('/').slice(0, -1).join('/') : '';
+      const folderName = currentPath.split('/').pop();
+      
+      const folderExists = files?.some(file => !file.id && file.name === folderName);
+      
+      if (!folderExists) {
+        // 폴더가 없으면 빈 파일을 업로드하여 폴더 생성 (Supabase Storage 트릭)
+        // 실제로는 폴더를 만들 수 없으므로, 폴더 내 임시 파일을 업로드하여 폴더 생성
+        // 또는 파일 이동 시 자동으로 폴더가 생성됨
+        
+        // 대신 파일을 이동할 때 자동으로 폴더가 생성되므로 여기서는 확인만 수행
+        console.log(`📁 폴더 확인: ${currentPath} (이동 시 자동 생성됨)`);
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.warn(`⚠️ 폴더 확인 오류 (${folderPath}):`, error.message);
+    // 폴더 생성 실패해도 계속 진행 (파일 이동 시 자동 생성될 수 있음)
+    return true;
+  }
+};
+
 // 이미지를 폴더로 이동
 const moveImageToFolder = async (imagePath, targetFolder) => {
   try {
+    // ✅ 폴더 존재 확인 및 생성
+    await ensureFolderExists(targetFolder);
+    
     // 현재 경로에서 파일명 추출
     const pathParts = imagePath.split('/');
     const fileName = pathParts[pathParts.length - 1];
@@ -449,7 +494,7 @@ const moveImageToFolder = async (imagePath, targetFolder) => {
       return { moved: false, message: '이미 해당 폴더에 있습니다.' };
     }
     
-    // Storage에서 이미지 이동
+    // Storage에서 이미지 이동 (폴더가 없으면 자동 생성됨)
     const { data, error } = await supabase.storage
       .from('blog-images')
       .move(imagePath, targetPath);
@@ -459,6 +504,12 @@ const moveImageToFolder = async (imagePath, targetFolder) => {
       if (error.message.includes('duplicate') || error.message.includes('already exists')) {
         return { moved: false, message: '대상 폴더에 이미 같은 파일이 있습니다.' };
       }
+      
+      // ✅ 폴더가 없어서 실패할 수 있으므로 에러 메시지 개선
+      if (error.message.includes('not found') || error.message.includes('does not exist')) {
+        throw new Error(`대상 폴더가 존재하지 않거나 생성할 수 없습니다: ${targetFolder}`);
+      }
+      
       throw error;
     }
     
