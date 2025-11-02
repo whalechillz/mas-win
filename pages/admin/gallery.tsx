@@ -157,23 +157,8 @@ export default function GalleryAdmin() {
   const filteredImages = useMemo(() => {
     let filtered = images;
     
-    // 검색 필터 (성능 최적화)
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const searchTerms = query.split(' ').filter(term => term.length > 0);
-      
-      filtered = filtered.filter(img => {
-        const searchableText = [
-          img.name,
-          img.alt_text || '',
-          img.title || '',
-          img.description || '',
-          img.keywords?.join(' ') || ''
-        ].join(' ').toLowerCase();
-        
-        return searchTerms.every(term => searchableText.includes(term));
-      });
-    }
+    // 검색 필터는 서버 사이드에서 처리하므로 클라이언트 사이드 검색 제거
+    // (검색어가 있을 때는 서버에서 이미 필터링된 결과만 받음)
     
     // 폴더 필터
     if (folderFilter !== 'all') {
@@ -321,7 +306,8 @@ export default function GalleryAdmin() {
     });
     
     return filtered;
-  }, [images, searchQuery, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
+  }, [images, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
+  // searchQuery는 의존성에서 제거 (서버 사이드 검색 사용)
   
   // 카테고리 관리 UI 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
@@ -574,7 +560,7 @@ export default function GalleryAdmin() {
   const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
 
   // 이미지 로드
-  const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean) => {
+  const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string) => {
     try {
       if (reset || page === 1) {
         setIsLoading(true);
@@ -590,22 +576,28 @@ export default function GalleryAdmin() {
       // 커스텀 파라미터가 있으면 사용, 없으면 현재 상태 사용
       const effectiveFolderFilter = customFolderFilter !== undefined ? customFolderFilter : folderFilter;
       const effectiveIncludeChildren = customIncludeChildren !== undefined ? customIncludeChildren : includeChildren;
+      const effectiveSearchQuery = customSearchQuery !== undefined ? customSearchQuery : searchQuery;
       
       const offset = (page - 1) * imagesPerPage;
       const prefix = effectiveFolderFilter === 'all' ? '' : (effectiveFolderFilter === 'root' ? '' : encodeURIComponent(effectiveFolderFilter));
       
+      // 검색어 파라미터 추가
+      const searchParam = effectiveSearchQuery.trim() ? `&searchQuery=${encodeURIComponent(effectiveSearchQuery.trim())}` : '';
+      
       // 디버깅 로그
-      if (customFolderFilter !== undefined || customIncludeChildren !== undefined) {
+      if (customFolderFilter !== undefined || customIncludeChildren !== undefined || customSearchQuery !== undefined) {
         console.log('🔄 fetchImages 호출:', {
           customFolderFilter,
           effectiveFolderFilter,
           prefix,
           customIncludeChildren,
-          effectiveIncludeChildren
+          effectiveIncludeChildren,
+          customSearchQuery,
+          effectiveSearchQuery
         });
       }
       
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}`);
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}${searchParam}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1729,9 +1721,17 @@ export default function GalleryAdmin() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      // 검색어 변경 시 페이지 초기화 (필터링은 filteredImages에서 처리)
+                      const newSearchQuery = e.target.value;
+                      setSearchQuery(newSearchQuery);
                       setCurrentPage(1);
+                      // 검색어가 변경되면 서버에서 검색 (서버 사이드 검색)
+                      fetchImages(1, true, folderFilter, includeChildren, newSearchQuery);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        // Enter 키 입력 시 검색 실행
+                        fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                      }
                     }}
                     placeholder="파일명, ALT 텍스트, 키워드로 검색..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1783,8 +1783,8 @@ export default function GalleryAdmin() {
                     const newFolderFilter = e.target.value;
                     setFolderFilter(newFolderFilter);
                     setCurrentPage(1); // 페이지 초기화
-                    // 새로운 폴더 필터 값을 직접 전달하여 즉시 반영
-                    fetchImages(1, true, newFolderFilter, includeChildren);
+                    // 새로운 폴더 필터 값을 직접 전달하여 즉시 반영 (검색어도 함께 전달)
+                    fetchImages(1, true, newFolderFilter, includeChildren, searchQuery);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent max-w-full"
                   style={{ minWidth: 0 }}
@@ -1805,8 +1805,8 @@ export default function GalleryAdmin() {
                       const newIncludeChildren = e.target.checked;
                       setIncludeChildren(newIncludeChildren);
                       setCurrentPage(1);
-                      // 새로운 includeChildren 값을 직접 전달하여 즉시 반영
-                      fetchImages(1, true, folderFilter, newIncludeChildren);
+                      // 새로운 includeChildren 값을 직접 전달하여 즉시 반영 (검색어도 함께 전달)
+                      fetchImages(1, true, folderFilter, newIncludeChildren, searchQuery);
                     }} 
                   />
                   <span>하위 폴더 포함</span>

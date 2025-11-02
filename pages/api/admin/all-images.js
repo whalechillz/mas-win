@@ -98,12 +98,262 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      const { limit = 1000, offset = 0, page = 1, prefix = '', includeChildren = 'true' } = req.query;
+      const { limit = 1000, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '' } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
+      const searchTerm = (searchQuery || '').trim();
       
-      console.log('📝 전체 이미지 목록 조회 중...', { limit: pageSize, offset: currentOffset, page: currentPage });
+      console.log('📝 전체 이미지 목록 조회 중...', { limit: pageSize, offset: currentOffset, page: currentPage, searchQuery: searchTerm });
+      
+      // 🔍 검색어가 있을 때: TSVECTOR 서버 사이드 검색
+      if (searchTerm) {
+        console.log('🔍 서버 사이드 검색 시작:', searchTerm);
+        
+        try {
+          // 1. RPC 함수로 검색 (더 빠름)
+          const { data: matchingMetadata, error: rpcError } = await supabase.rpc('search_image_metadata', {
+            p_search_terms: searchTerm,
+            p_limit: 1000,
+            p_offset: 0
+          });
+          
+          let metadataResults = matchingMetadata;
+          
+          // RPC 함수가 없거나 에러가 있으면 직접 쿼리 (폴백)
+          if (rpcError || !matchingMetadata) {
+            console.log('⚠️ RPC 함수 사용 불가, 직접 쿼리로 폴백');
+            
+            // TSVECTOR 검색 시도
+            const { data: tsResults, error: tsError } = await supabase
+              .from('image_metadata')
+              .select('image_url, alt_text, title, description, tags, category_id, usage_count, id')
+              .or(`search_vector @@ plainto_tsquery('simple', '${searchTerm.replace(/'/g, "''")}'),alt_text.ilike.%${searchTerm.replace(/%/g, '\\%')}%,title.ilike.%${searchTerm.replace(/%/g, '\\%')}%,description.ilike.%${searchTerm.replace(/%/g, '\\%')}%`)
+              .limit(1000);
+            
+            if (tsError) {
+              console.log('⚠️ TSVECTOR 검색 실패, ILIKE 검색으로 폴백:', tsError.message);
+              // ILIKE 검색만 사용 (폴백)
+              const { data: likeResults, error: likeError } = await supabase
+                .from('image_metadata')
+                .select('image_url, alt_text, title, description, tags, category_id, usage_count, id')
+                .or(`alt_text.ilike.%${searchTerm.replace(/%/g, '\\%')}%,title.ilike.%${searchTerm.replace(/%/g, '\\%')}%,description.ilike.%${searchTerm.replace(/%/g, '\\%')}%`)
+                .limit(1000);
+              
+              if (likeError) {
+                console.error('❌ 메타데이터 검색 오류:', likeError);
+                return res.status(500).json({ error: '검색 중 오류 발생', details: likeError.message });
+              }
+              metadataResults = likeResults;
+            } else {
+              metadataResults = tsResults;
+            }
+          }
+          
+          if (!metadataResults || metadataResults.length === 0) {
+            console.log('🔍 검색 결과 없음');
+            return res.status(200).json({
+              images: [],
+              count: 0,
+              total: 0,
+              pagination: {
+                currentPage: 1,
+                totalPages: 0,
+                pageSize,
+                hasNextPage: false,
+                hasPrevPage: false,
+                nextPage: null,
+                prevPage: null
+              }
+            });
+          }
+          
+          console.log(`🔍 검색 결과: ${metadataResults.length}개 메타데이터 발견`);
+          
+          // 2. 매칭된 URL만 추출
+          const matchingUrls = new Set(metadataResults.map(m => m.image_url));
+          
+          // 3. Storage에서 해당 파일들 찾기 (prefix 필터 적용)
+          let allFilesForSearch = [];
+          const getAllFilesForSearch = async (folderPath = '') => {
+            let offset = 0;
+            const batchSize = 1000;
+            let allFilesInFolder = [];
+            
+            while (true) {
+              const { data: files, error } = await supabase.storage
+                .from('blog-images')
+                .list(folderPath, {
+                  limit: batchSize,
+                  offset: offset,
+                  sortBy: { column: 'created_at', order: 'desc' }
+                });
+              
+              if (error || !files || files.length === 0) break;
+              
+              allFilesInFolder = allFilesInFolder.concat(files);
+              offset += batchSize;
+              if (files.length < batchSize) break;
+            }
+            
+            for (const file of allFilesInFolder) {
+              if (!file.id) {
+                const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+                await getAllFilesForSearch(subFolderPath);
+              } else {
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+                const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                if (isImage) {
+                  const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+                  const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
+                  const publicUrl = urlData.publicUrl;
+                  
+                  // URL이 매칭된 메타데이터에 있는지 확인
+                  if (matchingUrls.has(publicUrl)) {
+                    allFilesForSearch.push({
+                      ...file,
+                      folderPath: folderPath,
+                      url: publicUrl
+                    });
+                  }
+                }
+              }
+            }
+          };
+          
+          const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
+          const searchPrefix = prefix === 'all' ? '' : prefix;
+          
+          if (shouldIncludeChildren) {
+            await getAllFilesForSearch(searchPrefix || '');
+          } else {
+            // 현재 폴더만
+            let offset = 0;
+            const batchSize = 1000;
+            while (true) {
+              const { data: files, error } = await supabase.storage
+                .from('blog-images')
+                .list(searchPrefix || '', { limit: batchSize, offset: offset });
+              
+              if (error || !files || files.length === 0) break;
+              
+              for (const file of files) {
+                if (file.id) {
+                  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+                  const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                  if (isImage) {
+                    const fullPath = searchPrefix ? `${searchPrefix}/${file.name}` : file.name;
+                    const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
+                    const publicUrl = urlData.publicUrl;
+                    
+                    if (matchingUrls.has(publicUrl)) {
+                      allFilesForSearch.push({ ...file, folderPath: searchPrefix || '', url: publicUrl });
+                    }
+                  }
+                }
+              }
+              
+              offset += batchSize;
+              if (files.length < batchSize) break;
+            }
+          }
+          
+          console.log(`🔍 검색 결과 파일: ${allFilesForSearch.length}개`);
+          
+          // 4. 정렬 및 페이지네이션
+          allFilesForSearch.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          const searchTotalCount = allFilesForSearch.length;
+          const searchFiles = allFilesForSearch.slice(currentOffset, currentOffset + pageSize);
+          
+          // 5. 메타데이터 매핑
+          const metadataMap = new Map();
+          metadataResults.forEach(meta => {
+            metadataMap.set(meta.image_url, meta);
+          });
+          
+          // 카테고리 매핑
+          const categoryIdMap = new Map();
+          const categoryIds = [...new Set(metadataResults.map(m => m.category_id).filter(Boolean))];
+          if (categoryIds.length > 0) {
+            const { data: categories } = await supabase
+              .from('image_categories')
+              .select('id, name')
+              .in('id', categoryIds);
+            if (categories) {
+              categories.forEach(cat => {
+                categoryIdMap.set(cat.id, cat.name);
+              });
+            }
+          }
+          
+          // 6. 최종 이미지 데이터 생성
+          const imagesWithUrl = searchFiles.map((file) => {
+            const metadata = metadataMap.get(file.url);
+            
+            const hasQualityMeta = hasQualityMetadata(metadata);
+            const qualityScore = calculateMetadataQualityScore(metadata);
+            const qualityIssues = getMetadataQualityIssues(metadata);
+            
+            return {
+              id: file.id,
+              name: file.name,
+              size: file.metadata?.size || 0,
+              created_at: file.created_at,
+              updated_at: file.updated_at,
+              url: file.url,
+              folder_path: file.folderPath || '',
+              alt_text: metadata?.alt_text || '',
+              title: metadata?.title || '',
+              description: metadata?.description || '',
+              keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
+              category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
+              categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
+              usage_count: metadata?.usage_count || 0,
+              upload_source: metadata?.upload_source || 'manual',
+              status: metadata?.status || 'active',
+              has_metadata: !!metadata,
+              has_quality_metadata: hasQualityMeta,
+              metadata_quality: {
+                score: qualityScore,
+                has_alt_text: !!(metadata?.alt_text && metadata.alt_text.trim().length > 0),
+                has_title: !!(metadata?.title && metadata.title.trim().length > 0),
+                has_description: !!(metadata?.description && metadata.description.trim().length > 0),
+                has_keywords: !!(metadata?.tags && (
+                  Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
+                )),
+                issues: qualityIssues
+              }
+            };
+          });
+          
+          const searchTotalPages = Math.ceil(searchTotalCount / pageSize);
+          
+          console.log(`✅ 서버 사이드 검색 완료: ${imagesWithUrl.length}개 (총 ${searchTotalCount}개 중)`);
+          return res.status(200).json({
+            images: imagesWithUrl,
+            count: imagesWithUrl.length,
+            total: searchTotalCount,
+            pagination: {
+              currentPage,
+              totalPages: searchTotalPages,
+              pageSize,
+              hasNextPage: currentPage < searchTotalPages,
+              hasPrevPage: currentPage > 1,
+              nextPage: currentPage < searchTotalPages ? currentPage + 1 : null,
+              prevPage: currentPage > 1 ? currentPage - 1 : null
+            }
+          });
+          
+        } catch (searchError) {
+          console.error('❌ 서버 사이드 검색 오류:', searchError);
+          return res.status(500).json({
+            error: '검색 중 오류 발생',
+            details: searchError.message
+          });
+        }
+      }
+      
+      // 검색어가 없을 때는 기존 페이지네이션 로직 사용
       
       // 전체 개수 조회 (캐싱 적용) - 폴더 포함
       let totalCount = totalCountCache;
