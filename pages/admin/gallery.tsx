@@ -1775,7 +1775,7 @@ export default function GalleryAdmin() {
               )}
               
               {/* 폴더 필터 */}
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">폴더</label>
                 <select
                   value={folderFilter}
@@ -1786,13 +1786,14 @@ export default function GalleryAdmin() {
                     // 새로운 폴더 필터 값을 직접 전달하여 즉시 반영
                     fetchImages(1, true, newFolderFilter, includeChildren);
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent max-w-full"
+                  style={{ minWidth: 0 }}
                 >
                   <option value="all">전체 폴더</option>
                   <option value="root">📁 루트 폴더</option>
                   {availableFolders.map((folder) => (
-                    <option key={folder} value={folder}>
-                      📁 {folder}
+                    <option key={folder} value={folder} title={folder}>
+                      📁 {folder.length > 30 ? `${folder.substring(0, 27)}...` : folder}
                     </option>
                   ))}
                 </select>
@@ -2244,8 +2245,8 @@ export default function GalleryAdmin() {
                 </div>
               )}
               
-              {/* 더 이상 로드할 이미지가 없을 때 */}
-              {!hasMoreImages && images.length > 0 && (
+              {/* 더 이상 로드할 이미지가 없을 때 (로딩 중이 아닐 때만 표시) */}
+              {!hasMoreImages && images.length > 0 && !isLoading && !isLoadingMore && (
                 <div className="col-span-full text-center py-8 text-gray-500">
                   <p>모든 이미지를 불러왔습니다.</p>
                 </div>
