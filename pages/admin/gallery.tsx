@@ -1,10 +1,28 @@
+'use client';
+
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import { CategoryManagementModal } from '../../components/CategoryManagementModal';
-import { useDebounce } from '../../components/admin/marketing/PerformanceUtils';
+
+// 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 interface ImageMetadata {
   id?: string;
@@ -157,12 +175,14 @@ export default function GalleryAdmin() {
   
   // 디바운스된 검색어가 변경될 때만 검색 실행
   useEffect(() => {
-    // 초기 마운트 시에는 검색어가 없으면 호출하지 않음 (기존 초기 로드는 다른 곳에서 처리)
-    // 검색어가 변경되었을 때만 실행
-    if (debouncedSearchQuery !== undefined && debouncedSearchQuery !== searchQuery) {
-      // 디바운스된 검색어가 실제 검색어와 다를 때만 실행 (디바운싱 완료 후)
-      fetchImages(1, true, folderFilter, includeChildren, debouncedSearchQuery);
+    // 초기 마운트 시에는 검색어가 없으면 호출하지 않음
+    if (initialLoadRef.current) {
+      if (debouncedSearchQuery.trim() === '') {
+        return; // 초기 로드는 다른 곳에서 처리
+      }
     }
+    // 디바운스된 검색어가 변경되었을 때만 검색 실행
+    fetchImages(1, true, folderFilter, includeChildren, debouncedSearchQuery);
   }, [debouncedSearchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // 폴더 필터 또는 하위 폴더 포함 옵션이 변경될 때 검색어를 유지하면서 재검색
