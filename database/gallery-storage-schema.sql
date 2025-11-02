@@ -8,7 +8,7 @@ ADD COLUMN IF NOT EXISTS internal_id VARCHAR(255),               -- 내부 고�
 ADD COLUMN IF NOT EXISTS hash_md5 VARCHAR(32),                   -- 중복 감지용 (MD5)
 ADD COLUMN IF NOT EXISTS hash_sha256 VARCHAR(64),                -- 중복 감지용 (SHA256)
 ADD COLUMN IF NOT EXISTS usage_count INTEGER DEFAULT 0,          -- 사용 횟수
-ADD COLUMN IF NOT EXISTS references JSONB DEFAULT '[]',          -- 참조 정보 배열
+ADD COLUMN IF NOT EXISTS "references" JSONB DEFAULT '[]',          -- 참조 정보 배열 (예약어이므로 따옴표 사용)
 ADD COLUMN IF NOT EXISTS blog_posts INTEGER[],                   -- 연결된 블로그 글 ID 배열
 ADD COLUMN IF NOT EXISTS variants JSONB DEFAULT '{}',            -- 베리에이션 경로 정보
 ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMP WITH TIME ZONE; -- 마지막 사용 시간
@@ -34,7 +34,7 @@ BEGIN
   SET 
     usage_count = (
       SELECT COUNT(*)
-      FROM jsonb_array_elements(NEW.references) AS ref
+      FROM jsonb_array_elements(NEW."references") AS ref
     ),
     last_used_at = NOW()
   WHERE id = NEW.id;
@@ -45,9 +45,9 @@ $$ LANGUAGE plpgsql;
 -- 5. 트리거 생성 (자동 usage_count 업데이트)
 DROP TRIGGER IF EXISTS trigger_update_image_usage_count ON image_metadata;
 CREATE TRIGGER trigger_update_image_usage_count
-  AFTER UPDATE OF references ON image_metadata
+  AFTER UPDATE OF "references" ON image_metadata
   FOR EACH ROW
-  WHEN (OLD.references IS DISTINCT FROM NEW.references)
+  WHEN (OLD."references" IS DISTINCT FROM NEW."references")
   EXECUTE FUNCTION update_image_usage_count();
 
 -- 6. 이미지 중복 검사 함수 (유틸리티)
@@ -183,15 +183,15 @@ DECLARE
 BEGIN
   SELECT 
     id,
-    references,
+    "references",
     blog_posts
   INTO v_image
   FROM image_metadata
   WHERE id = p_image_id;
   
   -- 참조 정보 추가
-  IF v_image.references IS NOT NULL THEN
-    v_usage := v_usage || v_image.references;
+  IF v_image."references" IS NOT NULL THEN
+    v_usage := v_usage || v_image."references";
   END IF;
   
   -- 블로그 글 연결 추가
@@ -216,7 +216,7 @@ COMMENT ON COLUMN image_metadata.internal_id IS '내부 고유 ID (UUID, 파일�
 COMMENT ON COLUMN image_metadata.hash_md5 IS 'MD5 해시 (중복 이미지 감지용)';
 COMMENT ON COLUMN image_metadata.hash_sha256 IS 'SHA256 해시 (중복 이미지 감지용, 더 정확함)';
 COMMENT ON COLUMN image_metadata.usage_count IS '사용 횟수 (자동 계산)';
-COMMENT ON COLUMN image_metadata.references IS '참조 정보 배열 (JSONB, 블로그, 퍼널 등에서 사용)';
+COMMENT ON COLUMN image_metadata."references" IS '참조 정보 배열 (JSONB, 블로그, 퍼널 등에서 사용)';
 COMMENT ON COLUMN image_metadata.blog_posts IS '연결된 블로그 글 ID 배열 (빠른 검색용)';
 COMMENT ON COLUMN image_metadata.variants IS '베리에이션 경로 정보 (JSONB, 채널별 최적화 버전)';
 COMMENT ON COLUMN image_metadata.last_used_at IS '마지막 사용 시간 (사용 빈도 정렬용)';

@@ -82,12 +82,24 @@
 
 ## 🚀 다음 단계: 갤러리 관리 시스템 고도화
 
-### ✅ Phase 1 완료 (2025-01-XX)
+### ✅ Phase 1 완료 (2025-11-02)
 - **인프라 준비 및 DB 설계** 완료
-  - 데이터베이스 스키마 확장 완료 (5개 새 컬럼 추가)
+  - 데이터베이스 스키마 확장 완료 (**10개 새 컬럼 추가**)
+    - `original_path` (TEXT) - 실제 Storage 경로
+    - `internal_id` (VARCHAR(255)) - 내부 고유 ID (UUID)
+    - `"references"` (JSONB) - 참조 정보 배열 (예약어이므로 따옴표 사용)
+    - `blog_posts` (INTEGER[]) - 연결된 블로그 글 ID 배열
+    - `variants` (JSONB) - 베리에이션 경로 정보
+    - `usage_type` (VARCHAR(50)) - 사용 유형
+    - `product_slug` (VARCHAR(100)) - 제품 이미지용
+    - `customer_id` (VARCHAR(50)) - 고객 콘텐츠용
+    - `consent_status` (VARCHAR(20)) - 고객 동의 상태
+    - `privacy_level` (VARCHAR(20)) - 프라이버시 레벨
   - 인덱스 생성 완료 (7개 기본 + 1개 복합)
   - 함수 및 트리거 생성 완료 (자동 업데이트 기능)
   - 유틸리티 함수 생성 완료 (중복 검사, 검색)
+  
+  ⚠️ **중요 사항**: `references` 컬럼은 PostgreSQL 예약어이므로 항상 따옴표(`"references"`)로 감싸서 사용해야 합니다. SQL 파일(`database/gallery-storage-schema.sql`)에 이미 반영되었습니다.
 
 ### ✅ Phase 2 완료 (2025-01-XX): 블로그 이미지 분석 및 분류
 - **모든 블로그 이미지 분석 API** 생성 완료
