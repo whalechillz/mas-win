@@ -47,6 +47,50 @@ export default async function handler(req, res) { ... }
 import { createSolapiSignature } from '../../utils/solapiSignature.js';
 ```
 
+## 🚨 이미지 갤러리 검색 관련 문제
+
+### 1. 검색 시 여러 번 로딩
+**오류**: "마쓰구" 검색 시 한 글자 입력할 때마다 API 호출 발생 (3회)
+**원인**: 디바운싱 부재로 인한 즉시 API 호출
+**해결**: `useDebounce` 훅을 사용하여 500ms 지연 후 검색 실행
+
+```typescript
+// pages/admin/gallery.tsx
+import { useDebounce } from '../../components/admin/marketing/PerformanceUtils';
+
+// 검색어 디바운싱 (500ms 지연)
+const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+// 디바운스된 검색어가 변경될 때만 검색 실행
+useEffect(() => {
+  fetchImages(1, true, folderFilter, includeChildren, debouncedSearchQuery);
+}, [debouncedSearchQuery]);
+```
+
+**참고**: [상세 해결 방법](./resolved/2025-11-02-gallery-search-optimization.md)
+
+### 2. 검색어 입력 표시 문제
+**오류**: 검색어가 입력 필드에 표시되지 않음
+**원인**: `fetchImages`에서 `reset=true`일 때 `searchQuery`를 초기화하는 로직
+**해결**: `customSearchQuery`가 있을 때는 검색어를 초기화하지 않도록 수정
+
+```typescript
+// pages/admin/gallery.tsx
+const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string) => {
+  if (reset || page === 1) {
+    setIsLoading(true);
+    // 새로고침 시 필터를 "전체"로 초기화 (단, 검색어는 보존)
+    if (reset && customSearchQuery === undefined) {
+      setFilterType('all');
+      setSearchQuery('');
+    }
+  }
+  // ...
+};
+```
+
+**참고**: [상세 해결 방법](./resolved/2025-11-02-gallery-search-optimization.md)
+
 ### 3. Trailing Slash 리다이렉트
 **오류**: `308 Permanent Redirect`
 **원인**: Next.js의 trailing slash 처리
