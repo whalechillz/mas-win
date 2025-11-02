@@ -46,20 +46,45 @@ const findFileInStorage = async (imagePath) => {
     // 파일 경로에서 파일명 추출
     const fileName = imagePath.split('/').pop();
     
-    // 먼저 정확한 경로로 확인
-    const { data: urlData } = supabase.storage
-      .from(IMAGE_BUCKET)
-      .getPublicUrl(imagePath);
-    
-    // HEAD 요청으로 파일 존재 확인
-    const headResponse = await fetch(urlData.publicUrl, { method: 'HEAD' });
-    if (headResponse.ok) {
-      return {
-        path: imagePath,
-        fileName,
-        exists: true,
-        url: urlData.publicUrl
-      };
+    // ✅ 최적화: HEAD 요청 타임아웃 짧게 설정 (500ms)
+    try {
+      const { data: urlData } = supabase.storage
+        .from(IMAGE_BUCKET)
+        .getPublicUrl(imagePath);
+      
+      // HEAD 요청을 빠르게 타임아웃 (500ms)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 500); // 500ms 타임아웃
+      
+      try {
+        const headResponse = await fetch(urlData.publicUrl, { 
+          method: 'HEAD',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (headResponse.ok) {
+          return {
+            path: imagePath,
+            fileName,
+            exists: true,
+            url: urlData.publicUrl
+          };
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        // 타임아웃이면 파일이 없는 것으로 간주하고 다음 단계로
+        if (fetchError.name === 'AbortError') {
+          // 타임아웃 발생 시 파일 없음으로 간주
+          return {
+            path: imagePath,
+            fileName,
+            exists: false
+          };
+        }
+      }
+    } catch (error) {
+      // getPublicUrl 실패 시 파일 없음으로 간주
     }
     
     // 정확한 경로가 없으면 파일명으로 검색 (제한적으로)
@@ -354,9 +379,20 @@ const analyzeAllBlogImages = async (dryRun = true) => {
     let foundCount = 0;
     let notFoundCount = 0;
     
-    // 배치로 처리 (타임아웃 방지)
-    const batchLimit = 50; // 한 번에 최대 50개씩 처리
+    // ✅ 최적화: 배치 크기 증가 (더 빠른 처리)
+    const batchLimit = 100; // 한 번에 최대 100개씩 처리 (병렬 처리 효율 향상)
+    
+    // ✅ 타임아웃 방지: 시작 시간 체크
+    const startTime = Date.now();
+    const maxExecutionTime = 8000; // 8초 제한 (Vercel 10초 제한 고려)
+    
     for (let i = 0; i < imageArray.length; i += batchLimit) {
+      // 타임아웃 체크
+      if (Date.now() - startTime > maxExecutionTime) {
+        console.log(`⚠️ 타임아웃 방지를 위해 처리 중단: ${i}/${imageArray.length}개 처리됨`);
+        // 처리된 결과까지만 반환
+        break;
+      }
       const batch = imageArray.slice(i, i + batchLimit);
       
       const batchResults = await Promise.all(
@@ -435,6 +471,7 @@ const analyzeAllBlogImages = async (dryRun = true) => {
       totalBlogPosts: allBlogPosts.length,
       totalUniqueImageUrls: allImageUrls.size,
       totalImagesProcessed: imageResults.length,
+      totalImagesNotProcessed: imageArray.length - imageResults.length, // 처리되지 않은 이미지 수
       totalImagesFoundInStorage: foundCount,
       totalImagesNotFoundInStorage: notFoundCount,
       totalExternalUrls: externalUrls.length, // 외부 URL (다른 도메인)
