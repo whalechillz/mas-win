@@ -442,29 +442,71 @@ const ensureFolderExists = async (folderPath) => {
     
     // 각 단계의 폴더 경로를 순차적으로 확인하고 생성
     let currentPath = '';
-    for (const part of pathParts) {
+    for (let i = 0; i < pathParts.length; i++) {
+      const part = pathParts[i];
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       
-      // 현재 경로에 폴더가 있는지 확인
-      const { data: files, error: listError } = await supabase.storage
-        .from('blog-images')
-        .list(currentPath.includes('/') ? currentPath.split('/').slice(0, -1).join('/') : '', {
-          limit: 1000
-        });
+      // 상위 폴더 경로
+      const parentPath = i === 0 ? '' : pathParts.slice(0, i).join('/');
       
-      // 상위 폴더 목록에서 현재 폴더가 있는지 확인
-      const parentPath = currentPath.includes('/') ? currentPath.split('/').slice(0, -1).join('/') : '';
-      const folderName = currentPath.split('/').pop();
-      
-      const folderExists = files?.some(file => !file.id && file.name === folderName);
-      
-      if (!folderExists) {
-        // 폴더가 없으면 빈 파일을 업로드하여 폴더 생성 (Supabase Storage 트릭)
-        // 실제로는 폴더를 만들 수 없으므로, 폴더 내 임시 파일을 업로드하여 폴더 생성
-        // 또는 파일 이동 시 자동으로 폴더가 생성됨
+      // 상위 폴더에서 현재 폴더가 있는지 확인
+      try {
+        const { data: files, error: listError } = await supabase.storage
+          .from('blog-images')
+          .list(parentPath, {
+            limit: 1000
+          });
         
-        // 대신 파일을 이동할 때 자동으로 폴더가 생성되므로 여기서는 확인만 수행
-        console.log(`📁 폴더 확인: ${currentPath} (이동 시 자동 생성됨)`);
+        if (listError) {
+          console.warn(`⚠️ 폴더 목록 조회 실패 (${parentPath}):`, listError.message);
+          // 조회 실패해도 계속 진행 (파일 이동 시 자동 생성)
+          continue;
+        }
+        
+        // 폴더가 있는지 확인 (id가 없으면 폴더)
+        const folderExists = files?.some(file => !file.id && file.name === part);
+        
+        if (!folderExists) {
+          // ✅ 폴더가 없으면 빈 파일을 업로드하여 폴더 "생성" (Supabase Storage 트릭)
+          // 폴더를 직접 만들 수 없으므로, 폴더 내 임시 마커 파일을 업로드
+          const markerFileName = `.folder-marker-${Date.now()}`;
+          const markerPath = `${currentPath}/${markerFileName}`;
+          
+          try {
+            // 빈 파일을 업로드하여 폴더 생성
+            const { error: uploadError } = await supabase.storage
+              .from('blog-images')
+              .upload(markerPath, new Blob([]), {
+                contentType: 'text/plain',
+                upsert: false
+              });
+            
+            if (uploadError) {
+              console.warn(`⚠️ 폴더 마커 파일 생성 실패 (${markerPath}):`, uploadError.message);
+              // 생성 실패해도 계속 진행 (파일 이동 시 자동 생성)
+            } else {
+              console.log(`✅ 폴더 생성 완료: ${currentPath}`);
+              
+              // ✅ 마커 파일을 즉시 삭제 (폴더만 남김)
+              try {
+                await supabase.storage
+                  .from('blog-images')
+                  .remove([markerPath]);
+              } catch (deleteError) {
+                // 삭제 실패해도 무시 (마커 파일이 남아있어도 문제 없음)
+                console.warn(`⚠️ 마커 파일 삭제 실패:`, deleteError.message);
+              }
+            }
+          } catch (createError) {
+            console.warn(`⚠️ 폴더 생성 시도 실패 (${currentPath}):`, createError.message);
+            // 생성 실패해도 계속 진행 (파일 이동 시 자동 생성될 수 있음)
+          }
+        } else {
+          console.log(`✅ 폴더 이미 존재: ${currentPath}`);
+        }
+      } catch (checkError) {
+        console.warn(`⚠️ 폴더 확인 오류 (${currentPath}):`, checkError.message);
+        // 확인 실패해도 계속 진행
       }
     }
     
