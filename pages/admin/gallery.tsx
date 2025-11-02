@@ -108,6 +108,135 @@ export default function GalleryAdmin() {
     return foundKeywords.slice(0, 8); // 최대 8개 키워드
   };
   
+  // 블로그 이미지 정리 관련 상태
+  const [blogIdForOrganization, setBlogIdForOrganization] = useState<number | null>(309); // 기본값: 309
+  const [isOrganizingImages, setIsOrganizingImages] = useState(false);
+  const [isSyncingBlogMetadata, setIsSyncingBlogMetadata] = useState(false);
+
+  // 블로그 이미지 정렬 핸들러
+  const handleOrganizeBlogImages = async () => {
+    if (!blogIdForOrganization) {
+      alert('블로그 ID를 입력해주세요.');
+      return;
+    }
+
+    if (!confirm(`블로그 ID ${blogIdForOrganization}의 이미지를 정렬하시겠습니까?`)) {
+      return;
+    }
+
+    setIsOrganizingImages(true);
+
+    try {
+      // 1. 이미지 정렬 정보 조회
+      const checkResponse = await fetch(`/api/admin/organize-images-by-blog?blogPostId=${blogIdForOrganization}`);
+      if (!checkResponse.ok) {
+        throw new Error('이미지 정렬 정보 조회 실패');
+      }
+
+      const checkData = await checkResponse.json();
+      const result = checkData.results?.[0];
+      const imageCount = result?.totalImages || 0;
+      const extractedCount = result?.totalExtractedImages || imageCount;
+
+      if (extractedCount === 0) {
+        alert('이 블로그 글에 연결된 이미지가 없습니다.');
+        setIsOrganizingImages(false);
+        return;
+      }
+
+      // 2. 실제로 이미지 이동
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      let moveResponse;
+      try {
+        moveResponse = await fetch('/api/admin/organize-images-by-blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blogPostId: blogIdForOrganization, moveImages: true }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('요청 시간 초과: 이미지 이동이 60초 이상 걸렸습니다.');
+        }
+        throw error;
+      }
+
+      if (!moveResponse.ok) {
+        throw new Error('이미지 이동 실패');
+      }
+
+      const moveData = await moveResponse.json();
+      const movedCount = moveData.summary?.moved || 0;
+      const skippedCount = moveData.summary?.skipped || 0;
+      const errorCount = moveData.summary?.errors || 0;
+
+      if (errorCount > 0) {
+        alert(`⚠️ 이미지 정렬 완료 (일부 오류 발생)\n\n이동: ${movedCount}개\n스킵: ${skippedCount}개\n오류: ${errorCount}개`);
+      } else {
+        alert(`✅ 이미지 정렬 완료!\n\n이동: ${movedCount}개\n스킵: ${skippedCount}개`);
+      }
+
+      // 이미지 목록 새로고침
+      fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+
+    } catch (error: any) {
+      console.error('❌ 이미지 정렬 오류:', error);
+      alert(`이미지 정렬 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsOrganizingImages(false);
+    }
+  };
+
+  // 블로그 메타데이터 동기화 핸들러
+  const handleSyncBlogMetadata = async () => {
+    if (!blogIdForOrganization) {
+      alert('블로그 ID를 입력해주세요.');
+      return;
+    }
+
+    if (!confirm(`블로그 ID ${blogIdForOrganization}의 이미지 메타데이터를 동기화하시겠습니까?`)) {
+      return;
+    }
+
+    setIsSyncingBlogMetadata(true);
+
+    try {
+      const response = await fetch('/api/admin/sync-metadata-by-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blogPostId: blogIdForOrganization })
+      });
+
+      if (!response.ok) {
+        throw new Error('메타데이터 동기화 실패');
+      }
+
+      const data = await response.json();
+      const syncedCount = data.summary?.synced || 0;
+      const skippedCount = data.summary?.skipped || 0;
+      const errorCount = data.summary?.errors || 0;
+
+      if (errorCount > 0) {
+        alert(`⚠️ 메타데이터 동기화 완료 (일부 오류 발생)\n\n동기화: ${syncedCount}개\n스킵: ${skippedCount}개\n오류: ${errorCount}개`);
+      } else {
+        alert(`✅ 메타데이터 동기화 완료!\n\n동기화: ${syncedCount}개\n스킵: ${skippedCount}개`);
+      }
+
+      // 이미지 목록 새로고침
+      fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+
+    } catch (error: any) {
+      console.error('❌ 메타데이터 동기화 오류:', error);
+      alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsSyncingBlogMetadata(false);
+    }
+  };
+
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
   // 검색어 디바운싱 (500ms 지연)
@@ -1468,6 +1597,29 @@ export default function GalleryAdmin() {
                 >
                   📝 블로그 관리로 돌아가기
                 </Link>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    placeholder="블로그 ID"
+                    value={blogIdForOrganization || ''}
+                    onChange={(e) => setBlogIdForOrganization(e.target.value ? parseInt(e.target.value) : null)}
+                    className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                  <button
+                    onClick={handleOrganizeBlogImages}
+                    disabled={isOrganizingImages}
+                    className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isOrganizingImages ? '정렬 중...' : '📁 이미지 정렬'}
+                  </button>
+                  <button
+                    onClick={handleSyncBlogMetadata}
+                    disabled={isSyncingBlogMetadata}
+                    className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSyncingBlogMetadata ? '동기화 중...' : '🔄 메타 동기화'}
+                  </button>
+                </div>
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
