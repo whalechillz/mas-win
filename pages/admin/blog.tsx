@@ -792,11 +792,26 @@ export default function BlogAdmin() {
       }
       
       // 2. 실제로 이미지 이동
-      const moveResponse = await fetch('/api/admin/organize-images-by-blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blogPostId: post.id, moveImages: true })
-      });
+      // ✅ 타임아웃 넉넉히 설정 (30초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
+      let moveResponse;
+      try {
+        moveResponse = await fetch('/api/admin/organize-images-by-blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blogPostId: post.id, moveImages: true }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('요청 시간 초과: 이미지 이동이 30초 이상 걸렸습니다.');
+        }
+        throw new Error(`네트워크 오류: ${error.message || 'Failed to fetch'}`);
+      }
       
       if (!moveResponse.ok) {
         // ✅ 개선: 에러 응답의 상세 메시지 추출
