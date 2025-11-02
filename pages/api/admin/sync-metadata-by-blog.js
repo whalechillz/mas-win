@@ -38,10 +38,10 @@ const extractKeywordsFromFilename = (filename) => {
 // OpenAI Vision API로 이미지 분석
 const analyzeImageWithOpenAI = async (imageUrl) => {
   try {
-    // ✅ OpenAI API 호출 타임아웃 설정 (5초) - Promise.race 사용
-    // 이미지가 많은 경우를 고려하여 적절한 시간 제공
+    // ✅ OpenAI API 호출 타임아웃 설정 (8초) - Promise.race 사용
+    // 14개 이미지 성공을 목표로 충분한 시간 제공
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (5초 초과)')), 5000);
+      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (8초 초과)')), 8000);
     });
     
     const apiPromise = openai.chat.completions.create({
@@ -87,7 +87,7 @@ const analyzeImageWithOpenAI = async (imageUrl) => {
   } catch (error) {
     // ✅ 타임아웃 오류 구분
     if (error.message && (error.message.includes('타임아웃') || error.message.includes('timeout') || error.message.includes('초과'))) {
-      console.warn('⚠️ OpenAI Vision API 타임아웃 (5초 초과):', imageUrl);
+      console.warn('⚠️ OpenAI Vision API 타임아웃 (8초 초과):', imageUrl);
       return null;
     }
     console.error('❌ OpenAI Vision API 오류:', error);
@@ -242,9 +242,9 @@ const syncMetadataForBlogPost = async (blogPostId) => {
           });
         }
         
-        // API 호출 제한 방지 (OpenAI Vision API는 비용이 비싸므로 짧은 간격)
-        // 타임아웃 내 완료를 위해 간격 최소화
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // API 호출 제한 방지 (OpenAI Vision API는 비용이 비싸지만, 성공을 목표로 적절한 간격)
+        // 14개 이미지 성공을 위해 안정적인 간격 유지
+        await new Promise(resolve => setTimeout(resolve, 400));
         
       } catch (error) {
         console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
@@ -281,11 +281,11 @@ const syncMetadataForBlogPost = async (blogPostId) => {
 export default async function handler(req, res) {
   console.log('🔄 블로그 글별 메타데이터 동기화 API 요청:', req.method, req.url);
   
-  // ✅ 타임아웃 설정: 이미지 정렬과 마찬가지로 넉넉하게 설정 (성공 최대 목표)
+  // ✅ 타임아웃 설정: 14개 이미지 성공을 목표로 충분한 시간 제공
   // Vercel Hobby 플랜은 10초, Pro 플랜은 60초 제한
-  // vercel.json에서 30초로 설정했지만, 안전하게 25초로 설정
+  // vercel.json에서 30초로 설정했지만, 안전하게 28초로 설정 (성공 최대 목표)
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (25초 제한)')), 25000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (28초 제한)')), 28000);
   });
   
   try {
