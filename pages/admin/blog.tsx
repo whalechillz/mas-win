@@ -777,12 +777,37 @@ export default function BlogAdmin() {
       const moveData = await moveResponse.json();
       const movedCount = moveData.summary?.moved || 0;
       const skippedCount = moveData.summary?.skipped || 0;
+      const errorCount = moveData.summary?.errors || 0;
       
-      alert(`✅ 이미지 정렬 완료!\n\n이동: ${movedCount}개\n스킵: ${skippedCount}개`);
+      // ✅ 개선: 에러가 있으면 상세 정보 표시
+      if (errorCount > 0) {
+        const errorDetails = moveData.results?.[0]?.images
+          ?.filter((img: any) => img.error)
+          ?.map((img: any) => `- ${img.name || img.url}: ${img.error}`)
+          ?.slice(0, 5)
+          ?.join('\n') || '상세 오류 정보를 확인하세요.';
+        
+        alert(`⚠️ 이미지 정렬 완료 (일부 오류 발생)\n\n이동: ${movedCount}개\n스킵: ${skippedCount}개\n오류: ${errorCount}개\n\n오류 상세:\n${errorDetails}`);
+        console.error('이미지 정렬 오류 상세:', moveData.results);
+      } else {
+        alert(`✅ 이미지 정렬 완료!\n\n이동: ${movedCount}개\n스킵: ${skippedCount}개`);
+      }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ 이미지 정렬 오류:', error);
-      alert(`이미지 정렬 중 오류가 발생했습니다: ${error.message}`);
+      
+      // ✅ 개선: 에러 응답이면 상세 메시지 추출
+      let errorMessage = error.message || '알 수 없는 오류';
+      if (error.response) {
+        try {
+          const errorData = await error.response.json();
+          errorMessage = errorData.details || errorData.error || errorMessage;
+        } catch (e) {
+          // JSON 파싱 실패 시 원본 메시지 사용
+        }
+      }
+      
+      alert(`이미지 정렬 중 오류가 발생했습니다: ${errorMessage}`);
     } finally {
       setOrganizingImages(prev => ({ ...prev, [post.id]: false }));
     }
