@@ -31,21 +31,61 @@ require('dotenv').config({ path: '.env.local' });
     await page.goto('https://www.masgolf.co.kr/admin/login');
     await page.waitForTimeout(2000);
     
-    // 로그인 (전화번호로 로그인)
-    const phoneNumber = process.env.TEST_PHONE || '01066699000';
-    console.log(`📱 전화번호 입력: ${phoneNumber}`);
+    // 로그인 정보
+    const phoneNumber = '01066699000'; // 010-6669-9000에서 하이픈 제거
+    const password = '66699000';
     
-    const phoneInput = page.locator('input[type="tel"], input[name="phone"], input[placeholder*="전화번호"], input[placeholder*="010"]').first();
+    console.log(`📱 전화번호: ${phoneNumber}`);
+    console.log(`🔑 패스워드: ${password}`);
+    
+    // 전화번호 입력
+    let phoneInput = page.locator('input[type="tel"]').first();
+    if (await phoneInput.count() === 0) {
+      phoneInput = page.locator('input[name="phone"]').first();
+    }
+    if (await phoneInput.count() === 0) {
+      phoneInput = page.locator('input[placeholder*="전화번호"], input[placeholder*="010"]').first();
+    }
+    
     if (await phoneInput.count() > 0) {
-      await phoneInput.fill(phoneNumber.replace(/-/g, ''));
+      await phoneInput.clear();
+      await phoneInput.fill(phoneNumber);
+      console.log('   ✓ 전화번호 입력 완료');
       await page.waitForTimeout(1000);
-      
-      // 로그인 버튼 클릭
-      const loginButton = page.locator('button:has-text("로그인"), button[type="submit"]').first();
-      if (await loginButton.count() > 0) {
-        await loginButton.click();
-        await page.waitForTimeout(3000);
-      }
+    } else {
+      console.log('   ❌ 전화번호 입력 필드를 찾을 수 없습니다');
+    }
+    
+    // 패스워드 입력
+    let passwordInput = page.locator('input[type="password"]').first();
+    if (await passwordInput.count() === 0) {
+      passwordInput = page.locator('input[name="password"]').first();
+    }
+    if (await passwordInput.count() === 0) {
+      passwordInput = page.locator('input[placeholder*="패스워드"], input[placeholder*="비밀번호"]').first();
+    }
+    
+    if (await passwordInput.count() > 0) {
+      await passwordInput.clear();
+      await passwordInput.fill(password);
+      console.log('   ✓ 패스워드 입력 완료');
+      await page.waitForTimeout(1000);
+    } else {
+      console.log('   ⚠️ 패스워드 입력 필드를 찾을 수 없습니다');
+    }
+    
+    // 로그인 버튼 클릭
+    let loginButton = page.locator('button:has-text("로그인")').first();
+    if (await loginButton.count() === 0) {
+      loginButton = page.locator('button[type="submit"]').first();
+    }
+    
+    if (await loginButton.count() > 0) {
+      await loginButton.click();
+      console.log('   ✓ 로그인 버튼 클릭');
+      await page.waitForTimeout(3000);
+    } else {
+      console.log('   ❌ 로그인 버튼을 찾을 수 없습니다');
     }
     
     console.log('✅ 로그인 완료');
