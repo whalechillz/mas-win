@@ -892,10 +892,11 @@ export default function BlogAdmin() {
     
     setSyncingMetadata(prev => ({ ...prev, [post.id]: true }));
     
+    let timeoutId: NodeJS.Timeout | null = null;
     try {
       // ✅ AbortController로 클라이언트 사이드 타임아웃 설정 (60초)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      timeoutId = setTimeout(() => controller.abort(), 60000);
       
       const response = await fetch('/api/admin/sync-metadata-by-blog', {
         method: 'POST',
@@ -904,7 +905,7 @@ export default function BlogAdmin() {
         signal: controller.signal // ✅ 타임아웃 신호 전달
       });
       
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error('메타데이터 동기화 실패');
@@ -918,7 +919,7 @@ export default function BlogAdmin() {
       alert(`✅ 메타데이터 동기화 완료!\n\n처리: ${processed}개\n스킵: ${skipped}개\n오류: ${errors}개`);
       
     } catch (error) {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       console.error('❌ 메타데이터 동기화 오류:', error);
       
       // ✅ 타임아웃 오류 구분
