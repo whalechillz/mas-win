@@ -1522,11 +1522,27 @@ export default function GalleryAdmin() {
                       `${summary.totalExternalUrls ? `🌐 외부 URL (다른 도메인): ${summary.totalExternalUrls}개\n` : ''}` +
                       `${summary.totalExtractionFailed ? `⚠️ 경로 추출 실패: ${summary.totalExtractionFailed}개\n` : ''}` +
                       `🔄 중복 이미지 그룹: ${summary.duplicateGroupsCount || 0}개\n` +
-                      `🔗 연결되지 않은 이미지: ${summary.unlinkedImagesCount || 0}개\n\n` +
+                      `🔗 연결되지 않은 이미지: ${summary.unlinkedImagesCount || 0}개\n` +
+                      `${data.notFoundInStorage && data.notFoundInStorage.length > 0 ? `\n⚠️ Storage에서 못 찾은 이미지: ${data.notFoundInStorage.length}개\n상세 목록은 개발자 콘솔을 확인하세요.` : ''}\n\n` +
                       `상세 결과는 개발자 콘솔을 확인하세요.`;
                     
                     alert(message);
                     console.log('📊 블로그 이미지 분석 결과:', data);
+                    
+                    // Storage에서 못 찾은 이미지 상세 목록 콘솔 출력
+                    if (data.notFoundInStorage && data.notFoundInStorage.length > 0) {
+                      console.log('\n❌ Storage에서 못 찾은 이미지 상세 목록:');
+                      data.notFoundInStorage.slice(0, 20).forEach((img, index) => {
+                        console.log(`\n${index + 1}. ${img.fileName || img.url}`);
+                        console.log(`   URL: ${img.url}`);
+                        console.log(`   경로: ${img.path || 'N/A'}`);
+                        console.log(`   블로그 글: ${img.blogPostTitles?.join(', ') || 'N/A'}`);
+                        console.log(`   블로그 ID: ${img.blogPostIds?.join(', ') || 'N/A'}`);
+                      });
+                      if (data.notFoundInStorage.length > 20) {
+                        console.log(`\n... 외 ${data.notFoundInStorage.length - 20}개 더 있음`);
+                      }
+                    }
                     
                   } catch (error: any) {
                     console.error('블로그 이미지 분석 오류:', error);
@@ -1574,8 +1590,35 @@ export default function GalleryAdmin() {
                       {analysisResult.summary.totalExtractionFailed > 0 && (
                         <div className="text-red-600">경로 추출 실패: {analysisResult.summary.totalExtractionFailed}개</div>
                       )}
+                      {analysisResult.notFoundInStorage && analysisResult.notFoundInStorage.length > 0 && (
+                        <div className="text-orange-600 font-semibold">
+                          ⚠️ Storage에서 못 찾은 이미지: {analysisResult.notFoundInStorage.length}개
+                        </div>
+                      )}
                       <div>중복 그룹: {analysisResult.summary.duplicateGroupsCount}개</div>
                       <div>연결 안 된 이미지: {analysisResult.summary.unlinkedImagesCount}개</div>
+                    </div>
+                  )}
+                  {analysisResult.notFoundInStorage && analysisResult.notFoundInStorage.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="text-xs font-semibold text-orange-600 mb-2">
+                        Storage에서 못 찾은 이미지 목록 (상위 10개):
+                      </div>
+                      <div className="space-y-1 max-h-40 overflow-y-auto">
+                        {analysisResult.notFoundInStorage.slice(0, 10).map((img, index) => (
+                          <div key={index} className="text-xs text-gray-600 p-1 bg-orange-50 rounded">
+                            <div className="font-medium">{img.fileName || img.url}</div>
+                            <div className="text-xs text-gray-500 truncate">
+                              블로그: {img.blogPostTitles?.slice(0, 1).join(', ') || 'N/A'}
+                            </div>
+                          </div>
+                        ))}
+                        {analysisResult.notFoundInStorage.length > 10 && (
+                          <div className="text-xs text-gray-500 italic">
+                            ... 외 {analysisResult.notFoundInStorage.length - 10}개 더 있음 (콘솔 확인)
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

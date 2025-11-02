@@ -455,6 +455,11 @@ const analyzeAllBlogImages = async (dryRun = true) => {
     
     console.log('📊 분석 결과 요약:', summary);
     
+    // Storage에서 못 찾은 이미지 상세 목록
+    const notFoundInStorage = imageResults.filter(img => 
+      img.path && !img.storageExists && !img.extractionFailed
+    );
+    
     return {
       summary,
       duplicateGroups: duplicateGroups.slice(0, 50), // 처음 50개 그룹만 반환
@@ -462,12 +467,14 @@ const analyzeAllBlogImages = async (dryRun = true) => {
       unlinkedStorageImages: unlinkedStorageImages.slice(0, 50), // 처음 50개만 반환
       externalUrls: externalUrls.slice(0, 50), // 외부 URL 샘플
       extractionFailed: extractionFailed.slice(0, 50), // 경로 추출 실패 샘플
+      notFoundInStorage: notFoundInStorage.slice(0, 50), // Storage에서 못 찾은 이미지 상세 목록
       hasMore: {
         duplicateGroups: duplicateGroups.length > 50,
         unlinkedImages: unlinkedImages.length > 50,
         unlinkedStorageImages: unlinkedStorageImages.length > 50,
         externalUrls: externalUrls.length > 50,
-        extractionFailed: extractionFailed.length > 50
+        extractionFailed: extractionFailed.length > 50,
+        notFoundInStorage: notFoundInStorage.length > 50
       },
       message: dryRun 
         ? '분석 완료 (드라이런 모드 - 실제 변경 없음)'
