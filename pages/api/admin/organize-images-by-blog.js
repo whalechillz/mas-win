@@ -130,7 +130,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       
       // 3. Storage에서 해당 이미지 찾기 (최적화: 타임아웃 방지)
       const storageImages = [];
-      const maxSearchTime = 7000; // ✅ 각 블로그 글당 최대 7초 (전체 API 타임아웃 8초 고려)
+      const maxSearchTime = 6000; // ✅ 각 블로그 글당 최대 6초 (전체 API 타임아웃 8초 고려)
       const startTime = Date.now();
       
       // ✅ 개선: 모든 이미지 처리 (타임아웃 발생 시 일부만 처리)
@@ -224,10 +224,10 @@ const organizeImagesByBlog = async (blogPostId = null) => {
           
           // 경로로 찾지 못했으면 파일명으로 검색
           if (!found) {
-            // ✅ 개선: 검색 시간 증가 (3초로 확대)
+            // ✅ 개선: 검색 시간 단축 (2초로 축소, 타임아웃 방지)
             const foundResult = await Promise.race([
-              findImageInStorage(fileName, 3000), // ✅ 각 이미지당 최대 3초
-              new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 3000))
+              findImageInStorage(fileName, 2000), // ✅ 각 이미지당 최대 2초
+              new Promise((_, reject) => setTimeout(() => reject(new Error('이미지 검색 타임아웃')), 2000))
             ]).catch(err => {
               console.warn(`⚠️ 이미지 검색 타임아웃 (${fileName}):`, err.message);
               return null;
@@ -567,9 +567,9 @@ export default async function handler(req, res) {
   console.log('📁 블로그 글별 이미지 폴더 정렬 API 요청:', req.method, req.url);
   
   // ✅ 타임아웃 방지: Vercel 제한(10초) 고려하여 빠른 응답 보장
-  // ✅ GET 요청은 더 짧게 설정 (이미지 검색만 수행, 이동 없음)
+  // ✅ GET 요청 타임아웃 증가 (8초로 확대)
   const timeoutPromise = new Promise((_, reject) => {
-    const timeout = req.method === 'GET' ? 6000 : 8000; // GET은 6초, POST는 8초
+    const timeout = req.method === 'GET' ? 8000 : 8000; // GET은 8초, POST는 8초
     setTimeout(() => reject(new Error(`요청 시간 초과 (${timeout/1000}초 제한)`)), timeout);
   });
   
