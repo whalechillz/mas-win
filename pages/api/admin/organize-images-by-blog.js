@@ -132,6 +132,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       const storageImages = [];
       const maxSearchTime = 20000; // ✅ 각 블로그 글당 최대 20초 (충분한 시간 제공)
       const startTime = Date.now();
+      const totalExtractedImages = images.length; // ✅ 추출된 전체 이미지 수 저장 (중요!)
       
       // ✅ 개선: 모든 이미지 처리 (타임아웃 발생 시 일부만 처리)
       // 이미지가 많을 경우 타임아웃 방지를 위해 시간 체크
