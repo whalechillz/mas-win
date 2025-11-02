@@ -38,9 +38,16 @@ async function testAnalyzeBlogImages() {
       console.log(`Storage에서 찾음: ${summary.totalImagesFoundInStorage || 0}개`);
       console.log(`Storage에서 못 찾음: ${summary.totalImagesNotFoundInStorage || 0}개`);
       console.log(`중복 이미지 그룹: ${summary.duplicateGroupsCount || 0}개`);
+      console.log(`처리된 이미지: ${summary.totalImagesProcessed || 0}개`);
       console.log(`총 중복 이미지: ${summary.totalDuplicateImages || 0}개`);
       console.log(`연결되지 않은 이미지: ${summary.unlinkedImagesCount || 0}개`);
       console.log(`Storage에 있지만 연결 안 된 이미지: ${summary.unlinkedStorageImagesCount || 0}개`);
+      if (summary.totalExternalUrls > 0) {
+        console.log(`🌐 외부 URL (다른 도메인): ${summary.totalExternalUrls}개`);
+      }
+      if (summary.totalExtractionFailed > 0) {
+        console.log(`⚠️ 경로 추출 실패: ${summary.totalExtractionFailed}개`);
+      }
       console.log('─'.repeat(50));
     }
     
