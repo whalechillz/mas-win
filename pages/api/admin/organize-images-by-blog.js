@@ -367,8 +367,68 @@ const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
     }
     
     // ✅ 찾지 못했고 시간이 남아있으면 하위 폴더 검색 (넉넉히)
+    // ✅ 우선순위: originals/blog/YYYY-MM 폴더 먼저 검색 (이미 이동된 이미지)
     if (!foundImage && (Date.now() - startTime) < maxSearchTime * 0.8) {
       try {
+        // ✅ 먼저 originals/blog 폴더 검색 (이미 이동된 이미지가 있을 수 있음)
+        const yearMonthFolders = [];
+        const currentYear = new Date().getFullYear();
+        const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+        
+        // 최근 12개월 폴더 검색
+        for (let i = 0; i < 12; i++) {
+          const date = new Date();
+          date.setMonth(date.getMonth() - i);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          yearMonthFolders.push(`originals/blog/${year}-${month}`);
+        }
+        
+        // ✅ originals/blog/YYYY-MM 폴더 우선 검색
+        for (const folderPath of yearMonthFolders) {
+          if (foundImage || (Date.now() - startTime) >= maxSearchTime) break;
+          
+          try {
+            const { data: folderFiles } = await supabase.storage
+              .from('blog-images')
+              .list(folderPath, {
+                limit: 1000,
+                sortBy: { column: 'name', order: 'asc' }
+              });
+            
+            if (folderFiles) {
+              for (const file of folderFiles) {
+                if (file.id) {
+                  const fileLower = file.name.toLowerCase();
+                  const searchLower = fileName.toLowerCase();
+                  
+                  if (fileLower === searchLower || fileLower.includes(searchLower)) {
+                    const fullPath = `${folderPath}/${file.name}`;
+                    const { data: urlData } = supabase.storage
+                      .from('blog-images')
+                      .getPublicUrl(fullPath);
+                    
+                    foundImage = {
+                      id: file.id,
+                      name: file.name,
+                      currentPath: fullPath,
+                      folderPath: folderPath,
+                      url: urlData.publicUrl,
+                      size: file.metadata?.size || 0,
+                      created_at: file.created_at
+                    };
+                    return foundImage; // 찾았으면 즉시 반환
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.warn(`⚠️ 폴더 검색 오류 (${folderPath}):`, error.message);
+            continue;
+          }
+        }
+        
+        // ✅ originals/blog 폴더에서 못 찾았으면 다른 폴더 검색
         const { data: rootFolders } = await supabase.storage
           .from('blog-images')
           .list('', {
@@ -378,9 +438,9 @@ const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
         
         if (rootFolders) {
           // 폴더만 필터링
-          const folders = rootFolders.filter(f => !f.id);
+          const folders = rootFolders.filter(f => !f.id && !f.name.startsWith('originals/'));
           
-          // ✅ 더 많은 폴더 검색 (최신 순으로 20개)
+          // ✅ 다른 폴더 검색 (최신 순으로 20개)
           for (const folder of folders.slice(0, 20)) {
             if (foundImage || (Date.now() - startTime) >= maxSearchTime) break;
             
@@ -650,15 +710,35 @@ export default async function handler(req, res) {
                 movedCount++;
                 image.newPath = moveResult.newPath;
                 
-                // ✅ URL 매핑 추가: 원본 URL -> 새 URL
-                const originalUrl = image.url || image.originalUrl;
+                // ✅ URL 매핑 추가: 원본 URL -> 새 URL (originalUrl 우선 사용)
+                const originalUrl = image.originalUrl || image.url;
                 const { data: newUrlData } = supabase.storage
                   .from('blog-images')
                   .getPublicUrl(moveResult.newPath);
                 
                 if (originalUrl && newUrlData?.publicUrl) {
+                  // ✅ 모든 변형 URL 추가 (쿼리 파라미터 포함/제외)
+                  const normalizedOriginalUrl = originalUrl.split('?')[0].split('#')[0];
                   urlMapping.set(originalUrl, newUrlData.publicUrl);
+                  urlMapping.set(normalizedOriginalUrl, newUrlData.publicUrl);
                   console.log(`📝 URL 매핑: ${originalUrl.substring(0, 80)}... -> ${newUrlData.publicUrl.substring(0, 80)}...`);
+                }
+              } else if (moveResult.message && moveResult.message.includes('이미 해당 폴더에 있습니다')) {
+                // ✅ 이미 목표 폴더에 있는 경우에도 URL 매핑 추가 (이동되지 않았어도)
+                skippedCount++;
+                image.skipReason = moveResult.message;
+                
+                const originalUrl = image.originalUrl || image.url;
+                const { data: newUrlData } = supabase.storage
+                  .from('blog-images')
+                  .getPublicUrl(image.currentPath);
+                
+                if (originalUrl && newUrlData?.publicUrl && originalUrl !== newUrlData.publicUrl) {
+                  // ✅ 이미 이동된 이미지의 경우에도 URL 업데이트 필요할 수 있음
+                  const normalizedOriginalUrl = originalUrl.split('?')[0].split('#')[0];
+                  urlMapping.set(originalUrl, newUrlData.publicUrl);
+                  urlMapping.set(normalizedOriginalUrl, newUrlData.publicUrl);
+                  console.log(`📝 URL 매핑 (이미 이동됨): ${originalUrl.substring(0, 80)}... -> ${newUrlData.publicUrl.substring(0, 80)}...`);
                 }
               } else {
                 skippedCount++;
