@@ -284,9 +284,10 @@ export default async function handler(req, res) {
   console.log('🔄 블로그 글별 메타데이터 동기화 API 요청:', req.method, req.url);
   
   // ✅ 타임아웃 설정: 이미지 정렬과 마찬가지로 넉넉하게 설정 (성공 최대 목표)
-  // Vercel Pro 플랜은 60초 제한이지만, 안전하게 50초로 설정
+  // Vercel Hobby 플랜은 10초, Pro 플랜은 60초 제한
+  // vercel.json에서 30초로 설정했지만, 안전하게 25초로 설정
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (50초 제한)')), 50000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (25초 제한)')), 25000);
   });
   
   try {
