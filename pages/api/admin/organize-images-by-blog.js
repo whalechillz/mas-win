@@ -240,13 +240,14 @@ const organizeImagesByBlog = async (blogPostId = null) => {
             storageImages.push({
               ...found,
               ...img,
+              originalUrl: img.url, // ✅ 원본 URL 저장 (나중에 URL 업데이트용)
               blogPostId: post.id,
               blogPostSlug: post.slug,
               blogPostTitle: post.title,
               targetFolder: postFolderName
             });
           } else {
-            console.log(`⚠️ 이미지를 찾을 수 없습니다: ${fileName}`);
+            console.log(`⚠️ 이미지를 찾을 수 없습니다: ${fileName} (URL: ${img.url?.substring(0, 80)}...)`);
           }
         } catch (error) {
           console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
@@ -272,7 +273,8 @@ const organizeImagesByBlog = async (blogPostId = null) => {
           folderName: postFolderName
         },
         images: storageImages,
-        totalImages: storageImages.length
+        totalImages: storageImages.length,
+        totalExtractedImages // ✅ 추출된 전체 이미지 수 (찾지 못한 것 포함)
       });
     }
     
@@ -729,12 +731,26 @@ export default async function handler(req, res) {
           }
         }
         
+        // ✅ 전체 통계 계산
+        const totalExtractedImages = results.reduce((sum, r) => {
+          // 각 블로그 글에서 추출한 이미지 수 (찾지 못한 것 포함)
+          const postImages = r.images || [];
+          const foundCount = postImages.length;
+          const missingCount = (r.totalExtractedImages || 0) - foundCount;
+          return sum + foundCount + missingCount;
+        }, 0);
+        
+        const totalFoundImages = results.reduce((sum, r) => sum + (r.totalImages || 0), 0);
+        const totalMissingImages = totalExtractedImages - totalFoundImages;
+        
         return res.status(200).json({
           success: true,
           results,
           summary: {
             totalBlogPosts: results.length,
-            totalImages: results.reduce((sum, r) => sum + r.totalImages, 0),
+            totalExtractedImages, // ✅ 추출된 전체 이미지 수 (찾지 못한 것 포함)
+            totalFoundImages, // ✅ Storage에서 찾은 이미지 수
+            totalMissingImages, // ✅ Storage에서 찾지 못한 이미지 수
             moved: movedCount,
             skipped: skippedCount,
             errors: errorCount,
