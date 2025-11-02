@@ -16,6 +16,7 @@ interface FolderTreeProps {
   onFolderSelect: (folderPath: string) => void;
   includeChildren: boolean;
   onIncludeChildrenChange: (include: boolean) => void;
+  onImageDrop?: (imageData: { name: string; url: string; folder_path?: string }, targetFolder: string) => void;
 }
 
 export default function FolderTree({
@@ -24,8 +25,10 @@ export default function FolderTree({
   onFolderSelect,
   includeChildren,
   onIncludeChildrenChange,
+  onImageDrop,
 }: FolderTreeProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['originals']));
+  const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
 
   // 폴더 목록을 트리 구조로 변환
   const folderTree = useMemo(() => {
@@ -66,6 +69,35 @@ export default function FolderTree({
     setExpandedFolders(newExpanded);
   };
 
+  // 드래그 앤 드롭 핸들러
+  const handleDragOver = (e: React.DragEvent, folderPath: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverFolder(folderPath);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverFolder(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, folderPath: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverFolder(null);
+
+    try {
+      const imageDataStr = e.dataTransfer.getData('image');
+      if (imageDataStr && onImageDrop) {
+        const imageData = JSON.parse(imageDataStr);
+        onImageDrop(imageData, folderPath);
+      }
+    } catch (error) {
+      console.error('❌ 드롭 처리 오류:', error);
+    }
+  };
+
   // 트리 노드 렌더링 (재귀)
   const renderNode = (node: FolderNode, level: number = 0): JSX.Element | null => {
     if (node.path === '' && node.children.size === 0) {
@@ -76,18 +108,24 @@ export default function FolderTree({
     const hasChildren = node.children.size > 0;
     const isSelected = selectedFolder === node.path || 
                        (selectedFolder !== 'all' && node.path.startsWith(selectedFolder));
+    const isDragOver = dragOverFolder === node.path;
 
     return (
       <div key={node.path || 'root'}>
         {node.path !== '' && (
           <div
-            className={`flex items-center py-1 px-2 rounded cursor-pointer text-sm ${
-              isSelected
+            className={`flex items-center py-1 px-2 rounded cursor-pointer text-sm transition-all ${
+              isDragOver
+                ? 'bg-blue-200 border-2 border-blue-500 border-dashed'
+                : isSelected
                 ? 'bg-blue-100 text-blue-700 font-medium'
                 : 'hover:bg-gray-100 text-gray-700'
             }`}
             style={{ paddingLeft: `${level * 20 + 8}px` }}
             onClick={() => onFolderSelect(node.path)}
+            onDragOver={(e) => handleDragOver(e, node.path)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, node.path)}
           >
             {/* 폴더 아이콘 및 확장/축소 버튼 */}
             {hasChildren ? (
@@ -133,24 +171,34 @@ export default function FolderTree({
         
         {/* 전체 폴더 선택 */}
         <div
-          className={`flex items-center py-2 px-2 rounded cursor-pointer text-sm mb-2 ${
-            selectedFolder === 'all'
+          className={`flex items-center py-2 px-2 rounded cursor-pointer text-sm mb-2 transition-all ${
+            dragOverFolder === 'all'
+              ? 'bg-blue-200 border-2 border-blue-500 border-dashed'
+              : selectedFolder === 'all'
               ? 'bg-blue-100 text-blue-700 font-medium'
               : 'hover:bg-gray-100 text-gray-700'
           }`}
           onClick={() => onFolderSelect('all')}
+          onDragOver={(e) => handleDragOver(e, 'all')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 'all')}
         >
           <span className="flex-1">📁 전체 폴더</span>
         </div>
 
         {/* 루트 폴더 선택 */}
         <div
-          className={`flex items-center py-2 px-2 rounded cursor-pointer text-sm mb-2 ${
-            selectedFolder === 'root'
+          className={`flex items-center py-2 px-2 rounded cursor-pointer text-sm mb-2 transition-all ${
+            dragOverFolder === 'root'
+              ? 'bg-blue-200 border-2 border-blue-500 border-dashed'
+              : selectedFolder === 'root'
               ? 'bg-blue-100 text-blue-700 font-medium'
               : 'hover:bg-gray-100 text-gray-700'
           }`}
           onClick={() => onFolderSelect('root')}
+          onDragOver={(e) => handleDragOver(e, 'root')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 'root')}
         >
           <span className="flex-1">📁 루트 폴더</span>
         </div>
