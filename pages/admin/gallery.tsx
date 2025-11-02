@@ -167,6 +167,7 @@ export default function GalleryAdmin() {
           img.name,
           img.alt_text || '',
           img.title || '',
+          img.description || '',
           img.keywords?.join(' ') || ''
         ].join(' ').toLowerCase();
         
