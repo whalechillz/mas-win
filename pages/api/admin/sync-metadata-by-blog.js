@@ -83,15 +83,13 @@ const analyzeImageWithOpenAI = async (imageUrl) => {
       };
     }
 
-      return null;
-    } catch (error) {
-      if (error.message && (error.message.includes('타임아웃') || error.message.includes('timeout') || error.message.includes('초과'))) {
-        console.warn('⚠️ OpenAI Vision API 타임아웃 (5초 초과):', imageUrl);
-        return null;
-      }
-      throw error;
-    }
+    return null;
   } catch (error) {
+    // ✅ 타임아웃 오류 구분
+    if (error.message && (error.message.includes('타임아웃') || error.message.includes('timeout') || error.message.includes('초과'))) {
+      console.warn('⚠️ OpenAI Vision API 타임아웃 (10초 초과):', imageUrl);
+      return null;
+    }
     console.error('❌ OpenAI Vision API 오류:', error);
     return null;
   }
