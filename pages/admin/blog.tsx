@@ -792,9 +792,9 @@ export default function BlogAdmin() {
       }
       
       // 2. 실제로 이미지 이동
-      // ✅ 타임아웃 넉넉히 설정 (30초)
+      // ✅ 타임아웃 넉넉히 설정 (60초 - Vercel Pro 플랜 최대값)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
       
       let moveResponse;
       try {
@@ -808,19 +808,28 @@ export default function BlogAdmin() {
       } catch (error: any) {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
-          throw new Error('요청 시간 초과: 이미지 이동이 30초 이상 걸렸습니다.');
+          throw new Error('요청 시간 초과: 이미지 이동이 60초 이상 걸렸습니다. 잠시 후 다시 시도해주세요.');
         }
-        throw new Error(`네트워크 오류: ${error.message || 'Failed to fetch'}`);
+        // ✅ 네트워크 오류 상세 정보 제공
+        const errorMessage = error.message || 'Failed to fetch';
+        console.error('❌ POST 요청 오류:', error);
+        throw new Error(`네트워크 오류: ${errorMessage}`);
       }
       
       if (!moveResponse.ok) {
         // ✅ 개선: 에러 응답의 상세 메시지 추출
         let errorMessage = '이미지 이동 실패';
+        let errorDetails = null;
+        
         try {
           const errorData = await moveResponse.json();
           errorMessage = errorData.details || errorData.error || errorMessage;
+          errorDetails = errorData;
+          
           if (moveResponse.status === 504) {
             errorMessage = `요청 시간 초과: ${errorMessage}`;
+          } else if (moveResponse.status === 500) {
+            errorMessage = `서버 오류: ${errorMessage}`;
           }
         } catch (e) {
           // JSON 파싱 실패 시 상태 코드 기반 메시지
@@ -828,8 +837,18 @@ export default function BlogAdmin() {
             errorMessage = '요청 시간 초과: 이미지 이동이 너무 오래 걸렸습니다.';
           } else if (moveResponse.status === 500) {
             errorMessage = '서버 오류가 발생했습니다.';
+          } else if (moveResponse.status === 502) {
+            errorMessage = '게이트웨이 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
           }
         }
+        
+        console.error('❌ POST 요청 실패:', {
+          status: moveResponse.status,
+          statusText: moveResponse.statusText,
+          error: errorMessage,
+          details: errorDetails
+        });
+        
         throw new Error(errorMessage);
       }
       
