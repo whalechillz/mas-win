@@ -574,7 +574,7 @@ export default function GalleryAdmin() {
   const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
 
   // 이미지 로드
-  const fetchImages = async (page = 1, reset = false) => {
+  const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean) => {
     try {
       if (reset || page === 1) {
         setIsLoading(true);
@@ -587,9 +587,13 @@ export default function GalleryAdmin() {
         setIsLoadingMore(true);
       }
       
+      // 커스텀 파라미터가 있으면 사용, 없으면 현재 상태 사용
+      const effectiveFolderFilter = customFolderFilter !== undefined ? customFolderFilter : folderFilter;
+      const effectiveIncludeChildren = customIncludeChildren !== undefined ? customIncludeChildren : includeChildren;
+      
       const offset = (page - 1) * imagesPerPage;
-      const prefix = folderFilter === 'all' ? '' : (folderFilter === 'root' ? '' : encodeURIComponent(folderFilter));
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren}`);
+      const prefix = effectiveFolderFilter === 'all' ? '' : (effectiveFolderFilter === 'root' ? '' : encodeURIComponent(effectiveFolderFilter));
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1764,9 +1768,11 @@ export default function GalleryAdmin() {
                 <select
                   value={folderFilter}
                   onChange={(e) => {
-                    setFolderFilter(e.target.value);
+                    const newFolderFilter = e.target.value;
+                    setFolderFilter(newFolderFilter);
                     setCurrentPage(1); // 페이지 초기화
-                    fetchImages(1, true); // 폴더 변경 시 이미지 다시 로드
+                    // 새로운 폴더 필터 값을 직접 전달하여 즉시 반영
+                    fetchImages(1, true, newFolderFilter, includeChildren);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
@@ -1779,7 +1785,17 @@ export default function GalleryAdmin() {
                   ))}
                 </select>
                 <label className="mt-2 inline-flex items-center space-x-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={includeChildren} onChange={(e)=>{ setIncludeChildren(e.target.checked); setCurrentPage(1); fetchImages(1, true); }} />
+                  <input 
+                    type="checkbox" 
+                    checked={includeChildren} 
+                    onChange={(e) => {
+                      const newIncludeChildren = e.target.checked;
+                      setIncludeChildren(newIncludeChildren);
+                      setCurrentPage(1);
+                      // 새로운 includeChildren 값을 직접 전달하여 즉시 반영
+                      fetchImages(1, true, folderFilter, newIncludeChildren);
+                    }} 
+                  />
                   <span>하위 폴더 포함</span>
                 </label>
               </div>
