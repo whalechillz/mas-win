@@ -109,16 +109,45 @@ export default function GalleryAdmin() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [analysisStatus, setAnalysisStatus] = useState<string>('');
   
-  // 폴더 목록 계산
-  const availableFolders = useMemo(() => {
-    const folders = new Set<string>();
-    images.forEach(img => {
-      if (img.folder_path && img.folder_path !== '') {
-        folders.add(img.folder_path);
+  // 폴더 목록 상태 (Storage에서 직접 가져오기)
+  const [availableFolders, setAvailableFolders] = useState<string[]>([]);
+  
+  // Storage에서 실제 폴더 목록 가져오기
+  useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const response = await fetch('/api/admin/folders-list');
+        const data = await response.json();
+        
+        if (response.ok && data.folders) {
+          console.log(`✅ 폴더 목록 로드 성공: ${data.folders.length}개`);
+          setAvailableFolders(data.folders);
+        } else {
+          console.error('❌ 폴더 목록 로드 실패:', data.error);
+          // 실패 시 현재 이미지에서 폴더 경로 추출 (대안)
+          const folders = new Set<string>();
+          images.forEach(img => {
+            if (img.folder_path && img.folder_path !== '') {
+              folders.add(img.folder_path);
+            }
+          });
+          setAvailableFolders(Array.from(folders).sort());
+        }
+      } catch (error) {
+        console.error('❌ 폴더 목록 로드 오류:', error);
+        // 오류 시 현재 이미지에서 폴더 경로 추출 (대안)
+        const folders = new Set<string>();
+        images.forEach(img => {
+          if (img.folder_path && img.folder_path !== '') {
+            folders.add(img.folder_path);
+          }
+        });
+        setAvailableFolders(Array.from(folders).sort());
       }
-    });
-    return Array.from(folders).sort();
-  }, [images]);
+    };
+    
+    fetchFolders();
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
   
   // 가상화를 위한 상태
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
