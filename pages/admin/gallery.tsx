@@ -6,6 +6,7 @@ import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import { CategoryManagementModal } from '../../components/CategoryManagementModal';
+import FolderTree from '../../components/gallery/FolderTree';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -1772,9 +1773,32 @@ export default function GalleryAdmin() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* 검색 및 필터 */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* 메인 레이아웃: 트리 사이드바 + 콘텐츠 영역 */}
+          <div className="flex gap-6">
+            {/* 트리 사이드바 (왼쪽) */}
+            <div className="w-80 flex-shrink-0">
+              <FolderTree
+                folders={availableFolders}
+                selectedFolder={folderFilter}
+                onFolderSelect={(folderPath) => {
+                  setFolderFilter(folderPath);
+                  setCurrentPage(1);
+                  fetchImages(1, true, folderPath, includeChildren, searchQuery);
+                }}
+                includeChildren={includeChildren}
+                onIncludeChildrenChange={(include) => {
+                  setIncludeChildren(include);
+                  setCurrentPage(1);
+                  fetchImages(1, true, folderFilter, include, searchQuery);
+                }}
+              />
+            </div>
+
+            {/* 콘텐츠 영역 (오른쪽) */}
+            <div className="flex-1 min-w-0">
+              {/* 검색 및 필터 */}
+              <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* 검색 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">검색</label>
@@ -1834,44 +1858,7 @@ export default function GalleryAdmin() {
                 
               )}
               
-              {/* 폴더 필터 */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-2">폴더</label>
-                <select
-                  value={folderFilter}
-                  onChange={(e) => {
-                    const newFolderFilter = e.target.value;
-                    setFolderFilter(newFolderFilter);
-                    setCurrentPage(1); // 페이지 초기화
-                    // 새로운 폴더 필터 값을 직접 전달하여 즉시 반영 (검색어도 함께 전달)
-                    fetchImages(1, true, newFolderFilter, includeChildren, searchQuery);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent max-w-full"
-                  style={{ minWidth: 0 }}
-                >
-                  <option value="all">전체 폴더</option>
-                  <option value="root">📁 루트 폴더</option>
-                  {availableFolders.map((folder) => (
-                    <option key={folder} value={folder} title={folder}>
-                      📁 {folder.length > 30 ? `${folder.substring(0, 27)}...` : folder}
-                    </option>
-                  ))}
-                </select>
-                <label className="mt-2 inline-flex items-center space-x-2 text-sm text-gray-700">
-                  <input 
-                    type="checkbox" 
-                    checked={includeChildren} 
-                    onChange={(e) => {
-                      const newIncludeChildren = e.target.checked;
-                      setIncludeChildren(newIncludeChildren);
-                      setCurrentPage(1);
-                      // 새로운 includeChildren 값을 직접 전달하여 즉시 반영 (검색어도 함께 전달)
-                      fetchImages(1, true, folderFilter, newIncludeChildren, searchQuery);
-                    }} 
-                  />
-                  <span>하위 폴더 포함</span>
-                </label>
-              </div>
+              {/* 폴더 필터는 트리 사이드바로 이동 (트리 UI에서 처리) */}
               
               {/* 정렬 기준 */}
               <div>
@@ -2311,6 +2298,8 @@ export default function GalleryAdmin() {
                   <p>모든 이미지를 불러왔습니다.</p>
                 </div>
               )}
+            </div>
+          </div>
             </div>
           </div>
         </div>
