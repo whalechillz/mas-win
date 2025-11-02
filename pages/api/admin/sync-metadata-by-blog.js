@@ -38,25 +38,35 @@ const extractKeywordsFromFilename = (filename) => {
 // OpenAI Vision API로 이미지 분석
 const analyzeImageWithOpenAI = async (imageUrl) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: '이 이미지를 분석하여 다음 정보를 한국어로 제공해주세요:\n1. ALT 텍스트 (25-60자, SEO 최적화)\n2. 제목 (25-60자)\n3. 설명 (100-200자)\n4. 키워드 (5-10개, 쉼표로 구분)\n\nJSON 형식으로 반환: {"alt_text": "...", "title": "...", "description": "...", "keywords": ["...", "..."]}'
-            },
-            {
-              type: 'image_url',
-              image_url: { url: imageUrl }
-            }
-          ]
-        }
-      ],
-      max_tokens: 500
-    });
+    // ✅ OpenAI API 호출 타임아웃 설정 (5초)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: '이 이미지를 분석하여 다음 정보를 한국어로 제공해주세요:\n1. ALT 텍스트 (25-60자, SEO 최적화)\n2. 제목 (25-60자)\n3. 설명 (100-200자)\n4. 키워드 (5-10개, 쉼표로 구분)\n\nJSON 형식으로 반환: {"alt_text": "...", "title": "...", "description": "...", "keywords": ["...", "..."]}'
+              },
+              {
+                type: 'image_url',
+                image_url: { url: imageUrl }
+              }
+            ]
+          }
+        ],
+        max_tokens: 300, // ✅ 토큰 수 줄여서 응답 시간 단축
+        temperature: 0.3 // ✅ 일관성 높이고 응답 시간 단축
+      }, {
+        signal: controller.signal // ✅ 타임아웃 신호 전달
+      });
+      
+      clearTimeout(timeoutId);
 
     const content = response.choices[0]?.message?.content;
     if (!content) return null;
@@ -73,7 +83,15 @@ const analyzeImageWithOpenAI = async (imageUrl) => {
       };
     }
 
-    return null;
+      return null;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.warn('⚠️ OpenAI Vision API 타임아웃 (5초 초과):', imageUrl);
+        return null;
+      }
+      throw error;
+    }
   } catch (error) {
     console.error('❌ OpenAI Vision API 오류:', error);
     return null;
@@ -228,7 +246,8 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         }
         
         // API 호출 제한 방지 (OpenAI Vision API는 비용이 비싸므로 짧은 간격)
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // 타임아웃으로 빠르게 처리하기 위해 대기 시간 최소화
+        await new Promise(resolve => setTimeout(resolve, 200));
         
       } catch (error) {
         console.error(`❌ 이미지 처리 오류 (${img.url}):`, error);
