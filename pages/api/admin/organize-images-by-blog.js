@@ -704,7 +704,19 @@ export default async function handler(req, res) {
           
           for (const image of result.images) {
             try {
-              const moveResult = await moveImageToFolder(image.currentPath, targetFolder);
+              // ✅ 우선: 이미 목표 폴더에 있는지 확인 (빠른 체크)
+              const pathParts = image.currentPath.split('/');
+              const fileName = pathParts[pathParts.length - 1];
+              const expectedPath = `${targetFolder}/${fileName}`;
+              
+              let moveResult;
+              if (image.currentPath === expectedPath) {
+                // ✅ 이미 목표 폴더에 있음 (빠른 경로)
+                moveResult = { moved: false, message: '이미 해당 폴더에 있습니다.' };
+              } else {
+                // ✅ 실제로 이동 필요
+                moveResult = await moveImageToFolder(image.currentPath, targetFolder);
+              }
               
               if (moveResult.moved) {
                 movedCount++;
@@ -729,9 +741,10 @@ export default async function handler(req, res) {
                 image.skipReason = moveResult.message;
                 
                 const originalUrl = image.originalUrl || image.url;
+                const finalPath = image.currentPath === expectedPath ? image.currentPath : expectedPath;
                 const { data: newUrlData } = supabase.storage
                   .from('blog-images')
-                  .getPublicUrl(image.currentPath);
+                  .getPublicUrl(finalPath);
                 
                 if (originalUrl && newUrlData?.publicUrl && originalUrl !== newUrlData.publicUrl) {
                   // ✅ 이미 이동된 이미지의 경우에도 URL 업데이트 필요할 수 있음
