@@ -52,9 +52,9 @@ const findFileInStorage = async (imagePath) => {
         .from(IMAGE_BUCKET)
         .getPublicUrl(imagePath);
       
-      // HEAD 요청을 빠르게 타임아웃 (500ms)
+      // ✅ 최적화: HEAD 요청 타임아웃 적절히 설정 (2초)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 500); // 500ms 타임아웃
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2초 타임아웃
       
       try {
         const headResponse = await fetch(urlData.publicUrl, { 
@@ -87,38 +87,9 @@ const findFileInStorage = async (imagePath) => {
       // getPublicUrl 실패 시 파일 없음으로 간주
     }
     
-    // 정확한 경로가 없으면 파일명으로 검색 (제한적으로)
-    // 최상위 폴더에서만 검색 (시간 절약)
-    const { data: files, error } = await supabase.storage
-      .from(IMAGE_BUCKET)
-      .list('', {
-        limit: 1000,
-        sortBy: { column: 'created_at', order: 'desc' }
-      });
-    
-    if (error) {
-      console.error(`❌ Storage 조회 오류:`, error);
-      return null;
-    }
-    
-    // 파일명으로 검색
-    const found = files?.find(file => 
-      file.name === fileName || 
-      file.name.toLowerCase() === fileName.toLowerCase()
-    );
-    
-    if (found) {
-      const { data: foundUrlData } = supabase.storage
-        .from(IMAGE_BUCKET)
-        .getPublicUrl(found.name);
-      
-      return {
-        path: found.name,
-        fileName: found.name,
-        exists: true,
-        url: foundUrlData.publicUrl
-      };
-    }
+    // ✅ 최적화: 파일명으로 검색은 시간이 오래 걸리므로 제외
+    // 대신 경로 추출 실패로 간주하고 다음 이미지로
+    // (정확한 경로가 없으면 Storage에 없는 것으로 판단)
     
     return {
       path: imagePath,
