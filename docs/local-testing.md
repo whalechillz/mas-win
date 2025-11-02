@@ -127,3 +127,5 @@ cp middleware.ts.backup-YYYYMMDD_HHMMSS middleware.ts
 **최종 업데이트**: 2025-01-XX  
 **버전**: 1.0
 
+
+
