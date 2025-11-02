@@ -213,10 +213,12 @@ export default function GalleryAdmin() {
           // 디버깅: 불일치 시 상세 로그 (처음 5개만)
           if (!matches && imgFolderPath && filterPath) {
             const logKey = `${imgFolderPath}::${filterPath}::${includeChildren}`;
-            if (!window._filterDebugLog || !window._filterDebugLog.has(logKey)) {
-              if (!window._filterDebugLog) window._filterDebugLog = new Set();
-              if (window._filterDebugLog.size < 5) {
-                window._filterDebugLog.add(logKey);
+            const filterDebugLog = (window as any)._filterDebugLog as Set<string> | undefined;
+            if (!filterDebugLog || !filterDebugLog.has(logKey)) {
+              if (!filterDebugLog) (window as any)._filterDebugLog = new Set<string>();
+              const logSet = (window as any)._filterDebugLog as Set<string>;
+              if (logSet.size < 5) {
+                logSet.add(logKey);
                 console.log('🔍 폴더 불일치:', {
                   imgFolderPath,
                   filterPath,
