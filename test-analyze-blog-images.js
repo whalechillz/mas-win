@@ -72,6 +72,19 @@ async function testAnalyzeBlogImages() {
       });
     }
     
+    // Storage에서 못 찾은 이미지 상세 목록 표시
+    if (data.notFoundInStorage && data.notFoundInStorage.length > 0) {
+      console.log('\n❌ Storage에서 못 찾은 이미지:');
+      console.log(`총 ${data.notFoundInStorage.length}개 (상위 10개 표시)`);
+      data.notFoundInStorage.slice(0, 10).forEach((img, index) => {
+        console.log(`\n${index + 1}. ${img.fileName || img.url}`);
+        console.log(`   URL: ${img.url}`);
+        console.log(`   경로: ${img.path || 'N/A'}`);
+        console.log(`   블로그 글: ${img.blogPostTitles?.join(', ') || 'N/A'}`);
+        console.log(`   블로그 ID: ${img.blogPostIds?.join(', ') || 'N/A'}`);
+      });
+    }
+    
     // 더 많은 데이터가 있는지 확인
     if (data.hasMore) {
       console.log('\n⚠️ 더 많은 데이터가 있습니다:');
