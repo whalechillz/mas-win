@@ -2585,16 +2585,18 @@ export default function GalleryAdmin() {
               console.log('✅ 저장 API 응답 데이터:', responseData);
               
               // 로컬 상태 업데이트
+              // 주의: 저장 시 최종 정제된 값(titleValue, finalKeywords, finalFileName)을 사용하여
+              // 제목이 파일명으로 되돌아가거나 키워드가 사라지는 현상을 방지
               setImages(prev => prev.map(img => 
                 img.name === editingImage 
                   ? { 
                       ...img, 
                       alt_text: metadata.alt_text,
-                      keywords: keywords,
-                      title: metadata.title,
+                      keywords: finalKeywords,
+                      title: titleValue,
                       description: metadata.description,
-                      category: metadata.category,
-                      name: metadata.filename || img.name
+                      category: categoryString,
+                      name: finalFileName || img.name
                     }
                   : img
               ));
