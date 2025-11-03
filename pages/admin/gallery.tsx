@@ -112,6 +112,8 @@ export default function GalleryAdmin() {
   const [blogIdForOrganization, setBlogIdForOrganization] = useState<number | null>(309); // 기본값: 309
   const [isOrganizingImages, setIsOrganizingImages] = useState(false);
   const [isSyncingBlogMetadata, setIsSyncingBlogMetadata] = useState(false);
+  // 레거시 상단 "메타데이터 동기화" 버튼 표시 여부 (중복 UI 방지 위해 기본 비표시)
+  const SHOW_LEGACY_META_SYNC_BUTTON = false;
 
   // 블로그 이미지 정렬 핸들러
   const handleOrganizeBlogImages = async () => {
@@ -1633,6 +1635,7 @@ export default function GalleryAdmin() {
               <button onClick={()=>{
                 setFolderModalOpen(true);
               }} className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm">📁 폴더 관리</button>
+              {SHOW_LEGACY_META_SYNC_BUTTON && (
               <div className="relative">
               <button
                 onClick={async () => {
@@ -1773,6 +1776,7 @@ export default function GalleryAdmin() {
                 </div>
               )}
               </div>
+              )}
               
               {/* 블로그 이미지 분석 버튼 */}
               <div className="relative">
