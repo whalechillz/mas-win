@@ -242,13 +242,18 @@ function extractImageUrls(content) {
   
   // 마크다운 이미지 문법 ![alt](url) 추출
   const markdownImgRegex = /!\[[^\]]*\]\(([^)]+)\)/gi;
+  let match;
   while ((match = markdownImgRegex.exec(content)) !== null) {
     let url = match[1];
     // URL에서 쿼리 파라미터나 잘못된 인코딩 제거 (예: %22)
-    url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0];
-    if (url && !imageUrls.includes(url)) {
+    url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0].trim();
+    
+    // 로컬 경로 (images/image_2.png)는 스킵 (이미 변환된 것)
+    if (url && !url.startsWith('images/') && !imageUrls.includes(url)) {
       imageUrls.push(url);
       console.log(`📸 마크다운 이미지 URL 추출: ${url.substring(0, 100)}...`);
+    } else if (url && url.startsWith('images/')) {
+      console.log(`⏭️ 로컬 경로 이미지 스킵: ${url}`);
     }
   }
   
