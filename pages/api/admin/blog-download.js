@@ -44,22 +44,76 @@ export default async function handler(req, res) {
       }
     }
     
-    console.log(`포스트 ${postId}에서 발견된 이미지 URL 개수: ${imageUrls.length}`);
-    console.log('이미지 URL들:', imageUrls);
+    // ✅ 2-3. 이미지 URL을 최신 Storage URL로 변환 (네이버 원본 URL 매핑)
+    const resolvedImageUrls = [];
+    const imageUrlMapping = new Map(); // 원본 URL -> 최신 Storage URL 매핑
+    
+    for (const imageUrl of imageUrls) {
+      try {
+        // 네이버 원본 URL인지 확인
+        const isNaverUrl = imageUrl.includes('blog.naver.com') || 
+                          imageUrl.includes('postfiles.naver.net') ||
+                          imageUrl.includes('naverblog') ||
+                          (!imageUrl.includes('supabase.co') && !imageUrl.startsWith('http://localhost'));
+        
+        if (isNaverUrl) {
+          // ✅ image_metadata에서 최신 Storage URL 찾기
+          const normalizedUrl = imageUrl.split('?')[0].split('#')[0];
+          const { data: metadataList, error: metadataError } = await supabase
+            .from('image_metadata')
+            .select('image_url, original_url')
+            .or(`original_url.eq.${normalizedUrl},image_url.eq.${normalizedUrl}`)
+            .limit(5);
+          
+          if (!metadataError && metadataList && metadataList.length > 0) {
+            // ✅ 최신 Storage URL 사용 (첫 번째 매칭 결과)
+            const metadata = metadataList[0];
+            const latestUrl = metadata.image_url;
+            imageUrlMapping.set(imageUrl, latestUrl);
+            imageUrlMapping.set(normalizedUrl, latestUrl);
+            
+            if (!resolvedImageUrls.includes(latestUrl)) {
+              resolvedImageUrls.push(latestUrl);
+              console.log(`✅ 네이버 URL 매핑: ${imageUrl.substring(0, 80)}... -> ${latestUrl.substring(0, 80)}...`);
+            }
+          } else {
+            // 매핑을 찾지 못한 경우 원본 URL 사용 (fallback)
+            if (!resolvedImageUrls.includes(imageUrl)) {
+              resolvedImageUrls.push(imageUrl);
+              console.warn(`⚠️ 네이버 URL 매핑 실패, 원본 URL 사용: ${imageUrl.substring(0, 80)}...`);
+            }
+          }
+        } else {
+          // 이미 Storage URL인 경우 그대로 사용
+          if (!resolvedImageUrls.includes(imageUrl)) {
+            resolvedImageUrls.push(imageUrl);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ 이미지 URL 변환 오류 (${imageUrl}):`, error);
+        // 오류 발생 시 원본 URL 사용 (fallback)
+        if (!resolvedImageUrls.includes(imageUrl)) {
+          resolvedImageUrls.push(imageUrl);
+        }
+      }
+    }
+    
+    console.log(`포스트 ${postId}에서 발견된 이미지 URL 개수: ${resolvedImageUrls.length} (원본: ${imageUrls.length})`);
+    console.log('최종 이미지 URL들:', resolvedImageUrls.map(url => url.substring(0, 80) + '...'));
 
     // 3. ZIP 파일 생성
     const zip = new JSZip();
 
-    // 4. HTML 파일 생성 (이미지 경로를 로컬로 변경)
-    const htmlContent = generateHTML(post, imageUrls);
+    // 4. HTML 파일 생성 (이미지 경로를 로컬로 변경) - 매핑된 URL 사용
+    const htmlContent = generateHTML(post, resolvedImageUrls, imageUrlMapping);
     zip.file(`${post.slug || post.id}.html`, htmlContent);
 
     // 5. 이미지들 ZIP에 추가
-    if (imageUrls.length > 0) {
+    if (resolvedImageUrls.length > 0) {
       const imagesFolder = zip.folder('images');
       
-      for (let i = 0; i < imageUrls.length; i++) {
-        const imageUrl = imageUrls[i];
+      for (let i = 0; i < resolvedImageUrls.length; i++) {
+        const imageUrl = resolvedImageUrls[i];
         try {
           console.log(`이미지 다운로드 시도: ${imageUrl}`);
           
@@ -183,7 +237,8 @@ function getFileExtension(url) {
 }
 
 // HTML 생성 함수 (이미지 경로를 로컬로 변경)
-function generateHTML(post, imageUrls) {
+function generateHTML(post, imageUrls, imageUrlMapping = new Map()) {
+  // ✅ 최신 저장된 content 사용 (네이버 스크래핑이 아닌 현재 수정된 내용)
   let content = post.content || '';
   
   // 이미지 경로를 로컬 경로로 변경
@@ -192,13 +247,28 @@ function generateHTML(post, imageUrls) {
     const fileExtension = getFileExtension(originalUrl);
     const localPath = `images/image_${i + 1}${fileExtension}`;
     
-    // HTML img 태그의 src 변경
+    // ✅ 매핑된 URL도 함께 변경 (네이버 원본 URL -> 최신 Storage URL -> 로컬 경로)
+    for (const [oldUrl, newUrl] of imageUrlMapping.entries()) {
+      // HTML img 태그의 src 변경 (원본 URL과 매핑된 URL 모두)
+      content = content.replace(
+        new RegExp(`src=["']${oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`, 'gi'),
+        `src="${localPath}"`
+      );
+      
+      // 마크다운 이미지 문법 변경 (원본 URL과 매핑된 URL 모두)
+      content = content.replace(
+        new RegExp(`!\\[[^\\]]*\\]\\(${oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'gi'),
+        `![이미지 ${i + 1}](${localPath})`
+      );
+    }
+    
+    // HTML img 태그의 src 변경 (최신 Storage URL)
     content = content.replace(
       new RegExp(`src=["']${originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`, 'gi'),
       `src="${localPath}"`
     );
     
-    // 마크다운 이미지 문법 변경
+    // 마크다운 이미지 문법 변경 (최신 Storage URL)
     content = content.replace(
       new RegExp(`!\\[[^\\]]*\\]\\(${originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'gi'),
       `![이미지 ${i + 1}](${localPath})`
@@ -235,6 +305,25 @@ function generateHTML(post, imageUrls) {
           color: #666;
           font-size: 14px;
           margin-bottom: 20px;
+          padding: 15px;
+          background: #f9fafb;
+          border-radius: 8px;
+          border-left: 4px solid #2563eb;
+        }
+        .meta-item {
+          margin-bottom: 8px;
+          line-height: 1.6;
+        }
+        .meta-item strong {
+          color: #1e40af;
+          margin-right: 8px;
+        }
+        .meta-item a {
+          color: #2563eb;
+          text-decoration: none;
+        }
+        .meta-item a:hover {
+          text-decoration: underline;
         }
         .content {
           font-size: 16px;
@@ -294,11 +383,34 @@ function generateHTML(post, imageUrls) {
       </div>
       
       <div class="header">
-        <div class="title">${post.title}</div>
+        <div class="title">${post.title || '제목 없음'}</div>
         <div class="meta">
-          작성자: ${post.author || '마쓰구골프'} | 
-          작성일: ${new Date(post.created_at).toLocaleDateString('ko-KR')} | 
-          카테고리: ${post.category || '일반'}
+          <div class="meta-item">
+            <strong>작성자:</strong> ${post.author || '마쓰구골프'}
+          </div>
+          <div class="meta-item">
+            <strong>작성일:</strong> ${post.created_at ? new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : '날짜 없음'}
+          </div>
+          <div class="meta-item">
+            <strong>발행일:</strong> ${post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : '미발행'}
+          </div>
+          <div class="meta-item">
+            <strong>요약:</strong> ${post.excerpt || post.meta_description || '요약 없음'}
+          </div>
+          <div class="meta-item">
+            <strong>슬러그 (원문주소):</strong> <a href="https://www.masgolf.co.kr/blog/${post.slug || post.id}" target="_blank">${post.slug || post.id}</a>
+          </div>
+          <div class="meta-item">
+            <strong>카테고리:</strong> ${post.category || '일반'}
+          </div>
+          ${post.meta_title ? `<div class="meta-item"><strong>메타 제목:</strong> ${post.meta_title}</div>` : ''}
+          ${post.meta_description ? `<div class="meta-item"><strong>메타 설명:</strong> ${post.meta_description}</div>` : ''}
+          ${post.meta_keywords ? `<div class="meta-item"><strong>메타 키워드:</strong> ${post.meta_keywords}</div>` : ''}
+          ${post.tags && post.tags.length > 0 ? `<div class="meta-item"><strong>태그:</strong> ${Array.isArray(post.tags) ? post.tags.join(', ') : post.tags}</div>` : ''}
+          <div class="meta-item">
+            <strong>상태:</strong> ${post.status === 'published' ? '발행됨' : post.status === 'draft' ? '초안' : post.status || '미정'}
+          </div>
+          ${post.view_count ? `<div class="meta-item"><strong>조회수:</strong> ${post.view_count}</div>` : ''}
         </div>
       </div>
       
