@@ -8,5 +8,87 @@
     "env": {
       "NODE_OPTIONS": "--max-old-space-size=4096"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik"
+    },
+    {
+      "source": "/sapphire",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/sapphire"
+    },
+    {
+      "source": "/beryl",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/beryl"
+    },
+    {
+      "source": "/technology",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/technology"
+    },
+    {
+      "source": "/about",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/about"
+    },
+    {
+      "source": "/contact",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/contact"
+    },
+    {
+      "source": "/collaboration",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/collaboration"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "/muziik/:path*"
+    }
+  ]
 }
