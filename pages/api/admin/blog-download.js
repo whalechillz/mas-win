@@ -129,10 +129,13 @@ export default async function handler(req, res) {
     if (resolvedImageUrls.length > 0) {
       const imagesFolder = zip.folder('images');
       
+      let successCount = 0; // 성공한 이미지 카운터 (파일명 번호용)
+      const failedImages = []; // 실패한 이미지 추적
+      
       for (let i = 0; i < resolvedImageUrls.length; i++) {
         const imageUrl = resolvedImageUrls[i];
         try {
-          console.log(`이미지 다운로드 시도: ${imageUrl}`);
+          console.log(`\n📸 이미지 ${i + 1}/${resolvedImageUrls.length} 다운로드 시도: ${imageUrl.substring(0, 100)}...`);
           
           // ✅ 최신 저장된 이미지 경로 확인 (Storage에서 직접 가져오기)
           let actualImageUrl = imageUrl;
@@ -150,47 +153,67 @@ export default async function handler(req, res) {
               
               if (!downloadError && downloadData) {
                 imageBuffer = await downloadData.arrayBuffer();
-                console.log(`✅ Storage에서 이미지 다운로드 성공: ${imagePath}`);
+                console.log(`  ✅ Storage에서 이미지 다운로드 성공: ${imagePath} (${imageBuffer.byteLength} bytes)`);
               } else {
-                console.warn(`⚠️ Storage에서 이미지 찾기 실패, URL로 시도: ${imagePath}`);
+                console.warn(`  ⚠️ Storage에서 이미지 찾기 실패 (${downloadError?.message || '알 수 없음'}), URL로 시도: ${imagePath}`);
               }
             } catch (storageError) {
-              console.warn(`⚠️ Storage 다운로드 오류, URL로 시도:`, storageError.message);
+              console.warn(`  ⚠️ Storage 다운로드 오류, URL로 시도:`, storageError.message);
             }
           }
           
           // Storage에서 가져오지 못했으면 URL로 다운로드 시도
           if (!imageBuffer) {
-            const imageResponse = await fetch(imageUrl, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            try {
+              const imageResponse = await fetch(imageUrl, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
+                timeout: 10000 // 10초 타임아웃
+              });
+              if (imageResponse.ok) {
+                imageBuffer = await imageResponse.arrayBuffer();
+                console.log(`  ✅ URL에서 이미지 다운로드 성공: ${imageUrl.substring(0, 80)}... (${imageBuffer.byteLength} bytes)`);
+              } else {
+                console.error(`  ❌ 이미지 다운로드 실패: ${imageUrl.substring(0, 80)}... (HTTP ${imageResponse.status})`);
+                failedImages.push({ index: i + 1, url: imageUrl, reason: `HTTP ${imageResponse.status}` });
+                continue; // 다음 이미지로
               }
-            });
-            if (imageResponse.ok) {
-              imageBuffer = await imageResponse.arrayBuffer();
-              console.log(`✅ URL에서 이미지 다운로드 성공: ${imageUrl}`);
-            } else {
-              console.error(`❌ 이미지 다운로드 실패: ${imageUrl} (상태: ${imageResponse.status})`);
+            } catch (fetchError) {
+              console.error(`  ❌ URL 다운로드 오류: ${imageUrl.substring(0, 80)}... (${fetchError.message})`);
+              failedImages.push({ index: i + 1, url: imageUrl, reason: fetchError.message });
               continue; // 다음 이미지로
             }
           }
           
-          // 이미지 파일명 생성 (순서대로)
-          const fileExtension = getFileExtension(imageUrl);
-          const fileName = `image_${i + 1}${fileExtension}`;
-          
-          // ZIP에 이미지 추가
+          // 이미지 파일명 생성 (성공한 이미지만 번호 부여)
           if (imageBuffer) {
+            successCount++;
+            const fileExtension = getFileExtension(imageUrl);
+            const fileName = `image_${successCount}${fileExtension}`;
+            
+            // ZIP에 이미지 추가
             imagesFolder.file(fileName, imageBuffer);
-            console.log(`✅ 이미지 ZIP 추가 성공: ${fileName} (${imageBuffer.byteLength} bytes)`);
+            console.log(`  ✅ 이미지 ZIP 추가 성공: ${fileName}`);
           } else {
-            console.error(`❌ 이미지 버퍼 없음: ${imageUrl} -> ${fileName} 다운로드 실패`);
+            console.error(`  ❌ 이미지 버퍼 없음: ${imageUrl.substring(0, 80)}...`);
+            failedImages.push({ index: i + 1, url: imageUrl, reason: '버퍼 없음' });
           }
         } catch (error) {
-          console.error(`❌ 이미지 다운로드 오류 (${imageUrl}):`, error);
+          console.error(`  ❌ 이미지 다운로드 오류 (${imageUrl.substring(0, 80)}...):`, error.message);
+          failedImages.push({ index: i + 1, url: imageUrl, reason: error.message });
           // 오류 발생해도 계속 진행 (다른 이미지는 다운로드)
         }
       }
+      
+      // 실패한 이미지 로그 출력
+      if (failedImages.length > 0) {
+        console.log(`\n⚠️ 다운로드 실패한 이미지: ${failedImages.length}개`);
+        failedImages.forEach(failed => {
+          console.log(`  - 이미지 #${failed.index}: ${failed.url.substring(0, 80)}... (이유: ${failed.reason})`);
+        });
+      }
+      console.log(`\n✅ 총 ${successCount}개 이미지 다운로드 성공, ${failedImages.length}개 실패`);
     } else {
       console.log('포스트에 이미지가 없습니다.');
     }
