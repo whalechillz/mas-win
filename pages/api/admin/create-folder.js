@@ -21,10 +21,11 @@ export default async function handler(req, res) {
 
     // 폴더 생성은 저장소에 폴더 표시용 더미 파일 업로드로 처리
     const markerPath = `${folderPath.replace(/\/$/, '')}/.keep`;
+    const content = Buffer.from('placeholder');
     const { error: uploadError } = await supabase.storage
       .from('blog-images')
-      .upload(markerPath, new Blob([new Uint8Array([])]), {
-        contentType: 'text/plain',
+      .upload(markerPath, content, {
+        contentType: 'text/plain; charset=utf-8',
         upsert: true,
       });
 
