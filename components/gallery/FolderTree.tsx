@@ -17,6 +17,7 @@ interface FolderTreeProps {
   includeChildren: boolean;
   onIncludeChildrenChange: (include: boolean) => void;
   onImageDrop?: (imageData: { name: string; url: string; folder_path?: string }, targetFolder: string) => void;
+  onFoldersChanged?: () => void;
 }
 
 export default function FolderTree({
@@ -26,9 +27,11 @@ export default function FolderTree({
   includeChildren,
   onIncludeChildrenChange,
   onImageDrop,
+  onFoldersChanged,
 }: FolderTreeProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['originals']));
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
+  const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
 
   // 폴더 목록을 트리 구조로 변환
   const folderTree = useMemo(() => {
@@ -123,6 +126,11 @@ export default function FolderTree({
             }`}
             style={{ paddingLeft: `${level * 20 + 8}px` }}
             onClick={() => onFolderSelect(node.path)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setMenu({ x: e.clientX, y: e.clientY, path: node.path });
+            }}
             onDragOver={(e) => handleDragOver(e, node.path)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, node.path)}
@@ -224,6 +232,91 @@ export default function FolderTree({
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((child) => renderNode(child, 0))}
       </div>
+
+      {/* 컨텍스트 메뉴 */}
+      {menu && (
+        <div
+          className="fixed z-50 bg-white border border-gray-200 rounded shadow-lg text-sm"
+          style={{ top: menu.y, left: menu.x }}
+          onMouseLeave={() => setMenu(null)}
+        >
+          <button
+            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            onClick={async () => {
+              const base = menu.path;
+              const name = prompt('새 하위 폴더명을 입력하세요', 'new-folder');
+              if (!name) return setMenu(null);
+              const newPath = base ? `${base}/${name}` : name;
+              try {
+                const res = await fetch('/api/admin/create-folder', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ folderPath: newPath })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || '폴더 생성 실패');
+                onFoldersChanged && onFoldersChanged();
+              } catch (e:any) {
+                alert(`폴더 생성 실패: ${e.message}`);
+              } finally {
+                setMenu(null);
+              }
+            }}
+          >
+            ➕ 새 폴더
+          </button>
+          <button
+            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            onClick={async () => {
+              const oldFolderPath = menu.path;
+              const newFolderPath = prompt('새 폴더 경로를 입력하세요', oldFolderPath) || '';
+              if (!newFolderPath || newFolderPath === oldFolderPath) return setMenu(null);
+              try {
+                const res = await fetch('/api/admin/rename-folder', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ oldFolderPath, newFolderPath })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || '폴더명 변경 실패');
+                onFoldersChanged && onFoldersChanged();
+                if (selectedFolder === oldFolderPath) {
+                  onFolderSelect(newFolderPath);
+                }
+              } catch (e:any) {
+                alert(`폴더명 변경 실패: ${e.message}`);
+              } finally {
+                setMenu(null);
+              }
+            }}
+          >
+            ✏️ 이름 변경
+          </button>
+          <button
+            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+            onClick={async () => {
+              if (!confirm('폴더를 삭제하시겠습니까? (내부 파일 삭제)')) return setMenu(null);
+              try {
+                const res = await fetch('/api/admin/delete-folder', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ folderPath: menu.path })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || '폴더 삭제 실패');
+                onFoldersChanged && onFoldersChanged();
+                if (selectedFolder.startsWith(menu.path)) onFolderSelect('all');
+              } catch (e:any) {
+                alert(`폴더 삭제 실패: ${e.message}`);
+              } finally {
+                setMenu(null);
+              }
+            }}
+          >
+            🗑️ 삭제
+          </button>
+        </div>
+      )}
     </div>
   );
 }

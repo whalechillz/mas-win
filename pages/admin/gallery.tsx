@@ -1947,6 +1947,17 @@ export default function GalleryAdmin() {
                   setCurrentPage(1);
                   fetchImages(1, true, folderFilter, include, searchQuery);
                 }}
+                onFoldersChanged={async () => {
+                  try {
+                    const response = await fetch('/api/admin/folders-list');
+                    const data = await response.json();
+                    if (response.ok && data.folders) {
+                      setAvailableFolders(data.folders);
+                    }
+                    // 현재 리스트도 새로고침
+                    fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                  } catch {}
+                }}
                 onImageDrop={async (imageData, targetFolder) => {
                   try {
                     console.log('📁 이미지 드롭:', { imageData, targetFolder });
@@ -1979,6 +1990,30 @@ export default function GalleryAdmin() {
 
             {/* 콘텐츠 영역 (오른쪽) */}
             <div className="flex-1 min-w-0">
+              {/* 브레드크럼 */}
+              <div className="flex items-center text-sm text-gray-600 mb-2">
+                <span className="mr-2 text-gray-500">경로:</span>
+                {folderFilter === 'all' ? (
+                  <span className="font-medium">전체</span>
+                ) : (
+                  folderFilter.split('/').filter(Boolean).map((seg, idx, arr) => (
+                    <span key={idx} className="flex items-center">
+                      <button
+                        className="text-blue-600 hover:underline"
+                        onClick={() => {
+                          const path = arr.slice(0, idx + 1).join('/');
+                          setFolderFilter(path);
+                          setCurrentPage(1);
+                          fetchImages(1, true, path, includeChildren, searchQuery);
+                        }}
+                      >
+                        {seg}
+                      </button>
+                      {idx < arr.length - 1 && <span className="mx-2 text-gray-400">/</span>}
+                    </span>
+                  ))
+                )}
+              </div>
               {/* 검색 및 필터 */}
               <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
