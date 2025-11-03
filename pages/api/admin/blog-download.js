@@ -225,9 +225,9 @@ function extractImageUrls(content) {
   
   // <img> 태그에서 src 추출
   const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
-  let match;
-  while ((match = imgRegex.exec(content)) !== null) {
-    let url = match[1];
+  let imgMatch;
+  while ((imgMatch = imgRegex.exec(content)) !== null) {
+    let url = imgMatch[1];
     // URL 정규화
     url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0].trim();
     
@@ -242,9 +242,9 @@ function extractImageUrls(content) {
   
   // 마크다운 이미지 문법 ![alt](url) 추출
   const markdownImgRegex = /!\[[^\]]*\]\(([^)]+)\)/gi;
-  let match;
-  while ((match = markdownImgRegex.exec(content)) !== null) {
-    let url = match[1];
+  let markdownMatch;
+  while ((markdownMatch = markdownImgRegex.exec(content)) !== null) {
+    let url = markdownMatch[1];
     // URL에서 쿼리 파라미터나 잘못된 인코딩 제거 (예: %22)
     url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0].trim();
     
@@ -259,8 +259,9 @@ function extractImageUrls(content) {
   
   // 일반 URL 패턴도 추출 (golf-driver-male-massgoo-207.png.png 같은 파일명)
   const urlPattern = /(https?:\/\/[^\s<>"']+\.(jpg|jpeg|png|gif|webp|svg))/gi;
-  while ((match = urlPattern.exec(content)) !== null) {
-    let url = match[1];
+  let urlMatch;
+  while ((urlMatch = urlPattern.exec(content)) !== null) {
+    let url = urlMatch[1];
     url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0];
     if (url && !imageUrls.includes(url) && !imageUrls.some(existing => url.includes(existing) || existing.includes(url))) {
       imageUrls.push(url);
