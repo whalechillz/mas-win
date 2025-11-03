@@ -48,17 +48,26 @@ export default async function handler(req, res) {
     const resolvedImageUrls = [];
     const imageUrlMapping = new Map(); // 원본 URL -> 최신 Storage URL 매핑
     
-    for (const imageUrl of imageUrls) {
+    console.log(`🔍 이미지 URL 변환 시작: ${imageUrls.length}개 URL`);
+    
+    for (let idx = 0; idx < imageUrls.length; idx++) {
+      const imageUrl = imageUrls[idx];
       try {
+        console.log(`\n📸 이미지 ${idx + 1}/${imageUrls.length} 처리: ${imageUrl.substring(0, 100)}...`);
+        
         // 네이버 원본 URL인지 확인
         const isNaverUrl = imageUrl.includes('blog.naver.com') || 
                           imageUrl.includes('postfiles.naver.net') ||
                           imageUrl.includes('naverblog') ||
-                          (!imageUrl.includes('supabase.co') && !imageUrl.startsWith('http://localhost'));
+                          (!imageUrl.includes('supabase.co') && 
+                           !imageUrl.startsWith('http://localhost') &&
+                           !imageUrl.startsWith('https://www.masgolf.co.kr'));
         
         if (isNaverUrl) {
           // ✅ image_metadata에서 최신 Storage URL 찾기
           const normalizedUrl = imageUrl.split('?')[0].split('#')[0];
+          console.log(`  🔍 네이버 URL 감지, 메타데이터 검색: ${normalizedUrl.substring(0, 80)}...`);
+          
           const { data: metadataList, error: metadataError } = await supabase
             .from('image_metadata')
             .select('image_url, original_url')
@@ -74,23 +83,28 @@ export default async function handler(req, res) {
             
             if (!resolvedImageUrls.includes(latestUrl)) {
               resolvedImageUrls.push(latestUrl);
-              console.log(`✅ 네이버 URL 매핑: ${imageUrl.substring(0, 80)}... -> ${latestUrl.substring(0, 80)}...`);
+              console.log(`  ✅ 네이버 URL 매핑 성공: ${latestUrl.substring(0, 80)}...`);
+            } else {
+              console.log(`  ⏭️ 이미 매핑된 URL 스킵: ${latestUrl.substring(0, 80)}...`);
             }
           } else {
             // 매핑을 찾지 못한 경우 원본 URL 사용 (fallback)
             if (!resolvedImageUrls.includes(imageUrl)) {
               resolvedImageUrls.push(imageUrl);
-              console.warn(`⚠️ 네이버 URL 매핑 실패, 원본 URL 사용: ${imageUrl.substring(0, 80)}...`);
+              console.log(`  ⚠️ 네이버 URL 매핑 실패, 원본 URL 사용: ${imageUrl.substring(0, 80)}...`);
             }
           }
         } else {
           // 이미 Storage URL인 경우 그대로 사용
           if (!resolvedImageUrls.includes(imageUrl)) {
             resolvedImageUrls.push(imageUrl);
+            console.log(`  ✅ Storage URL 그대로 사용: ${imageUrl.substring(0, 80)}...`);
+          } else {
+            console.log(`  ⏭️ 중복 URL 스킵: ${imageUrl.substring(0, 80)}...`);
           }
         }
       } catch (error) {
-        console.error(`❌ 이미지 URL 변환 오류 (${imageUrl}):`, error);
+        console.error(`  ❌ 이미지 URL 변환 오류 (${imageUrl}):`, error.message);
         // 오류 발생 시 원본 URL 사용 (fallback)
         if (!resolvedImageUrls.includes(imageUrl)) {
           resolvedImageUrls.push(imageUrl);
@@ -98,8 +112,11 @@ export default async function handler(req, res) {
       }
     }
     
-    console.log(`포스트 ${postId}에서 발견된 이미지 URL 개수: ${resolvedImageUrls.length} (원본: ${imageUrls.length})`);
-    console.log('최종 이미지 URL들:', resolvedImageUrls.map(url => url.substring(0, 80) + '...'));
+    console.log(`\n📊 이미지 URL 변환 완료:`);
+    console.log(`  - 원본 URL 개수: ${imageUrls.length}`);
+    console.log(`  - 변환된 URL 개수: ${resolvedImageUrls.length}`);
+    console.log(`  - URL 매핑 개수: ${imageUrlMapping.size}`);
+    console.log('  - 최종 이미지 URL들:', resolvedImageUrls.map((url, i) => `${i + 1}. ${url.substring(0, 80)}...`));
 
     // 3. ZIP 파일 생성
     const zip = new JSZip();
@@ -210,9 +227,16 @@ function extractImageUrls(content) {
   const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
-    const url = match[1];
-    if (url && !imageUrls.includes(url)) {
+    let url = match[1];
+    // URL 정규화
+    url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0].trim();
+    
+    // 로컬 경로 (images/image_2.png)는 스킵 (이미 변환된 것)
+    if (url && !url.startsWith('images/') && !imageUrls.includes(url)) {
       imageUrls.push(url);
+      console.log(`📸 HTML 이미지 URL 추출: ${url.substring(0, 100)}...`);
+    } else if (url && url.startsWith('images/')) {
+      console.log(`⏭️ 로컬 경로 이미지 스킵: ${url}`);
     }
   }
   
@@ -447,7 +471,7 @@ function generateHTML(post, imageUrls, imageUrlMapping = new Map()) {
             <strong>요약:</strong> ${post.excerpt || post.meta_description || '요약 없음'}
           </div>
           <div class="meta-item">
-            <strong>슬러그 (원문주소):</strong> <a href="https://www.masgolf.co.kr/blog/${post.slug || post.id}" target="_blank">${post.slug || post.id}</a>
+            <strong>슬러그 (원문주소):</strong> <a href="https://www.masgolf.co.kr/blog/${post.slug || post.id}" target="_blank">https://www.masgolf.co.kr/blog/${post.slug || post.id}</a>
           </div>
           <div class="meta-item">
             <strong>카테고리:</strong> ${post.category || '일반'}
