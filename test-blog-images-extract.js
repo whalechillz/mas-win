@@ -10,11 +10,11 @@ async function testImageExtraction() {
   try {
     console.log('🔍 블로그 포스트 이미지 URL 추출 테스트 시작...\n');
     
-    // ID 309 블로그 포스트 가져오기
+    // ID 477 블로그 포스트 가져오기 (드라이버 선택의 전환점)
     const { data: post, error } = await supabase
       .from('blog_posts')
       .select('id, title, slug, featured_image, content')
-      .eq('id', 309)
+      .eq('id', 477)
       .single();
     
     if (error || !post) {
