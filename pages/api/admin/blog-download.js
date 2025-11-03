@@ -166,9 +166,12 @@ export default async function handler(req, res) {
           if (imageBuffer) {
             imagesFolder.file(fileName, imageBuffer);
             console.log(`✅ 이미지 ZIP 추가 성공: ${fileName} (${imageBuffer.byteLength} bytes)`);
+          } else {
+            console.error(`❌ 이미지 버퍼 없음: ${imageUrl} -> ${fileName} 다운로드 실패`);
           }
         } catch (error) {
           console.error(`❌ 이미지 다운로드 오류 (${imageUrl}):`, error);
+          // 오류 발생해도 계속 진행 (다른 이미지는 다운로드)
         }
       }
     } else {
@@ -216,12 +219,27 @@ function extractImageUrls(content) {
   // 마크다운 이미지 문법 ![alt](url) 추출
   const markdownImgRegex = /!\[[^\]]*\]\(([^)]+)\)/gi;
   while ((match = markdownImgRegex.exec(content)) !== null) {
-    const url = match[1];
+    let url = match[1];
+    // URL에서 쿼리 파라미터나 잘못된 인코딩 제거 (예: %22)
+    url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0];
     if (url && !imageUrls.includes(url)) {
       imageUrls.push(url);
+      console.log(`📸 마크다운 이미지 URL 추출: ${url.substring(0, 100)}...`);
     }
   }
   
+  // 일반 URL 패턴도 추출 (golf-driver-male-massgoo-207.png.png 같은 파일명)
+  const urlPattern = /(https?:\/\/[^\s<>"']+\.(jpg|jpeg|png|gif|webp|svg))/gi;
+  while ((match = urlPattern.exec(content)) !== null) {
+    let url = match[1];
+    url = url.replace(/%22/g, '').replace(/%27/g, '').split('?')[0].split('#')[0];
+    if (url && !imageUrls.includes(url) && !imageUrls.some(existing => url.includes(existing) || existing.includes(url))) {
+      imageUrls.push(url);
+      console.log(`📸 URL 패턴 이미지 추출: ${url.substring(0, 100)}...`);
+    }
+  }
+  
+  console.log(`📸 총 ${imageUrls.length}개 이미지 URL 추출됨`);
   return imageUrls;
 }
 
@@ -240,6 +258,32 @@ function getFileExtension(url) {
 function generateHTML(post, imageUrls, imageUrlMapping = new Map()) {
   // ✅ 최신 저장된 content 사용 (네이버 스크래핑이 아닌 현재 수정된 내용)
   let content = post.content || '';
+  
+  // ✅ 단락 구분 처리 (마크다운 줄바꿈을 HTML 단락으로 변환)
+  // 마크다운의 연속된 줄바꿈(2개 이상)을 단락 구분으로 처리
+  content = content.replace(/\n\n+/g, '</p><p>');
+  
+  // 이미지 앞뒤의 줄바꿈을 단락 구분으로 처리
+  content = content.replace(/(\n)(!\[[^\]]*\]\([^)]+\))/g, '</p><p>$2');
+  content = content.replace(/(<img[^>]*>)(\n)/g, '$1</p><p>');
+  
+  // HTML 이미지 태그 앞뒤 단락 구분
+  content = content.replace(/([^>])(<img[^>]*>)/g, '$1</p><p>$2');
+  content = content.replace(/(<img[^>]*>)([^<])/g, '$1</p><p>$2');
+  
+  // 제목 앞뒤 단락 구분 (마크다운 헤더)
+  content = content.replace(/(\n)(#{1,6}\s+[^\n]+)/g, '</p><p>$2');
+  
+  // 단락 시작과 끝에 <p> 태그 추가
+  if (!content.trim().startsWith('<p>') && !content.trim().startsWith('<h')) {
+    content = '<p>' + content;
+  }
+  if (!content.trim().endsWith('</p>') && !content.trim().endsWith('>')) {
+    content = content + '</p>';
+  }
+  
+  // 연속된 </p><p> 정리
+  content = content.replace(/<\/p>\s*<p>\s*<\/p>\s*<p>/g, '</p><p>');
   
   // 이미지 경로를 로컬 경로로 변경
   for (let i = 0; i < imageUrls.length; i++) {
@@ -339,6 +383,11 @@ function generateHTML(post, imageUrls, imageUrlMapping = new Map()) {
         .content h3 { font-size: 18px; }
         .content p {
           margin-bottom: 15px;
+          text-align: justify;
+          word-wrap: break-word;
+        }
+        .content p:empty {
+          display: none;
         }
         .content ul, .content ol {
           margin-bottom: 15px;
