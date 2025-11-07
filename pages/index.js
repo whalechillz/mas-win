@@ -21,12 +21,13 @@ export default function Home({ hostname }) {
         <header className="bg-white shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
-              <div className="text-2xl font-bold text-gray-900">MASGOLF</div>
-              <nav className="hidden md:flex space-x-8">
-                <a href="https://www.mas9golf.com" className="text-gray-700 hover:text-gray-900">드라이버</a>
+              <Link href="/" className="text-2xl font-bold text-gray-900">MASSGOO</Link>
+              <nav className="hidden md:flex space-x-8 items-center">
+                <a href="https://www.masgolf.co.kr/" className="text-gray-700 hover:text-gray-900">드라이버</a>
                 <Link href="#technology" className="text-gray-700 hover:text-gray-900">기술력</Link>
                 <Link href="#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
-                <a href="https://www.mas9golf.com/contact" className="text-gray-700 hover:text-gray-900">시타매장</a>
+                <Link href="/about" className="text-gray-700 hover:text-gray-900">브랜드 스토리</Link>
+                <Link href="/contact" className="text-gray-700 hover:text-gray-900">시타매장</Link>
                 <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                   무료 시타
                 </a>
@@ -36,33 +37,59 @@ export default function Home({ hostname }) {
         </header>
 
         {/* 히어로 섹션 */}
-        <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-20">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-8">
-              <div className="text-sm text-yellow-400 mb-4">MASGOLF Summer Campaign</div>
-              <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                +30m 비거리 증가
-              </h1>
-              <h2 className="text-3xl md:text-5xl font-bold text-yellow-400 mb-4">
-                R&A가 경계하는<br />
-                <span className="text-6xl md:text-7xl">0.87</span> 반발계수
-              </h2>
-              <p className="text-xl mb-8">
-                2.2mm 초박형 페이스의 비밀<br />
-                <span className="text-yellow-400 font-bold">첫 시타부터 체감</span>
-              </p>
-              <div className="flex flex-col md:flex-row gap-4 justify-center">
-                <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
-                  무료 시타 신청하기
-                </a>
-                <Link href="#products" className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-3 rounded-lg font-semibold transition-colors">
-                  제품 둘러보기
-                </Link>
+        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 w-full h-full">
+              <Image
+                src="/main/brand/hero-titanium_02.webp"
+                alt="티타늄 드라이버 클로즈업"
+                fill
+                className="object-cover opacity-60"
+                priority
+                quality={90}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80"></div>
+          </div>
+          
+          <div className="relative z-10 container mx-auto px-4 text-center">
+            <div className="mb-6">
+              <span className="inline-block bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold mb-4">NEW</span>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-300 mb-4">
+                <span className="font-bold">美</span>
+                <span className="text-gray-500">압도적인</span>
+                <span className="text-gray-500">|</span>
+                <span className="font-bold">輝</span>
+                <span className="text-gray-500">광채의</span>
+                <span className="text-gray-500">|</span>
+                <span className="font-bold">若</span>
+                <span className="text-gray-500">젊음</span>
               </div>
             </div>
-            <p className="text-center text-lg">
-              <span className="text-yellow-400 font-bold">20년 전통</span> | <span className="text-yellow-400 font-bold">일본 장인정신</span> | <span className="text-yellow-400 font-bold">한정 제작</span>
+            
+            <div className="text-blue-400 text-lg font-medium mb-4">
+              MASSGOO X MUZIIK
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl font-bold text-white mb-6">
+              MASSGOO
+            </h1>
+            
+            <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-8">
+              우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.
             </p>
+            
+            <div className="flex flex-col md:flex-row gap-4 justify-center">
+              <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                무료 시타 신청하기
+              </a>
+              <Link href="#products" className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-3 rounded-lg font-semibold transition-colors">
+                제품 둘러보기
+              </Link>
+            </div>
           </div>
         </section>
 
