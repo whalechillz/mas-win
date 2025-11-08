@@ -32,9 +32,10 @@ export default function Navigation({ currentPath }: NavigationProps) {
   // 현재 페이지 확인
   const isActive = (path: string) => {
     if (currentPath) {
-      return currentPath === path;
+      return currentPath === path || currentPath === `/muziik${path}`;
     }
-    return router.pathname === path;
+    const pathname = router.pathname;
+    return pathname === path || pathname === `/muziik${path}` || pathname.startsWith(`/muziik${path}`);
   };
 
   const toggleMobileMenu = () => {
@@ -50,7 +51,7 @@ export default function Navigation({ currentPath }: NavigationProps) {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
           <Link 
-            href="/" 
+            href="/muziik" 
             className="flex items-center space-x-3 text-2xl font-bold text-white hover:text-blue-400 transition-colors"
             onClick={closeMobileMenu}
           >
@@ -67,9 +68,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
           
           <nav className="hidden md:flex space-x-8 items-center">
             <Link 
-              href="/" 
+              href="/muziik" 
               className={`transition-colors ${
-                isActive('/') 
+                isActive('/muziik') || isActive('/') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -78,9 +79,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
             </Link>
             
             <Link 
-              href="/sapphire" 
+              href="/muziik/sapphire" 
               className={`transition-colors ${
-                isActive('/sapphire') 
+                isActive('/muziik/sapphire') || isActive('/sapphire') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -89,9 +90,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
             </Link>
             
             <Link 
-              href="/beryl" 
+              href="/muziik/beryl" 
               className={`transition-colors ${
-                isActive('/beryl') 
+                isActive('/muziik/beryl') || isActive('/beryl') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -100,9 +101,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
             </Link>
             
             <Link 
-              href="/technology" 
+              href="/muziik/technology" 
               className={`transition-colors ${
-                isActive('/technology') 
+                isActive('/muziik/technology') || isActive('/technology') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -111,9 +112,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
             </Link>
             
             <Link 
-              href="/about" 
+              href="/muziik/about" 
               className={`transition-colors ${
-                isActive('/about') 
+                isActive('/muziik/about') || isActive('/about') 
                   ? 'text-white font-semibold' 
                   : 'text-gray-300 hover:text-white'
               }`}
@@ -122,7 +123,7 @@ export default function Navigation({ currentPath }: NavigationProps) {
             </Link>
             
             <Link 
-              href="/contact" 
+              href="/muziik/contact" 
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               {t.contact}
@@ -178,9 +179,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
           <div className="md:hidden mt-4 pb-4 border-t border-gray-800">
             <nav className="flex flex-col space-y-4 pt-4">
               <Link 
-                href="/" 
+                href="/muziik" 
                 className={`transition-colors py-2 ${
-                  isActive('/') 
+                  isActive('/muziik') || isActive('/') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -190,9 +191,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
               </Link>
               
               <Link 
-                href="/sapphire" 
+                href="/muziik/sapphire" 
                 className={`transition-colors py-2 ${
-                  isActive('/sapphire') 
+                  isActive('/muziik/sapphire') || isActive('/sapphire') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -202,9 +203,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
               </Link>
               
               <Link 
-                href="/beryl" 
+                href="/muziik/beryl" 
                 className={`transition-colors py-2 ${
-                  isActive('/beryl') 
+                  isActive('/muziik/beryl') || isActive('/beryl') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -214,9 +215,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
               </Link>
               
               <Link 
-                href="/technology" 
+                href="/muziik/technology" 
                 className={`transition-colors py-2 ${
-                  isActive('/technology') 
+                  isActive('/muziik/technology') || isActive('/technology') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -226,9 +227,9 @@ export default function Navigation({ currentPath }: NavigationProps) {
               </Link>
               
               <Link 
-                href="/about" 
+                href="/muziik/about" 
                 className={`transition-colors py-2 ${
-                  isActive('/about') 
+                  isActive('/muziik/about') || isActive('/about') 
                     ? 'text-white font-semibold' 
                     : 'text-gray-300 hover:text-white'
                 }`}
@@ -248,7 +249,7 @@ export default function Navigation({ currentPath }: NavigationProps) {
               </a>
               
               <Link 
-                href="/contact" 
+                href="/muziik/contact" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-center"
                 onClick={closeMobileMenu}
               >

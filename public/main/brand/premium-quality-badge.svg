@@ -1,0 +1,7 @@
+
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="38" fill="#F59E0B" opacity="0.1"/>
+      <path d="M40 12L48 18L58 20L56 30L60 40L56 50L58 60L48 62L40 68L32 62L22 60L24 50L20 40L24 30L22 20L32 18L40 12Z" fill="#F59E0B"/>
+      <text x="40" y="45" text-anchor="middle" fill="white" font-size="20" font-weight="bold">★</text>
+    </svg>
+  

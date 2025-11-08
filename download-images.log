@@ -1,0 +1,75 @@
+🔍 원본 사이트에서 모든 이미지 추출 및 다운로드 시작...
+참조 사이트: https://mas-lva3ulwew-taksoo-kims-projects.vercel.app
+저장 경로: /Users/m2/MASLABS/win.masgolf.co.kr/public
+
+📄 페이지 확인: https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/
+  발견된 이미지: 21개
+
+📄 페이지 확인: https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/about
+  발견된 이미지: 8개
+
+📄 페이지 확인: https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/contact
+  발견된 이미지: 7개
+
+📊 총 발견된 이미지: 32개
+📁 /main/ 경로 이미지: 28개
+  📥 다운로드 중 (1/28): main/logo/massgoo_logo_black.png
+  ✅ 완료: main/logo/massgoo_logo_black.png
+  📥 다운로드 중 (2/28): main/hero/hero-main-image.webp
+  ✅ 완료: main/hero/hero-main-image.webp
+  📥 다운로드 중 (3/28): main/products/black-beryl/massgoo_sw_black_muz_11.webp
+  ✅ 완료: main/products/black-beryl/massgoo_sw_black_muz_11.webp
+  📥 다운로드 중 (4/28): main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp
+  ✅ 완료: main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp
+  📥 다운로드 중 (5/28): main/technology/nano-resin-structure.webp
+  ✅ 완료: main/technology/nano-resin-structure.webp
+  📥 다운로드 중 (6/28): main/technology/reverse-torque-prevention.webp
+  ✅ 완료: main/technology/reverse-torque-prevention.webp
+  📥 다운로드 중 (7/28): main/technology/titanium-graphite-structure.webp
+  ✅ 완료: main/technology/titanium-graphite-structure.webp
+  ⏭️  이미 존재: main/products/titanium_club_face_1200x800.jpg
+  📥 다운로드 중 (9/28): main/products/gold2/gold2_00_01.jpg
+  ✅ 완료: main/products/gold2/gold2_00_01.jpg
+  ⏭️  이미 존재: main/products/secret-force-pro3.jpg
+  ⏭️  이미 존재: main/products/secret-force-v3.jpg
+  ⏭️  이미 존재: main/products/secret-weapon-black.jpg
+  ⏭️  이미 존재: main/products/secret-weapon-4-1.jpg
+  📥 다운로드 중 (14/28): main/testimonials/hero-faces/review-face-01.jpg
+  ✅ 완료: main/testimonials/hero-faces/review-face-01.jpg
+  📥 다운로드 중 (15/28): main/testimonials/hero-faces/review-face-02.jpg
+  ✅ 완료: main/testimonials/hero-faces/review-face-02.jpg
+  📥 다운로드 중 (16/28): main/testimonials/hero-faces/review-face-03.jpg
+  ✅ 완료: main/testimonials/hero-faces/review-face-03.jpg
+  📥 다운로드 중 (17/28): main/logo/massgoo_logo_white.png
+  ✅ 완료: main/logo/massgoo_logo_white.png
+  📥 다운로드 중 (18/28): main/brand/hero-titanium_02.webp
+  ✅ 완료: main/brand/hero-titanium_02.webp
+  📥 다운로드 중 (19/28): main/brand/initial-product-secret-weapon.webp
+  ✅ 완료: main/brand/initial-product-secret-weapon.webp
+  📥 다운로드 중 (20/28): main/brand/awards-bookshelf-04.webp
+  ✅ 완료: main/brand/awards-bookshelf-04.webp
+  📥 다운로드 중 (21/28): main/brand/call_center.webp
+  ✅ 완료: main/brand/call_center.webp
+  📥 다운로드 중 (22/28): main/brand/products-lineup.webp
+  ✅ 완료: main/brand/products-lineup.webp
+  📥 다운로드 중 (23/28): main/brand/service-warranty.webp
+  ✅ 완료: main/brand/service-warranty.webp
+  📥 다운로드 중 (24/28): main/contact/masgolf-store-exterior-brick-01.webp
+  ✅ 완료: main/contact/masgolf-store-exterior-brick-01.webp
+  📥 다운로드 중 (25/28): main/contact/masgolf-store-exterior-glass-01.webp
+  ✅ 완료: main/contact/masgolf-store-exterior-glass-01.webp
+  📥 다운로드 중 (26/28): main/contact/masgolf-store-exterior-glass-02.webp
+  ✅ 완료: main/contact/masgolf-store-exterior-glass-02.webp
+  📥 다운로드 중 (27/28): main/contact/masgolf-store-interior-display-01.webp
+  ✅ 완료: main/contact/masgolf-store-interior-display-01.webp
+  📥 다운로드 중 (28/28): main/contact/masgolf-store-interior-fitting-01.webp
+  ✅ 완료: main/contact/masgolf-store-interior-fitting-01.webp
+
+============================================================
+📊 다운로드 결과:
+============================================================
+  총 이미지: 28개
+  성공: 23개
+  실패: 0개
+  이미 존재: 5개
+📝 다운로드된 이미지 목록 저장: /Users/m2/MASLABS/win.masgolf.co.kr/downloaded-images.json

@@ -46,7 +46,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3) (임시) 도메인 리다이렉트 비활성화 - 루프 원인 제거
+  // 3) 구형 MUZIIK 페이지 리다이렉트 (/muziik/ko → /muziik)
+  if (pathname === '/muziik/ko' || pathname === '/muziik/ko/') {
+    return NextResponse.redirect(new URL('/muziik', request.url), 301);
+  }
+  if (pathname.startsWith('/muziik/ko/')) {
+    const newPath = pathname.replace('/muziik/ko/', '/muziik/');
+    return NextResponse.redirect(new URL(newPath, request.url), 301);
+  }
+
+  // 4) (임시) 도메인 리다이렉트 비활성화 - 루프 원인 제거
   // 필요 시 도메인 정규화는 Vercel Redirects 설정으로만 처리
   if (false && hostname === 'masgolf.co.kr') {
     return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`);
@@ -61,12 +70,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL(`/muziik${pathname}`, request.url));
   }
 
-  // 4) 그 외 경로는 통과
+  // 5) 그 외 경로는 통과
 
   return NextResponse.next();
 }
 
 export const config = {
-  // 관리자 경로에만 적용하여 예기치 않은 리다이렉트 방지
-  matcher: ['/admin/:path*'],
+  // 관리자 경로와 MUZIIK 구형 페이지 리다이렉트에 적용
+  matcher: ['/admin/:path*', '/muziik/ko', '/muziik/ko/:path*'],
 };

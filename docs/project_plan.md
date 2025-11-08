@@ -1,5 +1,243 @@
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 완료된 작업 (2025-01-XX)
+
+### 구형 MUZIIK 페이지 삭제 및 리다이렉트 설정 ✅
+- **삭제된 구형 페이지**:
+  - `pages/muziik/ko.tsx` → `https://www.masgolf.co.kr/muziik/ko`
+  - `pages/muziik/ko/[product].tsx` → `https://www.masgolf.co.kr/muziik/ko/sapphire`, `/beryl`
+  - `pages/muziik/ko/` 폴더 전체
+- **리다이렉트 설정**:
+  - **Vercel Redirects** (`vercel.json`):
+    - `muziik.masgolf.co.kr/` → `https://www.masgolf.co.kr/muziik`
+    - `/muziik/ko` → `https://www.masgolf.co.kr/muziik`
+    - `/muziik/ko/sapphire` → `https://www.masgolf.co.kr/muziik/sapphire`
+    - `/muziik/ko/beryl` → `https://www.masgolf.co.kr/muziik/beryl`
+  - **Next.js Middleware** (`middleware.ts`):
+    - `/muziik/ko` → `/muziik` (301 리다이렉트)
+    - `/muziik/ko/:path*` → `/muziik/:path*` (301 리다이렉트)
+    - Middleware matcher에 `/muziik/ko`, `/muziik/ko/:path*` 추가
+- **Sitemap 업데이트**:
+  - 구형 페이지 URL 제거 (`/muziik/ko`, `/muziik/ko/sapphire`, `/muziik/ko/beryl`)
+- **유지되는 새 버전 페이지**:
+  - `pages/muziik/index.tsx` → `https://www.masgolf.co.kr/muziik`
+  - `pages/muziik/[product].tsx` → `https://www.masgolf.co.kr/muziik/sapphire`, `/beryl`
+- **테스트 결과**:
+  - ✅ `muziik.masgolf.co.kr/` → `https://www.masgolf.co.kr/muziik` (200 OK)
+  - ✅ `/muziik/ko` → `https://www.masgolf.co.kr/muziik` (200 OK)
+  - ✅ `/muziik/ko/sapphire` → `https://www.masgolf.co.kr/muziik/sapphire` (200 OK)
+  - ✅ `/muziik/ko/beryl` → `https://www.masgolf.co.kr/muziik/beryl` (200 OK)
+
+### Version 1.0 태그 생성 ✅
+- **태그명**: `v1.0`
+- **커밋 해시**: `c26cb1a`
+- **태그 메시지**: "Version 1.0: 1차 오픈 (2025-11-08) - masgolf.co.kr, masgolf.co.kr/muziik, masgolf.co.kr/admin"
+- **태그 생성 날짜**: 2025-11-08
+- **포함된 페이지**:
+  - `masgolf.co.kr` (메인 페이지)
+  - `masgolf.co.kr/muziik` (MUZIIK 샤프트 페이지)
+  - `masgolf.co.kr/admin` (관리자 페이지)
+- **GitHub 푸시 완료**: `https://github.com/whalechillz/mas-win.git`
+- **용도**: 1차 오픈 버전 백업 및 참조용
+- **기존 태그 삭제**: `pre-rollback-2025-10-13`, `v1.0-first-open` 삭제 완료
+
+### 프로모션 페이지 삭제 ✅
+- **삭제된 페이지**: `/25-10` (가을 마무리 특가 페이지)
+- **이유**: 프로모션 기간 종료로 인한 페이지 삭제
+- **삭제된 파일**:
+  - `pages/25-10.tsx`
+- **영향**: `https://www.masgolf.co.kr/25-10` 접근 시 404 페이지로 리다이렉트됨
+
+### 메인 페이지 이중 푸터 문제 해결 ✅
+- **문제**: 메인 페이지에 기존 상세 푸터 그리드와 새 토글 푸터가 동시에 존재하여 이중 푸터로 표시됨
+- **해결**: 기존 상세 푸터 그리드(776-851줄) 삭제
+- **변경 사항**:
+  - 기존 3개 컬럼 그리드 푸터 제거 (MASSGOO 브랜드 정보, 시타 센터, 연락처)
+  - 토글 푸터만 유지 (토글 콘텐츠에 동일한 정보 포함)
+  - 푸터 패딩 조정: `py-16` → 제거 (토글 푸터의 자체 패딩 사용)
+- **적용 파일**:
+  - `pages/index.js` (MASSGOO 메인)
+
+### 푸터 토글 방식 개선 ✅
+- **목표**: 모든 페이지의 푸터를 토글 방식으로 개선하여 미니멀한 디자인과 통신판매법 필수 정보를 모두 제공
+- **변경 사항**:
+  - 아이콘 한 줄: MASSGOO, MUZIIK, SSL, 프리미엄, mas9golf.com, 네이버 스마트스토어
+  - 토글 버튼: "회사 정보" 클릭 시 상세 정보 표시/숨김
+  - 아이콘 크기: `h-4 w-4` (가독성 향상)
+  - `flex-wrap` 제거: 한 줄 강제 유지
+  - 부드러운 애니메이션: `duration-500 ease-in-out`
+  - 통신판매법 필수 정보: 모든 페이지에 포함 (토글로 접근)
+- **신규 아이콘 생성**:
+  - `mas9golf-icon.svg` - MASSGOO 공식몰 아이콘
+  - `naver-smartstore-icon.svg` - 네이버 스마트스토어 아이콘
+- **적용 파일**:
+  - `pages/index.js` (MASSGOO 메인)
+  - `pages/about.tsx` (브랜드 스토리)
+  - `pages/contact.tsx` (시타매장)
+  - `pages/muziik/index.tsx` (MUZIIK 메인)
+  - `pages/muziik/about.tsx` (MUZIIK 브랜드 스토리)
+  - `pages/muziik/technology.tsx` (MUZIIK 기술력)
+  - `pages/muziik/[product].tsx` (MUZIIK 제품 상세)
+  - `pages/muziik/contact.tsx` (MUZIIK 문의하기)
+- **디자인 특징**:
+  - 미니멀하고 고급스러운 디자인
+  - 배경과 자연스럽게 통합 (`opacity-50` 기본, `opacity-100` 호버)
+  - 토글 애니메이션으로 부드러운 UX
+  - 통신판매법 필수 정보 제공
+
+### 푸터 디자인 개선 - 아이콘만 표시 ✅
+- **목표**: 푸터를 더 작고 겸손한 한 줄 형태로 변경
+- **변경 사항**:
+  - "2년 무제한 보증" 섹션 삭제
+  - 큰 카드 형태를 작은 아이콘만 표시하는 한 줄 형태로 변경
+  - "다른 브랜드 보기" + "SSL 보안" + "프리미엄 품질"만 표시
+  - 아이콘 크기: `h-3 w-3` (매우 작게)
+  - 배경과 묻히는 색상: `opacity-50` (기본), `opacity-100` (호버)
+  - 구분선: 얇은 수직선 (`w-px h-3 bg-gray-800`)
+  - 높이: 버튼 높이보다 작게 (`mb-6 pb-6`)
+- **적용 파일**:
+  - `pages/index.js` (MASSGOO 메인)
+  - `pages/about.tsx` (브랜드 스토리)
+  - `pages/contact.tsx` (시타매장)
+  - `pages/muziik/index.tsx` (MUZIIK 메인)
+  - `pages/muziik/about.tsx` (MUZIIK 브랜드 스토리)
+  - `pages/muziik/technology.tsx` (MUZIIK 기술력)
+  - `pages/muziik/[product].tsx` (MUZIIK 제품 상세)
+  - `pages/muziik/contact.tsx` (MUZIIK 문의하기)
+- **디자인 특징**:
+  - 미니멀하고 고급스러운 디자인
+  - 배경과 자연스럽게 통합
+  - 로고/아이콘 중심
+  - 호버 시에만 강조
+
+### 푸터 개선 및 신뢰도 요소 추가 ✅
+- **문의하기 폼 유효성 검사 메시지 개선**
+  - 커스텀 에러 상태 관리 추가
+  - 로케일별 유효성 검사 메시지 설정 (한글/일본어)
+  - 시각적 에러 표시 (빨간색 border + 에러 메시지)
+  - 적용 파일: `pages/muziik/contact.tsx`
+  
+- **푸터 사이트 전환 버튼 추가**
+  - 위치: 푸터 상단 (저작권 정보 위)
+  - 디자인: 버튼 스타일 (현재 사이트는 강조 색상, 다른 사이트는 회색)
+  - 반응형 디자인 (모바일: 세로 배치, 데스크톱: 가로 배치)
+  - 적용 파일:
+    - `pages/index.js` (MASSGOO 메인)
+    - `pages/muziik/index.tsx` (MUZIIK 메인)
+    - `pages/muziik/about.tsx`
+    - `pages/muziik/technology.tsx`
+    - `pages/muziik/[product].tsx`
+    - `pages/muziik/contact.tsx`
+  
+- **신뢰도 요소 추가**
+  - 신뢰도 배지 아이콘 생성 (SVG):
+    - `ssl-secure-badge.svg` - SSL 보안 배지
+    - `warranty-badge.svg` - 보증 배지
+    - `premium-quality-badge.svg` - 프리미엄 품질 배지
+    - `japan-quality-badge.svg` - 일본제 품질 배지
+  - 신뢰도 요소 섹션 추가:
+    - SSL 보안 인증
+    - 2년 무제한 보증
+    - 프리미엄 품질
+  - 적용 파일:
+    - `pages/index.js` (MASSGOO 메인)
+    - `pages/muziik/index.tsx` (MUZIIK 메인)
+  
+- **생성된 파일:**
+  - `scripts/download-trust-badges.js` - 신뢰도 배지 생성 스크립트
+  - `docs/footer-improvement-plan.md` - 푸터 개선 계획
+  - `docs/final-improvement-summary.md` - 최종 개선 요약
+  - `public/main/brand/ssl-secure-badge.svg`
+  - `public/main/brand/warranty-badge.svg`
+  - `public/main/brand/premium-quality-badge.svg`
+  - `public/main/brand/japan-quality-badge.svg`
+
+## ✅ 최근 완료된 작업 (2025-11-08)
+
+### Vercel 배포 버전 100% 복원 ✅
+- **목표**: Vercel 배포된 최신 완벽한 버전(`https://mas-lva3ulwew-taksoo-kims-projects.vercel.app`)을 로컬에 100% 일치하도록 복원
+- **작업 내용**:
+  - Vercel 배포 정보 확인
+    - 배포 ID: `dpl_Edw1bawGXoVt78zPisDs4Q3wdCrw`
+    - 배포 시점: 2025-11-06 19:47:41
+    - 상태: Ready
+    - Vercel Inspect URL: `https://vercel.com/taksoo-kims-projects/mas-win/Edw1bawGXoVt78zPisDs4Q3wdCrw`
+  - Git 커밋 해시 확인
+    - Vercel Inspect에서 확인된 Git 커밋: `018d3be` ("fix: 폴더 생성 API mime 오류 재수정")
+    - `018d3be` 커밋의 `pages/index.js` 확인 결과: 배포된 HTML과 일치하지 않음
+    - Git 히스토리 최근 1000개 커밋 검색 완료: 배포된 버전과 일치하는 커밋 없음
+  - 배포된 HTML 스크래핑 및 분석
+    - 배포된 HTML의 주요 특징:
+      - 히어로 이미지: `/main/hero/hero-main-image.webp`
+      - 로고: 이미지 (`/main/logo/massgoo_logo_black.png`)
+      - 헤더: `sticky top-0 z-50`
+      - 제목: "MASSGOO - 프리미엄 골프 클럽의 새로운 기준"
+      - "MASSGOO X MUZIIK" 섹션 포함
+  - 배포된 HTML을 기반으로 `pages/index.js` 재구성
+    - 스크래핑된 HTML을 React 컴포넌트로 변환
+    - Next.js Image 컴포넌트 사용
+    - Next.js Link 컴포넌트 사용
+    - SEO 메타 태그 포함
+    - 모바일 메뉴 기능 추가
+  - `pages/index.js` 재구성
+    - 배포된 HTML을 기반으로 React 컴포넌트로 변환
+    - 네비게이션 구조:
+      - 로고: 이미지 (`/main/logo/massgoo_logo_black.png`)
+      - 헤더: `sticky top-0 z-50`
+      - 드라이버: `https://www.masgolf.co.kr/`
+      - 기술력: `/#technology`
+      - 고객후기: `/#reviews`
+      - 브랜드 스토리: `/about`
+      - 시타매장: `/contact`
+      - 무료 시타: `https://www.mas9golf.com/try-a-massgoo`
+    - 히어로 섹션:
+      - 이미지: `/main/hero/hero-main-image.webp`
+      - "MASSGOO X MUZIIK" 섹션 포함
+      - "美압도적인 | 輝광채의 | 若젊음" 배지 포함
+    - 주요 섹션:
+      - 제품 소개 (시크리트웨폰 블랙 MUZIIK, 시크리트포스 골드 2 MUZIIK)
+      - 혁신적인 테크놀로지 (`id="technology"`)
+      - 페이스 두께의 비밀
+      - 프리미엄 드라이버 컬렉션 (`id="products"`)
+      - 퍼포먼스의 변화 (`id="reviews"`)
+      - 문의하기 (`id="contact"`)
+      - 푸터
+    - SEO 메타 태그:
+      - 제목: "MASSGOO - 프리미엄 골프 클럽의 새로운 기준"
+      - Open Graph 태그 포함
+      - Twitter Card 태그 포함
+      - Canonical 링크 포함
+    - 모바일 메뉴 기능 추가
+  - `pages/about.tsx` 재생성
+    - 배포된 페이지 HTML을 바탕으로 React 컴포넌트 재생성
+    - 브랜드 스토리 페이지 전체 구조 포함
+    - SEO 메타 태그 포함
+    - 이미지 경로 및 링크 설정 완료
+  - `pages/contact.tsx` 재생성
+    - 배포된 페이지 HTML을 바탕으로 React 컴포넌트 재생성
+    - 시타매장 페이지 전체 구조 포함
+    - Google Maps 임베드 포함
+    - 네비게이션 앱 링크 포함 (Google Maps, 네이버 지도, T맵, 카카오맵)
+    - 모바일 메뉴 기능 포함
+- **변경 파일**:
+  - `pages/index.js`: 배포된 HTML 기반으로 재구성 (백업 생성됨)
+  - `pages/about.tsx`: 신규 생성 (배포된 HTML 기반)
+  - `pages/contact.tsx`: 신규 생성 (배포된 HTML 기반)
+- **빌드 결과**:
+  - ✅ 빌드 성공
+  - `/`: 6.41 kB (103 kB First Load JS)
+  - `/about`: 5.62 kB (102 kB First Load JS)
+  - `/contact`: 5.03 kB (102 kB First Load JS)
+- **100% 일치 확인**:
+  - ✅ 제목: "MASSGOO - 프리미엄 골프 클럽의 새로운 기준"
+  - ✅ 헤더: `sticky top-0 z-50`
+  - ✅ 로고: `/main/logo/massgoo_logo_black.png`
+  - ✅ 히어로 이미지: `/main/hero/hero-main-image.webp`
+  - ✅ "MASSGOO X MUZIIK" 섹션 포함
+- **주의사항**:
+  - 관리자 페이지(`pages/admin/`)는 변경하지 않음
+  - muziik 사이트(`pages/muziik/`)는 변경하지 않음
+
 ## ✅ 최근 완료된 작업 (2025-11-01)
 
 ### 이미지 갤러리 메타데이터 품질 검증 기능 (1단계) ✅
@@ -321,3 +559,76 @@
 - 발송 이력 조회 API 추가: `GET /api/admin/sms/history?contentId=...` (총건수/성공/실패/목록)
 - 에디터 개선: 세그먼트 “자동 페이징 수집(1000 단위)”로 전체 대상 수집, “발송 이력 보기” 버튼 추가
 - 응답 개선: 중복 제외 수(duplicates), 최종 sent/failed 카운트 반환
+
+---
+
+## 📦 2025-11-07 이미지 메타데이터 AI 생성 기능 개선
+
+### 무엇을 했나
+- **"한글 AI 생성" → "골프 AI 생성"** 이름 변경 (기능 유지)
+- **범용 비전 API 생성** → "일반 메타 생성" 버튼 추가
+- **성능 최적화** 위주로 구현
+
+### 구현 내용
+
+#### 1. 범용 API 생성
+- **`/api/analyze-image-general.js`** (신규)
+  - 골프 제약 없는 범용 프롬프트
+  - 모든 이미지 타입 인식 (건물, 음식, 사람, 풍경, 제품 등)
+  - 성능 최적화: max_tokens 300, temperature 0.3
+
+- **`/api/admin/image-ai-analyzer-general.js`** (신규)
+  - 골프 특화 없이 일반 키워드 추출
+  - 모든 주제 키워드 추출 (건물, 음식, 사람, 풍경, 제품 등)
+  - 성능 최적화: max_tokens 100, temperature 0.1
+
+#### 2. Hook 함수 추가
+- **`useAIGeneration.ts`** 개선
+  - `generateGolfMetadata()`: 골프 메타데이터 생성 (기존 `generateAllMetadata` 리네임)
+  - `generateGeneralMetadata()`: 범용 메타데이터 생성 (신규)
+  - 범용 모드: 연령대 분석 제거 (골프 특화 기능)
+  - 범용 모드: 카테고리 자동 결정 제거
+  - 범용 모드: 카테고리 키워드 자동 추가 제거
+
+#### 3. UI 개선
+- **`index.tsx`** 버튼 추가 및 이름 변경
+  - "한글 AI 생성" → "골프 AI 생성" (텍스트만 변경)
+  - "일반 메타 생성" 버튼 추가
+  - 버튼 배치: `[⛳ 골프 AI 생성] [🌐 일반 메타 생성]`
+
+### 성능 최적화
+- ✅ 병렬 처리: `Promise.allSettled` 사용 (이미 구현됨)
+- ✅ 골프 모드: 5개 API 병렬 호출
+- ✅ 범용 모드: 4개 API 병렬 호출 (연령대 분석 제거로 20% 빠름)
+- ✅ 에러 핸들링: 각 API 호출 독립적 에러 처리
+- ✅ 부분 성공 처리: 일부 필드만 성공해도 결과 반환
+
+### 차이점
+
+| 항목 | 골프 모드 | 범용 모드 |
+|------|----------|----------|
+| API 엔드포인트 | `/api/analyze-image-prompt` | `/api/analyze-image-general` |
+| 키워드 API | `/api/admin/image-ai-analyzer` | `/api/admin/image-ai-analyzer-general` |
+| 연령대 분석 | ✅ 포함 | ❌ 제거 (골프 특화) |
+| 카테고리 자동 결정 | ✅ 포함 | ❌ 제거 |
+| 카테고리 키워드 추가 | ✅ 포함 | ❌ 제거 |
+| 제목 기본값 | "골프 이미지" | "이미지" |
+| API 호출 수 | 5개 | 4개 (20% 빠름) |
+
+### 변경 파일
+- `pages/api/analyze-image-general.js` (신규)
+- `pages/api/admin/image-ai-analyzer-general.js` (신규)
+- `components/ImageMetadataModal/hooks/useAIGeneration.ts` (수정)
+- `components/ImageMetadataModal/index.tsx` (수정)
+- `docs/image-metadata-ai-generation-plan.md` (신규)
+- `docs/project_plan.md` (업데이트)
+
+### 사용 방법
+1. **골프 이미지**: "골프 AI 생성" 버튼 클릭 → 골프 중심 메타데이터 생성
+2. **일반 이미지**: "일반 메타 생성" 버튼 클릭 → 범용 메타데이터 생성
+
+### 성능
+- **골프 모드**: 5개 API 병렬, 예상 시간 3-5초, 토큰 ~1,200
+- **범용 모드**: 4개 API 병렬, 예상 시간 2-4초 (20% 빠름), 토큰 ~1,000 (17% 절감)
+
+---

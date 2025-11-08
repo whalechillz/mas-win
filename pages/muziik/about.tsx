@@ -1,11 +1,13 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import Navigation from '../../components/muziik/Navigation';
 
 export default function AboutPage() {
   const router = useRouter();
   const { locale } = router;
+  const [footerExpanded, setFooterExpanded] = useState(false);
 
   // 언어별 콘텐츠
   const content = {
@@ -160,7 +162,7 @@ export default function AboutPage() {
         <meta property="og:title" content="MUZIIK - 일본제 프리미엄 골프 샤프트" />
         <meta property="og:description" content="40년 전통의 일본제 프리미엄 골프 샤프트. MUZIIK DOGATTI GENERATION의 한국 정식 수입 판매." />
         <meta property="og:image" content="/muziik/about-og.jpg" />
-        <meta property="og:url" content="https://muziik.masgolf.co.kr/about" />
+        <meta property="og:url" content="https://masgolf.co.kr/muziik/about" />
         <meta property="og:type" content="website" />
         
         {/* Twitter Card */}
@@ -171,7 +173,7 @@ export default function AboutPage() {
         
         {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://muziik.masgolf.co.kr/about" />
+        <link rel="canonical" href="https://masgolf.co.kr/muziik/about" />
       </Head>
 
       <div className="min-h-screen bg-black text-white">
@@ -442,7 +444,7 @@ export default function AboutPage() {
             </p>
             <div className="space-y-4">
               <Link 
-                href="/contact/"
+                href="/muziik/contact"
                 className="inline-block bg-white text-blue-900 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg"
               >
                 {locale === 'ja' ? 'お問い合わせする' : '문의하기'}
@@ -452,9 +454,173 @@ export default function AboutPage() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-gray-900 border-t border-gray-800 py-8">
+        <footer className="bg-gray-900 border-t border-gray-800 py-12">
           <div className="container mx-auto px-4">
-            <div className="text-center text-gray-400">
+            {/* 통합 신뢰도 섹션 - 한 줄 (아이콘만) */}
+            <div className="py-6 border-b border-gray-800">
+              <div className="flex items-center justify-center gap-4 text-gray-500">
+                {/* 다른 브랜드 보기 */}
+                <div className="flex items-center gap-2">
+                  <Link 
+                    href="/" 
+                    className="opacity-50 hover:opacity-100 transition-opacity"
+                    title={locale === 'ja' ? 'MASSGOO ドライバー' : 'MASSGOO 드라이버'}
+                  >
+                    <img 
+                      src="/main/logo/massgoo_logo_white.png" 
+                      alt="MASSGOO"
+                      className="h-4 w-auto object-contain"
+                    />
+                  </Link>
+                  <span className="text-gray-700 text-xs">/</span>
+                  <Link 
+                    href="/muziik" 
+                    className="opacity-50 hover:opacity-100 transition-opacity"
+                    title={locale === 'ja' ? 'MUZIIK シャフト' : 'MUZIIK 샤프트'}
+                  >
+                    <img 
+                      src="/muziik/brand/muziik-logo-art.png" 
+                      alt="MUZIIK"
+                      className="h-4 w-auto object-contain"
+                    />
+                  </Link>
+                </div>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* SSL 보안 */}
+                <Link 
+                  href="#" 
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'SSLセキュリティ認証' : 'SSL 보안 인증'}
+                >
+                  <img 
+                    src="/main/brand/ssl-secure-badge.svg" 
+                    alt="SSL"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* 프리미엄 품질 */}
+                <Link 
+                  href="#" 
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'プレミアム品質' : '프리미엄 품질'}
+                >
+                  <img 
+                    src="/main/brand/premium-quality-badge.svg" 
+                    alt="프리미엄"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* mas9golf.com */}
+                <Link 
+                  href="https://www.mas9golf.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'MASSGOO公式モール' : 'MASSGOO 공식몰'}
+                >
+                  <img 
+                    src="/main/brand/mas9golf-icon.svg" 
+                    alt="MASSGOO 공식몰"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* 네이버 스마트스토어 */}
+                <Link 
+                  href="https://smartstore.naver.com/mas9golf" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'ネイバースマートストア' : '네이버 스마트스토어'}
+                >
+                  <img 
+                    src="/main/brand/naver-smartstore-icon.svg" 
+                    alt="네이버 스마트스토어"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+              </div>
+            </div>
+            
+            {/* 토글 버튼 */}
+            <button
+              onClick={() => setFooterExpanded(!footerExpanded)}
+              className="w-full py-3 px-4 text-xs text-gray-400 hover:text-gray-300 
+                         border-b border-gray-800 transition-all duration-300
+                         flex items-center justify-center gap-2
+                         hover:bg-gray-800/30"
+            >
+              <span>{locale === 'ja' ? '会社情報' : '회사 정보'}</span>
+              <svg
+                className={`w-4 h-4 transition-transform duration-300 ${
+                  footerExpanded ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* 토글 콘텐츠 */}
+            <div
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                footerExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="py-6 px-4">
+                <div className="grid md:grid-cols-3 gap-8 text-sm text-gray-400">
+                  {/* 사업자 정보 */}
+                  <div>
+                    <h4 className="font-bold mb-4 text-white">{locale === 'ja' ? '事業者情報' : '사업자 정보'}</h4>
+                    <div className="space-y-2">
+                      <p>{locale === 'ja' ? '事業者名' : '사업자명'}: MASGOLF® | {locale === 'ja' ? '代表者名' : '대표자명'}: 김탁수</p>
+                      <p>{locale === 'ja' ? '事業者登録番号' : '사업자등록번호'}: 877-07-00641</p>
+                      <p>{locale === 'ja' ? '通信販売業届出番号' : '통신판매업신고번호'}: 제 2017-수원영통-0623호</p>
+                    </div>
+                  </div>
+                  
+                  {/* 고객센터 정보 */}
+                  <div>
+                    <h4 className="font-bold mb-4 text-white">{locale === 'ja' ? 'お客様センター' : '고객센터'}</h4>
+                    <div className="space-y-2">
+                      <p>{locale === 'ja' ? '距離相談' : '비거리 상담'}: 080-028-8888 ({locale === 'ja' ? '無料' : '무료'})</p>
+                      <p>{locale === 'ja' ? 'フィッティング・訪問相談' : '피팅 & 방문 상담'}: 031-215-0013</p>
+                      <p>📍 {locale === 'ja' ? '水原市永同区法条路149番ギル200' : '수원시 영통구 법조로 149번길 200'}</p>
+                      <p>🕘 {locale === 'ja' ? '月-金 09:00 - 18:00 / 週末予約制運営' : '월-금 09:00 - 18:00 / 주말 예약제 운영'}</p>
+                    </div>
+                  </div>
+                  
+                  {/* 연락처 정보 */}
+                  <div>
+                    <h4 className="font-bold mb-4 text-white">{locale === 'ja' ? '連絡先' : '연락처'}</h4>
+                    <div className="space-y-2">
+                      <p>{locale === 'ja' ? 'メール' : '이메일'}: hello@masgolf.co.kr</p>
+                      <p>{locale === 'ja' ? 'ウェブサイト' : '웹사이트'}: www.mas9golf.com</p>
+                      <p>{locale === 'ja' ? 'ウェブサイト' : '웹사이트'}: www.masgolf.co.kr</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 저작권 */}
+            <div className="py-4 text-center text-xs text-gray-500 border-t border-gray-800">
               <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">
                 {locale === 'ja' 

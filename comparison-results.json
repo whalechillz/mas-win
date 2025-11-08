@@ -1,0 +1,537 @@
+[
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/hero/hero-main-image.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/hero/hero-main-image.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/hero/hero-main-image.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/black-beryl/massgoo_sw_black_muz_11.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/black-beryl/massgoo_sw_black_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/black-beryl/massgoo_sw_black_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/technology/nano-resin-structure.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/technology/nano-resin-structure.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/technology/nano-resin-structure.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/technology/reverse-torque-prevention.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/technology/reverse-torque-prevention.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/technology/reverse-torque-prevention.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/technology/titanium-graphite-structure.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/technology/titanium-graphite-structure.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/technology/titanium-graphite-structure.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/titanium_club_face_1200x800.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/titanium_club_face_1200x800.jpg"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/black-beryl/massgoo_sw_black_muz_11.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/black-beryl/massgoo_sw_black_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/black-beryl/massgoo_sw_black_muz_11.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/gold2/gold2_00_01.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/gold2/gold2_00_01.jpg"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/secret-force-pro3.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/secret-force-pro3.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/secret-force-v3.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/secret-force-v3.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/secret-weapon-black.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/secret-weapon-black.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/products/secret-weapon-4-1.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/products/secret-weapon-4-1.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/testimonials/hero-faces/review-face-01.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/testimonials/hero-faces/review-face-01.jpg"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/testimonials/hero-faces/review-face-02.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/testimonials/hero-faces/review-face-02.jpg"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/testimonials/hero-faces/review-face-03.jpg",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/testimonials/hero-faces/review-face-03.jpg"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_white.png",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_white.png"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/",
+    "text": "MASSGOO"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#technology",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#technology",
+    "text": "기술력"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#reviews",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#reviews",
+    "text": "고객후기"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/about",
+    "text": "브랜드 스토리"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/contact",
+    "text": "시타매장"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#products",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#products",
+    "text": "제품 둘러보기"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/funnel/weapon-beryl",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/funnel/weapon-beryl",
+    "text": "자세히 보기 →"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/funnel/gold2-sapphire",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/funnel/gold2-sapphire",
+    "text": "자세히 보기 →"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/contact",
+    "text": "시타매장"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/contact",
+    "text": "문의 페이지로 이동 →"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/about",
+    "text": "브랜드 스토리"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/brand/hero-titanium_02.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/hero-titanium_02.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/hero-titanium_02.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/brand/initial-product-secret-weapon.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/initial-product-secret-weapon.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/initial-product-secret-weapon.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/brand/awards-bookshelf-04.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/awards-bookshelf-04.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/brand/call_center.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/call_center.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/brand/products-lineup.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/products-lineup.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/brand/service-warranty.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/brand/service-warranty.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_white.png",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_white.png"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/",
+    "text": "MASSGOO"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#technology",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#technology",
+    "text": "기술력"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#reviews",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#reviews",
+    "text": "고객후기"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/about",
+    "text": "브랜드 스토리"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/contact",
+    "text": "시타매장"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/about",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/",
+    "text": "제품 둘러보기"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_black.png"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-brick-01.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-brick-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-brick-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-brick-01.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-brick-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-brick-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-glass-01.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-glass-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-glass-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-glass-02.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-glass-02.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-exterior-glass-02.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-interior-display-01.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-interior-display-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-interior-display-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-interior-fitting-01.webp",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-interior-fitting-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "대상 이미지 깨짐",
+    "path": "/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/contact/masgolf-store-interior-fitting-01.webp"
+  },
+  {
+    "type": "image",
+    "issue": "이미지 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_white.png",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/main/logo/massgoo_logo_white.png"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/",
+    "text": ""
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#technology",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#technology",
+    "text": "기술력"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/#reviews",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/#reviews",
+    "text": "고객후기"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/about",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/about",
+    "text": "브랜드 스토리"
+  },
+  {
+    "type": "link",
+    "issue": "링크 경로 다름",
+    "path": "/contact",
+    "reference": "https://mas-lva3ulwew-taksoo-kims-projects.vercel.app/contact",
+    "target": "https://mas-dzh1suyp7-taksoo-kims-projects.vercel.app/contact",
+    "text": "시타매장"
+  }
+]

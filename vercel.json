@@ -9,7 +9,27 @@
       "NODE_OPTIONS": "--max-old-space-size=4096"
     }
   },
-  "rewrites": [
+  "redirects": [
+    {
+      "source": "/muziik/ko/sapphire",
+      "destination": "https://www.masgolf.co.kr/muziik/sapphire",
+      "permanent": true
+    },
+    {
+      "source": "/muziik/ko/beryl",
+      "destination": "https://www.masgolf.co.kr/muziik/beryl",
+      "permanent": true
+    },
+    {
+      "source": "/muziik/ko/:path*",
+      "destination": "https://www.masgolf.co.kr/muziik/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/muziik/ko",
+      "destination": "https://www.masgolf.co.kr/muziik",
+      "permanent": true
+    },
     {
       "source": "/",
       "has": [
@@ -18,77 +38,19 @@
           "value": "muziik.masgolf.co.kr"
         }
       ],
-      "destination": "/muziik"
+      "destination": "https://www.masgolf.co.kr/muziik",
+      "permanent": true
     },
     {
-      "source": "/sapphire",
+      "source": "/:path+",
       "has": [
         {
           "type": "host",
           "value": "muziik.masgolf.co.kr"
         }
       ],
-      "destination": "/muziik/sapphire"
-    },
-    {
-      "source": "/beryl",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "/muziik/beryl"
-    },
-    {
-      "source": "/technology",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "/muziik/technology"
-    },
-    {
-      "source": "/about",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "/muziik/about"
-    },
-    {
-      "source": "/contact",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "/muziik/contact"
-    },
-    {
-      "source": "/collaboration",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "/muziik/collaboration"
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "/muziik/:path*"
+      "destination": "https://www.masgolf.co.kr/muziik/:path*",
+      "permanent": true
     }
   ]
 }
