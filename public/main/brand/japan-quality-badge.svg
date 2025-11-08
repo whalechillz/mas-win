@@ -1,0 +1,7 @@
+
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="38" fill="#EF4444" opacity="0.1"/>
+      <circle cx="40" cy="40" r="30" fill="#EF4444"/>
+      <text x="40" y="48" text-anchor="middle" fill="white" font-size="24" font-weight="bold">🇯🇵</text>
+    </svg>
+  

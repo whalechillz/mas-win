@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Navigation from '../../components/muziik/Navigation';
@@ -7,6 +8,7 @@ export default function ContactPage() {
   const router = useRouter();
   const { locale } = router;
   const [activeTab, setActiveTab] = useState<'general' | 'partnership'>('general');
+  const [footerExpanded, setFooterExpanded] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,6 +21,7 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   // 언어별 콘텐츠
   const content = {
@@ -69,7 +72,11 @@ export default function ContactPage() {
       
       // Placeholder 텍스트
       selectPlaceholder: '選択してください',
-      messagePlaceholder: 'お問い合わせ内容を詳しくご記入ください'
+      messagePlaceholder: 'お問い合わせ内容を詳しくご記入ください',
+      
+      // 유효성 검사 메시지
+      validationRequired: 'この項目は必須です',
+      validationEmail: '有効なメールアドレスを入力してください'
     },
     ko: {
       title: 'MUZIIK - 문의하기',
@@ -118,7 +125,11 @@ export default function ContactPage() {
       
       // Placeholder 텍스트
       selectPlaceholder: '선택해주세요',
-      messagePlaceholder: '문의 내용을 자세히 작성해주세요'
+      messagePlaceholder: '문의 내용을 자세히 작성해주세요',
+      
+      // 유효성 검사 메시지
+      validationRequired: '이 입력란을 작성하세요',
+      validationEmail: '유효한 이메일 주소를 입력하세요'
     }
   };
 
@@ -130,6 +141,37 @@ export default function ContactPage() {
       ...prev,
       [name]: value
     }));
+    // 입력 시 에러 메시지 제거
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  // 유효성 검사 함수
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formData.name) {
+      newErrors.name = t.validationRequired;
+    }
+    if (!formData.email) {
+      newErrors.email = t.validationRequired;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = t.validationEmail;
+    }
+    if (!formData.inquiryType) {
+      newErrors.inquiryType = t.validationRequired;
+    }
+    if (!formData.message) {
+      newErrors.message = t.validationRequired;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
 
@@ -139,7 +181,7 @@ export default function ContactPage() {
     setSubmitStatus('idle');
 
     // 폼 데이터 검증
-    if (!formData.name || !formData.email || !formData.message) {
+    if (!validateForm()) {
       setSubmitStatus('error');
       setIsSubmitting(false);
       return;
@@ -212,7 +254,7 @@ export default function ContactPage() {
         <meta property="og:title" content="MUZIIK 문의하기 - 골프 샤프트 상담" />
         <meta property="og:description" content="MUZIIK DOGATTI GENERATION 샤프트 문의 및 상담. 문의하기, 파트너십 문의." />
         <meta property="og:image" content="/muziik/contact-og.jpg" />
-        <meta property="og:url" content="https://muziik.masgolf.co.kr/contact" />
+        <meta property="og:url" content="https://masgolf.co.kr/muziik/contact" />
         <meta property="og:type" content="website" />
         
         {/* Twitter Card */}
@@ -223,7 +265,7 @@ export default function ContactPage() {
         
         {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://muziik.masgolf.co.kr/contact" />
+        <link rel="canonical" href="https://masgolf.co.kr/muziik/contact" />
       </Head>
 
       <div className="min-h-screen bg-black text-white">
@@ -334,10 +376,19 @@ export default function ContactPage() {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className={`w-full px-4 py-4 bg-gray-700 border rounded-xl text-white focus:outline-none focus:ring-2 transition-all ${
+                          errors.name 
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                            : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
+                        }`}
                         placeholder={locale === 'ja' ? 'お名前を入力してください' : '이름을 입력해주세요'}
                       />
+                      {errors.name && (
+                        <p className="text-red-400 text-sm mt-1 flex items-center">
+                          <span className="mr-1">⚠️</span>
+                          {errors.name}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <label className="block text-white font-semibold mb-2 flex items-center">
@@ -349,10 +400,19 @@ export default function ContactPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className={`w-full px-4 py-4 bg-gray-700 border rounded-xl text-white focus:outline-none focus:ring-2 transition-all ${
+                          errors.email 
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                            : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
+                        }`}
                         placeholder={locale === 'ja' ? 'メールアドレスを入力してください' : '이메일을 입력해주세요'}
                       />
+                      {errors.email && (
+                        <p className="text-red-400 text-sm mt-1 flex items-center">
+                          <span className="mr-1">⚠️</span>
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -377,14 +437,23 @@ export default function ContactPage() {
                         name="inquiryType"
                         value={formData.inquiryType}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 transition-all ${
+                          errors.inquiryType 
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                            : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
+                        }`}
                       >
                         <option value="">{t.selectPlaceholder}</option>
                         {t.inquiryTypes[activeTab].map((type) => (
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
+                      {errors.inquiryType && (
+                        <p className="text-red-400 text-sm mt-1 flex items-center">
+                          <span className="mr-1">⚠️</span>
+                          {errors.inquiryType}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -443,11 +512,20 @@ export default function ContactPage() {
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
-                      required
                       rows={6}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                      className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 transition-all ${
+                        errors.message 
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                          : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
+                      }`}
                       placeholder={t.messagePlaceholder}
                     />
+                    {errors.message && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <span className="mr-1">⚠️</span>
+                        {errors.message}
+                      </p>
+                    )}
                   </div>
 
 
@@ -485,9 +563,173 @@ export default function ContactPage() {
 
 
         {/* Footer */}
-        <footer className="bg-gray-900 border-t border-gray-800 py-8">
+        <footer className="bg-gray-900 border-t border-gray-800 py-12">
           <div className="container mx-auto px-4">
-            <div className="text-center text-gray-400">
+            {/* 통합 신뢰도 섹션 - 한 줄 (아이콘만) */}
+            <div className="py-6 border-b border-gray-800">
+              <div className="flex items-center justify-center gap-4 text-gray-500">
+                {/* 다른 브랜드 보기 */}
+                <div className="flex items-center gap-2">
+                  <Link 
+                    href="/" 
+                    className="opacity-50 hover:opacity-100 transition-opacity"
+                    title={locale === 'ja' ? 'MASSGOO ドライバー' : 'MASSGOO 드라이버'}
+                  >
+                    <img 
+                      src="/main/logo/massgoo_logo_white.png" 
+                      alt="MASSGOO"
+                      className="h-4 w-auto object-contain"
+                    />
+                  </Link>
+                  <span className="text-gray-700 text-xs">/</span>
+                  <Link 
+                    href="/muziik" 
+                    className="opacity-50 hover:opacity-100 transition-opacity"
+                    title={locale === 'ja' ? 'MUZIIK シャフト' : 'MUZIIK 샤프트'}
+                  >
+                    <img 
+                      src="/muziik/brand/muziik-logo-art.png" 
+                      alt="MUZIIK"
+                      className="h-4 w-auto object-contain"
+                    />
+                  </Link>
+                </div>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* SSL 보안 */}
+                <Link 
+                  href="#" 
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'SSLセキュリティ認証' : 'SSL 보안 인증'}
+                >
+                  <img 
+                    src="/main/brand/ssl-secure-badge.svg" 
+                    alt="SSL"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* 프리미엄 품질 */}
+                <Link 
+                  href="#" 
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'プレミアム品質' : '프리미엄 품질'}
+                >
+                  <img 
+                    src="/main/brand/premium-quality-badge.svg" 
+                    alt="프리미엄"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* mas9golf.com */}
+                <Link 
+                  href="https://www.mas9golf.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'MASSGOO公式モール' : 'MASSGOO 공식몰'}
+                >
+                  <img 
+                    src="/main/brand/mas9golf-icon.svg" 
+                    alt="MASSGOO 공식몰"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+                
+                {/* 구분선 */}
+                <div className="w-px h-4 bg-gray-800"></div>
+                
+                {/* 네이버 스마트스토어 */}
+                <Link 
+                  href="https://smartstore.naver.com/mas9golf" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="opacity-50 hover:opacity-100 transition-opacity"
+                  title={locale === 'ja' ? 'ネイバースマートストア' : '네이버 스마트스토어'}
+                >
+                  <img 
+                    src="/main/brand/naver-smartstore-icon.svg" 
+                    alt="네이버 스마트스토어"
+                    className="h-4 w-4 object-contain"
+                  />
+                </Link>
+              </div>
+            </div>
+            
+            {/* 토글 버튼 */}
+            <button
+              onClick={() => setFooterExpanded(!footerExpanded)}
+              className="w-full py-3 px-4 text-xs text-gray-400 hover:text-gray-300 
+                         border-b border-gray-800 transition-all duration-300
+                         flex items-center justify-center gap-2
+                         hover:bg-gray-800/30"
+            >
+              <span>{locale === 'ja' ? '会社情報' : '회사 정보'}</span>
+              <svg
+                className={`w-4 h-4 transition-transform duration-300 ${
+                  footerExpanded ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* 토글 콘텐츠 */}
+            <div
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                footerExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="py-6 px-4">
+                <div className="grid md:grid-cols-3 gap-8 text-sm text-gray-400">
+                  {/* 사업자 정보 */}
+                  <div>
+                    <h4 className="font-bold mb-4 text-white">{locale === 'ja' ? '事業者情報' : '사업자 정보'}</h4>
+                    <div className="space-y-2">
+                      <p>{locale === 'ja' ? '事業者名' : '사업자명'}: MASGOLF® | {locale === 'ja' ? '代表者名' : '대표자명'}: 김탁수</p>
+                      <p>{locale === 'ja' ? '事業者登録番号' : '사업자등록번호'}: 877-07-00641</p>
+                      <p>{locale === 'ja' ? '通信販売業届出番号' : '통신판매업신고번호'}: 제 2017-수원영통-0623호</p>
+                    </div>
+                  </div>
+                  
+                  {/* 고객센터 정보 */}
+                  <div>
+                    <h4 className="font-bold mb-4 text-white">{locale === 'ja' ? 'お客様センター' : '고객센터'}</h4>
+                    <div className="space-y-2">
+                      <p>{locale === 'ja' ? '距離相談' : '비거리 상담'}: 080-028-8888 ({locale === 'ja' ? '無料' : '무료'})</p>
+                      <p>{locale === 'ja' ? 'フィッティング・訪問相談' : '피팅 & 방문 상담'}: 031-215-0013</p>
+                      <p>📍 {locale === 'ja' ? '水原市永同区法条路149番ギル200' : '수원시 영통구 법조로 149번길 200'}</p>
+                      <p>🕘 {locale === 'ja' ? '月-金 09:00 - 18:00 / 週末予約制運営' : '월-금 09:00 - 18:00 / 주말 예약제 운영'}</p>
+                    </div>
+                  </div>
+                  
+                  {/* 연락처 정보 */}
+                  <div>
+                    <h4 className="font-bold mb-4 text-white">{locale === 'ja' ? '連絡先' : '연락처'}</h4>
+                    <div className="space-y-2">
+                      <p>{locale === 'ja' ? 'メール' : '이메일'}: hello@masgolf.co.kr</p>
+                      <p>{locale === 'ja' ? 'ウェブサイト' : '웹사이트'}: www.mas9golf.com</p>
+                      <p>{locale === 'ja' ? 'ウェブサイト' : '웹사이트'}: www.masgolf.co.kr</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 저작권 */}
+            <div className="py-4 text-center text-xs text-gray-500 border-t border-gray-800">
               <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
               <p className="mt-2">
                 {locale === 'ja' 
