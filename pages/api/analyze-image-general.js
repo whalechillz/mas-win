@@ -17,30 +17,29 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Image URL is required' });
     }
 
-    console.log('🔍 이미지 프롬프트 분석 시작:', imageUrl);
+    console.log('🔍 범용 이미지 프롬프트 분석 시작:', imageUrl);
     console.log('🔧 OpenAI API 키 확인:', process.env.OPENAI_API_KEY ? '설정됨' : '누락');
 
-    // OpenAI Vision API를 사용하여 골프 특화 이미지 분석 (모든 메타데이터 한 번에 생성)
+    // OpenAI Vision API를 사용하여 범용 이미지 분석 (모든 메타데이터 한 번에 생성)
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are an expert image analyzer for golf-related content. 
+          content: `You are an expert image analyzer for general content. 
 Analyze the given image and generate all metadata in JSON format.
 
 Guidelines:
 - Write in Korean language
-- Generate all metadata fields: alt_text, title, description, keywords, age_estimation
+- Generate all metadata fields: alt_text, title, description, keywords
 - Focus on visual elements: composition, lighting, colors, objects, people, setting
-- Include specific golf-related details if present (clubs, courses, players, equipment, etc.)
+- Include specific details if present (buildings, food, people, landscapes, products, etc.)
 - Use descriptive adjectives and natural Korean expressions
 - Be rich, detailed, and vivid in your descriptions
 - ALT text: 80-150 words, detailed and vivid description suitable for accessibility
 - Title: 25-60 characters, SEO-friendly and engaging
 - Description: 100-200 words, rich and detailed description with atmosphere and context
-- Keywords: 8-12 golf-related keywords separated by commas
-- Age estimation: "젊은" (appears 20-40), "시니어" (appears 50+), or "없음" (no people)
+- Keywords: 8-12 keywords separated by commas, relevant to the image
 - Return ONLY valid JSON format, no additional text
 
 Return format:
@@ -48,8 +47,7 @@ Return format:
   "alt_text": "이미지를 설명하는 대체 텍스트 (80-150 words, 상세하고 생생한 설명)",
   "title": "이미지 제목 (25-60자)",
   "description": "이미지 상세 설명 (100-200 words, 풍부하고 맥락이 있는 설명)",
-  "keywords": "키워드1, 키워드2, 키워드3, 키워드4, 키워드5, 키워드6, 키워드7, 키워드8",
-  "age_estimation": "젊은" | "시니어" | "없음"
+  "keywords": "키워드1, 키워드2, 키워드3, 키워드4, 키워드5, 키워드6, 키워드7, 키워드8"
 }`
         },
         {
@@ -57,7 +55,7 @@ Return format:
           content: [
             {
               type: "text",
-              text: `이 골프 이미지를 분석하고 모든 메타데이터를 JSON 형식으로 생성해주세요. ALT 텍스트, 제목, 설명, 키워드, 연령대 판별을 포함해주세요.`
+              text: `이 이미지를 분석하고 모든 메타데이터를 JSON 형식으로 생성해주세요. ALT 텍스트, 제목, 설명, 키워드를 포함해주세요.`
             },
             {
               type: "image_url",
@@ -85,15 +83,14 @@ Return format:
         alt_text: content.substring(0, 125),
         title: content.substring(0, 60),
         description: content,
-        keywords: '',
-        age_estimation: '없음'
+        keywords: ''
       };
     }
     
     // AI 사용량 로깅
     await logOpenAIUsage(
-      'analyze-image-prompt',
-      'golf_image_analysis',
+      'analyze-image-general',
+      'general_image_analysis',
       response,
       {
         imageUrl: imageUrl,
@@ -102,7 +99,7 @@ Return format:
       }
     );
 
-    console.log('✅ 골프 이미지 메타데이터 생성 완료:', metadata);
+    console.log('✅ 범용 이미지 메타데이터 생성 완료:', metadata);
 
     res.status(200).json({
       success: true,
@@ -111,10 +108,11 @@ Return format:
     });
 
   } catch (error) {
-    console.error('❌ 이미지 프롬프트 분석 에러:', error);
+    console.error('❌ 범용 이미지 프롬프트 분석 에러:', error);
     res.status(500).json({
-      error: '이미지 프롬프트 분석 중 오류가 발생했습니다.',
+      error: '범용 이미지 프롬프트 분석 중 오류가 발생했습니다.',
       details: error.message
     });
   }
 }
+

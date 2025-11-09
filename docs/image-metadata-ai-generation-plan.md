@@ -90,12 +90,12 @@ Guidelines:
 | 항목 | 골프 모드 | 범용 모드 |
 |------|----------|----------|
 | API 엔드포인트 | `/api/analyze-image-prompt` | `/api/analyze-image-general` |
-| 키워드 API | `/api/admin/image-ai-analyzer` | `/api/admin/image-ai-analyzer-general` |
+| 응답 형식 | JSON (alt_text, title, description, keywords, age_estimation) | JSON (alt_text, title, description, keywords) |
 | 연령대 분석 | ✅ 포함 | ❌ 제거 (골프 특화) |
 | 카테고리 자동 결정 | ✅ 포함 | ❌ 제거 |
 | 카테고리 키워드 추가 | ✅ 포함 | ❌ 제거 |
 | 제목 기본값 | "골프 이미지" | "이미지" |
-| API 호출 수 | 5개 | 4개 (20% 빠름) |
+| API 호출 수 | **1개** | **1개** |
 
 ---
 
@@ -117,16 +117,26 @@ Guidelines:
 ## 📈 성능 비교
 
 ### 골프 모드
-- **API 호출 수**: 5개 (병렬 처리)
-- **예상 시간**: 3-5초
-- **토큰 사용량**: ~1,200 tokens
+- **API 호출 수**: 1개 (단일 호출로 최적화)
+- **예상 시간**: 2-3초
+- **토큰 사용량**: ~800 tokens (max_tokens: 800)
 - **특화 기능**: 연령대 분석, 골프 카테고리 자동 결정
+- **응답 형식**: JSON (모든 메타데이터 한 번에 생성)
+- **프롬프트 개선** (2025-11-09):
+  - ALT text: 80-150 words (상세하고 생생한 설명)
+  - Description: 100-200 words (풍부하고 맥락이 있는 설명)
+  - Keywords: 8-12개 (골프 관련 키워드)
 
 ### 범용 모드
-- **API 호출 수**: 4개 (병렬 처리, 20% 빠름)
-- **예상 시간**: 2-4초
-- **토큰 사용량**: ~1,000 tokens (17% 절감)
+- **API 호출 수**: 1개 (단일 호출로 최적화)
+- **예상 시간**: 2-3초
+- **토큰 사용량**: ~800 tokens (max_tokens: 800)
 - **특화 기능**: 없음 (범용 처리)
+- **응답 형식**: JSON (모든 메타데이터 한 번에 생성)
+- **프롬프트 개선** (2025-11-09):
+  - ALT text: 80-150 words (상세하고 생생한 설명)
+  - Description: 100-200 words (풍부하고 맥락이 있는 설명)
+  - Keywords: 8-12개 (관련 키워드)
 
 ---
 

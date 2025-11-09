@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import { CategoryManagementModal } from '../../components/CategoryManagementModal';
 import FolderTree from '../../components/gallery/FolderTree';
+import { createClient } from '@supabase/supabase-js';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -3233,40 +3234,84 @@ export default function GalleryAdmin() {
                       if (!file) return;
                       try {
                         setPending(true);
-                        // 1) 서명 URL 발급
-                        const dateStr = new Date().toISOString().slice(0,10);
-                        const res = await fetch('/api/admin/storage-signed-upload',{
-                          method:'POST', headers:{'Content-Type':'application/json'},
-                          body: JSON.stringify({
-                            fileName: file.name,
-                            folder: `originals/${dateStr}`,
-                            contentType: file.type || 'application/octet-stream'
-                          })
+                        
+                        // Supabase 클라이언트 초기화
+                        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+                        if (!supabaseUrl || !supabaseAnonKey) {
+                          throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
+                        }
+                        const sb = createClient(supabaseUrl, supabaseAnonKey);
+                        
+                        // 1) 파일명 정리 및 경로 생성
+                        const dateStr = new Date().toISOString().slice(0, 10);
+                        const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
+                        const ts = Date.now();
+                        const objectPath = `originals/${dateStr}/${ts}_${baseName}`;
+                        
+                        // 2) 서명 업로드 URL 발급
+                        const res = await fetch('/api/admin/storage-signed-upload', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ path: objectPath })
                         });
-                        const json = await res.json();
-                        if(!res.ok) throw new Error(json.error||'서명 URL 발급 실패');
-                        const { signedUrl, objectPath, publicUrl } = json;
-                        // 2) 업로드
-                        const put = await fetch(signedUrl,{ method:'PUT', headers:{'Content-Type': file.type||'application/octet-stream'}, body:file });
-                        if(!put.ok) throw new Error('업로드 실패');
-                        // 3) 메타 업서트
-                        await fetch('/api/admin/upsert-image-metadata',{
-                          method:'POST', headers:{'Content-Type':'application/json'},
+                        
+                        if (!res.ok) {
+                          const error = await res.json();
+                          throw new Error(error.error || '서명 URL 발급 실패');
+                        }
+                        
+                        const { token } = await res.json();
+                        
+                        // 3) Supabase SDK로 업로드
+                        const { error: uploadError } = await sb.storage
+                          .from('blog-images')
+                          .uploadToSignedUrl(objectPath, token, file);
+                        
+                        if (uploadError) {
+                          throw new Error(`업로드 실패: ${uploadError.message}`);
+                        }
+                        
+                        // 4) 공개 URL 가져오기
+                        const { data: publicUrlData } = sb.storage
+                          .from('blog-images')
+                          .getPublicUrl(objectPath);
+                        const publicUrl = publicUrlData?.publicUrl;
+                        
+                        if (!publicUrl) {
+                          throw new Error('공개 URL을 가져올 수 없습니다.');
+                        }
+                        
+                        // 5) 메타데이터 저장
+                        await fetch('/api/admin/upsert-image-metadata', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             file_name: file.name,
                             image_url: publicUrl,
                             date_folder: dateStr,
-                            width: null, height: null, file_size: file.size
+                            width: null,
+                            height: null,
+                            file_size: file.size
                           })
                         });
-                        // 4) EXIF 백필 비동기
-                        fetch('/api/admin/backfill-exif',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paths:[objectPath] })});
+                        
+                        // 6) EXIF 백필 비동기
+                        fetch('/api/admin/backfill-exif', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ paths: [objectPath] })
+                        }).catch(err => console.error('EXIF 백필 오류:', err));
+                        
                         setShowAddModal(false);
                         fetchImages(1, true);
                         alert('이미지 업로드 완료');
-                      } catch(e:any){
+                      } catch (e: any) {
+                        console.error('❌ 이미지 업로드 오류:', e);
                         alert(`업로드 실패: ${e.message}`);
-                      } finally { setPending(false); }
+                      } finally {
+                        setPending(false);
+                      }
                     }}
                   />
                   <p className="text-xs text-gray-500">HEIC/JPG/PNG 지원. 업로드 후 자동으로 메타데이터가 보강됩니다.</p>
