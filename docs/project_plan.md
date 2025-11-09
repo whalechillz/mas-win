@@ -28,18 +28,23 @@
   - ✅ `/muziik/ko/sapphire` → `https://www.masgolf.co.kr/muziik/sapphire` (200 OK)
   - ✅ `/muziik/ko/beryl` → `https://www.masgolf.co.kr/muziik/beryl` (200 OK)
 
-### Version 1.0 태그 생성 ✅
+### Version 1.0 태그 생성 ✅ (최종 업데이트: 2025-11-09)
 - **태그명**: `v1.0`
-- **커밋 해시**: `c26cb1a`
-- **태그 메시지**: "Version 1.0: 1차 오픈 (2025-11-08) - masgolf.co.kr, masgolf.co.kr/muziik, masgolf.co.kr/admin"
-- **태그 생성 날짜**: 2025-11-08
+- **커밋 해시**: `f51c124`
+- **태그 메시지**: "Version 1.0: 최종 1차 오픈 (2025-11-09) - masgolf.co.kr, masgolf.co.kr/muziik, masgolf.co.kr/admin"
+- **태그 생성 날짜**: 2025-11-09
 - **포함된 페이지**:
   - `masgolf.co.kr` (메인 페이지)
   - `masgolf.co.kr/muziik` (MUZIIK 샤프트 페이지)
   - `masgolf.co.kr/admin` (관리자 페이지)
+- **문서 정리 작업 포함**:
+  - 갤러리 시스템 통합 가이드 추가 (`docs/gallery-complete-system-guide.md`)
+  - 메타데이터 AI 생성 계획 추가 (`docs/image-metadata-ai-generation-plan.md`)
+  - 프로젝트 계획 문서 업데이트 (`docs/project_plan.md`)
+  - 갤러리 마이그레이션 우선순위 계획 업데이트 (`docs/gallery-migration-priority-plan.md`)
 - **GitHub 푸시 완료**: `https://github.com/whalechillz/mas-win.git`
-- **용도**: 1차 오픈 버전 백업 및 참조용
-- **기존 태그 삭제**: `pre-rollback-2025-10-13`, `v1.0-first-open` 삭제 완료
+- **용도**: 최종 1차 오픈 버전 백업 및 참조용 (문서 정리 작업 완료 포함)
+- **이전 태그**: `c26cb1a` (2025-11-08) → `f51c124` (2025-11-09)로 업데이트
 
 ### 프로모션 페이지 삭제 ✅
 - **삭제된 페이지**: `/25-10` (가을 마무리 특가 페이지)
