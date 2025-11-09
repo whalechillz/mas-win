@@ -373,6 +373,47 @@
 
 ---
 
+## 🔧 추가 기능
+
+### EXIF 메타정보 추출 (구현 완료 ✅)
+
+#### 완료된 기능
+- ✅ EXIF 메타데이터 추출 (GPS 좌표, 촬영 날짜, 카메라 정보 등)
+- ✅ 이미지 크기 정보 추출 (width, height)
+- ✅ 일괄 EXIF 추출 및 메타데이터 동기화
+
+**API**: 
+- `POST /api/admin/extract-exif` - 단일 이미지 EXIF 추출
+- `POST /api/admin/backfill-exif` - 일괄 EXIF 추출
+
+**구현 파일**: 
+- `pages/api/admin/extract-exif.js`
+- `pages/api/admin/backfill-exif.js`
+
+**사용 방법**:
+1. 갤러리 관리 페이지에서 이미지 선택
+2. "EXIF 추출" 버튼 클릭
+3. GPS 좌표, 촬영 날짜, 카메라 정보 등 자동 추출
+
+---
+
+### 구글 지도 연결 (Contact 페이지 구현 완료 ✅)
+
+#### 현재 상태
+- ✅ Contact 페이지에 구글 지도 임베드 구현
+- ⚠️ 갤러리 시스템과 직접 연결 없음 (별도 기능)
+
+**구현 파일**: `pages/contact.tsx`
+
+**주요 기능**:
+- Google Maps Embed API 사용
+- 매장 위치 표시
+- 네비게이션 앱 링크 (Google Maps, 네이버 지도, T맵, 카카오맵)
+
+**참고**: 갤러리 시스템의 이미지 위치 정보와 연동 가능 (향후 개선 사항)
+
+---
+
 ## 📅 예상 일정
 
 ### 블로그 이미지 정리 우선 (Phase 1-6)
