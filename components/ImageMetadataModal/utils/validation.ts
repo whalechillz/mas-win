@@ -2,10 +2,10 @@ import { MetadataForm, ValidationRule, SEORecommendation } from '../types/metada
 
 // SEO 최적화 권장사항
 export const SEO_RECOMMENDATIONS = {
-  alt_text: { min: 50, max: 125, optimal: 100 },
+  alt_text: { min: 80, max: 200, optimal: 120 },  // ✅ ALT 텍스트 길이 (프롬프트: 80-150 words)
   keywords: { min: 10, max: 30, optimal: 20 },
   title: { min: 25, max: 60, optimal: 30 },
-  description: { min: 80, max: 160, optimal: 100 }
+  description: { min: 100, max: 300, optimal: 150 }  // ✅ 설명 길이 증가 (프롬프트: 100-200 words)
 };
 
 // 유효성 검사 규칙
@@ -36,7 +36,7 @@ export const VALIDATION_RULES: ValidationRule[] = [
   },
   {
     field: 'category',
-    required: true,
+    required: false,  // ✅ 카테고리 필수 검증 제거 (UI에서 카테고리 필드 제거됨, 키워드 중심으로 전환)
     message: '카테고리를 선택해주세요'
   }
 ];
@@ -48,12 +48,20 @@ export const validateForm = (form: MetadataForm): Record<string, string> => {
   VALIDATION_RULES.forEach(rule => {
     const value = form[rule.field];
     
-    if (rule.required && (!value || value.trim() === '')) {
+    // ✅ category 필드는 UI에서 제거되었으므로 검증 제외
+    if (rule.field === 'category') {
+      return; // 카테고리 검증 건너뛰기
+    }
+    
+    // 문자열 또는 문자열 배열 처리
+    const stringValue = Array.isArray(value) ? value.join(', ') : (value || '');
+    
+    if (rule.required && (!stringValue || stringValue.trim() === '')) {
       errors[rule.field] = rule.message || `${rule.field}는 필수입니다`;
       return;
     }
 
-    if (rule.maxLength && value && value.length > rule.maxLength) {
+    if (rule.maxLength && stringValue && stringValue.length > rule.maxLength) {
       errors[rule.field] = rule.message || `${rule.field}는 ${rule.maxLength}자 이하로 입력해주세요`;
     }
   });
@@ -68,8 +76,10 @@ export const calculateSEOScore = (form: MetadataForm): number => {
 
   Object.entries(SEO_RECOMMENDATIONS).forEach(([field, recommendation]) => {
     const value = form[field as keyof MetadataForm];
-    if (value && value.trim()) {
-      const length = value.length;
+    // 문자열 또는 문자열 배열 처리
+    const stringValue = Array.isArray(value) ? value.join(', ') : (value || '');
+    if (stringValue && stringValue.trim()) {
+      const length = stringValue.length;
       let score = 0;
 
       if (length >= recommendation.min && length <= recommendation.max) {

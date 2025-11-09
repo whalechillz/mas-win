@@ -45,7 +45,7 @@ const FIELD_CONFIGS: Partial<Record<keyof MetadataForm, FieldConfig>> = {
     label: '설명',
     placeholder: '이미지 설명',
     type: 'textarea',
-    maxLength: 200,
+    maxLength: 300,  // ✅ 설명 길이 제한 증가 (200 → 300자, 프롬프트: 100-200 words)
     aiEnabled: true,
     seoOptimized: true
   },
@@ -96,7 +96,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { isGenerating, generateAllMetadata, generateField } = useAIGeneration();
+  const { isGenerating, generateGolfMetadata, generateGeneralMetadata, generateField } = useAIGeneration();
 
   // SEO 파일명 자동 생성 (하이브리드: 규칙 기반 + AI)
   const handleGenerateSEOFileName = useCallback(async () => {
@@ -377,21 +377,21 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           newKeywords: allKeywords
         });
       }
+      
+      // ✅ 실시간 유효성 검사 (업데이트된 폼으로 검증)
+      const errors = validateForm(updated);
+      setValidationErrors(errors);
+      
       return updated;
     });
     setHasChanges(true);
-    
-    // 실시간 유효성 검사
-    const newForm = { ...form, [field]: value };
-    const errors = validateForm(newForm);
-    setValidationErrors(errors);
-  }, [form]);
+  }, []);
 
-  // 전체 AI 생성
-  const handleGenerateAll = useCallback(async (language: 'korean' | 'english') => {
+  // 골프 AI 생성
+  const handleGenerateGolf = useCallback(async (language: 'korean' | 'english') => {
     if (!image) return;
 
-    const result = await generateAllMetadata(image.url, {
+    const result = await generateGolfMetadata(image.url, {
       language,
       fields: ['alt_text', 'keywords', 'title', 'description', 'category']
     });
@@ -405,16 +405,57 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         titleValue = '';
       }
       
-      setForm(prev => ({ 
-        ...prev, 
-        ...result.data,
-        title: titleValue  // 파일명 형식이면 빈 문자열로 덮어쓰기
-      }));
+      setForm(prev => {
+        const updated = { 
+          ...prev, 
+          ...result.data,
+          title: titleValue  // 파일명 형식이면 빈 문자열로 덮어쓰기
+        };
+        // ✅ AI 생성 후 검증 오류 초기화
+        const errors = validateForm(updated);
+        setValidationErrors(errors);
+        return updated;
+      });
       setHasChanges(true);
     } else {
-      alert(`AI 생성에 실패했습니다: ${result.error}`);
+      alert(`골프 AI 생성에 실패했습니다: ${result.error}`);
     }
-  }, [image, generateAllMetadata]);
+  }, [image, generateGolfMetadata]);
+
+  // 범용 AI 생성
+  const handleGenerateGeneral = useCallback(async (language: 'korean' | 'english') => {
+    if (!image) return;
+
+    const result = await generateGeneralMetadata(image.url, {
+      language,
+      fields: ['alt_text', 'keywords', 'title', 'description']
+    });
+
+    if (result.success && result.data) {
+      // ✅ 제목이 파일명 형식인지 확인 및 처리
+      let titleValue = result.data.title || '';
+      const isFilenameFormat = /^[a-z0-9-]+\.(jpg|jpeg|png|gif|webp)$/i.test(titleValue);
+      if (isFilenameFormat) {
+        console.warn('⚠️ AI 생성된 제목이 파일명 형식입니다. 빈 문자열로 처리:', titleValue);
+        titleValue = '';
+      }
+      
+      setForm(prev => {
+        const updated = { 
+          ...prev, 
+          ...result.data,
+          title: titleValue  // 파일명 형식이면 빈 문자열로 덮어쓰기
+        };
+        // ✅ AI 생성 후 검증 오류 초기화
+        const errors = validateForm(updated);
+        setValidationErrors(errors);
+        return updated;
+      });
+      setHasChanges(true);
+    } else {
+      alert(`일반 메타 생성에 실패했습니다: ${result.error}`);
+    }
+  }, [image, generateGeneralMetadata]);
 
   // 개별 필드 AI 생성
   const handleGenerateField = useCallback(async (field: keyof MetadataForm, language: 'korean' | 'english') => {
@@ -423,7 +464,13 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     const result = await generateField(image.url, field, language);
     
     if (result.success && result.data) {
-      setForm(prev => ({ ...prev, ...result.data }));
+      setForm(prev => {
+        const updated = { ...prev, ...result.data };
+        // ✅ AI 생성 후 검증 오류 초기화
+        const errors = validateForm(updated);
+        setValidationErrors(errors);
+        return updated;
+      });
       setHasChanges(true);
     } else {
       alert(`AI 생성에 실패했습니다: ${result.error}`);
@@ -536,13 +583,21 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            {/* 전체 AI 생성 버튼들 */}
+            {/* AI 생성 버튼들 */}
             <button
-              onClick={() => handleGenerateAll('korean')}
+              onClick={() => handleGenerateGolf('korean')}
               disabled={isGenerating}
               className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isGenerating ? '⏳' : '🤖'} 한글 AI 생성
+              {isGenerating ? '⏳' : '⛳'} 골프 AI 생성
+            </button>
+            
+            <button
+              onClick={() => handleGenerateGeneral('korean')}
+              disabled={isGenerating}
+              className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isGenerating ? '⏳' : '🌐'} 일반 메타 생성
             </button>
             
             <button

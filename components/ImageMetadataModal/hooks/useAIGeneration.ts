@@ -36,8 +36,8 @@ export const useAIGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationHistory, setGenerationHistory] = useState<AIGenerationResult[]>([]);
 
-  // 전체 메타데이터 AI 생성
-  const generateAllMetadata = useCallback(async (
+  // 골프 메타데이터 AI 생성 (기존 generateAllMetadata 리네임)
+  const generateGolfMetadata = useCallback(async (
     imageUrl: string,
     options: AIGenerationOptions
   ): Promise<AIGenerationResult> => {
@@ -49,58 +49,16 @@ export const useAIGeneration = () => {
       const isEnglish = options.language === 'english';
       const language = isEnglish ? 'English' : 'Korean';
       
-      // 모든 AI 요청을 병렬로 실행 (연령대 분석 추가)
-      const [altResponse, keywordResponse, titleResponse, descResponse, ageAnalysisResponse] = await Promise.allSettled([
-        fetch('/api/analyze-image-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl,
-            title: isEnglish ? 'Detailed image description' : '이미지 상세 설명',
-            excerpt: isEnglish ? 'Describe the specific content of the image in detail (for ALT text). Please respond in English only.' : '이미지의 구체적인 내용을 상세히 설명 (ALT 텍스트용)'
-          })
-        }),
-        fetch('/api/admin/image-ai-analyzer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl,
-            imageId: null
-          })
-        }),
-        fetch('/api/analyze-image-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl,
-            title: isEnglish ? 'Image title' : '이미지 제목',
-            excerpt: isEnglish 
-              ? 'Generate a catchy, SEO-friendly image title in English only. The title must be between 25-60 characters. Make it descriptive and engaging. Do not use Korean.' 
-              : '이미지 제목을 생성하세요. 제목은 25-60자 사이여야 합니다. 간결하고 매력적이며 설명적인 제목을 작성하세요.'
-          })
-        }),
-        fetch('/api/analyze-image-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl,
-            title: isEnglish ? 'General image description' : '이미지 일반 설명',
-            excerpt: isEnglish ? 'Generate general description or background information about the image. Please respond in English only.' : '이미지에 대한 일반적인 설명이나 배경 정보 생성'
-          })
-        }),
-        // 연령대 분석 (이미지에서 직접 판별)
-        fetch('/api/analyze-image-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl,
-            title: isEnglish ? 'Age estimation' : '연령대 판별',
-            excerpt: isEnglish 
-              ? 'Analyze the image and estimate the age range of any people visible. Respond with ONLY one of: "young" (appears 20-40 years old), "senior" (appears 50+ years old), or "none" (no people visible). Do not include any other text.' 
-              : '이미지를 분석하여 보이는 사람들의 연령대를 판별해주세요. 다음 중 하나만 선택해서 답변하세요: "젊은" (20-40대로 보임), "시니어" (50대 이상으로 보임), "없음" (사람이 보이지 않음). 다른 설명은 포함하지 마세요.'
-          })
+      // 골프 모드: 하나의 API 호출로 모든 메타데이터 생성 (1개 API 호출)
+      const metadataResponse = await fetch('/api/analyze-image-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl,
+          title: isEnglish ? 'Golf image metadata' : '골프 이미지 메타데이터',
+          excerpt: isEnglish ? 'Generate all metadata for this golf image in JSON format.' : '골프 이미지의 모든 메타데이터를 JSON 형식으로 생성해주세요.'
         })
-      ]);
+      });
 
       // 결과 처리
       let altText = '';
@@ -109,34 +67,26 @@ export const useAIGeneration = () => {
       let description = '';
       let ageEstimation = '';
 
-      if (altResponse.status === 'fulfilled' && altResponse.value.ok) {
-        const data = await altResponse.value.json();
-        altText = cleanAIText(data.prompt || '');
-      }
-
-      if (keywordResponse.status === 'fulfilled' && keywordResponse.value.ok) {
-        const data = await keywordResponse.value.json();
-        const tagNames = data.seoOptimizedTags?.map((tag: any) => tag.name) || data.tags || [];
-        // 키워드를 5개로 제한 (SEO 최적화)
-        const limitedKeywords = tagNames.slice(0, 5);
-        keywords = limitedKeywords.join(', ');
-      }
-
-      if (titleResponse.status === 'fulfilled' && titleResponse.value.ok) {
-        const data = await titleResponse.value.json();
-        title = cleanAIText(data.prompt || '');
-      }
-
-      if (descResponse.status === 'fulfilled' && descResponse.value.ok) {
-        const data = await descResponse.value.json();
-        description = cleanAIText(data.prompt || '');
-      }
-
-      // 연령대 분석 결과 추출
-      if (ageAnalysisResponse.status === 'fulfilled' && ageAnalysisResponse.value.ok) {
-        const data = await ageAnalysisResponse.value.json();
-        ageEstimation = cleanAIText(data.prompt || '').toLowerCase().trim();
+      if (metadataResponse.ok) {
+        const data = await metadataResponse.json();
+        altText = cleanAIText(data.alt_text || data.prompt || '');
+        title = cleanAIText(data.title || '');
+        description = cleanAIText(data.description || '');
+        ageEstimation = (data.age_estimation || '').toLowerCase().trim();
+        
+        // 키워드 처리
+        if (data.keywords) {
+          const keywordList = typeof data.keywords === 'string' 
+            ? data.keywords.split(',').map(k => k.trim()).filter(k => k)
+            : data.keywords;
+          // 키워드를 12개로 제한 (SEO 최적화, 프롬프트에서 8-12개 요청)
+          const limitedKeywords = keywordList.slice(0, 12);
+          keywords = limitedKeywords.join(', ');
+        }
+        
         console.log('🔍 이미지 연령대 분석 결과:', ageEstimation);
+      } else {
+        throw new Error('메타데이터 생성 실패');
       }
 
       // 카테고리 자동 선택 (다중 선택) - 이미지 연령대 분석 결과 포함
@@ -199,7 +149,7 @@ export const useAIGeneration = () => {
       const categoryKeywords = selectedCategories.map(c => c.trim()).filter(c => c);
       
       // 기존 키워드와 카테고리를 합쳐서 중복 제거
-      const allKeywords = [...new Set([...currentKeywordsList, ...categoryKeywords])];
+      const allKeywords = Array.from(new Set([...currentKeywordsList, ...categoryKeywords]));
       const updatedKeywords = allKeywords.join(', ');
       
       console.log('🤖 AI 생성 - 카테고리를 키워드에 추가:', {
@@ -209,25 +159,25 @@ export const useAIGeneration = () => {
         finalKeywords: updatedKeywords
       });
 
-      const result: AIGenerationResult = {
+      const       result: AIGenerationResult = {
         success: true,
         data: {
-          alt_text: truncateText(description, 125), // ALT 텍스트를 125자로 제한
+          alt_text: truncateText(description, 200), // ALT 텍스트를 200자로 제한 (프롬프트: 80-150 words)
           keywords: updatedKeywords,  // 카테고리를 포함한 키워드
           title: processedTitle, // 제목을 25-60자 범위로 처리
-          description: truncateText(altText, 160), // 설명을 160자로 제한
+          description: truncateText(altText, 300), // 설명을 300자로 제한 (프롬프트: 100-200 characters, 최대 300자)
           category: selectedCategories.join(','),  // 하위 호환성: 문자열로 변환
           categories: selectedCategories  // 다중 선택용: 배열로 저장
         }
       };
 
       setGenerationHistory(prev => [...prev, result]);
-      console.log('✅ 전체 AI 메타데이터 생성 완료:', result);
+      console.log('✅ 골프 AI 메타데이터 생성 완료:', result);
       
       return result;
 
     } catch (error) {
-      console.error('❌ AI 생성 오류:', error);
+      console.error('❌ 골프 AI 생성 오류:', error);
       const result: AIGenerationResult = {
         success: false,
         error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
@@ -238,6 +188,139 @@ export const useAIGeneration = () => {
       setIsGenerating(false);
     }
   }, []);
+
+  // 범용 메타데이터 AI 생성 (신규)
+  const generateGeneralMetadata = useCallback(async (
+    imageUrl: string,
+    options: AIGenerationOptions
+  ): Promise<AIGenerationResult> => {
+    setIsGenerating(true);
+    
+    try {
+      console.log('🤖 범용 AI 메타데이터 생성 시작:', { imageUrl, options });
+      
+      const isEnglish = options.language === 'english';
+      const language = isEnglish ? 'English' : 'Korean';
+      
+      // 범용 모드: 하나의 API 호출로 모든 메타데이터 생성 (1개 API 호출)
+      const metadataResponse = await fetch('/api/analyze-image-general', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl,
+          title: isEnglish ? 'Image metadata' : '이미지 메타데이터',
+          excerpt: isEnglish ? 'Generate all metadata for this image in JSON format.' : '이미지의 모든 메타데이터를 JSON 형식으로 생성해주세요.'
+        })
+      });
+
+      // 결과 처리
+      let altText = '';
+      let keywords = '';
+      let title = '';
+      let description = '';
+
+      if (metadataResponse.ok) {
+        const data = await metadataResponse.json();
+        altText = cleanAIText(data.alt_text || data.prompt || '');
+        title = cleanAIText(data.title || '');
+        description = cleanAIText(data.description || '');
+        
+        // 키워드 처리
+        if (data.keywords) {
+          const keywordList = typeof data.keywords === 'string' 
+            ? data.keywords.split(',').map(k => k.trim()).filter(k => k)
+            : data.keywords;
+          // 키워드를 12개로 제한 (SEO 최적화, 프롬프트에서 8-12개 요청)
+          const limitedKeywords = keywordList.slice(0, 12);
+          keywords = limitedKeywords.join(', ');
+        }
+      } else {
+        throw new Error('메타데이터 생성 실패');
+      }
+
+      // 범용 모드: 카테고리 자동 결정 제거
+      // 범용 모드: 카테고리 키워드 추가 제거
+
+      // 제목 길이 검증 및 보완 (25-60자 범위)
+      let finalTitle = cleanAIText(title);
+      
+      // ✅ 제목이 파일명 형식인지 확인
+      const isFilenameFormat = /^[a-z0-9-]+\.(jpg|jpeg|png|gif|webp)$/i.test(finalTitle);
+      if (isFilenameFormat) {
+        console.warn('⚠️ AI 생성된 제목이 파일명 형식입니다. 키워드와 설명에서 재생성:', finalTitle);
+        const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+        const firstKeywords = keywordsList.slice(0, 3).join(' ');
+        const descSnippet = description ? description.substring(0, 40).trim() : '';
+        finalTitle = firstKeywords && descSnippet 
+          ? `${firstKeywords} ${descSnippet}`.trim()
+          : (firstKeywords || descSnippet || '이미지');
+      }
+      
+      // 제목이 너무 짧으면 강제로 보완 (최소 25자 목표)
+      if (finalTitle.length < 25) {
+        if (finalTitle.length === 0) {
+          const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+          const firstKeywords = keywordsList.slice(0, 2).join(' ');
+          const descSnippet = description ? description.substring(0, 40).trim() : '';
+          finalTitle = firstKeywords && descSnippet 
+            ? `${firstKeywords} ${descSnippet}`.trim()
+            : (firstKeywords || descSnippet || '이미지');
+        } else {
+          const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+          const additionalKeywords = keywordsList.slice(0, 2).join(', ');
+          const descSnippet = description ? description.substring(0, 30).trim() : '';
+          
+          if (additionalKeywords) {
+            finalTitle = `${finalTitle} - ${additionalKeywords}`.trim();
+          } else if (descSnippet) {
+            finalTitle = `${finalTitle} ${descSnippet}`.trim();
+          }
+        }
+        
+        // 여전히 짧으면 추가 보완
+        if (finalTitle.length < 25) {
+          finalTitle = `${finalTitle} - 이미지`.trim();
+        }
+      }
+      
+      // 최대 60자로 제한
+      const processedTitle = finalTitle.length > 60 
+        ? truncateText(finalTitle, 60)
+        : finalTitle;
+
+      const result: AIGenerationResult = {
+        success: true,
+        data: {
+          alt_text: truncateText(description, 200), // ALT 텍스트를 200자로 제한 (프롬프트: 80-150 words)
+          keywords: keywords,
+          title: processedTitle,
+          description: truncateText(altText, 300), // 설명을 300자로 제한 (프롬프트: 100-200 characters, 최대 300자)
+          // 범용 모드: 카테고리 제거
+          category: '',
+          categories: []
+        }
+      };
+
+      setGenerationHistory(prev => [...prev, result]);
+      console.log('✅ 범용 AI 메타데이터 생성 완료:', result);
+      
+      return result;
+
+    } catch (error) {
+      console.error('❌ 범용 AI 생성 오류:', error);
+      const result: AIGenerationResult = {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
+      };
+      setGenerationHistory(prev => [...prev, result]);
+      return result;
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
+  // 하위 호환성: generateAllMetadata는 generateGolfMetadata로 리다이렉트
+  const generateAllMetadata = generateGolfMetadata;
 
   // 개별 필드 AI 생성
   const generateField = useCallback(async (
@@ -335,7 +418,9 @@ export const useAIGeneration = () => {
   return {
     isGenerating,
     generationHistory,
-    generateAllMetadata,
+    generateAllMetadata, // 하위 호환성 유지
+    generateGolfMetadata, // 골프 특화 생성
+    generateGeneralMetadata, // 범용 생성
     generateField
   };
 };

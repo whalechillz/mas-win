@@ -243,7 +243,92 @@
   - 관리자 페이지(`pages/admin/`)는 변경하지 않음
   - muziik 사이트(`pages/muziik/`)는 변경하지 않음
 
-## ✅ 최근 완료된 작업 (2025-11-01)
+## ✅ 최근 완료된 작업 (2025-11-09)
+
+### 보안 개선: 관리자 로그인 페이지 계정 정보 노출 제거 ✅
+- **문제**: 관리자 로그인 페이지에 실제 관리자 계정 정보(이름, 전화번호)가 노출되어 보안 위험 발생
+- **해결**: 관리자 계정 정보 섹션 완전 삭제
+- **변경 파일**: `pages/admin/login.tsx`
+- **삭제된 내용**:
+  - 관리자 계정 정보 섹션 (이름 및 전화번호 노출)
+  - 김탁수, 이은정, 최형호, 나수진 계정 정보
+- **보안 영향**: 관리자 계정 정보가 공개 페이지에서 노출되지 않도록 수정 완료
+
+### 갤러리 고도화 브랜치 작업 내역 ✅
+- **브랜치**: `feature/gallery-advanced`
+- **최신 커밋**: `02526a9` - Vercel 강제 배포 트리거
+- **상태**: Phase 1-5 완료, Phase 3 일부 미완료
+
+#### Phase 1: 인프라 준비 및 DB 설계 ✅ (완료)
+- 데이터베이스 스키마 확장 완료 (10개 새 컬럼 추가)
+- 인덱스 생성 완료 (7개 기본 + 1개 복합)
+- 함수 및 트리거 생성 완료 (자동 업데이트 기능)
+- 유틸리티 함수 생성 완료 (중복 검사, 검색)
+
+#### Phase 2: 블로그 이미지 분석 및 분류 ✅ (완료)
+- 모든 블로그 이미지 분석 API 생성 완료
+- Storage에서 실제 파일 찾기 (HEAD 요청, 2초 타임아웃)
+- 중복 이미지 감지 및 그룹화
+- 블로그 연결 여부 확인
+- 프론트엔드 UI 추가 완료
+- 테스트 결과: 총 160개 블로그 글, 507개 고유 이미지 URL, 490개 Storage에서 찾음 (96.6%)
+
+#### Phase 3: 블로그 이미지 마이그레이션 및 메타데이터 동기화 ⚠️ (부분 완료)
+- ✅ 블로그 이미지 이동 (`originals/blog/YYYY-MM/` 구조)
+- ✅ 메타데이터 자동 생성
+- ✅ URL 업데이트 (`image_url` 필드)
+- ⚠️ 블로그 글 `featured_image` URL 업데이트 (미완료)
+- ⚠️ 블로그 글 `content` 내 이미지 URL 업데이트 (Markdown/HTML) (미완료)
+- ⚠️ URL 업데이트 후 검증 (미완료)
+
+#### Phase 4: 중복 이미지 제거 ✅ (완료)
+- 중복 이미지 그룹 확인 (해시 기반)
+- 안전한 중복 제거 (블로그 연결 이미지 보존)
+- 메타데이터 정리
+
+#### Phase 5: 프론트엔드 개발 편의성 개선 ✅ (완료)
+- 폴더 트리 네비게이션 구현 (`components/gallery/FolderTree.tsx`)
+- 폴더별 이미지 조회 API
+- 갤러리 UI 통합 (폴더 트리 사이드바)
+- 이미지 검색 및 필터링 강화
+- 이미지 카드 정보 확장 및 사용 편의성 개선
+- 폴더 트리 UX 개선 (Phase 5 - 1~3)
+
+#### 최근 버그 수정 및 개선
+- ✅ 폴더 생성 API mime 오류 수정
+- ✅ 이미지 메타데이터 저장 후 제목이 파일명으로 덮어쓰기 되는 문제 수정
+- ✅ 블로그 다운로드 이미지 다운로드 실패 추적 및 로깅 개선
+- ✅ 마크다운 이미지 URL 추출 로직 개선
+- ✅ 블로그 다운로드 기능 개선 (최신 저장된 내용 및 메타데이터 포함)
+- ✅ 갤러리 상단 레거시 '메타데이터 동기화' 버튼 숨김
+
+#### 문서 정리
+- ✅ 갤러리 시스템 통합 가이드 추가 (`docs/gallery-complete-system-guide.md`)
+- ✅ 메타데이터 AI 생성 계획 추가 (`docs/image-metadata-ai-generation-plan.md`)
+- ✅ v1.0 태그 정보 업데이트
+
+#### AI 메타데이터 생성 품질 개선 (2025-11-09)
+- **문제**: 단일 API 호출로 전환 후 생성된 설명이 이전보다 짧아짐
+- **해결**: 프롬프트 개선 및 토큰 제한 증가
+- **변경 사항**:
+  - `max_tokens`: 500 → 800 (60% 증가)
+  - ALT text 가이드라인: 50-100 words → 80-150 words
+  - Description 가이드라인: 50-100 words → 100-200 words
+  - Keywords 가이드라인: 5-8개 → 8-12개
+  - 프롬프트에 "풍부하고 상세한 설명" 지시 추가
+  - UI 길이 제한 조정: description maxLength 200 → 300자
+  - SEO 권장사항 업데이트: alt_text 80-200자, description 100-300자
+- **변경 파일**:
+  - `pages/api/analyze-image-prompt.js` - 골프 모드 프롬프트 개선
+  - `pages/api/analyze-image-general.js` - 범용 모드 프롬프트 개선
+  - `components/ImageMetadataModal/hooks/useAIGeneration.ts` - 키워드 제한 및 길이 제한 조정
+  - `components/ImageMetadataModal/index.tsx` - description maxLength 증가
+  - `components/ImageMetadataModal/utils/validation.ts` - SEO 권장사항 업데이트
+
+#### 남은 작업
+- ⚠️ Phase 3 미완료: 블로그 글 URL 업데이트 (featured_image, content)
+- ⏳ 이미지 메타데이터 AI 생성 기능 (골프/일반 구분) - 계획 단계
+- ⏳ Phase 6-7: 제품/고객 이미지 정리 (후속 작업)
 
 ### 이미지 갤러리 메타데이터 품질 검증 기능 (1단계) ✅
 - **메타데이터 품질 검증 로직 추가** (`pages/api/admin/all-images.js`)
@@ -569,9 +654,9 @@
 
 ---
 
-## 📦 2025-11-07 이미지 메타데이터 AI 생성 기능 개선 계획
+## 📦 2025-11-09 이미지 메타데이터 AI 생성 기능 개선 완료 ✅
 
-### 현재 상태: ⚠️ 계획 단계 (구현 미완료)
+### 현재 상태: ✅ 구현 완료
 
 **목적**: 골프 특화 이미지와 일반 이미지를 구분하여 각각에 최적화된 메타데이터를 생성하는 기능
 
@@ -581,11 +666,17 @@
 - `pages/api/analyze-image-prompt.js` - 골프 특화 이미지 분석 API
 - `pages/api/admin/image-ai-analyzer.js` - 골프 특화 키워드 추출 API
 
-### ⚠️ 구현 미완료 (계획 단계)
-- `pages/api/analyze-image-general.js` - 범용 이미지 분석 API (신규 필요)
-- `pages/api/admin/image-ai-analyzer-general.js` - 범용 키워드 추출 API (신규 필요)
-- `useAIGeneration.ts`에 `generateGolfMetadata()`, `generateGeneralMetadata()` 함수 추가 필요
-- `ImageMetadataModal/index.tsx`에 "골프 AI 생성", "일반 메타 생성" 버튼 추가 필요
+### ✅ 구현 완료 (2025-11-09)
+- ✅ `pages/api/analyze-image-general.js` - 범용 이미지 분석 API 생성 완료
+- ✅ `pages/api/admin/image-ai-analyzer-general.js` - 범용 키워드 추출 API 생성 완료
+- ✅ `useAIGeneration.ts`에 `generateGolfMetadata()`, `generateGeneralMetadata()` 함수 추가 완료
+- ✅ `ImageMetadataModal/index.tsx`에 "⛳ 골프 AI 생성", "🌐 일반 메타 생성" 버튼 추가 완료
+- ✅ 프롬프트 개선 완료 (2025-11-09):
+  - `max_tokens`: 500 → 800 (더 풍부한 설명 생성)
+  - ALT text: 50-100 words → 80-150 words
+  - Description: 50-100 words → 100-200 words
+  - Keywords: 5-8개 → 8-12개
+  - "풍부하고 상세한 설명" 지시 추가
 
 ### 계획된 구현 내용
 
@@ -614,24 +705,23 @@
   - "🌐 일반 메타 생성" 버튼 추가
   - 버튼 배치: `[⛳ 골프 AI 생성] [🌐 일반 메타 생성]`
 
-### 계획된 성능 최적화
-- ✅ 병렬 처리: `Promise.allSettled` 사용 (이미 구현됨)
-- ⏳ 골프 모드: 5개 API 병렬 호출
-- ⏳ 범용 모드: 4개 API 병렬 호출 (연령대 분석 제거로 20% 빠름)
-- ✅ 에러 핸들링: 각 API 호출 독립적 에러 처리 (이미 구현됨)
-- ✅ 부분 성공 처리: 일부 필드만 성공해도 결과 반환 (이미 구현됨)
+### ✅ 성능 최적화 완료
+- ✅ 단일 API 호출: 골프 모드와 범용 모드 모두 1개 API 호출로 최적화
+- ✅ JSON 형식 응답: 모든 메타데이터를 한 번에 생성하여 효율성 향상
+- ✅ 에러 핸들링: API 호출 독립적 에러 처리
+- ✅ 부분 성공 처리: 일부 필드만 성공해도 결과 반환
 
-### 계획된 차이점
+### ✅ 구현된 차이점
 
 | 항목 | 골프 모드 | 범용 모드 |
 |------|----------|----------|
-| API 엔드포인트 | `/api/analyze-image-prompt` | `/api/analyze-image-general` (신규 필요) |
-| 키워드 API | `/api/admin/image-ai-analyzer` | `/api/admin/image-ai-analyzer-general` (신규 필요) |
+| API 엔드포인트 | `/api/analyze-image-prompt` | `/api/analyze-image-general` |
+| 응답 형식 | JSON (alt_text, title, description, keywords, age_estimation) | JSON (alt_text, title, description, keywords) |
 | 연령대 분석 | ✅ 포함 | ❌ 제거 (골프 특화) |
 | 카테고리 자동 결정 | ✅ 포함 | ❌ 제거 |
 | 카테고리 키워드 추가 | ✅ 포함 | ❌ 제거 |
 | 제목 기본값 | "골프 이미지" | "이미지" |
-| API 호출 수 | 5개 | 4개 (20% 빠름) |
+| API 호출 수 | **1개** | **1개** |
 
 ### 계획된 변경 파일
 - `pages/api/analyze-image-general.js` (신규 필요)
@@ -645,11 +735,61 @@
 1. **골프 이미지**: "⛳ 골프 AI 생성" 버튼 클릭 → 골프 중심 메타데이터 생성
 2. **일반 이미지**: "🌐 일반 메타 생성" 버튼 클릭 → 범용 메타데이터 생성
 
-### 계획된 성능
-- **골프 모드**: 5개 API 병렬, 예상 시간 3-5초, 토큰 ~1,200
-- **범용 모드**: 4개 API 병렬, 예상 시간 2-4초 (20% 빠름), 토큰 ~1,000 (17% 절감)
+### ✅ 최적화된 성능 (2025-11-09 개선)
+- **골프 모드**: 1개 API 호출, 예상 시간 2-3초, 토큰 ~800 (max_tokens 증가로 풍부한 설명 생성)
+- **범용 모드**: 1개 API 호출, 예상 시간 2-3초, 토큰 ~800 (max_tokens 증가로 풍부한 설명 생성)
+- **프롬프트 개선**: ALT text 80-150 words, Description 100-200 words, Keywords 8-12개
 
 ### 관련 문서
 - `docs/image-metadata-ai-generation-plan.md` - 상세 구현 계획
+
+---
+
+## 🐛 이미지 추가 모듈 오류 수정 (2025-01-XX)
+
+### 발견된 오류
+- **오류 메시지**: "업로드 실패: path is required"
+- **원인**: `storage-signed-upload` API는 `path`를 요구하지만, 갤러리 페이지의 이미지 추가 모달에서는 `fileName`, `folder`, `contentType`을 보내고 있었음
+- **API 응답 불일치**: API는 `token`만 반환하지만, 갤러리 코드는 `signedUrl`, `objectPath`, `publicUrl`을 기대하고 있었음
+
+### 수정 내용
+- **`pages/admin/gallery.tsx`**:
+  - Supabase 클라이언트 import 추가 (`@supabase/supabase-js`)
+  - `storage-signed-upload` API 호출 방식 수정:
+    - `fileName`, `folder`, `contentType` → `path` (올바른 형식으로 변경)
+    - 파일명 정리 로직 추가 (특수문자 제거, 타임스탬프 추가)
+    - 경로 형식: `originals/${dateStr}/${ts}_${baseName}`
+  - Supabase SDK를 사용한 업로드 방식으로 변경:
+    - `token`을 받아서 `uploadToSignedUrl()` 사용
+    - `getPublicUrl()`로 공개 URL 가져오기
+  - 에러 처리 개선:
+    - 환경 변수 검증 추가
+    - 상세한 에러 메시지 제공
+    - 콘솔 로깅 추가
+
+### 수정 전/후 비교
+| 항목 | 수정 전 | 수정 후 |
+|------|---------|---------|
+| API 요청 형식 | `{ fileName, folder, contentType }` | `{ path }` |
+| API 응답 처리 | `{ signedUrl, objectPath, publicUrl }` | `{ token }` |
+| 업로드 방식 | `fetch(signedUrl, PUT)` | `sb.storage.uploadToSignedUrl()` |
+| 공개 URL 가져오기 | API 응답에서 직접 | `sb.storage.getPublicUrl()` |
+| 에러 처리 | 기본적인 try-catch | 상세한 검증 및 로깅 |
+
+### 참고 코드
+- **`pages/admin/blog.tsx`**: 올바른 업로드 방식 참고 (3745-3785줄)
+- **`pages/api/admin/storage-signed-upload.js`**: API 스펙 확인
+
+### 테스트 필요 사항
+- ✅ 파일 업로드 기능 정상 작동 확인
+- ✅ HEIC/JPG/PNG 파일 형식 지원 확인
+- ✅ 메타데이터 자동 저장 확인
+- ✅ EXIF 백필 비동기 처리 확인
+
+### 추가 개선 가능 사항
+- 파일 선택 UI 개선 (드래그 앤 드롭, 미리보기)
+- 업로드 진행률 표시
+- 파일 크기 제한 추가
+- 파일 타입 검증 강화
 
 ---
