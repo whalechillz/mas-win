@@ -115,18 +115,6 @@ export default function AdminLogin() {
               {loading ? '로그인 중...' : '로그인'}
             </button>
           </div>
-
-          <div className="text-center">
-            <div className="text-sm text-gray-600">
-              <p className="mb-2">관리자 계정 정보:</p>
-              <div className="text-xs text-gray-500 space-y-1">
-                <p>• 김탁수: 010-6669-9000 / 66699000</p>
-                <p>• 이은정: 010-3243-3099 / 32433099</p>
-                <p>• 최형호: 010-7128-4590 / 71284590</p>
-                <p>• 나수진: 010-2391-4431 / 23914431</p>
-              </div>
-            </div>
-          </div>
         </form>
       </div>
     </div>
