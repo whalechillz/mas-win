@@ -141,7 +141,44 @@ masgolf-images/
 
 ---
 
-### originals/products/ - 제품 이미지 (🟡 후속 작업)
+### originals/campaigns/ - 월별 퍼널 이미지 (🆕 신규 추가)
+
+**용도**: 월별 퍼널 페이지에서 사용된 이미지 (재사용 가능)
+
+**구조**:
+- `YYYY-MM/`: 월별 폴더 (퍼널 페이지 발행 월 기준)
+  - `hero/`: 히어로 이미지 (선택)
+  - `products/`: 제품 이미지 (퍼널 전용, 선택)
+  - `promotions/`: 프로모션 이미지 (선택)
+  - `testimonials/`: 고객 후기 이미지 (선택)
+  - 또는 루트에 직접 배치 (간단한 구조)
+
+**특징**:
+- 월별 퍼널 페이지에서 사용된 이미지
+- 블로그 본문에서도 재사용 가능
+- 제품 이미지와 겹치는 경우 `originals/products/`로 이동 고려
+- HTML 파일과 블로그 본문 모두에서 참조 가능
+
+**메타데이터 예시**:
+```json
+{
+  "original_path": "originals/campaigns/2025-07/hero-summer-golf-mas.jpg",
+  "funnel_pages": ["funnel-2025-07", "25-07"],
+  "blog_posts": [88],
+  "usage_count": 2,
+  "tags": ["골프", "여름", "퍼널", "캠페인", "7월"]
+}
+```
+
+**URL 업데이트 규칙**:
+- HTML 파일: `/campaigns/2025-07/hero-summer-golf-mas.jpg` 
+  → `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/hero-summer-golf-mas.jpg`
+- 블로그 본문: `/campaigns/2025-07/hero-summer-golf-mas.jpg`
+  → `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/hero-summer-golf-mas.jpg`
+
+---
+
+### originals/products/ - 제품 이미지 (🆕 우선 작업)
 
 **용도**: 블로그, 퍼널, 웹사이트, SNS 등 모든 채널에서 재사용
 
@@ -150,15 +187,41 @@ masgolf-images/
 - `{product-slug}/detail/`: 상세페이지용 이미지
 - `{product-slug}/specs/`: 스팩표 이미지 (차트, 테이블)
 
-**제품 목록**:
-1. 시크리트웨폰 블랙
-2. 시크리트웨폰 블랙 MUZIIK
-3. 시크리트웨폰 4-1
-4. 시크리트포스 골드 2 MUZIIK
-5. 시크리트포스 골드 2
-6. 시크리트포스 프로 3
-7. 시크리트포스 V3
-8. 추가 제품들...
+**제품 목록 (MASGOLF)**:
+1. `secret-weapon-black/` - 시크리트웨폰 블랙
+2. `secret-weapon-4-1/` - 시크리트웨폰 4.1
+3. `secret-force-gold-2/` - 시크리트포스 골드 2
+4. `secret-force-pro-3/` - 시크리트포스 프로 3
+5. `secret-force-v3/` - 시크리트포스 V3
+
+**제품 목록 (MUZIIK)**:
+1. `muziik-sapphire/` - DOGATTI GENERATION Sapphire Auto-flex
+2. `muziik-beryl/` - DOGATTI GENERATION Beryl
+3. `muziik-technology/` - MUZIIK 기술 설명 이미지
+
+**특징**:
+- 제품별 폴더 구조로 관리
+- 스튜디오, 상세, 스팩, 갤러리 이미지 분류
+- 블로그, 퍼널, 웹사이트, SNS 등 모든 채널에서 재사용
+- 메인 페이지 제품 이미지도 동일한 Storage에서 참조
+
+**메타데이터 예시**:
+```json
+{
+  "original_path": "originals/products/secret-force-gold-2/studio/secret-force-gold-2-main.jpg",
+  "product_slug": "secret-force-gold-2",
+  "product_name": "시크리트포스 골드 2",
+  "image_type": "studio",
+  "usage_count": 5,
+  "tags": ["골프", "드라이버", "제품", "시크리트포스", "골드2"]
+}
+```
+
+**URL 업데이트 규칙**:
+- 제품 페이지: `/products/secret-force-gold-2-main.jpg`
+  → `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-2/studio/secret-force-gold-2-main.jpg`
+- 메인 페이지: `/main/products/gold2-sapphire/...`
+  → `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-2/...`
 
 ---
 
@@ -221,14 +284,36 @@ masgolf-images/
 
 ---
 
-### originals/branding/ - 로고/브랜딩 (🟡 후속 작업)
+### originals/branding/ - 로고/브랜딩 (🆕 우선 작업)
 
 **용도**: 모든 채널에서 브랜딩 자산 사용
 
 **구조**:
-- `logos/`: 로고 파일 (masgolf, muziik 등)
-- `icons/`: 아이콘 파일
-- `graphics/`: 그래픽 자산
+- `masgolf/`: MASGOLF 브랜딩 자산
+  - 로고 파일
+  - 브랜드 컬러 가이드
+  - 그래픽 자산
+- `muziik/`: MUZIIK 브랜딩 자산
+  - 로고 파일
+  - 브랜드 컬러 가이드
+  - 그래픽 자산
+- `icons/`: 공통 아이콘 파일
+
+**특징**:
+- 브랜드별 폴더로 분리
+- 로고, 브랜드 컬러, 그래픽 자산 관리
+- 모든 채널에서 일관된 브랜딩 적용
+
+**메타데이터 예시**:
+```json
+{
+  "original_path": "originals/branding/muziik/muziik-logo-art.png",
+  "brand": "muziik",
+  "asset_type": "logo",
+  "usage_count": 10,
+  "tags": ["브랜딩", "로고", "MUZIIK"]
+}
+```
 
 ---
 

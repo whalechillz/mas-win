@@ -19,7 +19,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
     if (blogPostId) {
       const { data: post, error } = await supabase
         .from('blog_posts')
-        .select('id, title, slug, content, featured_image, created_at')
+        .select('id, title, slug, content, featured_image, created_at, published_at')
         .eq('id', blogPostId)
         .single();
       
@@ -37,7 +37,7 @@ const organizeImagesByBlog = async (blogPostId = null) => {
       while (true) {
         const { data: posts, error } = await supabase
           .from('blog_posts')
-          .select('id, title, slug, content, featured_image, created_at')
+          .select('id, title, slug, content, featured_image, created_at, published_at')
           .range(offset, offset + batchSize - 1);
         
         if (error) {
@@ -64,10 +64,13 @@ const organizeImagesByBlog = async (blogPostId = null) => {
     
     // 각 블로그 글에 대해 이미지 찾기 및 폴더 정렬
     for (const post of blogPosts) {
-      // ✅ 개선된 구조: originals/blog/{blog-id}/ (단순화)
-      // 블로그 ID 기반 폴더 생성 (관리 용이)
-      // 날짜별 정렬이 필요하면 메타데이터로 관리
-      const postFolderName = `originals/blog/${post.id}`;
+      // ✅ 개선된 구조: originals/blog/발행년-발행월/글ID
+      // 발행일(published_at) 기준으로 년-월 폴더 생성, 그 안에 글 ID 폴더 생성
+      const publishDate = post.published_at ? new Date(post.published_at) : (post.created_at ? new Date(post.created_at) : new Date());
+      const year = publishDate.getFullYear();
+      const month = String(publishDate.getMonth() + 1).padStart(2, '0');
+      const dateFolder = `${year}-${month}`;
+      const postFolderName = `originals/blog/${dateFolder}/${post.id}`;
       const images = [];
       const imageUrlSet = new Set(); // ✅ 중복 체크용 Set (더 빠른 검색)
       
@@ -743,11 +746,17 @@ export default async function handler(req, res) {
                   .from('blog-images')
                   .getPublicUrl(finalPath);
                 
-                if (originalUrl && newUrlData?.publicUrl && originalUrl !== newUrlData.publicUrl) {
-                  // ✅ 이미 이동된 이미지의 경우에도 URL 업데이트 필요할 수 있음
+                // ✅ 이미 이동된 이미지도 URL 매핑에 추가 (URL이 같아도 메타데이터 업데이트를 위해)
+                if (originalUrl && newUrlData?.publicUrl) {
+                  image.newPath = finalPath; // 이미 이동된 경로 저장
                   const normalizedOriginalUrl = originalUrl.split('?')[0].split('#')[0];
+                  const normalizedNewUrl = newUrlData.publicUrl.split('?')[0].split('#')[0];
                   urlMapping.set(originalUrl, newUrlData.publicUrl);
                   urlMapping.set(normalizedOriginalUrl, newUrlData.publicUrl);
+                  // URL이 같아도 추가 (메타데이터 업데이트를 위해)
+                  if (normalizedOriginalUrl !== normalizedNewUrl) {
+                    urlMapping.set(normalizedNewUrl, newUrlData.publicUrl);
+                  }
                   console.log(`📝 URL 매핑 (이미 이동됨): ${originalUrl.substring(0, 80)}... -> ${newUrlData.publicUrl.substring(0, 80)}...`);
                 }
               } else {
@@ -761,8 +770,12 @@ export default async function handler(req, res) {
             }
           }
           
-          // ✅ 블로그 글의 이미지 URL 업데이트
-          if (urlMapping.size > 0) {
+          // ✅ 블로그 글의 이미지 URL 업데이트 및 image_metadata 업데이트
+          // ✅ 이미 이동된 이미지도 메타데이터 업데이트를 위해 처리
+          // urlMapping이 비어있어도 이미지 목록을 순회하여 메타데이터 업데이트
+          const allImages = result.images.filter(img => img.currentPath || img.newPath);
+          
+          if (urlMapping.size > 0 || allImages.length > 0) {
             try {
               const blogPost = result.blogPost;
               const { data: currentPost, error: fetchError } = await supabase
@@ -850,6 +863,338 @@ export default async function handler(req, res) {
                     console.error(`❌ 블로그 글 URL 업데이트 실패 (${blogPost.id}):`, updateError);
                   } else {
                     console.log(`✅ 블로그 글 URL 업데이트 완료: ${blogPost.id}`);
+                  }
+                }
+                
+                // ✅ image_metadata 테이블 업데이트: blog_posts 배열과 usage_count 업데이트
+                for (const [oldUrl, newUrl] of urlMapping.entries()) {
+                  try {
+                    // 이미지 경로 찾기
+                    const imagePath = result.images.find(img => 
+                      (img.newPath || img.currentPath) && 
+                      (img.url === newUrl || img.originalUrl === oldUrl)
+                    );
+                    const targetPath = imagePath?.newPath || imagePath?.currentPath;
+                    
+                    // 새 URL 또는 경로로 메타데이터 찾기
+                    let metadata = null;
+                    let metadataError = null;
+                    
+                    // 방법 1: 새 URL로 찾기
+                    if (newUrl) {
+                      const { data: urlMeta, error: urlError } = await supabase
+                        .from('image_metadata')
+                        .select('id, blog_posts, usage_count, references, original_path, image_url')
+                        .eq('image_url', newUrl)
+                        .limit(1);
+                      
+                      if (!urlError && urlMeta && urlMeta.length > 0) {
+                        metadata = urlMeta;
+                      } else {
+                        metadataError = urlError;
+                      }
+                    }
+                    
+                    // 방법 2: 경로로 찾기 (URL로 못 찾은 경우)
+                    if (!metadata && targetPath) {
+                      const { data: pathMeta, error: pathError } = await supabase
+                        .from('image_metadata')
+                        .select('id, blog_posts, usage_count, references, original_path, image_url')
+                        .eq('original_path', targetPath)
+                        .limit(1);
+                      
+                      if (!pathError && pathMeta && pathMeta.length > 0) {
+                        metadata = pathMeta;
+                      } else if (!metadataError) {
+                        metadataError = pathError;
+                      }
+                    }
+                    
+                    // 방법 3: 파일명으로 찾기 (경로로도 못 찾은 경우)
+                    if (!metadata && targetPath) {
+                      const fileName = targetPath.split('/').pop();
+                      const { data: nameMeta, error: nameError } = await supabase
+                        .from('image_metadata')
+                        .select('id, blog_posts, usage_count, references, original_path, image_url')
+                        .like('original_path', `%/${fileName}`)
+                        .limit(1);
+                      
+                      if (!nameError && nameMeta && nameMeta.length > 0) {
+                        metadata = nameMeta;
+                      }
+                    }
+                    
+                    if (metadata && metadata.length > 0) {
+                      const meta = metadata[0];
+                      const currentBlogPosts = meta.blog_posts || [];
+                      const currentReferences = meta.references || [];
+                      
+                      // 블로그 글 ID가 이미 배열에 없으면 추가
+                      if (!currentBlogPosts.includes(blogPost.id)) {
+                        const updatedBlogPosts = [...currentBlogPosts, blogPost.id];
+                        const newReference = {
+                          type: 'blog',
+                          post_id: blogPost.id,
+                          post_title: blogPost.title,
+                          usage: 'content',
+                          updated_at: new Date().toISOString()
+                        };
+                        const updatedReferences = [...currentReferences, newReference];
+                        
+                        // usage_count는 references 배열의 길이로 계산
+                        const updatedUsageCount = updatedReferences.length;
+                        
+                        // original_path 업데이트 (이동된 경로)
+                        const updatedOriginalPath = targetPath || meta.original_path;
+                        
+                        // image_url도 새 URL로 업데이트
+                        const updateData = {
+                          blog_posts: updatedBlogPosts,
+                          references: updatedReferences,
+                          usage_count: updatedUsageCount,
+                          original_path: updatedOriginalPath,
+                          last_used_at: new Date().toISOString()
+                        };
+                        
+                        // image_url이 다르면 업데이트
+                        if (newUrl && meta.image_url !== newUrl) {
+                          updateData.image_url = newUrl;
+                        }
+                        
+                        const { error: updateMetaError } = await supabase
+                          .from('image_metadata')
+                          .update(updateData)
+                          .eq('id', meta.id);
+                        
+                        if (updateMetaError) {
+                          console.error(`❌ image_metadata 업데이트 실패 (${meta.id}):`, updateMetaError);
+                        } else {
+                          console.log(`✅ image_metadata 업데이트 완료: ${meta.id} (usage_count: ${updatedUsageCount})`);
+                        }
+                      } else {
+                        // 이미 블로그 글 ID가 있으면 original_path와 image_url만 업데이트
+                        const updatedOriginalPath = targetPath || meta.original_path;
+                        const updateData = {};
+                        
+                        if (updatedOriginalPath !== meta.original_path) {
+                          updateData.original_path = updatedOriginalPath;
+                        }
+                        
+                        if (newUrl && meta.image_url !== newUrl) {
+                          updateData.image_url = newUrl;
+                        }
+                        
+                        if (Object.keys(updateData).length > 0) {
+                          updateData.last_used_at = new Date().toISOString();
+                          
+                          const { error: updatePathError } = await supabase
+                            .from('image_metadata')
+                            .update(updateData)
+                            .eq('id', meta.id);
+                          
+                          if (updatePathError) {
+                            console.error(`❌ image_metadata 경로 업데이트 실패 (${meta.id}):`, updatePathError);
+                          } else {
+                            console.log(`✅ image_metadata 경로 업데이트 완료: ${meta.id}`);
+                          }
+                        }
+                      }
+                    } else {
+                      // 메타데이터가 없으면 새로 생성
+                      if (targetPath) {
+                        const newMetadata = {
+                          image_url: newUrl,
+                          original_path: targetPath,
+                          blog_posts: [blogPost.id],
+                          references: [{
+                            type: 'blog',
+                            post_id: blogPost.id,
+                            post_title: blogPost.title,
+                            usage: 'content',
+                            updated_at: new Date().toISOString()
+                          }],
+                          usage_count: 1,
+                          last_used_at: new Date().toISOString(),
+                          status: 'active'
+                        };
+                        
+                        const { error: insertMetaError } = await supabase
+                          .from('image_metadata')
+                          .insert(newMetadata);
+                        
+                        if (insertMetaError) {
+                          console.error(`❌ image_metadata 생성 실패:`, insertMetaError);
+                        } else {
+                          console.log(`✅ image_metadata 생성 완료 (usage_count: 1)`);
+                        }
+                      }
+                    }
+                  } catch (metaError) {
+                    console.error(`❌ image_metadata 업데이트 오류:`, metaError);
+                  }
+                }
+                
+                // ✅ 이미 이동된 이미지에 대해서도 메타데이터 업데이트 (urlMapping에 없는 경우)
+                // 이미지 목록을 순회하면서 메타데이터를 찾아 업데이트
+                for (const image of allImages) {
+                  // urlMapping에 이미 처리된 이미지는 스킵
+                  const imageUrl = image.originalUrl || image.url;
+                  const imagePath = image.newPath || image.currentPath;
+                  
+                  if (!imageUrl || !imagePath) continue;
+                  
+                  // urlMapping에 있는지 확인
+                  let alreadyProcessed = false;
+                  for (const [oldUrl, newUrl] of urlMapping.entries()) {
+                    const normalizedOldUrl = oldUrl.split('?')[0].split('#')[0];
+                    const normalizedImageUrl = imageUrl.split('?')[0].split('#')[0];
+                    if (normalizedOldUrl === normalizedImageUrl || oldUrl === imageUrl) {
+                      alreadyProcessed = true;
+                      break;
+                    }
+                  }
+                  
+                  if (alreadyProcessed) continue;
+                  
+                  try {
+                    // 이미지 경로로 메타데이터 찾기
+                    let metadata = null;
+                    
+                    // 방법 1: 경로로 찾기
+                    if (imagePath) {
+                      const { data: pathMeta, error: pathError } = await supabase
+                        .from('image_metadata')
+                        .select('id, blog_posts, usage_count, references, original_path, image_url')
+                        .eq('original_path', imagePath)
+                        .limit(1);
+                      
+                      if (!pathError && pathMeta && pathMeta.length > 0) {
+                        metadata = pathMeta;
+                      }
+                    }
+                    
+                    // 방법 2: URL로 찾기 (경로로 못 찾은 경우)
+                    if (!metadata && imageUrl) {
+                      const normalizedImageUrl = imageUrl.split('?')[0].split('#')[0];
+                      const { data: urlMeta, error: urlError } = await supabase
+                        .from('image_metadata')
+                        .select('id, blog_posts, usage_count, references, original_path, image_url')
+                        .or(`image_url.eq.${imageUrl},image_url.eq.${normalizedImageUrl}`)
+                        .limit(1);
+                      
+                      if (!urlError && urlMeta && urlMeta.length > 0) {
+                        metadata = urlMeta;
+                      }
+                    }
+                    
+                    // 방법 3: 파일명으로 찾기 (URL로도 못 찾은 경우)
+                    if (!metadata && imagePath) {
+                      const fileName = imagePath.split('/').pop();
+                      const { data: nameMeta, error: nameError } = await supabase
+                        .from('image_metadata')
+                        .select('id, blog_posts, usage_count, references, original_path, image_url')
+                        .like('original_path', `%/${fileName}`)
+                        .limit(1);
+                      
+                      if (!nameError && nameMeta && nameMeta.length > 0) {
+                        metadata = nameMeta;
+                      }
+                    }
+                    
+                    if (metadata && metadata.length > 0) {
+                      const meta = metadata[0];
+                      const currentBlogPosts = meta.blog_posts || [];
+                      const currentReferences = meta.references || [];
+                      
+                      // 블로그 글 ID가 이미 배열에 없으면 추가
+                      if (!currentBlogPosts.includes(blogPost.id)) {
+                        const updatedBlogPosts = [...currentBlogPosts, blogPost.id];
+                        const newReference = {
+                          type: 'blog',
+                          post_id: blogPost.id,
+                          post_title: blogPost.title,
+                          usage: 'content',
+                          updated_at: new Date().toISOString()
+                        };
+                        const updatedReferences = [...currentReferences, newReference];
+                        const updatedUsageCount = updatedReferences.length;
+                        
+                        const updateData = {
+                          blog_posts: updatedBlogPosts,
+                          references: updatedReferences,
+                          usage_count: updatedUsageCount,
+                          original_path: imagePath,
+                          last_used_at: new Date().toISOString()
+                        };
+                        
+                        if (imageUrl && meta.image_url !== imageUrl) {
+                          updateData.image_url = imageUrl;
+                        }
+                        
+                        const { error: updateMetaError } = await supabase
+                          .from('image_metadata')
+                          .update(updateData)
+                          .eq('id', meta.id);
+                        
+                        if (updateMetaError) {
+                          console.error(`❌ image_metadata 업데이트 실패 (${meta.id}):`, updateMetaError);
+                        } else {
+                          console.log(`✅ image_metadata 업데이트 완료 (이미 이동됨): ${meta.id} (usage_count: ${updatedUsageCount})`);
+                        }
+                      } else {
+                        // 이미 블로그 글 ID가 있으면 original_path만 업데이트
+                        if (meta.original_path !== imagePath) {
+                          const { error: updatePathError } = await supabase
+                            .from('image_metadata')
+                            .update({
+                              original_path: imagePath,
+                              last_used_at: new Date().toISOString()
+                            })
+                            .eq('id', meta.id);
+                          
+                          if (updatePathError) {
+                            console.error(`❌ image_metadata 경로 업데이트 실패 (${meta.id}):`, updatePathError);
+                          } else {
+                            console.log(`✅ image_metadata 경로 업데이트 완료 (이미 이동됨): ${meta.id}`);
+                          }
+                        }
+                      }
+                    } else {
+                      // 메타데이터가 없으면 새로 생성
+                      const { data: newUrlData } = await supabase.storage
+                        .from('blog-images')
+                        .getPublicUrl(imagePath);
+                      
+                      if (newUrlData?.publicUrl) {
+                        const newMetadata = {
+                          image_url: newUrlData.publicUrl,
+                          original_path: imagePath,
+                          blog_posts: [blogPost.id],
+                          references: [{
+                            type: 'blog',
+                            post_id: blogPost.id,
+                            post_title: blogPost.title,
+                            usage: 'content',
+                            updated_at: new Date().toISOString()
+                          }],
+                          usage_count: 1,
+                          last_used_at: new Date().toISOString(),
+                          status: 'active'
+                        };
+                        
+                        const { error: insertMetaError } = await supabase
+                          .from('image_metadata')
+                          .insert(newMetadata);
+                        
+                        if (insertMetaError) {
+                          console.error(`❌ image_metadata 생성 실패 (이미 이동됨):`, insertMetaError);
+                        } else {
+                          console.log(`✅ image_metadata 생성 완료 (이미 이동됨, usage_count: 1)`);
+                        }
+                      }
+                    }
+                  } catch (metaError) {
+                    console.error(`❌ image_metadata 업데이트 오류 (이미 이동됨):`, metaError);
                   }
                 }
               }

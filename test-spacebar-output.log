@@ -1,0 +1,24 @@
+🔍 블로그 편집 페이지 스페이스바 문제 확인 시작...
+1️⃣ 로그인 중...
+❌ 테스트 중 오류 발생: page.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('input[name="email"]')
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/test-blog-edit-spacebar-issue.js:14:16 {
+  name: 'TimeoutError'
+}
+
+⚠️ 브라우저를 수동으로 닫아주세요.
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('input[name="email"]')
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/test-blog-edit-spacebar-issue.js:14:16 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.2.0

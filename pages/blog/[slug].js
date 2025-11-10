@@ -5,6 +5,22 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { marked } from 'marked';
 
+// 날짜 포맷팅 함수 (안전한 처리)
+function formatDate(dateString) {
+  if (!dateString) return '날짜 정보 없음';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '날짜 정보 없음';
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return '날짜 정보 없음';
+  }
+}
+
 // 7월 퍼널 스타일의 고급스러운 아이콘 컴포넌트들
 const ArrowLeftIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,17 +102,87 @@ const GalleryIcon = () => (
   </div>
 );
 
-// 마크다운을 HTML로 변환하는 함수
-const convertMarkdownToHtml = (markdown) => {
-  if (!markdown) return '';
+// 마크다운을 HTML로 변환하는 함수 (HTML인지 마크다운인지 자동 감지)
+const convertMarkdownToHtml = (content) => {
+  if (!content) return '';
   
-  // marked 설정
+  // ✅ 이미 HTML인지 확인 (HTML 태그가 있으면 HTML로 간주)
+  const isHTML = /<[a-z][\s\S]*>/i.test(content);
+  
+  if (isHTML) {
+    // ✅ 이미 HTML이면 그대로 반환 (마크다운 변환하지 않음)
+    // ✅ 깨진 이미지 URL 수정
+    let html = content;
+    
+    // ✅ 잘린 이미지 URL 수정: `/or`로 끝나고 파일 확장자가 없는 경우만 감지
+    // 예: `! [가을 골프 시즌 이미지] (https://...supabase.co/storage/v1/object/public/blog-images/or`
+    // -> 올바른 URL로 교체
+    // 주의: `/originals/` 경로는 정상이므로 제외
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]*\/or(?!iginals)[^)]*)\)/gi,
+      (match, alt, url) => {
+        // 파일 확장자가 있는지 확인 (정상 URL)
+        if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+          return match; // 정상 URL이면 그대로 반환
+        }
+        console.warn('⚠️ 잘린 이미지 URL 발견:', url);
+        // 잘린 URL은 제거하거나 기본 이미지로 교체
+        return `<p style="color: red; font-style: italic;">⚠️ 이미지 링크가 손상되었습니다: ${alt || '이미지'}</p>`;
+      }
+    );
+    
+    // ✅ HTML img 태그의 잘린 URL 수정
+    html = html.replace(
+      /<img[^>]+src=["']([^"']*\/or(?!iginals)[^"']*)["'][^>]*>/gi,
+      (match, url) => {
+        // 파일 확장자가 있는지 확인 (정상 URL)
+        if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+          return match; // 정상 URL이면 그대로 반환
+        }
+        console.warn('⚠️ 잘린 이미지 URL 발견 (HTML):', url);
+        return `<p style="color: red; font-style: italic;">⚠️ 이미지 링크가 손상되었습니다.</p>`;
+      }
+    );
+    
+    // ✅ 마크다운 이미지 문법이 HTML 내에 있는 경우 처리
+    // 예: `! [alt](url)` -> `<img src="url" alt="alt" />`
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/gi,
+      (match, alt, url) => {
+        // URL이 잘렸는지 확인: `/or`로 끝나고 파일 확장자가 없으며, `/originals/`가 아닌 경우
+        if (url.match(/\/or(?!iginals)[^/]*$/i) && !url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+          console.warn('⚠️ 잘린 이미지 URL 발견 (마크다운):', url);
+          return `<p style="color: red; font-style: italic;">⚠️ 이미지 링크가 손상되었습니다: ${alt || '이미지'}</p>`;
+        }
+        return `<img src="${url}" alt="${alt || ''}" style="max-width: 100%; height: auto;" />`;
+      }
+    );
+    
+    return html;
+  }
+  
+  // ✅ 마크다운인 경우 변환
   marked.setOptions({
     breaks: true, // 줄바꿈을 <br>로 변환
     gfm: true, // GitHub Flavored Markdown 지원
   });
   
-  return marked(markdown);
+  let html = marked(content);
+  
+  // ✅ 마크다운 변환 후에도 잘린 이미지 URL 확인 및 수정
+  html = html.replace(
+    /<img[^>]+src=["']([^"']*\/or(?!iginals)[^"']*)["'][^>]*>/gi,
+    (match, url) => {
+      // 파일 확장자가 있는지 확인 (정상 URL)
+      if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+        return match; // 정상 URL이면 그대로 반환
+      }
+      console.warn('⚠️ 잘린 이미지 URL 발견 (변환 후):', url);
+      return `<p style="color: red; font-style: italic;">⚠️ 이미지 링크가 손상되었습니다.</p>`;
+    }
+  );
+  
+  return html;
 };
 
 export default function BlogPost({ post: staticPost }) {
@@ -412,7 +498,7 @@ export default function BlogPost({ post: staticPost }) {
               "@type": "BlogPosting",
               "headline": post.title,
               "image": post.featured_image,
-              "datePublished": post.publishedAt,
+              "datePublished": post.published_at || post.publishedAt,
               "author": {
                 "@type": "Person",
                 "name": "마쓰구골프"
@@ -502,12 +588,8 @@ export default function BlogPost({ post: staticPost }) {
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-10 text-slate-600">
                 <div className="flex items-center gap-2">
                   <CalendarIcon />
-                  <time dateTime={post.publishedAt} className="font-medium">
-                    {new Date(post.publishedAt).toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                  <time dateTime={post.published_at || post.publishedAt} className="font-medium">
+                    {formatDate(post.published_at || post.publishedAt)}
                   </time>
                 </div>
                 <div className="flex items-center gap-2">
@@ -621,7 +703,7 @@ export default function BlogPost({ post: staticPost }) {
                         </p>
                         <div className="flex items-center justify-between">
                           <time className="text-xs text-slate-500 font-medium">
-                            {new Date(relatedPost.publishedAt).toLocaleDateString('ko-KR')}
+                            {formatDate(relatedPost.published_at || relatedPost.publishedAt)}
                           </time>
                           <div className="flex items-center text-slate-500 text-xs font-medium group-hover:text-slate-700 transition-colors duration-200">
                             <span>자세히 보기</span>

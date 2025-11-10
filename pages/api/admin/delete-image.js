@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { invalidateCache } from './all-images';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -290,6 +291,14 @@ export default async function handler(req, res) {
 
       console.log('✅ 메타데이터 삭제 완료:', metadataDeletedCount, '개');
       
+      // ✅ 이미지 목록 캐시 무효화 (삭제 후 목록 동기화)
+      try {
+        invalidateCache();
+        console.log('🗑️ 이미지 목록 캐시 무효화 완료');
+      } catch (cacheError) {
+        console.warn('⚠️ 캐시 무효화 실패 (계속 진행):', cacheError);
+      }
+      
       return res.status(200).json({
         success: true,
         deletedImages: existingFiles,
@@ -433,6 +442,14 @@ export default async function handler(req, res) {
 
       if (!metadataDeleted) {
         console.warn('⚠️ 모든 메타데이터 삭제 방법 실패:', targetWithExtension);
+      }
+      
+      // ✅ 이미지 목록 캐시 무효화 (삭제 후 목록 동기화)
+      try {
+        invalidateCache();
+        console.log('🗑️ 이미지 목록 캐시 무효화 완료');
+      } catch (cacheError) {
+        console.warn('⚠️ 캐시 무효화 실패 (계속 진행):', cacheError);
       }
       
       return res.status(200).json({
