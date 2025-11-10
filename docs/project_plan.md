@@ -2,6 +2,53 @@
 
 ## ✅ 최근 완료된 작업 (2025-01-XX)
 
+### 갤러리 두 가지 변형 방식 구현 ✅
+- **Replicate 변형 방식 (프롬프트 입력 불가, 빠르고 간단)**:
+  - 썸네일 hover 버튼: 🎨 변형 (Replicate)
+  - 확대 모달 버튼: 🎨 변형 (Replicate)
+  - API: `/api/generate-blog-image-replicate-flux`
+  - 백엔드: Replicate `black-forest-labs/flux-dev`
+  - 특징: 프롬프트 입력 불가, 빠르고 간단, 정상 작동
+- **FAL AI 변형 방식 (프롬프트 입력 가능, 세밀한 제어)**:
+  - 확대 모달 버튼: 🔄 변형 (FAL)
+  - API: `/api/vary-existing-image`
+  - 백엔드: FAL AI `flux-dev`
+  - 특징: 프롬프트 입력 가능, 프리셋 선택 가능, 모달에서 세밀한 제어
+- **비교 및 평가 기능**:
+  - 두 방식을 동일한 이미지에 적용 가능
+  - 결과 비교 가능
+  - 사용자 선택 가능
+- **변경 파일**:
+  - `pages/admin/gallery.tsx` (Replicate 변형 함수 추가, 썸네일 버튼 추가, 확대 모달 버튼 개선)
+
+### 갤러리 업스케일링 및 이미지 변형 기능 추가 ✅
+- **업스케일링 API 생성** (`/api/admin/upscale-image.js`):
+  - FAL AI 기반 업스케일링 지원
+  - Replicate 기반 업스케일링 지원 (대체 옵션)
+  - EXIF 메타데이터 보존 기능
+  - 업스케일 배율 선택 (2배, 4배)
+- **갤러리 이미지 상세 모달 개선**:
+  - "🔄 변형 (FAL)" 버튼 추가 (기존 이미지 변형 모달 열기)
+  - "🎨 변형 (Replicate)" 버튼 추가 (빠르고 간단한 변형)
+  - "⬆️ 업스케일" 버튼 추가 (이미지 업스케일링)
+  - 구글 지도 표시 (GPS 정보가 있는 경우)
+- **기존 이미지 변형 모달 통합**:
+  - 블로그의 "기존 이미지 변형" 모달을 갤러리에 통합
+  - 파일 업로드, 갤러리 선택, URL 입력 지원
+  - 프롬프트 입력 및 프리셋 선택 기능
+- **EXIF 데이터 처리**:
+  - 업스케일링/변형 시 원본 EXIF 데이터 보존
+  - GPS 좌표, 촬영 날짜/시간, 카메라 정보 등 보존
+- **구글 지도 연동**:
+  - EXIF GPS 정보가 있는 경우 이미지 상세 모달에 지도 표시
+  - Google Maps Embed API 사용
+- **변경 파일**:
+  - `pages/api/admin/upscale-image.js` (신규)
+  - `pages/admin/gallery.tsx` (버튼 추가, 모달 통합, 구글 지도 표시)
+  - `docs/gallery-upscale-improvement-plan.md` (신규)
+
+## ✅ 최근 완료된 작업 (2025-01-XX)
+
 ### 구형 MUZIIK 페이지 삭제 및 리다이렉트 설정 ✅
 - **삭제된 구형 페이지**:
   - `pages/muziik/ko.tsx` → `https://www.masgolf.co.kr/muziik/ko`
@@ -455,20 +502,328 @@
   - Storage에서 못 찾음: 10개 (1.9%)
   - 외부 URL: 7개 (1.4%)
 
-### 우선순위: 블로그 이미지 정리 (멀티 채널 콘텐츠 생산 우선)
+## 🚀 전체 이미지 및 소스 통합 마이그레이션 계획 (2025-11-10)
 
-1. **Phase 1-5: 블로그 이미지 정리 우선 작업** (10-12일)
-   - ✅ Phase 1: 인프라 준비 및 DB 설계 완료
-   - 🔄 Phase 2: 블로그 이미지 분석 및 분류 (진행 중)
-   - 블로그 이미지 마이그레이션
-   - 메타데이터 동기화 및 AI 생성
-   - 중복 이미지 안전 제거
-   - 프론트엔드 개발 편의성 개선
+### 현재 상황 분석
 
-2. **Phase 6-7: 제품/고객 이미지 정리** (후속 작업)
-   - 멀티 채널 콘텐츠 생산 안정화 후 진행
-   - 제품 이미지 마이그레이션
-   - 고객 콘텐츠 마이그레이션
+#### 1. 이미지 분산 현황
+- **블로그 이미지**: `/public/campaigns/YYYY-MM/` (일부), Supabase Storage `originals/blog/`
+- **월별 퍼널 이미지**: `/public/campaigns/YYYY-MM/` (로컬만)
+- **제품 이미지 (MASGOLF)**: `/public/products/`, `/public/main/products/`
+- **MUZIIK 제품 이미지**: `/public/muziik/products/`
+- **MUZIIK 브랜딩 이미지**: `/public/muziik/brand/`
+- **MUZIIK 기술 이미지**: `/public/muziik/technology/`
+
+#### 2. 소스 코드 분산 현황
+- **제품 페이지**: `pages/products/[slug].tsx`, `pages/products/gold2-sapphire.tsx`, `pages/products/weapon-beryl.tsx`
+- **MUZIIK 페이지**: `pages/muziik/index.tsx`, `pages/muziik/[product].tsx`, `pages/muziik/technology.tsx`
+- **메인 페이지**: `pages/index.js` (제품 데이터 포함)
+- **제품 데이터**: `lib/products.ts`, `data/products.json` (분산)
+
+#### 3. 문제점
+- 이미지가 로컬 `/public/` 폴더와 Supabase Storage에 혼재
+- 블로그 본문에서 `/campaigns/YYYY-MM/...` 경로로 참조하지만 Storage에 없음
+- 제품 이미지가 여러 폴더에 분산 (`/products/`, `/main/products/`)
+- MUZIIK 이미지가 별도 폴더에 분리
+- 소스 코드에서 이미지 경로가 하드코딩되어 있음
+- 중복 이미지 관리 어려움
+- **블로그 글에 오타 및 문법 오류 존재**
+- **블로그 본문에 깨진 이미지 URL 존재 (ID 88, 309 등)**
+- **이미지가 갤러리 폴더에 제대로 정리되지 않음**
+
+### 목표
+1. 모든 이미지를 Supabase Storage로 통합 마이그레이션
+2. 제공된 폴더 구조에 맞게 정리
+3. 소스 코드에서 이미지 경로를 Storage URL로 업데이트
+4. 제품 데이터 및 소스 코드 중앙 관리
+5. 메타데이터 생성 및 관리
+6. **블로그 글 오타 및 문법 오류 정비**
+7. **깨진 이미지 정비 및 복구**
+8. **이미지를 갤러리 폴더에 제대로 옮기기**
+
+### 우선순위: 전체 이미지 통합 마이그레이션
+
+1. **Phase 8: 월별 퍼널 이미지 마이그레이션** (즉시 시작) ⚡
+   - 블로그 본문 이미지 표시 문제 해결
+   - 퍼널 페이지 이미지 중앙 관리
+   - ID 88 게시물 등 영향받는 게시물 수정
+
+2. **Phase 9: 제품 이미지 (MASGOLF) 마이그레이션** (우선 작업) ⚡
+   - `/public/products/` → `originals/products/{product-slug}/`
+   - `/public/main/products/` → `originals/products/{product-slug}/`
+   - 제품 페이지 소스 코드 업데이트
+   - 메인 페이지 제품 이미지 경로 업데이트
+
+3. **Phase 10: MUZIIK 이미지 및 소스 정리** (우선 작업) ⚡
+   - `/public/muziik/products/` → `originals/products/muziik-{product-slug}/`
+   - `/public/muziik/brand/` → `originals/branding/muziik/`
+   - `/public/muziik/technology/` → `originals/products/muziik-technology/`
+   - MUZIIK 페이지 소스 코드 업데이트
+
+4. **Phase 1-5: 블로그 이미지 정리** (진행 중)
+   - 기존 블로그 이미지 정리 계속
+
+5. **Phase 11: 블로그 글 정비 및 이미지 마이그레이션** (우선 작업) ⚡
+   - 블로그 글 오타 정비
+   - 깨진 이미지 정비 및 복구
+   - 이미지를 갤러리 폴더에 제대로 옮기기
+   - 블로그 본문 URL 업데이트
+
+6. **Phase 6-7: 고객/기타 이미지 정리** (후속 작업)
+   - 퍼널/제품 이미지 마이그레이션 완료 후 진행
+
+---
+
+## 📋 Phase 8: 월별 퍼널 이미지 마이그레이션 (우선 작업) ⚡
+
+### 8-1. 퍼널 이미지 분석 및 수집
+- [ ] 로컬 `/public/campaigns/` 폴더의 모든 이미지 확인
+  - `2025-05/` (5월 퍼널)
+  - `2025-06/` (6월 퍼널)
+  - `2025-07/` (7월 퍼널)
+  - `2025-08/` (8월 퍼널)
+  - `2025-09/` (9월 퍼널)
+- [ ] HTML 파일에서 사용된 이미지 경로 추출
+  - `/versions/funnel-2025-05-live.html`
+  - `/versions/funnel-2025-06-live.html`
+  - `/versions/funnel-2025-07-live.html`
+  - `/versions/funnel-2025-08-live.html`
+  - `/versions/funnel-2025-09-live.html`
+- [ ] 블로그 본문에서 `/campaigns/YYYY-MM/...` 경로로 참조하는 이미지 확인
+- [ ] 중복 이미지 감지 (제품 이미지와 겹치는 경우)
+
+### 8-2. Storage 폴더 구조 생성
+- [ ] `originals/campaigns/YYYY-MM/` 폴더 구조 생성
+  - `originals/campaigns/2025-05/`
+  - `originals/campaigns/2025-06/`
+  - `originals/campaigns/2025-07/`
+  - `originals/campaigns/2025-08/`
+  - `originals/campaigns/2025-09/`
+
+### 8-3. 이미지 업로드 및 마이그레이션
+- [ ] 로컬 `/public/campaigns/` 폴더의 이미지를 Supabase Storage로 업로드
+- [ ] 파일명 정리 (UUID + SEO 파일명)
+- [ ] 메타데이터 자동 생성 (골프 AI 생성 일괄 기능 활용)
+- [ ] HTML 파일의 이미지 경로를 Storage URL로 업데이트
+- [ ] 블로그 본문의 이미지 URL 자동 업데이트
+
+### 8-4. 제품 이미지 분리 (선택)
+- [ ] 퍼널 이미지 중 제품 이미지 식별
+- [ ] 제품 이미지는 `originals/products/{product-slug}/`로 이동
+- [ ] 퍼널 이미지는 `originals/campaigns/YYYY-MM/`에 유지
+
+### 구현 계획
+- **API 개발**: `/api/admin/migrate-campaign-images.js` (신규)
+- **API 개발**: `/api/admin/update-funnel-image-urls.js` (신규)
+- **API 개발**: `/api/admin/update-blog-campaign-urls.js` (신규)
+- **프론트엔드**: 갤러리 페이지에 "퍼널 이미지 마이그레이션" 버튼 추가
+
+---
+
+## 📋 Phase 9: 제품 이미지 (MASGOLF) 마이그레이션 (우선 작업) ⚡
+
+### 9-1. 제품 이미지 분석 및 수집
+- [ ] `/public/products/` 폴더의 모든 이미지 확인
+  - `secret-force-gold-2/` (메인, 갤러리, 상세, 스팩)
+  - `secret-force-pro-3/` (메인, 갤러리, 상세, 스팩)
+  - `secret-force-v3/` (메인, 갤러리, 상세, 스팩)
+  - `secret-weapon-black/` (메인, 갤러리, 상세, 스팩)
+  - `secret-weapon-gold-4-1/` (메인, 갤러리, 상세, 스팩)
+- [ ] `/public/main/products/` 폴더의 모든 이미지 확인
+  - `gold2-sapphire/` (MUZIIK 샤프트 포함 이미지)
+  - `black-beryl/` (MUZIIK 샤프트 포함 이미지)
+- [ ] 제품 페이지에서 사용된 이미지 경로 추출
+  - `pages/products/[slug].tsx`
+  - `pages/products/gold2-sapphire.tsx`
+  - `pages/products/weapon-beryl.tsx`
+  - `pages/index.js` (메인 페이지 제품 이미지)
+- [ ] 중복 이미지 감지 및 통합
+
+### 9-2. Storage 폴더 구조 생성
+- [ ] `originals/products/{product-slug}/` 폴더 구조 생성
+  - `secret-force-gold-2/studio/` (스튜디오 이미지)
+  - `secret-force-gold-2/detail/` (상세페이지용)
+  - `secret-force-gold-2/specs/` (스팩표 이미지)
+  - `secret-force-gold-2/gallery/` (갤러리 이미지)
+  - `secret-force-pro-3/...`
+  - `secret-force-v3/...`
+  - `secret-weapon-black/...`
+  - `secret-weapon-4-1/...`
+
+### 9-3. 이미지 업로드 및 마이그레이션
+- [ ] 로컬 `/public/products/` 폴더의 이미지를 Supabase Storage로 업로드
+- [ ] 로컬 `/public/main/products/` 폴더의 이미지를 Supabase Storage로 업로드
+- [ ] 파일명 정리 (UUID + SEO 파일명)
+- [ ] 메타데이터 자동 생성 (골프 AI 생성 일괄 기능 활용)
+- [ ] 제품 페이지 소스 코드의 이미지 경로를 Storage URL로 업데이트
+- [ ] 메인 페이지 제품 이미지 경로 업데이트
+
+### 9-4. 제품 데이터 중앙 관리
+- [ ] 제품 데이터 통합 (`lib/products.ts`, `data/products.json` → 단일 소스)
+- [ ] 제품 이미지 경로를 Storage URL로 업데이트
+- [ ] 제품 페이지 소스 코드 리팩토링
+
+### 구현 계획
+- **API 개발**: `/api/admin/migrate-product-images.js` (신규)
+- **API 개발**: `/api/admin/update-product-image-urls.js` (신규)
+- **프론트엔드**: 갤러리 페이지에 "제품 이미지 마이그레이션" 버튼 추가
+- **소스 코드**: 제품 데이터 중앙 관리 시스템 구축
+
+---
+
+## 📋 Phase 10: MUZIIK 이미지 및 소스 정리 (우선 작업) ⚡
+
+### 10-1. MUZIIK 이미지 분석 및 수집
+- [ ] `/public/muziik/products/` 폴더의 모든 이미지 확인
+  - `sapphire/` (메인, 샤프트, 차트)
+  - `beryl/` (메인, 샤프트, 차트)
+- [ ] `/public/muziik/brand/` 폴더의 모든 이미지 확인
+  - 로고, 브랜딩 이미지
+- [ ] `/public/muziik/technology/` 폴더의 모든 이미지 확인
+  - 기술 설명 이미지
+- [ ] MUZIIK 페이지에서 사용된 이미지 경로 추출
+  - `pages/muziik/index.tsx`
+  - `pages/muziik/[product].tsx`
+  - `pages/muziik/technology.tsx`
+
+### 10-2. Storage 폴더 구조 생성
+- [ ] `originals/products/muziik-{product-slug}/` 폴더 구조 생성
+  - `muziik-sapphire/` (제품 이미지)
+  - `muziik-beryl/` (제품 이미지)
+- [ ] `originals/branding/muziik/` 폴더 구조 생성
+  - 로고, 브랜딩 이미지
+- [ ] `originals/products/muziik-technology/` 폴더 구조 생성
+  - 기술 설명 이미지
+
+### 10-3. 이미지 업로드 및 마이그레이션
+- [ ] 로컬 `/public/muziik/products/` 폴더의 이미지를 Supabase Storage로 업로드
+- [ ] 로컬 `/public/muziik/brand/` 폴더의 이미지를 Supabase Storage로 업로드
+- [ ] 로컬 `/public/muziik/technology/` 폴더의 이미지를 Supabase Storage로 업로드
+- [ ] 파일명 정리 (UUID + SEO 파일명)
+- [ ] 메타데이터 자동 생성 (골프 AI 생성 일괄 기능 활용)
+- [ ] MUZIIK 페이지 소스 코드의 이미지 경로를 Storage URL로 업데이트
+
+### 10-4. MUZIIK 소스 코드 정리
+- [ ] MUZIIK 제품 데이터 중앙 관리 (`lib/muziik-products.ts`)
+- [ ] MUZIIK 페이지 소스 코드 리팩토링
+- [ ] 이미지 경로를 Storage URL로 업데이트
+
+### 구현 계획
+- **API 개발**: `/api/admin/migrate-muziik-images.js` (신규)
+- **API 개발**: `/api/admin/update-muziik-image-urls.js` (신규)
+- **프론트엔드**: 갤러리 페이지에 "MUZIIK 이미지 마이그레이션" 버튼 추가
+- **소스 코드**: MUZIIK 제품 데이터 중앙 관리 시스템 구축
+
+---
+
+## 📋 Phase 11: 블로그 글 정비 및 이미지 마이그레이션 (우선 작업) ⚡
+
+### 11-1. 블로그 글 오타 정비
+- [ ] 모든 블로그 글 내용 검토
+- [ ] 오타 및 문법 오류 수정
+- [ ] 맞춤법 검사 도구 활용
+- [ ] 일관된 문체 및 톤 적용
+- [ ] SEO 최적화를 위한 키워드 검토
+
+### 11-2. 깨진 이미지 정비 및 복구
+- [ ] 모든 블로그 글의 이미지 URL 검증
+- [ ] 깨진 이미지 URL 감지 및 목록 작성
+- [ ] 깨진 이미지 원본 파일 찾기
+  - 로컬 `/public/campaigns/` 폴더 확인
+  - 로컬 `/public/products/` 폴더 확인
+  - 로컬 `/public/main/products/` 폴더 확인
+  - Supabase Storage 확인
+- [ ] 깨진 이미지 복구 또는 대체 이미지 찾기
+- [ ] 깨진 이미지 URL 수정
+
+### 11-3. 이미지를 갤러리 폴더에 제대로 옮기기
+- [ ] 블로그 본문에서 사용된 모든 이미지 추출
+- [ ] 이미지 경로 분석 및 분류
+  - `/campaigns/YYYY-MM/...` → `originals/campaigns/YYYY-MM/`
+  - `/products/...` → `originals/products/{product-slug}/`
+  - `/main/products/...` → `originals/products/{product-slug}/`
+  - 로컬 파일 경로 → Supabase Storage 경로
+- [ ] 이미지가 Storage에 없으면 업로드
+- [ ] 이미지 파일명 정리 (UUID + SEO 파일명)
+- [ ] 메타데이터 자동 생성 (골프 AI 생성 일괄 기능 활용)
+
+### 11-4. 블로그 본문 URL 업데이트
+- [ ] 블로그 본문의 모든 이미지 URL을 Storage URL로 업데이트
+- [ ] 마크다운 형식 이미지 URL 업데이트
+- [ ] HTML 형식 이미지 URL 업데이트
+- [ ] URL 업데이트 후 검증
+
+### 11-5. 블로그 글 품질 검증
+- [ ] 모든 이미지가 정상적으로 표시되는지 확인
+- [ ] 오타 및 문법 오류 최종 검토
+- [ ] SEO 메타데이터 검토
+- [ ] 모바일 반응형 확인
+
+### 구현 계획
+- **API 개발**: `/api/admin/audit-blog-posts.js` (신규)
+  - 블로그 글 오타 검사
+  - 깨진 이미지 감지
+  - 이미지 경로 분석
+- **API 개발**: `/api/admin/fix-broken-images.js` (신규)
+  - 깨진 이미지 복구
+  - 이미지 업로드 및 마이그레이션
+- **API 개발**: `/api/admin/update-blog-image-urls.js` (신규)
+  - 블로그 본문 URL 업데이트
+- **프론트엔드**: 블로그 관리 페이지에 "블로그 글 정비" 버튼 추가
+  - 오타 검사 결과 표시
+  - 깨진 이미지 목록 표시
+  - 이미지 마이그레이션 진행 상황 표시
+- **도구**: 맞춤법 검사 API 연동 (선택)
+
+### 작업 순서
+1. **1단계**: 깨진 이미지 감지 및 목록 작성
+2. **2단계**: 깨진 이미지 복구 및 업로드
+3. **3단계**: 이미지를 갤러리 폴더에 제대로 옮기기
+4. **4단계**: 블로그 본문 URL 업데이트
+5. **5단계**: 블로그 글 오타 정비
+6. **6단계**: 최종 검증 및 품질 확인
+
+---
+
+### Storage 폴더 구조 (최종 업데이트)
+
+```
+masgolf-images/
+├── originals/
+│   ├── blog/                     # ✅ 블로그 이미지
+│   │   └── YYYY-MM/
+│   │       └── {blog-id}/
+│   │
+│   ├── campaigns/                # 🆕 월별 퍼널 이미지 (Phase 8)
+│   │   ├── 2025-05/
+│   │   ├── 2025-06/
+│   │   ├── 2025-07/
+│   │   ├── 2025-08/
+│   │   └── 2025-09/
+│   │
+│   ├── products/                 # 🆕 제품 이미지 (Phase 9)
+│   │   ├── secret-force-gold-2/
+│   │   │   ├── studio/
+│   │   │   ├── detail/
+│   │   │   ├── specs/
+│   │   │   └── gallery/
+│   │   ├── secret-force-pro-3/
+│   │   ├── secret-force-v3/
+│   │   ├── secret-weapon-black/
+│   │   ├── secret-weapon-4-1/
+│   │   ├── muziik-sapphire/      # 🆕 MUZIIK 제품 (Phase 10)
+│   │   ├── muziik-beryl/
+│   │   └── muziik-technology/
+│   │
+│   ├── branding/                 # 🆕 브랜딩 이미지 (Phase 10)
+│   │   ├── masgolf/
+│   │   └── muziik/
+│   │
+│   ├── locations/                # 🟡 매장 이미지 (후속 작업)
+│   ├── customers/                # 🟡 고객 콘텐츠 (후속 작업)
+│   ├── uploaded/                 # 직접 업로드 (기존)
+│   └── ai-generated/             # AI 생성 원본 (기존)
+```
 
 ### 관련 문서
 - `docs/gallery-migration-priority-plan.md`: 실전 개발 계획

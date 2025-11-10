@@ -20,6 +20,15 @@ let imagesCache = new Map();
 let imagesCacheTimestamp = 0;
 const IMAGES_CACHE_DURATION = 5 * 60 * 1000; // 5분
 
+// 캐시 무효화 함수 (외부에서 호출 가능)
+export function invalidateCache() {
+  totalCountCache = null;
+  cacheTimestamp = 0;
+  imagesCache.clear();
+  imagesCacheTimestamp = 0;
+  console.log('🗑️ 이미지 목록 캐시 무효화 완료');
+}
+
 // ✅ 메타데이터 품질 검증 함수
 const hasQualityMetadata = (metadata) => {
   if (!metadata) return false;
@@ -97,6 +106,13 @@ export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
   try {
+    // 캐시 무효화 요청 처리 (forceRefresh 파라미터)
+    const { forceRefresh } = req.query;
+    if (forceRefresh === 'true' || forceRefresh === '1') {
+      invalidateCache();
+      console.log('🔄 캐시 강제 무효화 요청 처리');
+    }
+    
     if (req.method === 'GET') {
       const { limit = 1000, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '' } = req.query;
       const pageSize = parseInt(limit);

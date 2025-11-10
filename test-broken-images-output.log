@@ -1,0 +1,31 @@
+🔍 블로그 편집 페이지 깨진 이미지 확인 시작...
+1️⃣ 로그인 중...
+✅ 로그인 완료
+2️⃣ 블로그 관리 페이지로 이동...
+✅ 블로그 관리 페이지 로드 완료
+3️⃣ "가을 골프 시즌 특가!" 게시물 찾기...
+⚠️ 직접 수정 버튼 찾기 시도...
+✅ 수정 모드 진입 완료
+4️⃣ 에디터에서 이미지 찾기...
+❌ 테스트 중 오류 발생: locator.waitFor: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('.ProseMirror, [contenteditable="true"]').first() to be visible
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/test-blog-broken-images.js:78:22 {
+  name: 'TimeoutError'
+}
+
+⚠️ 브라우저를 수동으로 닫아주세요.
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+locator.waitFor: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('.ProseMirror, [contenteditable="true"]').first() to be visible
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/test-blog-broken-images.js:78:22 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.2.0

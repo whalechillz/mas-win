@@ -565,6 +565,32 @@ export default function GalleryAdmin() {
 
   // 확대 모달 상태
   const [selectedImageForZoom, setSelectedImageForZoom] = useState<ImageMetadata | null>(null);
+  
+  // 기존 이미지 변형 관련 상태
+  const [showExistingImageModal, setShowExistingImageModal] = useState(false);
+  const [selectedExistingImage, setSelectedExistingImage] = useState('');
+  const [activeImageTab, setActiveImageTab] = useState<'upload' | 'gallery' | 'url'>('upload');
+  const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
+  const [variationPrompt, setVariationPrompt] = useState('');
+  const [variationPreset, setVariationPreset] = useState('creative');
+  
+  // 블로그 스타일 이미지 변형 관련 상태 (추가)
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [showGeneratedImages, setShowGeneratedImages] = useState(false);
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState('');
+  const [selectedBaseImage, setSelectedBaseImage] = useState('');
+  const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
+  const [imageGenerationStep, setImageGenerationStep] = useState('');
+  const [imageGenerationModel, setImageGenerationModel] = useState('');
+  const [showGenerationProcess, setShowGenerationProcess] = useState(false);
+  
+  // Replicate 변형 관련 상태 (프롬프트 입력 불가, 빠르고 간단)
+  const [isGeneratingReplicateVariation, setIsGeneratingReplicateVariation] = useState(false);
+  
+  // 업스케일링 관련 상태
+  const [isUpscaling, setIsUpscaling] = useState(false);
+  const [upscaleModel, setUpscaleModel] = useState<'fal' | 'replicate'>('fal');
+  const [upscaleScale, setUpscaleScale] = useState<2 | 4>(2);
   const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
   const [metadataAnimation, setMetadataAnimation] = useState(false);
   const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
@@ -750,7 +776,7 @@ export default function GalleryAdmin() {
   const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
 
   // 이미지 로드
-  const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string) => {
+  const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string, forceRefresh?: boolean) => {
     try {
       if (reset || page === 1) {
         setIsLoading(true);
@@ -774,8 +800,11 @@ export default function GalleryAdmin() {
       // 검색어 파라미터 추가
       const searchParam = effectiveSearchQuery.trim() ? `&searchQuery=${encodeURIComponent(effectiveSearchQuery.trim())}` : '';
       
+      // 캐시 무효화 파라미터 추가
+      const refreshParam = forceRefresh ? `&forceRefresh=true` : '';
+      
       // 디버깅 로그
-      if (customFolderFilter !== undefined || customIncludeChildren !== undefined || customSearchQuery !== undefined) {
+      if (customFolderFilter !== undefined || customIncludeChildren !== undefined || customSearchQuery !== undefined || forceRefresh) {
         console.log('🔄 fetchImages 호출:', {
           customFolderFilter,
           effectiveFolderFilter,
@@ -783,11 +812,12 @@ export default function GalleryAdmin() {
           customIncludeChildren,
           effectiveIncludeChildren,
           customSearchQuery,
-          effectiveSearchQuery
+          effectiveSearchQuery,
+          forceRefresh
         });
       }
       
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}${searchParam}`);
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}${searchParam}${refreshParam}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -975,7 +1005,293 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 블로그 스타일 이미지 불러오기 및 프롬프트 생성 함수 (추가)
+  const handleLoadExistingImageAndPrompt = async () => {
+    if (!selectedExistingImage) {
+      alert('불러올 이미지를 선택해주세요.');
+      return;
+    }
+
+    setIsGeneratingExistingVariation(true);
+    setImageGenerationStep('이미지와 프롬프트 불러오는 중...');
+    setImageGenerationModel('이미지 불러오기');
+    setShowGenerationProcess(true);
+
+    try {
+      // 기존 이미지의 프롬프트가 있는지 확인
+      let prompt = '';
+      try {
+        const promptResponse = await fetch('/api/get-image-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: selectedExistingImage })
+        });
+        
+        if (promptResponse.ok) {
+          const promptData = await promptResponse.json();
+          prompt = promptData.prompt || '';
+        }
+      } catch (error) {
+        console.warn('기존 프롬프트 조회 실패, AI로 생성:', error);
+      }
+
+      // 프롬프트가 없으면 AI로 생성
+      if (!prompt) {
+        setImageGenerationStep('이미지 분석 및 프롬프트 생성 중...');
+        
+        // 이미지가 골프 관련인지 일반 이미지인지 판단 (간단한 휴리스틱)
+        // 실제로는 이미지 분석 API를 통해 판단해야 하지만, 여기서는 URL이나 메타데이터로 판단
+        const isGolfImage = selectedExistingImage.includes('golf') || 
+                           selectedExistingImage.includes('골프') ||
+                           selectedExistingImage.includes('driver') ||
+                           selectedExistingImage.includes('club');
+        
+        const analysisEndpoint = isGolfImage 
+          ? '/api/analyze-image-prompt'  // 골프 이미지용
+          : '/api/analyze-image-general'; // 일반 이미지용
+        
+        const analysisResponse = await fetch(analysisEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: selectedExistingImage,
+            title: '갤러리 이미지 변형',
+            excerpt: '갤러리에서 변형된 이미지'
+          })
+        });
+
+        if (analysisResponse.ok) {
+          const analysisData = await analysisResponse.json();
+          // analyze-image-prompt는 prompt 필드를, analyze-image-general은 다른 구조를 반환할 수 있음
+          prompt = analysisData.prompt || analysisData.englishPrompt || '';
+        }
+      }
+
+      // 프롬프트 미리보기에 표시
+      setImageGenerationPrompt(prompt);
+      
+      // 선택된 이미지를 "생성된 이미지" 섹션에 추가
+      setGeneratedImages(prev => [selectedExistingImage, ...prev]);
+      setShowGeneratedImages(true);
+      
+      // 모달 닫고 상태 초기화
+      setShowExistingImageModal(false);
+      setSelectedExistingImage('');
+      setActiveImageTab('upload');
+      setImageGenerationStep('');
+      setIsGeneratingExistingVariation(false);
+      setShowGenerationProcess(false);
+      
+      alert('✅ 이미지와 프롬프트가 불러와졌습니다!\n\n📸 "생성된 이미지" 섹션에서 이미지 확인\n✏️ "프롬프트 미리보기"에서 프롬프트 수정 가능\n🎨 AI 이미지 생성 버튼으로 변형 시작');
+      return;
+    } catch (error: any) {
+      console.error('이미지 불러오기 오류:', error);
+      alert('이미지 불러오기 중 오류가 발생했습니다: ' + (error as any).message);
+    } finally {
+      setIsGeneratingExistingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // 이미지 변형 관련 함수들 (추가)
+  const generateImageVariation = async (model: 'FAL AI' | 'Replicate Flux' | 'Stability AI') => {
+    if (!selectedBaseImage) {
+      alert('변형할 기본 이미지를 선택해주세요.');
+      return;
+    }
+
+    setIsGeneratingVariation(true);
+    setImageGenerationStep(`${model}로 이미지 변형 중...`);
+    setImageGenerationModel(model);
+    setShowGenerationProcess(true);
+
+    try {
+      let apiEndpoint = '';
+      let requestBody = {
+        title: '갤러리 이미지 변형',
+        excerpt: '갤러리에서 변형된 이미지',
+        contentType: 'gallery',
+        brandStrategy: 'professional',
+        baseImageUrl: selectedBaseImage,
+        prompt: imageGenerationPrompt || undefined,
+        variationCount: 1
+      };
+
+      switch (model) {
+        case 'FAL AI':
+          apiEndpoint = '/api/generate-blog-image-fal-variation';
+          break;
+        case 'Replicate Flux':
+          apiEndpoint = '/api/generate-blog-image-replicate-flux';
+          break;
+        case 'Stability AI':
+          apiEndpoint = '/api/generate-blog-image-stability';
+          break;
+        default:
+          throw new Error('지원하지 않는 모델입니다.');
+      }
+
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.images && result.images.length > 0) {
+          // 변형된 이미지들을 Supabase에 저장
+          const savedImages = [];
+          for (let i = 0; i < result.images.length; i++) {
+            try {
+              const saveResponse = await fetch('/api/save-generated-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageUrl: result.images[i].originalUrl || result.images[i],
+                  fileName: `${model.toLowerCase().replace(' ', '-')}-variation-${Date.now()}-${i + 1}.png`,
+                  blogPostId: null
+                })
+              });
+              
+              if (saveResponse.ok) {
+                const { storedUrl } = await saveResponse.json();
+                savedImages.push(storedUrl);
+              } else {
+                savedImages.push(result.images[i].originalUrl || result.images[i]);
+              }
+            } catch (error) {
+              console.warn(`이미지 ${i + 1} 저장 실패:`, error);
+              savedImages.push(result.images[i].originalUrl || result.images[i]);
+            }
+          }
+          
+          setGeneratedImages(prev => [...prev, ...savedImages]);
+          setShowGeneratedImages(true);
+          
+          // ✅ 모달 닫기 (확대 모달이 열려있는 경우)
+          setSelectedImageForZoom(null);
+          
+          // ✅ "전체 폴더"로 리셋
+          setFolderFilter('all');
+          setIncludeChildren(true);
+          
+          // ✅ 이미지 목록 새로고침 (캐시 무효화 포함)
+          fetchImages(1, true, 'all', true, '', true);
+          
+          alert(`${model} 변형이 완료되었습니다! ${savedImages.length}개의 이미지가 생성되었습니다.`);
+        } else {
+          throw new Error('변형된 이미지가 생성되지 않았습니다.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 변형에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error(`${model} 이미지 변형 오류:`, error);
+      alert(`${model} 이미지 변형 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsGeneratingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
   // 편집 시작
+  // Replicate 변형 함수 (프롬프트 입력 불가, 빠르고 간단)
+  const generateReplicateVariation = async (imageUrl: string, imageName: string) => {
+    if (!imageUrl) {
+      alert('변형할 이미지를 선택해주세요.');
+      return;
+    }
+
+    if (isGeneratingReplicateVariation) {
+      alert('이미 변형 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+
+    if (!confirm(`"${imageName}" 이미지를 Replicate 방식으로 변형하시겠습니까?\n\n(프롬프트 입력 없이 빠르게 변형됩니다)`)) {
+      return;
+    }
+
+    setIsGeneratingReplicateVariation(true);
+    try {
+      const response = await fetch('/api/generate-blog-image-replicate-flux', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '갤러리 이미지 변형',
+          excerpt: '갤러리에서 변형된 이미지',
+          contentType: 'gallery',
+          brandStrategy: 'professional',
+          baseImageUrl: imageUrl,
+          variationStrength: 0.8,
+          variationCount: 1
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || '이미지 변형 실패');
+      }
+
+      const result = await response.json();
+      
+      if (result.images && result.images.length > 0) {
+        // 변형된 이미지를 Supabase에 저장
+        const savedImages = [];
+        for (let i = 0; i < result.images.length; i++) {
+          try {
+            const saveResponse = await fetch('/api/save-generated-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: result.images[i].originalUrl || result.images[i],
+                fileName: `replicate-variation-${Date.now()}-${i + 1}.png`,
+                blogPostId: null
+              })
+            });
+            
+            if (saveResponse.ok) {
+              const { storedUrl } = await saveResponse.json();
+              savedImages.push(storedUrl);
+            } else {
+              savedImages.push(result.images[i].originalUrl || result.images[i]);
+            }
+          } catch (error) {
+            console.warn(`이미지 ${i + 1} 저장 실패:`, error);
+            savedImages.push(result.images[i].originalUrl || result.images[i]);
+          }
+        }
+
+        alert(`✅ Replicate 변형 완료!\n\n${savedImages.length}개의 이미지가 생성되었습니다.`);
+        
+        // ✅ 모달 닫기
+        setSelectedImageForZoom(null);
+        
+        // ✅ "전체 폴더"로 리셋
+        setFolderFilter('all');
+        setIncludeChildren(true);
+        
+        // ✅ 이미지 목록 새로고침 (캐시 무효화 포함)
+        fetchImages(1, true, 'all', true, '', true);
+      } else {
+        throw new Error('변형된 이미지가 생성되지 않았습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ Replicate 변형 오류:', error);
+      alert(`Replicate 변형 실패: ${error.message}`);
+    } finally {
+      setIsGeneratingReplicateVariation(false);
+    }
+  };
+
   const startEditing = (image: ImageMetadata) => {
     setEditingImage(image.name);
     
@@ -1288,7 +1604,135 @@ export default function GalleryAdmin() {
     });
   };
 
-  // 일괄 편집 실행
+  // 일괄 골프 AI 생성 (메타데이터 자동 생성 및 저장)
+  const handleBulkGolfAIGeneration = async () => {
+    if (selectedImages.size === 0) {
+      alert('이미지를 선택해주세요.');
+      return;
+    }
+
+    if (!confirm(`${selectedImages.size}개 이미지의 메타데이터를 AI로 생성하시겠습니까?\n\n골프 이미지는 골프 특화 분석을, 일반 이미지는 범용 분석을 사용합니다.`)) {
+      return;
+    }
+
+    setIsBulkWorking(true);
+    const selectedIds = Array.from(selectedImages);
+    let successCount = 0;
+    let failCount = 0;
+    let golfCount = 0;
+    let generalCount = 0;
+
+    try {
+      for (let i = 0; i < selectedIds.length; i++) {
+        const imageId = selectedIds[i];
+        const image = images.find(img => getImageUniqueId(img) === imageId);
+        
+        if (!image) continue;
+
+        try {
+          // 골프 이미지인지 일반 이미지인지 판단
+          // 1차: URL/파일명/폴더 경로 기반 빠른 판단
+          const urlLower = (image.url || '').toLowerCase();
+          const nameLower = (image.name || '').toLowerCase();
+          const folderLower = (image.folder_path || '').toLowerCase();
+          
+          let isGolfImage = urlLower.includes('golf') || 
+                           urlLower.includes('골프') ||
+                           urlLower.includes('driver') ||
+                           urlLower.includes('club') ||
+                           nameLower.includes('golf') ||
+                           nameLower.includes('골프') ||
+                           nameLower.includes('driver') ||
+                           nameLower.includes('club') ||
+                           folderLower.includes('golf') ||
+                           folderLower.includes('골프');
+          
+          // 2차: 기존 메타데이터가 있으면 키워드로도 확인
+          if (!isGolfImage && image.keywords && image.keywords.length > 0) {
+            const keywordsText = image.keywords.join(' ').toLowerCase();
+            isGolfImage = keywordsText.includes('golf') || 
+                         keywordsText.includes('골프') ||
+                         keywordsText.includes('드라이버') ||
+                         keywordsText.includes('클럽');
+          }
+          
+          const analysisEndpoint = isGolfImage 
+            ? '/api/analyze-image-prompt'  // 골프 이미지용
+            : '/api/analyze-image-general'; // 일반 이미지용
+          
+          if (isGolfImage) golfCount++;
+          else generalCount++;
+          
+          // AI 메타데이터 생성
+          const response = await fetch(analysisEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              imageUrl: image.url,
+              title: '갤러리 이미지',
+              excerpt: '갤러리에서 메타데이터 생성'
+            })
+          });
+
+          if (response.ok) {
+            const metadata = await response.json();
+            
+            // 키워드 처리 (문자열 또는 배열)
+            let keywords = [];
+            if (metadata.keywords) {
+              if (typeof metadata.keywords === 'string') {
+                keywords = metadata.keywords.split(',').map(k => k.trim()).filter(k => k);
+              } else if (Array.isArray(metadata.keywords)) {
+                keywords = metadata.keywords;
+              }
+            }
+            
+            // 메타데이터 자동 저장
+            const saveResponse = await fetch('/api/admin/image-metadata', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageName: image.name,
+                imageUrl: image.url,
+                alt_text: metadata.alt_text || metadata.alt || '',
+                keywords: keywords,
+                title: metadata.title || '',
+                description: metadata.description || ''
+              })
+            });
+            
+            if (saveResponse.ok) {
+              successCount++;
+            } else {
+              failCount++;
+            }
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error(`이미지 ${image.name} 처리 실패:`, error);
+          failCount++;
+        }
+        
+        // API 호출 제한 방지 (400ms 간격)
+        await new Promise(resolve => setTimeout(resolve, 400));
+      }
+
+      alert(`✅ 일괄 메타데이터 생성 완료!\n\n성공: ${successCount}개\n실패: ${failCount}개\n\n골프 이미지: ${golfCount}개\n일반 이미지: ${generalCount}개`);
+      
+      // 이미지 목록 새로고침
+      fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
+      
+    } catch (error) {
+      console.error('일괄 메타데이터 생성 오류:', error);
+      alert(`일괄 메타데이터 생성 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsBulkWorking(false);
+      setSelectedImages(new Set()); // 선택 초기화
+    }
+  };
+
+  // 일괄 편집 실행 (기존 기능 유지 - 필요시 사용)
   const handleBulkEdit = async () => {
     if (selectedImages.size === 0) return;
     setIsBulkWorking(true);
@@ -1451,9 +1895,21 @@ export default function GalleryAdmin() {
           result = { success: true, message: '이미지가 삭제되었습니다.' };
         }
         
-        // 삭제된 이미지를 상태에서 제거
+        // 삭제된 이미지를 상태에서 제거 (즉시 UI 업데이트)
         setImages(prev => prev.filter(img => img.name !== imageName));
+        
+        // 현재 확대된 이미지가 삭제된 경우 모달 닫기
+        if (selectedImageForZoom && selectedImageForZoom.name === imageName) {
+          setSelectedImageForZoom(null);
+        }
+        
         alert('이미지가 삭제되었습니다.');
+        
+        // ✅ 서버에서 목록 새로고침 (캐시 무효화 포함)
+        setTimeout(() => {
+          // forceRefresh 파라미터로 캐시 무효화
+          fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+        }, 500);
       } else {
         let errorData;
         try {
@@ -2015,6 +2471,90 @@ export default function GalleryAdmin() {
                   ))
                 )}
               </div>
+
+              {/* 프롬프트 미리보기 및 생성된 이미지 섹션 (블로그 스타일) */}
+              {(showGeneratedImages || imageGenerationPrompt) && (
+                <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                  {/* 프롬프트 미리보기 */}
+                  {imageGenerationPrompt && (
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">✏️ 프롬프트 미리보기</h4>
+                      <textarea
+                        value={imageGenerationPrompt}
+                        onChange={(e) => setImageGenerationPrompt(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows={4}
+                        placeholder="프롬프트를 수정할 수 있습니다..."
+                      />
+                    </div>
+                  )}
+
+                  {/* 이미지 생성 과정 표시 */}
+                  {showGenerationProcess && imageGenerationStep && (
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">
+                        🤖 {imageGenerationModel} 이미지 생성 과정
+                      </h4>
+                      <div className="text-sm text-blue-700">
+                        {imageGenerationStep}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 생성된 이미지 갤러리 */}
+                  {showGeneratedImages && generatedImages.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">생성된 이미지</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {generatedImages.map((imageUrl, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={imageUrl}
+                              alt={`생성된 이미지 ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center p-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm('이 이미지를 삭제하시겠습니까?')) {
+                                      setGeneratedImages(prev => prev.filter((_, i) => i !== index));
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                  title="삭제"
+                                >
+                                  🗑️
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isGeneratingVariation}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (isGeneratingVariation) return;
+                                    setSelectedBaseImage(imageUrl);
+                                    await generateImageVariation('Replicate Flux');
+                                  }}
+                                  className={`px-2 py-1 text-xs rounded ${isGeneratingVariation ? 'bg-purple-300 text-white cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+                                  title="변형"
+                                >
+                                  {isGeneratingVariation ? '…' : '🎨'}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* 검색 및 필터 */}
               <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -2120,10 +2660,11 @@ export default function GalleryAdmin() {
               <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    onClick={() => setShowBulkEdit(true)}
-                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                    onClick={handleBulkGolfAIGeneration}
+                    disabled={isBulkWorking}
+                    className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    📝 일괄 편집
+                    {isBulkWorking ? '⏳ 생성 중...' : '⛳ 골프 AI 생성 (일괄)'}
                   </button>
                 {seoPreview && (
                   <button
@@ -2419,6 +2960,21 @@ export default function GalleryAdmin() {
                           title="편집"
                         >
                           ✏️
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            generateReplicateVariation(image.url, image.name);
+                          }}
+                          disabled={isGeneratingReplicateVariation}
+                          className={`p-1 rounded shadow-sm ${
+                            isGeneratingReplicateVariation
+                              ? 'bg-purple-300 text-white cursor-not-allowed'
+                              : 'bg-purple-500 text-white hover:bg-purple-600'
+                          }`}
+                          title="변형 (Replicate - 빠르고 간단, 프롬프트 입력 불가)"
+                        >
+                          {isGeneratingReplicateVariation ? '…' : '🎨'}
                         </button>
                         <button
                           onClick={(e) => {
@@ -2791,6 +3347,92 @@ export default function GalleryAdmin() {
                   🗑️ 삭제
                 </button>
                 <button
+                  onClick={() => {
+                    // 기존 이미지 변형 모달 열기 (FAL AI - 프롬프트 입력 가능)
+                    setSelectedExistingImage(selectedImageForZoom.url);
+                    setShowExistingImageModal(true);
+                  }}
+                  className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors"
+                  title="변형 (FAL AI - 프롬프트 입력 가능)"
+                >
+                  🔄 변형 (FAL)
+                </button>
+                <button
+                  onClick={async () => {
+                    // Replicate 변형 (프롬프트 입력 불가, 빠르고 간단)
+                    if (!selectedImageForZoom) return;
+                    if (isGeneratingReplicateVariation) return;
+                    await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name);
+                  }}
+                  disabled={isGeneratingReplicateVariation}
+                  className={`px-3 py-1 text-sm rounded transition-colors ${
+                    isGeneratingReplicateVariation
+                      ? 'bg-purple-300 text-white cursor-not-allowed'
+                      : 'bg-purple-500 text-white hover:bg-purple-600'
+                  }`}
+                  title="변형 (Replicate - 빠르고 간단, 프롬프트 입력 불가)"
+                >
+                  {isGeneratingReplicateVariation ? '⏳ 변형 중...' : '🎨 변형 (Replicate)'}
+                </button>
+                <button
+                  onClick={async () => {
+                    // 업스케일링 시작
+                    if (!selectedImageForZoom) return;
+                    if (isUpscaling) return;
+                    
+                    if (!confirm(`"${selectedImageForZoom.name}" 이미지를 ${upscaleScale}배 업스케일링하시겠습니까?`)) {
+                      return;
+                    }
+                    
+                    setIsUpscaling(true);
+                    try {
+                      const response = await fetch('/api/admin/upscale-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: selectedImageForZoom.url,
+                          model: upscaleModel,
+                          scale: upscaleScale,
+                          preserveExif: true
+                        })
+                      });
+                      
+                      if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || '업스케일링 실패');
+                      }
+                      
+                      const data = await response.json();
+                      if (data.success) {
+                        alert(`✅ 업스케일링 완료!\n\n새 이미지: ${data.fileName || 'URL 사용'}`);
+                        // 이미지 목록 새로고침
+                        fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                        // 업스케일된 이미지로 교체
+                        if (data.imageUrl) {
+                          setSelectedImageForZoom({
+                            ...selectedImageForZoom,
+                            url: data.imageUrl,
+                            width: data.width,
+                            height: data.height
+                          });
+                        }
+                      } else {
+                        throw new Error(data.error || '업스케일링 실패');
+                      }
+                    } catch (error: any) {
+                      console.error('❌ 업스케일링 오류:', error);
+                      alert(`업스케일링 실패: ${error.message}`);
+                    } finally {
+                      setIsUpscaling(false);
+                    }
+                  }}
+                  disabled={isUpscaling}
+                  className="px-3 py-1 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="업스케일"
+                >
+                  {isUpscaling ? '⏳ 업스케일링 중...' : '⬆️ 업스케일'}
+                </button>
+                <button
                   onClick={() => setSelectedImageForZoom(null)}
                   className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                   title="닫기 (Esc)"
@@ -2862,6 +3504,300 @@ export default function GalleryAdmin() {
                     />
                   </div>
                 ))}
+              </div>
+              
+              {/* 구글 지도 (GPS 정보가 있는 경우) */}
+              {selectedImageForZoom && (selectedImageForZoom as any).gps_lat && (selectedImageForZoom as any).gps_lng && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">📍 촬영 위치</h4>
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${(selectedImageForZoom as any).gps_lat},${(selectedImageForZoom as any).gps_lng}&zoom=17`}
+                    width="100%"
+                    height="300"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 기존 이미지 변형 모달 */}
+      {showExistingImageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">🔄 기존 이미지 변형</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExistingImageModal(false);
+                  setSelectedExistingImage('');
+                  setActiveImageTab('upload');
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* 이미지 선택 탭 */}
+              <div className="flex space-x-4 border-b border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setActiveImageTab('upload')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeImageTab === 'upload'
+                      ? 'text-blue-600 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  📁 파일 업로드
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveImageTab('gallery')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeImageTab === 'gallery'
+                      ? 'text-blue-600 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  🖼️ 갤러리에서 선택
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveImageTab('url')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeImageTab === 'url'
+                      ? 'text-blue-600 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  🔗 URL 입력
+                </button>
+              </div>
+              
+              {/* 파일 업로드 섹션 */}
+              {activeImageTab === 'upload' && (
+                <div className="space-y-4">
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const files = e.dataTransfer.files;
+                      if (files.length > 0) {
+                        const file = files[0];
+                        if (!file) return;
+                        // 파일을 임시 URL로 변환
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          const result = e.target?.result as string;
+                          if (result) {
+                            setSelectedExistingImage(result);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  >
+                    <div className="space-y-4">
+                      <div className="text-gray-500">
+                        <label htmlFor="existing-image-upload" className="cursor-pointer">
+                          <svg className="mx-auto h-12 w-12 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </label>
+                      </div>
+                      <div>
+                        <label htmlFor="existing-image-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-gray-900">
+                            이미지 파일을 선택하거나 드래그하세요
+                          </span>
+                          <span className="mt-1 block text-sm text-gray-500">
+                            PNG, JPG, GIF, HEIC 파일 지원
+                          </span>
+                        </label>
+                        <input
+                          id="existing-image-upload"
+                          name="existing-image-upload"
+                          type="file"
+                          className="sr-only"
+                          accept="image/*,.heic,.heif"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                const result = e.target?.result as string;
+                                if (result) {
+                                  setSelectedExistingImage(result);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* 갤러리에서 선택 섹션 */}
+              {activeImageTab === 'gallery' && (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    갤러리에서 이미지 선택
+                  </label>
+                  <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                    {filteredImages.length > 0 ? (
+                      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {filteredImages.map((image, index) => (
+                          <div
+                            key={index}
+                            className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-colors ${
+                              selectedExistingImage === image.url
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-blue-300'
+                            }`}
+                            onClick={() => setSelectedExistingImage(image.url)}
+                          >
+                            <img
+                              src={image.url}
+                              alt={image.name}
+                              className="w-full h-20 object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/placeholder-image.jpg';
+                              }}
+                            />
+                            <div className="p-1 bg-white">
+                              <div className="text-xs text-gray-600 truncate" title={image.name}>
+                                {image.name}
+                              </div>
+                            </div>
+                            {selectedExistingImage === image.url && (
+                              <div className="absolute top-1 right-1">
+                                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-xs">✓</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <div className="text-4xl mb-2">🖼️</div>
+                        <p>갤러리에 이미지가 없습니다</p>
+                        <p className="text-sm">먼저 이미지를 업로드하거나 생성해주세요</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* URL 입력 섹션 */}
+              {activeImageTab === 'url' && (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    이미지 URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      const url = e.target.value;
+                      if (url) {
+                        if (url.startsWith('file://')) {
+                          alert('로컬 파일 경로는 지원되지 않습니다. 웹 URL을 입력하거나 파일 업로드를 사용해주세요.');
+                          e.target.value = '';
+                          return;
+                        }
+                        setSelectedExistingImage(url);
+                      }
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* 선택된 이미지 미리보기 */}
+              {selectedExistingImage && (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-700">선택된 이미지</h4>
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <img
+                      src={selectedExistingImage}
+                      alt="선택된 이미지"
+                      className="w-24 h-24 object-cover rounded-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">이미지가 선택되었습니다</p>
+                      <p className="text-xs text-gray-600 truncate">{selectedExistingImage.substring(0, 100)}...</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedExistingImage('')}
+                      className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                    >
+                      선택 해제
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* 액션 버튼들 */}
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowExistingImageModal(false);
+                    setSelectedExistingImage('');
+                    setActiveImageTab('upload');
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedExistingImage) {
+                      setShowExistingImageModal(false);
+                      handleLoadExistingImageAndPrompt();
+                    } else {
+                      alert('불러올 이미지를 선택해주세요.');
+                    }
+                  }}
+                  disabled={!selectedExistingImage || isGeneratingExistingVariation}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                    selectedExistingImage && !isGeneratingExistingVariation
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {isGeneratingExistingVariation ? '불러오는 중...' : '이미지 불러오기'}
+                </button>
               </div>
             </div>
           </div>
@@ -3225,95 +4161,218 @@ export default function GalleryAdmin() {
             <div className="p-4 space-y-4">
               {activeAddTab==='upload' && (
                 <div className="space-y-3">
-                  <input
-                    id="gallery-file-upload"
-                    type="file"
-                    accept="image/*,.heic,.heif"
-                    onChange={async (e)=>{
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      try {
-                        setPending(true);
-                        
-                        // Supabase 클라이언트 초기화
-                        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-                        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-                        if (!supabaseUrl || !supabaseAnonKey) {
-                          throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
+                  {/* 드래그 앤 드롭 업로드 영역 */}
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const files = e.dataTransfer.files;
+                      if (files.length > 0) {
+                        const file = files[0];
+                        if (!file) return;
+                        try {
+                          setPending(true);
+                          
+                          // Supabase 클라이언트 초기화
+                          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+                          if (!supabaseUrl || !supabaseAnonKey) {
+                            throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
+                          }
+                          const sb = createClient(supabaseUrl, supabaseAnonKey);
+                          
+                          // 1) 파일명 정리 및 경로 생성
+                          const dateStr = new Date().toISOString().slice(0, 10);
+                          const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
+                          const ts = Date.now();
+                          const objectPath = `originals/${dateStr}/${ts}_${baseName}`;
+                          
+                          // 2) 서명 업로드 URL 발급
+                          const res = await fetch('/api/admin/storage-signed-upload', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ path: objectPath })
+                          });
+                          
+                          if (!res.ok) {
+                            const error = await res.json();
+                            throw new Error(error.error || '서명 URL 발급 실패');
+                          }
+                          
+                          const { token } = await res.json();
+                          
+                          // 3) Supabase SDK로 업로드
+                          const { error: uploadError } = await sb.storage
+                            .from('blog-images')
+                            .uploadToSignedUrl(objectPath, token, file);
+                          
+                          if (uploadError) {
+                            throw new Error(`업로드 실패: ${uploadError.message}`);
+                          }
+                          
+                          // 4) 공개 URL 가져오기
+                          const { data: publicUrlData } = sb.storage
+                            .from('blog-images')
+                            .getPublicUrl(objectPath);
+                          const publicUrl = publicUrlData?.publicUrl;
+                          
+                          if (!publicUrl) {
+                            throw new Error('공개 URL을 가져올 수 없습니다.');
+                          }
+                          
+                          // 5) 메타데이터 저장
+                          await fetch('/api/admin/upsert-image-metadata', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              file_name: file.name,
+                              image_url: publicUrl,
+                              date_folder: dateStr,
+                              width: null,
+                              height: null,
+                              file_size: file.size
+                            })
+                          });
+                          
+                          // 6) EXIF 백필 비동기
+                          fetch('/api/admin/backfill-exif', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ paths: [objectPath] })
+                          }).catch(err => console.error('EXIF 백필 오류:', err));
+                          
+                          setShowAddModal(false);
+                          fetchImages(1, true);
+                          alert('이미지 업로드 완료');
+                        } catch (e: any) {
+                          console.error('❌ 이미지 업로드 오류:', e);
+                          alert(`업로드 실패: ${e.message}`);
+                        } finally {
+                          setPending(false);
                         }
-                        const sb = createClient(supabaseUrl, supabaseAnonKey);
-                        
-                        // 1) 파일명 정리 및 경로 생성
-                        const dateStr = new Date().toISOString().slice(0, 10);
-                        const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
-                        const ts = Date.now();
-                        const objectPath = `originals/${dateStr}/${ts}_${baseName}`;
-                        
-                        // 2) 서명 업로드 URL 발급
-                        const res = await fetch('/api/admin/storage-signed-upload', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ path: objectPath })
-                        });
-                        
-                        if (!res.ok) {
-                          const error = await res.json();
-                          throw new Error(error.error || '서명 URL 발급 실패');
-                        }
-                        
-                        const { token } = await res.json();
-                        
-                        // 3) Supabase SDK로 업로드
-                        const { error: uploadError } = await sb.storage
-                          .from('blog-images')
-                          .uploadToSignedUrl(objectPath, token, file);
-                        
-                        if (uploadError) {
-                          throw new Error(`업로드 실패: ${uploadError.message}`);
-                        }
-                        
-                        // 4) 공개 URL 가져오기
-                        const { data: publicUrlData } = sb.storage
-                          .from('blog-images')
-                          .getPublicUrl(objectPath);
-                        const publicUrl = publicUrlData?.publicUrl;
-                        
-                        if (!publicUrl) {
-                          throw new Error('공개 URL을 가져올 수 없습니다.');
-                        }
-                        
-                        // 5) 메타데이터 저장
-                        await fetch('/api/admin/upsert-image-metadata', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            file_name: file.name,
-                            image_url: publicUrl,
-                            date_folder: dateStr,
-                            width: null,
-                            height: null,
-                            file_size: file.size
-                          })
-                        });
-                        
-                        // 6) EXIF 백필 비동기
-                        fetch('/api/admin/backfill-exif', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ paths: [objectPath] })
-                        }).catch(err => console.error('EXIF 백필 오류:', err));
-                        
-                        setShowAddModal(false);
-                        fetchImages(1, true);
-                        alert('이미지 업로드 완료');
-                      } catch (e: any) {
-                        console.error('❌ 이미지 업로드 오류:', e);
-                        alert(`업로드 실패: ${e.message}`);
-                      } finally {
-                        setPending(false);
                       }
                     }}
-                  />
+                  >
+                    <div className="space-y-4">
+                      <div className="text-gray-500">
+                        <label htmlFor="gallery-file-upload" className="cursor-pointer">
+                          <svg className="mx-auto h-12 w-12 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </label>
+                      </div>
+                      <div>
+                        <label htmlFor="gallery-file-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-gray-900">
+                            이미지 파일을 선택하거나 드래그하세요
+                          </span>
+                          <span className="mt-1 block text-sm text-gray-500">
+                            PNG, JPG, GIF, HEIC 파일 지원
+                          </span>
+                        </label>
+                        <input
+                          id="gallery-file-upload"
+                          name="gallery-file-upload"
+                          type="file"
+                          className="sr-only"
+                          accept="image/*,.heic,.heif"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              setPending(true);
+                              
+                              // Supabase 클라이언트 초기화
+                              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                              const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+                              if (!supabaseUrl || !supabaseAnonKey) {
+                                throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
+                              }
+                              const sb = createClient(supabaseUrl, supabaseAnonKey);
+                              
+                              // 1) 파일명 정리 및 경로 생성
+                              const dateStr = new Date().toISOString().slice(0, 10);
+                              const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
+                              const ts = Date.now();
+                              const objectPath = `originals/${dateStr}/${ts}_${baseName}`;
+                              
+                              // 2) 서명 업로드 URL 발급
+                              const res = await fetch('/api/admin/storage-signed-upload', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ path: objectPath })
+                              });
+                              
+                              if (!res.ok) {
+                                const error = await res.json();
+                                throw new Error(error.error || '서명 URL 발급 실패');
+                              }
+                              
+                              const { token } = await res.json();
+                              
+                              // 3) Supabase SDK로 업로드
+                              const { error: uploadError } = await sb.storage
+                                .from('blog-images')
+                                .uploadToSignedUrl(objectPath, token, file);
+                              
+                              if (uploadError) {
+                                throw new Error(`업로드 실패: ${uploadError.message}`);
+                              }
+                              
+                              // 4) 공개 URL 가져오기
+                              const { data: publicUrlData } = sb.storage
+                                .from('blog-images')
+                                .getPublicUrl(objectPath);
+                              const publicUrl = publicUrlData?.publicUrl;
+                              
+                              if (!publicUrl) {
+                                throw new Error('공개 URL을 가져올 수 없습니다.');
+                              }
+                              
+                              // 5) 메타데이터 저장
+                              await fetch('/api/admin/upsert-image-metadata', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  file_name: file.name,
+                                  image_url: publicUrl,
+                                  date_folder: dateStr,
+                                  width: null,
+                                  height: null,
+                                  file_size: file.size
+                                })
+                              });
+                              
+                              // 6) EXIF 백필 비동기
+                              fetch('/api/admin/backfill-exif', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ paths: [objectPath] })
+                              }).catch(err => console.error('EXIF 백필 오류:', err));
+                              
+                              setShowAddModal(false);
+                              fetchImages(1, true);
+                              alert('이미지 업로드 완료');
+                            } catch (e: any) {
+                              console.error('❌ 이미지 업로드 오류:', e);
+                              alert(`업로드 실패: ${e.message}`);
+                            } finally {
+                              setPending(false);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <p className="text-xs text-gray-500">HEIC/JPG/PNG 지원. 업로드 후 자동으로 메타데이터가 보강됩니다.</p>
                 </div>
               )}

@@ -886,8 +886,8 @@ export default function BlogAdmin() {
   
   // ✅ 블로그 글별 메타데이터 동기화 함수
   const handleSyncMetadata = async (post) => {
-    // ✅ 클라이언트 사이드 타임아웃도 충분히 설정 (성공 최대 목표)
-    if (!confirm(`"${post.title}"의 이미지 메타데이터를 동기화하시겠습니까?\n\nAI로 메타데이터를 생성합니다.`)) {
+    // ✅ 골프 AI 생성 (일괄) 확인 메시지
+    if (!confirm(`"${post.title}"의 이미지 메타데이터를 골프 AI로 생성하시겠습니까?\n\n골프 이미지는 골프 특화 분석을, 일반 이미지는 범용 분석을 사용합니다.`)) {
       return;
     }
     
@@ -909,25 +909,27 @@ export default function BlogAdmin() {
       if (timeoutId) clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error('메타데이터 동기화 실패');
+        throw new Error('골프 AI 생성 실패');
       }
       
       const data = await response.json();
       const processed = data.summary?.processed || 0;
       const skipped = data.summary?.skipped || 0;
       const errors = data.summary?.errors || 0;
+      const golfCount = data.summary?.golfCount || 0;
+      const generalCount = data.summary?.generalCount || 0;
       
-      alert(`✅ 메타데이터 동기화 완료!\n\n처리: ${processed}개\n스킵: ${skipped}개\n오류: ${errors}개`);
+      alert(`✅ 골프 AI 생성 완료!\n\n처리: ${processed}개\n스킵: ${skipped}개\n오류: ${errors}개\n\n⛳ 골프 이미지: ${golfCount}개\n🌐 일반 이미지: ${generalCount}개`);
       
     } catch (error) {
       if (timeoutId) clearTimeout(timeoutId);
-      console.error('❌ 메타데이터 동기화 오류:', error);
+      console.error('❌ 골프 AI 생성 오류:', error);
       
       // ✅ 타임아웃 오류 구분
       if (error.name === 'AbortError') {
-        alert('메타데이터 동기화가 시간 초과되었습니다.\n이미지가 많은 경우 시간이 오래 걸릴 수 있습니다.\n다시 시도해주세요.');
+        alert('골프 AI 생성이 시간 초과되었습니다.\n이미지가 많은 경우 시간이 오래 걸릴 수 있습니다.\n다시 시도해주세요.');
       } else {
-        alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
+        alert(`골프 AI 생성 중 오류가 발생했습니다: ${error.message}`);
       }
     } finally {
       setSyncingMetadata(prev => ({ ...prev, [post.id]: false }));
@@ -5647,18 +5649,18 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                           <button
                             onClick={() => handleSyncMetadata(post)}
                             disabled={syncingMetadata[post.id]}
-                            className="bg-teal-500 text-white px-3 py-1 rounded text-sm hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-                            title="블로그 글별 메타데이터 동기화"
+                            className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                            title="블로그 글별 골프 AI 메타데이터 생성 (일괄)"
                           >
                             {syncingMetadata[post.id] ? (
                               <>
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                                <span>동기화 중...</span>
+                                <span>생성 중...</span>
                               </>
                             ) : (
                               <>
-                                <span>🔄</span>
-                                <span>메타 동기화</span>
+                                <span>⛳</span>
+                                <span>골프 AI 생성 (일괄)</span>
                               </>
                             )}
                           </button>
@@ -6504,8 +6506,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
                   {/* @ts-ignore */}
                   <TipTapEditor
-                    valueMarkdown={formData.content || ''}
-                    onChangeMarkdown={(md) => setFormData(prev => ({ ...prev, content: md }))}
+                    valueMarkdown={formData.content}
+                    onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
                   />
                 </div>
 

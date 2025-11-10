@@ -35,62 +35,107 @@ const extractKeywordsFromFilename = (filename) => {
   return keywords;
 };
 
-// OpenAI Vision API로 이미지 분석
-const analyzeImageWithOpenAI = async (imageUrl) => {
+// 골프 이미지인지 일반 이미지인지 판단
+const isGolfImage = (imageUrl, fileName, folderPath = '') => {
+  const urlLower = (imageUrl || '').toLowerCase();
+  const nameLower = (fileName || '').toLowerCase();
+  const folderLower = (folderPath || '').toLowerCase();
+  
+  return urlLower.includes('golf') || 
+         urlLower.includes('골프') ||
+         urlLower.includes('driver') ||
+         urlLower.includes('club') ||
+         urlLower.includes('swing') ||
+         nameLower.includes('golf') ||
+         nameLower.includes('골프') ||
+         nameLower.includes('driver') ||
+         nameLower.includes('club') ||
+         nameLower.includes('swing') ||
+         folderLower.includes('golf') ||
+         folderLower.includes('골프');
+};
+
+// 골프 이미지 메타데이터 생성 (골프 특화)
+const analyzeGolfImage = async (imageUrl, title = '', excerpt = '') => {
   try {
-    // ✅ OpenAI API 호출 타임아웃 설정 (8초) - Promise.race 사용
-    // 14개 이미지 성공을 목표로 충분한 시간 제공
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI API 타임아웃 (8초 초과)')), 8000);
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/analyze-image-prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        imageUrl,
+        title: title || '골프 이미지',
+        excerpt: excerpt || '골프 관련 이미지'
+      })
     });
-    
-    const apiPromise = openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: '이 이미지를 분석하여 다음 정보를 한국어로 제공해주세요:\n1. ALT 텍스트 (25-60자, SEO 최적화)\n2. 제목 (25-60자)\n3. 설명 (100-200자)\n4. 키워드 (5-10개, 쉼표로 구분)\n\nJSON 형식으로 반환: {"alt_text": "...", "title": "...", "description": "...", "keywords": ["...", "..."]}'
-            },
-            {
-              type: 'image_url',
-              image_url: { url: imageUrl }
-            }
-          ]
-        }
-      ],
-      max_tokens: 300, // ✅ 토큰 수 줄여서 응답 시간 단축
-      temperature: 0.3 // ✅ 일관성 높이고 응답 시간 단축
-    });
-    
-    // ✅ 타임아웃과 함께 실행
-    const response = await Promise.race([apiPromise, timeoutPromise]);
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) return null;
-
-    // JSON 파싱
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const metadata = JSON.parse(jsonMatch[0]);
-      return {
-        alt_text: metadata.alt_text || '',
-        title: metadata.title || '',
-        description: metadata.description || '',
-        keywords: Array.isArray(metadata.keywords) ? metadata.keywords : (metadata.keywords ? metadata.keywords.split(',') : [])
-      };
+    if (!response.ok) {
+      throw new Error(`골프 이미지 분석 실패: ${response.status}`);
     }
 
-    return null;
+    const data = await response.json();
+    
+    // 키워드 처리 (문자열 또는 배열)
+    let keywords = [];
+    if (data.keywords) {
+      if (typeof data.keywords === 'string') {
+        keywords = data.keywords.split(',').map(k => k.trim()).filter(k => k);
+      } else if (Array.isArray(data.keywords)) {
+        keywords = data.keywords;
+      }
+    }
+    
+    return {
+      alt_text: data.alt_text || data.alt || '',
+      title: data.title || '',
+      description: data.description || '',
+      keywords: keywords,
+      age_estimation: data.age_estimation || '없음'
+    };
   } catch (error) {
-    // ✅ 타임아웃 오류 구분
-    if (error.message && (error.message.includes('타임아웃') || error.message.includes('timeout') || error.message.includes('초과'))) {
-      console.warn('⚠️ OpenAI Vision API 타임아웃 (8초 초과):', imageUrl);
-      return null;
+    console.error('❌ 골프 이미지 분석 오류:', error);
+    return null;
+  }
+};
+
+// 일반 이미지 메타데이터 생성 (범용)
+const analyzeGeneralImage = async (imageUrl, title = '', excerpt = '') => {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/analyze-image-general`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        imageUrl,
+        title: title || '이미지',
+        excerpt: excerpt || '일반 이미지'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`일반 이미지 분석 실패: ${response.status}`);
     }
-    console.error('❌ OpenAI Vision API 오류:', error);
+
+    const data = await response.json();
+    
+    // 키워드 처리 (문자열 또는 배열)
+    let keywords = [];
+    if (data.keywords) {
+      if (typeof data.keywords === 'string') {
+        keywords = data.keywords.split(',').map(k => k.trim()).filter(k => k);
+      } else if (Array.isArray(data.keywords)) {
+        keywords = data.keywords;
+      }
+    }
+    
+    return {
+      alt_text: data.alt_text || data.alt || '',
+      title: data.title || '',
+      description: data.description || '',
+      keywords: keywords
+    };
+  } catch (error) {
+    console.error('❌ 일반 이미지 분석 오류:', error);
     return null;
   }
 };
@@ -197,6 +242,9 @@ const syncMetadataForBlogPost = async (blogPostId) => {
     }
     
     // ✅ 처리 대상 이미지만 처리
+    let golfCount = 0;
+    let generalCount = 0;
+    
     for (const img of imagesToProcess) {
       try {
         
@@ -205,8 +253,23 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         const fileName = urlParts[urlParts.length - 1].split('?')[0];
         const filenameKeywords = extractKeywordsFromFilename(fileName);
         
-        // OpenAI Vision API로 이미지 분석
-        let metadata = await analyzeImageWithOpenAI(img.url);
+        // 폴더 경로 추출 (URL에서)
+        const folderPath = urlParts.slice(0, -1).join('/');
+        
+        // 골프 이미지인지 일반 이미지인지 판단
+        const isGolf = isGolfImage(img.url, fileName, folderPath);
+        
+        // 골프 이미지면 골프 특화 분석, 일반 이미지면 범용 분석
+        let metadata = null;
+        if (isGolf) {
+          golfCount++;
+          console.log(`⛳ 골프 이미지 감지: ${fileName}`);
+          metadata = await analyzeGolfImage(img.url, post.title, post.content?.substring(0, 200) || '');
+        } else {
+          generalCount++;
+          console.log(`🌐 일반 이미지 감지: ${fileName}`);
+          metadata = await analyzeGeneralImage(img.url, post.title, post.content?.substring(0, 200) || '');
+        }
         
         if (!metadata) {
           // AI 분석 실패 시 파일명 기반 기본 메타데이터 생성
@@ -217,7 +280,7 @@ const syncMetadataForBlogPost = async (blogPostId) => {
             title: fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
             description: filenameKeywords.length > 0 
               ? `${filenameKeywords.slice(0, 5).join(', ')} 관련 이미지입니다.` 
-              : '골프 관련 이미지',
+              : (isGolf ? '골프 관련 이미지' : '일반 이미지'),
             keywords: filenameKeywords
           };
         }
@@ -289,7 +352,9 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         total: images.length,
         processed,
         skipped,
-        errors: errors.length
+        errors: errors.length,
+        golfCount,
+        generalCount
       }
     };
     

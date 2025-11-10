@@ -172,3 +172,9 @@ export const getStaticPaths: GetStaticPaths = async ({ locales }) => {
 
 **결론:** Next.js i18n과 Vercel rewrites의 충돌 문제이며, `getStaticPaths`에서 로케일 경로를 생성하지 않아 발생한 문제입니다.
 
+
+
+
+
+
+
