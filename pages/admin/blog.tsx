@@ -597,7 +597,8 @@ export default function BlogAdmin() {
           conversiongoal: post.conversion_goal || 'awareness',
           target_product: post.target_product || 'all',
           published_at: post.published_at || '',
-          created_at: post.created_at || ''
+          created_at: post.created_at || '',
+          scheduled_at: post.scheduled_at || null
         });
       } else {
         const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
@@ -7932,28 +7933,16 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                         onClick={() => {
                           // 이미지를 에디터의 커서 위치에 삽입
                           if (editorInstance && editorCursorPosition !== null) {
-                            try {
-                              // ✅ 에디터가 마운트되었는지 확인
-                              if (!editorInstance.view || !editorInstance.view.dom) {
-                                console.warn('에디터가 아직 마운트되지 않았습니다.');
-                                alert('에디터가 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
-                                return;
-                              }
-                              
-                              const httpsUrl = forceHttps(image.url);
-                              // ✅ focus() 없이 직접 이미지 삽입
-                              editorInstance.chain()
-                                .setTextSelection(editorCursorPosition)
-                                .setImage({ 
-                                  src: httpsUrl, 
-                                  alt: image.alt || '갤러리 이미지',
-                                  title: image.title || ''
-                                })
-                                .run();
-                            } catch (error) {
-                              console.error('이미지 삽입 오류:', error);
-                              alert('이미지 삽입 중 오류가 발생했습니다.');
-                            }
+                            const httpsUrl = forceHttps(image.url);
+                            editorInstance.chain()
+                              .focus()
+                              .setTextSelection(editorCursorPosition)
+                              .setImage({ 
+                                src: httpsUrl, 
+                                alt: image.alt || '갤러리 이미지',
+                                title: image.title || ''
+                              })
+                              .run();
                           }
                           
                           // 모달 닫기
