@@ -733,13 +733,13 @@ export default function BlogAdmin() {
 
   // ✅ 블로그 글별 이미지 정렬 함수
   const handleOrganizeImages = async (post) => {
-    // ✅ 계획된 구조: originals/blog/YYYY-MM/
-    // 블로그 글의 작성일 기준으로 폴더 생성
-    const postDate = post.created_at ? new Date(post.created_at) : new Date();
-    const year = postDate.getFullYear();
-    const month = String(postDate.getMonth() + 1).padStart(2, '0');
+    // ✅ 개선된 구조: originals/blog/발행년-발행월/글ID
+    // 발행일(published_at) 기준으로 년-월 폴더 생성, 그 안에 글 ID 폴더 생성
+    const publishDate = post.published_at ? new Date(post.published_at) : (post.created_at ? new Date(post.created_at) : new Date());
+    const year = publishDate.getFullYear();
+    const month = String(publishDate.getMonth() + 1).padStart(2, '0');
     const dateFolder = `${year}-${month}`;
-    const targetFolder = `originals/blog/${dateFolder}`;
+    const targetFolder = `originals/blog/${dateFolder}/${post.id}`;
     
     if (!confirm(`"${post.title}"의 이미지를 폴더로 정렬하시겠습니까?\n\n이미지를 ${targetFolder} 폴더로 이동합니다.`)) {
       return;
@@ -1137,7 +1137,7 @@ export default function BlogAdmin() {
                 body: JSON.stringify({
                   blogPostId: editingPost.id,
                   status: 'published',
-                  publishedAt: new Date().toISOString(),
+                  publishedAt: formData.published_at || new Date().toISOString(),
                   publishedChannels: ['blog']
                 })
               });
@@ -5423,7 +5423,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="published_at">작성일</option>
+                    <option value="published_at">발행일</option>
+                    <option value="updated_at">수정일</option>
                     <option value="title">제목</option>
                     <option value="category">카테고리</option>
                     <option value="view_count">조회수</option>
@@ -5524,7 +5525,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span>카테고리: {post.category}</span>
                               <span>작성자: {post.author}</span>
-                              <span>작성일: {new Date(post.published_at).toLocaleDateString('ko-KR')}</span>
+                              <span>발행일: {post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR') : '미발행'}</span>
+                              <span>수정일: {new Date(post.updated_at || post.created_at).toLocaleDateString('ko-KR')}</span>
                               <span>조회수: {post.view_count || 0}</span>
                               {post.is_featured && (
                                 <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
@@ -5680,17 +5682,33 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   {editingPost ? '게시물을 수정하세요.' : '새로운 게시물을 작성하세요.'}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingPost(null);
-                    setEditingPostId(null);
-                    setActiveTab('list');
-                  }}
-                  className="text-gray-500 hover:text-gray-700 text-sm"
-                >
-                  ✕ 닫기
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* ✅ 상단에 수정 버튼 추가 */}
+                  {editingPost && (
+                    <button
+                      type="submit"
+                      form="blog-form"
+                      disabled={isSubmitting}
+                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isSubmitting && (
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      )}
+                      수정
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowForm(false);
+                      setEditingPost(null);
+                      setEditingPostId(null);
+                      setActiveTab('list');
+                    }}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    ✕ 닫기
+                  </button>
+                </div>
                 </div>
 
                 {/* 허브 연동 정보 표시 */}
@@ -5739,7 +5757,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   </div>
                 )}
                     
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form id="blog-form" onSubmit={handleSubmit} className="space-y-6">
                 {/* 러프 콘텐츠 입력 섹션 */}
                 <div className="border-t border-gray-200 pt-8">
                   <div className="flex items-center space-x-2 mb-6">
@@ -5821,24 +5839,81 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   </div>
                 </div>
 
-                {/* 작성일 (created_at) */}
+                {/* 발행일 (published_at) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    작성일
+                    발행일
                   </label>
                   <input
                     type="date"
-                    value={formData.created_at ? new Date(formData.created_at).toISOString().split('T')[0] : ''}
+                    value={formData.published_at ? new Date(formData.published_at).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
-                      setFormData({ ...formData, created_at: new Date(e.target.value).toISOString() });
+                      setFormData({ ...formData, published_at: e.target.value ? new Date(e.target.value).toISOString() : null });
                     }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="작성일을 선택하세요"
+                    placeholder="발행일을 선택하세요"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    작성일을 수정할 수 있습니다. 리스트에서 표시되는 날짜입니다.
+                    발행일을 수정할 수 있습니다. 리스트에서 표시되는 날짜입니다.
                   </p>
                 </div>
+
+                {/* 발행예정일 (scheduled_at) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    발행예정일
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formData.scheduled_at ? new Date(formData.scheduled_at).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => {
+                      setFormData({ ...formData, scheduled_at: e.target.value ? new Date(e.target.value).toISOString() : null });
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="발행예정일을 선택하세요"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    발행예정일을 설정하면 해당 날짜에 자동으로 발행됩니다.
+                  </p>
+                </div>
+
+                {/* 최초 작성일 (readonly) */}
+                {editingPost && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      최초 작성일
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.created_at ? new Date(formData.created_at).toISOString().split('T')[0] : ''}
+                      disabled
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      최초 작성일은 변경할 수 없습니다.
+                    </p>
+                  </div>
+                )}
+
+                {/* 마지막 수정일 (readonly) */}
+                {editingPost && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      마지막 수정일
+                    </label>
+                    <input
+                      type="date"
+                      value={editingPost.updated_at ? new Date(editingPost.updated_at).toISOString().split('T')[0] : ''}
+                      disabled
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      마지막 수정일은 자동으로 업데이트됩니다.
+                    </p>
+                  </div>
+                )}
 
                 {/* 요약 */}
                       <div>
@@ -6428,8 +6503,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
                   {/* @ts-ignore */}
                   <TipTapEditor
-                    valueMarkdown={formData.content}
-                    onChangeMarkdown={(md) => setFormData({ ...formData, content: md })}
+                    valueMarkdown={formData.content || ''}
+                    onChangeMarkdown={(md) => setFormData(prev => ({ ...prev, content: md }))}
                   />
                 </div>
 
@@ -7857,16 +7932,28 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                         onClick={() => {
                           // 이미지를 에디터의 커서 위치에 삽입
                           if (editorInstance && editorCursorPosition !== null) {
-                            const httpsUrl = forceHttps(image.url);
-                            editorInstance.chain()
-                              .focus()
-                              .setTextSelection(editorCursorPosition)
-                              .setImage({ 
-                                src: httpsUrl, 
-                                alt: image.alt || '갤러리 이미지',
-                                title: image.title || ''
-                              })
-                              .run();
+                            try {
+                              // ✅ 에디터가 마운트되었는지 확인
+                              if (!editorInstance.view || !editorInstance.view.dom) {
+                                console.warn('에디터가 아직 마운트되지 않았습니다.');
+                                alert('에디터가 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+                                return;
+                              }
+                              
+                              const httpsUrl = forceHttps(image.url);
+                              // ✅ focus() 없이 직접 이미지 삽입
+                              editorInstance.chain()
+                                .setTextSelection(editorCursorPosition)
+                                .setImage({ 
+                                  src: httpsUrl, 
+                                  alt: image.alt || '갤러리 이미지',
+                                  title: image.title || ''
+                                })
+                                .run();
+                            } catch (error) {
+                              console.error('이미지 삽입 오류:', error);
+                              alert('이미지 삽입 중 오류가 발생했습니다.');
+                            }
                           }
                           
                           // 모달 닫기

@@ -26,10 +26,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-
-  if (typeof window === 'undefined') return null;
-
   const editor = useEditor({
+    immediatelyRender: false, // SSR hydration mismatch 방지
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4] },
@@ -38,7 +36,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
       Placeholder.configure({ placeholder: '여기에 글을 작성하세요...' }),
       Markdown.configure({ html: false })
     ],
-    content: valueMarkdown || '',
+    content: mounted ? (valueMarkdown || '') : '', // mounted 후에만 content 설정
     editorProps: {
       attributes: {
         class: 'prose max-w-none min-h-[240px] focus:outline-none',
@@ -53,7 +51,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         onChangeMarkdown(editor.getText());
       }
     },
-  });
+  }, [mounted, onChangeMarkdown]);
 
   // 외부 갤러리로부터 커스텀 이벤트로 삽입을 지원
   useEffect(() => {
@@ -70,6 +68,12 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
 
   useEffect(() => {
     if (!editor) return;
+    
+    // ✅ 에디터가 포커스되어 있으면 동기화 건너뛰기 (입력 중 보호)
+    if (editor.isFocused) {
+      return;
+    }
+    
     // 외부에서 값이 바뀐 경우 동기화
     // @ts-ignore
     const currentMd = editor.storage?.markdown?.getMarkdown?.();
@@ -162,5 +166,3 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
 };
 
 export default TipTapEditor;
-
-
