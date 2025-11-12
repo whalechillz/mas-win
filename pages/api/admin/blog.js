@@ -145,6 +145,16 @@ export default async function handler(req, res) {
       if (calendar_id) {
         console.log('📝 허브별 블로그 포스트 조회 중:', calendar_id);
         
+        // calendar_id가 유효한지 확인
+        if (calendar_id === 'null' || calendar_id === 'undefined' || calendar_id === '') {
+          console.warn('⚠️ 유효하지 않은 calendar_id:', calendar_id);
+          return res.status(200).json({
+            success: true,
+            posts: [],
+            total: 0
+          });
+        }
+        
         const { data: posts, error } = await supabase
           .from('blog_posts')
           .select('*')
