@@ -1,5 +1,7 @@
 // 전체 이미지 조회 API
 import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -71,6 +73,223 @@ const calculateMetadataQualityScore = (metadata) => {
   
   return score;
 };
+
+// 파일명 정규화 (UUID 제거, 언더스코어 제거, 소문자 변환, 확장자 제거)
+function normalizeFileName(fileName) {
+  if (!fileName) return '';
+  // UUID 패턴 제거: 842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg
+  const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-(.+)$/;
+  let baseName = fileName;
+  const match = fileName.match(uuidPattern);
+  if (match) {
+    baseName = match[1];
+  }
+  const withoutExt = baseName.replace(/\.[^/.]+$/, '');
+  return withoutExt.toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
+}
+
+// 폴더 경로(월)를 고려한 이미지 매칭 (campaigns 폴더용)
+function matchesImageWithMonth(imagePath, filePath, fileName) {
+  if (!imagePath || !filePath) return false;
+  
+  // filePath에서 월 추출 (예: originals/campaigns/2025-05/xxx.jpg)
+  const storageMonthMatch = filePath.match(/campaigns\/(\d{4}-\d{2})/);
+  if (!storageMonthMatch) {
+    // campaigns 폴더가 아니면 기존 로직 사용
+    return matchesImage(imagePath, filePath, fileName);
+  }
+  const storageMonth = storageMonthMatch[1];
+  
+  // imagePath에서 월 추출 (예: /campaigns/2025-05/golfer_avatar_512x512_02.jpg)
+  const imagePathMatch = imagePath.match(/\/campaigns\/(\d{4}-\d{2})\/(.+)$/);
+  if (!imagePathMatch) {
+    // campaigns 경로가 아니면 기존 로직 사용
+    return matchesImage(imagePath, filePath, fileName);
+  }
+  
+  const imageMonth = imagePathMatch[1];
+  const imageFileName = imagePathMatch[2];
+  
+  // 월이 일치해야 함
+  if (imageMonth !== storageMonth) {
+    return false;
+  }
+  
+  // 파일명 정규화 비교
+  const normalizedImage = normalizeFileName(imageFileName);
+  const normalizedStorage = normalizeFileName(fileName);
+  
+  if (normalizedImage && normalizedStorage && normalizedImage === normalizedStorage) {
+    return true;
+  }
+  
+  return false;
+}
+
+// 이미지 URL이 특정 파일과 일치하는지 확인
+function matchesImage(imageUrl, filePath, fileName) {
+  if (!imageUrl) return false;
+  
+  // 1. Supabase Storage URL에서 파일 경로 추출
+  const storageUrlMatch = imageUrl.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+  if (storageUrlMatch) {
+    const storagePath = decodeURIComponent(storageUrlMatch[1]);
+    if (storagePath === filePath) return true;
+    const storageFileName = storagePath.split('/').pop();
+    if (storageFileName === fileName) return true;
+    const normalizedStorage = normalizeFileName(storageFileName);
+    const normalizedFile = normalizeFileName(fileName);
+    if (normalizedStorage && normalizedFile && normalizedStorage === normalizedFile) return true;
+  }
+  
+  // 2. 상대 경로 처리
+  if (imageUrl.startsWith('/campaigns/') || imageUrl.startsWith('/originals/')) {
+    const relativePath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+    if (filePath.includes(relativePath) || relativePath.includes(filePath)) return true;
+    const relativeFileName = relativePath.split('/').pop().split('?')[0];
+    if (relativeFileName === fileName) return true;
+    const normalizedRelative = normalizeFileName(relativeFileName);
+    const normalizedFile = normalizeFileName(fileName);
+    if (normalizedRelative && normalizedFile && normalizedRelative === normalizedFile) return true;
+  }
+  
+  // 3. 직접 파일명 비교
+  const urlFileName = imageUrl.split('/').pop().split('?')[0];
+  if (urlFileName === fileName) return true;
+  if (imageUrl.includes(filePath)) return true;
+  const normalizedUrl = normalizeFileName(urlFileName);
+  const normalizedFile = normalizeFileName(fileName);
+  if (normalizedUrl && normalizedFile && normalizedUrl === normalizedFile) return true;
+  
+  // 4. UUID 제거 후 파일명 비교
+  const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-(.+)$/;
+  const urlMatch = urlFileName.match(uuidPattern);
+  const fileMatch = fileName.match(uuidPattern);
+  
+  if (urlMatch && fileMatch) {
+    if (urlMatch[1] === fileMatch[1]) return true;
+    const normalizedUrlBase = normalizeFileName(urlMatch[1]);
+    const normalizedFileBase = normalizeFileName(fileMatch[1]);
+    if (normalizedUrlBase && normalizedFileBase && normalizedUrlBase === normalizedFileBase) return true;
+  }
+  
+  if (urlMatch) {
+    const urlBaseName = urlMatch[1];
+    const fileBaseName = fileName.replace(uuidPattern, '$1');
+    if (urlBaseName === fileBaseName) return true;
+    const normalizedUrlBase = normalizeFileName(urlBaseName);
+    const normalizedFileBase = normalizeFileName(fileBaseName);
+    if (normalizedUrlBase && normalizedFileBase && normalizedUrlBase === normalizedFileBase) return true;
+  }
+  
+  if (fileMatch) {
+    const fileBaseName = fileMatch[1];
+    const normalizedUrlBase = normalizeFileName(urlFileName);
+    const normalizedFileBase = normalizeFileName(fileBaseName);
+    if (normalizedUrlBase && normalizedFileBase && normalizedUrlBase === normalizedFileBase) return true;
+  }
+  
+  return false;
+}
+
+// HTML 파일에서 이미지 경로 추출
+function extractImagePathsFromHTML(htmlContent) {
+  const imagePaths = [];
+  const imgTagRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  let match;
+  while ((match = imgTagRegex.exec(htmlContent)) !== null) {
+    imagePaths.push(match[1]);
+  }
+  const bgImageRegex = /background-image:\s*url\(["']?([^"')]+)["']?\)/gi;
+  while ((match = bgImageRegex.exec(htmlContent)) !== null) {
+    imagePaths.push(match[1]);
+  }
+  return imagePaths;
+}
+
+// 블로그 본문에서 이미지 URL 추출
+function extractImageUrlsFromMarkdown(markdownContent) {
+  const imageUrls = [];
+  const markdownImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let match;
+  while ((match = markdownImageRegex.exec(markdownContent)) !== null) {
+    imageUrls.push(match[2]);
+  }
+  const htmlImageRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  while ((match = htmlImageRegex.exec(markdownContent)) !== null) {
+    imageUrls.push(match[1]);
+  }
+  return imageUrls;
+}
+
+// 이미지 사용 횟수 계산 (캐싱 포함)
+let usageCountCache = new Map();
+let usageCountCacheTimestamp = 0;
+const USAGE_COUNT_CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+async function calculateUsageCount(filePath, fileName) {
+  // 캐시 확인
+  const cacheKey = `${filePath}/${fileName}`;
+  const now = Date.now();
+  if (usageCountCache.has(cacheKey) && (now - usageCountCacheTimestamp) < USAGE_COUNT_CACHE_DURATION) {
+    return usageCountCache.get(cacheKey);
+  }
+
+  let count = 0;
+
+  try {
+    // HTML 파일 확인
+    const versionsDir = path.join(process.cwd(), 'public', 'versions');
+    if (fs.existsSync(versionsDir)) {
+      const htmlFiles = fs.readdirSync(versionsDir).filter(f => f.endsWith('.html'));
+      for (const htmlFile of htmlFiles) {
+        const htmlPath = path.join(versionsDir, htmlFile);
+        const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+        const imagePaths = extractImagePathsFromHTML(htmlContent);
+        for (const imagePath of imagePaths) {
+          // campaigns 폴더인 경우 폴더 경로도 확인
+          if (filePath.includes('campaigns/')) {
+            if (matchesImageWithMonth(imagePath, filePath, fileName)) {
+              count++;
+            }
+          } else {
+            if (matchesImage(imagePath, filePath, fileName)) {
+              count++;
+            }
+          }
+        }
+      }
+    }
+
+    // 블로그 본문 확인
+    const { data: blogPosts } = await supabase
+      .from('blog_posts')
+      .select('id, title, content')
+      .not('content', 'is', null);
+
+    if (blogPosts) {
+      for (const post of blogPosts) {
+        if (!post.content) continue;
+        const imageUrls = extractImageUrlsFromMarkdown(post.content);
+        for (const imageUrl of imageUrls) {
+          if (matchesImage(imageUrl, filePath, fileName)) {
+            count++;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(`⚠️ 사용 횟수 계산 오류 (${filePath}):`, error.message);
+  }
+
+  // 캐시 저장
+  usageCountCache.set(cacheKey, count);
+  if (now - usageCountCacheTimestamp > USAGE_COUNT_CACHE_DURATION) {
+    usageCountCacheTimestamp = now;
+  }
+
+  return count;
+}
 
 // ✅ 메타데이터 품질 이슈 목록 생성
 const getMetadataQualityIssues = (metadata) => {
@@ -219,7 +438,9 @@ export default async function handler(req, res) {
               } else {
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
                 const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-                if (isImage) {
+                // .keep.png 마커 파일 제외
+                const isKeepFile = file.name.toLowerCase() === '.keep.png';
+                if (isImage && !isKeepFile) {
                   const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
                   const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
                   const publicUrl = urlData.publicUrl;
@@ -257,7 +478,9 @@ export default async function handler(req, res) {
                 if (file.id) {
                   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
                   const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-                  if (isImage) {
+                  // .keep.png 마커 파일 제외
+                  const isKeepFile = file.name.toLowerCase() === '.keep.png';
+                  if (isImage && !isKeepFile) {
                     const fullPath = searchPrefix ? `${searchPrefix}/${file.name}` : file.name;
                     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
                     const publicUrl = urlData.publicUrl;
@@ -302,16 +525,100 @@ export default async function handler(req, res) {
             }
           }
           
-          // 6. 최종 이미지 데이터 생성
-          const imagesWithUrl = searchFiles.map((file) => {
+          // 6. 최종 이미지 데이터 생성 (사용 횟수 실시간 계산)
+          const imagesWithUrl = await Promise.all(searchFiles.map(async (file) => {
             const metadata = metadataMap.get(file.url);
             
             const hasQualityMeta = hasQualityMetadata(metadata);
             const qualityScore = calculateMetadataQualityScore(metadata);
             const qualityIssues = getMetadataQualityIssues(metadata);
             
+            // 사용 횟수 실시간 계산 (DB 값이 0이거나 없으면 계산)
+            let usageCount = metadata?.usage_count || 0;
+            let usedIn = [];
+            let lastUsedAt = null;
+            
+            if (file.folderPath) {
+              const fullPath = file.folderPath ? `${file.folderPath}/${file.name}` : file.name;
+              // campaigns 폴더의 경우에만 실시간 계산 (성능 최적화)
+              if (fullPath.includes('campaigns/')) {
+                usageCount = await calculateUsageCount(fullPath, file.name);
+              }
+              
+              // 사용 위치 상세 정보 수집 (usage_count > 0인 경우만)
+              if (usageCount > 0) {
+                try {
+                  const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(file.url)}`);
+                  if (usageResponse.ok) {
+                    const usageData = await usageResponse.json();
+                    const usage = usageData.usage || {};
+                    
+                    // 사용 위치 정보 수집
+                    if (usage.blogPosts && usage.blogPosts.length > 0) {
+                      usedIn.push(...usage.blogPosts.map(post => ({
+                        type: 'blog',
+                        title: post.title,
+                        url: post.url,
+                        isFeatured: post.isFeatured,
+                        isInContent: post.isInContent,
+                        created_at: post.created_at
+                      })));
+                    }
+                    
+                    if (usage.funnelPages && usage.funnelPages.length > 0) {
+                      usedIn.push(...usage.funnelPages.map(page => ({
+                        type: 'funnel',
+                        title: page.title,
+                        url: page.url,
+                        isFeatured: page.isFeatured,
+                        isInContent: page.isInContent,
+                        created_at: page.created_at
+                      })));
+                    }
+                    
+                    if (usage.homepage && usage.homepage.length > 0) {
+                      usedIn.push(...usage.homepage.map(item => ({
+                        type: 'homepage',
+                        title: item.title,
+                        url: item.url,
+                        location: item.location,
+                        isFeatured: item.isFeatured,
+                        isInContent: item.isInContent
+                      })));
+                    }
+                    
+                    if (usage.muziik && usage.muziik.length > 0) {
+                      usedIn.push(...usage.muziik.map(item => ({
+                        type: 'muziik',
+                        title: item.title,
+                        url: item.url,
+                        location: item.location,
+                        isFeatured: item.isFeatured,
+                        isInContent: item.isInContent
+                      })));
+                    }
+                    
+                    // 최근 사용 날짜 계산
+                    const allDates = usedIn
+                      .filter(item => item.created_at)
+                      .map(item => new Date(item.created_at))
+                      .sort((a, b) => b - a);
+                    if (allDates.length > 0) {
+                      lastUsedAt = allDates[0].toISOString();
+                    }
+                  }
+                } catch (error) {
+                  console.warn(`⚠️ 사용 위치 정보 수집 오류 (${file.url}):`, error.message);
+                }
+              }
+            }
+            
+            // image_assets 테이블에서 id 가져오기 (검색 결과용)
+            const asset = searchAssetsMap.get(file.url);
+            const imageAssetId = asset?.id || null;
+
             return {
-              id: file.id,
+              id: imageAssetId, // image_assets 테이블의 id 사용
               name: file.name,
               size: file.metadata?.size || 0,
               created_at: file.created_at,
@@ -324,7 +631,9 @@ export default async function handler(req, res) {
               keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
               category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
               categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
-              usage_count: metadata?.usage_count || 0,
+              usage_count: usageCount,
+              used_in: usedIn,
+              last_used_at: lastUsedAt,
               upload_source: metadata?.upload_source || 'manual',
               status: metadata?.status || 'active',
               has_metadata: !!metadata,
@@ -340,7 +649,7 @@ export default async function handler(req, res) {
                 issues: qualityIssues
               }
             };
-          });
+          }));
           
           const searchTotalPages = Math.ceil(searchTotalCount / pageSize);
           
@@ -427,8 +736,10 @@ export default async function handler(req, res) {
               // 이미지 파일인 경우
               const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
               const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              // .keep.png 마커 파일 제외
+              const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
-              if (isImage) {
+              if (isImage && !isKeepFile) {
                 allFiles.push({
                   ...file,
                   folderPath: folderPath // 폴더 경로 추가
@@ -505,8 +816,10 @@ export default async function handler(req, res) {
               // 이미지 파일인 경우
               const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
               const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              // .keep.png 마커 파일 제외
+              const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
-              if (isImage) {
+              if (isImage && !isKeepFile) {
                 allFilesForPagination.push({
                   ...file,
                   folderPath: folderPath // 폴더 경로 추가
@@ -547,7 +860,9 @@ export default async function handler(req, res) {
               if (file.id) {
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
                 const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-                if (isImage) {
+                // .keep.png 마커 파일 제외
+                const isKeepFile = file.name.toLowerCase() === '.keep.png';
+                if (isImage && !isKeepFile) {
                   allFilesForPagination.push({ ...file, folderPath: prefix || '' });
                 }
               }
@@ -597,6 +912,20 @@ export default async function handler(req, res) {
         .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
         .in('image_url', urls);
 
+      // image_assets 테이블에서 id 조회 (비교 기능용)
+      const { data: allAssets } = await supabase
+        .from('image_assets')
+        .select('id, cdn_url, file_path')
+        .in('cdn_url', urls);
+
+      // image_assets를 URL 기준으로 매핑
+      const assetsMap = new Map();
+      if (allAssets) {
+        allAssets.forEach(asset => {
+          assetsMap.set(asset.cdn_url, asset);
+        });
+      }
+
       // 카테고리 매핑 (category_id -> 카테고리 이름)
       const categoryIdMap = new Map();
       if (allMetadata && allMetadata.length > 0) {
@@ -622,8 +951,8 @@ export default async function handler(req, res) {
         });
       }
 
-      // 이미지 데이터 생성
-      const imagesWithUrl = imageUrls.map(({ file, url, fullPath }) => {
+      // 이미지 데이터 생성 (사용 횟수 실시간 계산)
+      const imagesWithUrl = await Promise.all(imageUrls.map(async ({ file, url, fullPath }) => {
         const metadata = metadataMap.get(url);
         
         // ✅ 메타데이터 품질 검증
@@ -631,8 +960,96 @@ export default async function handler(req, res) {
         const qualityScore = calculateMetadataQualityScore(metadata);
         const qualityIssues = getMetadataQualityIssues(metadata);
         
+        // 사용 횟수 실시간 계산 (DB 값이 0이거나 없으면 계산)
+        let usageCount = metadata?.usage_count || 0;
+        let usedIn = [];
+        let lastUsedAt = null;
+        
+        if (fullPath) {
+          // campaigns 폴더의 경우에만 실시간 계산 (성능 최적화)
+          if (fullPath.includes('campaigns/')) {
+            usageCount = await calculateUsageCount(fullPath, file.name);
+          }
+          
+          // 사용 위치 상세 정보 수집 (usage_count > 0인 경우만)
+          if (usageCount > 0) {
+            try {
+              const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(url)}`);
+              if (usageResponse.ok) {
+                const usageData = await usageResponse.json();
+                const usage = usageData.usage || {};
+                
+                // 사용 위치 정보 수집
+                if (usage.blogPosts && usage.blogPosts.length > 0) {
+                  usedIn.push(...usage.blogPosts.map(post => ({
+                    type: 'blog',
+                    title: post.title,
+                    url: post.url,
+                    isFeatured: post.isFeatured,
+                    isInContent: post.isInContent,
+                    created_at: post.created_at
+                  })));
+                }
+                
+                if (usage.funnelPages && usage.funnelPages.length > 0) {
+                  usedIn.push(...usage.funnelPages.map(page => ({
+                    type: 'funnel',
+                    title: page.title,
+                    url: page.url,
+                    isFeatured: page.isFeatured,
+                    isInContent: page.isInContent,
+                    created_at: page.created_at
+                  })));
+                }
+                
+                if (usage.homepage && usage.homepage.length > 0) {
+                  usedIn.push(...usage.homepage.map(item => ({
+                    type: 'homepage',
+                    title: item.title,
+                    url: item.url,
+                    location: item.location,
+                    isFeatured: item.isFeatured,
+                    isInContent: item.isInContent
+                  })));
+                }
+                
+                if (usage.muziik && usage.muziik.length > 0) {
+                  usedIn.push(...usage.muziik.map(item => ({
+                    type: 'muziik',
+                    title: item.title,
+                    url: item.url,
+                    location: item.location,
+                    isFeatured: item.isFeatured,
+                    isInContent: item.isInContent
+                  })));
+                }
+                
+                // 최근 사용 날짜 계산
+                const allDates = usedIn
+                  .filter(item => item.created_at)
+                  .map(item => new Date(item.created_at))
+                  .sort((a, b) => b - a);
+                if (allDates.length > 0) {
+                  lastUsedAt = allDates[0].toISOString();
+                }
+              }
+            } catch (error) {
+              console.warn(`⚠️ 사용 위치 정보 수집 오류 (${url}):`, error.message);
+            }
+          }
+        }
+        
+        // image_assets 테이블에서 id 가져오기
+        const { data: assetData } = await supabase
+          .from('image_assets')
+          .select('id')
+          .eq('cdn_url', url)
+          .single();
+        
+        const imageAssetId = assetData?.id || null;
+
         return {
-          id: file.id,
+          id: imageAssetId, // image_assets 테이블의 id 사용
           name: file.name,
           size: file.metadata?.size || 0,
           created_at: file.created_at,
@@ -648,7 +1065,9 @@ export default async function handler(req, res) {
           category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
           // categories는 배열 형태로 반환 (카테고리 체크박스용)
           categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
-          usage_count: metadata?.usage_count || 0,
+          usage_count: usageCount,
+          used_in: usedIn,
+          last_used_at: lastUsedAt,
           upload_source: metadata?.upload_source || 'manual',
           status: metadata?.status || 'active',
           // ✅ 메타데이터 품질 정보 추가
@@ -665,7 +1084,7 @@ export default async function handler(req, res) {
             issues: qualityIssues  // 품질 이슈 목록
           }
         };
-      });
+      }));
 
       console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개 (총', totalCount, '개 중)');
       return res.status(200).json({ 

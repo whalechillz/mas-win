@@ -86,7 +86,20 @@ export const useAIGeneration = () => {
         
         console.log('🔍 이미지 연령대 분석 결과:', ageEstimation);
       } else {
-        throw new Error('메타데이터 생성 실패');
+        // 실제 오류 메시지 추출
+        let errorMessage = '메타데이터 생성 실패';
+        try {
+          const errorData = await metadataResponse.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+          
+          // 크레딧 부족 오류인 경우 특별 처리
+          if (errorData.type === 'insufficient_credit' || metadataResponse.status === 402) {
+            errorMessage = '💰 OpenAI 계정에 크레딧이 부족합니다.\n\nOpenAI 계정에 크레딧을 충전해주세요.\nhttps://platform.openai.com/settings/organization/billing/overview';
+          }
+        } catch (e) {
+          errorMessage = `HTTP ${metadataResponse.status}: ${metadataResponse.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       // 카테고리 자동 선택 (다중 선택) - 이미지 연령대 분석 결과 포함
@@ -235,7 +248,20 @@ export const useAIGeneration = () => {
           keywords = limitedKeywords.join(', ');
         }
       } else {
-        throw new Error('메타데이터 생성 실패');
+        // 실제 오류 메시지 추출
+        let errorMessage = '메타데이터 생성 실패';
+        try {
+          const errorData = await metadataResponse.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+          
+          // 크레딧 부족 오류인 경우 특별 처리
+          if (errorData.type === 'insufficient_credit' || metadataResponse.status === 402) {
+            errorMessage = '💰 OpenAI 계정에 크레딧이 부족합니다.\n\nOpenAI 계정에 크레딧을 충전해주세요.\nhttps://platform.openai.com/settings/organization/billing/overview';
+          }
+        } catch (e) {
+          errorMessage = `HTTP ${metadataResponse.status}: ${metadataResponse.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       // 범용 모드: 카테고리 자동 결정 제거
