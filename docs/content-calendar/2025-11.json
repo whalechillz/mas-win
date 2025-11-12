@@ -79,16 +79,15 @@
           "message": "스윙보다 마음이 먼저다.",
           "status": "published",
           "created": true,
-          "createdAt": "2025-11-12T07:51:50.433Z",
-          "publishedAt": "2025-11-12T07:51:19.759Z"
+          "createdAt": "2025-11-12T11:35:53.880Z",
+          "publishedAt": "2025-11-12T12:04:09.446Z"
         },
         {
           "date": "2025-11-13",
           "background": {
             "image": "노을 코스",
             "prompt": "A serene sunset scene on a Korean golf course, bathed in warm orange and golden tones. The landscape stretches wide, showcasing rolling greens, manicured fairways, and gently swaying trees under a soft, glowing sky. In the distance, small figures of Korean golfers can be seen, engaged in their game, but they remain distant and unobtrusive, allowing the stunning scenery to take center stage. The composition captures the essence of \"비거리의 감성 – 스윙과 마음의 연결,\" emphasizing the connection between the swing and the heart. The image is ultra-realistic and photorealistic in 8K resolution, following a professional commercial photography style, with natural lighting that enhances the authentic Korean atmosphere. This wide landscape format (16:9) is perfect for a KakaoTalk profile background, focusing solely on the beauty of the golf course and the tranquil setting, with no text, overlays, watermarks, or logos.",
-            "status": "planned",
-            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/background/kakao-account1-background-1762931400296-1.png"
+            "status": "planned"
           },
           "profile": {
             "image": "시니어 골퍼",
@@ -105,33 +104,39 @@
           "date": "2025-11-14",
           "background": {
             "image": "숲속 코스",
-            "prompt": "숲속 골프 코스, 자연스러운 그린 톤, 따뜻한 조명",
-            "status": "planned"
+            "prompt": "A serene and inviting forest golf course scene bathed in warm golden tones, showcasing the natural beauty of the landscape. The lush green fairways are framed by tall trees, with dappled sunlight filtering through the leaves, creating a tranquil atmosphere. In the distance, small figures of Korean golfers can be seen, their presence understated and not the main focus, allowing the stunning scenery to take center stage. The composition should reflect a professional commercial photography style, capturing the essence of an authentic Korean golf course setting. This image should be ultra-realistic and in 8K resolution, designed specifically for a wide landscape format, suitable as a KakaoTalk profile background. The theme of \"감성의 비거리 – 스윙과 마음의 연결\" resonates through the calmness of the environment, emphasizing the connection between the swing and the heart, perfectly aligned with the brand strategy for local senior customers.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/background/kakao-account1-background-1762948688300-1-1.png"
           },
           "profile": {
             "image": "시니어 골퍼",
-            "prompt": "시니어 골퍼, 숲속 배경, 자신감 있는 포즈",
-            "status": "planned"
+            "prompt": "A senior Korean golfer aged between 50-70, showcasing Asian facial features and silver/gray hair, striking a confident pose in a serene forest setting. The image should exude a warm golden tone, capturing an emotional atmosphere that reflects the theme \"비거리의 감성 – 스윙과 마음의 연결.\" The golfer is the main subject, framed in a square format, ideal for a KakaoTalk profile image. The composition should be ultra-realistic and photorealistic, with professional commercial photography style, set in a natural Korean golf course environment that embodies an authentic Korean atmosphere. The lighting and composition must be expertly crafted to resonate with local customers, emphasizing a high brand weight and a warm audience temperature. Ensure no Western or Caucasian individuals are present in the scene.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/profile/kakao-account1-profile-1762948709092-1-1.png"
           },
           "message": "오늘도 자신감 있게.",
           "status": "planned",
-          "created": false
+          "created": true,
+          "createdAt": "2025-11-12T11:58:51.756Z"
         },
         {
           "date": "2025-11-15",
           "background": {
             "image": "매장 인테리어",
-            "prompt": "MASSGOO 매장 인테리어, 따뜻한 조명, 고급스러운 분위기",
-            "status": "planned"
+            "prompt": "\"Imagine a warm and inviting interior of a MASSGOO store, bathed in soft golden lighting that creates an upscale atmosphere. The scene features elegant displays showcasing premium golf equipment and apparel, with the MASSGOO logo seamlessly integrated into the architecture on the walls and displays, enhancing the luxurious feel. In the distance, a small group of Korean golfers is seen engaging in a relaxed conversation, emphasizing the theme of connection between swing and heart. The overall composition is ultra-realistic and photorealistic, capturing the authentic charm of a Korean retail space, designed as a wide landscape format suitable for a KakaoTalk profile background. The lighting and professional photography style highlight the essence of the brand strategy, appealing to local senior customers while conveying a warm and inviting environment.\"",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/background/kakao-account1-background-1762960923411-1-1.png"
           },
           "profile": {
             "image": "시니어 골퍼",
-            "prompt": "시니어 골퍼, 매장 배경, 만족스러운 표정",
-            "status": "planned"
+            "prompt": "A senior Korean golfer, aged between 50-70 years old, with silver/gray hair and distinct Asian facial features, stands against a natural Korean golf course backdrop, embodying a warm golden tone. The golfer displays a satisfied and emotional expression, reflecting the theme of \"비거리의 감성 – 스윙과 마음의 연결\" (The Emotion of Distance – Connecting Swing and Heart). The composition is clean and focused solely on the golfer, making them the main subject, suitable for a KakaoTalk profile image. The style is ultra-realistic and photorealistic, captured in 8K resolution with professional lighting and composition, evoking an authentic Korean atmosphere. The image should be in a square format (1:1) with no text overlays or watermarks, aligning with a brand strategy targeting local senior customers with a high emotional connection.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/profile/kakao-account1-profile-1762960938769-1-1.png"
           },
           "message": "꾸준함이 거리다.",
           "status": "planned",
-          "created": false
+          "created": true,
+          "createdAt": "2025-11-12T15:22:39.185Z"
         },
         {
           "date": "2025-11-16",
@@ -203,7 +208,7 @@
           "date": "2025-11-12",
           "background": {
             "image": "매장 인테리어",
-            "prompt": "\"Ultra-realistic interior of a modern MASSGOO store featuring a cool blue-gray tone, emphasizing sleek contemporary design elements. The setting includes spacious fitting rooms and stylish product displays, all bathed in professional lighting to enhance the ambiance. In the background, a distant view of a natural Korean golf course can be seen, with small figures of Korean golfers practicing their swings, subtly integrated into the scene to convey the theme of 'Connecting Swing and Heart' (비거리의 감성). The composition is clean and focused on the store interior and the serene landscape, maintaining a professional commercial photography style. No text, overlays, or logos. The image is in a wide landscape format (16:9), high-quality, suitable for a KakaoTalk profile background.\"",
+            "prompt": "\"Ultra-realistic interior of a modern MASGOO store featuring a cool blue-gray tone, emphasizing sleek contemporary design elements. The setting includes spacious fitting rooms and stylish product displays, all bathed in professional lighting to enhance the ambiance. In the background, a distant view of a natural Korean golf course can be seen, with small figures of Korean golfers practicing their swings, subtly integrated into the scene to convey the theme of 'Connecting Swing and Heart' (비거리의 감성). The composition is clean and focused on the store interior and the serene landscape, maintaining a professional commercial photography style. No text, overlays, or logos. The image is in a wide landscape format (16:9), high-quality, suitable for a KakaoTalk profile background.\"",
             "status": "planned",
             "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account2/background/kakao-account2-background-1762931799039-1.png"
           },
@@ -214,9 +219,10 @@
             "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account2/profile/paragraph-image-custom-1762927475302-1.png"
           },
           "message": "데이터로 스윙을 시각화하다.",
-          "status": "created",
+          "status": "published",
           "created": true,
-          "createdAt": "2025-11-12T07:55:38.434Z"
+          "createdAt": "2025-11-12T07:55:38.434Z",
+          "publishedAt": "2025-11-12T11:35:26.971Z"
         },
         {
           "date": "2025-11-13",
@@ -224,8 +230,7 @@
             "image": "글로벌 코스",
             "prompt": "\"Authentic Korean golf course, featuring a modern championship design set in a serene landscape with cool blue-gray tones. The scene captures the innovative atmosphere of the course, emphasizing the connection between swing and spirit, perfectly aligning with the theme 비거리의 감성 – 스윙과 마음의 연결. The composition is wide landscape format, showcasing the lush greenery and gently rolling hills, with small, distant figures of Korean golfers practicing their swings in the background, ensuring the focus remains on the stunning setting. Ultra-realistic, photorealistic quality in 8K resolution, ideal for a KakaoTalk profile background, with no text, overlays, or logos.\"",
             "basePrompt": "글로벌 골프 코스, 현대적인 디자인, 쿨 그레이 톤",
-            "status": "planned",
-            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/background/kakao-account2-background-1762932670979-1.png"
+            "status": "planned"
           },
           "profile": {
             "image": "젊은 골퍼",
@@ -242,33 +247,39 @@
           "date": "2025-11-14",
           "background": {
             "image": "실내 피팅룸",
-            "prompt": "실내 피팅룸, AI 장비, 쿨 블루 톤",
-            "status": "planned"
+            "prompt": "A modern indoor fitting room designed for golf enthusiasts, featuring advanced AI equipment in a cool blue-gray tone. The scene captures a sleek, high-tech environment with minimalist decor and soft, professional lighting that emphasizes the authenticity of the Korean golfing experience. In the background, small figures of Korean golfers can be seen at a distance, engaged in a practice swing, subtly highlighting the connection between swing and emotion, in line with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\" The overall composition is clean and focuses on the interior space, creating a photorealistic image suitable for a KakaoTalk profile background in a wide landscape format (16:9). The atmosphere is warm and inviting, targeting local customers who are tech enthusiasts, adhering to the brand strategy for balanced customer engagement.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/background/kakao-account2-background-1762948803136-1-1.png"
           },
           "profile": {
             "image": "젊은 골퍼",
-            "prompt": "젊은 골퍼, 피팅룸 배경, 기술적인 분위기",
-            "status": "planned"
+            "prompt": "A young Korean golfer, aged between 30-50 years, featuring distinct Asian facial features, stands confidently in a fitting room background that exudes a technical atmosphere. The image captures a cool blue-gray tone, emphasizing innovation and a modern aesthetic. The golfer is the central subject, showcasing a poised swing that symbolizes the connection between technique and mindset, aligned with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\" The composition is ultra-realistic and photorealistic, shot in high quality (8K resolution), with professional lighting that highlights the golfer's form and expression. The setting reflects an authentic Korean atmosphere, ensuring a clean composition suitable for a KakaoTalk profile image, with no text overlays or promotional content, presented in a square format (1:1) for optimal viewing on the platform.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/profile/kakao-account2-profile-1762948824382-1-1.png"
           },
           "message": "AI Precision Swing.",
           "status": "planned",
-          "created": false
+          "created": true,
+          "createdAt": "2025-11-12T12:00:49.242Z"
         },
         {
           "date": "2025-11-15",
           "background": {
             "image": "제품 컷",
-            "prompt": "MASGOLF 제품 컷, 정밀한 디테일, 쿨 그레이 톤",
-            "status": "planned"
+            "prompt": "Create a wide landscape format image featuring a modern golf store interior with cool blue-gray tones, focusing on the MASGOLF product display showcasing precise details of the equipment. In the background, a serene natural Korean golf course is visible through large glass windows, enhancing the atmosphere with a sense of tranquility and connection to nature. Small figures of Korean golfers can be seen in the distance, engaged in their swings, embodying the theme “비거리의 감성 – 스윙과 마음의 연결.” The composition should be ultra-realistic and photorealistic, capturing the authentic Korean environment with professional lighting and composition. This image should be high-quality and suitable for a KakaoTalk profile background, without any text overlays or watermarks, and should resonate with tech enthusiasts and local customers.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/background/kakao-account2-background-1762960976904-1-1.png"
           },
           "profile": {
             "image": "젊은 골퍼",
-            "prompt": "젊은 골퍼, 제품 배경, 혁신적인 포즈",
-            "status": "planned"
+            "prompt": "A young Korean golfer, aged between 30-50 years, with distinct Asian facial features, is captured in an innovative pose on a natural Korean golf course, embodying the theme \"비거리의 감성 – 스윙과 마음의 연결\". The scene is infused with a cool blue-gray tone, creating a modern and fresh atmosphere. The golfer, the main subject, is framed in a square format, perfectly suited for a KakaoTalk profile picture. The image showcases ultra-realistic, photorealistic quality in 8K resolution, emphasizing professional lighting and composition that highlight the authentic Korean ambiance. The golfer is wearing a stylish cap featuring the \"MASSGOO\" logo embroidered naturally, ensuring brand visibility without overwhelming the main subject. The surroundings are devoid of any Western or Caucasian individuals, focusing solely on the rich representation of Korean golfing culture. This visual resonates with tech enthusiasts among local customers, aligning with the brand strategy of medium weight and warm audience temperature. The overall composition captures the essence of the golfer's swing and the emotional connection to the game, making it an ideal profile image.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/profile/kakao-account2-profile-1762961600363-1-1.png"
           },
           "message": "Power Meets Control.",
           "status": "planned",
-          "created": false
+          "created": true,
+          "createdAt": "2025-11-12T15:33:36.603Z"
         },
         {
           "date": "2025-11-16",
@@ -328,11 +339,11 @@
         "date": "2025-11-12",
         "account1": {
           "imageCategory": "시니어 골퍼의 스윙",
-          "imagePrompt": "\"Capture the elegant swing of a Korean senior golfer aged between 50-70 years, showcasing the grace and skill that comes with years of experience. The golfer, distinguished by silver/gray hair and Asian facial features, is positioned against a breathtaking natural Korean golf course setting, drenched in warm golden light that enhances the deeply emotional atmosphere. The composition should beautifully emphasize the profound connection between the swing and the heart, perfectly reflecting the weekly theme '비거리의 감성 – 스윙과 마음의 연결.' \n\nTo further enrich the scene, if any elements of a store or fitting room are included, ensure that the 'MASSGOO' store sign, logo, or branding is seamlessly integrated into the architecture, clearly visible on the storefront, interior walls, or displays without appearing as an overlay. The lighting should be soft yet professional, enhancing the authenticity of the Korean ambiance. \n\nThis scene must be ultra-realistic and photorealistic, rendered in 8K resolution, styled like professional commercial photography. The square format (1:1) is ideal for an engaging KakaoTalk daily feed, ensuring a captivating visual experience. The focus remains entirely on Korean individuals, completely devoid of any Western/Caucasian presence, and free from text, overlays, watermarks, logos, or brand names except for the natural incorporation of 'MASSGOO' branding.\"",
+          "imagePrompt": "\"Capture the elegant swing of a Korean senior golfer aged between 50-70 years, showcasing the grace and skill that comes with years of experience. The golfer, distinguished by silver/gray hair and Asian facial features, is positioned against a breathtaking natural Korean golf course setting, drenched in warm golden light that enhances the deeply emotional atmosphere. The composition should beautifully emphasize the profound connection between the swing and the heart, perfectly reflecting the weekly theme '비거리의 감성 – 스윙과 마음의 연결.' \n\nTo further enrich the scene, if any elements of a store or fitting room are included, ensure that the 'MASSGOO' or 'MASGOO' store sign, logo, or branding is seamlessly integrated into the architecture, clearly visible on the storefront, interior walls, or displays without appearing as an overlay. The lighting should be soft yet professional, enhancing the authenticity of the Korean ambiance. \n\nThis scene must be ultra-realistic and photorealistic, rendered in 8K resolution, styled like professional commercial photography. The square format (1:1) is ideal for an engaging KakaoTalk daily feed, ensuring a captivating visual experience. The focus remains entirely on Korean individuals, completely devoid of any Western/Caucasian presence, and free from text, overlays, watermarks, logos, or brand names except for the natural incorporation of 'MASSGOO' branding.\"",
           "caption": "시니어 골퍼도 비거리 20m 증가 가능",
           "status": "planned",
           "created": true,
-          "createdAt": "2025-11-12T07:51:50.433Z",
+          "createdAt": "2025-11-12T11:35:53.880Z",
           "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account1/feed/kakao-account1-feed-1762937385020-1.png"
         },
         "account2": {
@@ -370,38 +381,42 @@
         "date": "2025-11-14",
         "account1": {
           "imageCategory": "매장의 모습",
-          "imagePrompt": "MASSGOO 매장 전경, 깔끔한 인테리어, 골프 드라이버 전시, 고급스러운 분위기",
+          "imagePrompt": "A warm golden-toned image of a Korean senior golfer, aged 50-70, with silver/gray hair, showcasing a powerful golf swing on a picturesque Korean golf course. The golfer has Asian facial features, exuding a deep emotional connection to the game, embodying the theme of \"비거리의 감성 – 스윙과 마음의 연결.\" In the foreground, the elegant \"MASSGOO\" store sign is subtly integrated into the architecture of a nearby fitting room, with a clean interior displaying high-end golf drivers and equipment. The setting captures an authentic Korean atmosphere with professional lighting and composition, optimized for KakaoTalk's square feed format. The golfer wears a stylish cap featuring the \"MASSGOO\" logo, embroidered naturally, ensuring brand visibility while keeping the focus on the golfer's form and emotion. The scene embodies a warm, inviting vibe, appealing to local customers and enhancing the brand identity.",
           "caption": "MASSGOO에서 최적의 드라이버를 만나보세요",
           "status": "planned",
-          "created": false,
-          "createdAt": null
+          "created": true,
+          "createdAt": "2025-11-12T11:58:51.756Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/feed/kakao-account1-feed-1762948730758-1-1.png"
         },
         "account2": {
           "imageCategory": "피팅 상담의 모습",
-          "imagePrompt": "피팅 상담 중인 모습, 골퍼와 피터가 함께 드라이버를 검토하는 따뜻한 장면",
+          "imagePrompt": "A warm scene featuring a Korean golfer aged between 30-50, with distinct Asian facial features, engaged in a fitting consultation at a modern golf shop. The golfer is discussing and reviewing a driver with a professional fitter, both appearing focused and enthusiastic. The setting is a sleek, well-lit interior of the MASSGOO store, showcasing various golf equipment and accessories. The MASSGOO logo is subtly integrated into the architecture, visible on the walls and displays, creating an authentic atmosphere without overwhelming the main subjects. The color palette is cool with blue-gray tones, enhancing the innovative vibe of the scene. This image aligns with the weekly theme of \"비거리의 감성 – 스윙과 마음의 연결,\" highlighting the emotional connection between the golfer's swing and their mindset. The composition is ultra-realistic, capturing the essence of a professional commercial photography style, and is optimized for a square format suitable for KakaoTalk feeds, ensuring high quality and engagement.",
           "caption": "당신만의 드라이버를 찾는 여정을 시작하세요",
           "status": "planned",
-          "created": false,
-          "createdAt": null
+          "created": true,
+          "createdAt": "2025-11-12T12:00:49.242Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/feed/kakao-account2-feed-1762948848218-1-1.png"
         }
       },
       {
         "date": "2025-11-15",
         "account1": {
           "imageCategory": "피팅 상담의 모습",
-          "imagePrompt": "전문 피터가 고객에게 드라이버 피팅 상담하는 모습, 친근한 분위기, 신뢰감",
+          "imagePrompt": "A professional fitting session unfolds at a local Korean golf store, radiating a warm and inviting atmosphere. In the scene, a Korean senior golfer (50-70 years old, with silver/gray hair and distinct Asian facial features) is fully engaged in a driver fitting consultation with a friendly, knowledgeable Korean fitter, who is passionately explaining the nuances of the swing. This dynamic interaction emphasizes the emotional connection between the golfer's mind and their performance, perfectly aligned with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\"\n\nThe setting is a beautifully lit, welcoming interior of a traditional Korean golf store, showcasing authentic wooden textures and warm lighting that enhances the cozy ambiance. The \"MASSGOO\" store sign is prominently displayed on the wall, seamlessly integrated into the architecture of the space, while the MASSGOO branding is subtly visible throughout the fitting room area, enhancing the overall aesthetic. The elegantly embroidered cap worn by the senior golfer features the MASSGOO logo, ensuring brand visibility in a natural manner.\n\nThis image captures the essence of trust and camaraderie between the golfer and the fitter, enveloped in a warm golden tone that enhances the inviting and professional aesthetic. The composition is ultra-realistic and photorealistic, optimized for KakaoTalk's daily feed in a square format (1:1) at high quality. The focus emphasizes the emotional connection between the golfer and the fitter while incorporating the \"MASSGOO\" branding seamlessly throughout the image, ensuring it is part of the architecture and not an overlay, without overwhelming the main subjects. The scene is infused with an authentic Korean atmosphere, showcasing the beauty of the golf experience tailored for senior players, making it ideal for local customers seeking a personal touch in their golfing journey.",
           "caption": "맞춤 피팅으로 비거리를 늘려보세요",
           "status": "planned",
-          "created": false,
-          "createdAt": null
+          "created": true,
+          "createdAt": "2025-11-12T15:22:39.185Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/feed/kakao-account1-feed-1762960958735-1-1.jpg"
         },
         "account2": {
           "imageCategory": "시니어 골퍼의 스윙",
-          "imagePrompt": "60대 골퍼가 자신감 있게 드라이버 스윙하는 모습, 활기찬 표정, 골프장 배경",
+          "imagePrompt": "A Korean young golfer, aged 30-50, with distinct Asian facial features, confidently executing a powerful driver swing on a lush, natural Korean golf course. The scene captures a vibrant expression of focus and determination, embodying the weekly theme of \"비거리의 감성 – 스윙과 마음의 연결.\" The atmosphere is cool with blue-gray tones, emphasizing innovation and technology, appealing to a tech-enthusiast audience. The composition is clean and professional, shot in ultra-realistic, photorealistic 8K resolution, perfectly framed in a square format for KakaoTalk's daily feed. There are absolutely no Western/Caucasian individuals present, ensuring an authentic Korean ambiance and context.\n\nThe golfer is wearing a cap with the \"MASSGOO\" logo embroidered naturally, subtly integrating the brand into the scene. In the background, a stylish \"MASSGOO\" store sign is prominently displayed on a nearby building, seamlessly incorporated into the architecture, reinforcing brand visibility without overwhelming the main subject. The store's interior walls and displays reflect a modern aesthetic that embodies the innovative spirit of the brand. Professional lighting and overall aesthetic create an engaging and inspiring golf scene that resonates with local customers, perfectly aligning with the brand strategy and audience temperature. This image represents a perfect blend of athleticism and brand identity, making it ideal for a daily feed on KakaoTalk.",
           "caption": "나이에 상관없이 비거리 향상이 가능합니다",
           "status": "planned",
-          "created": false,
-          "createdAt": null
+          "created": true,
+          "createdAt": "2025-11-12T15:33:36.603Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/feed/kakao-account2-feed-1762961642359-1-1.jpg"
         }
       },
       {

@@ -9,6 +9,32 @@ interface FeedData {
   imagePrompt: string;
   caption: string;
   imageUrl?: string;
+  abTest?: {
+    methodA: {
+      images: Array<{ imageUrl: string; originalUrl: string; method: string }>;
+      totalSize: number;
+      generationTime: number;
+      method: string;
+    } | null; // null 허용
+    methodB: {
+      images: Array<{ imageUrl: string; originalUrl: string; method: string }>;
+      totalSize: number;
+      generationTime: number;
+      method: string;
+    } | null; // null 허용
+    comparison: {
+      methodA: {
+        fileSize: number;
+        generationTime: number;
+        imageCount: number;
+      } | null; // null 허용
+      methodB: {
+        fileSize: number;
+        generationTime: number;
+        imageCount: number;
+      } | null; // null 허용
+    };
+  };
 }
 
 interface FeedManagerProps {
@@ -20,7 +46,7 @@ interface FeedManagerProps {
   };
   feedData: FeedData;
   onUpdate: (data: FeedData) => void;
-  onGenerateImage: (prompt: string) => Promise<{ imageUrls: string[], generatedPrompt?: string }>;
+  onGenerateImage: (prompt: string) => Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }>;
   isGenerating?: boolean;
 }
 
@@ -39,11 +65,13 @@ export default function FeedManager({
       setIsGeneratingImage(true);
       const result = await onGenerateImage(feedData.imagePrompt);
       if (result.imageUrls.length > 0) {
-        onUpdate({
+        const updateData: FeedData = {
           ...feedData,
           imageUrl: result.imageUrls[0],
-          imagePrompt: result.generatedPrompt || feedData.imagePrompt // 생성된 프롬프트 저장
-        });
+          imagePrompt: result.generatedPrompt || feedData.imagePrompt
+        };
+        
+        onUpdate(updateData);
       }
     } catch (error: any) {
       alert(`피드 이미지 생성 실패: ${error.message}`);
@@ -63,6 +91,9 @@ export default function FeedManager({
           <div className="text-sm text-gray-600">
             <strong>카테고리:</strong> {feedData.imageCategory}
           </div>
+          <div className="text-xs text-gray-500">
+            <strong>생성 사이즈:</strong> 1080x1350 (4:5 세로형, 카카오톡 피드 최적화)
+          </div>
           <div className="text-xs text-gray-500 max-h-20 overflow-y-auto">
             <strong>프롬프트:</strong> {feedData.imagePrompt}
           </div>
@@ -72,7 +103,7 @@ export default function FeedManager({
               <img 
                 src={feedData.imageUrl} 
                 alt="피드 이미지"
-                className="w-full aspect-square object-cover rounded-lg"
+                className="w-full aspect-[4/5] object-cover rounded-lg"
               />
               <button
                 onClick={() => onUpdate({
@@ -84,6 +115,9 @@ export default function FeedManager({
               >
                 <X className="w-3 h-3" />
               </button>
+              <div className="mt-1 text-xs text-gray-500">
+                피드 이미지 사이즈: 1080x1350 (4:5 세로형, 최적화됨)
+              </div>
             </div>
           )}
           
