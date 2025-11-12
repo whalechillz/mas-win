@@ -1,0 +1,621 @@
+{
+  "success": true,
+  "summary": {
+    "total": 36,
+    "missing": 35,
+    "processed": 35,
+    "success": 32,
+    "failed": 3,
+    "golfCount": 4,
+    "generalCount": 31
+  },
+  "results": [
+    {
+      "name": "02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "status": "success",
+      "hash_md5": "4f5164b98c7c7d761589f1b6157646b8",
+      "metadata": {
+        "alt_text": "02186f24 9f22 4812 이미지 - 마스골프",
+        "title": "02186f24 9f22 4812 bf21 bc487a91dafa 2025 09 bg",
+        "keywords": [
+          "02186f24",
+          "9f22",
+          "4812",
+          "bf21",
+          "bc487a91dafa",
+          "2025"
+        ]
+      }
+    },
+    {
+      "name": "16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "status": "success",
+      "hash_md5": "02e4c0503a1afe5b96ac51ba7fd59672",
+      "metadata": {
+        "alt_text": "16f4c3e7 2235 43e6 이미지 - 마스골프",
+        "title": "16f4c3e7 2235 43e6 b08d f7757650a392 warranty card",
+        "keywords": [
+          "16f4c3e7",
+          "2235",
+          "43e6",
+          "b08d",
+          "f7757650a392",
+          "warranty",
+          "card"
+        ]
+      }
+    },
+    {
+      "name": "1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "status": "success",
+      "hash_md5": "2e0c05900726015e307c148b140df530",
+      "metadata": {
+        "alt_text": "1d4e194b 8a03 4477 이미지 - 마스골프",
+        "title": "1d4e194b 8a03 4477 bd6c bc3160a0a17f hero image green face 02",
+        "keywords": [
+          "1d4e194b",
+          "8a03",
+          "4477",
+          "bd6c",
+          "bc3160a0a17f",
+          "hero",
+          "image",
+          "green",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "status": "success",
+      "hash_md5": "edbdb3bcc3698f0326c05971adaf19ed",
+      "metadata": {
+        "alt_text": "2844030e cace 4722 이미지 - 마스골프",
+        "title": "2844030e cace 4722 b63b e6f300faa0d7 secret force pro3",
+        "keywords": [
+          "2844030e",
+          "cace",
+          "4722",
+          "b63b",
+          "e6f300faa0d7",
+          "secret",
+          "force",
+          "pro3"
+        ]
+      }
+    },
+    {
+      "name": "28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "status": "success",
+      "hash_md5": "9f234dc5a98af7662110f07e1f7080f4",
+      "metadata": {
+        "alt_text": "28f07902 be7c 46e5 이미지 - 마스골프",
+        "title": "28f07902 be7c 46e5 b719 bf33ba9407da hero image green 04",
+        "keywords": [
+          "28f07902",
+          "be7c",
+          "46e5",
+          "b719",
+          "bf33ba9407da",
+          "hero",
+          "image",
+          "green"
+        ]
+      }
+    },
+    {
+      "name": "42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "status": "success",
+      "hash_md5": "e59a910cf0e11b6373554f16c5a05f97",
+      "metadata": {
+        "alt_text": "42bc1c8a 4f0e 4fce 이미지 - 마스골프",
+        "title": "42bc1c8a 4f0e 4fce bdf2 c038479f753a hero image green 03",
+        "keywords": [
+          "42bc1c8a",
+          "4f0e",
+          "4fce",
+          "bdf2",
+          "c038479f753a",
+          "hero",
+          "image",
+          "green"
+        ]
+      }
+    },
+    {
+      "name": "4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "status": "success",
+      "hash_md5": "6dcbaae11a3bdd8de81ee300d6f5d8bc",
+      "metadata": {
+        "alt_text": "4d9e72b2 64a9 44b5 이미지 - 마스골프",
+        "title": "4d9e72b2 64a9 44b5 83e3 b74971cf7b20 vip consultation modern",
+        "keywords": [
+          "4d9e72b2",
+          "64a9",
+          "44b5",
+          "83e3",
+          "b74971cf7b20",
+          "vip",
+          "consultation",
+          "modern"
+        ]
+      }
+    },
+    {
+      "name": "51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "status": "success",
+      "hash_md5": "eac197ae5c8eb15516f4fa1943dc555b",
+      "metadata": {
+        "alt_text": "51ccfb95 3863 4338 이미지 - 마스골프",
+        "title": "51ccfb95 3863 4338 a8c1 2f05d9563c7b secret force v3",
+        "keywords": [
+          "51ccfb95",
+          "3863",
+          "4338",
+          "a8c1",
+          "2f05d9563c7b",
+          "secret",
+          "force"
+        ]
+      }
+    },
+    {
+      "name": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "status": "success",
+      "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+      "metadata": {
+        "alt_text": "5f77f4d2 69e8 46ff 이미지 - 마스골프",
+        "title": "5f77f4d2 69e8 46ff 9b75 3a6a78d02bc1 driverimpact1200x800",
+        "keywords": [
+          "5f77f4d2",
+          "69e8",
+          "46ff",
+          "9b75",
+          "3a6a78d02bc1",
+          "driverimpact1200x800"
+        ]
+      }
+    },
+    {
+      "name": "62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "status": "success",
+      "hash_md5": "4110740ea661e9fdf8492f998274e237",
+      "metadata": {
+        "alt_text": "6dacdb5e 85c7 4f26 이미지 - 마스골프",
+        "title": "6dacdb5e 85c7 4f26 a740 307c57187118 secret force pro3",
+        "keywords": [
+          "6dacdb5e",
+          "85c7",
+          "4f26",
+          "a740",
+          "307c57187118",
+          "secret",
+          "force",
+          "pro3"
+        ]
+      }
+    },
+    {
+      "name": "71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "status": "success",
+      "hash_md5": "29eae0dcf6a27931c6d735484831f905",
+      "metadata": {
+        "alt_text": "71d5f2d3 d3c8 451c 이미지 - 마스골프",
+        "title": "71d5f2d3 d3c8 451c 90af ea0515078da6 secret force v3",
+        "keywords": [
+          "71d5f2d3",
+          "d3c8",
+          "451c",
+          "90af",
+          "ea0515078da6",
+          "secret",
+          "force"
+        ]
+      }
+    },
+    {
+      "name": "74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "status": "success",
+      "hash_md5": "8702e3834c5ee06a94cfabf09a7bd318",
+      "metadata": {
+        "alt_text": "74d21ab5 e6fc 4411 이미지 - 마스골프",
+        "title": "74d21ab5 e6fc 4411 8026 e2f3886787fc secret weapon 4 1",
+        "keywords": [
+          "74d21ab5",
+          "e6fc",
+          "4411",
+          "8026",
+          "e2f3886787fc",
+          "secret",
+          "weapon"
+        ]
+      }
+    },
+    {
+      "name": "819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "status": "success",
+      "hash_md5": "2a781366f75f972b0df62e6acce4eeee",
+      "metadata": {
+        "alt_text": "819e0580 36d8 4c43 이미지 - 마스골프",
+        "title": "819e0580 36d8 4c43 9d79 357060ef120d hero image green face 01",
+        "keywords": [
+          "819e0580",
+          "36d8",
+          "4c43",
+          "9d79",
+          "357060ef120d",
+          "hero",
+          "image",
+          "green",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "status": "success",
+      "hash_md5": "6fce10c3cc8dc3fd3b228dbb82540762",
+      "metadata": {
+        "alt_text": "83e0828b d840 4ee7 이미지 - 마스골프",
+        "title": "83e0828b d840 4ee7 a5a1 17743158eaf3 masgolf logo",
+        "keywords": [
+          "83e0828b",
+          "d840",
+          "4ee7",
+          "a5a1",
+          "17743158eaf3",
+          "masgolf",
+          "logo"
+        ]
+      }
+    },
+    {
+      "name": "8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "status": "success",
+      "hash_md5": "066215d04e9060f8d921a188e276ddec",
+      "metadata": {
+        "alt_text": "8aa84d4e b65b 4792 이미지 - 마스골프",
+        "title": "8aa84d4e b65b 4792 bb77 ab037165c2eb secret weapon black",
+        "keywords": [
+          "8aa84d4e",
+          "b65b",
+          "4792",
+          "bb77",
+          "ab037165c2eb",
+          "secret",
+          "weapon",
+          "black"
+        ]
+      }
+    },
+    {
+      "name": "8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "status": "success",
+      "hash_md5": "c4516d3b1c88b89d02e2f4c335266423",
+      "metadata": {
+        "alt_text": "8d901a78 68d4 44d2 이미지 - 마스골프",
+        "title": "8d901a78 68d4 44d2 89b8 8de66ede0d6b vip discount modern",
+        "keywords": [
+          "8d901a78",
+          "68d4",
+          "44d2",
+          "89b8",
+          "8de66ede0d6b",
+          "vip",
+          "discount",
+          "modern"
+        ]
+      }
+    },
+    {
+      "name": "9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "status": "success",
+      "hash_md5": "318eaa800b247ccc093eb5b48fe33ee5",
+      "metadata": {
+        "alt_text": "9518c4e6 d117 46eb 이미지 - 마스골프",
+        "title": "9518c4e6 d117 46eb 9e80 449d83583771 vip swing analysis modern",
+        "keywords": [
+          "9518c4e6",
+          "d117",
+          "46eb",
+          "9e80",
+          "449d83583771",
+          "vip",
+          "swing",
+          "analysis",
+          "modern"
+        ]
+      }
+    },
+    {
+      "name": "95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "status": "success",
+      "hash_md5": "90966a7f3fc6d87b51e6b7583f2c25db",
+      "metadata": {
+        "alt_text": "95806665 bae6 459d 이미지 - 마스골프",
+        "title": "95806665 bae6 459d bad9 a74c0723d603 benefit 1",
+        "keywords": [
+          "95806665",
+          "bae6",
+          "459d",
+          "bad9",
+          "a74c0723d603",
+          "benefit"
+        ]
+      }
+    },
+    {
+      "name": "a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "status": "success",
+      "hash_md5": "826dac55313c7d377a972aba1f73a6cd",
+      "metadata": {
+        "alt_text": "a2952d73 d883 4528 이미지 - 마스골프",
+        "title": "a2952d73 d883 4528 9f5d cd9a519c5c2b hero image green face 04",
+        "keywords": [
+          "a2952d73",
+          "d883",
+          "4528",
+          "9f5d",
+          "cd9a519c5c2b",
+          "hero",
+          "image",
+          "green",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "status": "success",
+      "hash_md5": "5b7fedab70ad009e978953e5473d0f4c",
+      "metadata": {
+        "alt_text": "a99ea745 b301 4a3f 이미지 - 마스골프",
+        "title": "a99ea745 b301 4a3f b0e0 59a17deda2c3 hero image green face 03",
+        "keywords": [
+          "a99ea745",
+          "b301",
+          "4a3f",
+          "b0e0",
+          "59a17deda2c3",
+          "hero",
+          "image",
+          "green",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "status": "success",
+      "hash_md5": "f532e7e8099cb4d19d80abaf456f2f25",
+      "metadata": {
+        "alt_text": "b0e7e192 8126 4dee 이미지 - 마스골프",
+        "title": "b0e7e192 8126 4dee 9bef 9c332610a39b massgoo review",
+        "keywords": [
+          "b0e7e192",
+          "8126",
+          "4dee",
+          "9bef",
+          "9c332610a39b",
+          "massgoo",
+          "review"
+        ]
+      }
+    },
+    {
+      "name": "b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "status": "success",
+      "hash_md5": "16a5b0ff34c9ca7ca9125587472662a6",
+      "metadata": {
+        "alt_text": "b1f051a4 8e04 49f5 이미지 - 마스골프",
+        "title": "b1f051a4 8e04 49f5 b409 e9b3f0585b19 hero image green 01",
+        "keywords": [
+          "b1f051a4",
+          "8e04",
+          "49f5",
+          "b409",
+          "e9b3f0585b19",
+          "hero",
+          "image",
+          "green"
+        ]
+      }
+    },
+    {
+      "name": "b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "status": "success",
+      "hash_md5": "00d3d6ee36de981a25bb131b7bf03a17",
+      "metadata": {
+        "alt_text": "b6ce4b89 011a 4c36 이미지 - 마스골프",
+        "title": "b6ce4b89 011a 4c36 83e3 f1397cdfad5a benefit 2",
+        "keywords": [
+          "b6ce4b89",
+          "011a",
+          "4c36",
+          "83e3",
+          "f1397cdfad5a",
+          "benefit"
+        ]
+      }
+    },
+    {
+      "name": "ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "status": "success",
+      "hash_md5": "03b939437c14e77ed87730af33c5bcb9",
+      "metadata": {
+        "alt_text": "ba72a84a 2654 4550 이미지 - 마스골프",
+        "title": "ba72a84a 2654 4550 a5f2 14f166bb468d secret force gold 2",
+        "keywords": [
+          "ba72a84a",
+          "2654",
+          "4550",
+          "a5f2",
+          "14f166bb468d",
+          "secret",
+          "force",
+          "gold"
+        ]
+      }
+    },
+    {
+      "name": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "status": "success",
+      "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+      "metadata": {
+        "alt_text": "c1751b6b 776a 4a42 이미지 - 마스골프",
+        "title": "c1751b6b 776a 4a42 84b4 d1741727c0d0 titaniumclubface1200x800",
+        "keywords": [
+          "c1751b6b",
+          "776a",
+          "4a42",
+          "84b4",
+          "d1741727c0d0",
+          "titaniumclubface1200x800"
+        ]
+      }
+    },
+    {
+      "name": "cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "status": "success",
+      "hash_md5": "28689afa69dfe4e7f9afc36e87171441",
+      "metadata": {
+        "alt_text": "cecad8a3 bca1 4249 이미지 - 마스골프",
+        "title": "cecad8a3 bca1 4249 80e4 8d322908fd03 secret weapon 4 1",
+        "keywords": [
+          "cecad8a3",
+          "bca1",
+          "4249",
+          "80e4",
+          "8d322908fd03",
+          "secret",
+          "weapon"
+        ]
+      }
+    },
+    {
+      "name": "d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "status": "success",
+      "hash_md5": "e7c7cf62f9fa91c8584dcf507f7b582b",
+      "metadata": {
+        "alt_text": "d1334e87 88be 49d4 이미지 - 마스골프",
+        "title": "d1334e87 88be 49d4 916c 24a212620bbd secret weapon black",
+        "keywords": [
+          "d1334e87",
+          "88be",
+          "49d4",
+          "916c",
+          "24a212620bbd",
+          "secret",
+          "weapon",
+          "black"
+        ]
+      }
+    },
+    {
+      "name": "d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "status": "success",
+      "hash_md5": "f5e482e63a30d6211428e659f351fc6b",
+      "metadata": {
+        "alt_text": "d1f56422 a347 4def 이미지 - 마스골프",
+        "title": "d1f56422 a347 4def a435 63d54ecd4777 background3",
+        "keywords": [
+          "d1f56422",
+          "a347",
+          "4def",
+          "a435",
+          "63d54ecd4777",
+          "background3"
+        ]
+      }
+    },
+    {
+      "name": "e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "status": "success",
+      "hash_md5": "ba95f627d31bbd0dbd4ec2d19a4b4281",
+      "metadata": {
+        "alt_text": "e312b8ea 091c 47fa 이미지 - 마스골프",
+        "title": "e312b8ea 091c 47fa b1bb 25d5ffc0e3dc hero image green 02",
+        "keywords": [
+          "e312b8ea",
+          "091c",
+          "47fa",
+          "b1bb",
+          "25d5ffc0e3dc",
+          "hero",
+          "image",
+          "green"
+        ]
+      }
+    },
+    {
+      "name": "ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "status": "success",
+      "hash_md5": "e114aff6d05ab015359070f856d1a38f",
+      "metadata": {
+        "alt_text": "ecee61f9 1e96 449a 이미지 - 마스골프",
+        "title": "ecee61f9 1e96 449a 9c92 1888c51e6cdd secret force gold 2",
+        "keywords": [
+          "ecee61f9",
+          "1e96",
+          "449a",
+          "9c92",
+          "1888c51e6cdd",
+          "secret",
+          "force",
+          "gold"
+        ]
+      }
+    },
+    {
+      "name": "f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "status": "success",
+      "hash_md5": "3e94228606300c0c2b64c6963681e217",
+      "metadata": {
+        "alt_text": "f5103ade 94b8 494d 이미지 - 마스골프",
+        "title": "f5103ade 94b8 494d 8e8d 772deeb2215f whiskey gift",
+        "keywords": [
+          "f5103ade",
+          "94b8",
+          "494d",
+          "8e8d",
+          "772deeb2215f",
+          "whiskey",
+          "gift"
+        ]
+      }
+    },
+    {
+      "name": "fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "status": "success",
+      "hash_md5": "5d184907d978b8c46082a2e152ad81ff",
+      "metadata": {
+        "alt_text": "fc3aaf42 50bf 495b 이미지 - 마스골프",
+        "title": "fc3aaf42 50bf 495b 88fd 1cad68c8f733 massgooball gift",
+        "keywords": [
+          "fc3aaf42",
+          "50bf",
+          "495b",
+          "88fd",
+          "1cad68c8f733",
+          "massgooball",
+          "gift"
+        ]
+      }
+    }
+  ]
+}

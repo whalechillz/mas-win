@@ -1,0 +1,107 @@
+{
+  "success": true,
+  "summary": {
+    "total": 9,
+    "missing": 7,
+    "processed": 7,
+    "success": 4,
+    "failed": 3,
+    "golfCount": 6,
+    "generalCount": 1
+  },
+  "results": [
+    {
+      "name": "17fbf8e7-63de-46c2-ac47-23a425a718de-premium-golf-lifestyle.jpeg",
+      "status": "success",
+      "hash_md5": "1b1f0642380eb6e1203411c444961dec",
+      "metadata": {
+        "alt_text": "17fbf8e7 63de 46c2 이미지 - 마스골프",
+        "title": "17fbf8e7 63de 46c2 ac47 23a425a718de premium golf lifestyle",
+        "keywords": [
+          "17fbf8e7",
+          "63de",
+          "46c2",
+          "ac47",
+          "23a425a718de",
+          "premium",
+          "golf",
+          "lifestyle"
+        ]
+      }
+    },
+    {
+      "name": "4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "status": "success",
+      "hash_md5": "b67e657bf9005d2122d27193da89802e",
+      "metadata": {
+        "alt_text": "4a7a2d27 cf65 45c8 이미지 - 마스골프",
+        "title": "4a7a2d27 cf65 45c8 9d5b ede0b9d705d1 golden time senior golfer",
+        "keywords": [
+          "4a7a2d27",
+          "cf65",
+          "45c8",
+          "9d5b",
+          "ede0b9d705d1",
+          "golden",
+          "time",
+          "senior",
+          "golfer"
+        ]
+      }
+    },
+    {
+      "name": "4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "status": "success",
+      "hash_md5": "8e6809edd240fc966962544ce157aff5",
+      "metadata": {
+        "alt_text": "8c025e15 582e 470a 이미지 - 마스골프",
+        "title": "8c025e15 582e 470a a431 5a0f5d48e4ad primetime golfer daily",
+        "keywords": [
+          "8c025e15",
+          "582e",
+          "470a",
+          "a431",
+          "5a0f5d48e4ad",
+          "primetime",
+          "golfer",
+          "daily"
+        ]
+      }
+    },
+    {
+      "name": "99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "status": "success",
+      "hash_md5": "dae6aa6517c27a0a5673b1952aebe8d4",
+      "metadata": {
+        "alt_text": "a95f9e51 bd5b 43fc 이미지 - 마스골프",
+        "title": "a95f9e51 bd5b 43fc 96ac 3f2f8e2abaef fitting session golden hour",
+        "keywords": [
+          "a95f9e51",
+          "bd5b",
+          "43fc",
+          "96ac",
+          "3f2f8e2abaef",
+          "fitting",
+          "session",
+          "golden",
+          "hour"
+        ]
+      }
+    },
+    {
+      "name": "dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    }
+  ]
+}

@@ -1,0 +1,460 @@
+{
+  "homepage": [
+    {
+      "index": 1,
+      "src": "http://localhost:3000/main/logo/massgoo_logo_black.png",
+      "alt": "MASSGOO 로고",
+      "width": 238,
+      "height": 17
+    },
+    {
+      "index": 2,
+      "src": "http://localhost:3000/main/hero/hero-main-image.webp",
+      "alt": "MASSGOO 히어로 - 티타늄 원석",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "index": 3,
+      "src": "http://localhost:3000/main/products/black-beryl/massgoo_sw_black_muz_11.webp",
+      "alt": "시크리트웨폰 블랙 MUZIIK",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "index": 4,
+      "src": "http://localhost:3000/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp",
+      "alt": "시크리트포스 골드 2 MUZIIK",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "index": 5,
+      "src": "http://localhost:3000/main/technology/nano-resin-structure.webp",
+      "alt": "나노 수지 구조",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 6,
+      "src": "http://localhost:3000/main/technology/reverse-torque-prevention.webp",
+      "alt": "역토크 방지",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 7,
+      "src": "http://localhost:3000/main/technology/titanium-graphite-structure.webp",
+      "alt": "티타늄 그라파이트 구조",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 8,
+      "src": "http://localhost:3000/main/products/titanium_club_face_1200x800.jpg",
+      "alt": "2.2mm 티타늄 클럽 페이스",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 9,
+      "src": "http://localhost:3000/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp",
+      "alt": "시크리트포스 골드 2 MUZIIK",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "index": 10,
+      "src": "http://localhost:3000/main/products/black-beryl/massgoo_sw_black_muz_11.webp",
+      "alt": "시크리트웨폰 블랙 MUZIIK",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "index": 11,
+      "src": "http://localhost:3000/main/products/gold2/gold2_00_01.jpg",
+      "alt": "시크리트포스 골드 2",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 12,
+      "src": "http://localhost:3000/main/products/secret-force-pro3.webp",
+      "alt": "시크리트포스 PRO 3",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 13,
+      "src": "http://localhost:3000/main/products/secret-force-v3.webp",
+      "alt": "시크리트포스 V3",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 14,
+      "src": "http://localhost:3000/main/products/secret-weapon-black.webp",
+      "alt": "시크리트웨폰 블랙",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 15,
+      "src": "http://localhost:3000/main/products/secret-weapon-4-1.webp",
+      "alt": "시크리트웨폰 골드 4.1",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 16,
+      "src": "http://localhost:3000/main/testimonials/hero-faces/review-face-01.jpg",
+      "alt": "김성호 대표",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 17,
+      "src": "http://localhost:3000/main/testimonials/hero-faces/review-face-02.jpg",
+      "alt": "이재민 회장",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 18,
+      "src": "http://localhost:3000/main/testimonials/hero-faces/review-face-03.jpg",
+      "alt": "박준영 원장",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "index": 19,
+      "src": "http://localhost:3000/main/logo/massgoo_logo_white.png",
+      "alt": "MASSGOO",
+      "width": 238,
+      "height": 17
+    },
+    {
+      "index": 20,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK",
+      "width": 153,
+      "height": 145
+    },
+    {
+      "index": 21,
+      "src": "http://localhost:3000/main/brand/ssl-secure-badge.svg",
+      "alt": "SSL",
+      "width": 80,
+      "height": 80
+    },
+    {
+      "index": 22,
+      "src": "http://localhost:3000/main/brand/premium-quality-badge.svg",
+      "alt": "프리미엄",
+      "width": 80,
+      "height": 80
+    },
+    {
+      "index": 23,
+      "src": "http://localhost:3000/main/brand/mas9golf-icon.svg",
+      "alt": "MASSGOO 공식몰",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "index": 24,
+      "src": "http://localhost:3000/main/brand/naver-smartstore-icon.svg",
+      "alt": "네이버 스마트스토어",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "index": 25,
+      "src": "http://localhost:3000/main/logo/massgoo_logo_white.png",
+      "alt": "MASSGOO 로고",
+      "width": 238,
+      "height": 17
+    }
+  ],
+  "muziik": [
+    {
+      "index": 1,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK Logo",
+      "width": 153,
+      "height": 145
+    },
+    {
+      "index": 2,
+      "src": "http://localhost:3000/muziik/brand/titan_1_bg.webp",
+      "alt": "티타늄 원석",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "index": 3,
+      "src": "http://localhost:3000/muziik/brand/one-flex-1.webp",
+      "alt": "오토플렉스 설계",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "index": 4,
+      "src": "http://localhost:3000/muziik/brand/japan_titan_white.png",
+      "alt": "Japan Titanium",
+      "width": 259,
+      "height": 259
+    },
+    {
+      "index": 5,
+      "src": "http://localhost:3000/muziik/technology/dogatti-nano-resin.webp",
+      "alt": "나노 수지 구조",
+      "width": 1440,
+      "height": 810
+    },
+    {
+      "index": 6,
+      "src": "http://localhost:3000/muziik/technology/dogatti-reverse-torque.webp",
+      "alt": "역토크 방지",
+      "width": 1440,
+      "height": 810
+    },
+    {
+      "index": 7,
+      "src": "http://localhost:3000/muziik/technology/dogatti-titanium-fiber.webp",
+      "alt": "티타늄 섬유",
+      "width": 1440,
+      "height": 810
+    },
+    {
+      "index": 8,
+      "src": "http://localhost:3000/muziik/products/sapphire/sapphire_shaft_main2.webp",
+      "alt": "Sapphire Shaft",
+      "width": 939,
+      "height": 394
+    },
+    {
+      "index": 9,
+      "src": "http://localhost:3000/muziik/products/sapphire/sapphire_shaft_40.webp",
+      "alt": "DOGATTI GENERATION Sapphire Auto-flex shaft",
+      "width": 1440,
+      "height": 123
+    },
+    {
+      "index": 10,
+      "src": "http://localhost:3000/muziik/products/beryl/beryl_shaft_main.webp",
+      "alt": "Beryl Shaft",
+      "width": 800,
+      "height": 400
+    },
+    {
+      "index": 11,
+      "src": "http://localhost:3000/muziik/products/beryl/beryl_shaft_40.webp",
+      "alt": "DOGATTI GENERATION Beryl shaft",
+      "width": 1050,
+      "height": 150
+    },
+    {
+      "index": 12,
+      "src": "http://localhost:3000/main/logo/massgoo_logo_white.png",
+      "alt": "MASSGOO",
+      "width": 238,
+      "height": 17
+    },
+    {
+      "index": 13,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK",
+      "width": 153,
+      "height": 145
+    },
+    {
+      "index": 14,
+      "src": "http://localhost:3000/main/brand/ssl-secure-badge.svg",
+      "alt": "SSL",
+      "width": 80,
+      "height": 80
+    },
+    {
+      "index": 15,
+      "src": "http://localhost:3000/main/brand/premium-quality-badge.svg",
+      "alt": "프리미엄",
+      "width": 80,
+      "height": 80
+    },
+    {
+      "index": 16,
+      "src": "http://localhost:3000/main/brand/mas9golf-icon.svg",
+      "alt": "MASSGOO 공식몰",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "index": 17,
+      "src": "http://localhost:3000/main/brand/naver-smartstore-icon.svg",
+      "alt": "네이버 스마트스토어",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "index": 1,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK Logo",
+      "width": 153,
+      "height": 145,
+      "page": "contact"
+    },
+    {
+      "index": 2,
+      "src": "http://localhost:3000/main/logo/massgoo_logo_white.png",
+      "alt": "MASSGOO",
+      "width": 238,
+      "height": 17,
+      "page": "contact"
+    },
+    {
+      "index": 3,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK",
+      "width": 153,
+      "height": 145,
+      "page": "contact"
+    },
+    {
+      "index": 4,
+      "src": "http://localhost:3000/main/brand/ssl-secure-badge.svg",
+      "alt": "SSL",
+      "width": 80,
+      "height": 80,
+      "page": "contact"
+    },
+    {
+      "index": 5,
+      "src": "http://localhost:3000/main/brand/premium-quality-badge.svg",
+      "alt": "프리미엄",
+      "width": 80,
+      "height": 80,
+      "page": "contact"
+    },
+    {
+      "index": 6,
+      "src": "http://localhost:3000/main/brand/mas9golf-icon.svg",
+      "alt": "MASSGOO 공식몰",
+      "width": 16,
+      "height": 16,
+      "page": "contact"
+    },
+    {
+      "index": 7,
+      "src": "http://localhost:3000/main/brand/naver-smartstore-icon.svg",
+      "alt": "네이버 스마트스토어",
+      "width": 16,
+      "height": 16,
+      "page": "contact"
+    },
+    {
+      "index": 1,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK Logo",
+      "width": 153,
+      "height": 145,
+      "page": "technology"
+    },
+    {
+      "index": 2,
+      "src": "http://localhost:3000/muziik/technology/dogatti-nano-resin.webp",
+      "alt": "나노 수지 구조",
+      "width": 1440,
+      "height": 810,
+      "page": "technology"
+    },
+    {
+      "index": 3,
+      "src": "http://localhost:3000/muziik/technology/dogatti-reverse-torque.webp",
+      "alt": "역토크 방지",
+      "width": 1440,
+      "height": 810,
+      "page": "technology"
+    },
+    {
+      "index": 4,
+      "src": "http://localhost:3000/muziik/technology/dogatti-titanium-fiber.webp",
+      "alt": "티타늄 섬유 구조",
+      "width": 1440,
+      "height": 810,
+      "page": "technology"
+    },
+    {
+      "index": 5,
+      "src": "http://localhost:3000/muziik/brand/japan_titan_white.png",
+      "alt": "Japan Titanium",
+      "width": 259,
+      "height": 259,
+      "page": "technology"
+    },
+    {
+      "index": 6,
+      "src": "http://localhost:3000/muziik/products/sapphire/sapphire_shaft_main2.webp",
+      "alt": "Sapphire Thumbnail",
+      "width": 939,
+      "height": 394,
+      "page": "technology"
+    },
+    {
+      "index": 7,
+      "src": "http://localhost:3000/muziik/products/beryl/beryl_shaft_main.webp",
+      "alt": "Beryl Thumbnail",
+      "width": 800,
+      "height": 400,
+      "page": "technology"
+    },
+    {
+      "index": 8,
+      "src": "http://localhost:3000/main/logo/massgoo_logo_white.png",
+      "alt": "MASSGOO",
+      "width": 238,
+      "height": 17,
+      "page": "technology"
+    },
+    {
+      "index": 9,
+      "src": "http://localhost:3000/muziik/brand/muziik-logo-art.png",
+      "alt": "MUZIIK",
+      "width": 153,
+      "height": 145,
+      "page": "technology"
+    },
+    {
+      "index": 10,
+      "src": "http://localhost:3000/main/brand/ssl-secure-badge.svg",
+      "alt": "SSL",
+      "width": 80,
+      "height": 80,
+      "page": "technology"
+    },
+    {
+      "index": 11,
+      "src": "http://localhost:3000/main/brand/premium-quality-badge.svg",
+      "alt": "프리미엄",
+      "width": 80,
+      "height": 80,
+      "page": "technology"
+    },
+    {
+      "index": 12,
+      "src": "http://localhost:3000/main/brand/mas9golf-icon.svg",
+      "alt": "MASSGOO 공식몰",
+      "width": 16,
+      "height": 16,
+      "page": "technology"
+    },
+    {
+      "index": 13,
+      "src": "http://localhost:3000/main/brand/naver-smartstore-icon.svg",
+      "alt": "네이버 스마트스토어",
+      "width": 16,
+      "height": 16,
+      "page": "technology"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "summary": {
+    "total": 9,
+    "missing": 3,
+    "processed": 3,
+    "success": 0,
+    "failed": 3,
+    "golfCount": 3,
+    "generalCount": 0
+  },
+  "results": [
+    {
+      "name": "4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    }
+  ]
+}

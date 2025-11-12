@@ -128,7 +128,7 @@ const analyzeGeneralImage = async (imageUrl, title = '', excerpt = '') => {
       }
     }
     
-    return {
+      return {
       alt_text: data.alt_text || data.alt || '',
       title: data.title || '',
       description: data.description || '',

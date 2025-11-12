@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-11-11T00:04:26.865Z",
+  "folderPath": "originals/campaigns/2025-05",
+  "dryRun": false,
+  "summary": {
+    "total": 9,
+    "deleted": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": {
+    "deleted": [
+      {
+        "name": "ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+        "path": "originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+        "path": "originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+        "path": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+        "path": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+        "path": "originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+        "path": "originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+        "path": "originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+        "path": "originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+        "path": "originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+        "status": "deleted"
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  }
+}

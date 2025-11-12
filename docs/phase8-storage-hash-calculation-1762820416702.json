@@ -1,0 +1,268 @@
+{
+  "timestamp": "2025-11-11T00:20:16.699Z",
+  "folderPath": "originals/campaigns/2025-08",
+  "summary": {
+    "totalFiles": 19,
+    "filesWithHash": 18,
+    "duplicateGroups": 0,
+    "totalDuplicates": 0,
+    "filesWithoutMetadata": 18
+  },
+  "duplicateGroups": [],
+  "filesWithoutMetadata": [
+    {
+      "name": "000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "path": "originals/campaigns/2025-08/000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "hash_md5": "e9ad265c4119fa6f7aef8d41f41668bd"
+    },
+    {
+      "name": "21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "path": "originals/campaigns/2025-08/21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "hash_md5": "24d2d848a7c6191132ea0e5edcdd645a"
+    },
+    {
+      "name": "2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "path": "originals/campaigns/2025-08/2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "hash_md5": "d52c0c9d60eddf26fba06c16085e751b"
+    },
+    {
+      "name": "2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "path": "originals/campaigns/2025-08/2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "hash_md5": "e4b6fdbeb559b00d777a4809ef7bfe5c"
+    },
+    {
+      "name": "3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "path": "originals/campaigns/2025-08/3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "hash_md5": "2650f2b38ee3c026a11c7e2c5abefd2e"
+    },
+    {
+      "name": "4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "path": "originals/campaigns/2025-08/4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "hash_md5": "478fd6c30534a97a2e5520208cf502da"
+    },
+    {
+      "name": "4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "path": "originals/campaigns/2025-08/4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "hash_md5": "18315db0a23a3198a38919f4da222455"
+    },
+    {
+      "name": "4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "path": "originals/campaigns/2025-08/4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "hash_md5": "d9173573cf2a3d1453925bba293e2141"
+    },
+    {
+      "name": "8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "path": "originals/campaigns/2025-08/8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "hash_md5": "76249d6c1c5aa32917c5c96e5c461345"
+    },
+    {
+      "name": "a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "path": "originals/campaigns/2025-08/a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "hash_md5": "30c113452614655608fb7296fe226a9d"
+    },
+    {
+      "name": "ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "path": "originals/campaigns/2025-08/ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "hash_md5": "484f41254533129954e80b674320544d"
+    },
+    {
+      "name": "b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "path": "originals/campaigns/2025-08/b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "hash_md5": "c31c40f903d813ff3c17b97c6d1f24f2"
+    },
+    {
+      "name": "be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "path": "originals/campaigns/2025-08/be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "hash_md5": "db232340cc9563575f9e58451e7a44cb"
+    },
+    {
+      "name": "c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "path": "originals/campaigns/2025-08/c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "hash_md5": "19c27930c81a40657d5580e9af8cc809"
+    },
+    {
+      "name": "d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "path": "originals/campaigns/2025-08/d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "hash_md5": "2cb13bb4236178f1cfdd03bebb70a7c5"
+    },
+    {
+      "name": "e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "path": "originals/campaigns/2025-08/e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "hash_md5": "53a4c2b3bc32c3fbc0fbb33ec736914d"
+    },
+    {
+      "name": "ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "path": "originals/campaigns/2025-08/ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "hash_md5": "4d96f93740212026f85db510330e683c"
+    },
+    {
+      "name": "f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "path": "originals/campaigns/2025-08/f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "hash_md5": "ed512e9b15db31b6b64d86e2c06cb628"
+    }
+  ],
+  "allFiles": [
+    {
+      "name": "000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "path": "originals/campaigns/2025-08/000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "hash_md5": "e9ad265c4119fa6f7aef8d41f41668bd",
+      "hash_sha256": "ee37f58140e6dcc7a8d98320dee824e1d9a3f782a1cbdbcc85d78023b82c05a4",
+      "size": 27601
+    },
+    {
+      "name": "21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "path": "originals/campaigns/2025-08/21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "hash_md5": "24d2d848a7c6191132ea0e5edcdd645a",
+      "hash_sha256": "3bf7ac11ad08f3108760f6612f0394fb54e72903ee53c93ffa3af84dd08d52d5",
+      "size": 9543602
+    },
+    {
+      "name": "2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "path": "originals/campaigns/2025-08/2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "hash_md5": "d52c0c9d60eddf26fba06c16085e751b",
+      "hash_sha256": "045162448b9248aead0015266275f66157d47fc7e9a6b1e8ebfe7b3c67874578",
+      "size": 9861848
+    },
+    {
+      "name": "2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "path": "originals/campaigns/2025-08/2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "hash_md5": "e4b6fdbeb559b00d777a4809ef7bfe5c",
+      "hash_sha256": "52016c3cfe00afcacfead25d77932abb77110fe10f0af0abd8040eaeddb2d0ac",
+      "size": 8443387
+    },
+    {
+      "name": "3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "path": "originals/campaigns/2025-08/3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "hash_md5": "2650f2b38ee3c026a11c7e2c5abefd2e",
+      "hash_sha256": "fb5c8dcbebaba6709c6ec7f69ff1067ab4653a656c77d8d78ae259de3f425593",
+      "size": 9075662
+    },
+    {
+      "name": "4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "path": "originals/campaigns/2025-08/4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "hash_md5": "478fd6c30534a97a2e5520208cf502da",
+      "hash_sha256": "6e2d234dcd22522a3e0b56407afde486855b93c3cc207bcdf57755660f9efba8",
+      "size": 40616
+    },
+    {
+      "name": "4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "path": "originals/campaigns/2025-08/4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "hash_md5": "18315db0a23a3198a38919f4da222455",
+      "hash_sha256": "9bc144b7b6b709b6508cc6a63c92f048910c794febfe190afabe0ca7370c6f17",
+      "size": 2427476
+    },
+    {
+      "name": "4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "path": "originals/campaigns/2025-08/4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "hash_md5": "d9173573cf2a3d1453925bba293e2141",
+      "hash_sha256": "43baadeda34f2c79ee68e2885dd7824bd186c8f190dee8f28c166d8a1eb13f08",
+      "size": 1669116
+    },
+    {
+      "name": "8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "path": "originals/campaigns/2025-08/8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "hash_md5": "76249d6c1c5aa32917c5c96e5c461345",
+      "hash_sha256": "208ed72b3686147f1fe22c065c62f03a79770a63f9e874b527fa8838bb3a1e7e",
+      "size": 1801280
+    },
+    {
+      "name": "a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "path": "originals/campaigns/2025-08/a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "hash_md5": "30c113452614655608fb7296fe226a9d",
+      "hash_sha256": "45637103ef5994f13a7a29836f4c881d26a6c7b0b78fa21fff2713cf7b1b0b40",
+      "size": 49484
+    },
+    {
+      "name": "ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "path": "originals/campaigns/2025-08/ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "hash_md5": "484f41254533129954e80b674320544d",
+      "hash_sha256": "ace66073407591e32afacb626ece716d3a652253ce271030c3535d6e7dba9710",
+      "size": 320349
+    },
+    {
+      "name": "b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "path": "originals/campaigns/2025-08/b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "hash_md5": "c31c40f903d813ff3c17b97c6d1f24f2",
+      "hash_sha256": "5c1da573b9e428b3d10432e68b0a0f42c4ecb06446606098edddf1e01377575e",
+      "size": 70428
+    },
+    {
+      "name": "be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "path": "originals/campaigns/2025-08/be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "hash_md5": "db232340cc9563575f9e58451e7a44cb",
+      "hash_sha256": "3f93cd776a50067ff85f27604290baf239480076fb710510ccba292f7c424ce1",
+      "size": 1654641
+    },
+    {
+      "name": "c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "path": "originals/campaigns/2025-08/c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "hash_md5": "19c27930c81a40657d5580e9af8cc809",
+      "hash_sha256": "cdd2c284581323f4b9a015d3a19a2ed83c0f681ec252692e7ffb714b3f0da89b",
+      "size": 1397563
+    },
+    {
+      "name": "d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "path": "originals/campaigns/2025-08/d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "hash_md5": "2cb13bb4236178f1cfdd03bebb70a7c5",
+      "hash_sha256": "b3c73622d7bb74541ed8bfc8c472958bfba4747739f607f86d95aaffdaa4a4db",
+      "size": 8932213
+    },
+    {
+      "name": "e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "path": "originals/campaigns/2025-08/e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "hash_md5": "53a4c2b3bc32c3fbc0fbb33ec736914d",
+      "hash_sha256": "24510662da9fb10cd99a5fc142597f82db3c3eca157946d25b503b92a0c708c3",
+      "size": 83260
+    },
+    {
+      "name": "ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "path": "originals/campaigns/2025-08/ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "hash_md5": "4d96f93740212026f85db510330e683c",
+      "hash_sha256": "5730ba40b2e409b301ea6ad6bd0419c238fd6c0d16db80cd3d36ff5cc48c839f",
+      "size": 339842
+    },
+    {
+      "name": "f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "path": "originals/campaigns/2025-08/f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-08/f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "hash_md5": "ed512e9b15db31b6b64d86e2c06cb628",
+      "hash_sha256": "e2ad860efb167610f2ebf4b66ec396fe33ff81e5f3404e81dfd1b6bcf8b3550f",
+      "size": 307278
+    }
+  ]
+}

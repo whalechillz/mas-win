@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-11-11T00:17:01.748Z",
+  "folderPath": "originals/campaigns/2025-06",
+  "summary": {
+    "duplicateGroups": 1,
+    "safeToRemove": 1
+  },
+  "usageResults": [
+    {
+      "hash_md5": "012d20313a372b81b829980541b48a9b",
+      "files": [
+        {
+          "name": "2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+          "path": "originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+          "path": "originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    }
+  ],
+  "safeToRemove": [
+    {
+      "name": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "path": "originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg"
+    }
+  ]
+}

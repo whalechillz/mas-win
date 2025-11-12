@@ -1,0 +1,365 @@
+{
+  "success": true,
+  "summary": {
+    "total": 19,
+    "missing": 19,
+    "processed": 19,
+    "success": 19,
+    "failed": 0,
+    "golfCount": 0,
+    "generalCount": 19
+  },
+  "results": [
+    {
+      "name": "000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg",
+      "status": "success",
+      "hash_md5": "e9ad265c4119fa6f7aef8d41f41668bd",
+      "metadata": {
+        "alt_text": "000980ba efb4 47b9 이미지 - 마스골프",
+        "title": "000980ba efb4 47b9 a112 2d3e4b512de6 hero image 1 face",
+        "keywords": [
+          "000980ba",
+          "efb4",
+          "47b9",
+          "a112",
+          "2d3e4b512de6",
+          "hero",
+          "image",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4",
+      "status": "success",
+      "hash_md5": "24d2d848a7c6191132ea0e5edcdd645a",
+      "metadata": {
+        "alt_text": "21a35c43 5111 48cd 이미지 - 마스골프",
+        "title": "21a35c43 5111 48cd 97d3 3b6d19b3eea6 mainvisual",
+        "keywords": [
+          "21a35c43",
+          "5111",
+          "48cd",
+          "97d3",
+          "3b6d19b3eea6",
+          "mainvisual"
+        ]
+      }
+    },
+    {
+      "name": "2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4",
+      "status": "success",
+      "hash_md5": "d52c0c9d60eddf26fba06c16085e751b",
+      "metadata": {
+        "alt_text": "2333b3a2 adbc 4e98 이미지 - 마스골프",
+        "title": "2333b3a2 adbc 4e98 a992 add900618f75 sunbed",
+        "keywords": [
+          "2333b3a2",
+          "adbc",
+          "4e98",
+          "a992",
+          "add900618f75",
+          "sunbed"
+        ]
+      }
+    },
+    {
+      "name": "2af16881-5926-4677-a44b-7662063864e2-hero1.mp4",
+      "status": "success",
+      "hash_md5": "e4b6fdbeb559b00d777a4809ef7bfe5c",
+      "metadata": {
+        "alt_text": "2af16881 5926 4677 이미지 - 마스골프",
+        "title": "2af16881 5926 4677 a44b 7662063864e2 hero1",
+        "keywords": [
+          "2af16881",
+          "5926",
+          "4677",
+          "a44b",
+          "7662063864e2",
+          "hero1"
+        ]
+      }
+    },
+    {
+      "name": "3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4",
+      "status": "success",
+      "hash_md5": "2650f2b38ee3c026a11c7e2c5abefd2e",
+      "metadata": {
+        "alt_text": "3e6cf330 6f47 4f51 이미지 - 마스골프",
+        "title": "3e6cf330 6f47 4f51 b38a c89e8f8b10ec hero2",
+        "keywords": [
+          "3e6cf330",
+          "6f47",
+          "4f51",
+          "b38a",
+          "c89e8f8b10ec",
+          "hero2"
+        ]
+      }
+    },
+    {
+      "name": "4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg",
+      "status": "success",
+      "hash_md5": "478fd6c30534a97a2e5520208cf502da",
+      "metadata": {
+        "alt_text": "4ba95b64 de58 4431 이미지 - 마스골프",
+        "title": "4ba95b64 de58 4431 a8c7 6caccc99354c hero image 3 face",
+        "keywords": [
+          "4ba95b64",
+          "de58",
+          "4431",
+          "a8c7",
+          "6caccc99354c",
+          "hero",
+          "image",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4",
+      "status": "success",
+      "hash_md5": "18315db0a23a3198a38919f4da222455",
+      "metadata": {
+        "alt_text": "4c3627d9 7d03 480e 이미지 - 마스골프",
+        "title": "4c3627d9 7d03 480e 9272 c9a3c64890b2 chanel perfume teasor1",
+        "keywords": [
+          "4c3627d9",
+          "7d03",
+          "480e",
+          "9272",
+          "c9a3c64890b2",
+          "chanel",
+          "perfume",
+          "teasor1"
+        ]
+      }
+    },
+    {
+      "name": "4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png",
+      "status": "success",
+      "hash_md5": "d9173573cf2a3d1453925bba293e2141",
+      "metadata": {
+        "alt_text": "4cad9e80 04a1 4bf8 이미지 - 마스골프",
+        "title": "4cad9e80 04a1 4bf8 8f79 8567d22ad672 dior sauvage 1024",
+        "keywords": [
+          "4cad9e80",
+          "04a1",
+          "4bf8",
+          "8f79",
+          "8567d22ad672",
+          "dior",
+          "sauvage",
+          "1024"
+        ]
+      }
+    },
+    {
+      "name": "4ee4ff02-16b4-462c-b592-62a92d750a6a-bleu-de-chanel-640x480.jpg",
+      "status": "success",
+      "hash_md5": "655762457a24e104eead77964c96ac84",
+      "metadata": {
+        "alt_text": "4ee4ff02 16b4 462c 이미지 - 마스골프",
+        "title": "4ee4ff02 16b4 462c b592 62a92d750a6a bleu de chanel 640x480",
+        "keywords": [
+          "4ee4ff02",
+          "16b4",
+          "462c",
+          "b592",
+          "62a92d750a6a",
+          "bleu",
+          "chanel",
+          "640x480"
+        ]
+      }
+    },
+    {
+      "name": "8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png",
+      "status": "success",
+      "hash_md5": "76249d6c1c5aa32917c5c96e5c461345",
+      "metadata": {
+        "alt_text": "8ac7fb19 ddfc 4eb5 이미지 - 마스골프",
+        "title": "8ac7fb19 ddfc 4eb5 8422 1563c03cc739 bleu de chanel 1024",
+        "keywords": [
+          "8ac7fb19",
+          "ddfc",
+          "4eb5",
+          "8422",
+          "1563c03cc739",
+          "bleu",
+          "chanel",
+          "1024"
+        ]
+      }
+    },
+    {
+      "name": "a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg",
+      "status": "success",
+      "hash_md5": "30c113452614655608fb7296fe226a9d",
+      "metadata": {
+        "alt_text": "a939c669 7bd4 4506 이미지 - 마스골프",
+        "title": "a939c669 7bd4 4506 943d 0f293afaffc7 hero image 2 face",
+        "keywords": [
+          "a939c669",
+          "7bd4",
+          "4506",
+          "943d",
+          "0f293afaffc7",
+          "hero",
+          "image",
+          "face"
+        ]
+      }
+    },
+    {
+      "name": "ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png",
+      "status": "success",
+      "hash_md5": "484f41254533129954e80b674320544d",
+      "metadata": {
+        "alt_text": "ad9c897f 9bc0 4e72 이미지 - 마스골프",
+        "title": "ad9c897f 9bc0 4e72 b3e1 b4d12e0f14a5 waterproof pouch 640x480",
+        "keywords": [
+          "ad9c897f",
+          "9bc0",
+          "4e72",
+          "b3e1",
+          "b4d12e0f14a5",
+          "waterproof",
+          "pouch",
+          "640x480"
+        ]
+      }
+    },
+    {
+      "name": "b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg",
+      "status": "success",
+      "hash_md5": "c31c40f903d813ff3c17b97c6d1f24f2",
+      "metadata": {
+        "alt_text": "b3335749 bc6f 41f5 이미지 - 마스골프",
+        "title": "b3335749 bc6f 41f5 90c4 e3660bfd0664 dior sauvagee 640x480",
+        "keywords": [
+          "b3335749",
+          "bc6f",
+          "41f5",
+          "90c4",
+          "e3660bfd0664",
+          "dior",
+          "sauvagee",
+          "640x480"
+        ]
+      }
+    },
+    {
+      "name": "be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png",
+      "status": "success",
+      "hash_md5": "db232340cc9563575f9e58451e7a44cb",
+      "metadata": {
+        "alt_text": "be4edf32 2113 4f8f 이미지 - 마스골프",
+        "title": "be4edf32 2113 4f8f 9d24 1794713a117c perfume duo 1024",
+        "keywords": [
+          "be4edf32",
+          "2113",
+          "4f8f",
+          "9d24",
+          "1794713a117c",
+          "perfume",
+          "duo",
+          "1024"
+        ]
+      }
+    },
+    {
+      "name": "c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png",
+      "status": "success",
+      "hash_md5": "19c27930c81a40657d5580e9af8cc809",
+      "metadata": {
+        "alt_text": "c437cdde 054f 4fb8 이미지 - 마스골프",
+        "title": "c437cdde 054f 4fb8 974a 395377067dfa chanel perfume 1024x1024",
+        "keywords": [
+          "c437cdde",
+          "054f",
+          "4fb8",
+          "974a",
+          "395377067dfa",
+          "chanel",
+          "perfume",
+          "1024x1024"
+        ]
+      }
+    },
+    {
+      "name": "d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4",
+      "status": "success",
+      "hash_md5": "2cb13bb4236178f1cfdd03bebb70a7c5",
+      "metadata": {
+        "alt_text": "d1b5e243 943f 42d8 이미지 - 마스골프",
+        "title": "d1b5e243 943f 42d8 9832 c1539d000abc chanel perfume teasor2",
+        "keywords": [
+          "d1b5e243",
+          "943f",
+          "42d8",
+          "9832",
+          "c1539d000abc",
+          "chanel",
+          "perfume",
+          "teasor2"
+        ]
+      }
+    },
+    {
+      "name": "e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg",
+      "status": "success",
+      "hash_md5": "53a4c2b3bc32c3fbc0fbb33ec736914d",
+      "metadata": {
+        "alt_text": "e2888bfe 43a8 427d 이미지 - 마스골프",
+        "title": "e2888bfe 43a8 427d 8015 33380de5833d perfume duo 640x480",
+        "keywords": [
+          "e2888bfe",
+          "43a8",
+          "427d",
+          "8015",
+          "33380de5833d",
+          "perfume",
+          "duo",
+          "640x480"
+        ]
+      }
+    },
+    {
+      "name": "ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg",
+      "status": "success",
+      "hash_md5": "4d96f93740212026f85db510330e683c",
+      "metadata": {
+        "alt_text": "ea7adfd7 63f7 4061 이미지 - 마스골프",
+        "title": "ea7adfd7 63f7 4061 8e02 42f96c356d9f sunbed 1080x1920",
+        "keywords": [
+          "ea7adfd7",
+          "63f7",
+          "4061",
+          "8e02",
+          "42f96c356d9f",
+          "sunbed",
+          "1080x1920"
+        ]
+      }
+    },
+    {
+      "name": "f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg",
+      "status": "success",
+      "hash_md5": "ed512e9b15db31b6b64d86e2c06cb628",
+      "metadata": {
+        "alt_text": "f50144a3 a343 4e28 이미지 - 마스골프",
+        "title": "f50144a3 a343 4e28 8adf 8140e4d3280b hero2 1080x1920",
+        "keywords": [
+          "f50144a3",
+          "a343",
+          "4e28",
+          "8adf",
+          "8140e4d3280b",
+          "hero2",
+          "1080x1920"
+        ]
+      }
+    }
+  ]
+}

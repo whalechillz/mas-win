@@ -39,3 +39,5 @@ next-env.d.ts
 # test tools
 tools/temp/*
 !tools/temp/.gitkeep
+docs/e2e-tests/TEST_CREDENTIALS.md
+docs/e2e-tests/*.md

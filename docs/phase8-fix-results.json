@@ -1,0 +1,181 @@
+[
+  {
+    "fileName": "couple_golf_round_1080x1350.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/7786e332-41d6-4aea-8534-eadff8df13e0-couplegolfround1080x1350.jpg"
+  },
+  {
+    "fileName": "family_golf_playing_1080x1350.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg"
+  },
+  {
+    "fileName": "father_son_teeoff_package_1080x1350.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg"
+  },
+  {
+    "fileName": "fitting_experience_coupon.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_01.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_02.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_03.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg"
+  },
+  {
+    "fileName": "hero_father_son_golf_1080x1920.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg"
+  },
+  {
+    "fileName": "senior_golfer_smiling_1080x1350.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg"
+  },
+  {
+    "fileName": "senior_golfer_swinging_1080x1350.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg"
+  },
+  {
+    "fileName": "golden-time-golfer-story.mp4",
+    "status": "success",
+    "storagePath": "originals/campaigns/2025-06/c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+    "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+    "dbRecord": {
+      "id": "e87f29f5-091c-46c2-865a-56f6692e4619",
+      "filename": "c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+      "original_filename": "golden-time-golfer-story.mp4",
+      "file_path": "originals/campaigns/2025-06/c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+      "file_size": 27371148,
+      "mime_type": "image/mp4",
+      "width": null,
+      "height": null,
+      "format": "mp4",
+      "alt_text": "",
+      "title": "golden-time-golfer-story",
+      "caption": null,
+      "description": "",
+      "ai_tags": [],
+      "ai_objects": [],
+      "ai_colors": [],
+      "ai_text_extracted": null,
+      "ai_confidence_score": null,
+      "hash_md5": "0952646527ebc153e10a74980072e1fd",
+      "hash_sha256": "ea54e101b34fe3287ccb08dab33f92c7508a166f465db72e136889ba7cb9cb14",
+      "is_duplicate": false,
+      "original_image_id": null,
+      "optimized_versions": {},
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+      "usage_count": 0,
+      "last_used_at": null,
+      "uploaded_by": null,
+      "upload_source": "campaign_migration_fix",
+      "status": "active",
+      "created_at": "2025-11-10T15:00:18.408094+00:00",
+      "updated_at": "2025-11-10T15:00:18.408094+00:00",
+      "thumbnail_url": null,
+      "medium_url": null,
+      "webp_url": null,
+      "webp_thumbnail_url": null,
+      "thumbnail_size": null,
+      "medium_size": null,
+      "webp_size": null,
+      "webp_thumbnail_size": null
+    }
+  },
+  {
+    "fileName": "golfer_avatar_512x512_01.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_02.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_03.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg"
+  },
+  {
+    "fileName": "titanium-face-2.2mm.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg"
+  },
+  {
+    "fileName": "SALUTE21-01.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-07/3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg"
+  },
+  {
+    "fileName": "SALUTE21-02.png",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-07/5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_01.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_02.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg"
+  },
+  {
+    "fileName": "golfer_avatar_512x512_03.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg"
+  },
+  {
+    "fileName": "driver_impact_1200x800.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg"
+  },
+  {
+    "fileName": "premium_golf_shaft_detail_1200x800.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg"
+  },
+  {
+    "fileName": "titanium_club_face_1200x800.jpg",
+    "status": "skipped",
+    "reason": "duplicate",
+    "existingPath": "originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg"
+  }
+]

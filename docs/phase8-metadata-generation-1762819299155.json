@@ -1,0 +1,59 @@
+{
+  "success": true,
+  "summary": {
+    "total": 19,
+    "missing": 9,
+    "processed": 9,
+    "success": 0,
+    "failed": 9,
+    "golfCount": 0,
+    "generalCount": 0
+  },
+  "results": [
+    {
+      "name": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    }
+  ]
+}

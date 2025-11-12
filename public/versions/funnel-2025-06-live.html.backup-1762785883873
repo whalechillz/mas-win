@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASGOLF | 6월 인생 황금기 캠페인</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* 전체 화면 너비 사용 */
+        .container {
+            width: 100%;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+        }
+        
+        .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .gold-button {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+            transition: all 0.4s ease;
+        }
+        
+        .gold-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .gold-button:hover::before {
+            left: 100%;
+        }
+        
+        .gold-button:hover {
+            background: linear-gradient(135deg, #e5c100 0%, #c69500 100%);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(218, 165, 32, 0.3);
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        .scroll-reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+            background-image: url('/campaigns/2025-06/golden-time-senior-golfer.jpeg');
+            background-size: cover;
+            background-position: center 60%;
+            background-repeat: no-repeat;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('/campaigns/2025-06/golden-time-senior-golfer.jpeg');
+            background-size: cover;
+            background-position: center 60%;
+            background-repeat: no-repeat;
+            transform: scale(1.3);
+        }
+        
+        @media (min-width: 768px) {
+            .hero-section::before {
+                background-size: cover;
+                background-position: center 40%;
+                background-attachment: fixed;
+                transform: scale(1.2);
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .hero-section::before {
+                background-size: cover;
+                background-position: center 65%;
+                transform: scale(1.4);
+            }
+        }
+    </style>
+    <script>
+        // 전화 클릭 추적
+        function trackPhoneCall(location) {
+            console.log('Phone call tracked:', location);
+            
+            // Google Ads 전환 추적
+            if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'conversion', {
+                    'send_to': 'AW-YOUR_CONVERSION_ID/YOUR_CONVERSION_LABEL',
+                    'value': 1.0,
+                    'currency': 'KRW'
+                });
+            }
+            
+            // GA4 이벤트 추적 (선택사항)
+            if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'phone_click', {
+                    'event_category': 'engagement',
+                    'event_label': location,
+                    'value': 1
+                });
+            }
+            
+            return true;
+        }
+
+        // 페이지 로드 시 애니메이션
+        document.addEventListener('DOMContentLoaded', function() {
+            // Experience counter animation
+            const experienceTarget = 30;
+            const experienceElement = document.getElementById('experienceCount');
+            let experienceCount = 0;
+            const experienceIncrement = experienceTarget / 100;
+            
+            const experienceTimer = setInterval(() => {
+                experienceCount += experienceIncrement;
+                if (experienceCount >= experienceTarget) {
+                    experienceCount = experienceTarget;
+                    clearInterval(experienceTimer);
+                }
+                if (experienceElement) {
+                    experienceElement.textContent = Math.floor(experienceCount);
+                }
+            }, 30);
+
+            // Scroll reveal animation
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        
+                        // COR counter animation
+                        if (entry.target.classList.contains('cor-counter-trigger')) {
+                            const corElement = document.getElementById('corCount');
+                            const corTarget = 0.87;
+                            let corCount = 0;
+                            const corIncrement = corTarget / 100;
+                            
+                            const corTimer = setInterval(() => {
+                                corCount += corIncrement;
+                                if (corCount >= corTarget) {
+                                    corCount = corTarget;
+                                    clearInterval(corTimer);
+                                }
+                                if (corElement) {
+                                    corElement.textContent = corCount.toFixed(2);
+                                }
+                            }, 30);
+                        }
+                        
+                        // Face thickness animation
+                        if (entry.target.classList.contains('face-thickness-trigger')) {
+                            const faceElement = document.getElementById('faceThickness');
+                            const start = 2.4;
+                            const end = 2.2;
+                            const duration = 2000;
+                            const startTime = Date.now();
+                            
+                            const animate = () => {
+                                const currentTime = Date.now();
+                                const elapsed = currentTime - startTime;
+                                const progress = Math.min(elapsed / duration, 1);
+                                
+                                const current = start - (start - end) * progress;
+                                if (faceElement) {
+                                    faceElement.textContent = current.toFixed(2);
+                                }
+                                
+                                if (progress < 1) {
+                                    requestAnimationFrame(animate);
+                                }
+                            };
+                            
+                            requestAnimationFrame(animate);
+                        }
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+            scrollRevealElements.forEach(element => {
+                observer.observe(element);
+            });
+
+            // FAQ 토글
+            const faqToggles = document.querySelectorAll('.faq-toggle');
+            faqToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    content.classList.toggle('hidden');
+                    
+                    if (content.classList.contains('hidden')) {
+                        icon.classList.remove('rotate-45');
+                    } else {
+                        icon.classList.add('rotate-45');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body class="bg-black">
+    <!-- Top Contact Bar -->
+    <div class="bg-black text-white py-2 px-6">
+        <div class="container mx-auto flex justify-center md:justify-end items-center space-x-6 text-sm">
+            <a href="tel:080-028-8888" 
+               onclick="trackPhoneCall('top_consultation')" 
+               class="flex items-center hover:text-[#FFD700] transition duration-300">
+                <i class="fas fa-phone-alt mr-2 text-[#FFD700]"></i> 황금기 상담: 080-028-8888 (무료)
+            </a>
+            <a href="https://www.mas9golf.com/try-a-massgoo" 
+               target="_blank"
+               rel="noopener noreferrer"
+               class="flex items-center hover:text-[#FFD700] transition duration-300">
+                <i class="fas fa-calendar-check mr-2 text-[#FFD700]"></i> 골든아워 시타: 예약하기
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] py-20 px-6 min-h-[700px] md:min-h-[800px] flex items-center">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/70 to-black/80 z-[1]"></div>
+        <div class="container mx-auto text-center text-white relative z-10">
+            <div class="inline-block bg-[#FFD700] text-black px-6 py-2 rounded-full text-sm font-bold mb-6 animate-pulse">
+                6월 인생 황금기 특별 캠페인
+            </div>
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 drop-shadow-2xl">
+                <span class="block text-[#FFD700] mb-4"><span id="experienceCount">0</span>년 골프 경력,</span>
+                <span class="block">이제야 진짜 시작입니다</span>
+            </h1>
+            <div class="h-1 w-32 bg-[#FFD700] mx-auto mb-8"></div>
+            <p class="text-xl md:text-2xl mb-12 text-gray-100 drop-shadow-lg">
+                경험 많은 골퍼의 인생 황금기가 시작되는 6월
+            </p>
+            <div class="mt-8">
+                <a href="#video-section"
+                   class="inline-block bg-[#FFD700] text-black px-8 py-4 rounded-full font-bold hover:bg-[#FFC700] transform hover:scale-105 transition-all duration-300 shadow-xl">
+                    인생 황금기 영상 보기 <i class="fas fa-play-circle ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Section - 프라임타임 골퍼의 하루 -->
+    <section id="video-section" class="py-20 px-6 bg-[#0a0a0a]">
+        <div class="container mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-12 scroll-reveal">
+                인생 황금기 골퍼의 하루
+            </h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#1a2847] to-[#0f1a2f] p-4">
+                    <div class="relative group">
+                        <video id="primeTimeVideo"
+                               class="w-full rounded-xl shadow-lg"
+                               controls
+                               preload="metadata">
+                            <source src="/campaigns/2025-06/golden-time-golfer-story.mp4" type="video/mp4" />
+                            브라우저가 비디오 재생을 지원하지 않습니다.
+                        </video>
+                        <div id="playButton"
+                             class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 group-hover:scale-110"
+                             onclick="document.getElementById('primeTimeVideo').play(); this.classList.add('hidden');">
+                            <div class="bg-[#FFD700] rounded-full p-8 opacity-80 hover:opacity-100 transition-opacity shadow-2xl">
+                                <i class="fas fa-play text-[#1a2847] text-4xl ml-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <div class="inline-flex items-center bg-[#FFD700]/10 rounded-full px-4 py-2">
+                            <i class="fas fa-play-circle text-[#FFD700] mr-2"></i>
+                            <span class="text-[#FFD700] font-medium">인생 황금기 골퍼의 하루</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-gray-400 mt-6 text-lg">
+                    실제 MASGOLF® 고객의 라운드 영상 - <span class="text-[#FFD700]">30년 경력 골퍼</span>의 완벽한 하루
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Benefits Section -->
+    <section class="py-20 px-6 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]">
+        <div class="container mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+                인생 황금기를 완성하는 프리미엄 기술
+            </h2>
+            <div class="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
+            <p class="text-xl text-center text-gray-300 mb-8 scroll-reveal">
+                30년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
+            </p>
+            <div class="text-center mb-16">
+                <div class="inline-flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm">
+                    <span class="text-[#FFD700] font-medium"><i class="fas fa-check-circle mr-2"></i>반발계수 0.87</span>
+                    <span class="text-[#FFD700] font-medium face-thickness-trigger"><i class="fas fa-check-circle mr-2"></i>페이스 <span id="faceThickness">2.4</span>mm</span>
+                    <span class="text-[#FFD700] font-medium"><i class="fas fa-check-circle mr-2"></i>10년 무료 교체</span>
+                    <span class="text-[#FFD700] font-medium"><i class="fas fa-check-circle mr-2"></i>평균 25m 추가</span>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 경험의 깊이 -->
+                <div class="bg-[#1a2847] rounded-2xl p-8 text-center hover:transform hover:scale-105 transition-all duration-300 scroll-reveal">
+                    <div class="bg-[#FFD700] rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-medal text-[#1a2847] text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">경험의 깊이</h3>
+                    <p class="text-gray-300">
+                        수십 년간 쌓은 코스 전략과 상황 판단력은 젊은 골퍼들이 따라올 수 없는 당신만의 무기입니다.
+                    </p>
+                </div>
+
+                <!-- 기술의 완성 -->
+                <div class="bg-[#1a2847] rounded-2xl p-8 text-center hover:transform hover:scale-105 transition-all duration-300 scroll-reveal cor-counter-trigger" style="transition-delay: 0.2s">
+                    <div class="bg-[#FFD700] rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <span class="text-[#1a2847] text-3xl font-bold" id="corCount">0.00</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">기술의 완성</h3>
+                    <p class="text-gray-300">
+                        반발계수 0.87의 MASGOLF® 드라이버가 당신의 경험에 25m의 추가 비거리를 선사합니다.
+                    </p>
+                </div>
+
+                <!-- 동반자의 인정 -->
+                <div class="bg-[#1a2847] rounded-2xl p-8 text-center hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style="transition-delay: 0.4s">
+                    <div class="bg-[#FFD700] rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-users text-[#1a2847] text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">동반자의 인정</h3>
+                    <p class="text-gray-300">
+                        필드에서 보여지는 당신의 실력과 리더십은 모든 동반자들이 인정하는 진정한 골퍼의 모습입니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Features Section -->
+    <section class="py-20 px-6 bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
+        <div class="container mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+                프라임타임을 완성하는 프리미엄 기술
+            </h2>
+            <div class="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
+            <p class="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+                30년의 경험에 어울리는 최고급 기술력으로 당신의 골프를 한 단계 업그레이드합니다
+            </p>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- 일본 프리미엄 티타늄 골드 에디션 -->
+                <div class="bg-gradient-to-br from-[#D4AF37] to-[#B8941F] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal">
+                    <div class="relative h-64">
+                        <img src="/campaigns/2025-06/titanium-face-2.2mm.jpg" 
+                             alt="일본 프리미엄 티타늄 2.2mm" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="bg-white/20 backdrop-blur-sm rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                                <i class="fas fa-medal text-white text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8 bg-[#1a1a1a]">
+                        <h3 class="text-2xl font-bold text-[#FFD700] mb-4">일본 프리미엄 티타늄<br />골드 에디션</h3>
+                        <p class="text-gray-300 mb-4">
+                            JFE/DAIDO 티타늄으로 제작된 초박형 페이스는 당신의 경험있는 스윙에 최고의 반발력을 선사합니다. 프리미엄 골퍼를 위한 프리미엄 소재입니다.
+                        </p>
+                        <div class="flex items-center gap-4">
+                            <div class="bg-[#FFD700]/20 rounded-lg px-6 py-4">
+                                <span class="text-[#FFD700] font-bold text-4xl md:text-5xl">2.2mm</span>
+                                <span class="text-gray-300 text-sm md:text-base ml-2 block">초박형 페이스</span>
+                            </div>
+                            <div class="text-gray-300">
+                                <i class="fas fa-arrow-down text-[#FFD700] mr-2"></i>
+                                더 얇은 페이스,<br/>
+                                더 강한 반발
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 반발계수 0.87 -->
+                <div class="bg-gradient-to-br from-[#1a2847] to-[#0f1a2f] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style="transition-delay: 0.2s">
+                    <div class="relative h-64">
+                        <img src="/campaigns/common/products/driver_impact_1200x800.jpg" 
+                             alt="반발계수 0.87" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-7xl font-bold text-white mb-2">0.87</div>
+                                <div class="text-[#FFD700] text-lg font-medium">최대 반발계수</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8 bg-[#1a1a1a]">
+                        <h3 class="text-2xl font-bold text-white mb-4">반발계수 0.87<br />경험자를 위한 파워</h3>
+                        <p class="text-gray-300">
+                            규격을 초월한 반발력으로 평균 25m의 추가 비거리를 제공합니다. 당신의 스윙 경험과 만나 시너지를 극대화합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- NGS 프라임 샤프트 -->
+                <div class="bg-gradient-to-br from-[#8B4513] to-[#654321] rounded-2xl overflow-hidden shadow-2xl hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style="transition-delay: 0.4s">
+                    <div class="relative h-64">
+                        <img src="/campaigns/common/products/premium_golf_shaft_detail_1200x800.jpg" 
+                             alt="NGS 프라임 샤프트" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="bg-white/20 backdrop-blur-sm rounded-full p-4 w-16 h-16 flex items-center justify-center mb-4">
+                                <i class="fas fa-cogs text-white text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8 bg-[#1a1a1a]">
+                        <h3 class="text-2xl font-bold text-[#FFD700] mb-4">NGS 프라임 샤프트<br />마스터 에디션</h3>
+                        <p class="text-gray-300 mb-4">
+                            30년 경력 골퍼의 스윙 특성을 완벽 분석하여 개발된 독점 샤프트. 10년 교환 보장으로 평생 파트너가 됩니다.
+                        </p>
+                        <div class="bg-[#FFD700]/10 rounded-lg px-4 py-2 inline-block">
+                            <span class="text-[#FFD700] font-bold text-sm">✓ 10년 무료 교체 보증</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Reviews Section -->
+    <section class="py-20 px-6 bg-[#0a0a0a]">
+        <div class="container mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-4 scroll-reveal">
+                인생 황금기를 경험한 동료들의 이야기
+            </h2>
+            <div class="h-1 w-32 bg-[#FFD700] mx-auto mb-12"></div>
+            <p class="text-xl text-center text-gray-300 mb-16 scroll-reveal">
+                30년 이상의 골프 경력을 가진 시니어 골퍼들이 MASGOLF®와 함께한 황금기 경험담
+            </p>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- 후기 1 -->
+                <div class="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 scroll-reveal">
+                    <div class="flex items-center mb-6">
+                        <img src="/campaigns/2025-06/golfer_avatar_512x512_01.jpg" 
+                             alt="최○○님" 
+                             class="w-16 h-16 rounded-full mr-4 border-2 border-[#FFD700]">
+                        <div>
+                            <h4 class="text-white font-bold">최○○님</h4>
+                            <p class="text-[#FFD700] text-sm">68세, 35년 경력</p>
+                        </div>
+                    </div>
+                    <div class="flex text-[#FFD700] mb-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic">
+                        "35년 골프를 쳤지만, MASGOLF®로 바꾸고 나서야 진짜 인생 황금기가 시작된 것 같습니다. 동반자들이 '정말 잘 치신다'고 인정해주네요."
+                    </p>
+                </div>
+
+                <!-- 후기 2 -->
+                <div class="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style="transition-delay: 0.2s">
+                    <div class="flex items-center mb-6">
+                        <img src="/campaigns/2025-06/golfer_avatar_512x512_02.jpg" 
+                             alt="정○○님" 
+                             class="w-16 h-16 rounded-full mr-4 border-2 border-[#FFD700]">
+                        <div>
+                            <h4 class="text-white font-bold">정○○님</h4>
+                            <p class="text-[#FFD700] text-sm">65세, 32년 경력</p>
+                        </div>
+                    </div>
+                    <div class="flex text-[#FFD700] mb-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic">
+                        "회사 임원진 모임에서 제가 가장 멀리 치게 되었습니다. 32년 골프 인생에서 가장 자신감 넘치는 시기입니다. 정말 감사합니다."
+                    </p>
+                </div>
+
+                <!-- 후기 3 -->
+                <div class="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 scroll-reveal" style="transition-delay: 0.4s">
+                    <div class="flex items-center mb-6">
+                        <img src="/campaigns/2025-06/golfer_avatar_512x512_03.jpg" 
+                             alt="김○○님" 
+                             class="w-16 h-16 rounded-full mr-4 border-2 border-[#FFD700]">
+                        <div>
+                            <h4 class="text-white font-bold">김○○님</h4>
+                            <p class="text-[#FFD700] text-sm">62세, 30년 경력</p>
+                        </div>
+                    </div>
+                    <div class="flex text-[#FFD700] mb-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic">
+                        "젊은 골퍼들이 부러워하는 일관된 샷을 구사할 수 있게 되었습니다. 경험과 기술이 만나니 이런 결과가 나오는군요."
+                    </p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <p class="text-[#FFD700] text-lg font-medium">
+                    <i class="fas fa-trophy mr-2"></i>
+                    황금기 고객 만족도 98%
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- June Special Campaign - 황금기 챌린지 -->
+    <section class="py-20 px-6 bg-gradient-to-br from-[#FFD700] to-[#FFA500] scroll-reveal">
+        <div class="container mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold text-[#002147] mb-6 scroll-reveal">
+                6월 황금기 챌린지
+            </h2>
+            <p class="text-[#002147] max-w-2xl mx-auto mb-12 text-lg leading-relaxed">
+                경험 많은 골퍼들을 위한 특별한 6월 한정 이벤트가 시작됩니다
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+                    <i class="fas fa-trophy text-4xl text-[#002147] mb-4"></i>
+                    <h3 class="text-xl font-bold text-[#002147] mb-4">황금기 챌린지</h3>
+                    <p class="text-[#002147] opacity-80">
+                        매장 방문자 중 최장 비거리 기록 고객<br/>
+                        리무진 골프투어 무료 이용권 제공
+                    </p>
+                </div>
+
+                <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+                    <i class="fas fa-handshake text-4xl text-[#002147] mb-4"></i>
+                    <h3 class="text-xl font-bold text-[#002147] mb-4">동반자 인정 프로그램</h3>
+                    <p class="text-[#002147] opacity-80">
+                        추천인 15% 할인<br/>
+                        피추천인 15% 할인<br/>
+                        "이 분과 라운드하고 싶다" 추천 이벤트
+                    </p>
+                </div>
+
+                <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-8 border border-white border-opacity-30">
+                    <i class="fas fa-clock text-4xl text-[#002147] mb-4"></i>
+                    <h3 class="text-xl font-bold text-[#002147] mb-4">골든아워 시타회</h3>
+                    <p class="text-[#002147] opacity-80">
+                        6월 한정 오후 4-6시 황금시간대 특별 시타<br/>
+                        전문 프로의 1:1 스윙 분석 포함<br/>
+                        <span class="text-sm">(하루 3명, 총 30명 한정)</span>
+                    </p>
+                </div>
+            </div>
+
+            <a href="https://www.mas9golf.com/try-a-massgoo" target="_blank" rel="noopener noreferrer" class="gold-button bg-[#002147] hover:bg-[#003366] text-white inline-block px-10 py-5 rounded-full text-lg font-medium tracking-wide shadow-lg">
+                6월 황금기 챌린지 신청하기
+            </a>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-20 px-6 bg-white scroll-reveal">
+        <div class="container mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-[#002147] mb-4">자주 묻는 질문</h2>
+                <div class="h-1 w-32 bg-[#FFD700] mx-auto mb-6"></div>
+                <p class="text-[#777777] max-w-2xl mx-auto">
+                    MASGOLF®와 6월 황금기 캠페인에 관한 궁금증을 해결해 드립니다
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-4 border-b border-gray-200 pb-4">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4">
+                        <span>황금기 챌린지는 어떻게 참여하나요?</span>
+                        <i class="fas fa-plus text-[#FFD700] transition-transform duration-300"></i>
+                    </button>
+                    <div class="hidden mt-3 text-[#666] px-4">
+                        <p class="mb-4">황금기 챌린지는 경험 많은 골퍼들을 위한 특별 이벤트입니다:</p>
+                        <ul class="list-disc pl-5 mb-4 space-y-2">
+                            <li><span class="font-medium">참가 방법</span>: MASGOLF® 시타 센터 방문 후 신청</li>
+                            <li><span class="font-medium">챌린지 내용</span>: MASGOLF® 드라이버로 최장 비거리 기록</li>
+                            <li><span class="font-medium">시상</span>: 매장 방문자 중 최장 기록 고객에게 리무진 골프투어 무료 이용권</li>
+                            <li><span class="font-medium">참가자 혜택</span>: 참가자 전원 특별 할인 제공</li>
+                        </ul>
+                        <p>031-215-0013으로 연락주시면 자세한 참가 안내를 받으실 수 있습니다.</p>
+                    </div>
+                </div>
+
+                <div class="mb-4 border-b border-gray-200 pb-4">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4">
+                        <span>6월 황금기 할인 혜택은 어떻게 적용되나요?</span>
+                        <i class="fas fa-plus text-[#FFD700] transition-transform duration-300"></i>
+                    </button>
+                    <div class="hidden mt-3 text-[#666] px-4">
+                        <p class="mb-4">6월 황금기 할인은 경험 많은 골퍼를 위한 특별 혜택입니다:</p>
+                        <ul class="list-disc pl-5 mb-4 space-y-2">
+                            <li><span class="font-medium">5년 이상 고객</span>: 기본 20% 할인</li>
+                            <li><span class="font-medium">2년 이상 고객</span>: 기본 15% 할인</li>
+                            <li><span class="font-medium">동반자 추천</span>: 추천인 15% 할인, 피추천인 15% 할인</li>
+                            <li><span class="font-medium">마쓰구 드라이버 보상</span>: 골드 40만원, 블랙 20만원</li>
+                            <li><span class="font-medium">중복 적용 가능</span>: 할인과 보상 프로그램 모두 적용</li>
+                        </ul>
+                        <p>상담 시 골프 경력을 말씀해 주시면 최적의 혜택을 안내해 드립니다.</p>
+                    </div>
+                </div>
+
+                <div class="mb-4 border-b border-gray-200 pb-4">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4">
+                        <span>골든아워 시타회는 일반 시타와 어떻게 다른가요?</span>
+                        <i class="fas fa-plus text-[#FFD700] transition-transform duration-300"></i>
+                    </button>
+                    <div class="hidden mt-3 text-[#666] px-4">
+                        <p class="mb-4">골든아워 시타회는 6월 한정으로 진행되는 프리미엄 체험 프로그램입니다:</p>
+                        <ul class="list-disc pl-5 mb-4 space-y-2">
+                            <li><span class="font-medium">시간</span>: 오후 4-6시 황금시간대 (조명이 가장 아름다운 시간)</li>
+                            <li><span class="font-medium">서비스</span>: 전문 프로의 1:1 스윙 분석 및 맞춤 피팅</li>
+                            <li><span class="font-medium">환경</span>: 실제 필드와 유사한 조건에서 체험</li>
+                            <li><span class="font-medium">특전</span>: 개인별 스윙 데이터 제공 및 향후 개선 방향 컨설팅</li>
+                        </ul>
+                        <p>예약은 선착순이며, 하루 최대 3명까지만 진행됩니다. (총 30명 한정)</p>
+                    </div>
+                </div>
+
+                <div class="mb-4 border-b border-gray-200 pb-4">
+                    <button class="faq-toggle flex justify-between items-center w-full text-left font-medium text-[#002147] hover:text-[#FFD700] transition p-4">
+                        <span>30년 경력 골퍼에게도 정말 효과가 있을까요?</span>
+                        <i class="fas fa-plus text-[#FFD700] transition-transform duration-300"></i>
+                    </button>
+                    <div class="hidden mt-3 text-[#666] px-4">
+                        <p class="mb-4">네, 오히려 경험 많은 골퍼일수록 MASGOLF®의 진가를 더 잘 느끼실 수 있습니다:</p>
+                        <ul class="list-disc pl-5 mb-4 space-y-2">
+                            <li><span class="font-medium">스윙 안정성</span>: 오랜 경험으로 다져진 일관된 스윙과 고반발 기술의 시너지</li>
+                            <li><span class="font-medium">상황 판단력</span>: 코스 전략을 아는 만큼 추가 비거리의 활용도가 극대화됨</li>
+                            <li><span class="font-medium">체력적 한계 극복</span>: 나이로 인한 체력 저하를 기술로 보완</li>
+                            <li><span class="font-medium">자신감 회복</span>: 젊은 시절 비거리를 되찾아 플레이의 즐거움 극대화</li>
+                        </ul>
+                        <p>실제로 30년 이상 경력의 고객분들이 가장 높은 만족도를 보이고 계십니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-6 bg-gradient-to-br from-[#1a2847] to-[#0f1a2f]">
+        <div class="container mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 scroll-reveal">
+                지금이 당신의 인생 황금기입니다
+            </h2>
+            <p class="text-xl text-gray-300 mb-12 scroll-reveal">
+                30년의 경험이 MASGOLF®의 기술과 만날 때, 필드의 진정한 주인공이 됩니다
+            </p>
+            
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center mb-12">
+                <a href="tel:080-028-8888" 
+                   onclick="trackPhoneCall('cta_consultation')"
+                   class="gold-button bg-[#FFD700] text-[#1a2847] font-bold py-5 px-12 rounded-full text-lg hover:bg-[#FFE55C] transform hover:scale-105 transition-all duration-300 shadow-2xl flex items-center">
+                    <i class="fas fa-phone-alt mr-3"></i>
+                    황금기 상담 신청
+                </a>
+                <a href="https://www.mas9golf.com/try-a-massgoo" 
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="bg-transparent border-2 border-[#FFD700] text-[#FFD700] font-bold py-5 px-12 rounded-full text-lg hover:bg-[#FFD700] hover:text-[#1a2847] transform hover:scale-105 transition-all duration-300 flex items-center">
+                    <i class="fas fa-golf-ball mr-3"></i>
+                    황금기 시타 예약
+                </a>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div class="text-center">
+                    <div class="text-[#FFD700] text-5xl font-bold mb-2">30년+</div>
+                    <p class="text-gray-400">평균 골프 경력</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-[#FFD700] text-5xl font-bold mb-2">0.87</div>
+                    <p class="text-gray-400">반발계수</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-[#FFD700] text-5xl font-bold mb-2">25m+</div>
+                    <p class="text-gray-400">추가 비거리</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-gray-400 py-12 px-6">
+        <div class="container mx-auto text-center">
+            <div class="mb-8">
+                <h3 class="text-[#FFD700] text-2xl font-bold mb-4">MASGOLF® Premium</h3>
+                <p class="text-gray-500">
+                30년의 경험이 만나는 특별한 순간
+                </p>
+            </div>
+            
+            <div class="flex justify-center space-x-8 mb-8">
+                <a href="tel:080-028-8888" class="hover:text-[#FFD700] transition">
+                    <i class="fas fa-phone-alt mr-2"></i>
+                    080-028-8888
+                </a>
+                <a href="https://www.mas9golf.com/try-a-massgoo" target="_blank" rel="noopener noreferrer" class="hover:text-[#FFD700] transition">
+                    <i class="fas fa-calendar-check mr-2"></i>
+                    시타 예약하기
+                </a>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8">
+                <p class="text-sm text-gray-600">
+                    © 2025 MASGOLF®. All rights reserved. | 인생 황금기 6월 특별 캠페인
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

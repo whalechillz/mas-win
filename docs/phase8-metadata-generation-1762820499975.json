@@ -1,0 +1,161 @@
+{
+  "success": true,
+  "summary": {
+    "total": 20,
+    "missing": 18,
+    "processed": 18,
+    "success": 4,
+    "failed": 14,
+    "golfCount": 8,
+    "generalCount": 2
+  },
+  "results": [
+    {
+      "name": "0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+      "status": "success",
+      "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935",
+      "metadata": {
+        "alt_text": "0174f41f 3c0e 4797 이미지 - 마스골프",
+        "title": "0174f41f 3c0e 4797 a9a4 b2b79a5b70cf hero summer golf mas",
+        "keywords": [
+          "0174f41f",
+          "3c0e",
+          "4797",
+          "a9a4",
+          "b2b79a5b70cf",
+          "hero",
+          "summer",
+          "golf",
+          "mas"
+        ]
+      }
+    },
+    {
+      "name": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+      "status": "success",
+      "hash_md5": "8fb97f4e969b8170de47152f3453996c",
+      "metadata": {
+        "alt_text": "105155b8 043e 43f6 이미지 - 마스골프",
+        "title": "105155b8 043e 43f6 8692 b7921ebe77b0 cooling sleeves",
+        "keywords": [
+          "105155b8",
+          "043e",
+          "43f6",
+          "8692",
+          "b7921ebe77b0",
+          "cooling",
+          "sleeves"
+        ]
+      }
+    },
+    {
+      "name": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+      "status": "success",
+      "hash_md5": "53f71baac7bce041381ad37142986afc",
+      "metadata": {
+        "alt_text": "5a7107bd 8669 4846 이미지 - 마스골프",
+        "title": "5a7107bd 8669 4846 9d1c f1d59200d766 hero summer golf mas wide",
+        "keywords": [
+          "5a7107bd",
+          "8669",
+          "4846",
+          "9d1c",
+          "f1d59200d766",
+          "hero",
+          "summer",
+          "golf",
+          "mas",
+          "wide"
+        ]
+      }
+    },
+    {
+      "name": "631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+      "status": "success",
+      "hash_md5": "1a65b67020ced7fc602d67a21e5d0385",
+      "metadata": {
+        "alt_text": "631b59ed b25e 4c12 이미지 - 마스골프",
+        "title": "631b59ed b25e 4c12 b56c 2677f546a06a cooling towel",
+        "keywords": [
+          "631b59ed",
+          "b25e",
+          "4c12",
+          "b56c",
+          "2677f546a06a",
+          "cooling",
+          "towel"
+        ]
+      }
+    },
+    {
+      "name": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    },
+    {
+      "name": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "status": "skipped",
+      "reason": "중복 이미지 (hash_md5)"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "timestamp": "2025-11-11T00:29:04.147Z",
+  "folderPath": "originals/campaigns/2025-07",
+  "dryRun": false,
+  "summary": {
+    "total": 11,
+    "deleted": 11,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": {
+    "deleted": [
+      {
+        "name": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+        "path": "originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+        "path": "originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+        "path": "originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+        "path": "originals/campaigns/2025-07/3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+        "path": "originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+        "path": "originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+        "path": "originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+        "path": "originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+        "status": "deleted"
+      },
+      {
+        "name": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+        "path": "originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+        "status": "deleted"
+      },
+      {
+        "name": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+        "path": "originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+        "status": "deleted"
+      },
+      {
+        "name": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+        "path": "originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+        "status": "deleted"
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  }
+}

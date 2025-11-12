@@ -1,0 +1,73 @@
+{
+  "summary": {
+    "totalDbImages": 17,
+    "totalStorageFiles": 112,
+    "hashDuplicates": 0,
+    "fileNameDuplicates": 0,
+    "urlDuplicates": 0,
+    "pathDuplicates": 0,
+    "bottom9Images": 6,
+    "bottom9Duplicates": 0
+  },
+  "hashDuplicates": [],
+  "fileNameDuplicates": [],
+  "urlDuplicates": [],
+  "pathDuplicates": [],
+  "bottom9Images": [
+    {
+      "id": "ee59dfa9-38bb-40bf-a7d8-3fa17ce60221",
+      "filename": "62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "file_path": "originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "hash_md5": "095b86f3e918b79516cce345e4b4d519",
+      "original_filename": "fitting_experience_coupon.jpg",
+      "normalizedName": "fittingexperiencecoupon"
+    },
+    {
+      "id": "d9c654ca-c9a9-4e8d-b74e-afe53551f51d",
+      "filename": "81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "file_path": "originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "hash_md5": "a7abe92ca75f92f7707c9c25f035e7e8",
+      "original_filename": "senior_golfer_swinging_1080x1350.jpg",
+      "normalizedName": "seniorgolferswinging1080x1350"
+    },
+    {
+      "id": "8b8d07ae-bc38-4690-ac27-6c868716967a",
+      "filename": "842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+      "file_path": "originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+      "original_filename": "golfer_avatar_512x512_02.jpg",
+      "normalizedName": "golferavatar512x51202"
+    },
+    {
+      "id": "1b282fdc-3de6-46a1-9a1a-b441d800bc17",
+      "filename": "c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "file_path": "originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "hash_md5": "231e6b79f625846a029423ee26041bee",
+      "original_filename": "senior_golfer_smiling_1080x1350.jpg",
+      "normalizedName": "seniorgolfersmiling1080x1350"
+    },
+    {
+      "id": "632c188e-e21b-4095-8500-7be1ce125515",
+      "filename": "ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "file_path": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "original_filename": "golfer_avatar_512x512_03.jpg",
+      "normalizedName": "golferavatar512x51203"
+    },
+    {
+      "id": "03bbcd8a-79f2-44b3-adb7-6cafc8def5c5",
+      "filename": "fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "file_path": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "original_filename": "golfer_avatar_512x512_01.jpg",
+      "normalizedName": "golferavatar512x51201"
+    }
+  ],
+  "bottom9Duplicates": []
+}

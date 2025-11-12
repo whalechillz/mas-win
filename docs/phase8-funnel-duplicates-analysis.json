@@ -1,0 +1,94 @@
+{
+  "summary": {
+    "totalImages": 17,
+    "usedImages": 15,
+    "unusedImages": 2,
+    "hashDuplicates": 0,
+    "fileNameDuplicates": 0,
+    "safeToRemove": 0,
+    "keepImages": 0
+  },
+  "htmlImageUsage": {
+    "funnel-2025-05-live.html": [
+      "originals/campaigns/2025-05/senior_golfer_smiling_1080x1350.jpg",
+      "originals/campaigns/2025-05/senior_golfer_swinging_1080x1350.jpg",
+      "originals/campaigns/common/products/titanium_club_face_1200x800.jpg",
+      "originals/campaigns/common/products/driver_impact_1200x800.jpg",
+      "originals/campaigns/common/products/premium_golf_shaft_detail_1200x800.jpg",
+      "originals/campaigns/2025-05/father_son_teeoff_package_1080x1350.jpg",
+      "originals/campaigns/2025-05/family_golf_playing_1080x1350.jpg",
+      "originals/campaigns/2025-05/couple_golf_round_1080x1350.jpg",
+      "originals/campaigns/2025-05/golfer_avatar_512x512_01.jpg",
+      "originals/campaigns/2025-05/golfer_avatar_512x512_02.jpg",
+      "originals/campaigns/2025-05/golfer_avatar_512x512_03.jpg",
+      "originals/campaigns/2025-05/fitting_experience_coupon.jpg"
+    ],
+    "funnel-2025-06-live.html": [
+      "originals/campaigns/2025-06/titanium-face-2.2mm.jpg",
+      "originals/campaigns/common/products/driver_impact_1200x800.jpg",
+      "originals/campaigns/common/products/premium_golf_shaft_detail_1200x800.jpg",
+      "originals/campaigns/2025-06/golfer_avatar_512x512_01.jpg",
+      "originals/campaigns/2025-06/golfer_avatar_512x512_02.jpg",
+      "originals/campaigns/2025-06/golfer_avatar_512x512_03.jpg",
+      "originals/campaigns/2025-06/golden-time-senior-golfer.jpeg"
+    ],
+    "funnel-2025-07-live.html": [
+      "originals/campaigns/2025-07/hero-summer-golf-mas.jpg",
+      "originals/campaigns/2025-07/golfer_avatar_512x512_01.jpg",
+      "originals/campaigns/2025-07/golfer_avatar_512x512_02.jpg",
+      "originals/campaigns/2025-07/golfer_avatar_512x512_03.jpg",
+      "originals/campaigns/2025-07/cooling-towel.jpeg",
+      "originals/campaigns/2025-07/cooling-sleeves.jpg",
+      "originals/campaigns/2025-07/SALUTE21-01.jpg",
+      "originals/campaigns/2025-07/SALUTE21-02.png",
+      "${product.image}"
+    ],
+    "funnel-2025-08-live-a.html": [
+      "originals/campaigns/2025-08/waterproof-pouch-640x480.png",
+      "originals/campaigns/2025-08/sunbed-1080x1920.jpg",
+      "originals/campaigns/2025-08/hero-image-1-face.jpg",
+      "originals/campaigns/2025-08/hero-image-2-face.jpg",
+      "originals/campaigns/2025-08/hero-image-3-face.jpg",
+      "originals/campaigns/common/products/secret-weapon-black.jpg",
+      "originals/campaigns/2025-08/bleu-de-chanel-640x480.jpg",
+      "originals/campaigns/common/products/secret-force-pro3.jpg",
+      "originals/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+      "originals/campaigns/common/products/secret-force-v3.jpg",
+      "${productImage}",
+      "${productName.includes("
+    ],
+    "funnel-2025-08-live-b.html": [
+      "originals/campaigns/2025-08/hero-image-1-face.jpg",
+      "originals/campaigns/2025-08/hero-image-2-face.jpg",
+      "originals/campaigns/2025-08/hero-image-3-face.jpg",
+      "originals/campaigns/common/products/secret-force-v3.jpg",
+      "originals/campaigns/common/products/secret-force-pro3.jpg",
+      "originals/campaigns/common/products/secret-weapon-black.jpg",
+      "originals/campaigns/2025-08/waterproof-pouch-640x480.png",
+      "originals/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+      "originals/campaigns/2025-08/bleu-de-chanel-640x480.jpg"
+    ],
+    "funnel-2025-09-live.html": [
+      "../campaigns/2025-09/masgolf-logo.png",
+      "../campaigns/2025-09/benefit-1.png",
+      "../campaigns/2025-09/benefit-2.png",
+      "../campaigns/2025-09/whiskey-gift.png",
+      "../campaigns/2025-09/warranty-card.jpg",
+      "../campaigns/2025-09/vip-swing-analysis-modern.jpg",
+      "../campaigns/2025-09/massgooball-gift.jpg",
+      "../campaigns/2025-09/vip-consultation-modern.jpg",
+      "../campaigns/2025-09/vip-discount-modern.jpg",
+      "../campaigns/2025-09/secret-force-gold-2.webp",
+      "../campaigns/2025-09/secret-weapon-black.webp",
+      "../campaigns/2025-09/secret-weapon-4-1.webp",
+      "../campaigns/2025-09/hero-image-green-face-01.jpg",
+      "../campaigns/2025-09/hero-image-green-face-02.jpg",
+      "../campaigns/2025-09/hero-image-green-face-03.jpg",
+      "../campaigns/2025-09/massgoo-review.jpg",
+      "../campaigns/2025-09/2025-09-bg.jpeg"
+    ]
+  },
+  "duplicateGroups": [],
+  "safeToRemove": [],
+  "keepImages": []
+}
