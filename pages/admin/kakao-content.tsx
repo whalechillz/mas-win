@@ -5,6 +5,7 @@ import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import KakaoAccountEditor from '../../components/admin/kakao/KakaoAccountEditor';
+import ImageSelectionModal from '../../components/admin/kakao/ImageSelectionModal';
 import { generateGoldToneImages, generateBlackToneImages, generateImagePrompts, generateKakaoImagePrompts } from '../../lib/ai-image-generation';
 import { promptConfigManager } from '../../lib/prompt-config-manager';
 import { Rocket, Calendar, Settings, Loader, ChevronLeft, ChevronRight, CheckCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
@@ -93,10 +94,15 @@ export default function KakaoContentPage() {
   const [isCreatingAll, setIsCreatingAll] = useState(false);
   const [showGenerationOptions, setShowGenerationOptions] = useState(false);
   const [generationOptions, setGenerationOptions] = useState({
-    scope: 'today', // 'today' | 'week' | 'month'
-    imageCount: 2, // 생성할 이미지 개수 (선택용)
-    allowRegenerate: true // 다시 만들기 허용
+    imageCount: 2 // 생성할 이미지 개수 (선택용)
   });
+  // 이미지 선택 모달 상태
+  const [imageSelectionModal, setImageSelectionModal] = useState<{
+    isOpen: boolean;
+    imageUrls: string[];
+    onSelect: (url: string) => void;
+    title: string;
+  } | null>(null);
   // 토글 상태
   const [isBrandStrategyExpanded, setIsBrandStrategyExpanded] = useState(false);
   const [isPromptConfigExpanded, setIsPromptConfigExpanded] = useState(false);
@@ -250,8 +256,37 @@ export default function KakaoContentPage() {
     }
   };
 
+  // 이미지 생성 후 선택 모달 표시 헬퍼 함수
+  const handleImageGenerationWithSelection = async (
+    generateFn: () => Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }>,
+    title: string,
+    onSelect: (url: string, prompt?: string) => void
+  ): Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }> => {
+    const result = await generateFn();
+    
+    // 2개 이상 생성된 경우 선택 모달 표시
+    if (result.imageUrls.length > 1 && generationOptions.imageCount > 1) {
+      return new Promise((resolve) => {
+        setImageSelectionModal({
+          isOpen: true,
+          imageUrls: result.imageUrls,
+          title: title,
+          onSelect: (selectedUrl: string) => {
+            onSelect(selectedUrl, result.generatedPrompt);
+            setImageSelectionModal(null);
+            resolve({ imageUrls: [selectedUrl], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages });
+          }
+        });
+      });
+    }
+    
+    // 1개만 생성된 경우 바로 반환
+    onSelect(result.imageUrls[0], result.generatedPrompt);
+    return { imageUrls: [result.imageUrls[0]], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages };
+  };
+
         // 골드톤 이미지 생성 (프롬프트도 반환)
-        const handleGenerateGoldToneImage = async (type: 'background' | 'profile', prompt: string): Promise<{ imageUrls: string[], generatedPrompt?: string }> => {
+        const handleGenerateGoldToneImage = async (type: 'background' | 'profile', prompt: string): Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }> => {
     try {
       // 브랜드 전략 또는 저장된 프롬프트 설정 사용
       let brandStrategyConfig = {
@@ -308,6 +343,7 @@ export default function KakaoContentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompts: prompts,
+          imageCount: generationOptions.imageCount, // 생성 개수 전달
           metadata: {
             account: 'account1',
             type: type,
@@ -317,18 +353,35 @@ export default function KakaoContentPage() {
         })
       });
       
+      // 응답이 JSON인지 확인
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ 서버 응답이 JSON이 아닙니다:', text.substring(0, 200));
+        throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류', details: '' }));
+        // 크레딧 부족 에러인 경우 명확한 메시지 표시
+        const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+        const errorDetails = errorData.details || '';
+        throw new Error(errorDetails ? `${errorMessage}\n${errorDetails}` : errorMessage);
+      }
+      
       const data = await response.json();
       const imageUrls = data.imageUrls || [];
       const generatedPrompt = data.generatedPrompts?.[0] || prompts[0]?.prompt;
+      const paragraphImages = data.paragraphImages || [];
 
-      return { imageUrls, generatedPrompt };
+      return { imageUrls, generatedPrompt, paragraphImages };
     } catch (error: any) {
       throw new Error(`골드톤 이미지 생성 실패: ${error.message}`);
     }
   };
 
         // 블랙톤 이미지 생성 (프롬프트도 반환)
-        const handleGenerateBlackToneImage = async (type: 'background' | 'profile', prompt: string): Promise<{ imageUrls: string[], generatedPrompt?: string }> => {
+        const handleGenerateBlackToneImage = async (type: 'background' | 'profile', prompt: string): Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }> => {
     try {
       // 브랜드 전략 또는 저장된 프롬프트 설정 사용
       let brandStrategyConfig = {
@@ -382,6 +435,7 @@ export default function KakaoContentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompts: prompts,
+          imageCount: generationOptions.imageCount, // 생성 개수 전달
           metadata: {
             account: 'account2',
             type: type,
@@ -391,18 +445,35 @@ export default function KakaoContentPage() {
         })
       });
       
+      // 응답이 JSON인지 확인
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ 서버 응답이 JSON이 아닙니다:', text.substring(0, 200));
+        throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류', details: '' }));
+        // 크레딧 부족 에러인 경우 명확한 메시지 표시
+        const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+        const errorDetails = errorData.details || '';
+        throw new Error(errorDetails ? `${errorMessage}\n${errorDetails}` : errorMessage);
+      }
+      
       const data = await response.json();
       const imageUrls = data.imageUrls || [];
       const generatedPrompt = data.generatedPrompts?.[0] || prompts[0]?.prompt;
+      const paragraphImages = data.paragraphImages || [];
 
-      return { imageUrls, generatedPrompt };
+      return { imageUrls, generatedPrompt, paragraphImages };
     } catch (error: any) {
       throw new Error(`블랙톤 이미지 생성 실패: ${error.message}`);
     }
   };
 
-        // 피드 이미지 생성 (프롬프트도 반환)
-        const handleGenerateFeedImage = async (prompt: string, tone: 'gold' | 'black'): Promise<{ imageUrls: string[], generatedPrompt?: string }> => {
+        // 피드 이미지 생성 (프롬프트도 반환, A/B 테스트 결과 포함)
+        const handleGenerateFeedImage = async (prompt: string, tone: 'gold' | 'black'): Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }> => {
     try {
       // 브랜드 전략 또는 저장된 프롬프트 설정 사용
       let brandStrategyConfig = {
@@ -449,6 +520,7 @@ export default function KakaoContentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompts: prompts,
+          imageCount: generationOptions.imageCount, // 생성 개수 전달
           metadata: {
             account: account,
             type: 'feed',
@@ -469,15 +541,19 @@ export default function KakaoContentPage() {
       }
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: '알 수 없는 오류' }));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류', details: '' }));
+        // 크레딧 부족 에러인 경우 명확한 메시지 표시
+        const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+        const errorDetails = errorData.details || '';
+        throw new Error(errorDetails ? `${errorMessage}\n${errorDetails}` : errorMessage);
       }
       
       const data = await response.json();
       const imageUrls = data.imageUrls || [];
       const generatedPrompt = data.generatedPrompts?.[0] || prompts[0]?.prompt;
+      const paragraphImages = data.paragraphImages || []; // A/B 테스트 결과 포함
 
-      return { imageUrls, generatedPrompt };
+      return { imageUrls, generatedPrompt, paragraphImages };
     } catch (error: any) {
       throw new Error(`피드 이미지 생성 실패: ${error.message}`);
     }
@@ -943,56 +1019,87 @@ export default function KakaoContentPage() {
           
           {/* 날짜 선택 및 보기 모드 */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">보기 모드:</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setViewMode('today');
-                      setSelectedDate(todayStr);
-                    }}
-                    className={`px-3 py-1 rounded text-sm ${
-                      viewMode === 'today' 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
-                  >
-                    오늘
-                  </button>
-                  <button
-                    onClick={() => setViewMode('week')}
-                    className={`px-3 py-1 rounded text-sm ${
-                      viewMode === 'week' 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
-                  >
-                    이번 주
-                  </button>
-                  <button
-                    onClick={() => setViewMode('month')}
-                    className={`px-3 py-1 rounded text-sm ${
-                      viewMode === 'month' 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
-                  >
-                    이번 달
-                  </button>
-                </div>
-              </div>
-              
-              {viewMode === 'today' && (
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    value={selectedDate || todayStr}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm"
-                  />
+                  <span className="text-sm font-medium text-gray-700">보기 모드:</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setViewMode('today');
+                        setSelectedDate(todayStr);
+                      }}
+                      className={`px-3 py-1 rounded text-sm ${
+                        viewMode === 'today' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      오늘
+                    </button>
+                    <button
+                      onClick={() => setViewMode('week')}
+                      className={`px-3 py-1 rounded text-sm ${
+                        viewMode === 'week' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      이번 주
+                    </button>
+                    <button
+                      onClick={() => setViewMode('month')}
+                      className={`px-3 py-1 rounded text-sm ${
+                        viewMode === 'month' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      이번 달
+                    </button>
+                  </div>
                 </div>
-              )}
+                
+                {viewMode === 'today' && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={selectedDate || todayStr}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded text-sm"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* 생성 옵션 설정 및 전체 자동 생성 버튼 */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowGenerationOptions(true)}
+                  disabled={isCreatingAll}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50"
+                >
+                  <Settings className="w-4 h-4" />
+                  생성 옵션 설정
+                </button>
+                <button
+                  onClick={handleAllAutoCreate}
+                  disabled={isCreatingAll}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
+                >
+                  {isCreatingAll ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      생성 중...
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="w-4 h-4" />
+                      전체 자동 생성
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             
             {/* 발행 상태 요약 (이번 주/이번 달 보기일 때) */}
@@ -1439,8 +1546,42 @@ export default function KakaoContentPage() {
                 console.error('❌ 캘린더 파일 저장 실패:', error);
               }
             }}
-              onGenerateProfileImage={handleGenerateGoldToneImage}
-              onGenerateFeedImage={(prompt) => handleGenerateFeedImage(prompt, 'gold')}
+              onGenerateProfileImage={async (type, prompt) => {
+                const result = await handleGenerateGoldToneImage(type, prompt);
+                // 2개 이상 생성된 경우 선택 모달 표시
+                if (result.imageUrls.length > 1 && generationOptions.imageCount > 1) {
+                  return new Promise((resolve) => {
+                    setImageSelectionModal({
+                      isOpen: true,
+                      imageUrls: result.imageUrls,
+                      title: `${type === 'background' ? '배경' : '프로필'} 이미지 선택`,
+                      onSelect: (selectedUrl: string) => {
+                        setImageSelectionModal(null);
+                        resolve({ imageUrls: [selectedUrl], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages });
+                      }
+                    });
+                  });
+                }
+                return { imageUrls: [result.imageUrls[0]], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages };
+              }}
+              onGenerateFeedImage={async (prompt) => {
+                const result = await handleGenerateFeedImage(prompt, 'gold');
+                // 2개 이상 생성된 경우 선택 모달 표시
+                if (result.imageUrls.length > 1 && generationOptions.imageCount > 1) {
+                  return new Promise((resolve) => {
+                    setImageSelectionModal({
+                      isOpen: true,
+                      imageUrls: result.imageUrls,
+                      title: '피드 이미지 선택',
+                      onSelect: (selectedUrl: string) => {
+                        setImageSelectionModal(null);
+                        resolve({ imageUrls: [selectedUrl], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages });
+                      }
+                    });
+                  });
+                }
+                return { imageUrls: [result.imageUrls[0]], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages };
+              }}
               onAutoCreate={handleAccount1AutoCreate}
               isCreating={isCreatingAll}
               publishStatus={account1PublishStatus as 'created' | 'published'}
@@ -1532,45 +1673,48 @@ export default function KakaoContentPage() {
                 console.error('❌ 캘린더 파일 저장 실패:', error);
               }
             }}
-              onGenerateProfileImage={handleGenerateBlackToneImage}
-              onGenerateFeedImage={(prompt) => handleGenerateFeedImage(prompt, 'black')}
+              onGenerateProfileImage={async (type, prompt) => {
+                const result = await handleGenerateBlackToneImage(type, prompt);
+                // 2개 이상 생성된 경우 선택 모달 표시
+                if (result.imageUrls.length > 1 && generationOptions.imageCount > 1) {
+                  return new Promise((resolve) => {
+                    setImageSelectionModal({
+                      isOpen: true,
+                      imageUrls: result.imageUrls,
+                      title: `${type === 'background' ? '배경' : '프로필'} 이미지 선택`,
+                      onSelect: (selectedUrl: string) => {
+                        setImageSelectionModal(null);
+                        resolve({ imageUrls: [selectedUrl], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages });
+                      }
+                    });
+                  });
+                }
+                return { imageUrls: [result.imageUrls[0]], generatedPrompt: result.generatedPrompt, paragraphImages: result.paragraphImages };
+              }}
+              onGenerateFeedImage={async (prompt) => {
+                const result = await handleGenerateFeedImage(prompt, 'black');
+                // 2개 이상 생성된 경우 선택 모달 표시
+                if (result.imageUrls.length > 1 && generationOptions.imageCount > 1) {
+                  return new Promise((resolve) => {
+                    setImageSelectionModal({
+                      isOpen: true,
+                      imageUrls: result.imageUrls,
+                      title: '피드 이미지 선택',
+                      onSelect: (selectedUrl: string) => {
+                        setImageSelectionModal(null);
+                        resolve({ imageUrls: [selectedUrl], generatedPrompt: result.generatedPrompt });
+                      }
+                    });
+                  });
+                }
+                return { imageUrls: [result.imageUrls[0]], generatedPrompt: result.generatedPrompt };
+              }}
               onAutoCreate={handleAccount2AutoCreate}
               isCreating={isCreatingAll}
               publishStatus={account2PublishStatus as 'created' | 'published'}
               onPublishStatusChange={(status) => handlePublishStatusChange('account2', status)}
               publishedAt={account2PublishedAt}
             />
-          </div>
-        </div>
-
-        {/* 전체 자동 생성 버튼 */}
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setShowGenerationOptions(true)}
-              disabled={isCreatingAll}
-              className="flex items-center gap-2 px-6 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold disabled:opacity-50"
-            >
-              <Settings className="w-5 h-5" />
-              생성 옵션 설정
-            </button>
-            <button
-              onClick={handleAllAutoCreate}
-              disabled={isCreatingAll}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50"
-            >
-              {isCreatingAll ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  생성 중...
-                </>
-              ) : (
-                <>
-                  <Rocket className="w-5 h-5" />
-                  전체 자동 생성 (계정 1 → 계정 2)
-                </>
-              )}
-            </button>
           </div>
         </div>
 
@@ -1581,55 +1725,13 @@ export default function KakaoContentPage() {
               <h3 className="text-2xl font-bold text-gray-900 mb-6">이미지 생성 옵션</h3>
               
               <div className="space-y-6">
-                {/* 생성 범위 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    생성 범위
-                  </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="today"
-                        checked={generationOptions.scope === 'today'}
-                        onChange={(e) => setGenerationOptions({ ...generationOptions, scope: e.target.value as 'today' | 'week' | 'month' })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">오늘만 생성</div>
-                        <div className="text-xs text-gray-500">오늘 날짜({todayStr})의 콘텐츠만 생성합니다</div>
-                      </div>
-                    </label>
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="week"
-                        checked={generationOptions.scope === 'week'}
-                        onChange={(e) => setGenerationOptions({ ...generationOptions, scope: e.target.value as 'today' | 'week' | 'month' })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">이번 주 생성</div>
-                        <div className="text-xs text-gray-500">이번 주(월~일)의 모든 콘텐츠를 생성합니다</div>
-                      </div>
-                    </label>
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="month"
-                        checked={generationOptions.scope === 'month'}
-                        onChange={(e) => setGenerationOptions({ ...generationOptions, scope: e.target.value as 'today' | 'week' | 'month' })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">월별 생성</div>
-                        <div className="text-xs text-gray-500">이번 달의 모든 콘텐츠를 생성합니다</div>
-                      </div>
-                    </label>
-                  </div>
+                {/* 안내 메시지 */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>생성 범위</strong>는 상단의 <strong>보기 모드</strong>에서 설정합니다.
+                    <br />
+                    (오늘 / 이번 주 / 이번 달)
+                  </p>
                 </div>
 
                 {/* 이미지 개수 (선택용) */}
@@ -1683,22 +1785,6 @@ export default function KakaoContentPage() {
                   </div>
                 </div>
 
-                {/* 다시 만들기 허용 */}
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={generationOptions.allowRegenerate}
-                      onChange={(e) => setGenerationOptions({ ...generationOptions, allowRegenerate: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">다시 만들기 허용</div>
-                      <div className="text-xs text-gray-500">생성 후 만족스럽지 않으면 다시 생성할 수 있습니다</div>
-                    </div>
-                  </label>
-                </div>
-
                 {/* 저장 위치 안내 */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-blue-900 mb-2">💾 저장 위치</h4>
@@ -1732,6 +1818,18 @@ export default function KakaoContentPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* 이미지 선택 모달 */}
+        {imageSelectionModal && (
+          <ImageSelectionModal
+            isOpen={imageSelectionModal.isOpen}
+            imageUrls={imageSelectionModal.imageUrls}
+            onSelect={imageSelectionModal.onSelect}
+            onClose={() => setImageSelectionModal(null)}
+            title={imageSelectionModal.title}
+            allowAutoSelect={true}
+          />
         )}
       </div>
     </div>

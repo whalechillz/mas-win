@@ -182,3 +182,30 @@
   - `docs/shared-systems/prompt-settings-manager.md` - 슬롯 기반 API 연결 섹션 추가
   - `docs/phases/detailed-plans/phase-15-workflow-visualization.md` - 프롬프트 슬롯 통합 계획 추가
   - `docs/PHASE_14_COMPLETION_REPORT.md` - 현재 사용 현황 및 개선 방안 추가
+
+### 카카오톡 콘텐츠 시스템 UI/UX 개선 ✅ (2025-11-12)
+- **배포 상태 UI 개선**
+  - 배포 상태를 별도 줄로 분리하여 레이아웃 개선
+  - 체크박스 → 배지 버튼 스타일로 변경
+  - 텍스트 잘림 문제 해결 (whitespace-nowrap 적용)
+  - 날짜 표시 형식 개선 (월/일/시간/분)
+- **이미지 생성 옵션 개선**
+  - "생성 범위" 제거 및 보기 모드와 통합
+  - "다시 만들기 허용" 제거 (X 버튼으로 이미 가능)
+  - "생성 옵션 설정" 및 "전체 자동 생성" 버튼 상단 이동
+  - 생성 옵션 모달 간소화 (이미지 생성 개수만 남김)
+- **이미지 2개/4개 생성 시 선택 기능**
+  - `ImageSelectionModal` 컴포넌트 생성
+  - AI 자동 선택 기능 추가 (이미지 품질 평가 API)
+  - 이미지 생성 개수 옵션 적용
+- **피드 이미지 최적화**
+  - Sharp 라이브러리로 카카오톡 피드 최적 사이즈 (1080x1080) 자동 크롭
+  - AI 기반 중요 영역 크롭 (`position: 'entropy'`)
+  - 피드 이미지는 JPEG 형식으로 저장 (품질 90%)
+  - 베리에이션 시스템은 나중에 구현 (복잡도 고려)
+- **변경 파일**:
+  - `components/admin/kakao/KakaoAccountEditor.tsx` (배포 상태 별도 줄 분리, 버튼 비활성화 로직)
+  - `components/admin/kakao/ImageSelectionModal.tsx` (신규, 이미지 선택 모달)
+  - `pages/admin/kakao-content.tsx` (이미지 생성 개수 옵션 적용, 선택 모달 통합)
+  - `pages/api/generate-paragraph-images-with-prompts.js` (피드 이미지 Sharp 최적화)
+  - `pages/api/kakao-content/evaluate-images.js` (신규, 이미지 품질 평가 API)
