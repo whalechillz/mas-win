@@ -41,6 +41,12 @@ export default function ContentCalendarHub() {
   const [stats, setStats] = useState<ChannelStats | null>(null);
   const [loading, setLoading] = useState(false);
   
+  // 뷰 모드 (리스트/달력)
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  
+  // 탭 모드 (콘텐츠 허브/데일리 브랜딩)
+  const [activeTab, setActiveTab] = useState<'hub' | 'dailyBranding'>('hub');
+  
   // 페이지네이션 상태
   const [pagination, setPagination] = useState({
     page: 1,
@@ -1374,253 +1380,349 @@ export default function ContentCalendarHub() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
         <div className="mb-8">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">콘텐츠 허브</h1>
+              <h1 className="text-3xl font-bold text-gray-900">허브 시스템</h1>
               <p className="mt-2 text-gray-600">멀티 채널 콘텐츠 허브 관리 시스템</p>
             </div>
             <div className="flex space-x-3">
-              <button
-                onClick={() => setShowAnnualModal(true)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-              >
-                📅 연간 콘텐츠 자동생성
-              </button>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                새 허브 콘텐츠 생성
-              </button>
+              {activeTab === 'hub' && (
+                <>
+                  <button
+                    onClick={() => setShowAnnualModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                  >
+                    📅 연간 콘텐츠 자동생성
+                  </button>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    새 허브 콘텐츠 생성
+                  </button>
+                </>
+              )}
             </div>
-          </div>
-        </div>
-
-        {/* 통계 카드 */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">총 허브 콘텐츠</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-blue-600">{stats.blog.connected}</div>
-              <div className="text-sm text-gray-600">홈피블로그 연결</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-green-600">{stats.sms.connected}</div>
-              <div className="text-sm text-gray-600">SMS 연결</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-purple-600">{stats.naver_blog.connected}</div>
-              <div className="text-sm text-gray-600">네이버 블로그 연결</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-yellow-600">{stats.kakao.connected}</div>
-              <div className="text-sm text-gray-600">카카오 연결</div>
-            </div>
-          </div>
-        )}
-
-        {/* 허브 콘텐츠 목록 */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">허브 콘텐츠 목록</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">제목</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">요약</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">날짜</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">채널별 상태</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">액션</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">로딩 중...</td>
-                  </tr>
-                ) : contents.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">허브 콘텐츠가 없습니다.</td>
-                  </tr>
-                ) : (
-                  contents.map((content) => (
-                    <tr key={content.id}>
-                      <td className="px-6 py-3 whitespace-normal align-top w-2/5">
-                        <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
-                          {content.title}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3 whitespace-normal align-top w-2/5">
-                        <div
-                          className="text-sm text-gray-900 break-words"
-                          style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-                          title={content.summary || content.content_body}
-                        >
-                          {content.summary || content.content_body || '내용 없음'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 w-24 align-top">
-                        {content.content_date}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap align-top">
-                        <div className="space-y-2">
-                          {/* 기본 채널들만 표시 (중복 제거) */}
-                          <div className="space-y-1">
-                            {/* 블로그 채널 */}
-                            <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
-                                홈피: {blogDataMap[content.id]?.length > 0 ? `${blogDataMap[content.id].length}개 연결` : getBlogStatusDisplay(content)}
-                              </span>
-                              {getChannelActionButton(content, 'blog')}
-                            </div>
-                            
-                            {/* SMS 채널 */}
-                            <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
-                                SMS: {smsDataMap[content.id]?.length > 0 ? `${smsDataMap[content.id].length}개 연결` : getChannelStatus(content, 'sms')}
-                              </span>
-                              {getChannelActionButton(content, 'sms')}
-                            </div>
-                            
-                            {/* 네이버 채널 */}
-                            <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
-                                네이버: {naverBlogDataMap[content.id]?.length > 0 ? `${naverBlogDataMap[content.id].length}개 연결` : getNaverBlogStatusDisplay(content)}
-                              </span>
-                              {getChannelActionButton(content, 'naver_blog')}
-                            </div>
-                            
-                            {/* 카카오 채널 */}
-                            <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'kakao'))}`}>
-                                카카오: {getChannelStatus(content, 'kakao')}
-                              </span>
-                              {getChannelActionButton(content, 'kakao')}
-                            </div>
-                          </div>
-
-                          {/* 동적 채널들은 접을 수 있게 표시 */}
-                          {renderDynamicChannelsCollapsed(content)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28">
-                        <button
-                          onClick={() => editContent(content)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          편집
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAddChannelModal(true);
-                            setSelectedContentForChannel(content);
-                          }}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                        >
-                          + 채널
-                        </button>
-                        <button
-                          onClick={() => deleteContent(content.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          삭제
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
           </div>
           
-          {/* 페이지네이션 */}
-          {pagination.totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
+          {/* 탭 메뉴 */}
+          <div className="border-b border-gray-200 mb-4">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('hub')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'hub'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📋 콘텐츠 허브
+              </button>
+              <button
+                onClick={() => setActiveTab('dailyBranding')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'dailyBranding'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📅 데일리 브랜딩
+              </button>
+            </nav>
+          </div>
+          
+          {/* 뷰 모드 토글 (콘텐츠 허브 탭에서만 표시) */}
+          {activeTab === 'hub' && (
+            <div className="flex justify-end mb-4">
+              <div className="inline-flex rounded-md shadow-sm" role="group">
                 <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page <= 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setViewMode('list')}
+                  className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                    viewMode === 'list'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
                 >
-                  이전
+                  📋 리스트 뷰
                 </button>
                 <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={!pagination.hasMore}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setViewMode('calendar')}
+                  className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                    viewMode === 'calendar'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 border border-gray-300 border-l-0 hover:bg-gray-50'
+                  }`}
                 >
-                  다음
+                  📅 달력 뷰
                 </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    총 <span className="font-medium">{pagination.total}</span>개 중{' '}
-                    <span className="font-medium">
-                      {((pagination.page - 1) * pagination.limit) + 1}
-                    </span>
-                    -
-                    <span className="font-medium">
-                      {Math.min(pagination.page * pagination.limit, pagination.total)}
-                    </span>
-                    개 표시
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={pagination.page <= 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="sr-only">이전</span>
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    {/* 페이지 번호들 */}
-                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                      const startPage = Math.max(1, pagination.page - 2);
-                      const pageNum = startPage + i;
-                      if (pageNum > pagination.totalPages) return null;
-                      
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                            pageNum === pagination.page
-                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                    
-                    <button
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={!pagination.hasMore}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="sr-only">다음</span>
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </nav>
-                </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* 콘텐츠 허브 탭 */}
+        {activeTab === 'hub' && (
+          <>
+            {/* 통계 카드 */}
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                  <div className="text-sm text-gray-600">총 허브 콘텐츠</div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-2xl font-bold text-blue-600">{stats.blog.connected}</div>
+                  <div className="text-sm text-gray-600">홈피블로그 연결</div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-2xl font-bold text-green-600">{stats.sms.connected}</div>
+                  <div className="text-sm text-gray-600">SMS 연결</div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-2xl font-bold text-purple-600">{stats.naver_blog.connected}</div>
+                  <div className="text-sm text-gray-600">네이버 블로그 연결</div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-2xl font-bold text-yellow-600">{stats.kakao.connected}</div>
+                  <div className="text-sm text-gray-600">카카오 연결</div>
+                </div>
+              </div>
+            )}
+
+            {/* 리스트 뷰 */}
+            {viewMode === 'list' && (
+              <div className="bg-white shadow rounded-lg">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">허브 콘텐츠 목록</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">제목</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">요약</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">날짜</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">채널별 상태</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">액션</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {loading ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-4 text-center text-gray-500">로딩 중...</td>
+                        </tr>
+                      ) : contents.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-4 text-center text-gray-500">허브 콘텐츠가 없습니다.</td>
+                        </tr>
+                      ) : (
+                        contents.map((content) => (
+                          <tr key={content.id}>
+                            <td className="px-6 py-3 whitespace-normal align-top w-2/5">
+                              <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
+                                {content.title}
+                              </div>
+                            </td>
+                            <td className="px-6 py-3 whitespace-normal align-top w-2/5">
+                              <div
+                                className="text-sm text-gray-900 break-words"
+                                style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                title={content.summary || content.content_body}
+                              >
+                                {content.summary || content.content_body || '내용 없음'}
+                              </div>
+                            </td>
+                            <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 w-24 align-top">
+                              {content.content_date}
+                            </td>
+                            <td className="px-6 py-3 whitespace-nowrap align-top">
+                              <div className="space-y-2">
+                                {/* 기본 채널들만 표시 (중복 제거) */}
+                                <div className="space-y-1">
+                                  {/* 블로그 채널 */}
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
+                                      홈피: {blogDataMap[content.id]?.length > 0 ? `${blogDataMap[content.id].length}개 연결` : getBlogStatusDisplay(content)}
+                                    </span>
+                                    {getChannelActionButton(content, 'blog')}
+                                  </div>
+                                  
+                                  {/* SMS 채널 */}
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
+                                      SMS: {smsDataMap[content.id]?.length > 0 ? `${smsDataMap[content.id].length}개 연결` : getChannelStatus(content, 'sms')}
+                                    </span>
+                                    {getChannelActionButton(content, 'sms')}
+                                  </div>
+                                  
+                                  {/* 네이버 채널 */}
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
+                                      네이버: {naverBlogDataMap[content.id]?.length > 0 ? `${naverBlogDataMap[content.id].length}개 연결` : getNaverBlogStatusDisplay(content)}
+                                    </span>
+                                    {getChannelActionButton(content, 'naver_blog')}
+                                  </div>
+                                  
+                                  {/* 카카오 채널 */}
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'kakao'))}`}>
+                                      카카오: {getChannelStatus(content, 'kakao')}
+                                    </span>
+                                    {getChannelActionButton(content, 'kakao')}
+                                  </div>
+                                </div>
+
+                                {/* 동적 채널들은 접을 수 있게 표시 */}
+                                {renderDynamicChannelsCollapsed(content)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28">
+                              <button
+                                onClick={() => editContent(content)}
+                                className="text-blue-600 hover:text-blue-900 mr-3"
+                              >
+                                편집
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowAddChannelModal(true);
+                                  setSelectedContentForChannel(content);
+                                }}
+                                className="text-green-600 hover:text-green-900 mr-3"
+                              >
+                                + 채널
+                              </button>
+                              <button
+                                onClick={() => deleteContent(content.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                삭제
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* 페이지네이션 */}
+                {pagination.totalPages > 1 && (
+                  <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      <button
+                        onClick={() => handlePageChange(pagination.page - 1)}
+                        disabled={pagination.page <= 1}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        이전
+                      </button>
+                      <button
+                        onClick={() => handlePageChange(pagination.page + 1)}
+                        disabled={!pagination.hasMore}
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        다음
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          총 <span className="font-medium">{pagination.total}</span>개 중{' '}
+                          <span className="font-medium">
+                            {((pagination.page - 1) * pagination.limit) + 1}
+                          </span>
+                          -
+                          <span className="font-medium">
+                            {Math.min(pagination.page * pagination.limit, pagination.total)}
+                          </span>
+                          개 표시
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <button
+                            onClick={() => handlePageChange(pagination.page - 1)}
+                            disabled={pagination.page <= 1}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="sr-only">이전</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          
+                          {/* 페이지 번호들 */}
+                          {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                            const startPage = Math.max(1, pagination.page - 2);
+                            const pageNum = startPage + i;
+                            if (pageNum > pagination.totalPages) return null;
+                            
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                  pageNum === pagination.page
+                                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                          
+                          <button
+                            onClick={() => handlePageChange(pagination.page + 1)}
+                            disabled={!pagination.hasMore}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="sr-only">다음</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          
+            {/* 달력 뷰 */}
+            {viewMode === 'calendar' && (
+              <div className="bg-white shadow rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">달력 뷰</h3>
+                <div className="text-center text-gray-500 py-12">
+                  <p className="text-lg mb-2">📅 달력 뷰는 준비 중입니다.</p>
+                  <p className="text-sm">곧 제공될 예정입니다.</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 데일리 브랜딩 탭 */}
+        {activeTab === 'dailyBranding' && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">데일리 브랜딩</h3>
+            <div className="text-center text-gray-500 py-12">
+              <p className="text-lg mb-2">📅 데일리 브랜딩 관리</p>
+              <p className="text-sm mb-4">카카오톡, 당근 피드, 인스타그램, 쓰레드, 그록 등 365일 브랜딩 콘텐츠를 관리합니다.</p>
+              <div className="mt-6 space-x-3">
+                <a
+                  href="/admin/kakao-content"
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  카카오톡 콘텐츠 관리 →
+                </a>
+                <p className="text-xs text-gray-400 mt-4">다른 채널(당근, 인스타, 쓰레드, 그록)은 곧 추가될 예정입니다.</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 새 허브 콘텐츠 생성 모달 */}
         {showCreateModal && (

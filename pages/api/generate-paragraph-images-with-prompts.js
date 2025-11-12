@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompts, blogPostId } = req.body;
+    const { prompts, blogPostId, metadata } = req.body; // metadata: { account, type, date, message }
 
     if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
       return res.status(400).json({ message: 'Valid prompts array is required' });
@@ -78,12 +78,30 @@ export default async function handler(req, res) {
         }
         
         const imageBuffer = await imageFetchResponse.arrayBuffer();
-        const fileName = `paragraph-image-custom-${Date.now()}-${i + 1}.png`;
+        
+        // 카카오 콘텐츠인 경우 날짜별 폴더 구조로 저장
+        let fileName, filePath;
+        if (metadata && metadata.account && metadata.type && metadata.date) {
+          // originals/daily-branding/kakao/YYYY-MM-DD/account1|account2/background|profile|feed/
+          // date가 ISO 형식이거나 YYYY-MM-DD 형식일 수 있음
+          const dateStr = metadata.date.includes('T') 
+            ? metadata.date.split('T')[0] 
+            : metadata.date.split(' ')[0]; // YYYY-MM-DD
+          const accountFolder = metadata.account === 'account1' ? 'account1' : 'account2';
+          const typeFolder = metadata.type; // background, profile, feed
+          const timestamp = Date.now();
+          fileName = `kakao-${metadata.account}-${metadata.type}-${timestamp}-${i + 1}.png`;
+          filePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${fileName}`;
+        } else {
+          // 기존 방식 (블로그 등)
+          fileName = `paragraph-image-custom-${Date.now()}-${i + 1}.png`;
+          filePath = fileName;
+        }
         
         // Supabase Storage에 업로드
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('blog-images')
-          .upload(fileName, imageBuffer, {
+          .upload(filePath, imageBuffer, {
             contentType: 'image/png',
             upsert: false
           });
@@ -95,7 +113,7 @@ export default async function handler(req, res) {
         // 공개 URL 생성
         const { data: { publicUrl } } = supabase.storage
           .from('blog-images')
-          .getPublicUrl(fileName);
+          .getPublicUrl(filePath);
         
         const storedUrl = publicUrl;
         console.log(`✅ 단락 ${i + 1} 이미지 Supabase 저장 성공:`, {
@@ -103,6 +121,43 @@ export default async function handler(req, res) {
           storedUrl: storedUrl,
           fileName: fileName
         });
+        
+        // 이미지 메타데이터 저장 (계정, 용도 정보 포함)
+        if (metadata) {
+          try {
+            const metadataPayload = {
+              image_url: storedUrl,
+              file_name: fileName,
+              alt_text: metadata.message || promptData.prompt || '',
+              title: `${metadata.account === 'account1' ? '대표폰' : '업무폰'} - ${metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드'}`,
+              description: promptData.prompt || '',
+              tags: [
+                `카카오톡`,
+                metadata.account === 'account1' ? '대표폰' : '업무폰',
+                metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드',
+                metadata.account === 'account1' ? '골드톤' : '블랙톤',
+                metadata.account === 'account1' ? '시니어' : '젊은골퍼',
+                metadata.date || ''
+              ],
+              category: metadata.account === 'account1' ? '시니어 골퍼' : '젊은 골퍼',
+              upload_source: 'kakao_content_ai',
+              channel: 'kakao',
+              updated_at: new Date().toISOString()
+            };
+            
+            const { error: metadataError } = await supabase
+              .from('image_metadata')
+              .upsert(metadataPayload, { onConflict: 'image_url' });
+            
+            if (metadataError) {
+              console.error('메타데이터 저장 오류:', metadataError);
+            } else {
+              console.log('✅ 이미지 메타데이터 저장 완료:', metadataPayload.title);
+            }
+          } catch (metadataError) {
+            console.error('메타데이터 저장 중 오류:', metadataError);
+          }
+        }
         
         paragraphImages.push({
           paragraphIndex: i,
@@ -127,7 +182,9 @@ export default async function handler(req, res) {
       success: true,
       imageUrls: paragraphImages.map(img => img.imageUrl),
       paragraphImages: paragraphImages,
-      totalGenerated: paragraphImages.length
+      totalGenerated: paragraphImages.length,
+      // 생성된 프롬프트도 반환 (캘린더 JSON 저장용)
+      generatedPrompts: paragraphImages.map(img => img.prompt)
     });
 
   } catch (error) {

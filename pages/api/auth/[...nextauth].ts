@@ -123,7 +123,8 @@ export default NextAuth({
     }
   },
   pages: {
-    signIn: '/admin/login'
+    signIn: '/admin/login',
+    error: '/api/auth/error'
   },
   session: {
     strategy: 'jwt',
