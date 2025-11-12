@@ -41,7 +41,16 @@ interface ImageMetadata {
   category?: string | number; // 숫자 ID 또는 이름
   is_featured?: boolean;
   usage_count?: number;
-  used_in_posts?: string[];
+  used_in_posts?: string[];  // 기존 (하위 호환성)
+  used_in?: Array<{          // ✅ 사용 위치 상세 정보
+    type: 'blog' | 'funnel' | 'homepage' | 'muziik' | 'static_page';
+    title: string;
+    url: string;
+    isFeatured?: boolean;
+    isInContent?: boolean;
+    created_at?: string;
+  }>;
+  last_used_at?: string;     // ✅ 최근 사용 날짜
   // 선택적 상세 정보 (있을 수도 있음)
   file_size?: number;
   width?: number;
@@ -64,6 +73,16 @@ interface ImageMetadata {
 export default function GalleryAdmin() {
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  
+  // Phase 5-7: 이미지 비교 기능 관련 상태
+  const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
+  const [compareResult, setCompareResult] = useState<any>(null);
+  const [showCompareModal, setShowCompareModal] = useState(false);
+  
+  // Phase 8-9-7: 확장자 기반 중복 확인 관련 상태
+  const [isCheckingExtensionDuplicates, setIsCheckingExtensionDuplicates] = useState(false);
+  const [extensionDuplicateResult, setExtensionDuplicateResult] = useState<any>(null);
+  const [showExtensionDuplicateModal, setShowExtensionDuplicateModal] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -115,6 +134,11 @@ export default function GalleryAdmin() {
   const [isSyncingBlogMetadata, setIsSyncingBlogMetadata] = useState(false);
   // 레거시 상단 "메타데이터 동기화" 버튼 표시 여부 (중복 UI 방지 위해 기본 비표시)
   const SHOW_LEGACY_META_SYNC_BUTTON = false;
+
+  // 폴더별 중복 제거 관련 상태
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [duplicateCheckResult, setDuplicateCheckResult] = useState<any>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
 
   // 블로그 이미지 정렬 핸들러
   const handleOrganizeBlogImages = async () => {
@@ -194,6 +218,432 @@ export default function GalleryAdmin() {
     }
   };
 
+  // Phase 8: 폴더별 중복 제거 확인 핸들러
+  const handleCheckAndRemoveDuplicates = async () => {
+    // 현재 선택된 폴더 확인
+    const currentFolder = folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null;
+    
+    if (!currentFolder) {
+      alert('중복 제거를 확인할 폴더를 선택해주세요.\n\n왼쪽 폴더 트리에서 폴더를 선택한 후 다시 시도해주세요.');
+      return;
+    }
+
+    setIsCheckingDuplicates(true);
+    setDuplicateCheckResult(null);
+
+    try {
+      // 1단계: 중복 감지
+      const checkResponse = await fetch('/api/admin/check-and-remove-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          folderPath: currentFolder,
+          action: 'check',
+        }),
+      });
+
+      if (!checkResponse.ok) {
+        throw new Error('중복 감지 실패');
+      }
+
+      const checkData = await checkResponse.json();
+
+      if (checkData.summary.duplicateGroups === 0) {
+        alert(`✅ 중복 이미지가 없습니다.\n\n폴더: ${currentFolder}\n전체 파일: ${checkData.summary.totalFiles}개`);
+        setIsCheckingDuplicates(false);
+        return;
+      }
+
+      if (checkData.summary.safeToRemove === 0) {
+        alert(`⚠️ 중복 이미지가 있지만 안전하게 제거할 수 있는 파일이 없습니다.\n\n중복 그룹: ${checkData.summary.duplicateGroups}개\n모든 중복 이미지가 사용 중입니다.`);
+        setIsCheckingDuplicates(false);
+        return;
+      }
+
+      // 중복 그룹 및 제거 가능한 파일 표시
+      setDuplicateCheckResult(checkData);
+      setShowDuplicateModal(true);
+
+    } catch (error: any) {
+      console.error('❌ 중복 감지 오류:', error);
+      alert(`중복 감지 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsCheckingDuplicates(false);
+    }
+  };
+
+  // Phase 8-9-7: 확장자 기반 중복 확인 핸들러
+  const handleCheckExtensionDuplicates = async () => {
+    const currentFolder = folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null;
+    
+    if (!currentFolder) {
+      alert('확장자 중복을 확인할 폴더를 선택해주세요.\n\n왼쪽 폴더 트리에서 폴더를 선택한 후 다시 시도해주세요.');
+      return;
+    }
+
+    setIsCheckingExtensionDuplicates(true);
+    setExtensionDuplicateResult(null);
+
+    try {
+      const response = await fetch('/api/admin/detect-extension-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          folderPath: currentFolder,
+          action: 'check',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('확장자 중복 감지 실패');
+      }
+
+      const data = await response.json();
+
+      if (data.duplicateGroups.length === 0) {
+        alert(`✅ 확장자 중복 이미지가 없습니다.\n\n폴더: ${currentFolder}\n전체 파일: ${data.totalFiles}개`);
+        setIsCheckingExtensionDuplicates(false);
+        return;
+      }
+
+      setExtensionDuplicateResult(data);
+      setShowExtensionDuplicateModal(true);
+
+    } catch (error: any) {
+      console.error('❌ 확장자 중복 감지 오류:', error);
+      alert(`확장자 중복 감지 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsCheckingExtensionDuplicates(false);
+    }
+  };
+
+  // 확장자 중복 파일 삭제 핸들러 (JPG/PNG 지원)
+  const handleRemoveExtensionDuplicates = async (fileIds: string[], format: 'jpg' | 'png' | 'both' = 'jpg') => {
+    if (!extensionDuplicateResult) return;
+
+    const removeCount = fileIds.length;
+    const folderPath = extensionDuplicateResult.folderPath;
+    const formatText = format === 'both' ? 'JPG/PNG' : format.toUpperCase();
+
+    if (!confirm(`⚠️ ${removeCount}개 ${formatText} 파일을 삭제하시겠습니까?\n\n폴더: ${folderPath}\n\nWebP 우선 정책에 따라 사용하지 않는 ${formatText}만 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.`)) {
+      return;
+    }
+
+    setIsCheckingExtensionDuplicates(true);
+
+    try {
+      // JPG와 PNG 분리
+      const jpgIds: string[] = [];
+      const pngIds: string[] = [];
+      
+      // 중복 그룹에서 파일 형식 확인
+      for (const group of extensionDuplicateResult.duplicateGroups || []) {
+        for (const jpg of group.jpgFiles || []) {
+          if (fileIds.includes(jpg.dbId)) {
+            jpgIds.push(jpg.dbId);
+          }
+        }
+        for (const png of group.pngFiles || []) {
+          if (fileIds.includes(png.dbId)) {
+            pngIds.push(png.dbId);
+          }
+        }
+      }
+
+      const response = await fetch('/api/admin/detect-extension-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          folderPath,
+          action: 'remove',
+          removeJpgIds: jpgIds.length > 0 ? jpgIds : undefined,
+          removePngIds: pngIds.length > 0 ? pngIds : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('파일 삭제 실패');
+      }
+
+      const data = await response.json();
+
+      if (data.errors.length === 0) {
+        alert(`✅ 파일 삭제 완료!\n\n${data.message}`);
+      } else {
+        alert(`⚠️ 파일 삭제 완료 (일부 실패)\n\n삭제된 파일: ${data.removedFiles.length}개\n실패: ${data.errors.length}개`);
+      }
+
+      setShowExtensionDuplicateModal(false);
+      setExtensionDuplicateResult(null);
+
+      // 이미지 목록 새로고침
+      setTimeout(() => {
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+      }, 100);
+
+    } catch (error: any) {
+      console.error('❌ 파일 삭제 오류:', error);
+      alert(`파일 삭제 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsCheckingExtensionDuplicates(false);
+    }
+  };
+
+  // Phase 5-7: 이미지 비교 핸들러
+  const handleCompareImages = async () => {
+    if (selectedForCompare.size < 1 || selectedForCompare.size > 3) {
+      alert('1-3개의 이미지를 선택해주세요.');
+      return;
+    }
+
+    try {
+      const imageIds = Array.from(selectedForCompare);
+      
+      // 디버깅: 선택된 이미지 ID 확인
+      console.log('🔍 비교할 이미지 ID:', imageIds);
+      const selectedImagesData = images.filter(img => img.id && imageIds.includes(img.id));
+      console.log('🔍 선택된 이미지 데이터:', selectedImagesData.map(img => ({
+        id: img.id,
+        filename: img.name,
+        url: img.url
+      })));
+
+      if (selectedImagesData.length !== imageIds.length) {
+        console.warn('⚠️ 일부 이미지를 찾을 수 없습니다:', {
+          requested: imageIds.length,
+          found: selectedImagesData.length
+        });
+      }
+
+      const response = await fetch('/api/admin/compare-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageIds }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ 이미지 비교 API 오류:', errorData);
+        throw new Error(errorData.error || errorData.details || '이미지 비교 실패');
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !data.comparison) {
+        console.error('❌ 이미지 비교 응답 오류:', data);
+        throw new Error(data.error || '이미지 비교 결과를 받을 수 없습니다');
+      }
+
+      console.log('✅ 이미지 비교 성공:', data.comparison);
+      console.log('📊 비교 결과 이미지 데이터:');
+      data.comparison.images.forEach((img: any, idx: number) => {
+        console.log(`  이미지 ${idx + 1}:`, {
+          id: img.id,
+          filename: img.filename,
+          usage: img.usage,
+          usageCount: img.usageCount,
+          usedInCount: img.usedIn?.length || 0,
+          usedIn: img.usedIn
+        });
+      });
+      
+      setCompareResult(data.comparison);
+      setShowCompareModal(true);
+
+    } catch (error: any) {
+      console.error('❌ 이미지 비교 오류:', error);
+      alert(`이미지 비교 중 오류가 발생했습니다:\n\n${error.message}\n\n콘솔을 확인해주세요.`);
+    }
+  };
+
+  // 이미지 비교 선택 토글
+  const toggleImageForCompare = (imageId: string) => {
+    const newSelected = new Set(selectedForCompare);
+    if (newSelected.has(imageId)) {
+      newSelected.delete(imageId);
+    } else {
+      if (newSelected.size >= 3) {
+        alert('최대 3개까지만 선택할 수 있습니다.');
+        return;
+      }
+      newSelected.add(imageId);
+    }
+    setSelectedForCompare(newSelected);
+  };
+
+  // 중복 제거 실행 핸들러
+  const handleRemoveDuplicates = async () => {
+    if (!duplicateCheckResult || !duplicateCheckResult.safeToRemove || duplicateCheckResult.safeToRemove.length === 0) {
+      return;
+    }
+
+    const removeCount = duplicateCheckResult.safeToRemove.length;
+    const folderPath = duplicateCheckResult.folderPath;
+
+    if (!confirm(`⚠️ ${removeCount}개 중복 파일을 삭제하시겠습니까?\n\n폴더: ${folderPath}\n\n이 작업은 되돌릴 수 없습니다.`)) {
+      return;
+    }
+
+    setIsCheckingDuplicates(true);
+
+    try {
+      const removeResponse = await fetch('/api/admin/check-and-remove-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          folderPath,
+          action: 'remove',
+        }),
+      });
+
+      if (!removeResponse.ok) {
+        throw new Error('중복 제거 실패');
+      }
+
+      const removeData = await removeResponse.json();
+
+      if (removeData.removeResults) {
+        const { deleted, failed } = removeData.removeResults;
+        if (failed === 0) {
+          alert(`✅ 중복 이미지 제거 완료!\n\n삭제된 파일: ${deleted}개\n실패: ${failed}개`);
+        } else {
+          alert(`⚠️ 중복 이미지 제거 완료 (일부 실패)\n\n삭제된 파일: ${deleted}개\n실패: ${failed}개`);
+        }
+      }
+
+      // 이미지 목록 새로고침 (무한 루핑 방지를 위해 setTimeout 사용)
+      setTimeout(() => {
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+      }, 100);
+      setShowDuplicateModal(false);
+      setDuplicateCheckResult(null);
+
+    } catch (error: any) {
+      console.error('❌ 중복 제거 오류:', error);
+      alert(`중복 제거 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsCheckingDuplicates(false);
+    }
+  };
+
+  // Phase 8: 퍼널 이미지 마이그레이션 핸들러
+  const handleCampaignImageMigration = async () => {
+    if (!confirm('월별 퍼널 이미지를 Supabase Storage로 마이그레이션하시겠습니까?\n\n이 작업은 다음을 수행합니다:\n1. Storage 폴더 구조 생성\n2. 이미지 업로드 및 메타데이터 생성\n3. HTML 파일 URL 업데이트\n4. 블로그 본문 URL 업데이트\n\n시간이 소요될 수 있습니다.')) {
+      return;
+    }
+
+    setIsMigratingCampaigns(true);
+    setCampaignMigrationProgress({ step: 'init', message: '마이그레이션 시작...' });
+    setCampaignMigrationResult(null);
+
+    try {
+      const months = ['2025-05', '2025-06', '2025-07', '2025-08', '2025-09'];
+      const results: any[] = [];
+
+      // 1단계: 폴더 구조 생성
+      setCampaignMigrationProgress({ step: 'folders', message: 'Storage 폴더 구조 생성 중...' });
+      const folderResponse = await fetch('/api/admin/create-campaign-folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!folderResponse.ok) {
+        throw new Error('폴더 구조 생성 실패');
+      }
+
+      const folderData = await folderResponse.json();
+      results.push({ step: 'folders', ...folderData });
+
+      // 2단계: 각 월별 이미지 마이그레이션
+      for (let i = 0; i < months.length; i++) {
+        const month = months[i];
+        setCampaignMigrationProgress({
+          step: 'migrate',
+          month,
+          current: i + 1,
+          total: months.length,
+          message: `${month} 이미지 마이그레이션 중...`,
+        });
+
+        const migrateResponse = await fetch('/api/admin/migrate-campaign-images', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ month }),
+        });
+
+        if (!migrateResponse.ok) {
+          console.error(`⚠️ ${month} 마이그레이션 실패`);
+          results.push({ step: 'migrate', month, error: '마이그레이션 실패' });
+          continue;
+        }
+
+        const migrateData = await migrateResponse.json();
+        results.push({ step: 'migrate', month, ...migrateData });
+      }
+
+      // 3단계: HTML 파일 URL 업데이트
+      setCampaignMigrationProgress({ step: 'html', message: 'HTML 파일 URL 업데이트 중...' });
+      for (const month of months) {
+        const htmlResponse = await fetch('/api/admin/update-funnel-image-urls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ month }),
+        });
+
+        if (htmlResponse.ok) {
+          const htmlData = await htmlResponse.json();
+          results.push({ step: 'html', month, ...htmlData });
+        }
+      }
+
+      // 4단계: 블로그 본문 URL 업데이트
+      setCampaignMigrationProgress({ step: 'blog', message: '블로그 본문 URL 업데이트 중...' });
+      for (const month of months) {
+        const blogResponse = await fetch('/api/admin/update-blog-campaign-urls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ month }),
+        });
+
+        if (blogResponse.ok) {
+          const blogData = await blogResponse.json();
+          results.push({ step: 'blog', month, ...blogData });
+        }
+      }
+
+      // 결과 요약
+      const summary = {
+        folders: folderData.summary,
+        migrated: results.filter((r) => r.step === 'migrate').reduce((sum, r) => {
+          return {
+            total: (sum.total || 0) + (r.summary?.total || 0),
+            uploaded: (sum.uploaded || 0) + (r.summary?.uploaded || 0),
+            skipped: (sum.skipped || 0) + (r.summary?.skipped || 0),
+            errors: (sum.errors || 0) + (r.summary?.errors || 0),
+          };
+        }, { total: 0, uploaded: 0, skipped: 0, errors: 0 }),
+        html: results.filter((r) => r.step === 'html').length,
+        blog: results.filter((r) => r.step === 'blog').reduce((sum, r) => sum + (r.summary?.totalUpdates || 0), 0),
+      };
+
+      setCampaignMigrationResult({ success: true, summary, results });
+      setCampaignMigrationProgress({ step: 'complete', message: '마이그레이션 완료!' });
+
+      alert(`✅ 퍼널 이미지 마이그레이션 완료!\n\n폴더 생성: ${summary.folders.created}개\n이미지 업로드: ${summary.migrated.uploaded}개\n스킵: ${summary.migrated.skipped}개\n오류: ${summary.migrated.errors}개\nHTML 업데이트: ${summary.html}개 파일\n블로그 업데이트: ${summary.blog}개 URL`);
+
+      // 이미지 목록 새로고침
+      fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+
+    } catch (error: any) {
+      console.error('❌ 퍼널 이미지 마이그레이션 오류:', error);
+      setCampaignMigrationResult({ success: false, error: error.message });
+      setCampaignMigrationProgress({ step: 'error', message: `오류: ${error.message}` });
+      alert(`퍼널 이미지 마이그레이션 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsMigratingCampaigns(false);
+    }
+  };
+
   // 블로그 메타데이터 동기화 핸들러
   const handleSyncBlogMetadata = async () => {
     if (!blogIdForOrganization) {
@@ -260,6 +710,17 @@ export default function GalleryAdmin() {
   const [isSyncingMetadata, setIsSyncingMetadata] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{ total: number; missing: number; processed: number } | null>(null);
   const [syncStatus, setSyncStatus] = useState<string>('');
+  
+  // Phase 8: 퍼널 이미지 마이그레이션 상태
+  const [isMigratingCampaigns, setIsMigratingCampaigns] = useState(false);
+  const [campaignMigrationProgress, setCampaignMigrationProgress] = useState<{
+    step: string;
+    month?: string;
+    current?: number;
+    total?: number;
+    message?: string;
+  } | null>(null);
+  const [campaignMigrationResult, setCampaignMigrationResult] = useState<any>(null);
   
   // 블로그 이미지 분석 상태
   const [isAnalyzingBlogImages, setIsAnalyzingBlogImages] = useState(false);
@@ -873,22 +1334,71 @@ export default function GalleryAdmin() {
           console.warn('메타데이터 보정 실패:', e);
         }
 
+        // 🔧 중복 제거 로직 개선: file_path 또는 (name + url) 기준으로 중복 제거
+        const deduplicateImages = (imageList: any[]) => {
+          const seen = new Set<string>();
+          const uniqueImages: any[] = [];
+          
+          for (const img of imageList) {
+            // 1차: file_path 기준 (가장 정확)
+            const key1 = img.file_path || img.folder_path 
+              ? `${img.file_path || img.folder_path}/${img.name || img.filename}`
+              : null;
+            
+            // 2차: name + url 기준
+            const key2 = `${img.name || img.filename || ''}-${img.url || ''}`;
+            
+            // 3차: cdn_url 기준
+            const key3 = img.cdn_url || img.url || '';
+            
+            // 중복 확인 (우선순위: file_path > name+url > cdn_url)
+            const uniqueKey = key1 || key2 || key3;
+            
+            if (uniqueKey && !seen.has(uniqueKey)) {
+              seen.add(uniqueKey);
+              uniqueImages.push(img);
+            } else if (uniqueKey) {
+              // 중복 발견 (디버깅용)
+              console.log('🔍 중복 이미지 제거:', {
+                name: img.name || img.filename,
+                url: img.url?.substring(0, 60),
+                file_path: img.file_path || img.folder_path,
+              });
+            }
+          }
+          
+          if (uniqueImages.length !== imageList.length) {
+            const removedCount = imageList.length - uniqueImages.length;
+            console.log(`✅ 중복 제거 완료: ${removedCount}개 제거 (${imageList.length} → ${uniqueImages.length})`);
+          }
+          
+          return uniqueImages;
+        };
+
+        const uniqueImages = deduplicateImages(imagesWithMetadata);
+
         if (reset || page === 1) {
-          setImages(imagesWithMetadata);
+          setImages(uniqueImages);
           setCurrentPage(1);
         } else {
           setImages(prev => {
-            // 🔧 중복 제거 로직 추가: 같은 name과 url을 가진 이미지는 하나만 유지
-            const existingIds = new Set(prev.map(img => `${img.name}-${img.url}`));
-            const newImages = imagesWithMetadata.filter(img => 
-              !existingIds.has(`${img.name}-${img.url}`)
+            // 기존 이미지와 새 이미지 합치기 (중복 제거)
+            const existingKeys = new Set(
+              prev.map(img => {
+                const key1 = img.file_path || img.folder_path 
+                  ? `${img.file_path || img.folder_path}/${img.name || img.filename}`
+                  : null;
+                return key1 || `${img.name || img.filename || ''}-${img.url || ''}` || img.cdn_url || img.url || '';
+              })
             );
             
-            // 🔍 중복 제거 디버깅 로그
-            if (newImages.length !== imagesWithMetadata.length) {
-              const removedCount = imagesWithMetadata.length - newImages.length;
-              // 중복 제거 완료
-            }
+            const newImages = uniqueImages.filter(img => {
+              const key1 = img.file_path || img.folder_path 
+                ? `${img.file_path || img.folder_path}/${img.name || img.filename}`
+                : null;
+              const key = key1 || `${img.name || img.filename || ''}-${img.url || ''}` || img.cdn_url || img.url || '';
+              return !existingKeys.has(key);
+            });
             
             return [...prev, ...newImages];
           });
@@ -1707,10 +2217,34 @@ export default function GalleryAdmin() {
               failCount++;
             }
           } else {
+            // 크레딧 부족 오류 확인
+            try {
+              const errorData = await response.json();
+              if (errorData.type === 'insufficient_credit' || response.status === 402) {
+                // 첫 번째 크레딧 부족 오류만 알림 표시
+                if (failCount === 0) {
+                  alert('💰 OpenAI 계정에 크레딧이 부족합니다.\n\nOpenAI 계정에 크레딧을 충전해주세요.\nhttps://platform.openai.com/settings/organization/billing/overview');
+                }
+                failCount++;
+                continue;
+              }
+            } catch (e) {
+              // JSON 파싱 실패 시 무시
+            }
             failCount++;
           }
         } catch (error) {
           console.error(`이미지 ${image.name} 처리 실패:`, error);
+          
+          // 크레딧 부족 오류 확인 (catch 블록에서도)
+          const errorMessage = error.message || '';
+          if (errorMessage.includes('크레딧이 부족') || errorMessage.includes('insufficient_credit')) {
+            // 첫 번째 크레딧 부족 오류만 알림 표시
+            if (failCount === 0) {
+              alert('💰 OpenAI 계정에 크레딧이 부족합니다.\n\nOpenAI 계정에 크레딧을 충전해주세요.\nhttps://platform.openai.com/settings/organization/billing/overview');
+            }
+          }
+          
           failCount++;
         }
         
@@ -1725,7 +2259,14 @@ export default function GalleryAdmin() {
       
     } catch (error) {
       console.error('일괄 메타데이터 생성 오류:', error);
-      alert(`일괄 메타데이터 생성 중 오류가 발생했습니다: ${error.message}`);
+      
+      // 크레딧 부족 오류 확인
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('크레딧이 부족') || errorMessage.includes('insufficient_credit')) {
+        alert('💰 OpenAI 계정에 크레딧이 부족합니다.\n\nOpenAI 계정에 크레딧을 충전해주세요.\nhttps://platform.openai.com/settings/organization/billing/overview');
+      } else {
+        alert(`일괄 메타데이터 생성 중 오류가 발생했습니다: ${error.message}`);
+      }
     } finally {
       setIsBulkWorking(false);
       setSelectedImages(new Set()); // 선택 초기화
@@ -2092,6 +2633,72 @@ export default function GalleryAdmin() {
               <button onClick={()=>{
                 setFolderModalOpen(true);
               }} className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm">📁 폴더 관리</button>
+              <button
+                onClick={handleCheckAndRemoveDuplicates}
+                disabled={isCheckingDuplicates}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                title="현재 선택된 폴더의 중복 이미지를 감지하고 제거합니다"
+              >
+                {isCheckingDuplicates ? '🔍 확인 중...' : '🔍 중복 제거 확인'}
+              </button>
+              <button
+                onClick={handleCheckExtensionDuplicates}
+                disabled={isCheckingExtensionDuplicates}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                title="현재 선택된 폴더의 JPG/WebP 확장자 중복을 감지합니다"
+              >
+                {isCheckingExtensionDuplicates ? '🔄 확인 중...' : '🔄 확장자 중복 확인'}
+              </button>
+              {selectedForCompare.size >= 1 && (
+                <button
+                  onClick={handleCompareImages}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                  title={selectedForCompare.size === 1 ? "선택된 이미지 상세 정보를 확인합니다" : "선택된 이미지를 비교합니다"}
+                >
+                  {selectedForCompare.size === 1 ? '📋 상세 보기' : `🔍 비교 (${selectedForCompare.size}개)`}
+                </button>
+              )}
+              <div className="relative">
+                <button
+                  onClick={handleCampaignImageMigration}
+                  disabled={isMigratingCampaigns}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="월별 퍼널 이미지를 Supabase Storage로 마이그레이션"
+                >
+                  {isMigratingCampaigns ? '🔄 마이그레이션 중...' : '📦 퍼널 이미지 마이그레이션'}
+                </button>
+                {campaignMigrationProgress && (
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      {campaignMigrationProgress.step === 'init' && '마이그레이션 시작'}
+                      {campaignMigrationProgress.step === 'folders' && '폴더 구조 생성'}
+                      {campaignMigrationProgress.step === 'migrate' && `이미지 마이그레이션 (${campaignMigrationProgress.month})`}
+                      {campaignMigrationProgress.step === 'html' && 'HTML 파일 업데이트'}
+                      {campaignMigrationProgress.step === 'blog' && '블로그 본문 업데이트'}
+                      {campaignMigrationProgress.step === 'complete' && '마이그레이션 완료'}
+                      {campaignMigrationProgress.step === 'error' && '오류 발생'}
+                    </div>
+                    {campaignMigrationProgress.message && (
+                      <div className="text-xs text-gray-600 mb-2">
+                        {campaignMigrationProgress.message}
+                      </div>
+                    )}
+                    {campaignMigrationProgress.current && campaignMigrationProgress.total && (
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div
+                          className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${(campaignMigrationProgress.current / campaignMigrationProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    )}
+                    {campaignMigrationProgress.current && campaignMigrationProgress.total && (
+                      <div className="text-xs text-gray-500">
+                        {campaignMigrationProgress.current} / {campaignMigrationProgress.total}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {SHOW_LEGACY_META_SYNC_BUTTON && (
               <div className="relative">
               <button
@@ -2683,7 +3290,19 @@ export default function GalleryAdmin() {
                         }));
                         setSeoPreview(null);
                         alert('SEO/ALT 적용 완료');
-                      } else { alert('적용 실패'); }
+                      } else {
+                        // 크레딧 부족 오류 확인
+                        try {
+                          const errorData = await res.json();
+                          if (errorData.type === 'insufficient_credit' || res.status === 402) {
+                            alert('💰 OpenAI 계정에 크레딧이 부족합니다.\n\nOpenAI 계정에 크레딧을 충전해주세요.\nhttps://platform.openai.com/settings/organization/billing/overview');
+                          } else {
+                            alert('적용 실패');
+                          }
+                        } catch (e) {
+                          alert('적용 실패');
+                        }
+                      }
                     }}
                     className="px-3 py-1 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700"
                   >
@@ -2819,12 +3438,26 @@ export default function GalleryAdmin() {
                     return (
                     <div 
                       key={image.name} 
-                      className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all cursor-pointer ${
-                        selectedImages.has(getImageUniqueId(image)) 
+                      className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all ${
+                        selectedForCompare.has(image.id || '')
+                          ? 'border-green-500 ring-2 ring-green-200'
+                          : selectedImages.has(getImageUniqueId(image)) 
                           ? 'border-blue-500 ring-2 ring-blue-200' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
-                      onClick={() => toggleImageSelection(image)}
+                      onClick={(e) => {
+                        // 체크박스나 버튼 클릭은 이벤트 전파 방지
+                        if ((e.target as HTMLElement).closest('.compare-checkbox') || 
+                            (e.target as HTMLElement).closest('button')) {
+                          return;
+                        }
+                        // 비교 선택이 있으면 비교 선택 우선, 없으면 일반 선택
+                        if (image.id && selectedForCompare.has(image.id)) {
+                          toggleImageForCompare(image.id);
+                        } else {
+                          toggleImageSelection(image);
+                        }
+                      }}
                       draggable
                       onDragStart={(e) => {
                         e.dataTransfer.setData('image', JSON.stringify({
@@ -2838,7 +3471,7 @@ export default function GalleryAdmin() {
                         e.currentTarget.style.opacity = '1';
                       }}
                     >
-                      {/* 선택 표시 */}
+                      {/* 선택 표시 (일반 선택 - 파란색) */}
                       {selectedImages.has(getImageUniqueId(image)) && (
                         <div className="absolute top-2 left-2 z-10">
                           <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -2846,6 +3479,39 @@ export default function GalleryAdmin() {
                           </div>
                         </div>
                       )}
+                      
+                      {/* 비교 선택 표시 (비교용 - 초록색) */}
+                      {image.id && selectedForCompare.has(image.id) && (
+                        <div className="absolute top-2 left-2 z-10">
+                          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">🔍</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 비교용 체크박스 (Phase 5-7) - 하단 우측에 배치 */}
+                      <div 
+                        className="absolute bottom-2 right-2 z-20 compare-checkbox opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (image.id) {
+                            toggleImageForCompare(image.id);
+                          }
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={image.id ? selectedForCompare.has(image.id) : false}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            if (image.id) {
+                              toggleImageForCompare(image.id);
+                            }
+                          }}
+                          className="w-5 h-5 rounded border-2 border-green-500 text-green-600 focus:ring-green-500 compare-checkbox bg-white"
+                          title="비교용 선택 (2-3개)"
+                        />
+                      </div>
                       
                       {/* 이미지 */}
                       <div className="aspect-square bg-gray-100">
@@ -2937,6 +3603,56 @@ export default function GalleryAdmin() {
                             )}
                           </div>
                         </div>
+                        
+                        {/* 🔗 사용 위치 상세 정보 (새로 추가) */}
+                        {image.usage_count > 0 && image.used_in && image.used_in.length > 0 && (
+                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs border border-gray-200">
+                            <div className="font-semibold mb-1 text-gray-700">
+                              🔗 {image.usage_count}회 사용 ({image.used_in.length}개 위치)
+                            </div>
+                            <div className="space-y-1 max-h-24 overflow-y-auto">
+                              {image.used_in.slice(0, 3).map((usage, idx) => (
+                                <div key={idx} className="text-gray-600 flex items-start">
+                                  <span className="mr-1">
+                                    {usage.type === 'blog' && '📰'}
+                                    {usage.type === 'funnel' && '🎯'}
+                                    {usage.type === 'homepage' && '🏠'}
+                                    {usage.type === 'muziik' && '🎵'}
+                                    {usage.type === 'static_page' && '📄'}
+                                  </span>
+                                  <span className="flex-1 truncate">
+                                    {usage.url ? (
+                                      <a 
+                                        href={usage.url.startsWith('http') ? usage.url : `http://localhost:3000${usage.url}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 underline"
+                                        onClick={(e) => e.stopPropagation()}
+                                        title={usage.url}
+                                      >
+                                        {usage.title}
+                                      </a>
+                                    ) : (
+                                      usage.title
+                                    )}
+                                    {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
+                                    {usage.isInContent && !usage.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
+                                  </span>
+                                </div>
+                              ))}
+                              {image.used_in.length > 3 && (
+                                <div className="text-gray-500 text-xs">
+                                  +{image.used_in.length - 3}개 위치 더...
+                                </div>
+                              )}
+                            </div>
+                            {image.last_used_at && (
+                              <div className="mt-1 text-gray-500 text-xs">
+                                📅 최근 사용: {new Date(image.last_used_at).toLocaleDateString('ko-KR')}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       {/* 퀵 액션 버튼들 */}
@@ -3783,9 +4499,9 @@ export default function GalleryAdmin() {
                   type="button"
                   onClick={() => {
                     if (selectedExistingImage) {
-                      setShowExistingImageModal(false);
+                        setShowExistingImageModal(false);
                       handleLoadExistingImageAndPrompt();
-                    } else {
+                      } else {
                       alert('불러올 이미지를 선택해주세요.');
                     }
                   }}
@@ -4414,6 +5130,819 @@ export default function GalleryAdmin() {
 
             <div className="p-4 border-t flex justify-end">
               <button onClick={()=>setShowAddModal(false)} className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 중복 제거 확인 모달 */}
+      {showDuplicateModal && duplicateCheckResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">🔍 중복 이미지 확인 결과</h2>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>폴더:</strong> {duplicateCheckResult.folderPath}
+              </p>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="bg-blue-50 p-3 rounded">
+                  <div className="text-xs text-gray-600">전체 파일</div>
+                  <div className="text-xl font-bold">{duplicateCheckResult.summary.totalFiles}개</div>
+                </div>
+                <div className="bg-yellow-50 p-3 rounded">
+                  <div className="text-xs text-gray-600">중복 그룹</div>
+                  <div className="text-xl font-bold">{duplicateCheckResult.summary.duplicateGroups}개</div>
+                </div>
+                <div className="bg-red-50 p-3 rounded">
+                  <div className="text-xs text-gray-600">제거 가능</div>
+                  <div className="text-xl font-bold">{duplicateCheckResult.summary.safeToRemove}개</div>
+                </div>
+              </div>
+            </div>
+
+            {duplicateCheckResult.duplicateGroups && duplicateCheckResult.duplicateGroups.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">중복 그룹 상세:</h3>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {duplicateCheckResult.duplicateGroups.map((group: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded p-3">
+                      <div className="text-sm font-semibold mb-2">
+                        그룹 {index + 1}: {group.count}개 파일 (hash_md5: {group.hash_md5.substring(0, 16)}...)
+                      </div>
+                      <div className="space-y-1">
+                        {group.files.map((file: any, fileIndex: number) => {
+                          const fileUsage = duplicateCheckResult.usageResults?.[index]?.files?.[fileIndex];
+                          const isUsed = fileUsage?.usedIn?.totalCount > 0;
+                          return (
+                            <div key={fileIndex} className={`text-xs pl-4 ${isUsed ? 'text-green-600' : 'text-gray-600'}`}>
+                              {fileIndex + 1}. {file.name}
+                              {isUsed ? ` ✅ 사용 중 (${fileUsage.usedIn.totalCount}회)` : ' ❌ 미사용'}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {duplicateCheckResult.safeToRemove && duplicateCheckResult.safeToRemove.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2 text-red-600">
+                  제거 가능한 파일 ({duplicateCheckResult.safeToRemove.length}개):
+                </h3>
+                <div className="bg-red-50 border border-red-200 rounded p-3 max-h-40 overflow-y-auto">
+                  {duplicateCheckResult.safeToRemove.map((file: any, index: number) => (
+                    <div key={index} className="text-sm mb-1">
+                      {index + 1}. {file.name}
+                      <span className="text-xs text-gray-500 ml-2">(유지: {file.keepFile})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setShowDuplicateModal(false);
+                  setDuplicateCheckResult(null);
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              >
+                닫기
+              </button>
+              {duplicateCheckResult.safeToRemove && duplicateCheckResult.safeToRemove.length > 0 && (
+                <button
+                  onClick={handleRemoveDuplicates}
+                  disabled={isCheckingDuplicates}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isCheckingDuplicates ? '제거 중...' : `🗑️ ${duplicateCheckResult.safeToRemove.length}개 제거`}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 5-7: 이미지 비교 모달 */}
+      {showCompareModal && compareResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-7xl w-full max-h-[95vh] overflow-y-auto">
+            {/* 헤더 */}
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-blue-600">
+                  {compareResult.images.length === 1 ? '📋' : '🔍'}
+                </span>
+                {compareResult.images.length === 1 ? '이미지 상세 정보' : '이미지 비교 결과'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowCompareModal(false);
+                  setCompareResult(null);
+                  setSelectedForCompare(new Set());
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-light transition-colors"
+                title="닫기"
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* 상태 알림 - 2개 이상일 때만 표시 */}
+            {compareResult.images.length >= 2 && (
+            <div className="mb-6">
+              <div className={`p-4 rounded-lg shadow-sm ${
+                compareResult.analysis.isDuplicate 
+                  ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500' 
+                  : 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500'
+              }`}>
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">
+                    {compareResult.analysis.isDuplicate ? '⚠️' : '✅'}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-base font-semibold text-gray-800 mb-1">
+                      {compareResult.analysis.isDuplicate ? '중복 이미지로 판단됨' : '중복 이미지가 아님'}
+                    </div>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      {compareResult.analysis.recommendation}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            )}
+            
+            {/* 유사도 점수 표시 (개선) - 2개 이상일 때만 표시 */}
+            {compareResult.images.length >= 2 && compareResult.analysis.similarityScore !== undefined && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg shadow-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* 종합 유사도 */}
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                          📊 종합 유사도
+                          <span className="ml-2 text-xs text-gray-500">(파일명, 해시, 크기, 포맷 종합)</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl font-bold text-blue-700">
+                            {compareResult.analysis.similarityScore}%
+                          </div>
+                          <div className="flex-1 bg-gray-200 rounded-full h-3">
+                            <div 
+                              className={`h-3 rounded-full transition-all ${
+                                compareResult.analysis.similarityScore >= 80 ? 'bg-red-500' :
+                                compareResult.analysis.similarityScore >= 60 ? 'bg-yellow-500' :
+                                'bg-green-500'
+                              }`}
+                              style={{ width: `${Math.min(compareResult.analysis.similarityScore, 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {compareResult.analysis.similarityScore >= 80 && '⚠️ 중복 가능성 높음'}
+                          {compareResult.analysis.similarityScore >= 60 && compareResult.analysis.similarityScore < 80 && '⚡ 중복 가능성 있음'}
+                          {compareResult.analysis.similarityScore < 60 && '✅ 다른 이미지'}
+                        </div>
+                      </div>
+                      
+                      {/* 시각적 유사도 */}
+                      {compareResult.analysis.phashSimilarity > 0 && (
+                        <div>
+                          <div className="text-sm font-semibold text-gray-700 mb-2">
+                            🎨 시각적 유사도
+                            <span className="ml-2 text-xs text-gray-500">(pHash 기반 이미지 유사도)</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl font-bold text-purple-700">
+                              {compareResult.analysis.phashSimilarity}%
+                            </div>
+                            <div className="flex-1 bg-gray-200 rounded-full h-3">
+                              <div 
+                                className={`h-3 rounded-full transition-all ${
+                                  compareResult.analysis.phashSimilarity >= 85 ? 'bg-purple-600' :
+                                  compareResult.analysis.phashSimilarity >= 70 ? 'bg-purple-400' :
+                                  'bg-purple-300'
+                                }`}
+                                style={{ width: `${Math.min(compareResult.analysis.phashSimilarity, 100)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {compareResult.analysis.phashSimilarity >= 85 && '🎯 매우 유사'}
+                            {compareResult.analysis.phashSimilarity >= 70 && compareResult.analysis.phashSimilarity < 85 && '👁️ 유사'}
+                            {compareResult.analysis.phashSimilarity < 70 && '🔍 다름'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+            
+            {/* 비교 기준 상세 - 2개 이상일 때만 표시 */}
+            {compareResult.images.length >= 2 && (
+            <div className="mt-4 pt-4 border-t border-gray-200 mb-6">
+                  <div className="text-xs font-semibold text-gray-500 mb-2">비교 기준:</div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className={`p-2 rounded text-center transition-all ${
+                      compareResult.analysis.filenameMatch 
+                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}>
+                      <div className="text-lg mb-1">{compareResult.analysis.filenameMatch ? '✓' : '✗'}</div>
+                      <div className="text-xs">파일명 일치</div>
+                    </div>
+                    <div className={`p-2 rounded text-center transition-all ${
+                      compareResult.analysis.normalizedFilenameMatch 
+                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}>
+                      <div className="text-lg mb-1">{compareResult.analysis.normalizedFilenameMatch ? '✓' : '✗'}</div>
+                      <div className="text-xs">정규화 파일명</div>
+                    </div>
+                    <div className={`p-2 rounded text-center transition-all ${
+                      compareResult.analysis.hashMatch 
+                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}>
+                      <div className="text-lg mb-1">{compareResult.analysis.hashMatch ? '✓' : '✗'}</div>
+                      <div className="text-xs">해시 일치</div>
+                    </div>
+                    <div className={`p-2 rounded text-center transition-all ${
+                      compareResult.analysis.sizeMatch 
+                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}>
+                      <div className="text-lg mb-1">{compareResult.analysis.sizeMatch ? '✓' : '✗'}</div>
+                      <div className="text-xs">크기 일치</div>
+                    </div>
+                    <div className={`p-2 rounded text-center transition-all ${
+                      compareResult.analysis.formatMatch 
+                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}>
+                      <div className="text-lg mb-1">{compareResult.analysis.formatMatch ? '✓' : '✗'}</div>
+                      <div className="text-xs">포맷 일치</div>
+                    </div>
+                  </div>
+            </div>
+            )}
+
+
+            {/* 이미지 상세 정보 */}
+            <div className={`grid gap-6 mb-6 ${
+              compareResult.images.length === 1 ? 'grid-cols-1' :
+              compareResult.images.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+              'grid-cols-1 md:grid-cols-3'
+            }`}>
+              {compareResult.images.map((img: any, index: number) => {
+                // 사용 위치 분석
+                const otherImages = compareResult.images.filter((other: any, idx: number) => idx !== index);
+                const usedInList = Array.isArray(img.usedIn) ? img.usedIn : (img.usedIn ? [img.usedIn] : []);
+                const commonLocations: any[] = [];
+                const uniqueLocations: any[] = [];
+
+                if (usedInList.length > 0) {
+                  usedInList.forEach((location: any) => {
+                    const isCommon = otherImages.some((other: any) => {
+                      const otherUsedIn = Array.isArray(other.usedIn) ? other.usedIn : (other.usedIn ? [other.usedIn] : []);
+                      return otherUsedIn.some((otherLoc: any) => 
+                        otherLoc.type === location.type && 
+                        otherLoc.title === location.title
+                      );
+                    });
+                    
+                    if (isCommon) {
+                      commonLocations.push(location);
+                    } else {
+                      uniqueLocations.push(location);
+                    }
+                  });
+                }
+
+                return (
+                  <div key={img.id} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-lg">
+                    {/* 이미지 썸네일 */}
+                    <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden shadow-inner">
+                      <img
+                        src={img.cdnUrl}
+                        alt={img.altText || img.filename}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    
+                    {/* 이미지 정보 */}
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-xs font-semibold text-gray-500 mb-1">파일명</div>
+                        <div className="text-sm text-gray-800 break-all font-mono" title={img.filename}>
+                          {img.filename}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-xs font-semibold text-gray-500 mb-1">파일 크기</div>
+                          <div className="text-sm font-semibold text-gray-700">{(img.fileSize / 1024).toFixed(1)}KB</div>
+                        </div>
+                        {img.width && img.height && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-1">픽셀 사이즈</div>
+                            <div className="text-sm font-semibold text-gray-700">{img.width} × {img.height}px</div>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-xs font-semibold text-gray-500 mb-1">포맷</div>
+                          <div className="text-sm font-semibold text-gray-700 uppercase">{img.format}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-gray-500 mb-1">사용 현황</div>
+                          <div className={`text-sm font-semibold ${img.usage ? 'text-green-600' : 'text-gray-400'}`}>
+                            {img.usage ? `✅ ${img.usageCount}회` : '❌ 미사용'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* 사용 위치 */}
+                      {usedInList.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <span>🔗</span>
+                            <span>사용 위치 ({usedInList.length}개)</span>
+                            {commonLocations.length > 0 && (
+                              <span className="ml-auto text-green-600 text-xs">
+                                공통 {commonLocations.length}개
+                              </span>
+                            )}
+                            {uniqueLocations.length > 0 && (
+                              <span className="text-orange-600 text-xs">
+                                고유 {uniqueLocations.length}개
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                            {usedInList.map((u: any, idx: number) => {
+                              const isCommon = commonLocations.some(loc => 
+                                loc.type === u.type && loc.title === u.title
+                              );
+                              return (
+                                <div 
+                                  key={idx} 
+                                  className={`text-xs p-2 rounded flex items-start gap-2 ${
+                                    isCommon ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'
+                                  }`}
+                                >
+                                  <span className="text-base">
+                                    {u.type === 'blog' && '📰'}
+                                    {u.type === 'funnel' && '🎯'}
+                                    {u.type === 'homepage' && '🏠'}
+                                    {u.type === 'muziik' && '🎵'}
+                                    {u.type === 'static_page' && '📄'}
+                                  </span>
+                                  <span className="flex-1 min-w-0">
+                                    {u.url ? (
+                                      <a 
+                                        href={u.url.startsWith('http') ? u.url : `http://localhost:3000${u.url}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 underline break-all"
+                                        onClick={(e) => e.stopPropagation()}
+                                        title={u.url}
+                                      >
+                                        {u.title}
+                                      </a>
+                                    ) : (
+                                      <span className="text-gray-700">{u.title}</span>
+                                    )}
+                                    <div className="flex gap-1 mt-0.5">
+                                      {u.isFeatured && (
+                                        <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">
+                                          대표
+                                        </span>
+                                      )}
+                                      {u.isInContent && !u.isFeatured && (
+                                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                          본문
+                                        </span>
+                                      )}
+                                      {isCommon && (
+                                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                                          공통
+                                        </span>
+                                      )}
+                                    </div>
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 개별 삭제 버튼 */}
+                      {!img.usage && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`이 이미지를 삭제하시겠습니까?\n\n${img.filename}`)) {
+                              return;
+                            }
+
+                            try {
+                              const response = await fetch('/api/admin/image-asset-manager', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                  id: img.id,
+                                  permanent: true 
+                                }),
+                              });
+
+                              if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || errorData.details || '삭제 실패');
+                              }
+
+                              const result = await response.json();
+                              if (!result.success) {
+                                throw new Error(result.error || '삭제 실패');
+                              }
+
+                              alert(`✅ 이미지 삭제 완료!\n\n${img.filename}`);
+
+                              setShowCompareModal(false);
+                              setCompareResult(null);
+                              setSelectedForCompare(new Set());
+                              setTimeout(() => {
+                                fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                              }, 100);
+
+                            } catch (error: any) {
+                              console.error('❌ 이미지 삭제 오류:', error);
+                              alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
+                            }
+                          }}
+                          className="w-full mt-4 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition-colors shadow-sm"
+                        >
+                          🗑️ 이 이미지 삭제
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 하단 액션 버튼 */}
+            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowCompareModal(false);
+                  setCompareResult(null);
+                  setSelectedForCompare(new Set());
+                }}
+                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium shadow-sm"
+              >
+                닫기
+              </button>
+              {/* 중복 이미지이고 미사용인 경우 삭제 버튼 표시 */}
+              {compareResult.analysis.isDuplicate && 
+               compareResult.images.some((img: any) => !img.usage) && (
+                <button
+                  onClick={async () => {
+                    const unusedImages = compareResult.images.filter((img: any) => !img.usage);
+                    const unusedIds = unusedImages.map((img: any) => img.id);
+                    
+                    if (unusedIds.length === 0) {
+                      alert('삭제할 수 있는 이미지가 없습니다.');
+                      return;
+                    }
+
+                    const confirmMessage = unusedIds.length === 1
+                      ? `이미지 1개를 삭제하시겠습니까?\n\n${unusedImages[0].filename}`
+                      : `이미지 ${unusedIds.length}개를 삭제하시겠습니까?\n\n${unusedImages.map((img: any) => img.filename).join('\n')}`;
+
+                    if (!confirm(confirmMessage)) {
+                      return;
+                    }
+
+                    try {
+                      // 각 이미지 삭제 (image-asset-manager API 사용)
+                      const deletePromises = unusedIds.map(async (id: string) => {
+                        const image = compareResult.images.find((img: any) => img.id === id);
+                        if (!image) return { success: false, id, error: '이미지를 찾을 수 없습니다' };
+
+                        try {
+                          // image-asset-manager API로 영구 삭제 (DELETE 메서드 사용)
+                          const response = await fetch('/api/admin/image-asset-manager', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              id: id,
+                              permanent: true 
+                            }),
+                          });
+
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || errorData.details || '삭제 실패');
+                          }
+
+                          const result = await response.json();
+                          if (!result.success) {
+                            throw new Error(result.error || '삭제 실패');
+                          }
+
+                          return { success: true, id, filename: image.filename };
+                        } catch (error: any) {
+                          return { success: false, id, error: error.message, filename: image.filename };
+                        }
+                      });
+
+                      const results = await Promise.all(deletePromises);
+                      const successCount = results.filter(r => r.success).length;
+                      const failCount = results.filter(r => !r.success).length;
+
+                      if (failCount === 0) {
+                        alert(`✅ ${successCount}개 이미지 삭제 완료!`);
+                      } else {
+                        alert(`⚠️ ${successCount}개 삭제 완료, ${failCount}개 실패\n\n${results.filter(r => !r.success).map(r => `${r.filename}: ${r.error}`).join('\n')}`);
+                      }
+
+                      // 모달 닫기 및 이미지 목록 새로고침
+                      setShowCompareModal(false);
+                      setCompareResult(null);
+                      setSelectedForCompare(new Set());
+                      setTimeout(() => {
+                        fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                      }, 100);
+
+                    } catch (error: any) {
+                      console.error('❌ 이미지 삭제 오류:', error);
+                      alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  🗑️ 미사용 이미지 삭제 ({compareResult.images.filter((img: any) => !img.usage).length}개)
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 8-9-7: 확장자 중복 확인 모달 */}
+      {showExtensionDuplicateModal && extensionDuplicateResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">🔄 확장자 중복 확인 결과</h2>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>폴더:</strong> {extensionDuplicateResult.folderPath}
+              </p>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="bg-blue-50 p-3 rounded">
+                  <div className="text-xs text-gray-600">전체 파일</div>
+                  <div className="text-xl font-bold">{extensionDuplicateResult.totalFiles}개</div>
+                </div>
+                <div className="bg-orange-50 p-3 rounded">
+                  <div className="text-xs text-gray-600">중복 그룹</div>
+                  <div className="text-xl font-bold">{extensionDuplicateResult.totalDuplicateGroups}개</div>
+                </div>
+                <div className="bg-red-50 p-3 rounded">
+                  <div className="text-xs text-gray-600">삭제 가능 파일</div>
+                  <div className="text-xl font-bold">
+                    {extensionDuplicateResult.duplicateGroups.reduce((sum: number, g: any) => 
+                      sum + g.safeToRemoveJpg.length + (g.safeToRemovePng?.length || 0), 0)}개
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    JPG: {extensionDuplicateResult.duplicateGroups.reduce((sum: number, g: any) => sum + g.safeToRemoveJpg.length, 0)}개
+                    {extensionDuplicateResult.duplicateGroups.some((g: any) => g.safeToRemovePng?.length > 0) && (
+                      <span>, PNG: {extensionDuplicateResult.duplicateGroups.reduce((sum: number, g: any) => sum + (g.safeToRemovePng?.length || 0), 0)}개</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {extensionDuplicateResult.duplicateGroups && extensionDuplicateResult.duplicateGroups.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">확장자 중복 그룹:</h3>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {extensionDuplicateResult.duplicateGroups.map((group: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded p-4">
+                      <div className="text-sm font-semibold mb-3">
+                        그룹 {index + 1}: {group.normalizedName}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* JPG 파일들 */}
+                        {group.jpgFiles.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-700 mb-2">JPG 파일 ({group.jpgFiles.length}개):</div>
+                            <div className="space-y-3">
+                              {group.jpgFiles.map((jpg: any, jpgIndex: number) => {
+                                const jpgUrl = jpg.url || '';
+                                return (
+                                  <div key={jpgIndex} className={`text-xs p-3 rounded border-2 ${jpg.usage ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-300'}`}>
+                                    {jpgUrl && (
+                                      <div className="mb-2 aspect-square bg-gray-100 rounded overflow-hidden">
+                                        <img
+                                          src={jpgUrl}
+                                          alt={jpg.name}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="font-medium mb-1 truncate" title={jpg.name}>{jpg.name}</div>
+                                    <div className="text-gray-500 mb-1">{(jpg.size / 1024).toFixed(1)}KB</div>
+                                    <div className={`mb-2 ${jpg.usage ? 'text-green-600' : 'text-gray-400'}`}>
+                                      {jpg.usage ? `✅ 사용 중 (${jpg.usageCount}회)` : '❌ 미사용'}
+                                    </div>
+                                    {!jpg.usage && jpg.dbId && (
+                                      <button
+                                        onClick={() => {
+                                          if (confirm(`이 JPG 파일을 삭제하시겠습니까?\n\n${jpg.name}`)) {
+                                            handleRemoveExtensionDuplicates([jpg.dbId], 'jpg');
+                                          }
+                                        }}
+                                        className="w-full px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                      >
+                                        🗑️ 삭제
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* PNG 파일들 */}
+                        {group.pngFiles && group.pngFiles.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-700 mb-2">PNG 파일 ({group.pngFiles.length}개):</div>
+                            <div className="space-y-3">
+                              {group.pngFiles.map((png: any, pngIndex: number) => {
+                                const pngUrl = png.url || '';
+                                return (
+                                  <div key={pngIndex} className={`text-xs p-3 rounded border-2 ${png.usage ? 'bg-green-50 border-green-300' : 'bg-purple-50 border-purple-300'}`}>
+                                    {pngUrl && (
+                                      <div className="mb-2 aspect-square bg-gray-100 rounded overflow-hidden">
+                                        <img
+                                          src={pngUrl}
+                                          alt={png.name}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="font-medium mb-1 truncate" title={png.name}>{png.name}</div>
+                                    <div className="text-gray-500 mb-1">{(png.size / 1024).toFixed(1)}KB</div>
+                                    <div className={`mb-2 ${png.usage ? 'text-green-600' : 'text-gray-400'}`}>
+                                      {png.usage ? `✅ 사용 중 (${png.usageCount}회)` : '❌ 미사용'}
+                                    </div>
+                                    {!png.usage && png.dbId && (
+                                      <button
+                                        onClick={() => {
+                                          if (confirm(`이 PNG 파일을 삭제하시겠습니까?\n\n${png.name}`)) {
+                                            handleRemoveExtensionDuplicates([png.dbId], 'png');
+                                          }
+                                        }}
+                                        className="w-full px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                      >
+                                        🗑️ 삭제
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* WebP 파일들 */}
+                        {group.webpFiles.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-700 mb-2">WebP 파일 ({group.webpFiles.length}개):</div>
+                            <div className="space-y-3">
+                              {group.webpFiles.map((webp: any, webpIndex: number) => {
+                                const webpUrl = webp.url || '';
+                                return (
+                                  <div key={webpIndex} className={`text-xs p-3 rounded border-2 ${webp.usage ? 'bg-green-50 border-green-300' : 'bg-blue-50 border-blue-300'}`}>
+                                    {webpUrl && (
+                                      <div className="mb-2 aspect-square bg-gray-100 rounded overflow-hidden">
+                                        <img
+                                          src={webpUrl}
+                                          alt={webp.name}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="font-medium mb-1 truncate" title={webp.name}>{webp.name}</div>
+                                    <div className="text-gray-500 mb-1">{(webp.size / 1024).toFixed(1)}KB</div>
+                                    <div className={webp.usage ? 'text-green-600' : 'text-gray-400'}>
+                                      {webp.usage ? `✅ 사용 중 (${webp.usageCount}회)` : '❌ 미사용'}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {(group.safeToRemoveJpg.length > 0 || group.safeToRemovePng?.length > 0) && (
+                        <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded">
+                          <div className="text-xs font-semibold text-orange-700 mb-1">
+                            삭제 가능한 파일:
+                          </div>
+                          {group.safeToRemoveJpg.length > 0 && (
+                            <div className="text-xs text-orange-600 mb-1">
+                              JPG ({group.safeToRemoveJpg.length}개): {group.safeToRemoveJpg.map((jpg: any) => jpg.name).join(', ')}
+                            </div>
+                          )}
+                          {group.safeToRemovePng && group.safeToRemovePng.length > 0 && (
+                            <div className="text-xs text-orange-600">
+                              PNG ({group.safeToRemovePng.length}개): {group.safeToRemovePng.map((png: any) => png.name).join(', ')}
+                            </div>
+                          )}
+                          {group.recommendation === 'remove_png_or_jpg' && (
+                            <div className="text-xs text-blue-600 mt-2 font-semibold">
+                              💡 PNG와 JPG가 모두 있습니다. 사용자가 선택하여 삭제할 수 있습니다.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setShowExtensionDuplicateModal(false);
+                  setExtensionDuplicateResult(null);
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              >
+                닫기
+              </button>
+              {extensionDuplicateResult.duplicateGroups && extensionDuplicateResult.duplicateGroups.some((g: any) => 
+                g.safeToRemoveJpg.length > 0 || g.safeToRemovePng?.length > 0
+              ) && (
+                <>
+                  {extensionDuplicateResult.duplicateGroups.some((g: any) => g.safeToRemoveJpg.length > 0) && (
+                    <button
+                      onClick={() => {
+                        const allJpgIds = extensionDuplicateResult.duplicateGroups
+                          .flatMap((g: any) => g.safeToRemoveJpg)
+                          .map((jpg: any) => jpg.dbId)
+                          .filter(Boolean);
+                        if (allJpgIds.length > 0) {
+                          handleRemoveExtensionDuplicates(allJpgIds, 'jpg');
+                        }
+                      }}
+                      disabled={isCheckingExtensionDuplicates}
+                      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
+                    >
+                      {isCheckingExtensionDuplicates ? '삭제 중...' : `🗑️ JPG 삭제 (${extensionDuplicateResult.duplicateGroups.reduce((sum: number, g: any) => sum + g.safeToRemoveJpg.length, 0)}개)`}
+                    </button>
+                  )}
+                  {extensionDuplicateResult.duplicateGroups.some((g: any) => g.safeToRemovePng?.length > 0) && (
+                    <button
+                      onClick={() => {
+                        const allPngIds = extensionDuplicateResult.duplicateGroups
+                          .flatMap((g: any) => g.safeToRemovePng || [])
+                          .map((png: any) => png.dbId)
+                          .filter(Boolean);
+                        if (allPngIds.length > 0) {
+                          handleRemoveExtensionDuplicates(allPngIds, 'png');
+                        }
+                      }}
+                      disabled={isCheckingExtensionDuplicates}
+                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {isCheckingExtensionDuplicates ? '삭제 중...' : `🗑️ PNG 삭제 (${extensionDuplicateResult.duplicateGroups.reduce((sum: number, g: any) => sum + (g.safeToRemovePng?.length || 0), 0)}개)`}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
