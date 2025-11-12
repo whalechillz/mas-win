@@ -1,0 +1,120 @@
+{
+  "timestamp": "2025-11-11T00:20:49.610Z",
+  "folderPath": "originals/campaigns/2025-07",
+  "summary": {
+    "duplicateGroups": 3,
+    "safeToRemove": 3
+  },
+  "usageResults": [
+    {
+      "hash_md5": "5ebb21278e2298291208f6bab0c5c279",
+      "files": [
+        {
+          "name": "1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+          "path": "originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+          "path": "originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+      "files": [
+        {
+          "name": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+          "path": "originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+          "path": "originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+      "files": [
+        {
+          "name": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+          "path": "originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+          "path": "originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    }
+  ],
+  "safeToRemove": [
+    {
+      "name": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "path": "originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg"
+    },
+    {
+      "name": "cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+      "path": "originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg"
+    },
+    {
+      "name": "f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+      "path": "originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg"
+    }
+  ]
+}

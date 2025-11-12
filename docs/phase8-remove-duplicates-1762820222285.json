@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-11-11T00:17:02.284Z",
+  "folderPath": "originals/campaigns/2025-06",
+  "dryRun": false,
+  "summary": {
+    "total": 1,
+    "deleted": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": {
+    "deleted": [
+      {
+        "name": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+        "path": "originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+        "status": "deleted"
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  }
+}

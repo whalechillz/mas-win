@@ -1,0 +1,319 @@
+{
+  "timestamp": "2025-11-10T23:45:09.863Z",
+  "summary": {
+    "totalImages": 20,
+    "urlDuplicates": 0,
+    "fileNameDuplicates": 1
+  },
+  "imageData": [
+    {
+      "index": 0,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "alt": "81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 1,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "alt": "c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 2,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+      "alt": "ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 3,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "alt": "ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 4,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+      "alt": "842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 5,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "alt": "fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 6,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "alt": "62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 7,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+      "alt": "55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 8,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+      "alt": "eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 9,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/7786e332-41d6-4aea-8534-eadff8df13e0-couplegolfround1080x1350.jpg",
+      "alt": "7786e332-41d6-4aea-8534-eadff8df13e0-couplegolfround1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 10,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+      "alt": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 11,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+      "alt": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 12,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+      "alt": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 13,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+      "alt": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 14,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+      "alt": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 15,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+      "alt": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 16,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+      "alt": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 17,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+      "alt": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 18,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+      "alt": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    },
+    {
+      "index": 19,
+      "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/.keep.png",
+      "alt": ".keep.png",
+      "filename": "⚠️ 메타데이터 없음",
+      "folderPath": "originals/campaigns/2025-05"
+    }
+  ],
+  "urlDuplicates": [],
+  "fileNameDuplicates": [
+    {
+      "normalized": "메타데이터없음",
+      "count": 20,
+      "images": [
+        {
+          "index": 0,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+          "alt": "81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 1,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+          "alt": "c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 2,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+          "alt": "ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 3,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+          "alt": "ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 4,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+          "alt": "842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 5,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+          "alt": "fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 6,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+          "alt": "62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 7,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+          "alt": "55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 8,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+          "alt": "eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 9,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/7786e332-41d6-4aea-8534-eadff8df13e0-couplegolfround1080x1350.jpg",
+          "alt": "7786e332-41d6-4aea-8534-eadff8df13e0-couplegolfround1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 10,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+          "alt": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 11,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+          "alt": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 12,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+          "alt": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 13,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+          "alt": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 14,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+          "alt": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 15,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+          "alt": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 16,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+          "alt": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 17,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+          "alt": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 18,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+          "alt": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        },
+        {
+          "index": 19,
+          "src": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/.keep.png",
+          "alt": ".keep.png",
+          "filename": "⚠️ 메타데이터 없음",
+          "folderPath": "originals/campaigns/2025-05",
+          "baseFileName": "⚠️ 메타데이터 없음"
+        }
+      ]
+    }
+  ]
+}

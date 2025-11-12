@@ -1,0 +1,475 @@
+{
+  "timestamp": "2025-11-11T00:24:10.498Z",
+  "folderPath": "originals/campaigns/2025-07",
+  "summary": {
+    "totalFiles": 20,
+    "filesWithHash": 20,
+    "duplicateGroups": 9,
+    "totalDuplicates": 20,
+    "filesWithoutMetadata": 14
+  },
+  "duplicateGroups": [
+    {
+      "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935",
+      "count": 2,
+      "files": [
+        {
+          "name": "0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+          "path": "originals/campaigns/2025-07/0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+          "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935",
+          "hash_sha256": "d70c181a903fe24787c6e458cd36f0cc4673a472fb8f1ad2a82453f1bc74fbbf",
+          "size": 148574
+        },
+        {
+          "name": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+          "path": "originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+          "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935",
+          "hash_sha256": "d70c181a903fe24787c6e458cd36f0cc4673a472fb8f1ad2a82453f1bc74fbbf",
+          "size": 148574
+        }
+      ]
+    },
+    {
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+      "count": 2,
+      "files": [
+        {
+          "name": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+          "path": "originals/campaigns/2025-07/056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+          "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+          "hash_sha256": "7e1e97f28fa9e6ee59df6441f72219c58b31a718f0e4ad740850b80887aded7a",
+          "size": 61507
+        },
+        {
+          "name": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+          "path": "originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+          "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+          "hash_sha256": "7e1e97f28fa9e6ee59df6441f72219c58b31a718f0e4ad740850b80887aded7a",
+          "size": 61507
+        }
+      ]
+    },
+    {
+      "hash_md5": "8fb97f4e969b8170de47152f3453996c",
+      "count": 2,
+      "files": [
+        {
+          "name": "105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+          "path": "originals/campaigns/2025-07/105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+          "hash_md5": "8fb97f4e969b8170de47152f3453996c",
+          "hash_sha256": "b843c89d209f955b7bdadc9de278f28170fc32713ef5604c6097ed9aecc166d2",
+          "size": 174403
+        },
+        {
+          "name": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+          "path": "originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+          "hash_md5": "8fb97f4e969b8170de47152f3453996c",
+          "hash_sha256": "b843c89d209f955b7bdadc9de278f28170fc32713ef5604c6097ed9aecc166d2",
+          "size": 174403
+        }
+      ]
+    },
+    {
+      "hash_md5": "6c505edd5c742734342dd1a397611244",
+      "count": 3,
+      "files": [
+        {
+          "name": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+          "path": "originals/campaigns/2025-07/24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+          "hash_md5": "6c505edd5c742734342dd1a397611244",
+          "hash_sha256": "4568203a3533a31a4c6176b0fd9d2dae4d040fdbf25e2e1f06c064dd9da9b56e",
+          "size": 103633
+        },
+        {
+          "name": "3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+          "path": "originals/campaigns/2025-07/3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+          "hash_md5": "6c505edd5c742734342dd1a397611244",
+          "hash_sha256": "4568203a3533a31a4c6176b0fd9d2dae4d040fdbf25e2e1f06c064dd9da9b56e",
+          "size": 103633
+        },
+        {
+          "name": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+          "path": "originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+          "hash_md5": "6c505edd5c742734342dd1a397611244",
+          "hash_sha256": "4568203a3533a31a4c6176b0fd9d2dae4d040fdbf25e2e1f06c064dd9da9b56e",
+          "size": 103633
+        }
+      ]
+    },
+    {
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "count": 2,
+      "files": [
+        {
+          "name": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+          "path": "originals/campaigns/2025-07/45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+          "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+          "hash_sha256": "e176a3ebfc957467aec9b6cd447aedc11c7dc52b97c557bc3fb2eb6fcf7a3609",
+          "size": 70292
+        },
+        {
+          "name": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+          "path": "originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+          "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+          "hash_sha256": "e176a3ebfc957467aec9b6cd447aedc11c7dc52b97c557bc3fb2eb6fcf7a3609",
+          "size": 70292
+        }
+      ]
+    },
+    {
+      "hash_md5": "53f71baac7bce041381ad37142986afc",
+      "count": 2,
+      "files": [
+        {
+          "name": "5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+          "path": "originals/campaigns/2025-07/5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+          "hash_md5": "53f71baac7bce041381ad37142986afc",
+          "hash_sha256": "f1049f177d8aabffcd1df817f75282bb3dbda3865216cf8cf0e4f55f88e06e86",
+          "size": 169988
+        },
+        {
+          "name": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+          "path": "originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+          "hash_md5": "53f71baac7bce041381ad37142986afc",
+          "hash_sha256": "f1049f177d8aabffcd1df817f75282bb3dbda3865216cf8cf0e4f55f88e06e86",
+          "size": 169988
+        }
+      ]
+    },
+    {
+      "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+      "count": 3,
+      "files": [
+        {
+          "name": "5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png",
+          "path": "originals/campaigns/2025-07/5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png",
+          "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+          "hash_sha256": "b62b796fef1495c9aa3ca01106fecb66ff14a988acef9b75c98eab67e1d679e7",
+          "size": 1910610
+        },
+        {
+          "name": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+          "path": "originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+          "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+          "hash_sha256": "b62b796fef1495c9aa3ca01106fecb66ff14a988acef9b75c98eab67e1d679e7",
+          "size": 1910610
+        },
+        {
+          "name": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+          "path": "originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+          "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+          "hash_sha256": "b62b796fef1495c9aa3ca01106fecb66ff14a988acef9b75c98eab67e1d679e7",
+          "size": 1910610
+        }
+      ]
+    },
+    {
+      "hash_md5": "1a65b67020ced7fc602d67a21e5d0385",
+      "count": 2,
+      "files": [
+        {
+          "name": "631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+          "path": "originals/campaigns/2025-07/631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+          "hash_md5": "1a65b67020ced7fc602d67a21e5d0385",
+          "hash_sha256": "65d057604d87d9dd4ab63aebf3b46d88635fc9dba37c62d54ee242f0fd2e0e93",
+          "size": 275225
+        },
+        {
+          "name": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+          "path": "originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+          "hash_md5": "1a65b67020ced7fc602d67a21e5d0385",
+          "hash_sha256": "65d057604d87d9dd4ab63aebf3b46d88635fc9dba37c62d54ee242f0fd2e0e93",
+          "size": 275225
+        }
+      ]
+    },
+    {
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "count": 2,
+      "files": [
+        {
+          "name": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+          "path": "originals/campaigns/2025-07/a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+          "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+          "hash_sha256": "7c79f94f3c46ccc2227155a50fa2c9a46d56254750709fc4ff35621ec8b8cab2",
+          "size": 59784
+        },
+        {
+          "name": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+          "path": "originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+          "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+          "hash_sha256": "7c79f94f3c46ccc2227155a50fa2c9a46d56254750709fc4ff35621ec8b8cab2",
+          "size": 59784
+        }
+      ]
+    }
+  ],
+  "filesWithoutMetadata": [
+    {
+      "name": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-07/056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b"
+    },
+    {
+      "name": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "path": "originals/campaigns/2025-07/24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "hash_md5": "6c505edd5c742734342dd1a397611244"
+    },
+    {
+      "name": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-07/45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e"
+    },
+    {
+      "name": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "path": "originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "hash_md5": "8fb97f4e969b8170de47152f3453996c"
+    },
+    {
+      "name": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "path": "originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "hash_md5": "1a65b67020ced7fc602d67a21e5d0385"
+    },
+    {
+      "name": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "path": "originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7"
+    },
+    {
+      "name": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "path": "originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "hash_md5": "6c505edd5c742734342dd1a397611244"
+    },
+    {
+      "name": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-07/a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592"
+    },
+    {
+      "name": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b"
+    },
+    {
+      "name": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "path": "originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7"
+    },
+    {
+      "name": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e"
+    },
+    {
+      "name": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "path": "originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935"
+    },
+    {
+      "name": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592"
+    },
+    {
+      "name": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "path": "originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "hash_md5": "53f71baac7bce041381ad37142986afc"
+    }
+  ],
+  "allFiles": [
+    {
+      "name": "0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+      "path": "originals/campaigns/2025-07/0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg",
+      "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935",
+      "hash_sha256": "d70c181a903fe24787c6e458cd36f0cc4673a472fb8f1ad2a82453f1bc74fbbf",
+      "size": 148574
+    },
+    {
+      "name": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-07/056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+      "hash_sha256": "7e1e97f28fa9e6ee59df6441f72219c58b31a718f0e4ad740850b80887aded7a",
+      "size": 61507
+    },
+    {
+      "name": "105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+      "path": "originals/campaigns/2025-07/105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg",
+      "hash_md5": "8fb97f4e969b8170de47152f3453996c",
+      "hash_sha256": "b843c89d209f955b7bdadc9de278f28170fc32713ef5604c6097ed9aecc166d2",
+      "size": 174403
+    },
+    {
+      "name": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "path": "originals/campaigns/2025-07/24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "hash_md5": "6c505edd5c742734342dd1a397611244",
+      "hash_sha256": "4568203a3533a31a4c6176b0fd9d2dae4d040fdbf25e2e1f06c064dd9da9b56e",
+      "size": 103633
+    },
+    {
+      "name": "3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+      "path": "originals/campaigns/2025-07/3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/3deb5947-3bb6-437e-b782-dce3707ade73-salute21-01.jpg",
+      "hash_md5": "6c505edd5c742734342dd1a397611244",
+      "hash_sha256": "4568203a3533a31a4c6176b0fd9d2dae4d040fdbf25e2e1f06c064dd9da9b56e",
+      "size": 103633
+    },
+    {
+      "name": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-07/45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "hash_sha256": "e176a3ebfc957467aec9b6cd447aedc11c7dc52b97c557bc3fb2eb6fcf7a3609",
+      "size": 70292
+    },
+    {
+      "name": "5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+      "path": "originals/campaigns/2025-07/5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg",
+      "hash_md5": "53f71baac7bce041381ad37142986afc",
+      "hash_sha256": "f1049f177d8aabffcd1df817f75282bb3dbda3865216cf8cf0e4f55f88e06e86",
+      "size": 169988
+    },
+    {
+      "name": "5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png",
+      "path": "originals/campaigns/2025-07/5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/5f5412e4-ccce-4335-99ad-7453f313ae2e-salute21-02.png",
+      "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+      "hash_sha256": "b62b796fef1495c9aa3ca01106fecb66ff14a988acef9b75c98eab67e1d679e7",
+      "size": 1910610
+    },
+    {
+      "name": "631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+      "path": "originals/campaigns/2025-07/631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg",
+      "hash_md5": "1a65b67020ced7fc602d67a21e5d0385",
+      "hash_sha256": "65d057604d87d9dd4ab63aebf3b46d88635fc9dba37c62d54ee242f0fd2e0e93",
+      "size": 275225
+    },
+    {
+      "name": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "path": "originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "hash_md5": "8fb97f4e969b8170de47152f3453996c",
+      "hash_sha256": "b843c89d209f955b7bdadc9de278f28170fc32713ef5604c6097ed9aecc166d2",
+      "size": 174403
+    },
+    {
+      "name": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "path": "originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "hash_md5": "1a65b67020ced7fc602d67a21e5d0385",
+      "hash_sha256": "65d057604d87d9dd4ab63aebf3b46d88635fc9dba37c62d54ee242f0fd2e0e93",
+      "size": 275225
+    },
+    {
+      "name": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "path": "originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+      "hash_sha256": "b62b796fef1495c9aa3ca01106fecb66ff14a988acef9b75c98eab67e1d679e7",
+      "size": 1910610
+    },
+    {
+      "name": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "path": "originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "hash_md5": "6c505edd5c742734342dd1a397611244",
+      "hash_sha256": "4568203a3533a31a4c6176b0fd9d2dae4d040fdbf25e2e1f06c064dd9da9b56e",
+      "size": 103633
+    },
+    {
+      "name": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-07/a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "hash_sha256": "7c79f94f3c46ccc2227155a50fa2c9a46d56254750709fc4ff35621ec8b8cab2",
+      "size": 59784
+    },
+    {
+      "name": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+      "hash_sha256": "7e1e97f28fa9e6ee59df6441f72219c58b31a718f0e4ad740850b80887aded7a",
+      "size": 61507
+    },
+    {
+      "name": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "path": "originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "hash_md5": "0b3f93f1dff5b8ccbba1626caced6bc7",
+      "hash_sha256": "b62b796fef1495c9aa3ca01106fecb66ff14a988acef9b75c98eab67e1d679e7",
+      "size": 1910610
+    },
+    {
+      "name": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "hash_sha256": "e176a3ebfc957467aec9b6cd447aedc11c7dc52b97c557bc3fb2eb6fcf7a3609",
+      "size": 70292
+    },
+    {
+      "name": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "path": "originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "hash_md5": "e173a199ae35dfa38ba8cd7ae4443935",
+      "hash_sha256": "d70c181a903fe24787c6e458cd36f0cc4673a472fb8f1ad2a82453f1bc74fbbf",
+      "size": 148574
+    },
+    {
+      "name": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "hash_sha256": "7c79f94f3c46ccc2227155a50fa2c9a46d56254750709fc4ff35621ec8b8cab2",
+      "size": 59784
+    },
+    {
+      "name": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "path": "originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-07/eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "hash_md5": "53f71baac7bce041381ad37142986afc",
+      "hash_sha256": "f1049f177d8aabffcd1df817f75282bb3dbda3865216cf8cf0e4f55f88e06e86",
+      "size": 169988
+    }
+  ]
+}

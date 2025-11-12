@@ -225,50 +225,50 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
         {/* WYSIWYG 모드에서만 표시되는 툴바 */}
         {viewMode === 'wysiwyg' && (
           <>
-            <ToolbarButton 
-              label="↶" 
-              onClick={() => editor.chain().focus().undo().run()} 
-            />
-            <ToolbarButton 
-              label="↷" 
-              onClick={() => editor.chain().focus().redo().run()} 
-            />
-            <div className="w-px h-6 bg-gray-300 mx-1"></div>
-            <ToolbarButton label="B" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
-            <ToolbarButton label="I" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
-            <ToolbarButton label="H2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
-            {/* 안정화 단계: 링크/테이블 등은 후속 브랜치에서 재도입 */}
-            <ToolbarButton
-              label="대표로"
-              active={editor.isActive('image')}
-              onClick={() => {
-                if (!editor.isActive('image')) {
-                  alert('이미지를 선택한 후 사용하세요.');
-                  return;
-                }
-                try {
-                  const attrs: any = editor.getAttributes('image') || {};
-                  const url = attrs?.src;
-                  if (url && typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('tiptap:set-featured-image', { detail: { url } }));
-                  }
-                } catch {}
-              }}
-            />
-            <ToolbarButton
-              label="🖼️"
-              onClick={() => {
-                // 현재 커서 위치를 저장하고 갤러리 모달 열기
-                if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('tiptap:open-gallery', { 
-                    detail: { 
-                      cursorPosition: editor.state.selection.from,
-                      editor: editor 
-                    } 
-                  }));
-                }
-              }}
-            />
+        <ToolbarButton 
+          label="↶" 
+          onClick={() => editor.chain().focus().undo().run()} 
+        />
+        <ToolbarButton 
+          label="↷" 
+          onClick={() => editor.chain().focus().redo().run()} 
+        />
+        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+        <ToolbarButton label="B" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
+        <ToolbarButton label="I" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
+        <ToolbarButton label="H2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
+        {/* 안정화 단계: 링크/테이블 등은 후속 브랜치에서 재도입 */}
+        <ToolbarButton
+          label="대표로"
+          active={editor.isActive('image')}
+          onClick={() => {
+            if (!editor.isActive('image')) {
+              alert('이미지를 선택한 후 사용하세요.');
+              return;
+            }
+            try {
+              const attrs: any = editor.getAttributes('image') || {};
+              const url = attrs?.src;
+              if (url && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('tiptap:set-featured-image', { detail: { url } }));
+              }
+            } catch {}
+          }}
+        />
+        <ToolbarButton
+          label="🖼️"
+          onClick={() => {
+            // 현재 커서 위치를 저장하고 갤러리 모달 열기
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('tiptap:open-gallery', { 
+                detail: { 
+                  cursorPosition: editor.state.selection.from,
+                  editor: editor 
+                } 
+              }));
+            }
+          }}
+        />
           </>
         )}
       </div>
@@ -276,7 +276,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
       {/* 뷰 모드에 따른 컨텐츠 표시 */}
       <div className="p-3">
         {viewMode === 'wysiwyg' && (
-          <EditorContent editor={editor} />
+        <EditorContent editor={editor} />
         )}
         
         {viewMode === 'markdown' && (

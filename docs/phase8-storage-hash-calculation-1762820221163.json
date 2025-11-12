@@ -1,0 +1,153 @@
+{
+  "timestamp": "2025-11-11T00:17:01.161Z",
+  "folderPath": "originals/campaigns/2025-06",
+  "summary": {
+    "totalFiles": 10,
+    "filesWithHash": 9,
+    "duplicateGroups": 1,
+    "totalDuplicates": 2,
+    "filesWithoutMetadata": 7
+  },
+  "duplicateGroups": [
+    {
+      "hash_md5": "012d20313a372b81b829980541b48a9b",
+      "count": 2,
+      "files": [
+        {
+          "name": "2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+          "path": "originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+          "hash_md5": "012d20313a372b81b829980541b48a9b",
+          "hash_sha256": "4c76e51360290b7b60d77149d7a0e2c63acc30804c816b7fa97252438e598d60",
+          "size": 213426
+        },
+        {
+          "name": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+          "path": "originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+          "hash_md5": "012d20313a372b81b829980541b48a9b",
+          "hash_sha256": "4c76e51360290b7b60d77149d7a0e2c63acc30804c816b7fa97252438e598d60",
+          "size": 213426
+        }
+      ]
+    }
+  ],
+  "filesWithoutMetadata": [
+    {
+      "name": "4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "path": "originals/campaigns/2025-06/4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "hash_md5": "b67e657bf9005d2122d27193da89802e"
+    },
+    {
+      "name": "4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-06/4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e"
+    },
+    {
+      "name": "8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "path": "originals/campaigns/2025-06/8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "hash_md5": "8e6809edd240fc966962544ce157aff5"
+    },
+    {
+      "name": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "path": "originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "hash_md5": "012d20313a372b81b829980541b48a9b"
+    },
+    {
+      "name": "99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-06/99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592"
+    },
+    {
+      "name": "a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "path": "originals/campaigns/2025-06/a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "hash_md5": "dae6aa6517c27a0a5673b1952aebe8d4"
+    },
+    {
+      "name": "dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-06/dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b"
+    }
+  ],
+  "allFiles": [
+    {
+      "name": "2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+      "path": "originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/2674dcd4-2dac-4c86-a4b6-68d2a86ece0a-titanium-face-22mm.jpg",
+      "hash_md5": "012d20313a372b81b829980541b48a9b",
+      "hash_sha256": "4c76e51360290b7b60d77149d7a0e2c63acc30804c816b7fa97252438e598d60",
+      "size": 213426
+    },
+    {
+      "name": "4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "path": "originals/campaigns/2025-06/4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg",
+      "hash_md5": "b67e657bf9005d2122d27193da89802e",
+      "hash_sha256": "5050e96f0e4e640d019f24e56ef27421c90d0da37c9ab2ca801caee19d2261a2",
+      "size": 195474
+    },
+    {
+      "name": "4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-06/4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "hash_sha256": "e176a3ebfc957467aec9b6cd447aedc11c7dc52b97c557bc3fb2eb6fcf7a3609",
+      "size": 70292
+    },
+    {
+      "name": "8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "path": "originals/campaigns/2025-06/8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4",
+      "hash_md5": "8e6809edd240fc966962544ce157aff5",
+      "hash_sha256": "f699b3ad7e61118b76b3484dce3ff9df8bd6d8bf5f6287bd0d6a4ab3ae6904f6",
+      "size": 5517711
+    },
+    {
+      "name": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "path": "originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg",
+      "hash_md5": "012d20313a372b81b829980541b48a9b",
+      "hash_sha256": "4c76e51360290b7b60d77149d7a0e2c63acc30804c816b7fa97252438e598d60",
+      "size": 213426
+    },
+    {
+      "name": "99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-06/99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "hash_sha256": "7c79f94f3c46ccc2227155a50fa2c9a46d56254750709fc4ff35621ec8b8cab2",
+      "size": 59784
+    },
+    {
+      "name": "a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "path": "originals/campaigns/2025-06/a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg",
+      "hash_md5": "dae6aa6517c27a0a5673b1952aebe8d4",
+      "hash_sha256": "803120ae75f54a5f0b255aa4b4e08487e0e93913fc9d71dd40ca7fdb0e513527",
+      "size": 243521
+    },
+    {
+      "name": "c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+      "path": "originals/campaigns/2025-06/c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/c149bb4e-c3ea-4de1-9209-c2d4f9d1191a-golden-time-golfer-story.mp4",
+      "hash_md5": "0952646527ebc153e10a74980072e1fd",
+      "hash_sha256": "ea54e101b34fe3287ccb08dab33f92c7508a166f465db72e136889ba7cb9cb14",
+      "size": 27371148
+    },
+    {
+      "name": "dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-06/dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-06/dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg",
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+      "hash_sha256": "7e1e97f28fa9e6ee59df6441f72219c58b31a718f0e4ad740850b80887aded7a",
+      "size": 61507
+    }
+  ]
+}

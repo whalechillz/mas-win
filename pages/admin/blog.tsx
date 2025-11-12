@@ -5700,17 +5700,17 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                       수정
                     </button>
                   )}
-                  <button
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingPost(null);
-                      setEditingPostId(null);
-                      setActiveTab('list');
-                    }}
-                    className="text-gray-500 hover:text-gray-700 text-sm"
-                  >
-                    ✕ 닫기
-                  </button>
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingPost(null);
+                    setEditingPostId(null);
+                    setActiveTab('list');
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  ✕ 닫기
+                </button>
                 </div>
                 </div>
 

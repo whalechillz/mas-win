@@ -1,0 +1,611 @@
+{
+  "timestamp": "2025-11-11T00:20:44.661Z",
+  "folderPath": "originals/campaigns/2025-09",
+  "summary": {
+    "totalFiles": 39,
+    "filesWithHash": 39,
+    "duplicateGroups": 3,
+    "totalDuplicates": 6,
+    "filesWithoutMetadata": 36
+  },
+  "duplicateGroups": [
+    {
+      "hash_md5": "5ebb21278e2298291208f6bab0c5c279",
+      "count": 2,
+      "files": [
+        {
+          "name": "1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+          "path": "originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+          "hash_md5": "5ebb21278e2298291208f6bab0c5c279",
+          "hash_sha256": "44f54dadb1b2e83e1c48cd9e345623e75ddc5c1532ea4ebc844cc4c67a621f15",
+          "size": 89087
+        },
+        {
+          "name": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+          "path": "originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+          "hash_md5": "5ebb21278e2298291208f6bab0c5c279",
+          "hash_sha256": "44f54dadb1b2e83e1c48cd9e345623e75ddc5c1532ea4ebc844cc4c67a621f15",
+          "size": 89087
+        }
+      ]
+    },
+    {
+      "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+      "count": 2,
+      "files": [
+        {
+          "name": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+          "path": "originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+          "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+          "hash_sha256": "8ee759d0bfaa4bffa9ea1e098f834e02686747c1eb588edd5ea96aa2218a2cd1",
+          "size": 109128
+        },
+        {
+          "name": "cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+          "path": "originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+          "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+          "hash_sha256": "8ee759d0bfaa4bffa9ea1e098f834e02686747c1eb588edd5ea96aa2218a2cd1",
+          "size": 109128
+        }
+      ]
+    },
+    {
+      "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+      "count": 2,
+      "files": [
+        {
+          "name": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+          "path": "originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+          "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+          "hash_sha256": "325c0a82cc3b850cf37f1ba7f895c585c378b21bd1149f6bdc31753fa90d75e6",
+          "size": 25383
+        },
+        {
+          "name": "f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+          "path": "originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+          "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+          "hash_sha256": "325c0a82cc3b850cf37f1ba7f895c585c378b21bd1149f6bdc31753fa90d75e6",
+          "size": 25383
+        }
+      ]
+    }
+  ],
+  "filesWithoutMetadata": [
+    {
+      "name": "02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "path": "originals/campaigns/2025-09/02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "hash_md5": "4f5164b98c7c7d761589f1b6157646b8"
+    },
+    {
+      "name": "16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "path": "originals/campaigns/2025-09/16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "hash_md5": "02e4c0503a1afe5b96ac51ba7fd59672"
+    },
+    {
+      "name": "1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "path": "originals/campaigns/2025-09/1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "hash_md5": "2e0c05900726015e307c148b140df530"
+    },
+    {
+      "name": "2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "path": "originals/campaigns/2025-09/2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "hash_md5": "edbdb3bcc3698f0326c05971adaf19ed"
+    },
+    {
+      "name": "28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "path": "originals/campaigns/2025-09/28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "hash_md5": "9f234dc5a98af7662110f07e1f7080f4"
+    },
+    {
+      "name": "42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "path": "originals/campaigns/2025-09/42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "hash_md5": "e59a910cf0e11b6373554f16c5a05f97"
+    },
+    {
+      "name": "4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "path": "originals/campaigns/2025-09/4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "hash_md5": "6dcbaae11a3bdd8de81ee300d6f5d8bc"
+    },
+    {
+      "name": "51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "path": "originals/campaigns/2025-09/51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "hash_md5": "eac197ae5c8eb15516f4fa1943dc555b"
+    },
+    {
+      "name": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "path": "originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f"
+    },
+    {
+      "name": "62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "path": "originals/campaigns/2025-09/62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "hash_md5": "478fd6c30534a97a2e5520208cf502da"
+    },
+    {
+      "name": "6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "path": "originals/campaigns/2025-09/6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "hash_md5": "4110740ea661e9fdf8492f998274e237"
+    },
+    {
+      "name": "71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "path": "originals/campaigns/2025-09/71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "hash_md5": "29eae0dcf6a27931c6d735484831f905"
+    },
+    {
+      "name": "74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "path": "originals/campaigns/2025-09/74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "hash_md5": "8702e3834c5ee06a94cfabf09a7bd318"
+    },
+    {
+      "name": "819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "path": "originals/campaigns/2025-09/819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "hash_md5": "2a781366f75f972b0df62e6acce4eeee"
+    },
+    {
+      "name": "83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "path": "originals/campaigns/2025-09/83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "hash_md5": "6fce10c3cc8dc3fd3b228dbb82540762"
+    },
+    {
+      "name": "8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "path": "originals/campaigns/2025-09/8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "hash_md5": "066215d04e9060f8d921a188e276ddec"
+    },
+    {
+      "name": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "path": "originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "hash_md5": "5ebb21278e2298291208f6bab0c5c279"
+    },
+    {
+      "name": "8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "path": "originals/campaigns/2025-09/8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "hash_md5": "c4516d3b1c88b89d02e2f4c335266423"
+    },
+    {
+      "name": "9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "path": "originals/campaigns/2025-09/9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "hash_md5": "318eaa800b247ccc093eb5b48fe33ee5"
+    },
+    {
+      "name": "95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "path": "originals/campaigns/2025-09/95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "hash_md5": "90966a7f3fc6d87b51e6b7583f2c25db"
+    },
+    {
+      "name": "a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "path": "originals/campaigns/2025-09/a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "hash_md5": "e9ad265c4119fa6f7aef8d41f41668bd"
+    },
+    {
+      "name": "a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "path": "originals/campaigns/2025-09/a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "hash_md5": "826dac55313c7d377a972aba1f73a6cd"
+    },
+    {
+      "name": "a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "path": "originals/campaigns/2025-09/a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "hash_md5": "5b7fedab70ad009e978953e5473d0f4c"
+    },
+    {
+      "name": "b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "path": "originals/campaigns/2025-09/b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "hash_md5": "f532e7e8099cb4d19d80abaf456f2f25"
+    },
+    {
+      "name": "b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "path": "originals/campaigns/2025-09/b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "hash_md5": "16a5b0ff34c9ca7ca9125587472662a6"
+    },
+    {
+      "name": "b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "path": "originals/campaigns/2025-09/b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "hash_md5": "00d3d6ee36de981a25bb131b7bf03a17"
+    },
+    {
+      "name": "ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "path": "originals/campaigns/2025-09/ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "hash_md5": "03b939437c14e77ed87730af33c5bcb9"
+    },
+    {
+      "name": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "path": "originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "hash_md5": "2a8329b8186ff589562b7ded993879dd"
+    },
+    {
+      "name": "cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "path": "originals/campaigns/2025-09/cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "hash_md5": "28689afa69dfe4e7f9afc36e87171441"
+    },
+    {
+      "name": "d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "path": "originals/campaigns/2025-09/d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "hash_md5": "e7c7cf62f9fa91c8584dcf507f7b582b"
+    },
+    {
+      "name": "d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "path": "originals/campaigns/2025-09/d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "hash_md5": "f5e482e63a30d6211428e659f351fc6b"
+    },
+    {
+      "name": "e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "path": "originals/campaigns/2025-09/e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "hash_md5": "30c113452614655608fb7296fe226a9d"
+    },
+    {
+      "name": "e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "path": "originals/campaigns/2025-09/e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "hash_md5": "ba95f627d31bbd0dbd4ec2d19a4b4281"
+    },
+    {
+      "name": "ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "path": "originals/campaigns/2025-09/ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "hash_md5": "e114aff6d05ab015359070f856d1a38f"
+    },
+    {
+      "name": "f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "path": "originals/campaigns/2025-09/f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "hash_md5": "3e94228606300c0c2b64c6963681e217"
+    },
+    {
+      "name": "fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "path": "originals/campaigns/2025-09/fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "hash_md5": "5d184907d978b8c46082a2e152ad81ff"
+    }
+  ],
+  "allFiles": [
+    {
+      "name": "02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "path": "originals/campaigns/2025-09/02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg",
+      "hash_md5": "4f5164b98c7c7d761589f1b6157646b8",
+      "hash_sha256": "58e16135df1ca7ef2c723cd8392738d8a9530212dcf9852d8d0afbdab541f51b",
+      "size": 1157882
+    },
+    {
+      "name": "16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "path": "originals/campaigns/2025-09/16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg",
+      "hash_md5": "02e4c0503a1afe5b96ac51ba7fd59672",
+      "hash_sha256": "64f27d9b244915f648e6bce08db497dcae870e030f66d8a8ae849df315d0be8c",
+      "size": 938020
+    },
+    {
+      "name": "1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+      "path": "originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/1988faa6-41b7-4352-8169-b7ea15c906a0-premiumgolfshaftdetail1200x800.jpg",
+      "hash_md5": "5ebb21278e2298291208f6bab0c5c279",
+      "hash_sha256": "44f54dadb1b2e83e1c48cd9e345623e75ddc5c1532ea4ebc844cc4c67a621f15",
+      "size": 89087
+    },
+    {
+      "name": "1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "path": "originals/campaigns/2025-09/1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg",
+      "hash_md5": "2e0c05900726015e307c148b140df530",
+      "hash_sha256": "08ab5d37629c1ec250939eea3500f967aa9c6f44e03a346089a4fe8f1bff68fb",
+      "size": 78035
+    },
+    {
+      "name": "2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "path": "originals/campaigns/2025-09/2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg",
+      "hash_md5": "edbdb3bcc3698f0326c05971adaf19ed",
+      "hash_sha256": "72a99379078a0ce2ca43b25c2586518740be10852130cdcad8558e54b6e5cfe2",
+      "size": 606810
+    },
+    {
+      "name": "28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "path": "originals/campaigns/2025-09/28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg",
+      "hash_md5": "9f234dc5a98af7662110f07e1f7080f4",
+      "hash_sha256": "3c09305860beaa140fc2562bf64b3c575d5f0008467b0e885a1190d3affd6bf5",
+      "size": 114337
+    },
+    {
+      "name": "42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "path": "originals/campaigns/2025-09/42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg",
+      "hash_md5": "e59a910cf0e11b6373554f16c5a05f97",
+      "hash_sha256": "8bdb7e4c38bd69c45473946678a5a11d8b2bb598c5f10f5f75ef133fed32f72f",
+      "size": 99417
+    },
+    {
+      "name": "4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "path": "originals/campaigns/2025-09/4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg",
+      "hash_md5": "6dcbaae11a3bdd8de81ee300d6f5d8bc",
+      "hash_sha256": "ed123dc1c016caab2911a735c848f9926a4066129ca6b3e0f590f461aa39d8ed",
+      "size": 421087
+    },
+    {
+      "name": "51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "path": "originals/campaigns/2025-09/51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg",
+      "hash_md5": "eac197ae5c8eb15516f4fa1943dc555b",
+      "hash_sha256": "fbf141f9832c46fc9dbbe5e9d2065b987be0a40fd9b930f632014575f88d1cc6",
+      "size": 490416
+    },
+    {
+      "name": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "path": "originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg",
+      "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+      "hash_sha256": "8ee759d0bfaa4bffa9ea1e098f834e02686747c1eb588edd5ea96aa2218a2cd1",
+      "size": 109128
+    },
+    {
+      "name": "62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "path": "originals/campaigns/2025-09/62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg",
+      "hash_md5": "478fd6c30534a97a2e5520208cf502da",
+      "hash_sha256": "6e2d234dcd22522a3e0b56407afde486855b93c3cc207bcdf57755660f9efba8",
+      "size": 40616
+    },
+    {
+      "name": "6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "path": "originals/campaigns/2025-09/6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp",
+      "hash_md5": "4110740ea661e9fdf8492f998274e237",
+      "hash_sha256": "b6393fc05b95d3310ef2999095ee426d2adc652e11e99b60ec1146fca5dd1947",
+      "size": 46018
+    },
+    {
+      "name": "71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "path": "originals/campaigns/2025-09/71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp",
+      "hash_md5": "29eae0dcf6a27931c6d735484831f905",
+      "hash_sha256": "97e66d2d11d958e26044b1fed7d095ce9787326dae4f4e761d1316632f576fe6",
+      "size": 40790
+    },
+    {
+      "name": "74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "path": "originals/campaigns/2025-09/74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg",
+      "hash_md5": "8702e3834c5ee06a94cfabf09a7bd318",
+      "hash_sha256": "fa5d4a8824775321f3b7a01d3cf71c204bbd1eeb01a4409ef0739fe06c705036",
+      "size": 617327
+    },
+    {
+      "name": "819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "path": "originals/campaigns/2025-09/819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg",
+      "hash_md5": "2a781366f75f972b0df62e6acce4eeee",
+      "hash_sha256": "249cfabd5fe076133865e492ad3c6d3a33b51f1b6eeb1805914f1950533211bf",
+      "size": 69711
+    },
+    {
+      "name": "83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "path": "originals/campaigns/2025-09/83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png",
+      "hash_md5": "6fce10c3cc8dc3fd3b228dbb82540762",
+      "hash_sha256": "a5ddfd3a55bebbf84d768f3af50e62440302ecbf097d25568aa7abede8d1b6b1",
+      "size": 3945
+    },
+    {
+      "name": "8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "path": "originals/campaigns/2025-09/8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg",
+      "hash_md5": "066215d04e9060f8d921a188e276ddec",
+      "hash_sha256": "bee5931a77ce862035d368d0f6ccda44ff31b8c22123da8840310e8aee70e6a8",
+      "size": 543207
+    },
+    {
+      "name": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "path": "originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+      "hash_md5": "5ebb21278e2298291208f6bab0c5c279",
+      "hash_sha256": "44f54dadb1b2e83e1c48cd9e345623e75ddc5c1532ea4ebc844cc4c67a621f15",
+      "size": 89087
+    },
+    {
+      "name": "8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "path": "originals/campaigns/2025-09/8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg",
+      "hash_md5": "c4516d3b1c88b89d02e2f4c335266423",
+      "hash_sha256": "768ab9f9ee467d912d86467c64e6351f6ca3bccc99158a786fe45aa413062ebe",
+      "size": 135830
+    },
+    {
+      "name": "9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "path": "originals/campaigns/2025-09/9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg",
+      "hash_md5": "318eaa800b247ccc093eb5b48fe33ee5",
+      "hash_sha256": "47f9acd925c14f05b166bf92b46cf071cd8f3f3ff1ef7da92cf1d34c854e9f3b",
+      "size": 155243
+    },
+    {
+      "name": "95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "path": "originals/campaigns/2025-09/95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png",
+      "hash_md5": "90966a7f3fc6d87b51e6b7583f2c25db",
+      "hash_sha256": "5e51c7fc758a3b691c1e10947208ff09efcd94fdcb38757964b13dfd762c8ccb",
+      "size": 38874
+    },
+    {
+      "name": "a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "path": "originals/campaigns/2025-09/a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg",
+      "hash_md5": "e9ad265c4119fa6f7aef8d41f41668bd",
+      "hash_sha256": "ee37f58140e6dcc7a8d98320dee824e1d9a3f782a1cbdbcc85d78023b82c05a4",
+      "size": 27601
+    },
+    {
+      "name": "a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "path": "originals/campaigns/2025-09/a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg",
+      "hash_md5": "826dac55313c7d377a972aba1f73a6cd",
+      "hash_sha256": "0cc284fa016af623abad36ed84422341747a5bf14a5b337553417f2348dc3213",
+      "size": 98958
+    },
+    {
+      "name": "a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "path": "originals/campaigns/2025-09/a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg",
+      "hash_md5": "5b7fedab70ad009e978953e5473d0f4c",
+      "hash_sha256": "e51da64f4a56d73f83e67e0ae240d32d82323145f433f546c3b6783f34c6c485",
+      "size": 136730
+    },
+    {
+      "name": "b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "path": "originals/campaigns/2025-09/b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg",
+      "hash_md5": "f532e7e8099cb4d19d80abaf456f2f25",
+      "hash_sha256": "28ce556e5a842b447cb1f85298235de1fc4f35d9575c7f8d8dcb5da6e2b3e416",
+      "size": 302916
+    },
+    {
+      "name": "b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "path": "originals/campaigns/2025-09/b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg",
+      "hash_md5": "16a5b0ff34c9ca7ca9125587472662a6",
+      "hash_sha256": "1c3e4f45db09b47e8a756453ffe0a7641a0da5ec1e89d8f9a55418ad1562b143",
+      "size": 124469
+    },
+    {
+      "name": "b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "path": "originals/campaigns/2025-09/b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png",
+      "hash_md5": "00d3d6ee36de981a25bb131b7bf03a17",
+      "hash_sha256": "a3f56c7f0d3707d4ea61787d3a2d8b57597f049d16ba655ec97bb96452690a80",
+      "size": 53244
+    },
+    {
+      "name": "ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "path": "originals/campaigns/2025-09/ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg",
+      "hash_md5": "03b939437c14e77ed87730af33c5bcb9",
+      "hash_sha256": "8c2a71e155d7a50b9d1036f57082ef30ac0f36eb04f5ab9d2e1d562b58e2021e",
+      "size": 606066
+    },
+    {
+      "name": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "path": "originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg",
+      "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+      "hash_sha256": "325c0a82cc3b850cf37f1ba7f895c585c378b21bd1149f6bdc31753fa90d75e6",
+      "size": 25383
+    },
+    {
+      "name": "cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+      "path": "originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+      "hash_md5": "c5fce55b58404a19e7c181e39eb0ec1f",
+      "hash_sha256": "8ee759d0bfaa4bffa9ea1e098f834e02686747c1eb588edd5ea96aa2218a2cd1",
+      "size": 109128
+    },
+    {
+      "name": "cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "path": "originals/campaigns/2025-09/cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp",
+      "hash_md5": "28689afa69dfe4e7f9afc36e87171441",
+      "hash_sha256": "4b2ef488759a679144bb73870f324314b3716988efa14295be9098220b189dca",
+      "size": 48946
+    },
+    {
+      "name": "d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "path": "originals/campaigns/2025-09/d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp",
+      "hash_md5": "e7c7cf62f9fa91c8584dcf507f7b582b",
+      "hash_sha256": "ceee1210691c371f2742b7325e0baf85c09a54b032b3fa8e3ce4f2307262964f",
+      "size": 30210
+    },
+    {
+      "name": "d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "path": "originals/campaigns/2025-09/d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/d1f56422-a347-4def-a435-63d54ecd4777-background3.png",
+      "hash_md5": "f5e482e63a30d6211428e659f351fc6b",
+      "hash_sha256": "62be0e31c0bf665713cdc35973484bb31fbe82f0cae1aad50918b068fed7de9b",
+      "size": 80646
+    },
+    {
+      "name": "e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "path": "originals/campaigns/2025-09/e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg",
+      "hash_md5": "30c113452614655608fb7296fe226a9d",
+      "hash_sha256": "45637103ef5994f13a7a29836f4c881d26a6c7b0b78fa21fff2713cf7b1b0b40",
+      "size": 49484
+    },
+    {
+      "name": "e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "path": "originals/campaigns/2025-09/e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg",
+      "hash_md5": "ba95f627d31bbd0dbd4ec2d19a4b4281",
+      "hash_sha256": "5cc6a60daacf1f48c10f336840d87f3e126c3230f7c109b2d76b04b7da52716b",
+      "size": 95403
+    },
+    {
+      "name": "ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "path": "originals/campaigns/2025-09/ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp",
+      "hash_md5": "e114aff6d05ab015359070f856d1a38f",
+      "hash_sha256": "7d6bda276b4f3cf8c159b6a6e746e127a3e1d43fe80c7b43541da20647f308c1",
+      "size": 52098
+    },
+    {
+      "name": "f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "path": "originals/campaigns/2025-09/f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png",
+      "hash_md5": "3e94228606300c0c2b64c6963681e217",
+      "hash_sha256": "24ef88909e007de71541e3c47d971d66ac5b262330da872b701d2a535f8afba2",
+      "size": 234540
+    },
+    {
+      "name": "f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+      "path": "originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+      "hash_md5": "2a8329b8186ff589562b7ded993879dd",
+      "hash_sha256": "325c0a82cc3b850cf37f1ba7f895c585c378b21bd1149f6bdc31753fa90d75e6",
+      "size": 25383
+    },
+    {
+      "name": "fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "path": "originals/campaigns/2025-09/fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-09/fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg",
+      "hash_md5": "5d184907d978b8c46082a2e152ad81ff",
+      "hash_sha256": "482f02077fb9812732ead4abf34a5768e29eb9ff7d9f002ff0bc2e56dfd0fc2e",
+      "size": 1644264
+    }
+  ]
+}

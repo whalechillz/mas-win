@@ -1,0 +1,1027 @@
+{
+  "timestamp": "2025-11-10T14:18:34.689Z",
+  "localImages": {
+    "total": 91,
+    "months": [
+      {
+        "month": "2025-05",
+        "count": 10
+      },
+      {
+        "month": "2025-06",
+        "count": 9
+      },
+      {
+        "month": "2025-07",
+        "count": 9
+      },
+      {
+        "month": "2025-08",
+        "count": 19
+      },
+      {
+        "month": "2025-09",
+        "count": 36
+      },
+      {
+        "month": "common",
+        "count": 8
+      }
+    ],
+    "images": [
+      {
+        "path": "2025-05/couple_golf_round_1080x1350.jpg",
+        "name": "couple_golf_round_1080x1350.jpg",
+        "size": 67308,
+        "extension": ".jpg",
+        "hash": "6c4eab35f382f295fc9f9aa1e475f7b1"
+      },
+      {
+        "path": "2025-05/family_golf_playing_1080x1350.jpg",
+        "name": "family_golf_playing_1080x1350.jpg",
+        "size": 97771,
+        "extension": ".jpg",
+        "hash": "6cb50611504b32c1bc6499b3495a7f19"
+      },
+      {
+        "path": "2025-05/father_son_teeoff_package_1080x1350.jpg",
+        "name": "father_son_teeoff_package_1080x1350.jpg",
+        "size": 100387,
+        "extension": ".jpg",
+        "hash": "acfa46d679ec830e486f12ba608e44c1"
+      },
+      {
+        "path": "2025-05/fitting_experience_coupon.jpg",
+        "name": "fitting_experience_coupon.jpg",
+        "size": 75740,
+        "extension": ".jpg",
+        "hash": "095b86f3e918b79516cce345e4b4d519"
+      },
+      {
+        "path": "2025-05/golfer_avatar_512x512_01.jpg",
+        "name": "golfer_avatar_512x512_01.jpg",
+        "size": 70292,
+        "extension": ".jpg",
+        "hash": "7cf2327913f275f6d70a2dcb8aa5795e"
+      },
+      {
+        "path": "2025-05/golfer_avatar_512x512_02.jpg",
+        "name": "golfer_avatar_512x512_02.jpg",
+        "size": 61507,
+        "extension": ".jpg",
+        "hash": "a627cf9c8ad65c02684d54ff6727698b"
+      },
+      {
+        "path": "2025-05/golfer_avatar_512x512_03.jpg",
+        "name": "golfer_avatar_512x512_03.jpg",
+        "size": 59784,
+        "extension": ".jpg",
+        "hash": "c217618f7c7cbd55ce09fb118509e592"
+      },
+      {
+        "path": "2025-05/hero_father_son_golf_1080x1920.jpg",
+        "name": "hero_father_son_golf_1080x1920.jpg",
+        "size": 117491,
+        "extension": ".jpg",
+        "hash": "20de15a4644221175bb79bdbd99c4989"
+      },
+      {
+        "path": "2025-05/senior_golfer_smiling_1080x1350.jpg",
+        "name": "senior_golfer_smiling_1080x1350.jpg",
+        "size": 71026,
+        "extension": ".jpg",
+        "hash": "231e6b79f625846a029423ee26041bee"
+      },
+      {
+        "path": "2025-05/senior_golfer_swinging_1080x1350.jpg",
+        "name": "senior_golfer_swinging_1080x1350.jpg",
+        "size": 48133,
+        "extension": ".jpg",
+        "hash": "a7abe92ca75f92f7707c9c25f035e7e8"
+      },
+      {
+        "path": "2025-06/fitting-session-golden-hour.jpeg",
+        "name": "fitting-session-golden-hour.jpeg",
+        "size": 243521,
+        "extension": ".jpeg",
+        "hash": "dae6aa6517c27a0a5673b1952aebe8d4"
+      },
+      {
+        "path": "2025-06/golden-time-golfer-story.mp4",
+        "name": "golden-time-golfer-story.mp4",
+        "size": 27371148,
+        "extension": ".mp4",
+        "hash": "0952646527ebc153e10a74980072e1fd"
+      },
+      {
+        "path": "2025-06/golden-time-senior-golfer.jpeg",
+        "name": "golden-time-senior-golfer.jpeg",
+        "size": 195474,
+        "extension": ".jpeg",
+        "hash": "b67e657bf9005d2122d27193da89802e"
+      },
+      {
+        "path": "2025-06/golfer_avatar_512x512_01.jpg",
+        "name": "golfer_avatar_512x512_01.jpg",
+        "size": 70292,
+        "extension": ".jpg",
+        "hash": "7cf2327913f275f6d70a2dcb8aa5795e"
+      },
+      {
+        "path": "2025-06/golfer_avatar_512x512_02.jpg",
+        "name": "golfer_avatar_512x512_02.jpg",
+        "size": 61507,
+        "extension": ".jpg",
+        "hash": "a627cf9c8ad65c02684d54ff6727698b"
+      },
+      {
+        "path": "2025-06/golfer_avatar_512x512_03.jpg",
+        "name": "golfer_avatar_512x512_03.jpg",
+        "size": 59784,
+        "extension": ".jpg",
+        "hash": "c217618f7c7cbd55ce09fb118509e592"
+      },
+      {
+        "path": "2025-06/premium-golf-lifestyle.jpeg",
+        "name": "premium-golf-lifestyle.jpeg",
+        "size": 132785,
+        "extension": ".jpeg",
+        "hash": "1b1f0642380eb6e1203411c444961dec"
+      },
+      {
+        "path": "2025-06/primetime-golfer-daily.mp4",
+        "name": "primetime-golfer-daily.mp4",
+        "size": 5517711,
+        "extension": ".mp4",
+        "hash": "8e6809edd240fc966962544ce157aff5"
+      },
+      {
+        "path": "2025-06/titanium-face-2.2mm.jpg",
+        "name": "titanium-face-2.2mm.jpg",
+        "size": 213426,
+        "extension": ".jpg",
+        "hash": "012d20313a372b81b829980541b48a9b"
+      },
+      {
+        "path": "2025-07/SALUTE21-01.jpg",
+        "name": "SALUTE21-01.jpg",
+        "size": 103633,
+        "extension": ".jpg",
+        "hash": "6c505edd5c742734342dd1a397611244"
+      },
+      {
+        "path": "2025-07/SALUTE21-02.png",
+        "name": "SALUTE21-02.png",
+        "size": 1910610,
+        "extension": ".png",
+        "hash": "0b3f93f1dff5b8ccbba1626caced6bc7"
+      },
+      {
+        "path": "2025-07/cooling-sleeves.jpg",
+        "name": "cooling-sleeves.jpg",
+        "size": 174403,
+        "extension": ".jpg",
+        "hash": "8fb97f4e969b8170de47152f3453996c"
+      },
+      {
+        "path": "2025-07/cooling-towel.jpeg",
+        "name": "cooling-towel.jpeg",
+        "size": 275225,
+        "extension": ".jpeg",
+        "hash": "1a65b67020ced7fc602d67a21e5d0385"
+      },
+      {
+        "path": "2025-07/golfer_avatar_512x512_01.jpg",
+        "name": "golfer_avatar_512x512_01.jpg",
+        "size": 70292,
+        "extension": ".jpg",
+        "hash": "7cf2327913f275f6d70a2dcb8aa5795e"
+      },
+      {
+        "path": "2025-07/golfer_avatar_512x512_02.jpg",
+        "name": "golfer_avatar_512x512_02.jpg",
+        "size": 61507,
+        "extension": ".jpg",
+        "hash": "a627cf9c8ad65c02684d54ff6727698b"
+      },
+      {
+        "path": "2025-07/golfer_avatar_512x512_03.jpg",
+        "name": "golfer_avatar_512x512_03.jpg",
+        "size": 59784,
+        "extension": ".jpg",
+        "hash": "c217618f7c7cbd55ce09fb118509e592"
+      },
+      {
+        "path": "2025-07/hero-summer-golf-mas-wide.jpg",
+        "name": "hero-summer-golf-mas-wide.jpg",
+        "size": 169988,
+        "extension": ".jpg",
+        "hash": "53f71baac7bce041381ad37142986afc"
+      },
+      {
+        "path": "2025-07/hero-summer-golf-mas.jpg",
+        "name": "hero-summer-golf-mas.jpg",
+        "size": 148574,
+        "extension": ".jpg",
+        "hash": "e173a199ae35dfa38ba8cd7ae4443935"
+      },
+      {
+        "path": "2025-08/bleu-de-chanel-1024.png",
+        "name": "bleu-de-chanel-1024.png",
+        "size": 1801280,
+        "extension": ".png",
+        "hash": "76249d6c1c5aa32917c5c96e5c461345"
+      },
+      {
+        "path": "2025-08/bleu-de-chanel-640x480.jpg",
+        "name": "bleu-de-chanel-640x480.jpg",
+        "size": 66001,
+        "extension": ".jpg",
+        "hash": "655762457a24e104eead77964c96ac84"
+      },
+      {
+        "path": "2025-08/chanel-perfume-1024x1024.png",
+        "name": "chanel-perfume-1024x1024.png",
+        "size": 1397563,
+        "extension": ".png",
+        "hash": "19c27930c81a40657d5580e9af8cc809"
+      },
+      {
+        "path": "2025-08/chanel-perfume-teasor1.mp4",
+        "name": "chanel-perfume-teasor1.mp4",
+        "size": 2427476,
+        "extension": ".mp4",
+        "hash": "18315db0a23a3198a38919f4da222455"
+      },
+      {
+        "path": "2025-08/chanel-perfume-teasor2.mp4",
+        "name": "chanel-perfume-teasor2.mp4",
+        "size": 8932213,
+        "extension": ".mp4",
+        "hash": "2cb13bb4236178f1cfdd03bebb70a7c5"
+      },
+      {
+        "path": "2025-08/dior-sauvage-1024.png",
+        "name": "dior-sauvage-1024.png",
+        "size": 1669116,
+        "extension": ".png",
+        "hash": "d9173573cf2a3d1453925bba293e2141"
+      },
+      {
+        "path": "2025-08/dior-sauvagee-640x480.jpg",
+        "name": "dior-sauvagee-640x480.jpg",
+        "size": 70428,
+        "extension": ".jpg",
+        "hash": "c31c40f903d813ff3c17b97c6d1f24f2"
+      },
+      {
+        "path": "2025-08/hero-image-1-face.jpg",
+        "name": "hero-image-1-face.jpg",
+        "size": 27601,
+        "extension": ".jpg",
+        "hash": "e9ad265c4119fa6f7aef8d41f41668bd"
+      },
+      {
+        "path": "2025-08/hero-image-2-face.jpg",
+        "name": "hero-image-2-face.jpg",
+        "size": 49484,
+        "extension": ".jpg",
+        "hash": "30c113452614655608fb7296fe226a9d"
+      },
+      {
+        "path": "2025-08/hero-image-3-face.jpg",
+        "name": "hero-image-3-face.jpg",
+        "size": 40616,
+        "extension": ".jpg",
+        "hash": "478fd6c30534a97a2e5520208cf502da"
+      },
+      {
+        "path": "2025-08/hero1.mp4",
+        "name": "hero1.mp4",
+        "size": 8443387,
+        "extension": ".mp4",
+        "hash": "e4b6fdbeb559b00d777a4809ef7bfe5c"
+      },
+      {
+        "path": "2025-08/hero2-1080x1920.jpg",
+        "name": "hero2-1080x1920.jpg",
+        "size": 307278,
+        "extension": ".jpg",
+        "hash": "ed512e9b15db31b6b64d86e2c06cb628"
+      },
+      {
+        "path": "2025-08/hero2.mp4",
+        "name": "hero2.mp4",
+        "size": 9075662,
+        "extension": ".mp4",
+        "hash": "2650f2b38ee3c026a11c7e2c5abefd2e"
+      },
+      {
+        "path": "2025-08/mainvisual.mp4",
+        "name": "mainvisual.mp4",
+        "size": 9543602,
+        "extension": ".mp4",
+        "hash": "24d2d848a7c6191132ea0e5edcdd645a"
+      },
+      {
+        "path": "2025-08/perfume-duo-1024.png",
+        "name": "perfume-duo-1024.png",
+        "size": 1654641,
+        "extension": ".png",
+        "hash": "db232340cc9563575f9e58451e7a44cb"
+      },
+      {
+        "path": "2025-08/perfume-duo-640x480.jpg",
+        "name": "perfume-duo-640x480.jpg",
+        "size": 83260,
+        "extension": ".jpg",
+        "hash": "53a4c2b3bc32c3fbc0fbb33ec736914d"
+      },
+      {
+        "path": "2025-08/sunbed-1080x1920.jpg",
+        "name": "sunbed-1080x1920.jpg",
+        "size": 339842,
+        "extension": ".jpg",
+        "hash": "4d96f93740212026f85db510330e683c"
+      },
+      {
+        "path": "2025-08/sunbed.mp4",
+        "name": "sunbed.mp4",
+        "size": 9861848,
+        "extension": ".mp4",
+        "hash": "d52c0c9d60eddf26fba06c16085e751b"
+      },
+      {
+        "path": "2025-08/waterproof-pouch-640x480.png",
+        "name": "waterproof-pouch-640x480.png",
+        "size": 320349,
+        "extension": ".png",
+        "hash": "484f41254533129954e80b674320544d"
+      },
+      {
+        "path": "2025-09/2025-09-bg.jpeg",
+        "name": "2025-09-bg.jpeg",
+        "size": 1157882,
+        "extension": ".jpeg",
+        "hash": "4f5164b98c7c7d761589f1b6157646b8"
+      },
+      {
+        "path": "2025-09/background3.png",
+        "name": "background3.png",
+        "size": 80646,
+        "extension": ".png",
+        "hash": "f5e482e63a30d6211428e659f351fc6b"
+      },
+      {
+        "path": "2025-09/benefit-1.png",
+        "name": "benefit-1.png",
+        "size": 38874,
+        "extension": ".png",
+        "hash": "90966a7f3fc6d87b51e6b7583f2c25db"
+      },
+      {
+        "path": "2025-09/benefit-2.png",
+        "name": "benefit-2.png",
+        "size": 53244,
+        "extension": ".png",
+        "hash": "00d3d6ee36de981a25bb131b7bf03a17"
+      },
+      {
+        "path": "2025-09/driver_impact_1200x800.jpg",
+        "name": "driver_impact_1200x800.jpg",
+        "size": 109128,
+        "extension": ".jpg",
+        "hash": "c5fce55b58404a19e7c181e39eb0ec1f"
+      },
+      {
+        "path": "2025-09/hero-image-1-face.jpg",
+        "name": "hero-image-1-face.jpg",
+        "size": 27601,
+        "extension": ".jpg",
+        "hash": "e9ad265c4119fa6f7aef8d41f41668bd"
+      },
+      {
+        "path": "2025-09/hero-image-2-face.jpg",
+        "name": "hero-image-2-face.jpg",
+        "size": 49484,
+        "extension": ".jpg",
+        "hash": "30c113452614655608fb7296fe226a9d"
+      },
+      {
+        "path": "2025-09/hero-image-3-face.jpg",
+        "name": "hero-image-3-face.jpg",
+        "size": 40616,
+        "extension": ".jpg",
+        "hash": "478fd6c30534a97a2e5520208cf502da"
+      },
+      {
+        "path": "2025-09/hero-image-green-01.jpg",
+        "name": "hero-image-green-01.jpg",
+        "size": 124469,
+        "extension": ".jpg",
+        "hash": "16a5b0ff34c9ca7ca9125587472662a6"
+      },
+      {
+        "path": "2025-09/hero-image-green-02.jpg",
+        "name": "hero-image-green-02.jpg",
+        "size": 95403,
+        "extension": ".jpg",
+        "hash": "ba95f627d31bbd0dbd4ec2d19a4b4281"
+      },
+      {
+        "path": "2025-09/hero-image-green-03.jpg",
+        "name": "hero-image-green-03.jpg",
+        "size": 99417,
+        "extension": ".jpg",
+        "hash": "e59a910cf0e11b6373554f16c5a05f97"
+      },
+      {
+        "path": "2025-09/hero-image-green-04.jpg",
+        "name": "hero-image-green-04.jpg",
+        "size": 114337,
+        "extension": ".jpg",
+        "hash": "9f234dc5a98af7662110f07e1f7080f4"
+      },
+      {
+        "path": "2025-09/hero-image-green-face-01.jpg",
+        "name": "hero-image-green-face-01.jpg",
+        "size": 69711,
+        "extension": ".jpg",
+        "hash": "2a781366f75f972b0df62e6acce4eeee"
+      },
+      {
+        "path": "2025-09/hero-image-green-face-02.jpg",
+        "name": "hero-image-green-face-02.jpg",
+        "size": 78035,
+        "extension": ".jpg",
+        "hash": "2e0c05900726015e307c148b140df530"
+      },
+      {
+        "path": "2025-09/hero-image-green-face-03.jpg",
+        "name": "hero-image-green-face-03.jpg",
+        "size": 136730,
+        "extension": ".jpg",
+        "hash": "5b7fedab70ad009e978953e5473d0f4c"
+      },
+      {
+        "path": "2025-09/hero-image-green-face-04.jpg",
+        "name": "hero-image-green-face-04.jpg",
+        "size": 98958,
+        "extension": ".jpg",
+        "hash": "826dac55313c7d377a972aba1f73a6cd"
+      },
+      {
+        "path": "2025-09/masgolf-logo.png",
+        "name": "masgolf-logo.png",
+        "size": 3945,
+        "extension": ".png",
+        "hash": "6fce10c3cc8dc3fd3b228dbb82540762"
+      },
+      {
+        "path": "2025-09/massgoo-review.jpg",
+        "name": "massgoo-review.jpg",
+        "size": 302916,
+        "extension": ".jpg",
+        "hash": "f532e7e8099cb4d19d80abaf456f2f25"
+      },
+      {
+        "path": "2025-09/massgooball-gift.jpg",
+        "name": "massgooball-gift.jpg",
+        "size": 1644264,
+        "extension": ".jpg",
+        "hash": "5d184907d978b8c46082a2e152ad81ff"
+      },
+      {
+        "path": "2025-09/premium_golf_shaft_detail_1200x800.jpg",
+        "name": "premium_golf_shaft_detail_1200x800.jpg",
+        "size": 89087,
+        "extension": ".jpg",
+        "hash": "5ebb21278e2298291208f6bab0c5c279"
+      },
+      {
+        "path": "2025-09/secret-force-gold-2.jpg",
+        "name": "secret-force-gold-2.jpg",
+        "size": 606066,
+        "extension": ".jpg",
+        "hash": "03b939437c14e77ed87730af33c5bcb9"
+      },
+      {
+        "path": "2025-09/secret-force-gold-2.webp",
+        "name": "secret-force-gold-2.webp",
+        "size": 52098,
+        "extension": ".webp",
+        "hash": "e114aff6d05ab015359070f856d1a38f"
+      },
+      {
+        "path": "2025-09/secret-force-pro3.jpg",
+        "name": "secret-force-pro3.jpg",
+        "size": 606810,
+        "extension": ".jpg",
+        "hash": "edbdb3bcc3698f0326c05971adaf19ed"
+      },
+      {
+        "path": "2025-09/secret-force-pro3.webp",
+        "name": "secret-force-pro3.webp",
+        "size": 46018,
+        "extension": ".webp",
+        "hash": "4110740ea661e9fdf8492f998274e237"
+      },
+      {
+        "path": "2025-09/secret-force-v3.jpg",
+        "name": "secret-force-v3.jpg",
+        "size": 490416,
+        "extension": ".jpg",
+        "hash": "eac197ae5c8eb15516f4fa1943dc555b"
+      },
+      {
+        "path": "2025-09/secret-force-v3.webp",
+        "name": "secret-force-v3.webp",
+        "size": 40790,
+        "extension": ".webp",
+        "hash": "29eae0dcf6a27931c6d735484831f905"
+      },
+      {
+        "path": "2025-09/secret-weapon-4-1.jpg",
+        "name": "secret-weapon-4-1.jpg",
+        "size": 617327,
+        "extension": ".jpg",
+        "hash": "8702e3834c5ee06a94cfabf09a7bd318"
+      },
+      {
+        "path": "2025-09/secret-weapon-4-1.webp",
+        "name": "secret-weapon-4-1.webp",
+        "size": 48946,
+        "extension": ".webp",
+        "hash": "28689afa69dfe4e7f9afc36e87171441"
+      },
+      {
+        "path": "2025-09/secret-weapon-black.jpg",
+        "name": "secret-weapon-black.jpg",
+        "size": 543207,
+        "extension": ".jpg",
+        "hash": "066215d04e9060f8d921a188e276ddec"
+      },
+      {
+        "path": "2025-09/secret-weapon-black.webp",
+        "name": "secret-weapon-black.webp",
+        "size": 30210,
+        "extension": ".webp",
+        "hash": "e7c7cf62f9fa91c8584dcf507f7b582b"
+      },
+      {
+        "path": "2025-09/titanium_club_face_1200x800.jpg",
+        "name": "titanium_club_face_1200x800.jpg",
+        "size": 25383,
+        "extension": ".jpg",
+        "hash": "2a8329b8186ff589562b7ded993879dd"
+      },
+      {
+        "path": "2025-09/vip-consultation-modern.jpg",
+        "name": "vip-consultation-modern.jpg",
+        "size": 421087,
+        "extension": ".jpg",
+        "hash": "6dcbaae11a3bdd8de81ee300d6f5d8bc"
+      },
+      {
+        "path": "2025-09/vip-discount-modern.jpg",
+        "name": "vip-discount-modern.jpg",
+        "size": 135830,
+        "extension": ".jpg",
+        "hash": "c4516d3b1c88b89d02e2f4c335266423"
+      },
+      {
+        "path": "2025-09/vip-swing-analysis-modern.jpg",
+        "name": "vip-swing-analysis-modern.jpg",
+        "size": 155243,
+        "extension": ".jpg",
+        "hash": "318eaa800b247ccc093eb5b48fe33ee5"
+      },
+      {
+        "path": "2025-09/warranty-card.jpg",
+        "name": "warranty-card.jpg",
+        "size": 938020,
+        "extension": ".jpg",
+        "hash": "02e4c0503a1afe5b96ac51ba7fd59672"
+      },
+      {
+        "path": "2025-09/whiskey-gift.png",
+        "name": "whiskey-gift.png",
+        "size": 234540,
+        "extension": ".png",
+        "hash": "3e94228606300c0c2b64c6963681e217"
+      },
+      {
+        "path": "common/products/driver_impact_1200x800.jpg",
+        "name": "driver_impact_1200x800.jpg",
+        "size": 109128,
+        "extension": ".jpg",
+        "hash": "c5fce55b58404a19e7c181e39eb0ec1f"
+      },
+      {
+        "path": "common/products/premium_golf_shaft_detail_1200x800.jpg",
+        "name": "premium_golf_shaft_detail_1200x800.jpg",
+        "size": 89087,
+        "extension": ".jpg",
+        "hash": "5ebb21278e2298291208f6bab0c5c279"
+      },
+      {
+        "path": "common/products/secret-force-gold-2.jpg",
+        "name": "secret-force-gold-2.jpg",
+        "size": 606066,
+        "extension": ".jpg",
+        "hash": "03b939437c14e77ed87730af33c5bcb9"
+      },
+      {
+        "path": "common/products/secret-force-pro3.jpg",
+        "name": "secret-force-pro3.jpg",
+        "size": 606810,
+        "extension": ".jpg",
+        "hash": "edbdb3bcc3698f0326c05971adaf19ed"
+      },
+      {
+        "path": "common/products/secret-force-v3.jpg",
+        "name": "secret-force-v3.jpg",
+        "size": 490416,
+        "extension": ".jpg",
+        "hash": "eac197ae5c8eb15516f4fa1943dc555b"
+      },
+      {
+        "path": "common/products/secret-weapon-4-1.jpg",
+        "name": "secret-weapon-4-1.jpg",
+        "size": 617327,
+        "extension": ".jpg",
+        "hash": "8702e3834c5ee06a94cfabf09a7bd318"
+      },
+      {
+        "path": "common/products/secret-weapon-black.jpg",
+        "name": "secret-weapon-black.jpg",
+        "size": 543207,
+        "extension": ".jpg",
+        "hash": "066215d04e9060f8d921a188e276ddec"
+      },
+      {
+        "path": "common/products/titanium_club_face_1200x800.jpg",
+        "name": "titanium_club_face_1200x800.jpg",
+        "size": 25383,
+        "extension": ".jpg",
+        "hash": "2a8329b8186ff589562b7ded993879dd"
+      }
+    ]
+  },
+  "htmlImages": {
+    "total": 54,
+    "paths": [
+      "/campaigns/2025-05/senior_golfer_smiling_1080x1350.jpg",
+      "/campaigns/2025-05/senior_golfer_swinging_1080x1350.jpg",
+      "/campaigns/common/products/titanium_club_face_1200x800.jpg",
+      "/campaigns/common/products/driver_impact_1200x800.jpg",
+      "/campaigns/common/products/premium_golf_shaft_detail_1200x800.jpg",
+      "/campaigns/2025-05/father_son_teeoff_package_1080x1350.jpg",
+      "/campaigns/2025-05/family_golf_playing_1080x1350.jpg",
+      "/campaigns/2025-05/couple_golf_round_1080x1350.jpg",
+      "/campaigns/2025-05/golfer_avatar_512x512_01.jpg",
+      "/campaigns/2025-05/golfer_avatar_512x512_02.jpg",
+      "/campaigns/2025-05/golfer_avatar_512x512_03.jpg",
+      "/campaigns/2025-05/fitting_experience_coupon.jpg",
+      "/campaigns/2025-06/titanium-face-2.2mm.jpg",
+      "/campaigns/2025-06/golfer_avatar_512x512_01.jpg",
+      "/campaigns/2025-06/golfer_avatar_512x512_02.jpg",
+      "/campaigns/2025-06/golfer_avatar_512x512_03.jpg",
+      "/campaigns/2025-06/golden-time-senior-golfer.jpeg",
+      "/campaigns/2025-06/golden-time-golfer-story.mp4",
+      "/campaigns/2025-07/hero-summer-golf-mas.jpg",
+      "/campaigns/2025-07/golfer_avatar_512x512_01.jpg",
+      "/campaigns/2025-07/golfer_avatar_512x512_02.jpg",
+      "/campaigns/2025-07/golfer_avatar_512x512_03.jpg",
+      "/campaigns/2025-07/cooling-towel.jpeg",
+      "/campaigns/2025-07/cooling-sleeves.jpg",
+      "/campaigns/2025-07/SALUTE21-01.jpg",
+      "/campaigns/2025-07/SALUTE21-02.png",
+      "/campaigns/2025-08/waterproof-pouch-640x480.png",
+      "/campaigns/2025-08/sunbed-1080x1920.jpg",
+      "/campaigns/2025-08/hero-image-1-face.jpg",
+      "/campaigns/2025-08/hero-image-2-face.jpg",
+      "/campaigns/2025-08/hero-image-3-face.jpg",
+      "/campaigns/common/products/secret-weapon-black.jpg",
+      "/campaigns/2025-08/bleu-de-chanel-640x480.jpg",
+      "/campaigns/common/products/secret-force-pro3.jpg",
+      "/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+      "/campaigns/common/products/secret-force-v3.jpg",
+      "/campaigns/2025-08/mainvisual.mp4",
+      "../campaigns/2025-09/masgolf-logo.png",
+      "../campaigns/2025-09/benefit-1.png",
+      "../campaigns/2025-09/benefit-2.png",
+      "../campaigns/2025-09/whiskey-gift.png",
+      "../campaigns/2025-09/warranty-card.jpg",
+      "../campaigns/2025-09/vip-swing-analysis-modern.jpg",
+      "../campaigns/2025-09/massgooball-gift.jpg",
+      "../campaigns/2025-09/vip-consultation-modern.jpg",
+      "../campaigns/2025-09/vip-discount-modern.jpg",
+      "../campaigns/2025-09/secret-force-gold-2.webp",
+      "../campaigns/2025-09/secret-weapon-black.webp",
+      "../campaigns/2025-09/secret-weapon-4-1.webp",
+      "../campaigns/2025-09/hero-image-green-face-01.jpg",
+      "../campaigns/2025-09/hero-image-green-face-02.jpg",
+      "../campaigns/2025-09/hero-image-green-face-03.jpg",
+      "../campaigns/2025-09/massgoo-review.jpg",
+      "../campaigns/2025-09/2025-09-bg.jpeg"
+    ],
+    "byFile": {
+      "funnel-2025-05-live.html": [
+        "/campaigns/2025-05/senior_golfer_smiling_1080x1350.jpg",
+        "/campaigns/2025-05/senior_golfer_swinging_1080x1350.jpg",
+        "/campaigns/common/products/titanium_club_face_1200x800.jpg",
+        "/campaigns/common/products/driver_impact_1200x800.jpg",
+        "/campaigns/common/products/premium_golf_shaft_detail_1200x800.jpg",
+        "/campaigns/2025-05/father_son_teeoff_package_1080x1350.jpg",
+        "/campaigns/2025-05/family_golf_playing_1080x1350.jpg",
+        "/campaigns/2025-05/couple_golf_round_1080x1350.jpg",
+        "/campaigns/2025-05/golfer_avatar_512x512_01.jpg",
+        "/campaigns/2025-05/golfer_avatar_512x512_02.jpg",
+        "/campaigns/2025-05/golfer_avatar_512x512_03.jpg",
+        "/campaigns/2025-05/fitting_experience_coupon.jpg"
+      ],
+      "funnel-2025-06-live.html": [
+        "/campaigns/2025-06/titanium-face-2.2mm.jpg",
+        "/campaigns/common/products/driver_impact_1200x800.jpg",
+        "/campaigns/common/products/premium_golf_shaft_detail_1200x800.jpg",
+        "/campaigns/2025-06/golfer_avatar_512x512_01.jpg",
+        "/campaigns/2025-06/golfer_avatar_512x512_02.jpg",
+        "/campaigns/2025-06/golfer_avatar_512x512_03.jpg",
+        "/campaigns/2025-06/golden-time-senior-golfer.jpeg",
+        "/campaigns/2025-06/golden-time-senior-golfer.jpeg",
+        "/campaigns/2025-06/golden-time-golfer-story.mp4"
+      ],
+      "funnel-2025-07-live.html": [
+        "/campaigns/2025-07/hero-summer-golf-mas.jpg",
+        "/campaigns/2025-07/golfer_avatar_512x512_01.jpg",
+        "/campaigns/2025-07/golfer_avatar_512x512_02.jpg",
+        "/campaigns/2025-07/golfer_avatar_512x512_03.jpg",
+        "/campaigns/2025-07/cooling-towel.jpeg",
+        "/campaigns/2025-07/cooling-sleeves.jpg",
+        "/campaigns/2025-07/SALUTE21-01.jpg",
+        "/campaigns/2025-07/SALUTE21-01.jpg",
+        "/campaigns/2025-07/SALUTE21-02.png"
+      ],
+      "funnel-2025-08-live-a.html": [
+        "/campaigns/2025-08/waterproof-pouch-640x480.png",
+        "/campaigns/2025-08/sunbed-1080x1920.jpg",
+        "/campaigns/2025-08/hero-image-1-face.jpg",
+        "/campaigns/2025-08/hero-image-2-face.jpg",
+        "/campaigns/2025-08/hero-image-3-face.jpg",
+        "/campaigns/common/products/secret-weapon-black.jpg",
+        "/campaigns/2025-08/bleu-de-chanel-640x480.jpg",
+        "/campaigns/common/products/secret-force-pro3.jpg",
+        "/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+        "/campaigns/common/products/secret-force-v3.jpg",
+        "/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+        "/campaigns/2025-08/waterproof-pouch-640x480.png",
+        "/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+        "/campaigns/2025-08/bleu-de-chanel-640x480.jpg",
+        "/campaigns/2025-08/mainvisual.mp4"
+      ],
+      "funnel-2025-08-live-b.html": [
+        "/campaigns/2025-08/hero-image-1-face.jpg",
+        "/campaigns/2025-08/hero-image-2-face.jpg",
+        "/campaigns/2025-08/hero-image-3-face.jpg",
+        "/campaigns/common/products/secret-force-v3.jpg",
+        "/campaigns/common/products/secret-force-pro3.jpg",
+        "/campaigns/common/products/secret-weapon-black.jpg",
+        "/campaigns/2025-08/waterproof-pouch-640x480.png",
+        "/campaigns/2025-08/dior-sauvagee-640x480.jpg",
+        "/campaigns/2025-08/bleu-de-chanel-640x480.jpg",
+        "/campaigns/2025-08/mainvisual.mp4"
+      ],
+      "funnel-2025-09-live.html": [
+        "../campaigns/2025-09/masgolf-logo.png",
+        "../campaigns/2025-09/benefit-1.png",
+        "../campaigns/2025-09/benefit-2.png",
+        "../campaigns/2025-09/whiskey-gift.png",
+        "../campaigns/2025-09/warranty-card.jpg",
+        "../campaigns/2025-09/vip-swing-analysis-modern.jpg",
+        "../campaigns/2025-09/massgooball-gift.jpg",
+        "../campaigns/2025-09/vip-consultation-modern.jpg",
+        "../campaigns/2025-09/vip-discount-modern.jpg",
+        "../campaigns/2025-09/secret-force-gold-2.webp",
+        "../campaigns/2025-09/secret-weapon-black.webp",
+        "../campaigns/2025-09/secret-weapon-4-1.webp",
+        "../campaigns/2025-09/hero-image-green-face-01.jpg",
+        "../campaigns/2025-09/hero-image-green-face-02.jpg",
+        "../campaigns/2025-09/hero-image-green-face-03.jpg",
+        "../campaigns/2025-09/massgoo-review.jpg",
+        "../campaigns/2025-09/2025-09-bg.jpeg"
+      ]
+    }
+  },
+  "blogReferences": [],
+  "duplicates": [
+    {
+      "hash": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "count": 3,
+      "files": [
+        {
+          "path": "2025-05/golfer_avatar_512x512_01.jpg",
+          "size": 70292
+        },
+        {
+          "path": "2025-06/golfer_avatar_512x512_01.jpg",
+          "size": 70292
+        },
+        {
+          "path": "2025-07/golfer_avatar_512x512_01.jpg",
+          "size": 70292
+        }
+      ]
+    },
+    {
+      "hash": "a627cf9c8ad65c02684d54ff6727698b",
+      "count": 3,
+      "files": [
+        {
+          "path": "2025-05/golfer_avatar_512x512_02.jpg",
+          "size": 61507
+        },
+        {
+          "path": "2025-06/golfer_avatar_512x512_02.jpg",
+          "size": 61507
+        },
+        {
+          "path": "2025-07/golfer_avatar_512x512_02.jpg",
+          "size": 61507
+        }
+      ]
+    },
+    {
+      "hash": "c217618f7c7cbd55ce09fb118509e592",
+      "count": 3,
+      "files": [
+        {
+          "path": "2025-05/golfer_avatar_512x512_03.jpg",
+          "size": 59784
+        },
+        {
+          "path": "2025-06/golfer_avatar_512x512_03.jpg",
+          "size": 59784
+        },
+        {
+          "path": "2025-07/golfer_avatar_512x512_03.jpg",
+          "size": 59784
+        }
+      ]
+    },
+    {
+      "hash": "e9ad265c4119fa6f7aef8d41f41668bd",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-08/hero-image-1-face.jpg",
+          "size": 27601
+        },
+        {
+          "path": "2025-09/hero-image-1-face.jpg",
+          "size": 27601
+        }
+      ]
+    },
+    {
+      "hash": "30c113452614655608fb7296fe226a9d",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-08/hero-image-2-face.jpg",
+          "size": 49484
+        },
+        {
+          "path": "2025-09/hero-image-2-face.jpg",
+          "size": 49484
+        }
+      ]
+    },
+    {
+      "hash": "478fd6c30534a97a2e5520208cf502da",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-08/hero-image-3-face.jpg",
+          "size": 40616
+        },
+        {
+          "path": "2025-09/hero-image-3-face.jpg",
+          "size": 40616
+        }
+      ]
+    },
+    {
+      "hash": "c5fce55b58404a19e7c181e39eb0ec1f",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/driver_impact_1200x800.jpg",
+          "size": 109128
+        },
+        {
+          "path": "common/products/driver_impact_1200x800.jpg",
+          "size": 109128
+        }
+      ]
+    },
+    {
+      "hash": "5ebb21278e2298291208f6bab0c5c279",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/premium_golf_shaft_detail_1200x800.jpg",
+          "size": 89087
+        },
+        {
+          "path": "common/products/premium_golf_shaft_detail_1200x800.jpg",
+          "size": 89087
+        }
+      ]
+    },
+    {
+      "hash": "03b939437c14e77ed87730af33c5bcb9",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/secret-force-gold-2.jpg",
+          "size": 606066
+        },
+        {
+          "path": "common/products/secret-force-gold-2.jpg",
+          "size": 606066
+        }
+      ]
+    },
+    {
+      "hash": "edbdb3bcc3698f0326c05971adaf19ed",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/secret-force-pro3.jpg",
+          "size": 606810
+        },
+        {
+          "path": "common/products/secret-force-pro3.jpg",
+          "size": 606810
+        }
+      ]
+    },
+    {
+      "hash": "eac197ae5c8eb15516f4fa1943dc555b",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/secret-force-v3.jpg",
+          "size": 490416
+        },
+        {
+          "path": "common/products/secret-force-v3.jpg",
+          "size": 490416
+        }
+      ]
+    },
+    {
+      "hash": "8702e3834c5ee06a94cfabf09a7bd318",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/secret-weapon-4-1.jpg",
+          "size": 617327
+        },
+        {
+          "path": "common/products/secret-weapon-4-1.jpg",
+          "size": 617327
+        }
+      ]
+    },
+    {
+      "hash": "066215d04e9060f8d921a188e276ddec",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/secret-weapon-black.jpg",
+          "size": 543207
+        },
+        {
+          "path": "common/products/secret-weapon-black.jpg",
+          "size": 543207
+        }
+      ]
+    },
+    {
+      "hash": "2a8329b8186ff589562b7ded993879dd",
+      "count": 2,
+      "files": [
+        {
+          "path": "2025-09/titanium_club_face_1200x800.jpg",
+          "size": 25383
+        },
+        {
+          "path": "common/products/titanium_club_face_1200x800.jpg",
+          "size": 25383
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "success": true,
+  "summary": {
+    "total": 20,
+    "missing": 14,
+    "processed": 14,
+    "success": 0,
+    "failed": 14,
+    "golfCount": 6,
+    "generalCount": 0
+  },
+  "results": [
+    {
+      "name": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    },
+    {
+      "name": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg",
+      "status": "error",
+      "error": "Cannot access 'originalFilename' before initialization"
+    }
+  ]
+}

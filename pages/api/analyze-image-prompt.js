@@ -112,6 +112,31 @@ Return format:
 
   } catch (error) {
     console.error('❌ 이미지 프롬프트 분석 에러:', error);
+    
+    // OpenAI 크레딧 부족 오류 감지
+    const errorCode = error.code || '';
+    const errorMessage = error.message || '';
+    
+    // 크레딧 부족 관련 오류 코드/메시지 확인
+    const isCreditError = 
+      errorCode === 'insufficient_quota' ||
+      errorCode === 'billing_not_active' ||
+      errorMessage.includes('insufficient_quota') ||
+      errorMessage.includes('billing') ||
+      errorMessage.includes('credit') ||
+      errorMessage.includes('payment') ||
+      errorMessage.includes('quota');
+    
+    if (isCreditError) {
+      console.error('💰 OpenAI 크레딧 부족 감지:', errorCode, errorMessage);
+      return res.status(402).json({
+        error: '💰 OpenAI 계정에 크레딧이 부족합니다',
+        details: 'OpenAI 계정에 크레딧을 충전해주세요. https://platform.openai.com/settings/organization/billing/overview',
+        type: 'insufficient_credit',
+        code: errorCode
+      });
+    }
+    
     res.status(500).json({
       error: '이미지 프롬프트 분석 중 오류가 발생했습니다.',
       details: error.message

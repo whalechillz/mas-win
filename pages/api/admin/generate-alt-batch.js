@@ -51,6 +51,30 @@ export default async function handler(req, res) {
     return res.status(200).json({ suggestions });
   } catch (e) {
     console.error('generate-alt-batch error', e);
+    
+    // OpenAI 크레딧 부족 오류 감지
+    const errorCode = e.code || '';
+    const errorMessage = e.message || '';
+    
+    const isCreditError = 
+      errorCode === 'insufficient_quota' ||
+      errorCode === 'billing_not_active' ||
+      errorMessage.includes('insufficient_quota') ||
+      errorMessage.includes('billing') ||
+      errorMessage.includes('credit') ||
+      errorMessage.includes('payment') ||
+      errorMessage.includes('quota');
+    
+    if (isCreditError) {
+      console.error('💰 OpenAI 크레딧 부족 감지:', errorCode, errorMessage);
+      return res.status(402).json({
+        error: '💰 OpenAI 계정에 크레딧이 부족합니다',
+        details: 'OpenAI 계정에 크레딧을 충전해주세요. https://platform.openai.com/settings/organization/billing/overview',
+        type: 'insufficient_credit',
+        code: errorCode
+      });
+    }
+    
     return res.status(500).json({ error: 'Internal error' });
   }
 }

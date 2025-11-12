@@ -1,0 +1,489 @@
+{
+  "storage": {
+    "total": 83,
+    "found": 61,
+    "missing": [
+      {
+        "month": "2025-05",
+        "fileName": "couple_golf_round_1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "family_golf_playing_1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "father_son_teeoff_package_1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "fitting_experience_coupon.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "golfer_avatar_512x512_01.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "golfer_avatar_512x512_02.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "golfer_avatar_512x512_03.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "hero_father_son_golf_1080x1920.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "senior_golfer_smiling_1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "senior_golfer_swinging_1080x1350.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "golfer_avatar_512x512_01.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "golfer_avatar_512x512_02.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "golfer_avatar_512x512_03.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "titanium-face-2.2mm.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "SALUTE21-01.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "SALUTE21-02.png"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "golfer_avatar_512x512_01.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "golfer_avatar_512x512_02.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "golfer_avatar_512x512_03.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "driver_impact_1200x800.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "premium_golf_shaft_detail_1200x800.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "titanium_club_face_1200x800.jpg"
+      }
+    ]
+  },
+  "metadata": {
+    "total": 107,
+    "found": 17,
+    "missing": [
+      {
+        "month": "2025-05",
+        "fileName": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg"
+      },
+      {
+        "month": "2025-05",
+        "fileName": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "17fbf8e7-63de-46c2-ac47-23a425a718de-premium-golf-lifestyle.jpeg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "4a7a2d27-cf65-45c8-9d5b-ede0b9d705d1-golden-time-senior-golfer.jpeg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "4e021a3d-4118-4adf-8595-0576012354a7-golferavatar512x51201.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "8c025e15-582e-470a-a431-5a0f5d48e4ad-primetime-golfer-daily.mp4"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "989d9858-eb34-46e7-a71b-cb4a652ef187-titanium-face-22mm.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "99097095-7219-4250-b110-ddbbaf976b5a-golferavatar512x51203.jpg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "a95f9e51-bd5b-43fc-96ac-3f2f8e2abaef-fitting-session-golden-hour.jpeg"
+      },
+      {
+        "month": "2025-06",
+        "fileName": "dd093084-1d56-4708-9dda-d66bec728bb7-golferavatar512x51202.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "0174f41f-3c0e-4797-a9a4-b2b79a5b70cf-hero-summer-golf-mas.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "105155b8-043e-43f6-8692-b7921ebe77b0-cooling-sleeves.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "5a7107bd-8669-4846-9d1c-f1d59200d766-hero-summer-golf-mas-wide.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "631b59ed-b25e-4c12-b56c-2677f546a06a-cooling-towel.jpeg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "68024556-e4c2-4878-bbdc-def8ae48b4ee-cooling-sleeves.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "8a7cea45-20f9-4968-bf8c-21580d3f6588-cooling-towel.jpeg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "9b502514-e64b-4dc8-b1ef-dde203a3af77-salute21-02.png"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "a1274ccd-1f5e-4ae9-99fc-1096b82a46c5-salute21-01.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "a4cf6778-cd7b-4ad1-85fa-2b31a83db7ed-golferavatar512x51202.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "aaf99ccd-4528-4612-b3b0-e2d18adfb634-salute21-02.png"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "b1f19551-67cc-43d8-8395-70ce4c0001f3-golferavatar512x51201.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "c54e0829-b51a-42c2-9c7d-bd94b3b6f969-hero-summer-golf-mas.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "c7204af4-854d-4ee5-b2f3-c23bb85f1842-golferavatar512x51203.jpg"
+      },
+      {
+        "month": "2025-07",
+        "fileName": "eede47f6-7bec-4b23-b21a-f1bde33a6729-hero-summer-golf-mas-wide.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "000980ba-efb4-47b9-a112-2d3e4b512de6-hero-image-1-face.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "21a35c43-5111-48cd-97d3-3b6d19b3eea6-mainvisual.mp4"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "2333b3a2-adbc-4e98-a992-add900618f75-sunbed.mp4"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "2af16881-5926-4677-a44b-7662063864e2-hero1.mp4"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "3e6cf330-6f47-4f51-b38a-c89e8f8b10ec-hero2.mp4"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "4ba95b64-de58-4431-a8c7-6caccc99354c-hero-image-3-face.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "4c3627d9-7d03-480e-9272-c9a3c64890b2-chanel-perfume-teasor1.mp4"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "4cad9e80-04a1-4bf8-8f79-8567d22ad672-dior-sauvage-1024.png"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "4ee4ff02-16b4-462c-b592-62a92d750a6a-bleu-de-chanel-640x480.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "8ac7fb19-ddfc-4eb5-8422-1563c03cc739-bleu-de-chanel-1024.png"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "a939c669-7bd4-4506-943d-0f293afaffc7-hero-image-2-face.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "ad9c897f-9bc0-4e72-b3e1-b4d12e0f14a5-waterproof-pouch-640x480.png"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "b3335749-bc6f-41f5-90c4-e3660bfd0664-dior-sauvagee-640x480.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "be4edf32-2113-4f8f-9d24-1794713a117c-perfume-duo-1024.png"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "c437cdde-054f-4fb8-974a-395377067dfa-chanel-perfume-1024x1024.png"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "d1b5e243-943f-42d8-9832-c1539d000abc-chanel-perfume-teasor2.mp4"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "e2888bfe-43a8-427d-8015-33380de5833d-perfume-duo-640x480.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "ea7adfd7-63f7-4061-8e02-42f96c356d9f-sunbed-1080x1920.jpg"
+      },
+      {
+        "month": "2025-08",
+        "fileName": "f50144a3-a343-4e28-8adf-8140e4d3280b-hero2-1080x1920.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "02186f24-9f22-4812-bf21-bc487a91dafa-2025-09-bg.jpeg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "16f4c3e7-2235-43e6-b08d-f7757650a392-warranty-card.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "1d4e194b-8a03-4477-bd6c-bc3160a0a17f-hero-image-green-face-02.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "2844030e-cace-4722-b63b-e6f300faa0d7-secret-force-pro3.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "28f07902-be7c-46e5-b719-bf33ba9407da-hero-image-green-04.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "42bc1c8a-4f0e-4fce-bdf2-c038479f753a-hero-image-green-03.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "4d9e72b2-64a9-44b5-83e3-b74971cf7b20-vip-consultation-modern.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "51ccfb95-3863-4338-a8c1-2f05d9563c7b-secret-force-v3.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "5f77f4d2-69e8-46ff-9b75-3a6a78d02bc1-driverimpact1200x800.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "62c9bb04-5aff-4dfe-b38b-ff82c3008e37-hero-image-3-face.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "6dacdb5e-85c7-4f26-a740-307c57187118-secret-force-pro3.webp"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "71d5f2d3-d3c8-451c-90af-ea0515078da6-secret-force-v3.webp"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "74d21ab5-e6fc-4411-8026-e2f3886787fc-secret-weapon-4-1.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "819e0580-36d8-4c43-9d79-357060ef120d-hero-image-green-face-01.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "83e0828b-d840-4ee7-a5a1-17743158eaf3-masgolf-logo.png"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "8aa84d4e-b65b-4792-bb77-ab037165c2eb-secret-weapon-black.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "8d901a78-68d4-44d2-89b8-8de66ede0d6b-vip-discount-modern.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "9518c4e6-d117-46eb-9e80-449d83583771-vip-swing-analysis-modern.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "95806665-bae6-459d-bad9-a74c0723d603-benefit-1.png"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "a04765a1-ac24-487c-b042-a152abe6edc2-hero-image-1-face.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "a2952d73-d883-4528-9f5d-cd9a519c5c2b-hero-image-green-face-04.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "a99ea745-b301-4a3f-b0e0-59a17deda2c3-hero-image-green-face-03.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "b0e7e192-8126-4dee-9bef-9c332610a39b-massgoo-review.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "b1f051a4-8e04-49f5-b409-e9b3f0585b19-hero-image-green-01.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "b6ce4b89-011a-4c36-83e3-f1397cdfad5a-benefit-2.png"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "ba72a84a-2654-4550-a5f2-14f166bb468d-secret-force-gold-2.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "c1751b6b-776a-4a42-84b4-d1741727c0d0-titaniumclubface1200x800.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "cecad8a3-bca1-4249-80e4-8d322908fd03-secret-weapon-4-1.webp"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "d1334e87-88be-49d4-916c-24a212620bbd-secret-weapon-black.webp"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "d1f56422-a347-4def-a435-63d54ecd4777-background3.png"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "e1cc9e9e-9d47-4504-a264-a8d68691188d-hero-image-2-face.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "e312b8ea-091c-47fa-b1bb-25d5ffc0e3dc-hero-image-green-02.jpg"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "ecee61f9-1e96-449a-9c92-1888c51e6cdd-secret-force-gold-2.webp"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "f5103ade-94b8-494d-8e8d-772deeb2215f-whiskey-gift.png"
+      },
+      {
+        "month": "2025-09",
+        "fileName": "fc3aaf42-50bf-495b-88fd-1cad68c8f733-massgooball-gift.jpg"
+      }
+    ]
+  },
+  "html": {
+    "total": 0,
+    "updated": 0,
+    "old": []
+  },
+  "blog": {
+    "total": 1,
+    "updated": 0,
+    "old": [
+      {
+        "postId": 88,
+        "urls": [
+          "/campaigns/2025-07/hero-summer-golf-mas.jpg",
+          "/campaigns/2025-07/SALUTE21-01.jpg",
+          "/campaigns/2025-07/cooling-sleeves.jpg",
+          "/campaigns/2025-07/golfer_avatar_512x512_01.jpg",
+          "/campaigns/2025-07/golfer_avatar_512x512_02.jpg",
+          "/campaigns/2025-07/golfer_avatar_512x512_03.jpg",
+          "/campaigns/2025-07/hero-summer-golf-mas-wide.jpg"
+        ]
+      }
+    ]
+  },
+  "duplicates": {
+    "groups": [],
+    "count": 0
+  }
+}

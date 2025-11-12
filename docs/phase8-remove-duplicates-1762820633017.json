@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-11-11T00:23:53.015Z",
+  "folderPath": "originals/campaigns/2025-07",
+  "dryRun": false,
+  "summary": {
+    "total": 3,
+    "deleted": 3,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": {
+    "deleted": [
+      {
+        "name": "8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+        "path": "originals/campaigns/2025-09/8d177041-d783-476e-bd99-890eac545615-premiumgolfshaftdetail1200x800.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+        "path": "originals/campaigns/2025-09/cb0285e7-1d2a-49bb-a661-ee270bda2005-driverimpact1200x800.jpg",
+        "status": "deleted"
+      },
+      {
+        "name": "f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+        "path": "originals/campaigns/2025-09/f69d198d-d636-46ac-ae28-eab702e81fef-titaniumclubface1200x800.jpg",
+        "status": "deleted"
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  }
+}

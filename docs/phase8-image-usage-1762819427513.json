@@ -1,0 +1,336 @@
+{
+  "timestamp": "2025-11-11T00:03:47.511Z",
+  "folderPath": "originals/campaigns/2025-05",
+  "summary": {
+    "duplicateGroups": 9,
+    "safeToRemove": 9
+  },
+  "usageResults": [
+    {
+      "hash_md5": "20de15a4644221175bb79bdbd99c4989",
+      "files": [
+        {
+          "name": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+          "path": "originals/campaigns/2025-05/3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+          "path": "originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "a7abe92ca75f92f7707c9c25f035e7e8",
+      "files": [
+        {
+          "name": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "files": [
+        {
+          "name": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+          "path": "originals/campaigns/2025-05/43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+          "path": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "files": [
+        {
+          "name": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+          "path": "originals/campaigns/2025-05/52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+          "path": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "acfa46d679ec830e486f12ba608e44c1",
+      "files": [
+        {
+          "name": "55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "095b86f3e918b79516cce345e4b4d519",
+      "files": [
+        {
+          "name": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+          "path": "originals/campaigns/2025-05/61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+          "path": "originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "231e6b79f625846a029423ee26041bee",
+      "files": [
+        {
+          "name": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "a627cf9c8ad65c02684d54ff6727698b",
+      "files": [
+        {
+          "name": "842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+          "path": "originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+          "path": "originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "hash_md5": "6cb50611504b32c1bc6499b3495a7f19",
+      "files": [
+        {
+          "name": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        },
+        {
+          "name": "eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+          "path": "originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+          "usedIn": {
+            "htmlFiles": [],
+            "blogPosts": [],
+            "totalCount": 0
+          }
+        }
+      ]
+    }
+  ],
+  "safeToRemove": [
+    {
+      "name": "ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+      "path": "originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ef582e87-f7b6-4677-a03d-2f6ccbd99367-herofathersongolf1080x1920.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg"
+    },
+    {
+      "name": "81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "path": "originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/81310a5e-9cec-4e4b-9340-329367e249ed-seniorgolferswinging1080x1350.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg"
+    },
+    {
+      "name": "fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "path": "originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/fc4ee87e-df44-4579-a23e-d2bc96c56916-golferavatar512x51201.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg"
+    },
+    {
+      "name": "ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "path": "originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/ec2a65f4-df92-4939-b800-a5d49d2a7846-golferavatar512x51203.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg"
+    },
+    {
+      "name": "aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+      "path": "originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/aea181e6-5311-407f-b575-a8371c74f562-fathersonteeoffpackage1080x1350.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "55529de2-3a6a-4d0b-baa1-c3e00cdfbaf9-fathersonteeoffpackage1080x1350.jpg"
+    },
+    {
+      "name": "62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "path": "originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/62c00b7d-1bd6-4264-9efc-a21e3c75fe70-fittingexperiencecoupon.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg"
+    },
+    {
+      "name": "c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "path": "originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/c6b6b6f7-8767-4b6a-8eb8-984e2a96a7d9-seniorgolfersmiling1080x1350.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg"
+    },
+    {
+      "name": "a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+      "path": "originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/a55fcac4-4587-437c-b279-768d80cd0dfa-golferavatar512x51202.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "842b4045-55b3-4e81-940d-245b51e0801b-golferavatar512x51202.jpg"
+    },
+    {
+      "name": "eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+      "path": "originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/campaigns/2025-05/eb7b04b0-d5f7-449c-bb47-ee5bf5d4d3a6-familygolfplaying1080x1350.jpg",
+      "usedIn": {
+        "htmlFiles": [],
+        "blogPosts": [],
+        "totalCount": 0
+      },
+      "keepFile": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg"
+    }
+  ]
+}

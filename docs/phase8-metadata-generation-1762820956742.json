@@ -1,0 +1,46 @@
+{
+  "success": true,
+  "summary": {
+    "total": 9,
+    "missing": 4,
+    "processed": 4,
+    "success": 1,
+    "failed": 3,
+    "golfCount": 3,
+    "generalCount": 1
+  },
+  "results": [
+    {
+      "name": "056b91b8-39e2-4b64-b99b-83086df0d8a9-golferavatar512x51202.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "24cf0733-9b8a-4b96-8bd0-8e9f17ce7b72-salute21-01.jpg",
+      "status": "success",
+      "hash_md5": "6c505edd5c742734342dd1a397611244",
+      "metadata": {
+        "alt_text": "24cf0733 9b8a 4b96 이미지 - 마스골프",
+        "title": "24cf0733 9b8a 4b96 8bd0 8e9f17ce7b72 salute21 01",
+        "keywords": [
+          "24cf0733",
+          "9b8a",
+          "4b96",
+          "8bd0",
+          "8e9f17ce7b72",
+          "salute21"
+        ]
+      }
+    },
+    {
+      "name": "45533d36-6648-406a-897a-632a6c45b95a-golferavatar512x51201.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    },
+    {
+      "name": "a4c8ef8c-4e34-4ff7-af33-0f0c6abd265b-golferavatar512x51203.jpg",
+      "status": "error",
+      "error": "duplicate key value violates unique constraint \"image_assets_hash_md5_key\""
+    }
+  ]
+}

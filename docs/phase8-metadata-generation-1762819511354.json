@@ -1,0 +1,133 @@
+{
+  "success": true,
+  "summary": {
+    "total": 10,
+    "missing": 7,
+    "processed": 7,
+    "success": 7,
+    "failed": 0,
+    "golfCount": 6,
+    "generalCount": 1
+  },
+  "results": [
+    {
+      "name": "3c264e46-1a9e-4aef-ad42-5caf26777db2-herofathersongolf1080x1920.jpg",
+      "status": "success",
+      "hash_md5": "20de15a4644221175bb79bdbd99c4989",
+      "metadata": {
+        "alt_text": "3c264e46 1a9e 4aef 이미지 - 마스골프",
+        "title": "3c264e46 1a9e 4aef ad42 5caf26777db2 herofathersongolf1080x1920",
+        "keywords": [
+          "3c264e46",
+          "1a9e",
+          "4aef",
+          "ad42",
+          "5caf26777db2",
+          "herofathersongolf1080x1920"
+        ]
+      }
+    },
+    {
+      "name": "4317b9bf-ed4b-42a7-9829-6dcb66b4ed21-seniorgolferswinging1080x1350.jpg",
+      "status": "success",
+      "hash_md5": "a7abe92ca75f92f7707c9c25f035e7e8",
+      "metadata": {
+        "alt_text": "4317b9bf ed4b 42a7 이미지 - 마스골프",
+        "title": "4317b9bf ed4b 42a7 9829 6dcb66b4ed21 seniorgolferswinging1080x1350",
+        "keywords": [
+          "4317b9bf",
+          "ed4b",
+          "42a7",
+          "9829",
+          "6dcb66b4ed21",
+          "seniorgolferswinging1080x1350"
+        ]
+      }
+    },
+    {
+      "name": "43f01a80-0c66-4768-b9d4-01d9c1c57d2c-golferavatar512x51201.jpg",
+      "status": "success",
+      "hash_md5": "7cf2327913f275f6d70a2dcb8aa5795e",
+      "metadata": {
+        "alt_text": "43f01a80 0c66 4768 이미지 - 마스골프",
+        "title": "43f01a80 0c66 4768 b9d4 01d9c1c57d2c golferavatar512x51201",
+        "keywords": [
+          "43f01a80",
+          "0c66",
+          "4768",
+          "b9d4",
+          "01d9c1c57d2c",
+          "golferavatar512x51201"
+        ]
+      }
+    },
+    {
+      "name": "52beeae7-79dc-4292-8e59-6eebcdf2dafe-golferavatar512x51203.jpg",
+      "status": "success",
+      "hash_md5": "c217618f7c7cbd55ce09fb118509e592",
+      "metadata": {
+        "alt_text": "52beeae7 79dc 4292 이미지 - 마스골프",
+        "title": "52beeae7 79dc 4292 8e59 6eebcdf2dafe golferavatar512x51203",
+        "keywords": [
+          "52beeae7",
+          "79dc",
+          "4292",
+          "8e59",
+          "6eebcdf2dafe",
+          "golferavatar512x51203"
+        ]
+      }
+    },
+    {
+      "name": "61a1f1fe-9a92-48ea-ba00-8e5221871975-fittingexperiencecoupon.jpg",
+      "status": "success",
+      "hash_md5": "095b86f3e918b79516cce345e4b4d519",
+      "metadata": {
+        "alt_text": "61a1f1fe 9a92 48ea 이미지 - 마스골프",
+        "title": "61a1f1fe 9a92 48ea ba00 8e5221871975 fittingexperiencecoupon",
+        "keywords": [
+          "61a1f1fe",
+          "9a92",
+          "48ea",
+          "ba00",
+          "8e5221871975",
+          "fittingexperiencecoupon"
+        ]
+      }
+    },
+    {
+      "name": "774490cd-fe49-45fa-a776-de7b29fcac61-seniorgolfersmiling1080x1350.jpg",
+      "status": "success",
+      "hash_md5": "231e6b79f625846a029423ee26041bee",
+      "metadata": {
+        "alt_text": "774490cd fe49 45fa 이미지 - 마스골프",
+        "title": "774490cd fe49 45fa a776 de7b29fcac61 seniorgolfersmiling1080x1350",
+        "keywords": [
+          "774490cd",
+          "fe49",
+          "45fa",
+          "a776",
+          "de7b29fcac61",
+          "seniorgolfersmiling1080x1350"
+        ]
+      }
+    },
+    {
+      "name": "95623535-8661-42c3-acba-00ba7f2d2be0-familygolfplaying1080x1350.jpg",
+      "status": "success",
+      "hash_md5": "6cb50611504b32c1bc6499b3495a7f19",
+      "metadata": {
+        "alt_text": "95623535 8661 42c3 이미지 - 마스골프",
+        "title": "95623535 8661 42c3 acba 00ba7f2d2be0 familygolfplaying1080x1350",
+        "keywords": [
+          "95623535",
+          "8661",
+          "42c3",
+          "acba",
+          "00ba7f2d2be0",
+          "familygolfplaying1080x1350"
+        ]
+      }
+    }
+  ]
+}
