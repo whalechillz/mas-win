@@ -1,6 +1,99 @@
+# 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
+
+## 프로젝트 개요
+**프로젝트 명**: MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
+
+**핵심 기술**:
+- **Self-Adaptive Automation (자기 적응형 자동화)**: Playwright 기반 자동화 스크립트가 실행 중 오류 발생 시 스스로 수정하며 진행
+- **콘텐츠 성과 통합 관리**: 블로그, 유튜브 등 다중 플랫폼 실적 통합 추적 및 관리
+
+**목적**: 
+- 모든 사이트 통합 (masgolf.co.kr, mas9golf.co.kr, MUZIIK)
+- 이미지 및 콘텐츠 마이그레이션
+- 갤러리 고도화 및 중앙 관리
+- 메타데이터 생성 및 관리
+- 블로그 글 품질 개선
+- 고객 콘텐츠 정리 및 관리
+- **콘텐츠 성과 통합 관리 및 분석**
+
+**전체 Phase 구조**:
+- **Phase 0**: Self-Adaptive Automation 및 로깅 시스템 구축 (신규)
+- **Phase 1-5**: 갤러리 고도화 프로젝트 (완료/부분 완료)
+- **Phase 8-11**: 이미지 및 콘텐츠 마이그레이션 프로젝트 (진행 중)
+- **Phase 13**: 콘텐츠 허브 시스템 고도화 및 AI 스케줄 생성기 프로젝트 (진행 중)
+- **Phase 14**: 콘텐츠 성과 통합 관리 시스템 (신규)
+- **Phase 6-7**: 사이트 통합 및 마이그레이션 프로젝트 (후속 작업)
+- **Phase 12**: 고객 콘텐츠 정리 프로젝트 (후속 작업)
+
+**별도 프로젝트**:
+- **마케팅 및 퍼널 관리 프로젝트**: 분석, 구글 광고/애즈 API 연결 등 복잡한 기능 포함 (별도 구성)
+
+---
+
 # 🎯 프로젝트 진행 현황
 
 ## ✅ 최근 완료된 작업 (2025-01-XX)
+
+### Phase 7-3 폴더 구조 사전 생성 ✅
+- **폴더 구조 생성**: 홈페이지/MUZIIK 이미지 갤러리 폴더 구조 사전 생성 완료
+- **생성된 폴더**:
+  - `originals/branding/massgoo/hero/` (MASSGOO 브랜드 히어로 이미지)
+  - `originals/website/homepage/hero/` (홈페이지 히어로 이미지 - 대안)
+  - `originals/branding/muziik/` (MUZIIK 브랜드 이미지)
+- **마커 파일**: 각 폴더에 `.keep.png` 마커 파일 생성 완료
+- **API 개발**: `/api/admin/create-phase7-folders.js` (신규)
+- **스크립트 개발**: `scripts/create-phase7-folders.js` (신규)
+- **변경 파일**:
+  - `pages/api/admin/create-phase7-folders.js` (신규)
+  - `scripts/create-phase7-folders.js` (신규)
+  - `docs/project_plan.md` (Phase 7-3 진행 상황 업데이트)
+
+### 이미지 사용 위치 표시 개선 ✅
+- **UI 표현 개선**: "사용 위치: 6개 (데이터 불일치: 사용 횟수 1회)" → "1회 사용 (6개 위치)"로 심플하게 변경
+- **실제 사용 확인**: Playwright로 실제 페이지 확인 결과, Supabase Storage 이미지는 홈페이지/MUZIIK 페이지에서 사용되지 않음 확인
+- **로직 수정**: `checkHomepageAndMuziikUsage` 함수가 Supabase Storage URL만 확인하도록 수정 (로컬 파일 경로(`/main/`, `/muziik/`)는 실제 사용 여부 확인 불가)
+- **문제 해결**: 잘못된 사용 위치 보고 문제 해결 (로컬 파일 경로와 Supabase Storage 경로 혼동 방지)
+- **변경 파일**:
+  - `pages/admin/gallery.tsx` (UI 표현 개선)
+  - `pages/api/admin/image-usage-tracker.js` (로직 수정)
+
+### OpenAI 크레딧 부족 오류 감지 및 사용자 알림 ✅
+- **크레딧 부족 오류 감지**: OpenAI API 호출 시 `insufficient_quota`, `billing_not_active` 등 크레딧 부족 관련 오류 자동 감지
+- **사용자 친화적 메시지**: 크레딧 부족 시 "💰 OpenAI 계정에 크레딧이 부족합니다" 메시지와 충전 링크 제공
+- **모든 메타데이터 생성 API에 적용**:
+  - `pages/api/analyze-image-prompt.js` (골프 이미지 메타데이터 생성)
+  - `pages/api/analyze-image-general.js` (일반 이미지 메타데이터 생성)
+  - `pages/api/admin/generate-alt-batch.js` (일괄 메타데이터 생성)
+- **프론트엔드 오류 처리**:
+  - `components/ImageMetadataModal/hooks/useAIGeneration.ts` (개별 이미지 메타데이터 생성)
+  - `pages/admin/gallery.tsx` (일괄 메타데이터 생성, SEO/ALT 적용)
+- **변경 파일**:
+  - `pages/api/analyze-image-prompt.js` (크레딧 부족 오류 감지 로직 추가, HTTP 402 상태 코드 반환)
+  - `pages/api/analyze-image-general.js` (크레딧 부족 오류 감지 로직 추가, HTTP 402 상태 코드 반환)
+  - `pages/api/admin/generate-alt-batch.js` (크레딧 부족 오류 감지 로직 추가, HTTP 402 상태 코드 반환)
+  - `components/ImageMetadataModal/hooks/useAIGeneration.ts` (크레딧 부족 오류 메시지 표시)
+  - `pages/admin/gallery.tsx` (일괄 생성 및 SEO/ALT 적용 시 크레딧 부족 오류 처리)
+
+### 퍼널 페이지 이미지 사용 현황 동기화 ✅
+- **퍼널 HTML 파일 스캔 기능 추가**: `public/versions/funnel-*.html` 파일에서 이미지 경로 추출 및 Supabase Storage 이미지와 매칭
+- **폴더 경로 기반 매칭**: 파일명뿐만 아니라 폴더 경로(월)도 확인하여 정확한 매칭 구현
+- **UUID 제거 로직 추가**: `normalizeFileName` 함수에 UUID 패턴 제거 로직 추가하여 정확한 파일명 매칭
+- **갤러리 리스트와 상세 정보 동기화**: `all-images.js`와 `image-usage-tracker.js` 모두 동일한 매칭 로직 사용
+- **7개 퍼널 페이지 확인**: 
+  - `funnel-2025-05-live.html` (12개 이미지)
+  - `funnel-2025-06-live.html` (7개 이미지)
+  - `funnel-2025-07-live.html` (8개 이미지)
+  - `funnel-2025-08-live-a.html` (10개 이미지)
+  - `funnel-2025-08-live-b.html` (9개 이미지)
+  - `funnel-2025-09-live.html` (0개 이미지)
+  - `funnel-2025-10-live.html` (0개 이미지)
+- **Playwright 실제 페이지 확인**: 모든 퍼널 페이지(`/25-05`, `/25-06`, `/25-07`, `/25-08`, `/25-09`)에서 실제 렌더링되는 이미지 확인
+- **변경 파일**:
+  - `pages/api/admin/image-usage-tracker.js` (퍼널 HTML 파일 스캔 기능 추가, `checkFunnelHTMLFiles`, `matchesImageWithPath` 함수 추가, UUID 제거 로직 추가)
+  - `pages/api/admin/all-images.js` (폴더 경로 기반 매칭 추가, `matchesImageWithMonth` 함수 추가, UUID 제거 로직 추가)
+  - `scripts/scan-funnel-pages.js` (신규, 퍼널 페이지 스캔 스크립트)
+  - `scripts/test-funnel-image-usage.js` (신규, Playwright로 실제 페이지 확인)
+  - `scripts/test-image-usage-sync.js` (신규, API 테스트 스크립트)
 
 ### 갤러리 두 가지 변형 방식 구현 ✅
 - **Replicate 변형 방식 (프롬프트 입력 불가, 빠르고 간단)**:
@@ -332,6 +425,7 @@
 - 중복 이미지 그룹 확인 (해시 기반)
 - 안전한 중복 제거 (블로그 연결 이미지 보존)
 - 메타데이터 정리
+- **추가 작업**: 블로그 정비 중 중복 스크래핑 이미지 정리 (Phase 11에서 상세 작업)
 
 #### Phase 5: 프론트엔드 개발 편의성 개선 ✅ (완료)
 - 폴더 트리 네비게이션 구현 (`components/gallery/FolderTree.tsx`)
@@ -340,6 +434,31 @@
 - 이미지 검색 및 필터링 강화
 - 이미지 카드 정보 확장 및 사용 편의성 개선
 - 폴더 트리 UX 개선 (Phase 5 - 1~3)
+
+#### Phase 5-7: 이미지 비교 및 삭제 기능 (신규)
+- [ ] 체크박스 선택 기능 구현
+  - 이미지 카드에 체크박스 추가
+  - 2-3개 이미지 선택 가능
+  - 선택된 이미지 시각적 표시
+- [ ] 비교 모달 구현
+  - 2-3개 이미지 선택 시 "🔍 비교" 버튼 표시
+  - 나란히 비교 뷰 (이미지, 파일명, 크기, 사용 위치)
+  - 파일명 비교 (확장자 제외)
+  - 파일 크기 비교
+  - 사용 위치 비교
+  - 중복 여부 표시
+- [ ] 비교 후 삭제 기능
+  - 중복 이미지 선택 삭제
+  - 사용 중인 이미지 보호 (경고 표시)
+  - 확인 후 삭제 (안전 모드)
+- [ ] API 개발: `/api/admin/compare-images.js` (신규)
+  - 선택된 이미지들의 메타데이터 비교
+  - 중복 여부 판단
+  - 사용 위치 확인
+- [ ] 프론트엔드: 갤러리 페이지에 비교 기능 통합
+  - 체크박스 UI 추가
+  - 비교 모달 컴포넌트 개발
+  - 삭제 확인 다이얼로그
 
 #### 최근 버그 수정 및 개선
 - ✅ 폴더 생성 API mime 오류 수정
@@ -374,8 +493,8 @@
 
 #### 남은 작업
 - ⚠️ Phase 3 미완료: 블로그 글 URL 업데이트 (featured_image, content)
-- ⏳ 이미지 메타데이터 AI 생성 기능 (골프/일반 구분) - 계획 단계
-- ⏳ Phase 6-7: 제품/고객 이미지 정리 (후속 작업)
+- ⏳ 이미지 메타데이터 AI 생성 기능 (골프/일반 구분) - ✅ 완료
+- ⏳ Phase 6-7: 사이트 통합 및 마이그레이션 (재정의됨)
 
 ### 이미지 갤러리 메타데이터 품질 검증 기능 (1단계) ✅
 - **메타데이터 품질 검증 로직 추가** (`pages/api/admin/all-images.js`)
@@ -502,7 +621,17 @@
   - Storage에서 못 찾음: 10개 (1.9%)
   - 외부 URL: 7개 (1.4%)
 
-## 🚀 전체 이미지 및 소스 통합 마이그레이션 계획 (2025-11-10)
+## 🚀 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트 (2025-11-10)
+
+### 프로젝트 개요
+**프로젝트 명**: MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
+
+**목적**: 
+- 모든 사이트 통합 (masgolf.co.kr, mas9golf.co.kr, MUZIIK)
+- 이미지 및 콘텐츠 마이그레이션
+- 갤러리 고도화 및 중앙 관리
+- 메타데이터 생성 및 관리
+- 블로그 글 품질 개선
 
 ### 현재 상황 분석
 
@@ -541,6 +670,39 @@
 7. **깨진 이미지 정비 및 복구**
 8. **이미지를 갤러리 폴더에 제대로 옮기기**
 
+### 전체 프로젝트 구조
+
+#### Phase 1-5: 갤러리 고도화 프로젝트 (완료/부분 완료)
+- Phase 1: 인프라 준비 및 DB 설계 ✅
+- Phase 2: 블로그 이미지 분석 및 분류 ✅
+- Phase 3: 블로그 이미지 마이그레이션 및 메타데이터 동기화 ⚠️ (부분 완료)
+- Phase 4: 중복 이미지 제거 ✅
+- Phase 5: 프론트엔드 개발 편의성 개선 ✅
+
+#### Phase 8-11: 이미지 및 콘텐츠 마이그레이션 프로젝트 (진행 중)
+- Phase 8: 월별 퍼널 이미지 마이그레이션 ⚡
+- Phase 9: 제품 이미지 (MASGOLF) 마이그레이션 ⚡
+- Phase 10: MUZIIK 이미지 및 소스 정리 ⚡
+- Phase 11: 블로그 글 정비 및 이미지 마이그레이션 ⚡
+
+#### Phase 13: 콘텐츠 허브 시스템 고도화 및 AI 스케줄 생성기 프로젝트 (진행 중)
+- 허브시스템 중복 기능 정리 및 삭제
+- 캘린더 형식 뷰 복원 및 통합
+- 콘텐츠 AI 스케줄 생성기 완성
+
+#### Phase 14: 콘텐츠 성과 통합 관리 시스템 (신규)
+- 플랫폼 API 연동 (블로그, 유튜브 등)
+- 성과 데이터 수집 및 저장
+- 성과 분석 및 리포트 생성
+- 댓글 및 좋아요 관리 툴
+
+#### Phase 6-7: 사이트 통합 및 마이그레이션 프로젝트 (후속 작업)
+- Phase 6: mas9golf.co.kr 사이트 통합 및 마이그레이션
+- Phase 7: 마쓰구 홈페이지와 MUZIIK 사이트 콜라보 통합
+
+#### Phase 12: 고객 콘텐츠 정리 프로젝트 (후속 작업)
+- 고객별 사진, 피팅 데이터, 고객 스토리 정리
+
 ### 우선순위: 전체 이미지 통합 마이그레이션
 
 1. **Phase 8: 월별 퍼널 이미지 마이그레이션** (즉시 시작) ⚡
@@ -566,57 +728,327 @@
 5. **Phase 11: 블로그 글 정비 및 이미지 마이그레이션** (우선 작업) ⚡
    - 블로그 글 오타 정비
    - 깨진 이미지 정비 및 복구
+   - 중복 스크래핑 이미지 정리
+   - AI 생성 이미지 정리
    - 이미지를 갤러리 폴더에 제대로 옮기기
    - 블로그 본문 URL 업데이트
 
-6. **Phase 6-7: 고객/기타 이미지 정리** (후속 작업)
-   - 퍼널/제품 이미지 마이그레이션 완료 후 진행
+---
+
+## 🤖 Phase 0: Self-Adaptive Automation 및 로깅 시스템 구축 (신규)
+
+### 목적
+Playwright 기반 자동화 스크립트가 실행 중 오류 발생 시:
+1. 오류 자동 감지 및 분석
+2. 스크립트 자동 수정 (선택적 선택자, 대기 시간 조정 등)
+3. 수정된 스크립트로 재시도
+4. 모든 수정 사항을 로그로 기록
+
+### 0-1. Self-Adaptive Automation 프레임워크 구축 (1주)
+- [ ] 오류 감지 및 분류 시스템
+  - 타임아웃 오류
+  - 요소 찾기 실패
+  - 네트워크 오류
+  - 인증 오류
+- [ ] 자동 수정 로직 구현
+  - 선택자 자동 조정 (다중 선택자 시도)
+  - 대기 시간 자동 조정
+  - 재시도 로직
+- [ ] 수정 이력 로깅 시스템
+  - 수정 전/후 스크립트 비교
+  - 수정 이유 기록
+  - 성공/실패 통계
+
+### 0-2. 기존 Playwright 스크립트 통합 (1주)
+- [ ] `scripts/phase8-run-migration-playwright.js` 통합
+- [ ] 기존 테스트 스크립트들 통합
+- [ ] 공통 오류 처리 모듈 생성
+
+### 0-3. 자동화 실행 및 모니터링 대시보드 (1주)
+- [ ] 자동화 실행 상태 대시보드
+- [ ] 실시간 오류 모니터링
+- [ ] 자동 수정 이력 조회
+
+### 0-4. 작업 로깅 시스템 (1주)
+- [ ] 구조화된 로그 시스템
+  - 작업 단계별 로그
+  - 오류 로그
+  - 성과 로그
+- [ ] 로그 저장소
+  - Supabase 데이터베이스
+  - 파일 시스템 (백업)
+- [ ] 로그 조회 및 검색 기능
+
+### 0-5. 자동 리포트 생성 시스템 (1주)
+- [ ] 리포트 템플릿 설계
+  - 마크다운 기반 리포트
+  - HTML 리포트 (예쁜 디자인)
+  - PDF 리포트 (선택)
+- [ ] 리포트 자동 생성
+  - 작업 완료 시 자동 생성
+  - 주기적 리포트 생성 (일일, 주간, 월간)
+- [ ] 리포트 저장 및 공유
+  - Supabase Storage 저장
+  - 이메일 전송 (선택)
+
+### 구현 계획
+- **프레임워크**: `lib/self-adaptive-automation/` (신규)
+- **API**: `/api/admin/automation-monitor` (신규)
+- **프론트엔드**: 자동화 모니터링 대시보드 (신규)
+- **문서**: `docs/self-adaptive-automation-plan.md` (신규)
+
+### 작업 순서
+1. **1단계**: Self-Adaptive Automation 프레임워크 구축
+2. **2단계**: 기존 Playwright 스크립트 통합
+3. **3단계**: 자동화 실행 및 모니터링 대시보드 개발
+4. **4단계**: 작업 로깅 시스템 구축
+5. **5단계**: 자동 리포트 생성 시스템 구축
+6. **6단계**: 통합 테스트 및 최적화
 
 ---
 
-## 📋 Phase 8: 월별 퍼널 이미지 마이그레이션 (우선 작업) ⚡
+## 📋 Phase 8: 월별 퍼널 이미지 마이그레이션 및 정비 (진행 중) ⚡
 
-### 8-1. 퍼널 이미지 분석 및 수집
-- [ ] 로컬 `/public/campaigns/` 폴더의 모든 이미지 확인
+### 8-1. 퍼널 이미지 분석 및 수집 ✅
+- [x] 로컬 `/public/campaigns/` 폴더의 모든 이미지 확인
   - `2025-05/` (5월 퍼널)
   - `2025-06/` (6월 퍼널)
   - `2025-07/` (7월 퍼널)
   - `2025-08/` (8월 퍼널)
   - `2025-09/` (9월 퍼널)
-- [ ] HTML 파일에서 사용된 이미지 경로 추출
+- [x] HTML 파일에서 사용된 이미지 경로 추출
   - `/versions/funnel-2025-05-live.html`
   - `/versions/funnel-2025-06-live.html`
   - `/versions/funnel-2025-07-live.html`
-  - `/versions/funnel-2025-08-live.html`
+  - `/versions/funnel-2025-08-live-a.html` (A/B 테스트)
+  - `/versions/funnel-2025-08-live-b.html` (A/B 테스트)
   - `/versions/funnel-2025-09-live.html`
-- [ ] 블로그 본문에서 `/campaigns/YYYY-MM/...` 경로로 참조하는 이미지 확인
-- [ ] 중복 이미지 감지 (제품 이미지와 겹치는 경우)
+- [x] 블로그 본문에서 `/campaigns/YYYY-MM/...` 경로로 참조하는 이미지 확인
+- [x] 중복 이미지 감지 (제품 이미지와 겹치는 경우)
 
-### 8-2. Storage 폴더 구조 생성
-- [ ] `originals/campaigns/YYYY-MM/` 폴더 구조 생성
+### 8-2. Storage 폴더 구조 생성 ✅
+- [x] `originals/campaigns/YYYY-MM/` 폴더 구조 생성
   - `originals/campaigns/2025-05/`
   - `originals/campaigns/2025-06/`
   - `originals/campaigns/2025-07/`
   - `originals/campaigns/2025-08/`
   - `originals/campaigns/2025-09/`
 
-### 8-3. 이미지 업로드 및 마이그레이션
-- [ ] 로컬 `/public/campaigns/` 폴더의 이미지를 Supabase Storage로 업로드
-- [ ] 파일명 정리 (UUID + SEO 파일명)
-- [ ] 메타데이터 자동 생성 (골프 AI 생성 일괄 기능 활용)
-- [ ] HTML 파일의 이미지 경로를 Storage URL로 업데이트
-- [ ] 블로그 본문의 이미지 URL 자동 업데이트
+### 8-3. 이미지 업로드 및 마이그레이션 ✅
+- [x] 로컬 `/public/campaigns/` 폴더의 이미지를 Supabase Storage로 업로드 (81개)
+- [x] 파일명 정리 (UUID + SEO 파일명)
+- [ ] 메타데이터 자동 생성 (90개 누락)
+- [x] HTML 파일의 이미지 경로를 Storage URL로 업데이트
+- [ ] 블로그 본문의 이미지 URL 자동 업데이트 (블로그 ID 88, 7개 URL)
 
-### 8-4. 제품 이미지 분리 (선택)
-- [ ] 퍼널 이미지 중 제품 이미지 식별
-- [ ] 제품 이미지는 `originals/products/{product-slug}/`로 이동
-- [ ] 퍼널 이미지는 `originals/campaigns/YYYY-MM/`에 유지
+### 8-4. 5월 퍼널 정비 (진행 중)
+- [ ] 5월 퍼널 HTML 파일 이미지 사용 확인
+- [ ] 5월 퍼널 이미지 중복 감지 (파일명 패턴, hash 기반)
+- [ ] 5월 퍼널 고아 이미지 확인
+- [ ] 5월 퍼널 이미지 메타데이터 생성
+- [ ] 5월 퍼널 안전한 중복 이미지 제거
+
+### 8-5. 9월 퍼널 정비 (진행 중)
+- [ ] 9월 퍼널 HTML 파일 이미지 사용 확인
+- [ ] 9월 퍼널 이미지 중복 감지
+- [ ] 9월 퍼널 고아 이미지 확인
+- [ ] 9월 퍼널 이미지 메타데이터 생성
+- [ ] 9월 퍼널 안전한 중복 이미지 제거
+
+### 8-6. A/B 테스트 파일 정비 (진행 중)
+- [ ] A/B 테스트 HTML 파일 확인 (`funnel-2025-08-live-a.html`, `funnel-2025-08-live-b.html`)
+- [ ] A/B 테스트 파일 중복 이미지 감지
+- [ ] A/B 테스트 파일 고아 이미지 확인
+- [ ] A/B 테스트 파일 안전한 중복 이미지 제거
+
+### 8-7. 고아 이미지 확인 및 정리 (기존 계획)
+- [ ] 모든 퍼널 HTML 파일에서 이미지 사용 현황 추적
+- [ ] 고아 이미지 식별 및 분류
+- [ ] 고아 이미지 정리
+
+### 8-8. 메타데이터 생성 및 보강 (진행 중) ⚡
+- [x] `originals/campaigns/2025-05` 폴더의 중복 이미지 제거 (9개) ✅
+- [x] `originals/campaigns/2025-05` 폴더의 메타데이터 없는 이미지 재생성 (7개) ✅
+- [x] `hash_md5`, `hash_sha256` 자동 계산 및 저장 ✅
+- [ ] 메타데이터 품질 검증
+- [ ] 메타데이터 보강
+
+### 8-9. 중복 로직 확장 및 고도화 (진행 중) ⚡
+
+#### 8-9-1. hash_md5 기반 중복 감지 ✅
+- [x] Storage 파일 다운로드하여 hash_md5 계산 스크립트 개발
+  - `scripts/phase8-calculate-hash-for-storage-files.js` (완료)
+- [x] hash_md5 기반 중복 그룹화
+  - `scripts/phase8-detect-duplicates-by-hash.js` (완료)
+- [x] 중복 감지 결과 리포트 생성
+  - 중복 그룹별 상세 정보 (파일명, 경로, 사용 현황)
+  - `docs/phase8-storage-hash-calculation-*.json` (완료)
+- [x] `originals/campaigns/2025-05` 폴더 중복 감지 완료
+  - 9개 중복 그룹 발견 (18개 파일)
+  - 9개 파일 안전하게 제거 완료 ✅
+
+#### 8-9-2. 안전한 중복 이미지 제거 ✅
+- [x] 이미지 사용 현황 확인 스크립트 개발
+  - `scripts/phase8-check-image-usage.js` (완료)
+  - HTML 파일 사용 확인
+  - 블로그 본문 사용 확인
+  - 퍼널 페이지 사용 확인
+- [x] 안전한 중복 제거 스크립트 개발
+  - `scripts/phase8-remove-duplicates-safe.js` (완료)
+  - 사용 중인 이미지 보존
+  - 사용하지 않는 중복 이미지만 제거
+- [x] `originals/campaigns/2025-05` 폴더 중복 제거 실행 완료 ✅
+  - 9개 중복 파일 제거 완료
+  - Storage 및 DB에서 삭제 완료
+
+#### 8-9-3. pHash 기반 시각적 중복 감지 (우선순위 상향) ⚡
+- [ ] pHash 계산 라이브러리 통합 (`sharp` 사용)
+- [ ] `compare-images.js`에 pHash 유사도 계산 통합
+- [ ] 리사이즈/포맷 변환된 이미지도 감지
+- [ ] 비교 결과에 시각적 유사도 점수 표시 (0-100%)
+- [ ] pHash 중복 감지 결과 리포트 생성
+- [ ] 유사도 임계값 설정 (80% 이상 = 중복 가능성)
+
+#### 8-9-4. GPT Vision 기반 중복 확인 (최후 수단, 선택)
+- [ ] GPT Vision API를 사용한 시각적 유사성 확인
+  - `scripts/phase8-gpt-vision-duplicate-check.js` (신규)
+- [ ] 비용 고려 (이미지당 $0.01~$0.03)
+- [ ] hash_md5, pHash로 해결되지 않는 경우만 사용
+
+#### 8-9-5. 중복 감지 UI 개선
+- [ ] 갤러리 페이지에 중복 감지 결과 표시
+- [ ] 중복 그룹별 시각적 표시
+- [ ] 중복 제거 버튼 추가 (안전 모드)
+
+#### 8-9-6. HTML 파일 이미지 사용 추적 추가 ✅
+- [x] `image-usage-tracker.js`에 HTML 파일 확인 기능 추가
+  - React/Next.js 파일에서 이미지 경로 추출 함수 구현
+  - 홈페이지(`pages/index.js`) 이미지 사용 확인 추가
+  - MUZIIK 페이지(`pages/muziik/*.tsx`) 이미지 사용 확인 추가
+  - 파일명 정규화를 통한 정확한 매칭 (언더스코어, 대소문자 차이 무시)
+- [x] `all-images.js`에서 사용 위치 상세 정보 수집
+  - `used_in` 배열에 블로그, 퍼널, 홈페이지, MUZIIK 사용 정보 포함
+  - `last_used_at` 최근 사용 날짜 계산
+- [x] 갤러리 UI에 사용 위치 상세 표시
+  - 이미지 카드에 "🔗 사용 위치" 섹션 추가
+  - 블로그(📰), 퍼널(🎯), 홈페이지(🏠), MUZIIK(🎵) 아이콘 표시
+  - 대표 이미지/본문 구분 표시
+  - 최근 사용 날짜 표시
+
+#### 8-9-7. 확장자 기반 중복 감지 및 정리 (신규)
+- [ ] JPG/WebP 중복 감지 로직 추가
+  - 같은 파일명의 JPG/WebP를 중복으로 감지
+  - 파일명 정규화 후 비교 (확장자 제외)
+  - `scripts/phase8-detect-extension-duplicates.js` 개발
+- [ ] WebP 우선 정책 구현
+  - 스튜디오 오리지널이 아닌 경우 WebP 유지
+  - JPG는 SMS/MMS용으로만 보관
+  - 중복 JPG 자동 삭제 기능 (사용 위치 확인 후 안전하게 삭제)
+- [ ] 중복 JPG 안전 삭제 기능
+  - 사용 위치 확인 (`image-usage-tracker.js` 활용)
+  - SMS/MMS에서 사용 중인 JPG는 보존
+  - 갤러리 UI에 "확장자 중복 확인" 버튼 추가
+
+#### 8-9-9. 확장 이미지 형식 지원 및 유사도 점수 계산 (신규) ⚡
+- [ ] AVIF, HEIC, BMP, TIFF 형식 지원 추가
+  - `detect-extension-duplicates.js`에 확장 형식 필터 추가
+  - `all-images.js`에 확장 형식 지원 추가
+- [ ] 확장자만 다른 이미지 감지 로직 개선
+  - JPG↔WebP, PNG↔WebP 자동 감지
+  - 포맷 호환성 점수 계산 (JPG↔WebP = 95%, PNG↔WebP = 90%)
+- [ ] 유사도 점수 계산 시스템 구현
+  - 파일명 유사도 (정규화된 파일명 일치 = 100%)
+  - 해시 유사도 (MD5/SHA256 일치 = 100%)
+  - 크기 유사도 (10% 오차 내 = 90%, 20% 오차 = 80%)
+  - 포맷 호환성 점수
+  - 종합 유사도 점수 (0-100%)
+- [ ] 비교 결과에 유사도 점수 표시
+  - `compare-images.js` 응답에 `similarityScore` 추가
+  - 갤러리 UI에 유사도 점수 표시
+- [ ] 유사도 임계값 설정
+  - 80% 이상 = 중복 가능성 높음
+  - 60-80% = 중복 가능성 있음
+  - 60% 미만 = 다른 이미지
+
+#### 8-9-8. 리사이징 이미지 폴더 구조 정리 (로딩 속도 & Storage 최적화) (신규)
+- [ ] `variants/` 폴더 구조 개선
+  - `format/webp/`, `format/jpg/` 분리
+  - `channels/sms/`, `channels/instagram/`, `channels/facebook/` 등 채널별 분리
+- [ ] 실용적인 최적화 사이즈 정의 (로딩 속도 & Storage 고려)
+  - Thumbnail: 300x300 (썸네일, 빠른 로딩)
+  - Small: 600x400 (모바일, 균형잡힌 품질)
+  - Medium: 1200x800 (태블릿/일반, 표준)
+  - Large: 1920x1280 (데스크톱, 최대)
+- [ ] 채널별 최적화 버전 자동 생성
+  - Instagram: 1080x1080 (표준 해상도)
+  - Facebook: 1200x630 (피드 표준)
+  - SMS/MMS: 600x400 (표준), 1200x800 (고화질)
+  - 네이버 블로그: 600x400 (썸네일), 1200x800 (본문)
+- [ ] 품질 설정 (용도별)
+  - 썸네일: WebP 80%, JPG 80%
+  - 일반 웹: WebP 85%, JPG 85%
+  - 고품질: WebP 90%, JPG 90% (Large, 제품 이미지, 프리미엄 콘텐츠)
+  - 채널별: Instagram 90%, Facebook 85%, 네이버 블로그 85%/80%, SMS/MMS 85%/90%
+- [ ] 기존 이미지 처리 정책
+  - 기존 저장된 이미지는 그대로 유지 (리사이징 불필요)
+  - 새로 업로드되는 이미지만 variants 생성
+  - 필요 시에만 variants 생성 (온디맨드)
+- [ ] Storage 용량 최적화
+  - WebP 품질: 80-90% (용도별)
+  - JPG 품질: 80-90% (용도별)
+  - 불필요한 variants 자동 정리
+- [ ] API 개발: `/api/admin/generate-variants.js` (신규)
+  - 이미지 업로드 시 자동 variants 생성
+  - 채널별 최적화 버전 생성
+  - 품질 설정 적용
 
 ### 구현 계획
-- **API 개발**: `/api/admin/migrate-campaign-images.js` (신규)
-- **API 개발**: `/api/admin/update-funnel-image-urls.js` (신규)
-- **API 개발**: `/api/admin/update-blog-campaign-urls.js` (신규)
-- **프론트엔드**: 갤러리 페이지에 "퍼널 이미지 마이그레이션" 버튼 추가
+- **API 개발**: `/api/admin/detect-extension-duplicates.js` (신규, 확장자 기반 중복 감지)
+- **API 개발**: `/api/admin/generate-variants.js` (신규, variants 자동 생성)
+- **API 개발**: `/api/admin/compare-images.js` (신규, 이미지 비교)
+- **프론트엔드**: 갤러리 페이지에 "확장자 중복 확인" 버튼 추가
+- **프론트엔드**: 갤러리 페이지에 이미지 비교 기능 추가 (체크박스, 비교 모달)
+- **API 개발**: `/api/admin/migrate-campaign-images.js` (완료)
+- **API 개발**: `/api/admin/update-funnel-image-urls.js` (완료)
+- **API 개발**: `/api/admin/update-blog-campaign-urls.js` (완료)
+- **API 개발**: `/api/admin/create-campaign-folders.js` (완료)
+- **API 개발**: `/api/admin/verify-funnel-images.js` (신규)
+- **API 개발**: `/api/admin/remove-duplicates-safe.js` (신규)
+- **API 개발**: `/api/admin/image-usage-tracker.js` (HTML 파일 확인 추가)
+- **API 개발**: `/api/admin/generate-metadata-for-folder.js` (신규, 폴더별 메타데이터 생성)
+- **스크립트 개발**: `scripts/phase8-calculate-hash-for-missing-metadata.js` (신규)
+- **스크립트 개발**: `scripts/phase8-detect-duplicates-by-hash.js` (신규)
+- **스크립트 개발**: `scripts/phase8-remove-duplicates-safe.js` (신규)
+- **스크립트 개발**: `scripts/phase8-calculate-phash.js` (선택, 신규)
+- **스크립트 개발**: `scripts/phase8-gpt-vision-duplicate-check.js` (선택, 신규)
+- **프론트엔드**: 갤러리 페이지에 "퍼널 이미지 마이그레이션" 버튼 추가 (완료)
+- **프론트엔드**: 갤러리 페이지 중복 감지 UI 개선 (신규)
+
+### 작업 순서
+1. **1단계**: hash_md5 계산 및 중복 감지 ✅
+   - `originals/campaigns/2025-05`: 9개 중복 그룹 (18개 파일) ✅
+   - `originals/campaigns/2025-06`: 1개 중복 그룹 (2개 파일) ✅
+   - `originals/campaigns/2025-07`: 9개 중복 그룹 (20개 파일) 🔄
+   - `originals/campaigns/2025-08`: 0개 중복 그룹 ✅
+   - `originals/campaigns/2025-09`: 3개 중복 그룹 (6개 파일) ✅
+2. **2단계**: 이미지 사용 현황 확인 ✅
+   - 모든 중복 이미지 미사용 확인 (0회 사용)
+3. **3단계**: 안전한 중복 제거 실행 ✅
+   - 2025-05: 9개 파일 제거 완료 ✅
+   - 2025-06: 1개 파일 제거 완료 ✅
+   - 2025-07: 11개 파일 제거 완료 ✅
+   - 2025-08: 0개 (중복 없음) ✅
+   - 2025-09: 3개 파일 제거 완료 ✅
+   - **총 제거**: 24개 파일 ✅
+4. **4단계**: 메타데이터 재생성 ✅
+   - 2025-05: 7개 이미지 메타데이터 생성 완료 ✅
+   - 2025-06: 4개 완료, 3개 hash_md5 중복 (다른 폴더 존재) ✅
+   - 2025-07: 1개 완료, 3개 hash_md5 중복 (다른 폴더 존재) ✅
+   - 2025-08: 19개 완료 ✅
+   - 2025-09: 32개 완료, 3개 실패 ✅
+   - **총 생성**: 63개 메타데이터 ✅
+5. **5단계**: (선택) pHash 기반 추가 확인
+6. **6단계**: (선택) GPT Vision 기반 최종 확인
 
 ---
 
@@ -759,6 +1191,23 @@
 - [ ] SEO 메타데이터 검토
 - [ ] 모바일 반응형 확인
 
+### 11-6. 중복 스크래핑 이미지 정리
+- [ ] 블로그 정비 중 중복 스크래핑 이미지 감지
+- [ ] 중복 이미지 그룹 확인 (해시 기반)
+- [ ] 안전한 중복 제거 (블로그 연결 이미지 보존)
+- [ ] 메타데이터 정리
+- [ ] 중복 이미지 통합 및 정리
+
+### 11-7. AI 생성 이미지 정리
+- [ ] 개발 테스트 과정에서 생성된 AI 이미지 수집
+- [ ] AI 생성 이미지 메타데이터 생성
+- [ ] AI 생성 이미지 분류 및 정리
+  - `originals/ai-generated/YYYY-MM-DD/` (일반 AI 생성 이미지)
+  - `originals/products/{product-slug}/` (제품 관련 AI 생성 이미지)
+  - `originals/blog/YYYY-MM/` (블로그 관련 AI 생성 이미지)
+- [ ] 추후 활용 가능하도록 정리
+- [ ] AI 생성 이미지 메타데이터에 생성 정보 추가
+
 ### 구현 계획
 - **API 개발**: `/api/admin/audit-blog-posts.js` (신규)
   - 블로그 글 오타 검사
@@ -779,9 +1228,11 @@
 1. **1단계**: 깨진 이미지 감지 및 목록 작성
 2. **2단계**: 깨진 이미지 복구 및 업로드
 3. **3단계**: 이미지를 갤러리 폴더에 제대로 옮기기
-4. **4단계**: 블로그 본문 URL 업데이트
-5. **5단계**: 블로그 글 오타 정비
-6. **6단계**: 최종 검증 및 품질 확인
+4. **4단계**: 중복 스크래핑 이미지 정리
+5. **5단계**: AI 생성 이미지 정리
+6. **6단계**: 블로그 본문 URL 업데이트
+7. **7단계**: 블로그 글 오타 정비
+8. **8단계**: 최종 검증 및 품질 확인
 
 ---
 
@@ -815,14 +1266,29 @@ masgolf-images/
 │   │   ├── muziik-beryl/
 │   │   └── muziik-technology/
 │   │
-│   ├── branding/                 # 🆕 브랜딩 이미지 (Phase 10)
-│   │   ├── masgolf/
+│   ├── branding/                 # 🆕 브랜딩 이미지 (Phase 7, Phase 10)
+│   │   ├── massgoo/              # MASSGOO 브랜드 (마쓰구 드라이버)
+│   │   │   └── hero/             # 홈페이지 히어로 이미지 (Phase 7)
 │   │   └── muziik/
 │   │
+│   ├── website/                  # 🆕 웹사이트 전용 이미지 (Phase 7)
+│   │   └── homepage/             # 홈페이지 이미지
+│   │       └── hero/             # 히어로 이미지 (대안: branding/massgoo/hero/)
+│   │
 │   ├── locations/                # 🟡 매장 이미지 (후속 작업)
-│   ├── customers/                # 🟡 고객 콘텐츠 (후속 작업)
+│   ├── customers/                # 🆕 고객 콘텐츠 (Phase 12)
+│   │   ├── photos/               # 고객별 사진
+│   │   │   ├── customer-001/
+│   │   │   └── ...
+│   │   ├── fitting/               # 피팅 데이터
+│   │   │   ├── customer-001/
+│   │   │   └── ...
+│   │   └── stories/              # 고객 스토리
+│   │       ├── customer-001/
+│   │       └── ...
 │   ├── uploaded/                 # 직접 업로드 (기존)
-│   └── ai-generated/             # AI 생성 원본 (기존)
+│   └── ai-generated/             # 🆕 AI 생성 원본 (Phase 11-7)
+│       └── YYYY-MM-DD/
 ```
 
 ### 관련 문서
@@ -832,6 +1298,345 @@ masgolf-images/
 - `database/gallery-storage-schema.sql`: 데이터베이스 스키마
 - `docs/gallery-migration-checklist.md`: 누락 사항 체크리스트
 - `docs/image-metadata-ai-generation-plan.md`: 메타데이터 AI 생성 계획 (✅ 신규 생성)
+
+---
+
+## 📋 Phase 6: mas9golf.co.kr 사이트 통합 및 마이그레이션 (후속 작업)
+
+### 6-1. mas9golf.co.kr 사이트 분석
+- [ ] mas9golf.co.kr 사이트 구조 분석
+- [ ] 페이지 및 콘텐츠 목록 작성
+- [ ] 이미지 및 자산 목록 작성
+- [ ] 기존 슬러그 확인 및 보존 계획 수립
+
+### 6-2. 사이트 통합 계획
+- [ ] masgolf.co.kr과 mas9golf.co.kr 통합 구조 설계
+- [ ] 기존 슬러그 유지 전략 수립
+- [ ] URL 리다이렉트 계획 수립
+- [ ] 데이터베이스 통합 계획 수립
+
+### 6-3. 콘텐츠 마이그레이션
+- [ ] mas9golf.co.kr 콘텐츠를 masgolf.co.kr로 마이그레이션
+- [ ] 기존 슬러그 유지
+- [ ] 이미지 및 자산 마이그레이션
+- [ ] 메타데이터 생성 및 관리
+
+### 6-4. 사이트 통합 구현
+- [ ] masgolf.co.kr과 mas9golf.co.kr를 동일하게 만드는 작업
+- [ ] URL 리다이렉트 구현
+- [ ] 데이터베이스 통합
+- [ ] 소스 코드 통합
+
+### 구현 계획
+- **API 개발**: `/api/admin/migrate-mas9golf-site.js` (신규)
+- **API 개발**: `/api/admin/integrate-sites.js` (신규)
+- **프론트엔드**: 사이트 통합 관리 페이지 추가
+- **소스 코드**: mas9golf.co.kr 콘텐츠를 masgolf.co.kr로 통합
+
+---
+
+## 📋 Phase 7: 마쓰구 홈페이지와 MUZIIK 사이트 콜라보 통합 (후속 작업)
+
+### 7-1. 마쓰구 홈페이지와 MUZIIK 사이트 분석
+- [ ] 마쓰구 홈페이지 구조 분석
+  - `pages/index.js` (MASSGOO 메인 페이지)
+  - 제품 이미지 사용 현황 확인
+  - 히어로 이미지, 제품 이미지, 브랜딩 이미지 추출
+- [ ] MUZIIK 사이트 구조 분석
+  - `pages/muziik/index.tsx` (MUZIIK 메인 페이지)
+  - `pages/muziik/[product].tsx` (제품 페이지)
+  - `pages/muziik/about.tsx`, `technology.tsx` 등
+  - 제품 이미지, 브랜딩 이미지 추출
+- [ ] 콜라보 통합 포인트 확인
+- [ ] 기존 슬러그 확인 및 보존 계획 수립
+
+### 7-2. 홈페이지/MUZIIK 이미지 사용 추적 시스템 구축 ✅
+- [x] `image-usage-tracker.js`에 홈페이지/MUZIIK 페이지 이미지 추적 추가
+  - React/Next.js 파일에서 이미지 경로 추출 함수 구현
+  - 홈페이지(`pages/index.js`) 이미지 사용 확인
+  - MUZIIK 페이지(`pages/muziik/*.tsx`) 이미지 사용 확인
+  - 파일명 정규화를 통한 정확한 매칭 (언더스코어, 대소문자 차이 무시)
+- [x] `all-images.js`에서 사용 위치 상세 정보 수집
+  - `used_in` 배열에 블로그, 퍼널, 홈페이지, MUZIIK 사용 정보 포함
+  - `last_used_at` 최근 사용 날짜 계산
+- [x] 갤러리 UI에 사용 위치 상세 표시
+  - 이미지 카드에 "🔗 사용 위치" 섹션 추가
+  - 블로그(📰), 퍼널(🎯), 홈페이지(🏠), MUZIIK(🎵) 아이콘 표시
+  - 대표 이미지/본문 구분 표시
+  - 최근 사용 날짜 표시
+
+### 7-3. 홈페이지/MUZIIK 이미지 갤러리 폴더 구조 정리
+- [ ] 홈페이지 이미지 분석 및 분류
+  - 제품 이미지: `originals/products/secret-force-gold-2/`, `secret-weapon-black/` 등
+  - 히어로 이미지: `originals/branding/massgoo/hero/` 또는 `originals/website/homepage/hero/` (선택 가능, `folder-pattern-guide.md` 참고)
+  - 브랜딩 이미지: `originals/branding/massgoo/` (MASSGOO 브랜드)
+- [x] 폴더 구조 생성 ✅
+  - `originals/branding/massgoo/hero/` 폴더 생성 완료
+  - `originals/website/homepage/hero/` 폴더 생성 완료
+  - `originals/branding/muziik/` 폴더 생성 완료
+  - `.keep.png` 마커 파일 생성 완료
+  - **API**: `/api/admin/create-phase7-folders.js` (신규)
+  - **스크립트**: `scripts/create-phase7-folders.js` (신규)
+- [ ] MUZIIK 이미지 분석 및 분류
+  - 제품 이미지: `originals/products/muziik-sapphire/`, `muziik-beryl/` 등
+  - 브랜딩 이미지: `originals/branding/muziik/`
+  - 기술 이미지: `originals/products/muziik-technology/`
+- [ ] 이미지 마이그레이션
+  - `/public/main/products/` → `originals/products/`
+  - `/public/muziik/products/` → `originals/products/muziik-*/`
+  - `/public/muziik/brand/` → `originals/branding/muziik/`
+- [ ] 소스 코드 URL 업데이트
+  - `pages/index.js`의 이미지 경로를 Supabase Storage URL로 변경
+  - `pages/muziik/*.tsx`의 이미지 경로를 Supabase Storage URL로 변경
+- [ ] 메타데이터 생성 및 관리
+  - 홈페이지/MUZIIK 이미지 메타데이터 생성
+  - 사용 위치 자동 태깅
+
+### 7-4. 콜라보 통합 계획
+- [ ] 마쓰구 홈페이지와 MUZIIK 사이트 콜라보 통합 구조 설계
+- [ ] 기존 슬러그 유지 전략 수립
+- [ ] 통합 페이지 구조 설계
+- [ ] 데이터베이스 통합 계획 수립
+
+### 7-5. 콘텐츠 통합
+- [ ] 마쓰구 홈페이지와 MUZIIK 사이트 콘텐츠 통합
+- [ ] 기존 슬러그 유지
+- [ ] 이미지 및 자산 통합 (7-3에서 완료)
+- [ ] 메타데이터 생성 및 관리 (7-3에서 완료)
+
+### 7-6. 콜라보 통합 구현
+- [ ] 마쓰구 홈페이지와 MUZIIK 사이트 콜라보 통합 구현
+- [ ] 통합 페이지 구현
+- [ ] 데이터베이스 통합
+- [ ] 소스 코드 통합
+
+### 구현 계획
+- **API 개발**: `/api/admin/image-usage-tracker.js` (홈페이지/MUZIIK 추적 추가) ✅
+- **API 개발**: `/api/admin/all-images.js` (사용 위치 상세 정보 포함) ✅
+- **프론트엔드**: 갤러리 UI에 사용 위치 상세 표시 ✅
+- **API 개발**: `/api/admin/migrate-homepage-images.js` (신규)
+- **API 개발**: `/api/admin/migrate-muziik-images.js` (신규)
+- **API 개발**: `/api/admin/integrate-muziik-collab.js` (신규)
+- **프론트엔드**: 콜라보 통합 관리 페이지 추가
+- **소스 코드**: 마쓰구 홈페이지와 MUZIIK 사이트 콜라보 통합
+
+---
+
+## 📋 Phase 12: 고객 콘텐츠 정리 및 마이그레이션 (후속 작업)
+
+### 12-1. 고객별 사진 정리
+- [ ] 고객별 사진 수집 및 분류
+- [ ] 개인정보 보호 (익명화 ID: customer-001)
+- [ ] 고객 동의 확인
+- [ ] `originals/customers/photos/customer-{id}/` 폴더 구조 생성
+- [ ] 고객 사진 메타데이터 생성
+
+### 12-2. 피팅 데이터 정리
+- [ ] 피팅 데이터 수집 및 분류
+- [ ] 피팅 이미지와 데이터 연결
+- [ ] `originals/customers/fitting/customer-{id}/` 폴더 구조 생성
+- [ ] 피팅 데이터 메타데이터 생성
+
+### 12-3. 고객 스토리 정리
+- [ ] 고객 스토리 콘텐츠 수집
+- [ ] 고객 스토리 이미지와 텍스트 연결
+- [ ] `originals/customers/stories/customer-{id}/` 폴더 구조 생성
+- [ ] 고객 스토리 메타데이터 생성
+
+### 12-4. 고객 콘텐츠 통합 관리
+- [ ] 고객별 콘텐츠 통합 관리 시스템 구축
+- [ ] 개인정보 보호 정책 준수
+- [ ] 고객 동의 관리 시스템 구축
+- [ ] 고객 콘텐츠 검색 및 필터링 기능
+
+### 구현 계획
+- **API 개발**: `/api/admin/migrate-customer-content.js` (신규)
+- **API 개발**: `/api/admin/customer-content-management.js` (신규)
+- **프론트엔드**: 고객 콘텐츠 관리 페이지 추가
+- **소스 코드**: 고객 콘텐츠 통합 관리 시스템 구축
+
+---
+
+## 📋 Phase 13: 콘텐츠 허브 시스템 고도화 및 AI 스케줄 생성기 프로젝트 (진행 중)
+
+### 13-1. 허브시스템 중복 기능 정리 및 삭제
+- [ ] `content-calendar-new.tsx` (새 캘린더) 검토 및 삭제
+  - 허브시스템(`content-calendar-hub.tsx`)과 기능 중복 확인
+  - 사용되지 않는 코드 및 API 정리
+- [ ] `content-calendar.tsx` (콘텐츠 캘린더) 검토 및 삭제
+  - 허브시스템과 기능 중복 확인
+  - 사용되지 않는 코드 및 API 정리
+- [ ] `content-calendar-simple.tsx` 검토 및 삭제
+  - 허브시스템과 기능 중복 확인
+- [ ] 관련 API 정리
+  - `/api/admin/content-calendar-simple.js` 삭제 검토
+  - `/api/admin/content-calendar.js` 삭제 검토
+- [ ] 네비게이션 메뉴 정리
+  - "새 캘린더", "콘텐츠 캘린더" 메뉴 제거
+  - "허브 시스템"만 유지
+
+### 13-2. 캘린더 형식 뷰 복원 및 통합
+- [ ] 기존 캘린더 형식 뷰 소스 확인
+  - `singsing-golf-blog-system/src/pages/content-calendar.tsx` (1370-1468 라인)
+  - `content-calendar-system/components/admin/content-calendar/ContentCalendarDashboard.tsx`
+- [ ] 캘린더 형식 뷰 컴포넌트 추출
+  - 월별/주별/일별 뷰 지원
+  - 날짜별 콘텐츠 표시
+  - 드래그 앤 드롭으로 날짜 변경
+- [ ] 허브시스템에 캘린더 뷰 통합
+  - `content-calendar-hub.tsx`에 캘린더 뷰 모드 추가
+  - 리스트 뷰 ↔ 캘린더 뷰 전환 기능
+- [ ] 캘린더 뷰 기능 구현
+  - 월별/주별/일별 뷰 전환
+  - 날짜 클릭으로 콘텐츠 생성/편집
+  - 콘텐츠 드래그 앤 드롭으로 날짜 변경
+  - 채널별 색상 구분 표시
+
+### 13-3. 콘텐츠 AI 스케줄 생성기 완성
+- [ ] 기존 연간 콘텐츠 생성 기능 확인
+  - `/api/content-calendar/generate-annual.js` (퍼널 캠페인 기반)
+  - 퍼널 캠페인 10개 정의 확인
+- [ ] 블로그 연간 기획 자료 확인
+  - 기존 블로그 연간 기획 문서 검토
+  - 연간 콘텐츠 주제 및 테마 추출
+- [ ] 퍼널 자료 확인
+  - 월별 퍼널 캠페인 자료 확인
+  - 퍼널별 콘텐츠 전략 확인
+- [ ] 심리학 자료 확인
+  - 도널드 밀러의 7단계 스토리 공식
+  - 러셀 브런슨의 퍼널 전략
+  - 세스 고딘의 보랏빛 소 전략
+  - 로버트 치알디니의 설득 심리학 원칙
+- [ ] 최근 트렌드 반영
+  - 골프 산업 최신 트렌드 조사
+  - 시니어 골퍼(50-60대) 관심사 반영
+  - 계절별 골프 트렌드 반영
+- [ ] AI 스케줄 생성기 고도화
+  - 퍼널 캠페인 + 블로그 연간 기획 + 퍼널 자료 + 심리학 자료 통합
+  - 최근 트렌드 자동 반영
+  - 계절별/월별 자동 스케줄 생성
+  - 채널별 최적화된 콘텐츠 생성
+  - 발행 빈도 자동 조정
+- [ ] 스케줄 생성 UI 개선
+  - 캘린더 뷰에서 직접 스케줄 생성
+  - 생성된 스케줄 미리보기 및 편집
+  - 일괄 스케줄 생성 및 적용
+  - 스케줄 자동 조정 기능
+
+### 13-4. 허브시스템 통합 및 최적화
+- [ ] 허브시스템과 캘린더 뷰 통합
+  - 단일 인터페이스에서 리스트/캘린더 뷰 전환
+  - 허브 콘텐츠와 캘린더 뷰 동기화
+- [ ] AI 스케줄 생성기와 허브시스템 통합
+  - 허브시스템에서 직접 AI 스케줄 생성
+  - 생성된 스케줄을 허브 콘텐츠로 자동 변환
+  - 채널별 자동 배포 기능
+- [ ] 성능 최적화
+  - 대량 콘텐츠 로딩 최적화
+  - 캘린더 뷰 렌더링 최적화
+  - AI 생성 응답 시간 개선
+
+### 구현 계획
+- **소스 코드 정리**:
+  - `pages/admin/content-calendar-new.tsx` 삭제
+  - `pages/admin/content-calendar.tsx` 삭제 (또는 허브시스템으로 통합)
+  - `pages/admin/content-calendar-simple.tsx` 삭제
+  - `pages/api/admin/content-calendar-simple.js` 삭제
+  - `pages/api/admin/content-calendar.js` 삭제 (또는 허브시스템으로 통합)
+- **캘린더 뷰 컴포넌트 개발**:
+  - `components/admin/content-calendar/ContentCalendarView.tsx` (신규)
+  - `components/admin/content-calendar/ContentCalendarDashboard.tsx` (기존 활용)
+- **AI 스케줄 생성기 고도화**:
+  - `pages/api/content-calendar/generate-annual.js` 개선
+  - `pages/api/content-calendar/generate-schedule.js` (신규)
+  - 트렌드 분석 및 반영 기능 추가
+- **허브시스템 통합**:
+  - `pages/admin/content-calendar-hub.tsx` 개선
+  - 캘린더 뷰 모드 추가
+  - AI 스케줄 생성기 통합
+- **프론트엔드 UI**:
+  - 리스트/캘린더 뷰 전환 버튼
+  - AI 스케줄 생성 버튼 및 모달
+  - 스케줄 미리보기 및 편집 UI
+
+### 작업 순서
+1. **1단계**: 중복 기능 정리 및 삭제 (content-calendar-new, content-calendar, content-calendar-simple)
+2. **2단계**: 캘린더 형식 뷰 소스 확인 및 추출
+3. **3단계**: 허브시스템에 캘린더 뷰 통합
+4. **4단계**: 기존 자료 확인 (블로그 연간 기획, 퍼널 자료, 심리학 자료)
+5. **5단계**: 최근 트렌드 조사 및 반영
+6. **6단계**: AI 스케줄 생성기 고도화
+7. **7단계**: 허브시스템과 AI 스케줄 생성기 통합
+8. **8단계**: 최종 테스트 및 최적화
+
+---
+
+## 📊 Phase 14: 콘텐츠 성과 통합 관리 시스템 (신규)
+
+### 목적
+블로그, 유튜브 등 다중 플랫폼에서:
+1. 조회수, 시청시간 등 실적 자동 수집
+2. 좋아요, 댓글 관리
+3. 성과 분석 및 리포트 생성
+4. 플랫폼별 통합 대시보드
+
+### 14-1. 플랫폼 API 연동 (2주)
+- [ ] 블로그 플랫폼 API 연동
+  - 네이버 블로그 API
+  - 티스토리 API
+  - 자체 블로그 API
+- [ ] 유튜브 API 연동
+  - YouTube Data API v3
+  - 조회수, 시청시간, 좋아요, 댓글 수집
+- [ ] 소셜 미디어 API 연동 (선택)
+  - 인스타그램 API
+  - 페이스북 API
+
+### 14-2. 성과 데이터 수집 및 저장 (1주)
+- [ ] 성과 데이터 수집 스케줄러
+  - 일일 자동 수집
+  - 실시간 수집 (선택)
+- [ ] Supabase 데이터베이스 스키마 설계
+  - `content_performance` 테이블
+  - `content_engagement` 테이블 (좋아요, 댓글)
+  - `platform_metrics` 테이블
+
+### 14-3. 성과 분석 및 리포트 생성 (1주)
+- [ ] 성과 분석 대시보드
+  - 플랫폼별 성과 비교
+  - 기간별 성과 추이
+  - 인기 콘텐츠 분석
+- [ ] 자동 리포트 생성
+  - 일일 리포트
+  - 주간 리포트
+  - 월간 리포트
+  - 전문적이고 예쁜 리포트 템플릿
+
+### 14-4. 댓글 및 좋아요 관리 툴 (1주)
+- [ ] 댓글 관리 대시보드
+  - 플랫폼별 댓글 통합 조회
+  - 댓글 답변 기능
+  - 댓글 필터링 (스팸, 부적절한 댓글)
+- [ ] 좋아요 관리
+  - 좋아요 추이 분석
+  - 좋아요 알림 (선택)
+
+### 구현 계획
+- **API 개발**: `/api/admin/content-performance/collect.js` (신규)
+- **API 개발**: `/api/admin/content-performance/analyze.js` (신규)
+- **API 개발**: `/api/admin/content-engagement/manage.js` (신규)
+- **프론트엔드**: 콘텐츠 성과 통합 관리 대시보드 (신규)
+- **문서**: `docs/content-performance-management-plan.md` (신규)
+
+### 작업 순서
+1. **1단계**: 플랫폼 API 연동 (블로그, 유튜브)
+2. **2단계**: 성과 데이터 수집 및 저장 시스템 구축
+3. **3단계**: 성과 분석 대시보드 개발
+4. **4단계**: 자동 리포트 생성 시스템 구축
+5. **5단계**: 댓글 및 좋아요 관리 툴 개발
+6. **6단계**: 통합 테스트 및 최적화
+
+---
 
 ## 🎯 향후 개선 사항
 
