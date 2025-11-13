@@ -99,6 +99,7 @@ export default function KakaoContentPage() {
   const [generationOptions, setGenerationOptions] = useState({
     imageCount: 2 // 생성할 이미지 개수 (선택용)
   });
+  const [saveStatus, setSaveStatus] = useState<{ status: 'idle' | 'saving' | 'success' | 'error'; message?: string }>({ status: 'idle' });
   // 이미지 선택 모달 상태
   const [imageSelectionModal, setImageSelectionModal] = useState<{
     isOpen: boolean;
@@ -183,13 +184,23 @@ export default function KakaoContentPage() {
         setLoading(true);
         const today = new Date();
         const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        const res = await fetch(`/api/content-calendar/load?month=${monthStr}`);
+        const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
         const data = await res.json();
         
-        if (data.success && data.calendar) {
-          setCalendarData(data.calendar);
+        if (data.success && data.calendarData) {
+          setCalendarData(data.calendarData);
         } else {
           console.error('캘린더 로드 실패:', data.message);
+          // Supabase가 비어있을 경우 JSON 파일로 폴백 시도
+          try {
+            const fallbackRes = await fetch(`/api/content-calendar/load?month=${monthStr}`);
+            const fallbackData = await fallbackRes.json();
+            if (fallbackData.success && fallbackData.calendar) {
+              setCalendarData(fallbackData.calendar);
+            }
+          } catch (fallbackError) {
+            console.error('폴백 로드 실패:', fallbackError);
+          }
         }
       } catch (error) {
         console.error('캘린더 로드 오류:', error);
@@ -200,6 +211,48 @@ export default function KakaoContentPage() {
 
     loadCalendar();
   }, []);
+
+  // 공통 저장 함수 (Supabase에 저장)
+  const saveCalendarData = async (updatedData: CalendarData) => {
+    try {
+      setSaveStatus({ status: 'saving', message: '저장 중...' });
+      const today = new Date();
+      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      
+      const response = await fetch('/api/kakao-content/calendar-save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: monthStr, calendarData: updatedData })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSaveStatus({ 
+          status: 'success', 
+          message: `저장 완료 (${result.savedCount || 0}개 항목)` 
+        });
+        // 3초 후 상태 초기화
+        setTimeout(() => {
+          setSaveStatus({ status: 'idle' });
+        }, 3000);
+        return true;
+      } else {
+        throw new Error(result.message || '저장 실패');
+      }
+    } catch (error: any) {
+      console.error('캘린더 저장 오류:', error);
+      setSaveStatus({ 
+        status: 'error', 
+        message: `저장 실패: ${error.message}` 
+      });
+      // 5초 후 상태 초기화
+      setTimeout(() => {
+        setSaveStatus({ status: 'idle' });
+      }, 5000);
+      return false;
+    }
+  };
 
   // 선택된 날짜의 데이터 가져오기
   const getDateData = (date: string) => {
@@ -646,63 +699,12 @@ export default function KakaoContentPage() {
       
       setCalendarData(updated);
 
-      // 캘린더 파일 저장 (플랜 + 생성된 콘텐츠)
-      try {
-        const today = new Date();
-        const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        await fetch('/api/kakao-content/calendar-save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ month: monthStr, calendarData: updated })
-        });
-        
-        // DB 저장 (최종 배포용)
-        try {
-          // 프로필 콘텐츠 DB 저장
-                await fetch('/api/kakao-content/save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    date: currentDate,
-                    account: calendarData!.profileContent.account1.account,
-                    type: 'profile',
-                    data: {
-                      background_image_url: currentData.account1Profile.background.imageUrl,
-                      profile_image_url: currentData.account1Profile.profile.imageUrl,
-                      message: currentData.account1Profile.message,
-                      status: 'created', // created → published (배포 시)
-                      created_at: new Date().toISOString()
-                    }
-                  })
-                });
-                
-                // 피드 콘텐츠 DB 저장
-                await fetch('/api/kakao-content/save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    date: currentDate,
-                    account: calendarData!.profileContent.account1.account,
-                    type: 'feed',
-                    data: {
-                      image_url: currentData.feed.account1.imageUrl,
-                      caption: currentData.feed.account1.caption,
-                      image_category: currentData.feed.account1.imageCategory,
-                      status: 'created',
-                      created_at: new Date().toISOString()
-                    }
-                  })
-                });
-          
-          console.log('✅ DB 저장 완료 (최종 배포용)');
-        } catch (dbError: any) {
-          console.error('DB 저장 오류 (계속 진행):', dbError);
-          // DB 저장 실패해도 계속 진행
-        }
-        
-        alert('✅ 계정 1 자동 생성 완료!\n\n- 캘린더 파일 저장됨 (플랜 + 생성된 콘텐츠)\n- DB 저장됨 (최종 배포용)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
-      } catch (error: any) {
-        alert(`자동 생성 완료, 하지만 저장 실패: ${error.message}`);
+      // Supabase에 저장
+      const saved = await saveCalendarData(updated);
+      if (saved) {
+        alert('✅ 계정 1 자동 생성 완료!\n\n- Supabase에 저장됨 (로컬/배포 동기화)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
+      } else {
+        alert(`자동 생성 완료, 하지만 저장 실패했습니다.`);
       }
     } catch (error: any) {
       alert(`자동 생성 실패: ${error.message}`);
@@ -793,63 +795,12 @@ export default function KakaoContentPage() {
       
       setCalendarData(updated);
 
-      // 캘린더 파일 저장 (플랜 + 생성된 콘텐츠)
-      try {
-        const today = new Date();
-        const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        await fetch('/api/kakao-content/calendar-save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ month: monthStr, calendarData: updated })
-        });
-        
-        // DB 저장 (최종 배포용)
-        try {
-          // 프로필 콘텐츠 DB 저장
-          await fetch('/api/kakao-content/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              date: currentDate,
-              account: calendarData!.profileContent.account2.account,
-              type: 'profile',
-              data: {
-                background_image_url: currentData.account2Profile.background.imageUrl,
-                profile_image_url: currentData.account2Profile.profile.imageUrl,
-                message: currentData.account2Profile.message,
-                status: 'created', // created → published (배포 시)
-                created_at: new Date().toISOString()
-              }
-            })
-          });
-          
-          // 피드 콘텐츠 DB 저장
-          await fetch('/api/kakao-content/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              date: currentDate,
-              account: calendarData!.profileContent.account2.account,
-              type: 'feed',
-              data: {
-                image_url: currentData.feed.account2.imageUrl,
-                caption: currentData.feed.account2.caption,
-                image_category: currentData.feed.account2.imageCategory,
-                status: 'created',
-                created_at: new Date().toISOString()
-              }
-            })
-          });
-          
-          console.log('✅ DB 저장 완료 (최종 배포용)');
-        } catch (dbError: any) {
-          console.error('DB 저장 오류 (계속 진행):', dbError);
-          // DB 저장 실패해도 계속 진행
-        }
-        
-        alert('✅ 계정 2 자동 생성 완료!\n\n- 캘린더 파일 저장됨 (플랜 + 생성된 콘텐츠)\n- DB 저장됨 (최종 배포용)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
-      } catch (error: any) {
-        alert(`자동 생성 완료, 하지만 저장 실패: ${error.message}`);
+      // Supabase에 저장
+      const saved = await saveCalendarData(updated);
+      if (saved) {
+        alert('✅ 계정 2 자동 생성 완료!\n\n- Supabase에 저장됨 (로컬/배포 동기화)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
+      } else {
+        alert(`자동 생성 완료, 하지만 저장 실패했습니다.`);
       }
     } catch (error: any) {
       alert(`자동 생성 실패: ${error.message}`);
@@ -895,6 +846,25 @@ export default function KakaoContentPage() {
       <div className="min-h-screen bg-gray-50">
         <AdminNav />
         <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* 저장 상태 표시 */}
+          {saveStatus.status !== 'idle' && (
+            <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
+              saveStatus.status === 'saving' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+              saveStatus.status === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
+              'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {saveStatus.status === 'saving' && (
+                <Loader className="w-4 h-4 animate-spin" />
+              )}
+              {saveStatus.status === 'success' && (
+                <span className="text-green-600">✓</span>
+              )}
+              {saveStatus.status === 'error' && (
+                <span className="text-red-600">✗</span>
+              )}
+              <span className="text-sm font-medium">{saveStatus.message}</span>
+            </div>
+          )}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-yellow-800">
               선택된 날짜({selectedDate || todayStr})의 캘린더 데이터가 없습니다.
@@ -935,18 +905,7 @@ export default function KakaoContentPage() {
     setCalendarData(updated);
 
     // 캘린더 파일 저장
-    try {
-      const today = new Date();
-      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      await fetch('/api/kakao-content/calendar-save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month: monthStr, calendarData: updated })
-      });
-      console.log('✅ 배포 상태 저장 완료');
-    } catch (error) {
-      console.error('❌ 배포 상태 저장 실패:', error);
-    }
+    await saveCalendarData(updated);
   };
 
   // 계정 1 데이터 변환
@@ -1401,14 +1360,8 @@ export default function KakaoContentPage() {
                 // ... (상태 업데이트 로직)
                 setCalendarData(updated);
                 
-                // 캘린더 파일 저장
-                const today = new Date();
-                const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                await fetch('/api/kakao-content/calendar-save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ month: monthStr, calendarData: updated })
-                });
+                // Supabase에 저장
+                await saveCalendarData(updated);
                 
                 alert('✅ 브랜드 전략이 적용되었고 프롬프트와 메시지가 자동 생성되었습니다!');
                 
@@ -1532,19 +1485,8 @@ export default function KakaoContentPage() {
               }
               setCalendarData(updated);
 
-              // 캘린더 파일 저장
-              try {
-                const today = new Date();
-                const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                await fetch('/api/kakao-content/calendar-save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ month: monthStr, calendarData: updated })
-                });
-                console.log('✅ 캘린더 파일 저장 완료');
-              } catch (error) {
-                console.error('❌ 캘린더 파일 저장 실패:', error);
-              }
+              // Supabase에 저장
+              await saveCalendarData(updated);
             }}
             onFeedUpdate={async (data) => {
               // 상태 업데이트
@@ -1564,19 +1506,8 @@ export default function KakaoContentPage() {
               }
               setCalendarData(updated);
 
-              // 캘린더 파일 저장
-              try {
-                const today = new Date();
-                const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                await fetch('/api/kakao-content/calendar-save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ month: monthStr, calendarData: updated })
-                });
-                console.log('✅ 캘린더 파일 저장 완료');
-              } catch (error) {
-                console.error('❌ 캘린더 파일 저장 실패:', error);
-              }
+              // Supabase에 저장
+              await saveCalendarData(updated);
             }}
               onGenerateProfileImage={async (type, prompt) => {
                 const result = await handleGenerateGoldToneImage(type, prompt);
@@ -1661,19 +1592,8 @@ export default function KakaoContentPage() {
               }
               setCalendarData(updated);
 
-              // 캘린더 파일 저장
-              try {
-                const today = new Date();
-                const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                await fetch('/api/kakao-content/calendar-save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ month: monthStr, calendarData: updated })
-                });
-                console.log('✅ 캘린더 파일 저장 완료');
-              } catch (error) {
-                console.error('❌ 캘린더 파일 저장 실패:', error);
-              }
+              // Supabase에 저장
+              await saveCalendarData(updated);
             }}
             onFeedUpdate={async (data) => {
               // 상태 업데이트
@@ -1693,19 +1613,8 @@ export default function KakaoContentPage() {
               }
               setCalendarData(updated);
 
-              // 캘린더 파일 저장
-              try {
-                const today = new Date();
-                const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                await fetch('/api/kakao-content/calendar-save', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ month: monthStr, calendarData: updated })
-                });
-                console.log('✅ 캘린더 파일 저장 완료');
-              } catch (error) {
-                console.error('❌ 캘린더 파일 저장 실패:', error);
-              }
+              // Supabase에 저장
+              await saveCalendarData(updated);
             }}
               onGenerateProfileImage={async (type, prompt) => {
                 const result = await handleGenerateBlackToneImage(type, prompt);
