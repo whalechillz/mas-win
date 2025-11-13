@@ -9,6 +9,12 @@
       "maxDuration": 50
     }
   },
+  "crons": [
+    {
+      "path": "/api/kakao-content/slack-daily-notification",
+      "schedule": "30 9 * * *"
+    }
+  ],
   "build": {
     "env": {
       "NODE_OPTIONS": "--max-old-space-size=4096"

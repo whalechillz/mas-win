@@ -9,6 +9,7 @@ interface FeedData {
   imagePrompt: string;
   caption: string;
   imageUrl?: string;
+  url?: string;
   abTest?: {
     methodA: {
       images: Array<{ imageUrl: string; originalUrl: string; method: string }>;
@@ -164,6 +165,40 @@ export default function FeedManager({
         />
         <div className="text-xs text-gray-500 mt-1">
           {feedData.caption.length}자
+        </div>
+      </div>
+
+      {/* URL */}
+      <div className="border rounded-lg p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          피드 URL (캡션 하단에 표시)
+        </label>
+        <select
+          value={feedData.url || ''}
+          onChange={(e) => onUpdate({ ...feedData, url: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">URL 선택 (선택사항)</option>
+          <option value="https://masgolf.co.kr">신규 홈페이지 (masgolf.co.kr)</option>
+          <option value="https://www.mas9golf.com">기존 홈페이지 (mas9golf.com)</option>
+          <option value="https://masgolf.co.kr/muziik">뮤직 콜라보 (MUZIIK)</option>
+          <option value="https://masgolf.co.kr/main/stores">시타 매장 안내</option>
+          <option value="https://www.mas9golf.com/try-a-massgo">시타 예약</option>
+          <option value="https://smartstore.naver.com/mas9golf">네이버 스마트스토어</option>
+        </select>
+        {feedData.url && (
+          <div className="mt-2 text-xs text-gray-600">
+            선택된 URL: <a href={feedData.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{feedData.url}</a>
+          </div>
+        )}
+        <div className="mt-2">
+          <input
+            type="text"
+            value={feedData.url || ''}
+            onChange={(e) => onUpdate({ ...feedData, url: e.target.value })}
+            placeholder="또는 직접 URL 입력"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
         </div>
       </div>
 

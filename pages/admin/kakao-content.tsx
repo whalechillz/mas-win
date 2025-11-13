@@ -6,6 +6,7 @@ import AdminNav from '../../components/admin/AdminNav';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import KakaoAccountEditor from '../../components/admin/kakao/KakaoAccountEditor';
 import ImageSelectionModal from '../../components/admin/kakao/ImageSelectionModal';
+import MessageListView from '../../components/admin/kakao/MessageListView';
 import { generateGoldToneImages, generateBlackToneImages, generateImagePrompts, generateKakaoImagePrompts } from '../../lib/ai-image-generation';
 import { promptConfigManager } from '../../lib/prompt-config-manager';
 import { Rocket, Calendar, Settings, Loader, ChevronLeft, ChevronRight, CheckCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
@@ -19,8 +20,8 @@ interface CalendarData {
       tone: string;
       dailySchedule: Array<{
         date: string;
-        background: { image: string; prompt: string; status: string; imageUrl?: string };
-        profile: { image: string; prompt: string; status: string; imageUrl?: string };
+        background: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
+        profile: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
         message: string;
         status: string;
         created: boolean;
@@ -41,8 +42,8 @@ interface CalendarData {
       tone: string;
       dailySchedule: Array<{
         date: string;
-        background: { image: string; prompt: string; status: string; imageUrl?: string };
-        profile: { image: string; prompt: string; status: string; imageUrl?: string };
+        background: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
+        profile: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
         message: string;
         status: string;
         created: boolean;
@@ -67,6 +68,7 @@ interface CalendarData {
         status: string;
         created: boolean;
         imageUrl?: string;
+        url?: string;
         createdAt?: string;
       };
       account2: {
@@ -76,6 +78,7 @@ interface CalendarData {
         status: string;
         created: boolean;
         imageUrl?: string;
+        url?: string;
         createdAt?: string;
       };
     }>;
@@ -87,7 +90,7 @@ export default function KakaoContentPage() {
   const [loading, setLoading] = useState(true);
   const [todayStr, setTodayStr] = useState('');
   const [selectedDate, setSelectedDate] = useState(''); // 선택된 날짜 (오늘/이번주/이번달)
-  const [viewMode, setViewMode] = useState<'today' | 'week' | 'month'>('today'); // 보기 모드
+  const [viewMode, setViewMode] = useState<'today' | 'week' | 'month' | 'list'>('today'); // 보기 모드
   const [savedConfigs, setSavedConfigs] = useState(promptConfigManager.getConfigs());
   const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
   const [brandStrategy, setBrandStrategy] = useState<any>(null);
@@ -121,13 +124,15 @@ export default function KakaoContentPage() {
   }, []);
 
   // 날짜 범위 계산 함수
-  const getDateRange = (mode: 'today' | 'week' | 'month') => {
+  const getDateRange = (mode: 'today' | 'week' | 'month' | 'list') => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth();
     const day = today.getDate();
 
-    if (mode === 'today') {
+    if (mode === 'list') {
+      return []; // 목록 모드에서는 빈 배열 반환
+    } else if (mode === 'today') {
       return [todayStr];
     } else if (mode === 'week') {
       // 이번 주 (월요일부터 일요일까지)
@@ -985,14 +990,16 @@ export default function KakaoContentPage() {
     imageCategory: selectedDateData.feed.account1.imageCategory,
     imagePrompt: selectedDateData.feed.account1.imagePrompt,
     caption: selectedDateData.feed.account1.caption,
-    imageUrl: (selectedDateData.feed.account1 as any).imageUrl
+    imageUrl: (selectedDateData.feed.account1 as any).imageUrl,
+    url: (selectedDateData.feed.account1 as any).url
   };
 
   const account2FeedData = {
     imageCategory: selectedDateData.feed.account2.imageCategory,
     imagePrompt: selectedDateData.feed.account2.imagePrompt,
     caption: selectedDateData.feed.account2.caption,
-    imageUrl: (selectedDateData.feed.account2 as any).imageUrl
+    imageUrl: (selectedDateData.feed.account2 as any).imageUrl,
+    url: (selectedDateData.feed.account2 as any).url
   };
 
   return (
@@ -1057,6 +1064,16 @@ export default function KakaoContentPage() {
                     >
                       이번 달
                     </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`px-3 py-1 rounded text-sm ${
+                        viewMode === 'list' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      목록
+                    </button>
                   </div>
                 </div>
                 
@@ -1103,7 +1120,7 @@ export default function KakaoContentPage() {
             </div>
             
             {/* 발행 상태 요약 (이번 주/이번 달 보기일 때) */}
-            {viewMode !== 'today' && dateDataList.length > 0 && (
+            {viewMode !== 'today' && viewMode !== 'list' && dateDataList.length > 0 && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="text-sm font-medium text-gray-700 mb-2">발행 상태 요약</div>
                 <div className="grid grid-cols-7 gap-2">
@@ -1461,6 +1478,19 @@ export default function KakaoContentPage() {
           )}
         </div>
 
+        {/* 목록 뷰 또는 계정 편집기 */}
+        {viewMode === 'list' ? (
+          <MessageListView
+            calendarData={calendarData}
+            onDateSelect={(date) => {
+              setSelectedDate(date);
+            }}
+            onViewModeChange={(mode) => {
+              setViewMode(mode);
+            }}
+          />
+        ) : (
+          <>
         {/* 계정 편집기 - 좌우 배치 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* 계정 1 */}
@@ -1476,6 +1506,7 @@ export default function KakaoContentPage() {
               feedData={account1FeedData}
               selectedDate={selectedDate || todayStr}
               accountKey="account1"
+              calendarData={calendarData}
               onProfileUpdate={async (data) => {
               // 상태 업데이트
               const updated = { ...calendarData! };
@@ -1527,7 +1558,8 @@ export default function KakaoContentPage() {
                   ...updated.kakaoFeed.dailySchedule[feedIndex].account1,
                   imageUrl: data.imageUrl,
                   caption: data.caption,
-                  imagePrompt: data.imagePrompt // 프롬프트도 저장
+                  imagePrompt: data.imagePrompt, // 프롬프트도 저장
+                  url: data.url // URL도 저장
                 };
               }
               setCalendarData(updated);
@@ -1603,6 +1635,7 @@ export default function KakaoContentPage() {
             feedData={account2FeedData}
             selectedDate={selectedDate || todayStr}
             accountKey="account2"
+            calendarData={calendarData}
             onProfileUpdate={async (data) => {
               // 상태 업데이트
               const updated = { ...calendarData! };
@@ -1654,7 +1687,8 @@ export default function KakaoContentPage() {
                   ...updated.kakaoFeed.dailySchedule[feedIndex].account2,
                   imageUrl: data.imageUrl,
                   caption: data.caption,
-                  imagePrompt: data.imagePrompt // 프롬프트도 저장
+                  imagePrompt: data.imagePrompt, // 프롬프트도 저장
+                  url: data.url // URL도 저장
                 };
               }
               setCalendarData(updated);
@@ -1717,6 +1751,8 @@ export default function KakaoContentPage() {
             />
           </div>
         </div>
+          </>
+        )}
 
         {/* 생성 옵션 모달 */}
         {showGenerationOptions && (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle, Loader, User, MessageSquare, CheckCircle2, Circle, Upload, Smartphone } from 'lucide-react';
+import { CheckCircle, Loader, User, MessageSquare, CheckCircle2, Circle, Upload, Smartphone, Send } from 'lucide-react';
 import ProfileManager from './ProfileManager';
 import FeedManager from './FeedManager';
 
@@ -24,6 +24,7 @@ interface FeedData {
   imagePrompt: string;
   caption: string;
   imageUrl?: string;
+  url?: string;
 }
 
 interface KakaoAccountEditorProps {
@@ -46,6 +47,7 @@ interface KakaoAccountEditorProps {
   publishedAt?: string;
   selectedDate?: string;
   accountKey?: 'account1' | 'account2';
+  calendarData?: any;
 }
 
 export default function KakaoAccountEditor({
@@ -62,10 +64,12 @@ export default function KakaoAccountEditor({
   onPublishStatusChange,
   publishedAt,
   selectedDate,
-  accountKey
+  accountKey,
+  calendarData
 }: KakaoAccountEditorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSendingSlack, setIsSendingSlack] = useState(false);
 
   const handleAutoCreate = async () => {
     try {
@@ -129,6 +133,44 @@ export default function KakaoAccountEditor({
       alert(`카카오톡 업로드 실패: ${error.message}\n\n수동으로 업로드해주세요.`);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleSendToSlack = async () => {
+    if (!selectedDate || !accountKey) {
+      alert('날짜와 계정 정보가 필요합니다.');
+      return;
+    }
+
+    if (!feedData.imageUrl || !feedData.caption) {
+      alert('피드 이미지와 캡션을 먼저 생성해주세요.');
+      return;
+    }
+
+    try {
+      setIsSendingSlack(true);
+      
+      const response = await fetch('/api/kakao-content/slack-send-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          account: accountKey,
+          date: selectedDate
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('✅ 슬랙으로 전송되었습니다!');
+      } else {
+        throw new Error(data.error || '전송 실패');
+      }
+    } catch (error: any) {
+      console.error('슬랙 전송 오류:', error);
+      alert(`슬랙 전송 실패: ${error.message}`);
+    } finally {
+      setIsSendingSlack(false);
     }
   };
 
@@ -198,6 +240,26 @@ export default function KakaoAccountEditor({
                 </>
               )}
             </button>
+            <button
+              onClick={handleSendToSlack}
+              disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!feedData.imageUrl || !feedData.caption 
+                ? '피드 이미지와 캡션을 먼저 생성해주세요' 
+                : '슬랙으로 전송'}
+            >
+              {isSendingSlack ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  전송 중...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  슬랙 전송
+                </>
+              )}
+            </button>
           </div>
         </div>
         
@@ -254,6 +316,9 @@ export default function KakaoAccountEditor({
           onUpdate={onProfileUpdate}
           onGenerateImage={onGenerateProfileImage}
           isGenerating={isGenerating}
+          accountKey={accountKey}
+          calendarData={calendarData}
+          selectedDate={selectedDate}
         />
       </div>
 

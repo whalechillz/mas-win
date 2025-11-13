@@ -31,18 +31,18 @@ export default async function handler(req, res) {
       });
     }
 
-    // 계정별 한국 골퍼 명시 (배경 이미지일 때는 배경 중심, 사람은 작게)
+    // 계정별 한국 골퍼 명시 (배경 이미지일 때는 배경 중심, 사람은 최소화)
     const koreanGolferSpec = type === 'background'
       ? accountType === 'account1'
-        ? 'Warm golden tone landscape. If people appear, they should be small figures in the distance, not the main focus. The golf course, store, or landscape is the main subject.'
-        : 'Cool blue-gray tone modern setting. If people appear, they should be small figures in the distance, not the main focus. The store interior, fitting room, or modern space is the main subject.'
+        ? 'Warm golden tone landscape. ABSOLUTELY MINIMIZE people in the scene. If people must appear, maximum 1-2 very small, distant silhouettes in the far background, barely visible. The golf course, store, or landscape is the ONLY main subject. Prefer scenes with NO people at all.'
+        : 'Cool blue-gray tone modern setting. ABSOLUTELY MINIMIZE people in the scene. If people must appear, maximum 1-2 very small, distant silhouettes in the far background, barely visible. The store interior, fitting room, or modern space is the ONLY main subject. Prefer scenes with NO people at all.'
       : accountType === 'account1'
         ? 'Korean senior golfer (50-70 years old, Korean ethnicity, Asian facial features, silver/gray hair), warm golden tone, emotional atmosphere'
         : 'Korean young golfer (30-50 years old, Korean ethnicity, Asian facial features), cool blue-gray tone, innovative atmosphere';
 
     // 타입별 설명
     const typeDescription = type === 'background' 
-      ? 'Background image for KakaoTalk profile (wide landscape format, suitable for profile background). The BACKGROUND SCENE is the main subject (golf course, store, landscape), NOT the person. If people appear, they should be small in the background or far away, not the main focus.'
+      ? 'Background image for KakaoTalk profile (wide landscape format, suitable for profile background). The BACKGROUND SCENE is the main subject (golf course, store, landscape), NOT the person. STRICTLY MINIMIZE people: maximum 1-2 very small, distant silhouettes in the far background, barely visible, or preferably NO people at all. The landscape, architecture, or setting itself must be the ONLY focus.'
       : type === 'profile' 
       ? 'Profile image for KakaoTalk (square format, portrait of golfer, suitable for profile picture). The golfer is the main subject.'
       : 'Feed image for KakaoTalk (square format, engaging golf scene for daily feed)';
@@ -84,7 +84,7 @@ Create a detailed, vivid English prompt for AI image generation.
 
 **CRITICAL REQUIREMENTS (MUST FOLLOW):**
 1. ${koreanGolferSpec}
-2. ${type === 'background' ? 'The BACKGROUND/SCENE is the main subject. People should be small, distant, or absent. Focus on the landscape, golf course, store, or setting itself.' : 'ABSOLUTELY NO Western/Caucasian people - ONLY Korean/Asian people'}
+2. ${type === 'background' ? 'The BACKGROUND/SCENE is the main subject. STRICTLY MINIMIZE people: maximum 1-2 very small, distant silhouettes in the far background (barely visible), or preferably NO people at all. Focus exclusively on the landscape, golf course, store, or setting itself. Do NOT include multiple people or groups of people.' : 'ABSOLUTELY NO Western/Caucasian people - ONLY Korean/Asian people'}
 3. ${typeDescription}
 4. Weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
 5. Brand strategy: ${JSON.stringify(brandStrategy || {})}

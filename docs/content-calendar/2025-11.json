@@ -86,8 +86,9 @@
           "date": "2025-11-13",
           "background": {
             "image": "노을 코스",
-            "prompt": "A serene sunset scene on a Korean golf course, bathed in warm orange and golden tones. The landscape stretches wide, showcasing rolling greens, manicured fairways, and gently swaying trees under a soft, glowing sky. In the distance, small figures of Korean golfers can be seen, engaged in their game, but they remain distant and unobtrusive, allowing the stunning scenery to take center stage. The composition captures the essence of \"비거리의 감성 – 스윙과 마음의 연결,\" emphasizing the connection between the swing and the heart. The image is ultra-realistic and photorealistic in 8K resolution, following a professional commercial photography style, with natural lighting that enhances the authentic Korean atmosphere. This wide landscape format (16:9) is perfect for a KakaoTalk profile background, focusing solely on the beauty of the golf course and the tranquil setting, with no text, overlays, watermarks, or logos.",
-            "status": "planned"
+            "prompt": "A tranquil sunset scene on a Korean golf course, enveloped in warm golden and orange tones. The expansive landscape features lush rolling greens, meticulously maintained fairways, and gently rustling trees beneath a soft, glowing sky painted with the colors of dusk. In the distance, small figures of Korean golfers can be seen, gracefully engaged in their game, yet they remain distant and unobtrusive, allowing the breathtaking scenery to take precedence. The composition beautifully encapsulates the theme \"비거리의 감성 – 스윙과 마음의 연결,\" highlighting the profound connection between the swing and the heart. The image is ultra-realistic and photorealistic in 8K resolution, adhering to a professional commercial photography style, with natural lighting that accentuates the authentic Korean atmosphere. This wide landscape format (16:9) is ideal for a KakaoTalk profile background, focusing solely on the stunning beauty of the golf course and the serene environment, ensuring no text, overlays, watermarks, or logos are present.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/background/kakao-account1-background-1762962446792-1-1.png"
           },
           "profile": {
             "image": "시니어 골퍼",
@@ -98,7 +99,7 @@
           "message": "리듬이 거리다.",
           "status": "planned",
           "created": true,
-          "createdAt": "2025-11-12T07:10:29.070Z"
+          "createdAt": "2025-11-12T23:49:45.946Z"
         },
         {
           "date": "2025-11-14",
@@ -228,9 +229,10 @@
           "date": "2025-11-13",
           "background": {
             "image": "글로벌 코스",
-            "prompt": "\"Authentic Korean golf course, featuring a modern championship design set in a serene landscape with cool blue-gray tones. The scene captures the innovative atmosphere of the course, emphasizing the connection between swing and spirit, perfectly aligning with the theme 비거리의 감성 – 스윙과 마음의 연결. The composition is wide landscape format, showcasing the lush greenery and gently rolling hills, with small, distant figures of Korean golfers practicing their swings in the background, ensuring the focus remains on the stunning setting. Ultra-realistic, photorealistic quality in 8K resolution, ideal for a KakaoTalk profile background, with no text, overlays, or logos.\"",
+            "prompt": "\"Global golf course with modern design, featuring a cool blue-gray tone. The scene captures a beautifully manicured Korean golf course, showcasing sleek, contemporary architecture of the clubhouse and fitting areas, bathed in natural light. The landscape is serene and inviting, emphasizing the connection between swing and emotion, aligning with the weekly theme '감성의 비거리 – 스윙과 마음의 연결.' In the distant background, there are 1-2 very small, barely visible silhouettes of Korean golfers, emphasizing the vastness and tranquility of the setting. The composition is ultra-realistic and photorealistic in 8K resolution, focusing on the landscape without any text or watermarks, perfectly suited for a KakaoTalk profile background in a wide landscape format.\"",
             "basePrompt": "글로벌 골프 코스, 현대적인 디자인, 쿨 그레이 톤",
-            "status": "planned"
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/background/kakao-account2-background-1762993054004-1-1.png"
           },
           "profile": {
             "image": "젊은 골퍼",
@@ -241,7 +243,7 @@
           "message": "Performance Beyond Distance.",
           "status": "planned",
           "created": true,
-          "createdAt": "2025-11-12T07:12:09.338Z"
+          "createdAt": "2025-11-12T23:50:03.978Z"
         },
         {
           "date": "2025-11-14",
@@ -364,8 +366,9 @@
           "caption": "비거리 향상의 시작",
           "status": "planned",
           "created": true,
-          "createdAt": "2025-11-12T07:10:29.070Z",
-          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/feed/kakao-account1-feed-1762931428795-1.png"
+          "createdAt": "2025-11-12T23:49:45.946Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/feed/kakao-account1-feed-1762931428795-1.png",
+          "url": "https://masgolf.co.kr/25-08"
         },
         "account2": {
           "imageCategory": "매장의 모습",
@@ -373,7 +376,7 @@
           "caption": "당신만의 드라이버를 찾아보세요",
           "status": "planned",
           "created": true,
-          "createdAt": "2025-11-12T07:12:09.338Z",
+          "createdAt": "2025-11-12T23:50:03.978Z",
           "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/feed/kakao-account2-feed-1762931529006-1.png"
         }
       },

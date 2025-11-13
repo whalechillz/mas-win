@@ -16,7 +16,7 @@ const AdminNav = () => {
             <span className="text-gray-300">|</span>
             <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>블로그 관리</Link>
             <Link href="/admin/sms-list" className={`px-2 py-1 rounded ${isActive('/admin/sms-list') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📱 SMS 관리</Link>
-            <Link href="/admin/kakao" className={`px-2 py-1 rounded ${isActive('/admin/kakao') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>💬 카카오 채널</Link>
+        <Link href="/admin/kakao" className={`px-2 py-1 rounded ${isActive('/admin/kakao') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>💬 카카오 채널</Link>
             <Link href="/admin/kakao-content" className={`px-2 py-1 rounded ${isActive('/admin/kakao-content') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📱 카톡 콘텐츠</Link>
         <Link href="/admin/naver-blog-advanced" className={`px-2 py-1 rounded ${isActive('/admin/naver-blog-advanced') || isActive('/admin/naver-blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📝 네이버 블로그</Link>
             <Link href="/admin/gallery" className={`px-2 py-1 rounded ${isActive('/admin/gallery') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>갤러리 관리</Link>
