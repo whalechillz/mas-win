@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Image, Upload, Sparkles, X, RotateCcw } from 'lucide-react';
+import { Image, Upload, Sparkles, X, RotateCcw, List } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
+import ProfileMessageList from './ProfileMessageList';
 
 interface ProfileData {
   background: {
@@ -29,6 +30,9 @@ interface ProfileManagerProps {
   onUpdate: (data: ProfileData) => void;
   onGenerateImage: (type: 'background' | 'profile', prompt: string) => Promise<{ imageUrls: string[], generatedPrompt?: string }>;
   isGenerating?: boolean;
+  accountKey?: 'account1' | 'account2';
+  calendarData?: any;
+  selectedDate?: string;
 }
 
 export default function ProfileManager({
@@ -36,12 +40,17 @@ export default function ProfileManager({
   profileData,
   onUpdate,
   onGenerateImage,
-  isGenerating = false
+  isGenerating = false,
+  accountKey,
+  calendarData,
+  selectedDate
 }: ProfileManagerProps) {
   const [showBackgroundGallery, setShowBackgroundGallery] = useState(false);
   const [showProfileGallery, setShowProfileGallery] = useState(false);
   const [isGeneratingBackground, setIsGeneratingBackground] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
+  const [showMessageList, setShowMessageList] = useState(false);
+  const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState<'background' | 'profile' | null>(null);
 
   const handleGenerateBackground = async () => {
     try {
@@ -85,6 +94,83 @@ export default function ProfileManager({
     }
   };
 
+  // 프롬프트 재생성 함수 (프롬프트 재생성 + 이미지 자동 재생성)
+  const handleRegeneratePrompt = async (type: 'background' | 'profile') => {
+    try {
+      setIsRegeneratingPrompt(type);
+      
+      // calendarData에서 basePrompt 가져오기
+      let basePrompt: string | undefined;
+      if (calendarData && accountKey) {
+        const targetDate = selectedDate || new Date().toISOString().split('T')[0];
+        const accountData = calendarData.profileContent?.[accountKey];
+        const schedule = accountData?.dailySchedule?.find((s: any) => s.date === targetDate);
+        
+        if (schedule) {
+          basePrompt = type === 'background' 
+            ? schedule.background?.basePrompt || schedule.background?.image
+            : schedule.profile?.basePrompt || schedule.profile?.image;
+        }
+      }
+      
+      if (!basePrompt) {
+        // basePrompt가 없으면 현재 프롬프트의 첫 부분 사용 (한글 설명 추출)
+        basePrompt = type === 'background' 
+          ? profileData.background.image
+          : profileData.profile.image;
+      }
+
+      if (!basePrompt) {
+        alert('기본 프롬프트를 찾을 수 없습니다.');
+        return;
+      }
+
+      // 프롬프트 재생성 API 호출
+      const promptResponse = await fetch('/api/kakao-content/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: basePrompt,
+          accountType: accountKey || (account.tone === 'gold' ? 'account1' : 'account2'),
+          type: type,
+          brandStrategy: {
+            customerpersona: account.tone === 'gold' ? 'senior_fitting' : 'tech_enthusiast',
+            customerChannel: 'local_customers',
+            brandWeight: account.tone === 'gold' ? '높음' : '중간',
+            audienceTemperature: 'warm'
+          },
+          weeklyTheme: '비거리의 감성 – 스윙과 마음의 연결',
+          date: new Date().toISOString().split('T')[0]
+        })
+      });
+
+      const promptData = await promptResponse.json();
+      if (!promptData.success) {
+        throw new Error(promptData.message || '프롬프트 재생성 실패');
+      }
+
+      const newPrompt = promptData.prompt;
+
+      // 새 프롬프트로 이미지 재생성
+      const result = await onGenerateImage(type, newPrompt);
+      if (result.imageUrls.length > 0) {
+        onUpdate({
+          ...profileData,
+          [type]: {
+            ...profileData[type],
+            prompt: newPrompt, // 새 프롬프트 저장
+            imageUrl: result.imageUrls[0] // 새 이미지 저장
+          }
+        });
+        alert('✅ 프롬프트와 이미지가 재생성되었습니다.');
+      }
+    } catch (error: any) {
+      alert(`프롬프트 재생성 실패: ${error.message}`);
+    } finally {
+      setIsRegeneratingPrompt(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* 배경 이미지 */}
@@ -96,8 +182,18 @@ export default function ProfileManager({
           <div className="text-sm text-gray-600">
             <strong>설명:</strong> {profileData.background.image}
           </div>
-          <div className="text-xs text-gray-500">
-            <strong>프롬프트:</strong> {profileData.background.prompt}
+          <div className="text-xs text-gray-500 flex items-start justify-between gap-2">
+            <div className="flex-1 break-words">
+              <strong>프롬프트:</strong> {profileData.background.prompt}
+            </div>
+            <button
+              onClick={() => handleRegeneratePrompt('background')}
+              disabled={isRegeneratingPrompt === 'background' || isGenerating}
+              className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              title="프롬프트 재생성 (새로운 로직 적용) + 이미지 자동 재생성"
+            >
+              {isRegeneratingPrompt === 'background' ? '🔄 재생성 중...' : '🔄 재생성'}
+            </button>
           </div>
           
           {profileData.background.imageUrl && (
@@ -161,8 +257,18 @@ export default function ProfileManager({
           <div className="text-sm text-gray-600">
             <strong>설명:</strong> {profileData.profile.image}
           </div>
-          <div className="text-xs text-gray-500">
-            <strong>프롬프트:</strong> {profileData.profile.prompt}
+          <div className="text-xs text-gray-500 flex items-start justify-between gap-2">
+            <div className="flex-1 break-words">
+              <strong>프롬프트:</strong> {profileData.profile.prompt}
+            </div>
+            <button
+              onClick={() => handleRegeneratePrompt('profile')}
+              disabled={isRegeneratingPrompt === 'profile' || isGenerating}
+              className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              title="프롬프트 재생성 (새로운 로직 적용) + 이미지 자동 재생성"
+            >
+              {isRegeneratingPrompt === 'profile' ? '🔄 재생성 중...' : '🔄 재생성'}
+            </button>
           </div>
           
           {profileData.profile.imageUrl && (
@@ -219,9 +325,21 @@ export default function ProfileManager({
 
       {/* 메시지 */}
       <div className="border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          프로필 메시지
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            프로필 메시지
+          </label>
+          {accountKey && calendarData && (
+            <button
+              onClick={() => setShowMessageList(true)}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+              title="저장된 메시지 목록에서 선택"
+            >
+              <List className="w-3 h-3" />
+              목록에서 선택
+            </button>
+          )}
+        </div>
         <textarea
           value={profileData.message}
           onChange={(e) => onUpdate({ ...profileData, message: e.target.value })}
@@ -293,6 +411,20 @@ export default function ProfileManager({
             />
           </div>
         </div>
+      )}
+
+      {/* 메시지 목록 모달 */}
+      {accountKey && calendarData && (
+        <ProfileMessageList
+          isOpen={showMessageList}
+          onClose={() => setShowMessageList(false)}
+          onSelect={(message) => {
+            onUpdate({ ...profileData, message });
+          }}
+          account={accountKey}
+          calendarData={calendarData}
+          currentMessage={profileData.message}
+        />
       )}
     </div>
   );
