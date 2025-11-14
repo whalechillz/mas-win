@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { supabaseAdmin } from '../../lib/supabase-admin';
 
 interface AdminUser {
   id: string;
@@ -31,18 +30,14 @@ export default function AccountManagement({ session }: AccountManagementProps) {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabaseAdmin
-        .from('admin_users')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('사용자 로드 오류:', error);
+      const response = await fetch('/api/admin/users');
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(data.users || []);
+      } else {
         setError('사용자를 불러오는데 실패했습니다.');
-        return;
       }
-
-      setUsers(data || []);
     } catch (err) {
       console.error('사용자 로드 오류:', err);
       setError('사용자를 불러오는데 실패했습니다.');
@@ -101,167 +96,133 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'profile'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            내 계정 정보
+            내 프로필
           </button>
           <button
             onClick={() => setActiveTab('team')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'team'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            팀 멤버 관리
+            팀 관리
           </button>
         </nav>
       </div>
 
-      {/* 내 계정 정보 탭 */}
+      {/* 내 프로필 탭 */}
       {activeTab === 'profile' && (
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">내 계정 정보</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">이름</label>
-              <p className="mt-1 text-sm text-gray-900">{sessionData?.user?.name || '정보 없음'}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">전화번호</label>
-              <p className="mt-1 text-sm text-gray-900">{sessionData?.user?.phone || '정보 없음'}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">역할</label>
-              <div className="mt-1">
-                {getRoleBadge(sessionData?.user?.role || 'editor')}
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">내 프로필</h2>
+          {sessionData?.user && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">이름</label>
+                <p className="mt-1 text-sm text-gray-900">{sessionData.user.name || '-'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">이메일</label>
+                <p className="mt-1 text-sm text-gray-900">{sessionData.user.email || '-'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">역할</label>
+                <div className="mt-1">
+                  {getRoleBadge((sessionData.user as any)?.role || 'editor')}
+                </div>
+              </div>
+              <div className="pt-4">
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700"
+                >
+                  로그아웃
+                </button>
               </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">계정 상태</label>
-              <div className="mt-1">
-                {getStatusBadge(true)}
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
-              로그아웃
-            </button>
-          </div>
+          )}
         </div>
       )}
 
-      {/* 팀 멤버 관리 탭 */}
+      {/* 팀 관리 탭 */}
       {activeTab === 'team' && (
         <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">팀 멤버 관리</h3>
-              <p className="mt-1 text-sm text-gray-500">팀 멤버들의 계정을 관리합니다</p>
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">팀 관리</h2>
+          </div>
+          
+          {loading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-500">로딩 중...</p>
             </div>
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-              + 새 멤버 추가
-            </button>
-          </div>
-
-          <div className="p-6">
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">오류</h3>
-                    <div className="mt-2 text-sm text-red-700">{error}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500">팀 멤버를 불러오는 중...</p>
-              </div>
-            ) : users.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-sm text-gray-500">등록된 팀 멤버가 없습니다.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        이름
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        전화번호
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        역할
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        상태
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        마지막 로그인
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        가입일
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        작업
-                      </th>
+          ) : error ? (
+            <div className="p-6 text-center">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      이름
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      전화번호
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      역할
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      상태
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      생성일
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      최종 로그인
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {users.map((user) => (
+                    <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {user.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.phone}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getRoleBadge(user.role)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(user.is_active)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(user.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.last_login ? formatDate(user.last_login) : '-'}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {user.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.phone}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getRoleBadge(user.role)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(user.is_active)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.last_login ? formatDate(user.last_login) : '로그인 기록 없음'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(user.created_at)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button className="text-indigo-600 hover:text-indigo-900 mr-3">
-                            편집
-                          </button>
-                          <button className="text-red-600 hover:text-red-900">
-                            삭제
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                  ))}
+                </tbody>
+              </table>
+              {users.length === 0 && (
+                <div className="p-6 text-center text-sm text-gray-500">
+                  등록된 사용자가 없습니다.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

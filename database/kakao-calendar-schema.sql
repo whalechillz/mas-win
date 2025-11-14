@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS kakao_feed_content (
   account TEXT NOT NULL CHECK (account IN ('account1', 'account2')),
   image_category TEXT,
   image_prompt TEXT,
+  base_prompt TEXT,
   caption TEXT,
   image_url TEXT,
   url TEXT,

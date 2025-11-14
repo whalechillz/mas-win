@@ -49,7 +49,7 @@ export default async function handler(req, res) {
               published_at: schedule.publishedAt || null
             };
 
-            const { error } = await supabase
+            const { error, data } = await supabase
               .from('kakao_profile_content')
               .upsert(profileData, {
                 onConflict: 'date,account',
@@ -58,7 +58,14 @@ export default async function handler(req, res) {
 
             if (error) {
               console.error(`프로필 저장 오류 (${schedule.date} ${accountKey}):`, error);
-              errors.push({ type: 'profile', date: schedule.date, account: accountKey, error: error.message });
+              console.error('저장 시도한 데이터:', JSON.stringify(profileData, null, 2));
+              errors.push({ 
+                type: 'profile', 
+                date: schedule.date, 
+                account: accountKey, 
+                error: error.message,
+                details: error
+              });
             } else {
               savedCount++;
             }
@@ -83,6 +90,7 @@ export default async function handler(req, res) {
               account: accountKey,
               image_category: feedData.imageCategory || null,
               image_prompt: feedData.imagePrompt || null,
+              base_prompt: feedData.basePrompt || null,
               caption: feedData.caption || null,
               image_url: feedData.imageUrl || null,
               url: feedData.url || null,
@@ -90,7 +98,7 @@ export default async function handler(req, res) {
               created: feedData.created || false
             };
 
-            const { error } = await supabase
+            const { error, data } = await supabase
               .from('kakao_feed_content')
               .upsert(feedRecord, {
                 onConflict: 'date,account',
@@ -99,7 +107,14 @@ export default async function handler(req, res) {
 
             if (error) {
               console.error(`피드 저장 오류 (${feed.date} ${accountKey}):`, error);
-              errors.push({ type: 'feed', date: feed.date, account: accountKey, error: error.message });
+              console.error('저장 시도한 데이터:', JSON.stringify(feedRecord, null, 2));
+              errors.push({ 
+                type: 'feed', 
+                date: feed.date, 
+                account: accountKey, 
+                error: error.message,
+                details: error
+              });
             } else {
               savedCount++;
             }
@@ -111,13 +126,26 @@ export default async function handler(req, res) {
       }
     }
 
+    // 부분 성공도 허용 (일부 실패가 있어도 성공한 항목은 저장됨)
     if (errors.length > 0) {
-      return res.status(500).json({
-        success: false,
-        message: `일부 데이터 저장 실패 (${savedCount}개 성공, ${errors.length}개 실패)`,
-        errors,
-        savedCount
-      });
+      // 성공한 항목이 있으면 부분 성공으로 처리
+      if (savedCount > 0) {
+        return res.status(200).json({
+          success: true,
+          message: `캘린더 데이터 저장 완료 (${savedCount}개 성공, ${errors.length}개 실패)`,
+          savedCount,
+          errors,
+          partialSuccess: true
+        });
+      } else {
+        // 모두 실패한 경우만 에러로 처리
+        return res.status(500).json({
+          success: false,
+          message: `데이터 저장 실패 (${errors.length}개 실패)`,
+          errors,
+          savedCount: 0
+        });
+      }
     }
 
     return res.status(200).json({
@@ -135,5 +163,4 @@ export default async function handler(req, res) {
     });
   }
 }
-
 

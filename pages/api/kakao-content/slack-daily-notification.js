@@ -1,5 +1,5 @@
 // pages/api/kakao-content/slack-daily-notification.js
-// 매일 아침 9시 30분에 카카오톡 콘텐츠를 슬랙으로 전송하는 API
+// 매일 아침 8시 30분에 카카오톡 콘텐츠를 슬랙으로 전송하는 API
 import fs from 'fs';
 import path from 'path';
 import { sendSlackNotification, formatKakaoContentSlackMessage } from '../../../lib/slack-notification';

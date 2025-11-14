@@ -22,7 +22,7 @@
 - **Phase 8-11**: 이미지 및 콘텐츠 마이그레이션 프로젝트 (진행 중)
 - **Phase 13**: 콘텐츠 허브 시스템 고도화 및 AI 스케줄 생성기 프로젝트 (진행 중)
 - **Phase 14**: 카카오톡 콘텐츠 자동화 시스템 ✅ (완료)
-- **Phase 15**: 워크플로우 시각화 시스템 (React Flow) (신규)
+- **Phase 15**: 워크플로우 시각화 시스템 (React Flow) ✅ (완료)
 - **Phase 6-7**: 사이트 통합 및 마이그레이션 프로젝트 (후속 작업)
 - **Phase 12**: 고객 콘텐츠 정리 프로젝트 (후속 작업)
 
@@ -32,6 +32,141 @@
 ---
 
 # 🎯 프로젝트 진행 현황
+
+## ✅ 최근 완료된 작업 (2025-11-20)
+
+### Phase 15: 워크플로우 시각화 시스템 (React Flow) ✅
+- **React Flow 설치 및 설정**
+  - `reactflow` 패키지 설치
+  - 워크플로우 시각화 컴포넌트 생성
+- **워크플로우 노드 정의**
+  - 시작 → BasePrompt 생성 → 프롬프트 생성 → 이미지 생성 → 피드 생성 → 배포 → 완료
+  - 계정별 병렬 처리 시각화 (Account1, Account2)
+  - 각 단계별 상태 표시 (완료/진행 중/대기 중)
+- **실시간 상태 반영**
+  - 선택된 날짜의 실제 데이터 기반 상태 표시
+  - 완료된 단계는 애니메이션으로 강조
+  - 미완료 단계는 회색으로 표시
+- **UI 개선**
+  - 미니맵 및 컨트롤 추가
+  - 커스텀 노드 디자인 (아이콘, 상태 배지)
+  - 반응형 레이아웃
+- **변경 파일**:
+  - `components/admin/kakao/WorkflowVisualization.tsx` (신규)
+  - `pages/admin/kakao-content.tsx` (워크플로우 시각화 통합)
+  - `package.json` (reactflow 의존성 추가)
+
+### BasePrompt 관리 시스템 개선 ✅
+- **피드 BasePrompt 관리 추가**
+  - FeedManager에 basePrompt 관리 UI 추가
+  - 요일별 자동 생성 버튼 추가
+  - 프롬프트 재생성 기능 추가
+- **계절/트랜드/이벤트 반영**
+  - 계절별 템플릿 수정자 추가 (봄/여름/가을/겨울)
+  - 이벤트별 템플릿 수정자 추가 (크리스마스, 새해 등)
+  - 주차별 테마 반영 기능
+- **변경 파일**:
+  - `lib/kakao-base-prompt-templates.js` (계절/이벤트 로직 추가)
+  - `components/admin/kakao/FeedManager.tsx` (basePrompt 관리 UI 추가)
+  - `pages/api/kakao-content/calendar-save.js` (피드 basePrompt 저장 추가)
+
+### 목록보기 UI 고도화 ✅
+- **향상된 필터링 및 검색**
+  - 계정별, 타입별, 상태별 필터링
+  - 실시간 검색 기능
+  - 정렬 옵션 (날짜/상태, 오름차순/내림차순)
+- **개선된 테이블 UI**
+  - 그라데이션 헤더 디자인
+  - 행 확장 기능 (이미지 미리보기)
+  - 상태 배지 개선 (색상 및 아이콘)
+  - 호버 효과 및 클릭 가능한 행
+- **통계 및 요약**
+  - 총 날짜 수, 생성됨, 배포됨 통계
+  - 실시간 필터링 결과 반영
+- **변경 파일**:
+  - `components/admin/kakao/MessageListView.tsx` (전면 개편)
+
+## ✅ 이전 완료된 작업 (2025-11-16)
+
+### BasePrompt 관리 시스템 ✅
+- **요일별 BasePrompt 템플릿 정의**
+  - `lib/kakao-base-prompt-templates.js` - 요일별 템플릿 정의
+  - Account1 (시니어): 골드톤, 따뜻한 감성 (요일별 3개씩 템플릿)
+  - Account2 (테크): 블랙톤, 혁신적 분위기 (요일별 3개씩 템플릿)
+  - 주차별 테마와 요일별 basePrompt 매핑 명확화
+- **요일별 BasePrompt 자동 생성 API**
+  - `/api/kakao-content/generate-base-prompt.js` - 요일별 템플릿 기반 자동 생성
+  - 날짜의 요일 자동 계산
+  - 주차별 테마 반영 기능
+  - 템플릿 인덱스 지정 가능 (랜덤 또는 특정 인덱스)
+- **BasePrompt 수정/업데이트 UI**
+  - ProfileManager에 basePrompt 편집 섹션 추가
+  - "✏️ 편집" 버튼: basePrompt 수정 모드
+  - "🔄 요일별 자동 생성" 버튼: 요일별 템플릿 자동 생성
+  - "💾 저장" / "❌ 취소" 버튼: 편집 완료/취소
+  - 현재 basePrompt 표시 (회색 배경)
+- **BasePrompt 저장 로직**
+  - `onBasePromptUpdate` prop 추가 (KakaoAccountEditor → ProfileManager)
+  - pages/admin/kakao-content.tsx에서 basePrompt 저장 처리
+  - Supabase에 `background_base_prompt`, `profile_base_prompt` 저장
+- **문서 개선**
+  - `docs/content-calendar/BASE_PROMPT_MANAGEMENT.md` (신규) - 요일별 로테이션 가이드
+  - `docs/content-calendar/MONTHLY_BATCH_GENERATION.md` (신규) - 월별 일괄 생성 가이드
+  - `docs/content-calendar/PROFILE_OPERATION_GUIDE.md` (업데이트) - basePrompt 관리 섹션 추가
+- **변경 파일**:
+  - `lib/kakao-base-prompt-templates.js` (신규)
+  - `pages/api/kakao-content/generate-base-prompt.js` (신규)
+  - `components/admin/kakao/ProfileManager.tsx` (basePrompt 편집 UI 추가)
+  - `components/admin/kakao/KakaoAccountEditor.tsx` (onBasePromptUpdate prop 추가)
+  - `pages/admin/kakao-content.tsx` (basePrompt 저장 로직 추가)
+  - `docs/content-calendar/BASE_PROMPT_MANAGEMENT.md` (신규)
+  - `docs/content-calendar/MONTHLY_BATCH_GENERATION.md` (신규)
+  - `docs/content-calendar/PROFILE_OPERATION_GUIDE.md` (업데이트)
+
+### 카카오톡 다중 날짜 순차 생성 시스템 ✅
+- **날짜 선택 UI**
+  - 이번 주/이번 달 보기 모드에서 체크박스로 여러 날짜 선택 가능
+  - "전체 선택" / "선택 해제" 버튼 추가
+  - 선택된 날짜 수 표시
+- **순차 생성 로직**
+  - 선택된 날짜들을 하나씩 순차적으로 생성 (API 부하 방지)
+  - 최대 생성 개수 제한: 7일 (사용자 확인 후)
+  - 날짜별로 account1 → account2 순서로 생성
+  - 각 생성 사이 1초 대기 (API 부하 방지)
+- **진행 상황 표시**
+  - 실시간 진행 상황 표시 (진행 바, 완료/전체 개수)
+  - 현재 처리 중인 날짜 및 계정 표시
+  - 예상 남은 시간 표시 (1일치당 1분 기준)
+- **생성 버튼 개선**
+  - "오늘 날짜 생성": 현재 선택된 날짜만 생성
+  - "선택된 날짜 생성": 체크박스로 선택한 날짜들 생성
+  - "이번 주 생성": 이번 주 보기 모드에서만 표시, 이번 주 전체 생성
+- **변경 파일**:
+  - `pages/admin/kakao-content.tsx` (날짜 선택 UI, 순차 생성 로직, 진행 상황 표시)
+
+### 카카오톡 피드 캡션 및 URL 자동 생성 시스템 ✅
+- **피드 캡션 자동 생성 API**
+  - `/api/kakao-content/generate-feed-caption.js` - AI 기반 피드 캡션 생성
+  - 이미지 카테고리, 계정 타입, 주별 테마 기반 캡션 생성
+  - 계정별 톤앤매너 반영 (account1: 따뜻하고 감성적, account2: 혁신적이고 기술적)
+  - 길이 제한: 10-25자 이내
+- **URL 자동 선택 로직**
+  - `lib/kakao-feed-url-selector.js` - 이미지 카테고리 및 날짜 기반 URL 선택
+  - 카테고리별 URL 매핑:
+    - 시니어 골퍼의 스윙: account1 → 시타 예약, account2 → 홈페이지
+    - 젊은 골퍼의 스윙: account1 → 홈페이지, account2 → MUZIIK
+    - 매장의 모습: 양쪽 모두 → 매장 안내
+    - 피팅 상담의 모습: 양쪽 모두 → 시타 예약
+  - 요일별 기본 URL (카테고리 매핑이 없을 때)
+- **자동 생성 API 개선**
+  - `auto-create-account1.js`: 피드 캡션 자동 생성 및 URL 자동 선택 추가
+  - `auto-create-account2.js`: 피드 캡션 자동 생성 및 URL 자동 선택 추가
+  - 기존 캡션이 없을 때만 새로 생성 (재사용 가능)
+- **변경 파일**:
+  - `pages/api/kakao-content/generate-feed-caption.js` (신규)
+  - `lib/kakao-feed-url-selector.js` (신규)
+  - `pages/api/kakao-content/auto-create-account1.js` (피드 캡션/URL 자동 생성 추가)
+  - `pages/api/kakao-content/auto-create-account2.js` (피드 캡션/URL 자동 생성 추가)
 
 ## ✅ 최근 완료된 작업 (2025-11-12)
 
