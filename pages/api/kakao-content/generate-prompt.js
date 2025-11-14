@@ -121,28 +121,42 @@ Generate a compelling visual prompt that includes ALL critical requirements abov
     
     let userPrompt;
     if (isDetailedEnglishPrompt) {
-      // 이미 상세한 프롬프트면 약간만 보강
+      // Self-Adaptive Automation: 컨셉 일관성 보장
+      // 이미 상세한 프롬프트면 약간만 보강하되, 원래 컨셉 유지
       userPrompt = `Existing detailed prompt: "${prompt}"
+
+**CRITICAL: Maintain Original Concept**
+- Keep the core visual concept, mood, and style from the original prompt
+- Preserve key elements (location, setting, atmosphere, color scheme)
+- Only enhance technical details and ensure requirements are met
 
 Enhance this prompt slightly to ensure:
 1. All critical requirements are met (Korean golfer, account type, style)
 2. NO Western/Caucasian people appear
 3. Matches the weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
 4. Optimized for ${type} image type${brandInstruction}
+5. **Maintains the original concept and visual style**
 
-Return ONLY the enhanced prompt in English, keeping the original concept and style.`;
+Return ONLY the enhanced prompt in English, keeping the original concept, mood, and style intact.`;
     } else {
-      // 기본 프롬프트면 전체적으로 생성
+      // Self-Adaptive Automation: 기본 프롬프트에서 컨셉 추출 및 확장
+      // 기본 프롬프트면 전체적으로 생성하되, basePrompt의 컨셉을 반드시 포함
       userPrompt = `Base prompt: "${prompt}"
 
+**CRITICAL: Preserve Base Concept**
+- The base prompt concept MUST be the foundation of the generated prompt
+- Extract and maintain the core idea, mood, and visual elements from the base prompt
+- Build upon the base concept, don't replace it
+
 Create an enhanced image generation prompt that:
-1. Includes the base prompt concept
+1. **PRESERVES and EXPANDS the base prompt concept** (this is the most important requirement)
 2. Adds all critical requirements (Korean golfer, account type, style)
 3. Ensures NO Western/Caucasian people appear
-4. Matches the weekly theme and brand strategy
+4. Matches the weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
 5. Is optimized for ${type} image type${brandInstruction}
+6. Maintains visual consistency with the base concept
 
-Return ONLY the enhanced prompt in English, ready for AI image generation.`;
+Return ONLY the enhanced prompt in English, ready for AI image generation. The base concept must be clearly visible in the result.`;
     }
 
     const response = await openai.chat.completions.create({

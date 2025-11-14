@@ -1,0 +1,795 @@
+{
+  "month": "2025-11",
+  "strategy": {
+    "theme": "MUZIIK 콜라보 런칭 & 신제품 소개",
+    "targetAudience": "시니어 골퍼 (50-60대)",
+    "contentTypes": {
+      "신제품 소개": 5,
+      "고객 후기": 4,
+      "테스트 결과": 3,
+      "시의성": 4,
+      "이벤트": 3,
+      "교육/팁": 2
+    }
+  },
+  "profileContent": {
+    "account1": {
+      "account": "010-6669-9000",
+      "name": "MAS GOLF ProWhale",
+      "persona": "시니어 중심 감성형 브랜딩",
+      "tone": "따뜻한 톤 (골드·브라운)",
+      "target": "시니어 타깃의 '공감 신뢰'",
+      "frequency": "매일 (배경 1 + 프로필 1)",
+      "updateTime": "오전 7~9시",
+      "weeklyThemes": {
+        "week1": "비거리의 감성 – 스윙과 마음의 연결",
+        "week2": "기술의 진심 – MASGOLF의 하이테크 감성",
+        "week3": "건강과 자신감 – 몸과 거리의 균형",
+        "week4": "겨울 대비 프로젝트 – 시즌별 비거리 관리 조언"
+      },
+      "dailySchedule": [
+        {
+          "date": "2025-11-10",
+          "background": {
+            "image": "절경 골프장 배경",
+            "prompt": "Korean prestigious mountain golf course at sunrise, dramatic cliffs and valleys, Seoraksan or Jirisan area, championship course design, warm golden hour lighting, warm golden-brown tones, emotional atmosphere, wide landscape format, no people or small figures in distance, ultra-realistic, photorealistic, 8K resolution",
+            "basePrompt": "절경 골프장, 따뜻한 골드 톤, 감성적인 분위기",
+            "status": "planned"
+          },
+          "profile": {
+            "image": "시니어 스윙",
+            "prompt": "시니어 골퍼가 드라이버 스윙하는 모습, 따뜻한 표정, 골드 톤",
+            "status": "planned"
+          },
+          "message": "비거리는 자신감에서 시작된다.",
+          "status": "planned",
+          "created": false
+        },
+        {
+          "date": "2025-11-11",
+          "background": {
+            "image": "MASSGOO 매장 외관",
+            "prompt": "MASSGOO 매장 외관, 따뜻한 조명, 골드·브라운 톤",
+            "status": "planned"
+          },
+          "profile": {
+            "image": "시니어 골퍼 (피니시 컷)",
+            "prompt": "시니어 골퍼 피니시 포즈, 만족스러운 표정, 따뜻한 분위기",
+            "status": "planned"
+          },
+          "message": "부드러운 리듬이 강한 임팩트를 만든다.",
+          "status": "planned",
+          "created": false
+        },
+        {
+          "date": "2025-11-12",
+          "background": {
+            "image": "해안 코스",
+            "prompt": "Korean coastal golf course at sunset, Jeju Island or Busan area, dramatic cliffs overlooking ocean, prestigious championship course, warm golden hour lighting, warm golden-brown tones, emotional atmosphere, wide landscape format, no people or small figures in distance, ultra-realistic, photorealistic, 8K resolution",
+            "basePrompt": "해안 골프 코스, 노을, 따뜻한 분위기",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account1/background/kakao-account1-background-1762930176971-1.png"
+          },
+          "profile": {
+            "image": "시니어 골퍼",
+            "prompt": "시니어 골퍼, 해안 배경, 감성적인 포즈",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account1/profile/paragraph-image-custom-1762927278045-1.png"
+          },
+          "message": "스윙보다 마음이 먼저다.",
+          "status": "published",
+          "created": true,
+          "createdAt": "2025-11-12T11:35:53.880Z",
+          "publishedAt": "2025-11-12T12:04:09.446Z"
+        },
+        {
+          "date": "2025-11-13",
+          "background": {
+            "image": "노을 코스",
+            "prompt": "A tranquil sunset scene on a Korean golf course, enveloped in warm golden and orange tones. The expansive landscape features lush rolling greens, meticulously maintained fairways, and gently rustling trees beneath a soft, glowing sky painted with the colors of dusk. In the distance, small figures of Korean golfers can be seen, gracefully engaged in their game, yet they remain distant and unobtrusive, allowing the breathtaking scenery to take precedence. The composition beautifully encapsulates the theme \"비거리의 감성 – 스윙과 마음의 연결,\" highlighting the profound connection between the swing and the heart. The image is ultra-realistic and photorealistic in 8K resolution, adhering to a professional commercial photography style, with natural lighting that accentuates the authentic Korean atmosphere. This wide landscape format (16:9) is ideal for a KakaoTalk profile background, focusing solely on the stunning beauty of the golf course and the serene environment, ensuring no text, overlays, watermarks, or logos are present.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/background/kakao-account1-background-1762962446792-1-1.png"
+          },
+          "profile": {
+            "image": "시니어 골퍼",
+            "prompt": "A senior Korean golfer, aged between 50-70 years old with Asian facial features and silver/gray hair, poses elegantly against a warm golden sunset background. The atmosphere is emotional and reflects the theme \"비거리의 감성 – 스윙과 마음의 연결,\" capturing the deep connection between the golfer's swing and their heart. This ultra-realistic, photorealistic portrait is composed in a square format, perfect for a KakaoTalk profile picture. The image features a natural Korean golf course setting, with professional lighting and composition that enhances the authentic Korean atmosphere. The clean composition ensures there are no text, overlays, watermarks, logos, or brand names, focusing solely on the golfer as the main subject. The overall feel aligns with the brand strategy targeting local senior customers, emphasizing warmth and authenticity.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/profile/kakao-account1-profile-1762931413804-1.png"
+          },
+          "message": "리듬이 거리다.",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T23:49:45.946Z"
+        },
+        {
+          "date": "2025-11-14",
+          "background": {
+            "image": "숲속 코스",
+            "prompt": "A serene and inviting forest golf course scene bathed in warm golden tones, showcasing the natural beauty of the landscape. The lush green fairways are framed by tall trees, with dappled sunlight filtering through the leaves, creating a tranquil atmosphere. In the distance, small figures of Korean golfers can be seen, their presence understated and not the main focus, allowing the stunning scenery to take center stage. The composition should reflect a professional commercial photography style, capturing the essence of an authentic Korean golf course setting. This image should be ultra-realistic and in 8K resolution, designed specifically for a wide landscape format, suitable as a KakaoTalk profile background. The theme of \"감성의 비거리 – 스윙과 마음의 연결\" resonates through the calmness of the environment, emphasizing the connection between the swing and the heart, perfectly aligned with the brand strategy for local senior customers.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/background/kakao-account1-background-1762948688300-1-1.png"
+          },
+          "profile": {
+            "image": "시니어 골퍼",
+            "prompt": "A senior Korean golfer aged between 50-70, showcasing Asian facial features and silver/gray hair, striking a confident pose in a serene forest setting. The image should exude a warm golden tone, capturing an emotional atmosphere that reflects the theme \"비거리의 감성 – 스윙과 마음의 연결.\" The golfer is the main subject, framed in a square format, ideal for a KakaoTalk profile image. The composition should be ultra-realistic and photorealistic, with professional commercial photography style, set in a natural Korean golf course environment that embodies an authentic Korean atmosphere. The lighting and composition must be expertly crafted to resonate with local customers, emphasizing a high brand weight and a warm audience temperature. Ensure no Western or Caucasian individuals are present in the scene.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/profile/kakao-account1-profile-1762948709092-1-1.png"
+          },
+          "message": "오늘도 자신감 있게.",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T11:58:51.756Z"
+        },
+        {
+          "date": "2025-11-15",
+          "background": {
+            "image": "매장 인테리어",
+            "prompt": "\"Imagine a warm and inviting interior of a MASSGOO store, bathed in soft golden lighting that creates an upscale atmosphere. The scene features elegant displays showcasing premium golf equipment and apparel, with the MASSGOO logo seamlessly integrated into the architecture on the walls and displays, enhancing the luxurious feel. In the distance, a small group of Korean golfers is seen engaging in a relaxed conversation, emphasizing the theme of connection between swing and heart. The overall composition is ultra-realistic and photorealistic, capturing the authentic charm of a Korean retail space, designed as a wide landscape format suitable for a KakaoTalk profile background. The lighting and professional photography style highlight the essence of the brand strategy, appealing to local senior customers while conveying a warm and inviting environment.\"",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/background/kakao-account1-background-1762960923411-1-1.png"
+          },
+          "profile": {
+            "image": "시니어 골퍼",
+            "prompt": "A senior Korean golfer, aged between 50-70 years old, with silver/gray hair and distinct Asian facial features, stands against a natural Korean golf course backdrop, embodying a warm golden tone. The golfer displays a satisfied and emotional expression, reflecting the theme of \"비거리의 감성 – 스윙과 마음의 연결\" (The Emotion of Distance – Connecting Swing and Heart). The composition is clean and focused solely on the golfer, making them the main subject, suitable for a KakaoTalk profile image. The style is ultra-realistic and photorealistic, captured in 8K resolution with professional lighting and composition, evoking an authentic Korean atmosphere. The image should be in a square format (1:1) with no text overlays or watermarks, aligning with a brand strategy targeting local senior customers with a high emotional connection.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/profile/kakao-account1-profile-1762960938769-1-1.png"
+          },
+          "message": "꾸준함이 거리다.",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T15:22:39.185Z"
+        },
+        {
+          "date": "2025-11-16",
+          "background": {
+            "image": "감성 컷",
+            "prompt": "감성적인 골프장 풍경, 따뜻한 톤, 자연스러운 분위기",
+            "status": "planned"
+          },
+          "profile": {
+            "image": "시니어 골퍼",
+            "prompt": "시니어 골퍼, 감성적인 배경, 감사의 표정",
+            "status": "planned"
+          },
+          "message": "감사의 스윙으로 마무리.",
+          "status": "planned",
+          "created": false
+        }
+      ]
+    },
+    "account2": {
+      "account": "010-5704-0013",
+      "name": "MASGOLF Tech",
+      "persona": "하이테크 중심 혁신형 브랜딩",
+      "tone": "쿨 톤 (블루·그레이)",
+      "target": "중장년층의 '기술 신뢰'",
+      "frequency": "매일 (배경 1 + 프로필 1)",
+      "updateTime": "오전 7~9시",
+      "weeklyThemes": {
+        "week1": "비거리의 감성 – 스윙과 마음의 연결",
+        "week2": "기술의 진심 – MASGOLF의 하이테크 감성",
+        "week3": "건강과 자신감 – 몸과 거리의 균형",
+        "week4": "겨울 대비 프로젝트 – 시즌별 비거리 관리 조언"
+      },
+      "dailySchedule": [
+        {
+          "date": "2025-11-10",
+          "background": {
+            "image": "피팅룸 배경",
+            "prompt": "Modern high-tech golf fitting room, Scotland-inspired design elements (St. Andrews, Royal Troon style), cool blue-gray lighting, professional equipment, sleek interior, innovative atmosphere, wide landscape format, no people or small figures in distance, ultra-realistic, photorealistic, 8K resolution",
+            "basePrompt": "전문 피팅룸, 현대적인 인테리어, 쿨 블루·그레이 톤",
+            "status": "planned"
+          },
+          "profile": {
+            "image": "젊은 골퍼",
+            "prompt": "젊은 골퍼, 피팅룸 배경, 전문적인 분위기",
+            "status": "planned"
+          },
+          "message": "AI로 완성하는 거리.",
+          "status": "planned",
+          "created": false
+        },
+        {
+          "date": "2025-11-11",
+          "background": {
+            "image": "MASGOLF 제품 클로즈업",
+            "prompt": "MASGOLF 드라이버 헤드 클로즈업, 정밀한 디테일, 쿨 톤",
+            "status": "planned"
+          },
+          "profile": {
+            "image": "젊은 골퍼 (백스윙)",
+            "prompt": "젊은 골퍼 백스윙, 정밀한 폼, 기술적인 분위기",
+            "status": "planned"
+          },
+          "message": "정밀함이 비거리다.",
+          "status": "planned",
+          "created": false
+        },
+        {
+          "date": "2025-11-12",
+          "background": {
+            "image": "매장 인테리어",
+            "prompt": "\"Ultra-realistic interior of a modern MASGOO store featuring a cool blue-gray tone, emphasizing sleek contemporary design elements. The setting includes spacious fitting rooms and stylish product displays, all bathed in professional lighting to enhance the ambiance. In the background, a distant view of a natural Korean golf course can be seen, with small figures of Korean golfers practicing their swings, subtly integrated into the scene to convey the theme of 'Connecting Swing and Heart' (비거리의 감성). The composition is clean and focused on the store interior and the serene landscape, maintaining a professional commercial photography style. No text, overlays, or logos. The image is in a wide landscape format (16:9), high-quality, suitable for a KakaoTalk profile background.\"",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account2/background/kakao-account2-background-1762931799039-1.png"
+          },
+          "profile": {
+            "image": "젊은 골퍼",
+            "prompt": "젊은 골퍼, 매장 배경, 혁신적인 분위기",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account2/profile/paragraph-image-custom-1762927475302-1.png"
+          },
+          "message": "데이터로 스윙을 시각화하다.",
+          "status": "published",
+          "created": true,
+          "createdAt": "2025-11-12T07:55:38.434Z",
+          "publishedAt": "2025-11-12T11:35:26.971Z"
+        },
+        {
+          "date": "2025-11-13",
+          "background": {
+            "image": "글로벌 코스",
+            "prompt": "\"Global golf course with modern design, featuring a cool blue-gray tone. The scene captures a beautifully manicured Korean golf course, showcasing sleek, contemporary architecture of the clubhouse and fitting areas, bathed in natural light. The landscape is serene and inviting, emphasizing the connection between swing and emotion, aligning with the weekly theme '감성의 비거리 – 스윙과 마음의 연결.' In the distant background, there are 1-2 very small, barely visible silhouettes of Korean golfers, emphasizing the vastness and tranquility of the setting. The composition is ultra-realistic and photorealistic in 8K resolution, focusing on the landscape without any text or watermarks, perfectly suited for a KakaoTalk profile background in a wide landscape format.\"",
+            "basePrompt": "글로벌 골프 코스, 현대적인 디자인, 쿨 그레이 톤",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/background/kakao-account2-background-1762991403636-1-1.png"
+          },
+          "profile": {
+            "image": "젊은 골퍼",
+            "prompt": "A young Korean golfer, aged between 30-50 years, with distinct Asian facial features, confidently striking a pose on a natural Korean golf course. The scene is infused with a cool blue-gray tone, creating an innovative atmosphere that resonates with the theme of \"비거리의 감성 – 스윙과 마음의 연결.\" The composition is ultra-realistic and photorealistic, captured in 8K resolution, showcasing professional commercial photography style. The golfer is the main subject, perfectly framed for a KakaoTalk profile image in a square format (1:1). The lighting is professional, enhancing the authentic Korean atmosphere without any text, overlays, watermarks, logos, or brand names, ensuring a clean and captivating image suitable for local tech enthusiasts.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/profile/kakao-account2-profile-1762931515224-1.png"
+          },
+          "message": "Performance Beyond Distance.",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T23:50:03.978Z"
+        },
+        {
+          "date": "2025-11-14",
+          "background": {
+            "image": "실내 피팅룸",
+            "prompt": "A modern indoor fitting room designed for golf enthusiasts, featuring advanced AI equipment in a cool blue-gray tone. The scene captures a sleek, high-tech environment with minimalist decor and soft, professional lighting that emphasizes the authenticity of the Korean golfing experience. In the background, small figures of Korean golfers can be seen at a distance, engaged in a practice swing, subtly highlighting the connection between swing and emotion, in line with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\" The overall composition is clean and focuses on the interior space, creating a photorealistic image suitable for a KakaoTalk profile background in a wide landscape format (16:9). The atmosphere is warm and inviting, targeting local customers who are tech enthusiasts, adhering to the brand strategy for balanced customer engagement.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/background/kakao-account2-background-1762948803136-1-1.png"
+          },
+          "profile": {
+            "image": "젊은 골퍼",
+            "prompt": "A young Korean golfer, aged between 30-50 years, featuring distinct Asian facial features, stands confidently in a fitting room background that exudes a technical atmosphere. The image captures a cool blue-gray tone, emphasizing innovation and a modern aesthetic. The golfer is the central subject, showcasing a poised swing that symbolizes the connection between technique and mindset, aligned with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\" The composition is ultra-realistic and photorealistic, shot in high quality (8K resolution), with professional lighting that highlights the golfer's form and expression. The setting reflects an authentic Korean atmosphere, ensuring a clean composition suitable for a KakaoTalk profile image, with no text overlays or promotional content, presented in a square format (1:1) for optimal viewing on the platform.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/profile/kakao-account2-profile-1762948824382-1-1.png"
+          },
+          "message": "AI Precision Swing.",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T12:00:49.242Z"
+        },
+        {
+          "date": "2025-11-15",
+          "background": {
+            "image": "제품 컷",
+            "prompt": "Create a wide landscape format image featuring a modern golf store interior with cool blue-gray tones, focusing on the MASGOLF product display showcasing precise details of the equipment. In the background, a serene natural Korean golf course is visible through large glass windows, enhancing the atmosphere with a sense of tranquility and connection to nature. Small figures of Korean golfers can be seen in the distance, engaged in their swings, embodying the theme “비거리의 감성 – 스윙과 마음의 연결.” The composition should be ultra-realistic and photorealistic, capturing the authentic Korean environment with professional lighting and composition. This image should be high-quality and suitable for a KakaoTalk profile background, without any text overlays or watermarks, and should resonate with tech enthusiasts and local customers.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/background/kakao-account2-background-1762960976904-1-1.png"
+          },
+          "profile": {
+            "image": "젊은 골퍼",
+            "prompt": "A young Korean golfer, aged between 30-50 years, with distinct Asian facial features, is captured in an innovative pose on a natural Korean golf course, embodying the theme \"비거리의 감성 – 스윙과 마음의 연결\". The scene is infused with a cool blue-gray tone, creating a modern and fresh atmosphere. The golfer, the main subject, is framed in a square format, perfectly suited for a KakaoTalk profile picture. The image showcases ultra-realistic, photorealistic quality in 8K resolution, emphasizing professional lighting and composition that highlight the authentic Korean ambiance. The golfer is wearing a stylish cap featuring the \"MASSGOO\" logo embroidered naturally, ensuring brand visibility without overwhelming the main subject. The surroundings are devoid of any Western or Caucasian individuals, focusing solely on the rich representation of Korean golfing culture. This visual resonates with tech enthusiasts among local customers, aligning with the brand strategy of medium weight and warm audience temperature. The overall composition captures the essence of the golfer's swing and the emotional connection to the game, making it an ideal profile image.",
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/profile/kakao-account2-profile-1762961600363-1-1.png"
+          },
+          "message": "Power Meets Control.",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T15:33:36.603Z"
+        },
+        {
+          "date": "2025-11-16",
+          "background": {
+            "image": "감성 조명 컷",
+            "prompt": "감성적인 조명, 현대적인 디자인, 쿨 블루 톤",
+            "status": "planned"
+          },
+          "profile": {
+            "image": "젊은 골퍼",
+            "prompt": "젊은 골퍼, 조명 배경, 기술적인 감성",
+            "status": "planned"
+          },
+          "message": "기술에도 감정이 있다.",
+          "status": "planned",
+          "created": false
+        }
+      ]
+    }
+  },
+  "kakaoFeed": {
+    "accounts": [
+      {
+        "name": "카카오 채널 피드 1",
+        "account": "010-6669-9000",
+        "type": "브랜딩 피드",
+        "frequency": "매일"
+      },
+      {
+        "name": "카카오 채널 피드 2",
+        "account": "010-5704-0013",
+        "type": "브랜딩 피드",
+        "frequency": "매일"
+      }
+    ],
+    "dailySchedule": [
+      {
+        "date": "2025-11-11",
+        "account1": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "전문 피터가 고객에게 드라이버 피팅 상담하는 모습, 친근한 분위기, 신뢰감",
+          "caption": "맞춤 피팅으로 비거리를 늘려보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "60대 골퍼가 자신감 있게 드라이버 스윙하는 모습, 활기찬 표정, 골프장 배경",
+          "caption": "나이에 상관없이 비거리 향상이 가능합니다",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-12",
+        "account1": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "\"Capture the elegant swing of a Korean senior golfer aged between 50-70 years, showcasing the grace and skill that comes with years of experience. The golfer, distinguished by silver/gray hair and Asian facial features, is positioned against a breathtaking natural Korean golf course setting, drenched in warm golden light that enhances the deeply emotional atmosphere. The composition should beautifully emphasize the profound connection between the swing and the heart, perfectly reflecting the weekly theme '비거리의 감성 – 스윙과 마음의 연결.' \n\nTo further enrich the scene, if any elements of a store or fitting room are included, ensure that the 'MASSGOO' or 'MASGOO' store sign, logo, or branding is seamlessly integrated into the architecture, clearly visible on the storefront, interior walls, or displays without appearing as an overlay. The lighting should be soft yet professional, enhancing the authenticity of the Korean ambiance. \n\nThis scene must be ultra-realistic and photorealistic, rendered in 8K resolution, styled like professional commercial photography. The square format (1:1) is ideal for an engaging KakaoTalk daily feed, ensuring a captivating visual experience. The focus remains entirely on Korean individuals, completely devoid of any Western/Caucasian presence, and free from text, overlays, watermarks, logos, or brand names except for the natural incorporation of 'MASSGOO' branding.\"",
+          "caption": "시니어 골퍼도 비거리 20m 증가 가능",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T11:35:53.880Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account1/feed/kakao-account1-feed-1762937385020-1.png"
+        },
+        "account2": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "A Korean male golfer in his 30s, showcasing a perfect driver swing against a stunning natural golf course backdrop, illuminated by soft natural light. The scene embodies a cool blue-gray tone, creating an innovative atmosphere that reflects the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\" The golfer should possess distinct Asian facial features, emphasizing authenticity and cultural representation. The composition is square (1:1) and ultra-realistic, captured in 8K resolution, with a professional commercial photography style. The image should resonate with tech enthusiasts and local customers, maintaining a warm audience temperature, while ensuring a clean and engaging visual without any overlays or promotional text.",
+          "caption": "완벽한 스윙을 위한 첫걸음",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T07:55:38.434Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-12/account2/profile/paragraph-image-custom-1762927490322-1.png"
+        }
+      },
+      {
+        "date": "2025-11-13",
+        "account1": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "A dynamic swing moment of a Korean senior golfer aged between 50-70 years, showcasing authentic Asian facial features and silver/gray hair. The scene captures the golfer mid-swing with a high-speed shutter effect, emphasizing the powerful motion and connection between swing and emotion, in line with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결\". The warm golden tone envelops the golfer, creating an emotional atmosphere that resonates with local customers. The backdrop features a natural Korean golf course, with professional lighting highlighting the golfer's focus and determination. The composition is clean, square format (1:1), ultra-realistic and photorealistic in 8K resolution, perfect for a daily KakaoTalk feed. No Western or Caucasian individuals are present, ensuring a purely Korean aesthetic without any text, overlays, watermarks, or logos.",
+          "caption": "비거리 향상의 시작",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T23:49:45.946Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/feed/kakao-account1-feed-1762931428795-1.png",
+          "url": "https://masgolf.co.kr/25-08"
+        },
+        "account2": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "A warm and inviting scene at the MASSGOO store counter, showcasing neatly arranged golf equipment. In the foreground, a Korean young golfer (30-50 years old, Korean ethnicity, Asian facial features) stands confidently, embodying a cool blue-gray tone that reflects an innovative atmosphere. The setting is a natural Korean golf course, bathed in professional lighting that accentuates the authentic Korean ambiance. The golfer is engaged in a moment of reflection, illustrating the theme of \"비거리의 감성 – 스윙과 마음의 연결.\" The composition is clean and focused, capturing the essence of a warm welcome for local customers, appealing to tech enthusiasts. The image is square format (1:1), ultra-realistic, photorealistic, and at 8K resolution, ideal for KakaoTalk's daily feed, with no text, overlays, watermarks, or logos present.",
+          "caption": "당신만의 드라이버를 찾아보세요",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T23:50:03.978Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/feed/kakao-account2-feed-1762931529006-1.png",
+          "url": "https://masgolf.co.kr"
+        }
+      },
+      {
+        "date": "2025-11-14",
+        "account1": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "A warm golden-toned image of a Korean senior golfer, aged 50-70, with silver/gray hair, showcasing a powerful golf swing on a picturesque Korean golf course. The golfer has Asian facial features, exuding a deep emotional connection to the game, embodying the theme of \"비거리의 감성 – 스윙과 마음의 연결.\" In the foreground, the elegant \"MASSGOO\" store sign is subtly integrated into the architecture of a nearby fitting room, with a clean interior displaying high-end golf drivers and equipment. The setting captures an authentic Korean atmosphere with professional lighting and composition, optimized for KakaoTalk's square feed format. The golfer wears a stylish cap featuring the \"MASSGOO\" logo, embroidered naturally, ensuring brand visibility while keeping the focus on the golfer's form and emotion. The scene embodies a warm, inviting vibe, appealing to local customers and enhancing the brand identity.",
+          "caption": "MASSGOO에서 최적의 드라이버를 만나보세요",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T11:58:51.756Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/feed/kakao-account1-feed-1762948730758-1-1.png"
+        },
+        "account2": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "A warm scene featuring a Korean golfer aged between 30-50, with distinct Asian facial features, engaged in a fitting consultation at a modern golf shop. The golfer is discussing and reviewing a driver with a professional fitter, both appearing focused and enthusiastic. The setting is a sleek, well-lit interior of the MASSGOO store, showcasing various golf equipment and accessories. The MASSGOO logo is subtly integrated into the architecture, visible on the walls and displays, creating an authentic atmosphere without overwhelming the main subjects. The color palette is cool with blue-gray tones, enhancing the innovative vibe of the scene. This image aligns with the weekly theme of \"비거리의 감성 – 스윙과 마음의 연결,\" highlighting the emotional connection between the golfer's swing and their mindset. The composition is ultra-realistic, capturing the essence of a professional commercial photography style, and is optimized for a square format suitable for KakaoTalk feeds, ensuring high quality and engagement.",
+          "caption": "당신만의 드라이버를 찾는 여정을 시작하세요",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T12:00:49.242Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/feed/kakao-account2-feed-1762948848218-1-1.png"
+        }
+      },
+      {
+        "date": "2025-11-15",
+        "account1": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "A professional fitting session unfolds at a local Korean golf store, radiating a warm and inviting atmosphere. In the scene, a Korean senior golfer (50-70 years old, with silver/gray hair and distinct Asian facial features) is fully engaged in a driver fitting consultation with a friendly, knowledgeable Korean fitter, who is passionately explaining the nuances of the swing. This dynamic interaction emphasizes the emotional connection between the golfer's mind and their performance, perfectly aligned with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\"\n\nThe setting is a beautifully lit, welcoming interior of a traditional Korean golf store, showcasing authentic wooden textures and warm lighting that enhances the cozy ambiance. The \"MASSGOO\" store sign is prominently displayed on the wall, seamlessly integrated into the architecture of the space, while the MASSGOO branding is subtly visible throughout the fitting room area, enhancing the overall aesthetic. The elegantly embroidered cap worn by the senior golfer features the MASSGOO logo, ensuring brand visibility in a natural manner.\n\nThis image captures the essence of trust and camaraderie between the golfer and the fitter, enveloped in a warm golden tone that enhances the inviting and professional aesthetic. The composition is ultra-realistic and photorealistic, optimized for KakaoTalk's daily feed in a square format (1:1) at high quality. The focus emphasizes the emotional connection between the golfer and the fitter while incorporating the \"MASSGOO\" branding seamlessly throughout the image, ensuring it is part of the architecture and not an overlay, without overwhelming the main subjects. The scene is infused with an authentic Korean atmosphere, showcasing the beauty of the golf experience tailored for senior players, making it ideal for local customers seeking a personal touch in their golfing journey.",
+          "caption": "맞춤 피팅으로 비거리를 늘려보세요",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T15:22:39.185Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/feed/kakao-account1-feed-1762960958735-1-1.jpg"
+        },
+        "account2": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "A Korean young golfer, aged 30-50, with distinct Asian facial features, confidently executing a powerful driver swing on a lush, natural Korean golf course. The scene captures a vibrant expression of focus and determination, embodying the weekly theme of \"비거리의 감성 – 스윙과 마음의 연결.\" The atmosphere is cool with blue-gray tones, emphasizing innovation and technology, appealing to a tech-enthusiast audience. The composition is clean and professional, shot in ultra-realistic, photorealistic 8K resolution, perfectly framed in a square format for KakaoTalk's daily feed. There are absolutely no Western/Caucasian individuals present, ensuring an authentic Korean ambiance and context.\n\nThe golfer is wearing a cap with the \"MASSGOO\" logo embroidered naturally, subtly integrating the brand into the scene. In the background, a stylish \"MASSGOO\" store sign is prominently displayed on a nearby building, seamlessly incorporated into the architecture, reinforcing brand visibility without overwhelming the main subject. The store's interior walls and displays reflect a modern aesthetic that embodies the innovative spirit of the brand. Professional lighting and overall aesthetic create an engaging and inspiring golf scene that resonates with local customers, perfectly aligning with the brand strategy and audience temperature. This image represents a perfect blend of athleticism and brand identity, making it ideal for a daily feed on KakaoTalk.",
+          "caption": "나이에 상관없이 비거리 향상이 가능합니다",
+          "status": "planned",
+          "created": true,
+          "createdAt": "2025-11-12T15:33:36.603Z",
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/feed/kakao-account2-feed-1762961642359-1-1.jpg"
+        }
+      },
+      {
+        "date": "2025-11-16",
+        "account1": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "시니어 골퍼의 우아한 스윙, 경험과 기술이 느껴지는 포즈, 자연스러운 표정",
+          "caption": "시니어 골퍼도 비거리 20m 증가 가능",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "30대 골퍼가 완벽한 폼으로 드라이버 스윙, 골프장 배경, 자연광",
+          "caption": "완벽한 스윙을 위한 첫걸음",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-17",
+        "account1": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "젊은 골퍼의 역동적인 스윙 순간, 고속 셔터, 역광 효과",
+          "caption": "비거리 향상의 시작",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 카운터, 골프 장비 정렬, 고객 맞이하는 따뜻한 공간",
+          "caption": "당신만의 드라이버를 찾아보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-18",
+        "account1": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 전경, 깔끔한 인테리어, 골프 드라이버 전시, 고급스러운 분위기",
+          "caption": "MASSGOO에서 최적의 드라이버를 만나보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "피팅 상담 중인 모습, 골퍼와 피터가 함께 드라이버를 검토하는 따뜻한 장면",
+          "caption": "당신만의 드라이버를 찾는 여정을 시작하세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-19",
+        "account1": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "전문 피터가 고객에게 드라이버 피팅 상담하는 모습, 친근한 분위기, 신뢰감",
+          "caption": "맞춤 피팅으로 비거리를 늘려보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "60대 골퍼가 자신감 있게 드라이버 스윙하는 모습, 활기찬 표정, 골프장 배경",
+          "caption": "나이에 상관없이 비거리 향상이 가능합니다",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-20",
+        "account1": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "시니어 골퍼의 우아한 스윙, 경험과 기술이 느껴지는 포즈, 자연스러운 표정",
+          "caption": "시니어 골퍼도 비거리 20m 증가 가능",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "30대 골퍼가 완벽한 폼으로 드라이버 스윙, 골프장 배경, 자연광",
+          "caption": "완벽한 스윙을 위한 첫걸음",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-21",
+        "account1": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "젊은 골퍼의 역동적인 스윙 순간, 고속 셔터, 역광 효과",
+          "caption": "비거리 향상의 시작",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 카운터, 골프 장비 정렬, 고객 맞이하는 따뜻한 공간",
+          "caption": "당신만의 드라이버를 찾아보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-22",
+        "account1": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 전경, 깔끔한 인테리어, 골프 드라이버 전시, 고급스러운 분위기",
+          "caption": "MASSGOO에서 최적의 드라이버를 만나보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "피팅 상담 중인 모습, 골퍼와 피터가 함께 드라이버를 검토하는 따뜻한 장면",
+          "caption": "당신만의 드라이버를 찾는 여정을 시작하세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-23",
+        "account1": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "전문 피터가 고객에게 드라이버 피팅 상담하는 모습, 친근한 분위기, 신뢰감",
+          "caption": "맞춤 피팅으로 비거리를 늘려보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "60대 골퍼가 자신감 있게 드라이버 스윙하는 모습, 활기찬 표정, 골프장 배경",
+          "caption": "나이에 상관없이 비거리 향상이 가능합니다",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-24",
+        "account1": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "시니어 골퍼의 우아한 스윙, 경험과 기술이 느껴지는 포즈, 자연스러운 표정",
+          "caption": "시니어 골퍼도 비거리 20m 증가 가능",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "30대 골퍼가 완벽한 폼으로 드라이버 스윙, 골프장 배경, 자연광",
+          "caption": "완벽한 스윙을 위한 첫걸음",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-25",
+        "account1": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "젊은 골퍼의 역동적인 스윙 순간, 고속 셔터, 역광 효과",
+          "caption": "비거리 향상의 시작",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 카운터, 골프 장비 정렬, 고객 맞이하는 따뜻한 공간",
+          "caption": "당신만의 드라이버를 찾아보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-26",
+        "account1": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 전경, 깔끔한 인테리어, 골프 드라이버 전시, 고급스러운 분위기",
+          "caption": "MASSGOO에서 최적의 드라이버를 만나보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "피팅 상담 중인 모습, 골퍼와 피터가 함께 드라이버를 검토하는 따뜻한 장면",
+          "caption": "당신만의 드라이버를 찾는 여정을 시작하세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-27",
+        "account1": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "전문 피터가 고객에게 드라이버 피팅 상담하는 모습, 친근한 분위기, 신뢰감",
+          "caption": "맞춤 피팅으로 비거리를 늘려보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "60대 골퍼가 자신감 있게 드라이버 스윙하는 모습, 활기찬 표정, 골프장 배경",
+          "caption": "나이에 상관없이 비거리 향상이 가능합니다",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-28",
+        "account1": {
+          "imageCategory": "시니어 골퍼의 스윙",
+          "imagePrompt": "시니어 골퍼의 우아한 스윙, 경험과 기술이 느껴지는 포즈, 자연스러운 표정",
+          "caption": "시니어 골퍼도 비거리 20m 증가 가능",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "30대 골퍼가 완벽한 폼으로 드라이버 스윙, 골프장 배경, 자연광",
+          "caption": "완벽한 스윙을 위한 첫걸음",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-29",
+        "account1": {
+          "imageCategory": "젊은 골퍼의 스윙",
+          "imagePrompt": "젊은 골퍼의 역동적인 스윙 순간, 고속 셔터, 역광 효과",
+          "caption": "비거리 향상의 시작",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 카운터, 골프 장비 정렬, 고객 맞이하는 따뜻한 공간",
+          "caption": "당신만의 드라이버를 찾아보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      },
+      {
+        "date": "2025-11-30",
+        "account1": {
+          "imageCategory": "매장의 모습",
+          "imagePrompt": "MASSGOO 매장 전경, 깔끔한 인테리어, 골프 드라이버 전시, 고급스러운 분위기",
+          "caption": "MASSGOO에서 최적의 드라이버를 만나보세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        },
+        "account2": {
+          "imageCategory": "피팅 상담의 모습",
+          "imagePrompt": "피팅 상담 중인 모습, 골퍼와 피터가 함께 드라이버를 검토하는 따뜻한 장면",
+          "caption": "당신만의 드라이버를 찾는 여정을 시작하세요",
+          "status": "planned",
+          "created": false,
+          "createdAt": null
+        }
+      }
+    ]
+  },
+  "contents": [
+    {
+      "date": "2025-11-11",
+      "title": "MASSGOO X MUZIIK 콜라보레이션 런칭! 일본 최고급 티타늄 샤프트의 혁신",
+      "summary": "마쓰구프와 일본 MUZIIK의 특별한 콜라보레이션이 시작됩니다. 40년 전통의 일본 티타늄 파이버 기술로 만든 사파이어, 베릴 샤프트를 소개합니다. 초고속 반발력과 헤드 안정성을 경험해보세요. 자세히 보기 →",
+      "overview": "MASSGOO와 일본 MUZIIK의 프리미엄 콜라보레이션이 공식 오픈되었습니다. 일본 최고급 티타늄 파이버 기술을 적용한 DOGATTI GENERATION 사파이어와 베릴 샤프트는 초고속 반발력과 헤드 안정성을 실현합니다. 나노레벨 수지 구조, 역토크 방지 기술, 티타늄 그라파이트 사용 등 혁신적인 기술이 적용되어 비거리 향상과 방향성 안정을 동시에 제공합니다. 수원 갤러리아 광교에서 직접 체험해보실 수 있습니다.",
+      "type": "신제품 소개",
+      "channels": [
+        "blog",
+        "sms",
+        "kakao",
+        "naver_blog"
+      ],
+      "status": "planned",
+      "created": false,
+      "createdAt": null
+    },
+    {
+      "date": "2025-11-12",
+      "title": "시크리트포스 골드 2 MUZIIK - 오토플렉스 티타늄 샤프트의 완벽한 조합",
+      "summary": "시크리트포스 골드 2에 MUZIIK 사파이어 샤프트를 결합한 프리미엄 드라이버를 소개합니다. ONE-FLEX A200·A215 오토플렉스 기술로 모든 골퍼의 꿈을 실현합니다. 무제한 2년 헤드 보증까지. 자세히 보기 →",
+      "overview": "시크리트포스 골드 2 MUZIIK는 마쓰구프의 초고반발 드라이버 헤드와 MUZIIK의 오토플렉스 티타늄 샤프트가 만난 프리미엄 조합입니다. 헤드 스피드에 관계없이 자동으로 최적의 플렉스를 제공하는 ONE-FLEX 기술로 평균 25m 비거리 증가를 실현합니다. 50-60대 골퍼 맞춤 설계로 시니어 골퍼들에게 특히 인기입니다. 무제한 2년 헤드 보증으로 안심하고 사용하실 수 있습니다.",
+      "type": "신제품 소개",
+      "channels": [
+        "blog",
+        "sms",
+        "kakao",
+        "naver_blog"
+      ],
+      "status": "planned",
+      "created": false,
+      "createdAt": null
+    },
+    {
+      "date": "2025-11-13",
+      "title": "시크리트웨폰 블랙 MUZIIK - 40g대 최대 X 플렉스의 극한 성능",
+      "summary": "시크리트웨폰 블랙에 MUZIIK 베릴 샤프트를 결합한 하이테크 드라이버입니다. 40g대 경량이면서도 최대 X(Extra Stiff) 플렉스를 실현하는 풀 티타늄 4X 샤프트 기술을 경험하세요. 자세히 보기 →",
+      "overview": "시크리트웨폰 블랙 MUZIIK는 가벼움과 강함의 완벽한 조합을 실현한 혁신적인 드라이버입니다. MUZIIK 베릴 샤프트의 풀 티타늄 4X 기술로 40g대 경량이면서도 최대 X 플렉스를 제공합니다. 프리미엄 블랙 PVD 코팅과 에메랄드 그린 베릴 샤프트의 조화로 시각적 완성도도 뛰어납니다. 하이테크 얼리아답터와 신규 고객들에게 특히 추천하는 제품입니다.",
+      "type": "신제품 소개",
+      "channels": [
+        "blog",
+        "sms",
+        "kakao",
+        "naver_blog"
+      ],
+      "status": "planned",
+      "created": false,
+      "createdAt": null
+    },
+    {
+      "date": "2025-11-14",
+      "title": "[고객 후기] 62세 김선생님, MUZIIK 사파이어로 비거리 35m 증가 달성!",
+      "summary": "62세 골퍼 김선생님이 시크리트포스 골드 2 MUZIIK로 비거리 35m를 늘린 성공 사례를 공유합니다. \"혼마보다 더 나은 성능을 합리적인 가격에 경험했습니다\"라는 후기와 함께 실제 시타 결과를 확인하세요. 자세히 보기 →",
+      "overview": "62세 골퍼 김선생님은 시크리트포스 골드 2 MUZIIK 드라이버로 비거리를 35m 늘리는 놀라운 성과를 달성했습니다. \"동년배들이 부러워하는 비거리를 얻었고, 특히 오토플렉스 기술 덕분에 스윙이 훨씬 편안해졌다\"는 후기입니다. 실제 시타 결과 드라이버 비거리가 평균 35m 증가했으며, 방향성도 크게 개선되었습니다. 나이에 상관없이 비거리 향상이 가능하다는 것을 증명한 사례입니다.",
+      "type": "고객 후기",
+      "channels": [
+        "blog",
+        "sms",
+        "kakao",
+        "naver_blog"
+      ],
+      "status": "planned",
+      "created": false,
+      "createdAt": null
+    },
+    {
+      "date": "2025-11-15",
+      "title": "가을 골프 시즌 마무리, 겨울 대비 완벽한 드라이버 피팅의 시기",
+      "summary": "가을 골프 시즌이 끝나가는 지금, 겨울 실내 연습을 위한 완벽한 드라이버 피팅이 필요합니다. MUZIIK 신제품을 포함한 다양한 옵션으로 맞춤 피팅을 받고, 내년 시즌을 대비하세요. 무료 시타 예약하기 →",
+      "overview": "가을 골프 시즌이 마무리되는 11월 중순, 이제는 겨울 실내 연습과 내년 시즌 대비에 집중해야 할 때입니다. 마쓰구프에서는 MUZIIK 신제품을 포함한 다양한 드라이버 옵션으로 맞춤 피팅을 제공합니다. 전문 피터가 개인의 스윙 특성에 맞는 최적의 드라이버를 찾아드립니다. 수원 갤러리아 광교에서 5분 거리의 편리한 위치에서 무료 상담을 받아보세요. 겨울 동안 실내 연습을 통해 새 드라이버에 익숙해지고, 내년 시즌을 완벽하게 준비하실 수 있습니다.",
+      "type": "교육/팁",
+      "channels": [
+        "blog",
+        "sms",
+        "kakao",
+        "naver_blog"
+      ],
+      "status": "planned",
+      "created": false,
+      "createdAt": null
+    }
+  ]
+}

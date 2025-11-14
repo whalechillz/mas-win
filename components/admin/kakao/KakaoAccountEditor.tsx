@@ -48,6 +48,9 @@ interface KakaoAccountEditorProps {
   selectedDate?: string;
   accountKey?: 'account1' | 'account2';
   calendarData?: any;
+  onBasePromptUpdate?: (type: 'background' | 'profile', basePrompt: string) => void;
+  setCalendarData?: (data: any) => void;
+  saveCalendarData?: (data: any) => Promise<void>;
 }
 
 export default function KakaoAccountEditor({
@@ -65,8 +68,12 @@ export default function KakaoAccountEditor({
   publishedAt,
   selectedDate,
   accountKey,
-  calendarData
+  calendarData,
+  onBasePromptUpdate,
+  setCalendarData,
+  saveCalendarData
 }: KakaoAccountEditorProps) {
+  const todayStr = new Date().toISOString().split('T')[0];
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSendingSlack, setIsSendingSlack] = useState(false);
@@ -319,6 +326,7 @@ export default function KakaoAccountEditor({
           accountKey={accountKey}
           calendarData={calendarData}
           selectedDate={selectedDate}
+          onBasePromptUpdate={onBasePromptUpdate}
         />
       </div>
 
@@ -334,9 +342,12 @@ export default function KakaoAccountEditor({
           onUpdate={onFeedUpdate}
           onGenerateImage={onGenerateFeedImage}
           isGenerating={isGenerating}
+          accountKey={accountKey}
+          calendarData={calendarData}
+          selectedDate={selectedDate}
+          onBasePromptUpdate={onBasePromptUpdate}
         />
       </div>
     </div>
   );
 }
-

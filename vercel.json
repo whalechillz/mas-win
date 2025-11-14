@@ -12,7 +12,7 @@
   "crons": [
     {
       "path": "/api/kakao-content/slack-daily-notification",
-      "schedule": "30 9 * * *"
+      "schedule": "30 8 * * *"
     }
   ],
   "build": {

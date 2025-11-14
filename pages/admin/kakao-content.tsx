@@ -7,9 +7,10 @@ import BrandStrategySelector from '../../components/admin/BrandStrategySelector'
 import KakaoAccountEditor from '../../components/admin/kakao/KakaoAccountEditor';
 import ImageSelectionModal from '../../components/admin/kakao/ImageSelectionModal';
 import MessageListView from '../../components/admin/kakao/MessageListView';
+import WorkflowVisualization from '../../components/admin/kakao/WorkflowVisualization';
 import { generateGoldToneImages, generateBlackToneImages, generateImagePrompts, generateKakaoImagePrompts } from '../../lib/ai-image-generation';
 import { promptConfigManager } from '../../lib/prompt-config-manager';
-import { Rocket, Calendar, Settings, Loader, ChevronLeft, ChevronRight, CheckCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Rocket, Calendar, Settings, Loader, ChevronLeft, ChevronRight, CheckCircle, Clock, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 
 interface CalendarData {
   profileContent: {
@@ -100,6 +101,17 @@ export default function KakaoContentPage() {
     imageCount: 2 // 생성할 이미지 개수 (선택용)
   });
   const [saveStatus, setSaveStatus] = useState<{ status: 'idle' | 'saving' | 'success' | 'error'; message?: string }>({ status: 'idle' });
+  // 날짜 선택 상태 (다중 선택)
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  // 생성 진행 상황
+  const [generationProgress, setGenerationProgress] = useState<{
+    isRunning: boolean;
+    currentDate: string | null;
+    currentAccount: 'account1' | 'account2' | null;
+    totalDates: number;
+    completedDates: number;
+    estimatedTimeRemaining: number; // 초 단위
+  } | null>(null);
   // 이미지 선택 모달 상태
   const [imageSelectionModal, setImageSelectionModal] = useState<{
     isOpen: boolean;
@@ -110,6 +122,8 @@ export default function KakaoContentPage() {
   // 토글 상태
   const [isBrandStrategyExpanded, setIsBrandStrategyExpanded] = useState(false);
   const [isPromptConfigExpanded, setIsPromptConfigExpanded] = useState(false);
+  const [isDateSummaryExpanded, setIsDateSummaryExpanded] = useState(true); // 날짜 발행 요약 토글
+  const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false); // 워크플로우 토글
 
   // 오늘 날짜 계산
   useEffect(() => {
@@ -121,6 +135,8 @@ export default function KakaoContentPage() {
     setTodayStr(dateStr);
     if (!selectedDate) {
       setSelectedDate(dateStr);
+      // 오늘 날짜를 기본 선택으로 설정
+      setSelectedDates([dateStr]);
     }
   }, []);
 
@@ -213,7 +229,7 @@ export default function KakaoContentPage() {
   }, []);
 
   // 공통 저장 함수 (Supabase에 저장)
-  const saveCalendarData = async (updatedData: CalendarData) => {
+  const saveCalendarData = async (updatedData: CalendarData): Promise<void> => {
     try {
       setSaveStatus({ status: 'saving', message: '저장 중...' });
       const today = new Date();
@@ -228,16 +244,26 @@ export default function KakaoContentPage() {
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus({ 
-          status: 'success', 
-          message: `저장 완료 (${result.savedCount || 0}개 항목)` 
-        });
+        // 부분 성공인 경우 경고 메시지 표시
+        if (result.partialSuccess && result.errors && result.errors.length > 0) {
+          setSaveStatus({ 
+            status: 'success', 
+            message: `저장 완료 (${result.savedCount || 0}개 성공, ${result.errors.length}개 실패)` 
+          });
+          console.warn('⚠️ 일부 데이터 저장 실패:', result.errors);
+        } else {
+          setSaveStatus({ 
+            status: 'success', 
+            message: `저장 완료 (${result.savedCount || 0}개 항목)` 
+          });
+        }
         // 3초 후 상태 초기화
         setTimeout(() => {
           setSaveStatus({ status: 'idle' });
         }, 3000);
-        return true;
+        return;
       } else {
+        // 모두 실패한 경우만 에러로 처리
         throw new Error(result.message || '저장 실패');
       }
     } catch (error: any) {
@@ -250,7 +276,7 @@ export default function KakaoContentPage() {
       setTimeout(() => {
         setSaveStatus({ status: 'idle' });
       }, 5000);
-      return false;
+      throw error;
     }
   };
 
@@ -700,10 +726,10 @@ export default function KakaoContentPage() {
       setCalendarData(updated);
 
       // Supabase에 저장
-      const saved = await saveCalendarData(updated);
-      if (saved) {
+      try {
+        await saveCalendarData(updated);
         alert('✅ 계정 1 자동 생성 완료!\n\n- Supabase에 저장됨 (로컬/배포 동기화)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
-      } else {
+      } catch (error) {
         alert(`자동 생성 완료, 하지만 저장 실패했습니다.`);
       }
     } catch (error: any) {
@@ -796,10 +822,10 @@ export default function KakaoContentPage() {
       setCalendarData(updated);
 
       // Supabase에 저장
-      const saved = await saveCalendarData(updated);
-      if (saved) {
+      try {
+        await saveCalendarData(updated);
         alert('✅ 계정 2 자동 생성 완료!\n\n- Supabase에 저장됨 (로컬/배포 동기화)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
-      } else {
+      } catch (error) {
         alert(`자동 생성 완료, 하지만 저장 실패했습니다.`);
       }
     } catch (error: any) {
@@ -809,19 +835,235 @@ export default function KakaoContentPage() {
     }
   };
 
-  // 전체 자동 생성
-  const handleAllAutoCreate = async () => {
+  // 단일 날짜에 대한 자동 생성 (API 호출)
+  const generateForSingleDate = async (date: string, account: 'account1' | 'account2'): Promise<boolean> => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+        (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+      
+      const apiEndpoint = account === 'account1' 
+        ? '/api/kakao-content/auto-create-account1'
+        : '/api/kakao-content/auto-create-account2';
+      
+      const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.success === true;
+    } catch (error: any) {
+      console.error(`${date} ${account} 생성 실패:`, error);
+      throw error;
+    }
+  };
+
+  // 선택된 날짜들에 대한 순차 생성
+  const handleSelectedDatesAutoCreate = async (customDates?: string[]) => {
+    // 커스텀 날짜가 제공되면 사용, 없으면 선택된 날짜 또는 현재 날짜 사용
+    const datesToGenerate = customDates || (selectedDates.length > 0 
+      ? selectedDates 
+      : [selectedDate || todayStr]);
+
+    // 최대 생성 개수 제한 (7일)
+    if (datesToGenerate.length > 7) {
+      const confirm = window.confirm(
+        `선택된 날짜가 ${datesToGenerate.length}개입니다. 최대 7개까지만 생성 가능합니다.\n\n처음 7개만 생성하시겠습니까?`
+      );
+      if (!confirm) return;
+      datesToGenerate.splice(7);
+    }
+
+    if (datesToGenerate.length === 0) {
+      alert('생성할 날짜를 선택해주세요.');
+      return;
+    }
+
     try {
       setIsCreatingAll(true);
-      await handleAccount1AutoCreate();
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
-      await handleAccount2AutoCreate();
-      alert('전체 자동 생성 완료!');
+      setGenerationProgress({
+        isRunning: true,
+        currentDate: null,
+        currentAccount: null,
+        totalDates: datesToGenerate.length * 2, // account1 + account2
+        completedDates: 0,
+        estimatedTimeRemaining: datesToGenerate.length * 2 * 60 // 1일치당 1분 (2계정)
+      });
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: Array<{ date: string; account: string; error: string }> = [];
+
+      // 날짜별로 순차 생성
+      for (let i = 0; i < datesToGenerate.length; i++) {
+        const date = datesToGenerate[i];
+        
+        // 날짜가 캘린더에 없으면 먼저 생성
+        const dateData = getDateData(date);
+        if (!dateData) {
+          console.log(`📅 날짜 ${date}가 캘린더에 없습니다. 기본 구조를 생성합니다...`);
+          
+          // 기본 구조 생성
+          const updated = { ...calendarData! };
+          
+          // Account1 기본 구조
+          if (!updated.profileContent.account1.dailySchedule.find((s: any) => s.date === date)) {
+            updated.profileContent.account1.dailySchedule.push({
+              date,
+              background: { image: '', imageUrl: null, prompt: '', basePrompt: null, status: 'planned' },
+              profile: { image: '', imageUrl: null, prompt: '', basePrompt: null, status: 'planned' },
+              message: '',
+              status: 'planned',
+              created: false
+            });
+          }
+          
+          // Account2 기본 구조
+          if (!updated.profileContent.account2.dailySchedule.find((s: any) => s.date === date)) {
+            updated.profileContent.account2.dailySchedule.push({
+              date,
+              background: { image: '', imageUrl: null, prompt: '', basePrompt: null, status: 'planned' },
+              profile: { image: '', imageUrl: null, prompt: '', basePrompt: null, status: 'planned' },
+              message: '',
+              status: 'planned',
+              created: false
+            });
+          }
+          
+          // Feed 기본 구조
+          if (!updated.kakaoFeed.dailySchedule.find((s: any) => s.date === date)) {
+            updated.kakaoFeed.dailySchedule.push({
+              date,
+              account1: {
+                imageCategory: '',
+                imagePrompt: '',
+                caption: '',
+                imageUrl: null,
+                url: null,
+                status: 'planned',
+                created: false
+              } as any, // basePrompt는 타입에 없지만 실제로는 사용됨
+              account2: {
+                imageCategory: '',
+                imagePrompt: '',
+                caption: '',
+                imageUrl: null,
+                url: null,
+                status: 'planned',
+                created: false
+              } as any // basePrompt는 타입에 없지만 실제로는 사용됨
+            });
+          }
+          
+          // Supabase에 저장
+          try {
+            await saveCalendarData(updated);
+            setCalendarData(updated);
+            console.log(`✅ 날짜 ${date} 기본 구조 생성 완료`);
+          } catch (error: any) {
+            console.error(`❌ 날짜 ${date} 기본 구조 생성 실패:`, error);
+            errorCount++;
+            errors.push({ date, account: 'system', error: `날짜 생성 실패: ${error.message}` });
+            continue; // 다음 날짜로
+          }
+        }
+        
+        // Account1 생성
+        setGenerationProgress(prev => prev ? {
+          ...prev,
+          currentDate: date,
+          currentAccount: 'account1',
+          completedDates: prev.completedDates,
+          estimatedTimeRemaining: (prev.totalDates - prev.completedDates) * 60
+        } : null);
+
+        try {
+          await generateForSingleDate(date, 'account1');
+          successCount++;
+          setGenerationProgress(prev => prev ? {
+            ...prev,
+            completedDates: prev.completedDates + 1,
+            estimatedTimeRemaining: (prev.totalDates - prev.completedDates - 1) * 60
+          } : null);
+          
+          // 1초 대기 (API 부하 방지)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error: any) {
+          errorCount++;
+          errors.push({ date, account: 'account1', error: error.message });
+          setGenerationProgress(prev => prev ? {
+            ...prev,
+            completedDates: prev.completedDates + 1
+          } : null);
+        }
+
+        // Account2 생성
+        setGenerationProgress(prev => prev ? {
+          ...prev,
+          currentDate: date,
+          currentAccount: 'account2',
+          estimatedTimeRemaining: (prev.totalDates - prev.completedDates) * 60
+        } : null);
+
+        try {
+          await generateForSingleDate(date, 'account2');
+          successCount++;
+          setGenerationProgress(prev => prev ? {
+            ...prev,
+            completedDates: prev.completedDates + 1,
+            estimatedTimeRemaining: (prev.totalDates - prev.completedDates - 1) * 60
+          } : null);
+          
+          // 1초 대기 (API 부하 방지)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error: any) {
+          errorCount++;
+          errors.push({ date, account: 'account2', error: error.message });
+          setGenerationProgress(prev => prev ? {
+            ...prev,
+            completedDates: prev.completedDates + 1
+          } : null);
+        }
+      }
+
+      // 캘린더 데이터 다시 로드
+      const today = new Date();
+      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
+      const data = await res.json();
+      if (data.success && data.calendarData) {
+        setCalendarData(data.calendarData);
+      }
+
+      // 결과 알림
+      let message = `✅ 생성 완료!\n\n성공: ${successCount}개\n실패: ${errorCount}개`;
+      if (errors.length > 0) {
+        message += `\n\n실패한 항목:\n${errors.slice(0, 5).map(e => `- ${e.date} ${e.account}: ${e.error}`).join('\n')}`;
+        if (errors.length > 5) {
+          message += `\n... 외 ${errors.length - 5}개`;
+        }
+      }
+      alert(message);
+
     } catch (error: any) {
-      alert(`전체 자동 생성 실패: ${error.message}`);
+      alert(`생성 실패: ${error.message}`);
     } finally {
       setIsCreatingAll(false);
+      setGenerationProgress(null);
     }
+  };
+
+  // 전체 자동 생성 (현재 날짜만)
+  const handleAllAutoCreate = async () => {
+    // 현재 날짜만 생성
+    setSelectedDates([selectedDate || todayStr]);
+    await handleSelectedDatesAutoCreate();
   };
 
   if (loading) {
@@ -1048,8 +1290,8 @@ export default function KakaoContentPage() {
                 )}
               </div>
 
-              {/* 생성 옵션 설정 및 전체 자동 생성 버튼 */}
-              <div className="flex items-center gap-2">
+              {/* 생성 옵션 설정 및 자동 생성 버튼 */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setShowGenerationOptions(true)}
                   disabled={isCreatingAll}
@@ -1058,10 +1300,37 @@ export default function KakaoContentPage() {
                   <Settings className="w-4 h-4" />
                   생성 옵션 설정
                 </button>
+                {viewMode === 'week' && (
+                  <button
+                    onClick={async () => {
+                      const weekDates = getDateRange('week');
+                      setSelectedDates(weekDates);
+                      await handleSelectedDatesAutoCreate(weekDates);
+                    }}
+                    disabled={isCreatingAll}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50"
+                    title="이번 주 전체 생성 (최대 7일)"
+                  >
+                    {isCreatingAll ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        생성 중...
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="w-4 h-4" />
+                        이번 주 생성
+                      </>
+                    )}
+                  </button>
+                )}
                 <button
-                  onClick={handleAllAutoCreate}
+                  onClick={() => handleSelectedDatesAutoCreate()}
                   disabled={isCreatingAll}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
+                  title={selectedDates.length > 0 
+                    ? `${selectedDates.length}개 날짜 생성 (최대 7개)` 
+                    : '현재 날짜 생성'}
                 >
                   {isCreatingAll ? (
                     <>
@@ -1071,96 +1340,261 @@ export default function KakaoContentPage() {
                   ) : (
                     <>
                       <Rocket className="w-4 h-4" />
-                      전체 자동 생성
+                      {selectedDates.length > 0 
+                        ? `선택된 날짜 생성 (${selectedDates.length}개)`
+                        : '오늘 날짜 생성'}
                     </>
                   )}
                 </button>
               </div>
             </div>
-            
-            {/* 발행 상태 요약 (이번 주/이번 달 보기일 때) */}
-            {viewMode !== 'today' && viewMode !== 'list' && dateDataList.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="text-sm font-medium text-gray-700 mb-2">발행 상태 요약</div>
-                <div className="grid grid-cols-7 gap-2">
-                  {dateDataList.map(({ date, data }) => {
-                    const status = getPublishStatus(data);
-                    const isToday = date === todayStr;
-                    return (
-                      <button
-                        key={date}
-                        onClick={() => {
-                          setSelectedDate(date);
-                          setViewMode('today');
-                        }}
-                        className={`p-2 rounded text-xs border-2 ${
-                          isToday ? 'border-blue-500' : 'border-gray-200'
-                        } ${
-                          status.color === 'green' ? 'bg-green-50' :
-                          status.color === 'blue' ? 'bg-blue-50' :
-                          status.color === 'yellow' ? 'bg-yellow-50' :
-                          'bg-gray-50'
-                        } hover:bg-gray-100`}
-                        title={`${date}: ${status.label}`}
-                      >
-                        <div className="font-medium">{new Date(date).getDate()}일</div>
-                        <div className={`text-xs ${
-                          status.color === 'green' ? 'text-green-600' :
-                          status.color === 'blue' ? 'text-blue-600' :
-                          status.color === 'yellow' ? 'text-yellow-600' :
-                          'text-gray-500'
-                        }`}>
-                          {status.label}
-                        </div>
-                      </button>
-                    );
-                  })}
+
+            {/* 생성 진행 상황 표시 */}
+            {generationProgress && generationProgress.isRunning && (
+              <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Loader className="w-5 h-5 animate-spin text-blue-600" />
+                    <span className="font-medium text-blue-900">생성 진행 중...</span>
+                  </div>
+                  <span className="text-sm text-blue-700">
+                    {generationProgress.completedDates} / {generationProgress.totalDates} 완료
+                  </span>
                 </div>
+                <div className="mb-2">
+                  <div className="w-full bg-blue-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${(generationProgress.completedDates / generationProgress.totalDates) * 100}%` 
+                      }}
+                    />
+                  </div>
+                </div>
+                {generationProgress.currentDate && (
+                  <div className="text-sm text-blue-800">
+                    <div>현재 처리 중: {generationProgress.currentDate}</div>
+                    <div>
+                      계정: {generationProgress.currentAccount === 'account1' ? '대표폰 (시니어)' : '업무폰 (테크)'}
+                    </div>
+                    <div className="text-xs text-blue-600 mt-1">
+                      예상 남은 시간: 약 {Math.ceil(generationProgress.estimatedTimeRemaining / 60)}분
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* 워크플로우 시각화 (보기 모드 선택 버튼 바로 아래) */}
+            {viewMode !== 'list' && selectedDate && (
+              <div className="mt-4 bg-white rounded-lg shadow-lg border border-gray-200">
+                <button
+                  onClick={() => setIsWorkflowExpanded(!isWorkflowExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isWorkflowExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                    <Sparkles className="w-5 h-5 text-gray-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">워크플로우 시각화</h3>
+                    <span className="text-sm text-gray-500">({selectedDate || todayStr})</span>
+                  </div>
+                </button>
+                
+                {isWorkflowExpanded && (
+                  <div className="p-4 border-t border-gray-200">
+                    <WorkflowVisualization
+                      calendarData={calendarData}
+                      selectedDate={selectedDate || todayStr}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* 날짜 발행 요약 (토글 가능) */}
+            {viewMode !== 'list' && (
+              <div className="mt-4 bg-white rounded-lg shadow-lg border border-gray-200">
+                <button
+                  onClick={() => setIsDateSummaryExpanded(!isDateSummaryExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isDateSummaryExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">날짜 발행 요약</h3>
+                    {viewMode === 'today' && selectedDate && (
+                      <span className="text-sm text-gray-500">({selectedDate})</span>
+                    )}
+                    {viewMode !== 'today' && dateDataList.length > 0 && (
+                      <span className="text-sm text-gray-500">({dateDataList.length}개 날짜)</span>
+                    )}
+                  </div>
+                </button>
+                
+                {isDateSummaryExpanded && (
+                  <div className="p-4 border-t border-gray-200">
+                    {viewMode === 'today' ? (
+                      <div className="text-sm text-gray-600">
+                        <p>선택된 날짜: <strong>{selectedDate || todayStr}</strong></p>
+                        {selectedDateData && (
+                          <div className="mt-2 space-y-1">
+                            <div>Account1 상태: {getPublishStatus(selectedDateData).label}</div>
+                            <div>Account2 상태: {getPublishStatus(selectedDateData).label}</div>
+                          </div>
+                        )}
+                      </div>
+                    ) : dateDataList.length > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                const allDates = dateDataList.map(({ date }) => date);
+                                setSelectedDates(allDates);
+                              }}
+                              className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                            >
+                              전체 선택
+                            </button>
+                            <button
+                              onClick={() => setSelectedDates([])}
+                              className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                            >
+                              선택 해제
+                            </button>
+                            {selectedDates.length > 0 && (
+                              <span className="text-xs text-blue-600 font-medium">
+                                {selectedDates.length}개 선택됨
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-7 gap-2">
+                          {dateDataList.map(({ date, data }) => {
+                            const status = getPublishStatus(data);
+                            const isToday = date === todayStr;
+                            const isSelected = selectedDates.includes(date);
+                            return (
+                              <div key={date} className="relative">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedDates([...selectedDates, date]);
+                                    } else {
+                                      setSelectedDates(selectedDates.filter(d => d !== date));
+                                    }
+                                  }}
+                                  className="absolute top-1 left-1 z-10 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <button
+                                  onClick={() => {
+                                    setSelectedDate(date);
+                                    setViewMode('today');
+                                  }}
+                                  className={`w-full p-2 rounded text-xs border-2 ${
+                                    isToday ? 'border-blue-500' : 'border-gray-200'
+                                  } ${
+                                    isSelected ? 'ring-2 ring-blue-400 ring-offset-1' : ''
+                                  } ${
+                                    status.color === 'green' ? 'bg-green-50' :
+                                    status.color === 'blue' ? 'bg-blue-50' :
+                                    status.color === 'yellow' ? 'bg-yellow-50' :
+                                    'bg-gray-50'
+                                  } hover:bg-gray-100`}
+                                  title={`${date}: ${status.label}`}
+                                >
+                                  <div className="font-medium">{new Date(date).getDate()}일</div>
+                                  <div className={`text-xs ${
+                                    status.color === 'green' ? 'text-green-600' :
+                                    status.color === 'blue' ? 'text-blue-600' :
+                                    status.color === 'yellow' ? 'text-yellow-600' :
+                                    'text-gray-500'
+                                  }`}>
+                                    {status.label}
+                                  </div>
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-500">날짜 데이터가 없습니다.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         </div>
 
-        {/* 브랜드 전략 - 토글 가능 */}
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 mb-6">
-          {/* 헤더 - 슬롯 표기 + 토글 */}
+        {/* 브랜드 전략 및 프롬프트 설정 - 상단 버튼 형태 */}
+        <div className="mb-4 flex items-center gap-3 flex-wrap">
+          {/* 브랜드 전략 버튼 */}
           <button
             onClick={() => setIsBrandStrategyExpanded(!isBrandStrategyExpanded)}
-            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              brandStrategy
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+            }`}
           >
-            <div className="flex items-center gap-3">
-              {isBrandStrategyExpanded ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-              <h2 className="text-lg font-semibold text-gray-900">마쓰구 브랜드 전략</h2>
-              {!isBrandStrategyExpanded && brandStrategy && (
-                <div className="flex items-center gap-2 ml-4 text-sm text-gray-600">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                    {brandStrategy.contentType || '골프 정보'}
-                  </span>
-                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
-                    {brandStrategy.audienceTemperature === 'warm' ? 'Warm' : 
-                     brandStrategy.audienceTemperature === 'hot' ? 'Hot' : 'Cold'}
-                  </span>
-                  {brandStrategy.channel && (
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                      {brandStrategy.channel === 'local_customers' ? '근거리' : 
-                       brandStrategy.channel === 'online_customers' ? '전국' : 'VIP'}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-            {!isBrandStrategyExpanded && !brandStrategy && (
-              <span className="text-sm text-gray-400">기본 설정 사용</span>
+            <Settings className="w-4 h-4" />
+            {brandStrategy ? (
+              <span>
+                브랜드 전략: {brandStrategy.contentType || '골프 정보'}
+              </span>
+            ) : (
+              <span>브랜드 전략 설정</span>
+            )}
+            {isBrandStrategyExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
             )}
           </button>
-          
-          {/* 내용 - 토글 가능 */}
-          {isBrandStrategyExpanded && (
-            <div className="p-6 border-t border-gray-200">
+
+          {/* 프롬프트 설정 버튼 */}
+          <button
+            onClick={() => setIsPromptConfigExpanded(!isPromptConfigExpanded)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              selectedPromptConfig && savedConfigs[selectedPromptConfig]
+                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            {selectedPromptConfig && savedConfigs[selectedPromptConfig] ? (
+              <span>
+                프롬프트: {savedConfigs[selectedPromptConfig].name}
+              </span>
+            ) : (
+              <span>프롬프트 설정</span>
+            )}
+            {isPromptConfigExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        {/* 브랜드 전략 설정 패널 (토글) */}
+        {isBrandStrategyExpanded && (
+          <div className="mb-4 bg-white rounded-lg shadow-lg border border-gray-200">
+            <div className="p-6">
               <BrandStrategySelector
                 onStrategyChange={(strategy) => {
                   setBrandStrategy(strategy);
@@ -1374,49 +1808,25 @@ export default function KakaoContentPage() {
             }}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* 프롬프트 설정 관리 - 토글 가능 */}
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 mb-6">
-          {/* 헤더 - 슬롯 표기 + 토글 */}
-          <button
-            onClick={() => setIsPromptConfigExpanded(!isPromptConfigExpanded)}
-            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              {isPromptConfigExpanded ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-              <Settings className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">프롬프트 설정 관리</h2>
-              {!isPromptConfigExpanded && selectedPromptConfig && savedConfigs[selectedPromptConfig] && (
-                <div className="flex items-center gap-2 ml-4">
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">
-                    {savedConfigs[selectedPromptConfig].name}
-                  </span>
-                </div>
-              )}
-            </div>
-            {!isPromptConfigExpanded && !selectedPromptConfig && (
-              <span className="text-sm text-gray-400">기본 설정 사용</span>
-            )}
-          </button>
-          
-          {/* 내용 - 토글 가능 */}
-          {isPromptConfigExpanded && (
+        {/* 프롬프트 설정 패널 (토글) */}
+        {isPromptConfigExpanded && (
+          <div className="mb-4 bg-white rounded-lg shadow-lg border border-gray-200">
             <div className="p-6 border-t border-gray-200">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     저장된 프롬프트 설정 선택
                   </label>
+                  <label className="sr-only" htmlFor="prompt-config-select">프롬프트 설정 선택</label>
                   <select
+                    id="prompt-config-select"
                     value={selectedPromptConfig}
                     onChange={(e) => setSelectedPromptConfig(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    aria-label="프롬프트 설정 선택"
                   >
                     <option value="">기본 설정 사용</option>
                     {Object.keys(savedConfigs).map(configName => (
@@ -1428,20 +1838,51 @@ export default function KakaoContentPage() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* 목록 뷰 또는 계정 편집기 */}
         {viewMode === 'list' ? (
-          <MessageListView
-            calendarData={calendarData}
-            onDateSelect={(date) => {
-              setSelectedDate(date);
-            }}
-            onViewModeChange={(mode) => {
-              setViewMode(mode);
-            }}
-          />
+          <div className="space-y-6">
+            <MessageListView
+              calendarData={calendarData}
+              onDateSelect={(date) => {
+                setSelectedDate(date);
+              }}
+              onViewModeChange={(mode) => {
+                setViewMode(mode);
+              }}
+            />
+            {/* 목록 모드에서는 워크플로우를 별도 토글로 표시 */}
+            {selectedDate && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                <button
+                  onClick={() => setIsWorkflowExpanded(!isWorkflowExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isWorkflowExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                    <Sparkles className="w-5 h-5 text-gray-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">워크플로우 시각화</h3>
+                    <span className="text-sm text-gray-500">({selectedDate})</span>
+                  </div>
+                </button>
+                
+                {isWorkflowExpanded && (
+                  <div className="p-4 border-t border-gray-200">
+                    <WorkflowVisualization
+                      calendarData={calendarData}
+                      selectedDate={selectedDate}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         ) : (
           <>
         {/* 계정 편집기 - 좌우 배치 */}
@@ -1460,6 +1901,8 @@ export default function KakaoContentPage() {
               selectedDate={selectedDate || todayStr}
               accountKey="account1"
               calendarData={calendarData}
+              setCalendarData={setCalendarData}
+              saveCalendarData={saveCalendarData}
               onProfileUpdate={async (data) => {
               // 상태 업데이트
               const updated = { ...calendarData! };
@@ -1482,6 +1925,31 @@ export default function KakaoContentPage() {
                   },
                   message: data.message
                 };
+              }
+              setCalendarData(updated);
+
+              // Supabase에 저장
+              await saveCalendarData(updated);
+            }}
+            onBasePromptUpdate={async (type, basePrompt) => {
+              // basePrompt 업데이트
+              const updated = { ...calendarData! };
+              const currentDate = selectedDate || todayStr;
+              const profileIndex = updated.profileContent.account1.dailySchedule.findIndex(
+                p => p.date === currentDate
+              );
+              if (profileIndex >= 0) {
+                if (type === 'background') {
+                  updated.profileContent.account1.dailySchedule[profileIndex].background = {
+                    ...updated.profileContent.account1.dailySchedule[profileIndex].background,
+                    basePrompt: basePrompt
+                  };
+                } else {
+                  updated.profileContent.account1.dailySchedule[profileIndex].profile = {
+                    ...updated.profileContent.account1.dailySchedule[profileIndex].profile,
+                    basePrompt: basePrompt
+                  };
+                }
               }
               setCalendarData(updated);
 
@@ -1567,6 +2035,8 @@ export default function KakaoContentPage() {
             selectedDate={selectedDate || todayStr}
             accountKey="account2"
             calendarData={calendarData}
+            setCalendarData={setCalendarData}
+            saveCalendarData={saveCalendarData}
             onProfileUpdate={async (data) => {
               // 상태 업데이트
               const updated = { ...calendarData! };
@@ -1589,6 +2059,31 @@ export default function KakaoContentPage() {
                   },
                   message: data.message
                 };
+              }
+              setCalendarData(updated);
+
+              // Supabase에 저장
+              await saveCalendarData(updated);
+            }}
+            onBasePromptUpdate={async (type, basePrompt) => {
+              // basePrompt 업데이트
+              const updated = { ...calendarData! };
+              const currentDate = selectedDate || todayStr;
+              const profileIndex = updated.profileContent.account2.dailySchedule.findIndex(
+                p => p.date === currentDate
+              );
+              if (profileIndex >= 0) {
+                if (type === 'background') {
+                  updated.profileContent.account2.dailySchedule[profileIndex].background = {
+                    ...updated.profileContent.account2.dailySchedule[profileIndex].background,
+                    basePrompt: basePrompt
+                  };
+                } else {
+                  updated.profileContent.account2.dailySchedule[profileIndex].profile = {
+                    ...updated.profileContent.account2.dailySchedule[profileIndex].profile,
+                    basePrompt: basePrompt
+                  };
+                }
               }
               setCalendarData(updated);
 

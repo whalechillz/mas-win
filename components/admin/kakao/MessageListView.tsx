@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { MessageSquare, CheckCircle, Calendar, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, CheckCircle, Calendar, X, FileText, Image as ImageIcon, Filter, Search, Download, Eye, EyeOff, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface MessageItem {
   date: string;
@@ -10,12 +10,14 @@ interface MessageItem {
     feedCaption?: string;
     created: boolean;
     status: string;
+    imageUrl?: string;
   };
   account2: {
     profileMessage?: string;
     feedCaption?: string;
     created: boolean;
     status: string;
+    imageUrl?: string;
   };
 }
 
@@ -33,6 +35,11 @@ export default function MessageListView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAccount, setFilterAccount] = useState<'all' | 'account1' | 'account2'>('all');
   const [filterType, setFilterType] = useState<'all' | 'profile' | 'feed'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'created' | 'published' | 'planned'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'status'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [showImages, setShowImages] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // 모든 메시지 추출
   const messages = useMemo(() => {
@@ -59,6 +66,9 @@ export default function MessageListView({
       if (item.message) {
         msgItem.account1.profileMessage = item.message;
       }
+      if (item.background?.imageUrl) {
+        msgItem.account1.imageUrl = item.background.imageUrl;
+      }
       msgItem.account1.created = item.created || false;
       msgItem.account1.status = item.status || 'planned';
     });
@@ -75,6 +85,9 @@ export default function MessageListView({
       const msgItem = dateMap.get(item.date)!;
       if (item.message) {
         msgItem.account2.profileMessage = item.message;
+      }
+      if (item.background?.imageUrl) {
+        msgItem.account2.imageUrl = item.background.imageUrl;
       }
       msgItem.account2.created = item.created || false;
       msgItem.account2.status = item.status || 'planned';
@@ -100,14 +113,12 @@ export default function MessageListView({
       }
     });
 
-    return Array.from(dateMap.values()).sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    return Array.from(dateMap.values());
   }, [calendarData]);
 
-  // 필터링
+  // 필터링 및 정렬
   const filteredMessages = useMemo(() => {
-    let filtered = messages;
+    let filtered = [...messages];
 
     // 계정 필터
     if (filterAccount !== 'all') {
@@ -138,6 +149,19 @@ export default function MessageListView({
       );
     }
 
+    // 상태 필터
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(item => {
+        if (filterStatus === 'created') {
+          return item.account1.created || item.account2.created;
+        } else if (filterStatus === 'published') {
+          return item.account1.status === 'published' || item.account2.status === 'published';
+        } else {
+          return item.account1.status === 'planned' && item.account2.status === 'planned';
+        }
+      });
+    }
+
     // 검색 필터
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -152,194 +176,392 @@ export default function MessageListView({
       });
     }
 
+    // 정렬
+    filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        // 상태별 정렬 (created > published > planned)
+        const statusOrder = { created: 3, published: 2, planned: 1 };
+        const aStatus = a.account1.created || a.account2.created ? 'created' : 
+                        a.account1.status === 'published' || a.account2.status === 'published' ? 'published' : 'planned';
+        const bStatus = b.account1.created || b.account2.created ? 'created' : 
+                        b.account1.status === 'published' || b.account2.status === 'published' ? 'published' : 'planned';
+        return sortOrder === 'asc' 
+          ? statusOrder[aStatus as keyof typeof statusOrder] - statusOrder[bStatus as keyof typeof statusOrder]
+          : statusOrder[bStatus as keyof typeof statusOrder] - statusOrder[aStatus as keyof typeof statusOrder];
+      }
+    });
+
     return filtered;
-  }, [messages, filterAccount, filterType, searchTerm]);
+  }, [messages, filterAccount, filterType, filterStatus, searchTerm, sortBy, sortOrder]);
 
   const account1Name = calendarData?.profileContent?.account1?.name || '대표폰';
   const account2Name = calendarData?.profileContent?.account2?.name || '업무폰';
 
+  const toggleRowExpansion = (key: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const getStatusBadge = (created: boolean, status: string, accountName: string) => {
+    if (created) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
+          <CheckCircle className="w-3 h-3" />
+          생성됨
+        </span>
+      );
+    } else if (status === 'published') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+          배포됨
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+          계획됨
+        </span>
+      );
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">메시지 현황표</h2>
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* 헤더 */}
+      <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">메시지 현황표</h2>
+            <p className="text-sm text-gray-600 mt-1">카카오톡 콘텐츠 생성 및 배포 현황을 한눈에 확인하세요</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowImages(!showImages)}
+              className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700"
+            >
+              {showImages ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showImages ? '이미지 숨기기' : '이미지 보기'}
+            </button>
+          </div>
+        </div>
         
         {/* 필터 및 검색 */}
-        <div className="flex flex-wrap gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">계정:</label>
-            <select
-              value={filterAccount}
-              onChange={(e) => setFilterAccount(e.target.value as any)}
-              className="px-3 py-1 border border-gray-300 rounded text-sm"
-            >
-              <option value="all">전체</option>
-              <option value="account1">{account1Name}</option>
-              <option value="account2">{account2Name}</option>
-            </select>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">타입:</label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
-              className="px-3 py-1 border border-gray-300 rounded text-sm"
-            >
-              <option value="all">전체</option>
-              <option value="profile">프로필 메시지</option>
-              <option value="feed">피드 캡션</option>
-            </select>
-          </div>
-
-          <div className="flex-1 min-w-[200px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="메시지 또는 날짜로 검색..."
-              className="w-full px-3 py-1 border border-gray-300 rounded text-sm"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+          </div>
+          
+          <label className="sr-only" htmlFor="filter-account">계정 필터</label>
+          <select
+            id="filter-account"
+            value={filterAccount}
+            onChange={(e) => setFilterAccount(e.target.value as 'all' | 'account1' | 'account2')}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            aria-label="계정 필터 선택"
+          >
+            <option value="all">전체 계정</option>
+            <option value="account1">{account1Name}</option>
+            <option value="account2">{account2Name}</option>
+          </select>
+          
+          <label className="sr-only" htmlFor="filter-type">타입 필터</label>
+          <select
+            id="filter-type"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as 'all' | 'profile' | 'feed')}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            aria-label="타입 필터 선택"
+          >
+            <option value="all">전체 타입</option>
+            <option value="profile">프로필 메시지</option>
+            <option value="feed">피드 캡션</option>
+          </select>
+
+          <label className="sr-only" htmlFor="filter-status">상태 필터</label>
+          <select
+            id="filter-status"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as 'all' | 'created' | 'published' | 'planned')}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            aria-label="상태 필터 선택"
+          >
+            <option value="all">전체 상태</option>
+            <option value="created">생성됨</option>
+            <option value="published">배포됨</option>
+            <option value="planned">계획됨</option>
+          </select>
+        </div>
+
+        {/* 정렬 옵션 */}
+        <div className="flex items-center gap-4 mt-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">정렬:</span>
+            <label className="sr-only" htmlFor="sort-by">정렬 기준</label>
+            <select
+              id="sort-by"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'status')}
+              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              aria-label="정렬 기준 선택"
+            >
+              <option value="date">날짜</option>
+              <option value="status">상태</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title={sortOrder === 'asc' ? '내림차순' : '오름차순'}
+            >
+              {sortOrder === 'asc' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 메시지 테이블 */}
+      {/* 메시지 테이블 - 날짜별 계정 분리 */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">날짜</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                {account1Name} 프로필
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                {account1Name} 피드
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                {account2Name} 프로필
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                {account2Name} 피드
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">상태</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">날짜</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">계정</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">프로필</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">피드</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">상태</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">작업</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-200">
             {filteredMessages.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  {searchTerm ? '검색 결과가 없습니다.' : '메시지가 없습니다.'}
+                <td colSpan={6} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <FileText className="w-12 h-12 text-gray-400" />
+                    <p className="text-gray-500 font-medium">
+                      {searchTerm ? '검색 결과가 없습니다.' : '메시지가 없습니다.'}
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : (
-              filteredMessages.map((item) => (
-                <tr
-                  key={item.date}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    onDateSelect(item.date);
-                    onViewModeChange('today');
-                  }}
-                >
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      {item.date}
-                    </div>
-                  </td>
-                  
-                  {/* Account1 프로필 메시지 */}
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.account1.profileMessage ? (
-                      <div className="flex items-start gap-2">
-                        <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{item.account1.profileMessage}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  
-                  {/* Account1 피드 캡션 */}
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.account1.feedCaption ? (
-                      <div className="flex items-start gap-2">
-                        <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{item.account1.feedCaption}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  
-                  {/* Account2 프로필 메시지 */}
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.account2.profileMessage ? (
-                      <div className="flex items-start gap-2">
-                        <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{item.account2.profileMessage}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  
-                  {/* Account2 피드 캡션 */}
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.account2.feedCaption ? (
-                      <div className="flex items-start gap-2">
-                        <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{item.account2.feedCaption}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  
-                  {/* 상태 */}
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex flex-col gap-1">
-                      {item.account1.created && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
-                          <CheckCircle className="w-3 h-3" />
-                          {account1Name} 생성
-                        </span>
+              filteredMessages.flatMap((item) => {
+                const isExpanded = expandedRows.has(item.date);
+                const rows = [];
+                
+                // Account1 행
+                if (filterAccount === 'all' || filterAccount === 'account1') {
+                  if (item.account1.profileMessage || item.account1.feedCaption) {
+                    rows.push(
+                    <React.Fragment key={`${item.date}-account1`}>
+                      <tr
+                        className="hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-l-yellow-400"
+                        onClick={() => toggleRowExpansion(`${item.date}-account1`)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-900">{item.date}</span>
+                          </div>
+                        </td>
+                        
+                        {/* 계정명 */}
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm font-medium">
+                            {account1Name}
+                          </span>
+                        </td>
+                        
+                        {/* 프로필 메시지 */}
+                        <td className="px-6 py-4">
+                          {item.account1.profileMessage ? (
+                            <div className="flex items-start gap-2 max-w-xs">
+                              <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 line-clamp-2">{item.account1.profileMessage}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        
+                        {/* 피드 캡션 */}
+                        <td className="px-6 py-4">
+                          {item.account1.feedCaption ? (
+                            <div className="flex items-start gap-2 max-w-xs">
+                              <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 line-clamp-2">{item.account1.feedCaption}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        
+                        {/* 상태 */}
+                        <td className="px-6 py-4">
+                          {getStatusBadge(item.account1.created, item.account1.status, account1Name)}
+                        </td>
+
+                        {/* 작업 */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDateSelect(item.date);
+                              onViewModeChange('today');
+                            }}
+                            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-medium"
+                          >
+                            편집
+                          </button>
+                        </td>
+                      </tr>
+                      
+                      {/* 확장된 행 (이미지 미리보기) */}
+                      {isExpanded && showImages && item.account1.imageUrl && (
+                        <tr className="bg-gray-50">
+                          <td colSpan={6} className="px-6 py-4">
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">{account1Name}</h4>
+                              <img 
+                                src={item.account1.imageUrl} 
+                                alt="Account1"
+                                className="w-full h-32 object-cover rounded"
+                              />
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                      {item.account2.created && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
-                          <CheckCircle className="w-3 h-3" />
-                          {account2Name} 생성
-                        </span>
+                    </React.Fragment>
+                    );
+                  }
+                }
+                
+                // Account2 행
+                if (filterAccount === 'all' || filterAccount === 'account2') {
+                  if (item.account2.profileMessage || item.account2.feedCaption) {
+                    rows.push(
+                    <React.Fragment key={`${item.date}-account2`}>
+                      <tr
+                        className="hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-l-gray-400"
+                        onClick={() => toggleRowExpansion(`${item.date}-account2`)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-900">{item.date}</span>
+                          </div>
+                        </td>
+                        
+                        {/* 계정명 */}
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm font-medium">
+                            {account2Name}
+                          </span>
+                        </td>
+                        
+                        {/* 프로필 메시지 */}
+                        <td className="px-6 py-4">
+                          {item.account2.profileMessage ? (
+                            <div className="flex items-start gap-2 max-w-xs">
+                              <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 line-clamp-2">{item.account2.profileMessage}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        
+                        {/* 피드 캡션 */}
+                        <td className="px-6 py-4">
+                          {item.account2.feedCaption ? (
+                            <div className="flex items-start gap-2 max-w-xs">
+                              <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 line-clamp-2">{item.account2.feedCaption}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        
+                        {/* 상태 */}
+                        <td className="px-6 py-4">
+                          {getStatusBadge(item.account2.created, item.account2.status, account2Name)}
+                        </td>
+
+                        {/* 작업 */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDateSelect(item.date);
+                              onViewModeChange('today');
+                            }}
+                            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-medium"
+                          >
+                            편집
+                          </button>
+                        </td>
+                      </tr>
+                      
+                      {/* 확장된 행 (이미지 미리보기) */}
+                      {isExpanded && showImages && item.account2.imageUrl && (
+                        <tr className="bg-gray-50">
+                          <td colSpan={6} className="px-6 py-4">
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">{account2Name}</h4>
+                              <img 
+                                src={item.account2.imageUrl} 
+                                alt="Account2"
+                                className="w-full h-32 object-cover rounded"
+                              />
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                      {item.account1.status === 'published' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-                          {account1Name} 배포
-                        </span>
-                      )}
-                      {item.account2.status === 'published' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-                          {account2Name} 배포
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </React.Fragment>
+                    );
+                  }
+                }
+                
+                return rows;
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {/* 통계 */}
-      <div className="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-500">
-        총 {filteredMessages.length}개 날짜
-        {filteredMessages.length > 0 && (
-          <>
-            {' '}(생성됨: {filteredMessages.filter(m => m.account1.created || m.account2.created).length}개)
-          </>
-        )}
+      {/* 통계 및 푸터 */}
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            총 <span className="font-semibold text-gray-900">{filteredMessages.length}</span>개 날짜
+            {filteredMessages.length > 0 && (
+              <>
+                {' '}(생성됨: <span className="font-semibold text-green-600">
+                  {filteredMessages.filter(m => m.account1.created || m.account2.created).length}
+                </span>개, 배포됨: <span className="font-semibold text-purple-600">
+                  {filteredMessages.filter(m => m.account1.status === 'published' || m.account2.status === 'published').length}
+                </span>개)
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
