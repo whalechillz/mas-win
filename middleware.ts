@@ -92,12 +92,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // API 경로를 명시적으로 포함하여 i18n 로케일 프리픽스 제거 처리
   // 관리자 경로와 MUZIIK 구형 페이지 리다이렉트에 적용
-  // /api/auth 경로는 matcher에서 제외 (NextAuth 리다이렉트 루프 방지)
   matcher: [
+    '/api/:path*',           // API 경로 명시적 포함
     '/admin/:path*',
     '/muziik/ko',
     '/muziik/ko/:path*'
   ],
-  matcher: ['/admin/:path*', '/muziik/ko', '/muziik/ko/:path*'],
 };
