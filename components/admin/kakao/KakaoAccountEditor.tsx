@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CheckCircle, Loader, User, MessageSquare, CheckCircle2, Circle, Upload, Smartphone, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle, Loader, User, MessageSquare, CheckCircle2, Circle, Upload, Smartphone, Send, RotateCcw, ChevronDown, Image, FileText } from 'lucide-react';
 import ProfileManager from './ProfileManager';
 import FeedManager from './FeedManager';
 
@@ -77,13 +77,258 @@ export default function KakaoAccountEditor({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSendingSlack, setIsSendingSlack] = useState(false);
+  const [showPartialGenerateMenu, setShowPartialGenerateMenu] = useState(false);
+  const [showPartialRegenerateMenu, setShowPartialRegenerateMenu] = useState(false);
+  const partialGenerateMenuRef = useRef<HTMLDivElement>(null);
+  const partialRegenerateMenuRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 메뉴 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (partialGenerateMenuRef.current && !partialGenerateMenuRef.current.contains(event.target as Node)) {
+        setShowPartialGenerateMenu(false);
+      }
+      if (partialRegenerateMenuRef.current && !partialRegenerateMenuRef.current.contains(event.target as Node)) {
+        setShowPartialRegenerateMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  const [generationProgress, setGenerationProgress] = useState<{
+    currentStep: string;
+    progress: number;
+    totalSteps: number;
+  } | null>(null);
+
+  // 누락 항목 감지
+  const missingItems = React.useMemo(() => {
+    const items: string[] = [];
+    if (!profileData.background.imageUrl) items.push('배경 이미지');
+    if (!profileData.profile.imageUrl) items.push('프로필 이미지');
+    if (!profileData.message || profileData.message.trim() === '') items.push('프로필 메시지');
+    if (!feedData.imageUrl) items.push('피드 이미지');
+    if (!feedData.caption || feedData.caption.trim() === '') items.push('피드 캡션');
+    return items;
+  }, [profileData, feedData]);
 
   const handleAutoCreate = async () => {
     try {
       setIsGenerating(true);
+      setGenerationProgress({ currentStep: '초기화 중...', progress: 0, totalSteps: 3 });
+      
+      // 배경 이미지 생성
+      setGenerationProgress({ currentStep: '배경 이미지 생성 중...', progress: 1, totalSteps: 3 });
+      
       await onAutoCreate();
+      
+      setGenerationProgress({ currentStep: '완료', progress: 3, totalSteps: 3 });
+      setTimeout(() => setGenerationProgress(null), 1000);
     } catch (error: any) {
+      setGenerationProgress(null);
       alert(`자동 생성 실패: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!confirm('기존 이미지를 모두 삭제하고 재생성하시겠습니까?\n\n⚠️ 기존 이미지가 모두 삭제되고 새로운 이미지가 생성됩니다.')) {
+      return;
+    }
+    
+    try {
+      setIsGenerating(true);
+      setGenerationProgress({ currentStep: '기존 이미지 삭제 중...', progress: 0, totalSteps: 4 });
+      
+      // 기존 이미지 URL 초기화
+      onProfileUpdate({
+        ...profileData,
+        background: { ...profileData.background, imageUrl: undefined },
+        profile: { ...profileData.profile, imageUrl: undefined }
+      });
+      
+      onFeedUpdate({
+        ...feedData,
+        imageUrl: undefined
+      });
+      
+      setGenerationProgress({ currentStep: '재생성 시작...', progress: 1, totalSteps: 4 });
+      
+      // 재생성 실행
+      await onAutoCreate();
+      
+      setGenerationProgress({ currentStep: '완료', progress: 4, totalSteps: 4 });
+      setTimeout(() => setGenerationProgress(null), 1000);
+    } catch (error: any) {
+      setGenerationProgress(null);
+      alert(`재생성 실패: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // 부분 생성 핸들러
+  const handlePartialGenerate = async (type: 'background' | 'profile' | 'feed' | 'message' | 'caption') => {
+    setShowPartialGenerateMenu(false);
+    
+    try {
+      setIsGenerating(true);
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      const account = accountKey || 'account1';
+      
+      if (!selectedDate) {
+        alert('날짜를 선택해주세요.');
+        return;
+      }
+
+      if (type === 'background') {
+        setGenerationProgress({ currentStep: '배경 이미지 생성 중...', progress: 1, totalSteps: 1 });
+        const result = await onGenerateProfileImage('background', profileData.background.prompt);
+        if (result.imageUrls.length > 0) {
+          onProfileUpdate({
+            ...profileData,
+            background: { ...profileData.background, imageUrl: result.imageUrls[0] }
+          });
+        }
+      } else if (type === 'profile') {
+        setGenerationProgress({ currentStep: '프로필 이미지 생성 중...', progress: 1, totalSteps: 1 });
+        const result = await onGenerateProfileImage('profile', profileData.profile.prompt);
+        if (result.imageUrls.length > 0) {
+          onProfileUpdate({
+            ...profileData,
+            profile: { ...profileData.profile, imageUrl: result.imageUrls[0] }
+          });
+        }
+      } else if (type === 'feed') {
+        setGenerationProgress({ currentStep: '피드 이미지 생성 중...', progress: 1, totalSteps: 1 });
+        const result = await onGenerateFeedImage(feedData.imagePrompt);
+        if (result.imageUrls.length > 0) {
+          onFeedUpdate({
+            ...feedData,
+            imageUrl: result.imageUrls[0]
+          });
+        }
+      } else if (type === 'message') {
+        setGenerationProgress({ currentStep: '프로필 메시지 생성 중...', progress: 1, totalSteps: 1 });
+        const response = await fetch(`${baseUrl}/api/kakao-content/generate-prompt-message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'message',
+            accountType: account,
+            brandStrategy: {
+              customerpersona: account === 'account1' ? 'senior_fitting' : 'tech_enthusiast',
+              customerChannel: 'local_customers',
+              brandWeight: account === 'account1' ? '높음' : '중간',
+              audienceTemperature: 'warm',
+              audienceWeight: account === 'account1' ? '높음' : undefined
+            },
+            weeklyTheme: calendarData?.weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결',
+            date: selectedDate
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.message) {
+            let cleanedMessage = data.data.message.trim();
+            cleanedMessage = cleanedMessage.replace(/^json\s*\{\s*message\s*:\s*/i, '');
+            cleanedMessage = cleanedMessage.replace(/\s*\}\s*$/i, '');
+            cleanedMessage = cleanedMessage.replace(/^["'`]+|["'`]+$/g, '').trim();
+            onProfileUpdate({ ...profileData, message: cleanedMessage });
+          }
+        }
+      } else if (type === 'caption') {
+        setGenerationProgress({ currentStep: '피드 캡션 생성 중...', progress: 1, totalSteps: 1 });
+        const response = await fetch(`${baseUrl}/api/kakao-content/generate-feed-caption`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageCategory: feedData.imageCategory || '시니어 골퍼의 스윙',
+            accountType: account,
+            weeklyTheme: calendarData?.weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결',
+            date: selectedDate
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.caption) {
+            onFeedUpdate({ ...feedData, caption: data.caption });
+          }
+        }
+      }
+      
+      setGenerationProgress({ currentStep: '완료', progress: 1, totalSteps: 1 });
+      setTimeout(() => setGenerationProgress(null), 1000);
+      alert(`✅ ${type === 'background' ? '배경 이미지' : type === 'profile' ? '프로필 이미지' : type === 'feed' ? '피드 이미지' : type === 'message' ? '프로필 메시지' : '피드 캡션'} 생성 완료!`);
+    } catch (error: any) {
+      setGenerationProgress(null);
+      alert(`생성 실패: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // 부분 재생성 핸들러
+  const handlePartialRegenerate = async (type: 'background' | 'profile' | 'feed' | 'message' | 'caption' | 'all') => {
+    setShowPartialRegenerateMenu(false);
+    
+    if (type === 'all') {
+      await handleRegenerate();
+      return;
+    }
+    
+    const typeNames = {
+      background: '배경 이미지',
+      profile: '프로필 이미지',
+      feed: '피드 이미지',
+      message: '프로필 메시지',
+      caption: '피드 캡션'
+    };
+    
+    if (!confirm(`${typeNames[type]}를 재생성하시겠습니까?`)) {
+      return;
+    }
+    
+    try {
+      setIsGenerating(true);
+      
+      if (type === 'background') {
+        onProfileUpdate({
+          ...profileData,
+          background: { ...profileData.background, imageUrl: undefined }
+        });
+        await handlePartialGenerate('background');
+      } else if (type === 'profile') {
+        onProfileUpdate({
+          ...profileData,
+          profile: { ...profileData.profile, imageUrl: undefined }
+        });
+        await handlePartialGenerate('profile');
+      } else if (type === 'feed') {
+        onFeedUpdate({
+          ...feedData,
+          imageUrl: undefined
+        });
+        await handlePartialGenerate('feed');
+      } else if (type === 'message') {
+        onProfileUpdate({
+          ...profileData,
+          message: ''
+        });
+        await handlePartialGenerate('message');
+      } else if (type === 'caption') {
+        onFeedUpdate({
+          ...feedData,
+          caption: ''
+        });
+        await handlePartialGenerate('caption');
+      }
+    } catch (error: any) {
+      alert(`재생성 실패: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
@@ -166,6 +411,14 @@ export default function KakaoAccountEditor({
         })
       });
 
+      // 응답이 JSON인지 확인
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ 서버 응답이 JSON이 아닙니다:', text.substring(0, 200));
+        throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -199,74 +452,277 @@ export default function KakaoAccountEditor({
               <div>톤: {account.tone === 'gold' ? '골드톤 시니어 매너' : '블랙톤 젊은 매너'}</div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleAutoCreate}
-              disabled={isGenerating || isCreating || (profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              title={
-                profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl
-                  ? '모든 이미지가 생성되어 있습니다. X 버튼으로 삭제 후 다시 생성하세요.'
-                  : '계정 자동 생성'
-              }
-            >
-              {isGenerating ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  생성 중...
-                </>
-              ) : profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl ? (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  ✓ 생성 완료
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  계정 자동 생성
-                </>
+          <div className="flex flex-col gap-3">
+            {/* 누락 항목 안내 */}
+            {missingItems.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-yellow-900">
+                      누락된 항목: {missingItems.join(', ')}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePartialGenerate(missingItems[0] === '배경 이미지' ? 'background' : missingItems[0] === '프로필 이미지' ? 'profile' : missingItems[0] === '피드 이미지' ? 'feed' : missingItems[0] === '프로필 메시지' ? 'message' : 'caption')}
+                    disabled={isGenerating || isCreating}
+                    className="text-xs px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+                  >
+                    생성
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 생성 그룹 */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption ? (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-700">생성 완료</span>
+                    </div>
+                    <div className="relative" ref={partialRegenerateMenuRef}>
+                      <button
+                        onClick={() => setShowPartialRegenerateMenu(!showPartialRegenerateMenu)}
+                        disabled={isGenerating || isCreating}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader className="w-4 h-4 animate-spin" />
+                            <span>재생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="w-4 h-4" />
+                            <span>재생성</span>
+                            <ChevronDown className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                      {showPartialRegenerateMenu && !isGenerating && (
+                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px]">
+                          <button
+                            onClick={() => handlePartialRegenerate('all')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                          >
+                            전체 재생성
+                          </button>
+                          <div className="border-t border-gray-200" />
+                          <button
+                            onClick={() => handlePartialRegenerate('background')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                          >
+                            <Image className="w-4 h-4" />
+                            배경 이미지만
+                          </button>
+                          <button
+                            onClick={() => handlePartialRegenerate('profile')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                          >
+                            <Image className="w-4 h-4" />
+                            프로필 이미지만
+                          </button>
+                          <button
+                            onClick={() => handlePartialRegenerate('feed')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                          >
+                            <Image className="w-4 h-4" />
+                            피드 이미지만
+                          </button>
+                          <button
+                            onClick={() => handlePartialRegenerate('message')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                          >
+                            <FileText className="w-4 h-4" />
+                            프로필 메시지만
+                          </button>
+                          <button
+                            onClick={() => handlePartialRegenerate('caption')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                          >
+                            <FileText className="w-4 h-4" />
+                            피드 캡션만
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAutoCreate}
+                      disabled={isGenerating || isCreating}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title="계정 자동 생성"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          <span>생성 중...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          <span>계정 자동 생성</span>
+                        </>
+                      )}
+                    </button>
+                    <div className="relative" ref={partialGenerateMenuRef}>
+                      <button
+                        onClick={() => setShowPartialGenerateMenu(!showPartialGenerateMenu)}
+                        disabled={isGenerating || isCreating}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <span>부분 생성</span>
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                      {showPartialGenerateMenu && !isGenerating && (
+                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px]">
+                          {!profileData.background.imageUrl && (
+                            <button
+                              onClick={() => handlePartialGenerate('background')}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                            >
+                              <Image className="w-4 h-4" />
+                              배경 이미지
+                            </button>
+                          )}
+                          {!profileData.profile.imageUrl && (
+                            <button
+                              onClick={() => handlePartialGenerate('profile')}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                            >
+                              <Image className="w-4 h-4" />
+                              프로필 이미지
+                            </button>
+                          )}
+                          {!feedData.imageUrl && (
+                            <button
+                              onClick={() => handlePartialGenerate('feed')}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                            >
+                              <Image className="w-4 h-4" />
+                              피드 이미지
+                            </button>
+                          )}
+                          {(!profileData.message || profileData.message.trim() === '') && (
+                            <button
+                              onClick={() => handlePartialGenerate('message')}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                            >
+                              <FileText className="w-4 h-4" />
+                              프로필 메시지
+                            </button>
+                          )}
+                          {(!feedData.caption || feedData.caption.trim() === '') && (
+                            <button
+                              onClick={() => handlePartialGenerate('caption')}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
+                            >
+                              <FileText className="w-4 h-4" />
+                              피드 캡션
+                            </button>
+                          )}
+                          {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption && (
+                            <div className="px-4 py-2 text-xs text-gray-500">
+                              모든 항목이 생성되었습니다
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              {/* 진행 상태 표시 */}
+              {generationProgress && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 animate-fade-in">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Loader className="w-4 h-4 animate-spin text-blue-600" />
+                      <span className="text-sm font-medium text-blue-900">{generationProgress.currentStep}</span>
+                    </div>
+                    <span className="text-xs text-blue-600 font-medium">
+                      {generationProgress.progress} / {generationProgress.totalSteps}
+                    </span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out relative"
+                      style={{ width: `${(generationProgress.progress / generationProgress.totalSteps) * 100}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/30 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
               )}
-            </button>
-            <button
-              onClick={handleUploadToKakao}
-              disabled={isUploading || !profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message 
-                ? '이미지와 메시지를 먼저 생성해주세요' 
-                : '카카오톡 프로필 업데이트'}
-            >
-              {isUploading ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  업로드 중...
-                </>
-              ) : (
-                <>
-                  <Smartphone className="w-4 h-4" />
-                  카카오톡 업로드
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleSendToSlack}
-              disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!feedData.imageUrl || !feedData.caption 
-                ? '피드 이미지와 캡션을 먼저 생성해주세요' 
-                : '슬랙으로 전송'}
-            >
-              {isSendingSlack ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  전송 중...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  슬랙 전송
-                </>
-              )}
-            </button>
+            </div>
+
+            {/* 배포 그룹 */}
+            {(profileData.background.imageUrl && profileData.profile.imageUrl) && (
+              <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={handleUploadToKakao}
+                    disabled={isUploading || !profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title={!profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message 
+                      ? '이미지와 메시지를 먼저 생성해주세요' 
+                      : '카카오톡 프로필 업데이트'}
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        <span>업로드 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Smartphone className="w-4 h-4" />
+                        <span>카카오톡 업로드</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleSendToSlack}
+                    disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title={!feedData.imageUrl || !feedData.caption 
+                      ? '피드 이미지와 캡션을 먼저 생성해주세요' 
+                      : '슬랙으로 전송'}
+                  >
+                    {isSendingSlack ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        <span>전송 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>슬랙 전송</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                {/* 배포 진행 상태 표시 */}
+                {(isUploading || isSendingSlack) && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                      <Loader className="w-4 h-4 animate-spin text-purple-600" />
+                      <span className="text-sm font-medium text-purple-900">
+                        {isUploading ? '카카오톡 업로드 중...' : '슬랙 전송 중...'}
+                      </span>
+                    </div>
+                    <div className="mt-2 w-full bg-purple-200 rounded-full h-1.5">
+                      <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full animate-pulse" style={{ width: '100%' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         

@@ -1,8 +1,8 @@
 // pages/api/kakao-content/auto-create-account2.js
 // Account 2 (업무폰) 자동 생성 API
+// Supabase 기반으로 전환
 
-import fs from 'fs';
-import path from 'path';
+import { createServerSupabase } from '../../../lib/supabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,27 +10,56 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { date } = req.body;
+    const { date, forceRegenerate = false } = req.body;
     if (!date) {
       return res.status(400).json({ error: 'date is required' });
     }
 
+    const supabase = createServerSupabase();
     const monthStr = date.substring(0, 7); // YYYY-MM
-    const calendarPath = path.join(process.cwd(), 'docs', 'content-calendar', `${monthStr}.json`);
-    
-    if (!fs.existsSync(calendarPath)) {
-      return res.status(404).json({ error: 'Calendar file not found' });
+
+    // Supabase에서 해당 날짜의 데이터 로드
+    const { data: profileData, error: profileError } = await supabase
+      .from('kakao_profile_content')
+      .select('*')
+      .eq('date', date)
+      .eq('account', 'account2')
+      .single();
+
+    if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = not found
+      console.error('프로필 데이터 로드 오류:', profileError);
+      throw profileError;
     }
 
-    const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-    const dateIndex = calendarData.profileContent?.account2?.dailySchedule?.findIndex(d => d.date === date);
-    
-    if (dateIndex === -1 || dateIndex === undefined) {
-      return res.status(404).json({ error: 'Date not found in calendar' });
-    }
+    // 날짜가 없으면 기본 구조 생성
+    let dateData = profileData || {
+      date,
+      account: 'account2',
+      background_image: null,
+      background_prompt: null,
+      background_base_prompt: null,
+      background_image_url: null,
+      profile_image: null,
+      profile_prompt: null,
+      profile_base_prompt: null,
+      profile_image_url: null,
+      message: '',
+      status: 'planned',
+      created: false
+    };
 
-    const dateData = calendarData.profileContent.account2.dailySchedule[dateIndex];
-    const feedData = calendarData.kakaoFeed?.dailySchedule?.find(d => d.date === date)?.account2;
+    // 피드 데이터 로드
+    let { data: feedData, error: feedError } = await supabase
+      .from('kakao_feed_content')
+      .select('*')
+      .eq('date', date)
+      .eq('account', 'account2')
+      .single();
+
+    if (feedError && feedError.code !== 'PGRST116') {
+      console.error('피드 데이터 로드 오류:', feedError);
+      throw feedError;
+    }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
@@ -41,11 +70,32 @@ export default async function handler(req, res) {
       feed: { success: false, imageUrl: null, error: null }
     };
 
+    // Self-Adaptive Automation: weeklyTheme 자동 감지
+    // 1순위: Supabase에서 주차별 테마 가져오기 시도
+    let weeklyTheme = '비거리의 감성 – 스윙과 마음의 연결'; // 기본값
+    
+    try {
+      // 캘린더 데이터에서 주차별 테마 가져오기
+      const { data: calendarData } = await supabase
+        .from('kakao_calendar')
+        .select('profile_content')
+        .eq('month', monthStr)
+        .single();
+      
+      if (calendarData?.profile_content?.account2?.weeklyThemes) {
+        const themes = calendarData.profile_content.account2.weeklyThemes;
+        const weekNumber = Math.ceil(new Date(date).getDate() / 7);
+        const weekKey = `week${Math.min(weekNumber, 4)}`;
+        weeklyTheme = themes[weekKey] || themes.week1 || weeklyTheme;
+      }
+    } catch (error) {
+      console.log('⚠️ weeklyTheme 자동 감지 실패, 기본값 사용:', error.message);
+    }
+
     // 배경 이미지 생성
-    if (!dateData.background?.imageUrl) {
+    if (!dateData.background_image_url || forceRegenerate) {
       try {
-        const bgPrompt = dateData.background?.prompt || dateData.background?.image || '하이테크 매장';
-        const weeklyTheme = calendarData.profileContent?.account2?.weeklyThemes?.week1 || '비거리의 감성 – 스윙과 마음의 연결';
+        const bgPrompt = dateData.background_prompt || dateData.background_image || '하이테크 매장';
         
         // 프롬프트 생성
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
@@ -91,12 +141,24 @@ export default async function handler(req, res) {
           const imageData = await imageResponse.json();
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.background.success = true;
+            // 첫 번째 이미지를 기본값으로 사용
             results.background.imageUrl = imageData.imageUrls[0];
-            dateData.background = {
-              ...dateData.background,
-              imageUrl: imageData.imageUrls[0],
-              prompt: imageData.generatedPrompts?.[0] || promptData.prompt
-            };
+            dateData.background_image_url = imageData.imageUrls[0];
+            dateData.background_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
+            
+            // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
+            if (imageData.imageUrls.length > 1) {
+              console.log(`📸 배경 이미지 ${imageData.imageUrls.length}개 생성됨:`);
+              imageData.imageUrls.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+              });
+              console.log(`✅ 기본값으로 첫 번째 이미지 사용: ${imageData.imageUrls[0]}`);
+              console.log(`💡 다른 이미지를 선택하려면 image_metadata 테이블에서 조회하거나 관리자 페이지에서 갤러리 선택 기능 사용`);
+            }
+            
+            // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
+            results.background.allImageUrls = imageData.imageUrls;
+            results.background.totalGenerated = imageData.imageUrls.length;
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
@@ -106,16 +168,15 @@ export default async function handler(req, res) {
         results.background.error = error.message;
         console.error('배경 이미지 생성 에러:', error);
       }
-    } else {
+    } else if (!forceRegenerate) {
       results.background.success = true;
-      results.background.imageUrl = dateData.background.imageUrl;
+      results.background.imageUrl = dateData.background_image_url;
     }
 
     // 프로필 이미지 생성
-    if (!dateData.profile?.imageUrl) {
+    if (!dateData.profile_image_url || forceRegenerate) {
       try {
-        const profilePrompt = dateData.profile?.prompt || dateData.profile?.image || '젊은 골퍼';
-        const weeklyTheme = calendarData.profileContent?.account2?.weeklyThemes?.week1 || '비거리의 감성 – 스윙과 마음의 연결';
+        const profilePrompt = dateData.profile_prompt || dateData.profile_image || '젊은 골퍼';
         
         // 프롬프트 생성
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
@@ -161,12 +222,24 @@ export default async function handler(req, res) {
           const imageData = await imageResponse.json();
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.profile.success = true;
+            // 첫 번째 이미지를 기본값으로 사용
             results.profile.imageUrl = imageData.imageUrls[0];
-            dateData.profile = {
-              ...dateData.profile,
-              imageUrl: imageData.imageUrls[0],
-              prompt: imageData.generatedPrompts?.[0] || promptData.prompt
-            };
+            dateData.profile_image_url = imageData.imageUrls[0];
+            dateData.profile_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
+            
+            // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
+            if (imageData.imageUrls.length > 1) {
+              console.log(`📸 프로필 이미지 ${imageData.imageUrls.length}개 생성됨:`);
+              imageData.imageUrls.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+              });
+              console.log(`✅ 기본값으로 첫 번째 이미지 사용: ${imageData.imageUrls[0]}`);
+              console.log(`💡 다른 이미지를 선택하려면 image_metadata 테이블에서 조회하거나 관리자 페이지에서 갤러리 선택 기능 사용`);
+            }
+            
+            // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
+            results.profile.allImageUrls = imageData.imageUrls;
+            results.profile.totalGenerated = imageData.imageUrls.length;
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
@@ -176,16 +249,56 @@ export default async function handler(req, res) {
         results.profile.error = error.message;
         console.error('프로필 이미지 생성 에러:', error);
       }
-    } else {
+    } else if (!forceRegenerate) {
       results.profile.success = true;
-      results.profile.imageUrl = dateData.profile.imageUrl;
+      results.profile.imageUrl = dateData.profile_image_url;
+    }
+
+    // 프로필 메시지 생성 (없는 경우)
+    if (!dateData.message || dateData.message.trim() === '') {
+      try {
+        const messageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt-message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'message',
+            accountType: 'account2',
+            brandStrategy: {
+              customerpersona: 'tech_enthusiast',
+              customerChannel: 'local_customers',
+              brandWeight: '중간',
+              audienceTemperature: 'warm'
+            },
+            weeklyTheme,
+            date
+          })
+        });
+
+        if (messageResponse.ok) {
+          const messageData = await messageResponse.json();
+          if (messageData.success && messageData.data?.message) {
+            let cleanedMessage = messageData.data.message.trim();
+            
+            // "json { message: " 패턴 제거
+            cleanedMessage = cleanedMessage.replace(/^json\s*\{\s*message\s*:\s*/i, '');
+            cleanedMessage = cleanedMessage.replace(/\s*\}\s*$/i, '');
+            
+            // 따옴표 제거 (앞뒤 따옴표)
+            cleanedMessage = cleanedMessage.replace(/^["'`]+|["'`]+$/g, '').trim();
+            
+            dateData.message = cleanedMessage;
+            console.log(`✅ 프로필 메시지 생성 완료: ${dateData.message}`);
+          }
+        }
+      } catch (messageError) {
+        console.warn('⚠️ 프로필 메시지 생성 실패:', messageError.message);
+      }
     }
 
     // 피드 이미지 생성
-    if (feedData && !feedData.imageUrl) {
+    if (feedData && (!feedData.image_url || forceRegenerate)) {
       try {
-        const feedPrompt = feedData.imagePrompt || feedData.imageCategory || '젊은 골퍼의 스윙';
-        const weeklyTheme = calendarData.profileContent?.account2?.weeklyThemes?.week1 || '비거리의 감성 – 스윙과 마음의 연결';
+        const feedPrompt = feedData.image_prompt || feedData.image_category || '젊은 골퍼의 스윙';
         
         // 프롬프트 생성
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
@@ -231,19 +344,26 @@ export default async function handler(req, res) {
           const imageData = await imageResponse.json();
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.feed.success = true;
+            // 첫 번째 이미지를 기본값으로 사용
             results.feed.imageUrl = imageData.imageUrls[0];
             
             // 피드 데이터 업데이트
-            const feedIndex = calendarData.kakaoFeed?.dailySchedule?.findIndex(d => d.date === date);
-            if (feedIndex !== -1 && feedIndex !== undefined) {
-              calendarData.kakaoFeed.dailySchedule[feedIndex].account2 = {
-                ...calendarData.kakaoFeed.dailySchedule[feedIndex].account2,
-                imageUrl: imageData.imageUrls[0],
-                imagePrompt: imageData.generatedPrompts?.[0] || promptData.prompt,
-                created: true,
-                createdAt: new Date().toISOString()
-              };
+            feedData.image_url = imageData.imageUrls[0];
+            feedData.image_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
+            
+            // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
+            if (imageData.imageUrls.length > 1) {
+              console.log(`📸 피드 이미지 ${imageData.imageUrls.length}개 생성됨:`);
+              imageData.imageUrls.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+              });
+              console.log(`✅ 기본값으로 첫 번째 이미지 사용: ${imageData.imageUrls[0]}`);
+              console.log(`💡 다른 이미지를 선택하려면 image_metadata 테이블에서 조회하거나 관리자 페이지에서 갤러리 선택 기능 사용`);
             }
+            
+            // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
+            results.feed.allImageUrls = imageData.imageUrls;
+            results.feed.totalGenerated = imageData.imageUrls.length;
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
@@ -253,18 +373,82 @@ export default async function handler(req, res) {
         results.feed.error = error.message;
         console.error('피드 이미지 생성 에러:', error);
       }
-    } else if (feedData?.imageUrl) {
+    } else if (feedData?.image_url && !forceRegenerate) {
       results.feed.success = true;
-      results.feed.imageUrl = feedData.imageUrl;
+      results.feed.imageUrl = feedData.image_url;
     }
 
-    // 캘린더 파일 업데이트
-    dateData.created = true;
-    dateData.createdAt = new Date().toISOString();
-    calendarData.profileContent.account2.dailySchedule[dateIndex] = dateData;
+    // 피드 캡션 생성 (없는 경우)
+    if (feedData && (!feedData.caption || feedData.caption.trim().length === 0)) {
+      try {
+        const captionResponse = await fetch(`${baseUrl}/api/kakao-content/generate-feed-caption`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageCategory: feedData.image_category || '젊은 골퍼의 스윙',
+            accountType: 'account2',
+            weeklyTheme,
+            date,
+            existingCaption: feedData.caption
+          })
+        });
 
-    // 파일 저장
-    fs.writeFileSync(calendarPath, JSON.stringify(calendarData, null, 2), 'utf8');
+        const captionData = await captionResponse.json();
+        if (captionData.success && captionData.caption) {
+          feedData.caption = captionData.caption;
+          console.log(`✅ 피드 캡션 생성 완료: ${feedData.caption}`);
+        }
+      } catch (captionError) {
+        console.warn('⚠️ 피드 캡션 생성 실패, 기존 캡션 사용:', captionError.message);
+      }
+    }
+
+    // URL 자동 선택
+    if (feedData && !feedData.url) {
+      const { getFeedUrl } = require('../../../lib/kakao-feed-url-selector');
+      const selectedUrl = getFeedUrl(
+        feedData.image_category || '젊은 골퍼의 스윙',
+        'account2',
+        date
+      );
+      feedData.url = selectedUrl;
+    }
+
+    // Supabase에 저장
+    dateData.created = true;
+    dateData.updated_at = new Date().toISOString();
+
+    const { error: upsertError } = await supabase
+      .from('kakao_profile_content')
+      .upsert({
+        ...dateData,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'date,account'
+      });
+
+    if (upsertError) {
+      console.error('프로필 데이터 저장 오류:', upsertError);
+      throw upsertError;
+    }
+
+    // 피드 데이터 저장
+    if (feedData) {
+      feedData.updated_at = new Date().toISOString();
+      const { error: feedUpsertError } = await supabase
+        .from('kakao_feed_content')
+        .upsert({
+          ...feedData,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'date,account'
+        });
+
+      if (feedUpsertError) {
+        console.error('피드 데이터 저장 오류:', feedUpsertError);
+        // 피드 저장 실패는 치명적이지 않으므로 계속 진행
+      }
+    }
 
     res.status(200).json({
       success: true,

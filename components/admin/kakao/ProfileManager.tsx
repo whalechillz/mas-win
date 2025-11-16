@@ -51,6 +51,7 @@ export default function ProfileManager({
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [showMessageList, setShowMessageList] = useState(false);
   const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState<'background' | 'profile' | null>(null);
+  const [isRecoveringImage, setIsRecoveringImage] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
 
   const handleGenerateBackground = async () => {
     try {
@@ -92,6 +93,62 @@ export default function ProfileManager({
     } finally {
       setIsGeneratingProfile(false);
     }
+  };
+
+  // 이미지 자동 복구 함수 (갤러리에서 해당 날짜 이미지 찾기)
+  const handleAutoRecoverImage = async (type: 'background' | 'profile') => {
+    if (!selectedDate || !accountKey) {
+      console.warn('날짜 또는 계정 정보가 없어 자동 복구를 수행할 수 없습니다.');
+      return;
+    }
+
+    try {
+      setIsRecoveringImage(prev => ({ ...prev, [type]: true }));
+
+      // 갤러리에서 해당 날짜의 이미지 조회
+      const response = await fetch(
+        `/api/kakao-content/fetch-gallery-images-by-date?date=${selectedDate}&account=${accountKey}&type=${type}`
+      );
+
+      if (!response.ok) {
+        throw new Error('갤러리 이미지 조회 실패');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.images && data.images.length > 0) {
+        // 첫 번째 이미지 사용 (가장 최근 생성된 이미지)
+        const recoveredImageUrl = data.images[0].url;
+        
+        onUpdate({
+          ...profileData,
+          [type]: {
+            ...profileData[type],
+            imageUrl: recoveredImageUrl
+          }
+        });
+
+        console.log(`✅ ${type} 이미지 자동 복구 완료:`, recoveredImageUrl);
+        alert(`✅ ${type === 'background' ? '배경' : '프로필'} 이미지가 갤러리에서 자동으로 복구되었습니다.`);
+      } else {
+        console.warn(`⚠️ 갤러리에서 ${type} 이미지를 찾을 수 없습니다.`);
+        alert(`⚠️ 갤러리에서 ${type === 'background' ? '배경' : '프로필'} 이미지를 찾을 수 없습니다.`);
+      }
+    } catch (error: any) {
+      console.error(`❌ ${type} 이미지 자동 복구 실패:`, error);
+      alert(`이미지 자동 복구 실패: ${error.message}`);
+    } finally {
+      setIsRecoveringImage(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
+  // 이미지 에러 핸들러
+  const handleImageError = async (type: 'background' | 'profile', event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    console.warn(`⚠️ ${type} 이미지 로드 실패:`, img.src);
+    
+    // 자동 복구 시도
+    await handleAutoRecoverImage(type);
   };
 
   // 프롬프트 재생성 함수 (프롬프트 재생성 + 이미지 자동 재생성)
@@ -202,7 +259,16 @@ export default function ProfileManager({
                 src={profileData.background.imageUrl} 
                 alt="배경 이미지"
                 className="w-full aspect-video object-cover rounded"
+                onError={handleImageError.bind(null, 'background')}
               />
+              {isRecoveringImage.background && (
+                <div className="absolute inset-0 bg-blue-100 bg-opacity-75 flex items-center justify-center rounded">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <div className="text-sm text-blue-700">갤러리에서 이미지 복구 중...</div>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => onUpdate({
                   ...profileData,
@@ -277,7 +343,16 @@ export default function ProfileManager({
                 src={profileData.profile.imageUrl} 
                 alt="프로필 이미지"
                 className="w-24 h-24 object-cover rounded-full"
+                onError={handleImageError.bind(null, 'profile')}
               />
+              {isRecoveringImage.profile && (
+                <div className="absolute inset-0 bg-blue-100 bg-opacity-75 flex items-center justify-center rounded-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-1"></div>
+                    <div className="text-xs text-blue-700">복구 중...</div>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => onUpdate({
                   ...profileData,
@@ -353,65 +428,49 @@ export default function ProfileManager({
       </div>
 
       {/* 갤러리 모달 */}
-      {showBackgroundGallery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 max-w-4xl max-h-[80vh] overflow-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">배경 이미지 선택</h3>
-              <button
-                onClick={() => setShowBackgroundGallery(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <GalleryPicker
-              isOpen={showBackgroundGallery}
-              onSelect={(imageUrl) => {
-                onUpdate({
-                  ...profileData,
-                  background: {
-                    ...profileData.background,
-                    imageUrl
-                  }
-                });
-                setShowBackgroundGallery(false);
-              }}
-              onClose={() => setShowBackgroundGallery(false)}
-            />
-          </div>
-        </div>
-      )}
+      <GalleryPicker
+        isOpen={showBackgroundGallery}
+        onSelect={(imageUrl) => {
+          onUpdate({
+            ...profileData,
+            background: {
+              ...profileData.background,
+              imageUrl
+            }
+          });
+          setShowBackgroundGallery(false);
+        }}
+        onClose={() => setShowBackgroundGallery(false)}
+        autoFilterFolder={
+          selectedDate && accountKey
+            ? `originals/daily-branding/kakao/${selectedDate}/${accountKey}/background`
+            : undefined
+        }
+        showCompareMode={true}
+        maxCompareCount={3}
+      />
 
-      {showProfileGallery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 max-w-4xl max-h-[80vh] overflow-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">프로필 이미지 선택</h3>
-              <button
-                onClick={() => setShowProfileGallery(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <GalleryPicker
-              isOpen={showProfileGallery}
-              onSelect={(imageUrl) => {
-                onUpdate({
-                  ...profileData,
-                  profile: {
-                    ...profileData.profile,
-                    imageUrl
-                  }
-                });
-                setShowProfileGallery(false);
-              }}
-              onClose={() => setShowProfileGallery(false)}
-            />
-          </div>
-        </div>
-      )}
+      <GalleryPicker
+        isOpen={showProfileGallery}
+        onSelect={(imageUrl) => {
+          onUpdate({
+            ...profileData,
+            profile: {
+              ...profileData.profile,
+              imageUrl
+            }
+          });
+          setShowProfileGallery(false);
+        }}
+        onClose={() => setShowProfileGallery(false)}
+        autoFilterFolder={
+          selectedDate && accountKey
+            ? `originals/daily-branding/kakao/${selectedDate}/${accountKey}/profile`
+            : undefined
+        }
+        showCompareMode={true}
+        maxCompareCount={3}
+      />
 
       {/* 메시지 목록 모달 */}
       {accountKey && calendarData && (

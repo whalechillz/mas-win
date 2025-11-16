@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { date } = req.body;
+    const { date, forceRegenerate = false } = req.body;
     if (!date) {
       return res.status(400).json({ error: 'date is required' });
     }
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     }
 
     // 배경 이미지 생성
-    if (!dateData.background_image_url) {
+    if (!dateData.background_image_url || forceRegenerate) {
       try {
         const bgPrompt = dateData.background_prompt || dateData.background_image || '절경 골프장 배경';
         
@@ -142,9 +142,24 @@ export default async function handler(req, res) {
           const imageData = await imageResponse.json();
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.background.success = true;
+            // 첫 번째 이미지를 기본값으로 사용
             results.background.imageUrl = imageData.imageUrls[0];
             dateData.background_image_url = imageData.imageUrls[0];
             dateData.background_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
+            
+            // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
+            if (imageData.imageUrls.length > 1) {
+              console.log(`📸 배경 이미지 ${imageData.imageUrls.length}개 생성됨:`);
+              imageData.imageUrls.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+              });
+              console.log(`✅ 기본값으로 첫 번째 이미지 사용: ${imageData.imageUrls[0]}`);
+              console.log(`💡 다른 이미지를 선택하려면 image_metadata 테이블에서 조회하거나 관리자 페이지에서 갤러리 선택 기능 사용`);
+            }
+            
+            // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
+            results.background.allImageUrls = imageData.imageUrls;
+            results.background.totalGenerated = imageData.imageUrls.length;
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
@@ -154,13 +169,13 @@ export default async function handler(req, res) {
         results.background.error = error.message;
         console.error('배경 이미지 생성 에러:', error);
       }
-    } else {
+    } else if (!forceRegenerate) {
       results.background.success = true;
       results.background.imageUrl = dateData.background_image_url;
     }
 
     // 프로필 이미지 생성
-    if (!dateData.profile_image_url) {
+    if (!dateData.profile_image_url || forceRegenerate) {
       try {
         const profilePrompt = dateData.profile_prompt || dateData.profile_image || '시니어 골퍼';
         
@@ -209,9 +224,24 @@ export default async function handler(req, res) {
           const imageData = await imageResponse.json();
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.profile.success = true;
+            // 첫 번째 이미지를 기본값으로 사용
             results.profile.imageUrl = imageData.imageUrls[0];
             dateData.profile_image_url = imageData.imageUrls[0];
             dateData.profile_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
+            
+            // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
+            if (imageData.imageUrls.length > 1) {
+              console.log(`📸 프로필 이미지 ${imageData.imageUrls.length}개 생성됨:`);
+              imageData.imageUrls.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+              });
+              console.log(`✅ 기본값으로 첫 번째 이미지 사용: ${imageData.imageUrls[0]}`);
+              console.log(`💡 다른 이미지를 선택하려면 image_metadata 테이블에서 조회하거나 관리자 페이지에서 갤러리 선택 기능 사용`);
+            }
+            
+            // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
+            results.profile.allImageUrls = imageData.imageUrls;
+            results.profile.totalGenerated = imageData.imageUrls.length;
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
@@ -221,13 +251,55 @@ export default async function handler(req, res) {
         results.profile.error = error.message;
         console.error('프로필 이미지 생성 에러:', error);
       }
-    } else {
+    } else if (!forceRegenerate) {
       results.profile.success = true;
       results.profile.imageUrl = dateData.profile_image_url;
     }
 
+    // 프로필 메시지 생성 (없는 경우)
+    if (!dateData.message || dateData.message.trim() === '') {
+      try {
+        const messageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt-message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'message',
+            accountType: 'account1',
+            brandStrategy: {
+              customerpersona: 'senior_fitting',
+              customerChannel: 'local_customers',
+              brandWeight: '높음',
+              audienceTemperature: 'warm',
+              audienceWeight: '높음'
+            },
+            weeklyTheme,
+            date
+          })
+        });
+
+        if (messageResponse.ok) {
+          const messageData = await messageResponse.json();
+          if (messageData.success && messageData.data?.message) {
+            let cleanedMessage = messageData.data.message.trim();
+            
+            // "json { message: " 패턴 제거
+            cleanedMessage = cleanedMessage.replace(/^json\s*\{\s*message\s*:\s*/i, '');
+            cleanedMessage = cleanedMessage.replace(/\s*\}\s*$/i, '');
+            
+            // 따옴표 제거 (앞뒤 따옴표)
+            cleanedMessage = cleanedMessage.replace(/^["'`]+|["'`]+$/g, '').trim();
+            
+            dateData.message = cleanedMessage;
+            console.log(`✅ 프로필 메시지 생성 완료: ${dateData.message}`);
+          }
+        }
+      } catch (messageError) {
+        console.warn('⚠️ 프로필 메시지 생성 실패:', messageError.message);
+      }
+    }
+
     // 피드 이미지 생성
-    if (feedData && !feedData.image_url) {
+    if (feedData && (!feedData.image_url || forceRegenerate)) {
       try {
         const feedPrompt = feedData.image_prompt || feedData.image_category || '시니어 골퍼의 스윙';
         
@@ -282,7 +354,7 @@ export default async function handler(req, res) {
         }
 
         // URL 자동 선택
-        const { getFeedUrl } = require('../../lib/kakao-feed-url-selector');
+        const { getFeedUrl } = require('../../../lib/kakao-feed-url-selector');
         const selectedUrl = getFeedUrl(
           feedData.image_category || '시니어 골퍼의 스윙',
           'account1',
@@ -309,6 +381,7 @@ export default async function handler(req, res) {
           const imageData = await imageResponse.json();
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.feed.success = true;
+            // 첫 번째 이미지를 기본값으로 사용
             results.feed.imageUrl = imageData.imageUrls[0];
             
             // 피드 데이터 업데이트
@@ -317,6 +390,20 @@ export default async function handler(req, res) {
             feedData.caption = feedCaption || feedData.caption || '';
             feedData.url = selectedUrl;
             feedData.created = true;
+            
+            // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
+            if (imageData.imageUrls.length > 1) {
+              console.log(`📸 피드 이미지 ${imageData.imageUrls.length}개 생성됨:`);
+              imageData.imageUrls.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+              });
+              console.log(`✅ 기본값으로 첫 번째 이미지 사용: ${imageData.imageUrls[0]}`);
+              console.log(`💡 다른 이미지를 선택하려면 image_metadata 테이블에서 조회하거나 관리자 페이지에서 갤러리 선택 기능 사용`);
+            }
+            
+            // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
+            results.feed.allImageUrls = imageData.imageUrls;
+            results.feed.totalGenerated = imageData.imageUrls.length;
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
@@ -326,7 +413,7 @@ export default async function handler(req, res) {
         results.feed.error = error.message;
         console.error('피드 이미지 생성 에러:', error);
       }
-    } else if (feedData?.image_url) {
+    } else if (feedData?.image_url && !forceRegenerate) {
       results.feed.success = true;
       results.feed.imageUrl = feedData.image_url;
     }

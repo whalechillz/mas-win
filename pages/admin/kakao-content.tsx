@@ -836,7 +836,7 @@ export default function KakaoContentPage() {
   };
 
   // 단일 날짜에 대한 자동 생성 (API 호출)
-  const generateForSingleDate = async (date: string, account: 'account1' | 'account2'): Promise<boolean> => {
+  const generateForSingleDate = async (date: string, account: 'account1' | 'account2', forceRegenerate: boolean = false): Promise<boolean> => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
         (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
@@ -848,7 +848,7 @@ export default function KakaoContentPage() {
       const response = await fetch(`${baseUrl}${apiEndpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date })
+        body: JSON.stringify({ date, forceRegenerate })
       });
 
       if (!response.ok) {
@@ -857,6 +857,39 @@ export default function KakaoContentPage() {
       }
 
       const data = await response.json();
+      
+      // 실제 생성 결과 확인
+      if (data.success && data.results) {
+        const results = data.results;
+        const hasNewImages = 
+          (results.background?.success && results.background?.imageUrl) ||
+          (results.profile?.success && results.profile?.imageUrl) ||
+          (results.feed?.success && results.feed?.imageUrl);
+        
+        // 기존 이미지가 있는지 확인 (forceRegenerate가 아닌 경우)
+        if (!forceRegenerate) {
+          const existingImages = {
+            background: results.background?.imageUrl && !results.background?.error,
+            profile: results.profile?.imageUrl && !results.profile?.error,
+            feed: results.feed?.imageUrl && !results.feed?.error
+          };
+          
+          // 모든 이미지가 이미 존재하는 경우 경고 메시지
+          if (existingImages.background && existingImages.profile && existingImages.feed) {
+            console.log(`⚠️ ${date} ${account}: 모든 이미지가 이미 생성되어 있습니다. 재생성하려면 재생성 버튼을 사용하세요.`);
+          }
+        }
+        
+        if (!hasNewImages) {
+          const errors = [];
+          if (results.background?.error) errors.push(`배경: ${results.background.error}`);
+          if (results.profile?.error) errors.push(`프로필: ${results.profile.error}`);
+          if (results.feed?.error) errors.push(`피드: ${results.feed.error}`);
+          
+          throw new Error(`이미지 생성 실패: ${errors.join(', ') || '알 수 없는 오류'}`);
+        }
+      }
+      
       return data.success === true;
     } catch (error: any) {
       console.error(`${date} ${account} 생성 실패:`, error);
@@ -867,9 +900,18 @@ export default function KakaoContentPage() {
   // 선택된 날짜들에 대한 순차 생성
   const handleSelectedDatesAutoCreate = async (customDates?: string[]) => {
     // 커스텀 날짜가 제공되면 사용, 없으면 선택된 날짜 또는 현재 날짜 사용
-    const datesToGenerate = customDates || (selectedDates.length > 0 
-      ? selectedDates 
-      : [selectedDate || todayStr]);
+    let datesToGenerate: string[];
+    
+    if (customDates) {
+      // 커스텀 날짜 사용 (이번 주 생성 등)
+      datesToGenerate = customDates;
+    } else if (selectedDates.length > 0) {
+      // selectedDates가 있으면 사용
+      datesToGenerate = selectedDates;
+    } else {
+      // 둘 다 없으면 selectedDate 또는 todayStr 사용
+      datesToGenerate = [selectedDate || todayStr];
+    }
 
     // 최대 생성 개수 제한 (7일)
     if (datesToGenerate.length > 7) {
@@ -1148,60 +1190,131 @@ export default function KakaoContentPage() {
 
     // 캘린더 파일 저장
     await saveCalendarData(updated);
+
+    // 저장 후 최신 데이터 다시 로드 (리스트 뷰 동기화를 위해)
+    try {
+      const today = new Date();
+      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
+      const data = await res.json();
+      if (data.success && data.calendarData) {
+        setCalendarData(data.calendarData);
+      }
+    } catch (error) {
+      console.error('캘린더 데이터 새로고침 실패:', error);
+    }
   };
 
   // 계정 1 데이터 변환
-  const account1ProfileData = {
+  const account1ProfileData = selectedDateData?.account1Profile ? {
     background: {
-      image: selectedDateData.account1Profile.background.image,
-      prompt: selectedDateData.account1Profile.background.prompt,
-      imageUrl: (selectedDateData.account1Profile.background as any).imageUrl
+      image: selectedDateData.account1Profile.background?.image || '',
+      prompt: selectedDateData.account1Profile.background?.prompt || '',
+      imageUrl: (selectedDateData.account1Profile.background as any)?.imageUrl
     },
     profile: {
-      image: selectedDateData.account1Profile.profile.image,
-      prompt: selectedDateData.account1Profile.profile.prompt,
-      imageUrl: (selectedDateData.account1Profile.profile as any).imageUrl
+      image: selectedDateData.account1Profile.profile?.image || '',
+      prompt: selectedDateData.account1Profile.profile?.prompt || '',
+      imageUrl: (selectedDateData.account1Profile.profile as any)?.imageUrl
     },
-    message: selectedDateData.account1Profile.message
+    message: selectedDateData.account1Profile.message || ''
+  } : {
+    background: { image: '', prompt: '', imageUrl: undefined },
+    profile: { image: '', prompt: '', imageUrl: undefined },
+    message: ''
   };
 
   // 계정 2 데이터 변환
-  const account2ProfileData = {
+  const account2ProfileData = selectedDateData?.account2Profile ? {
     background: {
-      image: selectedDateData.account2Profile.background.image,
-      prompt: selectedDateData.account2Profile.background.prompt,
-      imageUrl: (selectedDateData.account2Profile.background as any).imageUrl
+      image: selectedDateData.account2Profile.background?.image || '',
+      prompt: selectedDateData.account2Profile.background?.prompt || '',
+      imageUrl: (selectedDateData.account2Profile.background as any)?.imageUrl
     },
     profile: {
-      image: selectedDateData.account2Profile.profile.image,
-      prompt: selectedDateData.account2Profile.profile.prompt,
-      imageUrl: (selectedDateData.account2Profile.profile as any).imageUrl
+      image: selectedDateData.account2Profile.profile?.image || '',
+      prompt: selectedDateData.account2Profile.profile?.prompt || '',
+      imageUrl: (selectedDateData.account2Profile.profile as any)?.imageUrl
     },
-    message: selectedDateData.account2Profile.message
+    message: selectedDateData.account2Profile.message || ''
+  } : {
+    background: { image: '', prompt: '', imageUrl: undefined },
+    profile: { image: '', prompt: '', imageUrl: undefined },
+    message: ''
   };
 
   // 배포 상태 가져오기
-  const account1PublishStatus = (selectedDateData.account1Profile as any).status || 'created';
-  const account2PublishStatus = (selectedDateData.account2Profile as any).status || 'created';
-  const account1PublishedAt = (selectedDateData.account1Profile as any).publishedAt;
-  const account2PublishedAt = (selectedDateData.account2Profile as any).publishedAt;
+  const account1PublishStatus = (selectedDateData?.account1Profile as any)?.status || 'created';
+  const account2PublishStatus = (selectedDateData?.account2Profile as any)?.status || 'created';
+  const account1PublishedAt = (selectedDateData?.account1Profile as any)?.publishedAt;
+  const account2PublishedAt = (selectedDateData?.account2Profile as any)?.publishedAt;
 
   // 피드 데이터 변환
-  const account1FeedData = {
-    imageCategory: selectedDateData.feed.account1.imageCategory,
-    imagePrompt: selectedDateData.feed.account1.imagePrompt,
-    caption: selectedDateData.feed.account1.caption,
-    imageUrl: (selectedDateData.feed.account1 as any).imageUrl,
-    url: (selectedDateData.feed.account1 as any).url
+  const account1FeedData = selectedDateData?.feed?.account1 ? {
+    imageCategory: selectedDateData.feed.account1.imageCategory || '',
+    imagePrompt: selectedDateData.feed.account1.imagePrompt || '',
+    caption: selectedDateData.feed.account1.caption || '',
+    imageUrl: (selectedDateData.feed.account1 as any)?.imageUrl,
+    url: (selectedDateData.feed.account1 as any)?.url
+  } : {
+    imageCategory: '',
+    imagePrompt: '',
+    caption: '',
+    imageUrl: undefined,
+    url: undefined
   };
 
-  const account2FeedData = {
-    imageCategory: selectedDateData.feed.account2.imageCategory,
-    imagePrompt: selectedDateData.feed.account2.imagePrompt,
-    caption: selectedDateData.feed.account2.caption,
-    imageUrl: (selectedDateData.feed.account2 as any).imageUrl,
-    url: (selectedDateData.feed.account2 as any).url
+  const account2FeedData = selectedDateData?.feed?.account2 ? {
+    imageCategory: selectedDateData.feed.account2.imageCategory || '',
+    imagePrompt: selectedDateData.feed.account2.imagePrompt || '',
+    caption: selectedDateData.feed.account2.caption || '',
+    imageUrl: (selectedDateData.feed.account2 as any)?.imageUrl,
+    url: (selectedDateData.feed.account2 as any)?.url
+  } : {
+    imageCategory: '',
+    imagePrompt: '',
+    caption: '',
+    imageUrl: undefined,
+    url: undefined
   };
+
+  // 로딩 중일 때
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Head>
+          <title>카카오톡 콘텐츠 생성 - MASGOLF</title>
+        </Head>
+        <AdminNav />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="flex flex-col items-center gap-4">
+              <Loader className="w-8 h-8 animate-spin text-blue-600" />
+              <p className="text-gray-600">캘린더 데이터를 불러오는 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // calendarData가 없을 때
+  if (!calendarData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Head>
+          <title>카카오톡 콘텐츠 생성 - MASGOLF</title>
+        </Head>
+        <AdminNav />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-yellow-900 mb-2">데이터를 불러올 수 없습니다</h2>
+            <p className="text-yellow-800">캘린더 데이터가 없습니다. 페이지를 새로고침하거나 관리자에게 문의하세요.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1283,7 +1396,12 @@ export default function KakaoContentPage() {
                     <input
                       type="date"
                       value={selectedDate || todayStr}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                      onChange={(e) => {
+                        const newDate = e.target.value;
+                        setSelectedDate(newDate);
+                        // 선택된 날짜가 변경되면 selectedDates도 업데이트
+                        setSelectedDates([newDate]);
+                      }}
                       className="px-3 py-1 border border-gray-300 rounded text-sm"
                     />
                   </div>
@@ -1409,6 +1527,45 @@ export default function KakaoContentPage() {
                     <WorkflowVisualization
                       calendarData={calendarData}
                       selectedDate={selectedDate || todayStr}
+                      onUpdate={async (updates: any) => {
+                        if (!calendarData) return;
+                        const updated = { ...calendarData };
+                        const currentDate = updates.date || selectedDate || todayStr;
+                        const account = updates.account;
+                        const type = updates.type;
+
+                        if (type === 'background' || type === 'profile') {
+                          const profileIndex = updated.profileContent[account].dailySchedule.findIndex(
+                            (p: any) => p.date === currentDate
+                          );
+                          if (profileIndex >= 0) {
+                            if (updates[`${type}_base_prompt`]) {
+                              updated.profileContent[account].dailySchedule[profileIndex][type].basePrompt = updates[`${type}_base_prompt`];
+                            }
+                            if (updates[`${type}_prompt`]) {
+                              updated.profileContent[account].dailySchedule[profileIndex][type].prompt = updates[`${type}_prompt`];
+                            }
+                          }
+                        } else if (type === 'feed') {
+                          const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
+                            (f: any) => f.date === currentDate
+                          );
+                          if (feedIndex >= 0) {
+                            if (updates.base_prompt) {
+                              updated.kakaoFeed.dailySchedule[feedIndex][account].basePrompt = updates.base_prompt;
+                            }
+                            if (updates.image_prompt) {
+                              updated.kakaoFeed.dailySchedule[feedIndex][account].imagePrompt = updates.image_prompt;
+                            }
+                          }
+                        }
+                        setCalendarData(updated);
+                        // 업데이트 후 즉시 저장
+                        await saveCalendarData(updated);
+                      }}
+                      onSave={async () => {
+                        // onUpdate에서 이미 저장하므로 빈 함수
+                      }}
                     />
                   </div>
                 )}
@@ -1877,6 +2034,45 @@ export default function KakaoContentPage() {
                     <WorkflowVisualization
                       calendarData={calendarData}
                       selectedDate={selectedDate}
+                      onUpdate={async (updates: any) => {
+                        if (!calendarData) return;
+                        const updated = { ...calendarData };
+                        const currentDate = updates.date || selectedDate || todayStr;
+                        const account = updates.account;
+                        const type = updates.type;
+
+                        if (type === 'background' || type === 'profile') {
+                          const profileIndex = updated.profileContent[account].dailySchedule.findIndex(
+                            (p: any) => p.date === currentDate
+                          );
+                          if (profileIndex >= 0) {
+                            if (updates[`${type}_base_prompt`]) {
+                              updated.profileContent[account].dailySchedule[profileIndex][type].basePrompt = updates[`${type}_base_prompt`];
+                            }
+                            if (updates[`${type}_prompt`]) {
+                              updated.profileContent[account].dailySchedule[profileIndex][type].prompt = updates[`${type}_prompt`];
+                            }
+                          }
+                        } else if (type === 'feed') {
+                          const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
+                            (f: any) => f.date === currentDate
+                          );
+                          if (feedIndex >= 0) {
+                            if (updates.base_prompt) {
+                              updated.kakaoFeed.dailySchedule[feedIndex][account].basePrompt = updates.base_prompt;
+                            }
+                            if (updates.image_prompt) {
+                              updated.kakaoFeed.dailySchedule[feedIndex][account].imagePrompt = updates.image_prompt;
+                            }
+                          }
+                        }
+                        setCalendarData(updated);
+                        // 업데이트 후 즉시 저장
+                        await saveCalendarData(updated);
+                      }}
+                      onSave={async () => {
+                        // onUpdate에서 이미 저장하므로 빈 함수
+                      }}
                     />
                   </div>
                 )}
@@ -1891,9 +2087,9 @@ export default function KakaoContentPage() {
           <div>
             <KakaoAccountEditor
               account={{
-                number: calendarData!.profileContent.account1.account,
-                name: calendarData!.profileContent.account1.name,
-                persona: calendarData!.profileContent.account1.persona,
+                number: calendarData.profileContent.account1.account,
+                name: calendarData.profileContent.account1.name,
+                persona: calendarData.profileContent.account1.persona,
                 tone: 'gold'
               }}
               profileData={account1ProfileData}
@@ -1905,7 +2101,7 @@ export default function KakaoContentPage() {
               saveCalendarData={saveCalendarData}
               onProfileUpdate={async (data) => {
               // 상태 업데이트
-              const updated = { ...calendarData! };
+              const updated = { ...calendarData };
               const currentDate = selectedDate || todayStr;
               const profileIndex = updated.profileContent.account1.dailySchedule.findIndex(
                 p => p.date === currentDate
@@ -1933,7 +2129,7 @@ export default function KakaoContentPage() {
             }}
             onBasePromptUpdate={async (type, basePrompt) => {
               // basePrompt 업데이트
-              const updated = { ...calendarData! };
+              const updated = { ...calendarData };
               const currentDate = selectedDate || todayStr;
               const profileIndex = updated.profileContent.account1.dailySchedule.findIndex(
                 p => p.date === currentDate
@@ -1958,7 +2154,7 @@ export default function KakaoContentPage() {
             }}
             onFeedUpdate={async (data) => {
               // 상태 업데이트
-              const updated = { ...calendarData! };
+              const updated = { ...calendarData };
               const currentDate = selectedDate || todayStr;
               const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
                 f => f.date === currentDate
@@ -2025,9 +2221,9 @@ export default function KakaoContentPage() {
           <div>
             <KakaoAccountEditor
             account={{
-              number: calendarData!.profileContent.account2.account,
-              name: calendarData!.profileContent.account2.name,
-              persona: calendarData!.profileContent.account2.persona,
+              number: calendarData.profileContent.account2.account,
+              name: calendarData.profileContent.account2.name,
+              persona: calendarData.profileContent.account2.persona,
               tone: 'black'
             }}
             profileData={account2ProfileData}
@@ -2067,7 +2263,7 @@ export default function KakaoContentPage() {
             }}
             onBasePromptUpdate={async (type, basePrompt) => {
               // basePrompt 업데이트
-              const updated = { ...calendarData! };
+              const updated = { ...calendarData };
               const currentDate = selectedDate || todayStr;
               const profileIndex = updated.profileContent.account2.dailySchedule.findIndex(
                 p => p.date === currentDate
@@ -2092,7 +2288,7 @@ export default function KakaoContentPage() {
             }}
             onFeedUpdate={async (data) => {
               // 상태 업데이트
-              const updated = { ...calendarData! };
+              const updated = { ...calendarData };
               const currentDate = selectedDate || todayStr;
               const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
                 f => f.date === currentDate

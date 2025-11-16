@@ -16,7 +16,10 @@
     "test:headed": "playwright test --headed",
     "test:report": "playwright test --reporter=html && playwright show-report",
     "test:admin": "playwright test tests/admin-new.spec.ts --reporter=html && playwright show-report",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "restart": "bash scripts/restart-dev.sh",
+    "clean:build": "rm -rf .next && npm run build",
+    "dev:clean": "rm -rf .next && npm run dev"
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.0",

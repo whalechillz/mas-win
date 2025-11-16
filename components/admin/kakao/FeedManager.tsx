@@ -75,6 +75,60 @@ export default function FeedManager({
   }>({ isEditing: false, value: '' });
   const [isGeneratingBasePrompt, setIsGeneratingBasePrompt] = useState(false);
   const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
+  const [isRecoveringImage, setIsRecoveringImage] = useState(false);
+
+  // 이미지 자동 복구 함수 (갤러리에서 해당 날짜 이미지 찾기)
+  const handleAutoRecoverImage = async () => {
+    if (!selectedDate || !accountKey) {
+      console.warn('날짜 또는 계정 정보가 없어 자동 복구를 수행할 수 없습니다.');
+      return;
+    }
+
+    try {
+      setIsRecoveringImage(true);
+
+      // 갤러리에서 해당 날짜의 피드 이미지 조회
+      const response = await fetch(
+        `/api/kakao-content/fetch-gallery-images-by-date?date=${selectedDate}&account=${accountKey}&type=feed`
+      );
+
+      if (!response.ok) {
+        throw new Error('갤러리 이미지 조회 실패');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.images && data.images.length > 0) {
+        // 첫 번째 이미지 사용 (가장 최근 생성된 이미지)
+        const recoveredImageUrl = data.images[0].url;
+        
+        onUpdate({
+          ...feedData,
+          imageUrl: recoveredImageUrl
+        });
+
+        console.log('✅ 피드 이미지 자동 복구 완료:', recoveredImageUrl);
+        alert('✅ 피드 이미지가 갤러리에서 자동으로 복구되었습니다.');
+      } else {
+        console.warn('⚠️ 갤러리에서 피드 이미지를 찾을 수 없습니다.');
+        alert('⚠️ 갤러리에서 피드 이미지를 찾을 수 없습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ 피드 이미지 자동 복구 실패:', error);
+      alert(`이미지 자동 복구 실패: ${error.message}`);
+    } finally {
+      setIsRecoveringImage(false);
+    }
+  };
+
+  // 이미지 에러 핸들러
+  const handleImageError = async (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    console.warn('⚠️ 피드 이미지 로드 실패:', img.src);
+    
+    // 자동 복구 시도
+    await handleAutoRecoverImage();
+  };
 
   // basePrompt 가져오기
   const getBasePrompt = (): string | undefined => {
@@ -316,7 +370,16 @@ export default function FeedManager({
                 src={feedData.imageUrl} 
                 alt="피드 이미지"
                 className="w-full aspect-[4/5] object-cover rounded-lg"
+                onError={handleImageError}
               />
+              {isRecoveringImage && (
+                <div className="absolute inset-0 bg-blue-100 bg-opacity-75 flex items-center justify-center rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <div className="text-sm text-blue-700">갤러리에서 이미지 복구 중...</div>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => onUpdate({
                   ...feedData,
@@ -396,7 +459,7 @@ export default function FeedManager({
           <option value="https://masgolf.co.kr">신규 홈페이지 (masgolf.co.kr)</option>
           <option value="https://www.mas9golf.com">기존 홈페이지 (mas9golf.com)</option>
           <option value="https://masgolf.co.kr/muziik">뮤직 콜라보 (MUZIIK)</option>
-          <option value="https://masgolf.co.kr/main/stores">시타 매장 안내</option>
+          <option value="https://www.masgolf.co.kr/contact">시타 매장 안내</option>
           <option value="https://www.mas9golf.com/try-a-massgo">시타 예약</option>
           <option value="https://smartstore.naver.com/mas9golf">네이버 스마트스토어</option>
         </select>
@@ -417,32 +480,24 @@ export default function FeedManager({
       </div>
 
       {/* 갤러리 모달 */}
-      {showGallery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 max-w-4xl max-h-[80vh] overflow-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">피드 이미지 선택</h3>
-              <button
-                onClick={() => setShowGallery(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <GalleryPicker
-              isOpen={showGallery}
-              onSelect={(imageUrl) => {
-                onUpdate({
-                  ...feedData,
-                  imageUrl
-                });
-                setShowGallery(false);
-              }}
-              onClose={() => setShowGallery(false)}
-            />
-          </div>
-        </div>
-      )}
+      <GalleryPicker
+        isOpen={showGallery}
+        onSelect={(imageUrl) => {
+          onUpdate({
+            ...feedData,
+            imageUrl
+          });
+          setShowGallery(false);
+        }}
+        onClose={() => setShowGallery(false)}
+        autoFilterFolder={
+          selectedDate && accountKey
+            ? `originals/daily-branding/kakao/${selectedDate}/${accountKey}/feed`
+            : undefined
+        }
+        showCompareMode={true}
+        maxCompareCount={3}
+      />
     </div>
   );
 }
