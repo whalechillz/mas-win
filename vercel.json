@@ -6,6 +6,7 @@
   },
   "functions": {
     "pages/api/**/*.js": {
+      "runtime": "nodejs20.x",
       "maxDuration": 50
     }
   },
