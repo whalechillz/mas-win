@@ -19,7 +19,8 @@
     "report": "playwright show-report",
     "restart": "bash scripts/restart-dev.sh",
     "clean:build": "rm -rf .next && npm run build",
-    "dev:clean": "rm -rf .next && npm run dev"
+    "dev:clean": "rm -rf .next && npm run dev",
+    "predeploy": "bash scripts/pre-deploy.sh"
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.0",

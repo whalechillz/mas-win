@@ -71,7 +71,7 @@ module.exports = {
     serverMinification: false,
   },
   // 빌드 최적화 설정
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     // 불필요한 모듈 제거
     if (!isServer) {
       config.resolve.fallback = {
@@ -81,8 +81,33 @@ module.exports = {
         tls: false,
       };
     }
+    
+    // 프로덕션 빌드에서 청크 안정화 (모듈 찾기 에러 방지)
+    if (!isServer && !dev) {
+      // 기존 optimization이 없으면 기본값 사용
+      if (!config.optimization) {
+        config.optimization = {};
+      }
+      
+      // 청크 ID 안정화
+      config.optimization.moduleIds = 'deterministic';
+      config.optimization.chunkIds = 'deterministic';
+      
+      // splitChunks 설정 (기존 설정 유지하면서 안정화)
+      if (!config.optimization.splitChunks) {
+        config.optimization.splitChunks = {
+          chunks: 'all',
+        };
+      }
+    }
+    
     return config;
   },
+  
+  // 빌드 ID 안정화 (선택사항 - 필요시 주석 해제)
+  // generateBuildId: async () => {
+  //   return 'build-' + Date.now();
+  // },
   // 빌드 성능 최적화
   swcMinify: true,
   // 정적 생성 설정 (Vercel 호환)
