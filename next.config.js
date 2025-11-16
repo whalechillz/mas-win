@@ -118,4 +118,23 @@ module.exports = {
   // 정적 HTML 내보내기 비활성화 (Vercel 서버리스 함수 사용)
   // output: 'export',
   // 리다이렉트 제거 - 메인 페이지가 index.js를 직접 사용하도록 함
+  
+  // API 경로를 i18n에서 명시적으로 제외 (프로덕션에서 API 405 에러 해결)
+  // beforeFiles는 i18n 라우팅보다 먼저 실행되어 API 경로를 보호
+  async rewrites() {
+    return {
+      beforeFiles: [
+        // API 경로는 로케일 프리픽스 없이 직접 접근
+        {
+          source: '/api/:path*',
+          destination: '/api/:path*',
+        },
+        // 로케일 프리픽스가 있는 API 경로도 정리
+        {
+          source: '/:locale(ko|ja)/api/:path*',
+          destination: '/api/:path*',
+        },
+      ],
+    };
+  },
 };

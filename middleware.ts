@@ -11,37 +11,41 @@ export async function middleware(request: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
   const allowLocalTest = process.env.ALLOW_LOCAL_API_TEST === 'true';
   
-  // 1) 정적/이미지/API는 통과 (NextAuth API는 반드시 통과)
-  // API 경로는 i18n에서 완전히 제외 (로케일 프리픽스 없이 직접 접근)
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/static') ||
-    pathname.includes('.') ||
-    pathname.startsWith('/favicon') ||
-    pathname.startsWith('/images')
-  ) {
+  // 1) API 경로는 가장 먼저 처리 (i18n 라우팅보다 우선)
+  // 프로덕션에서 Next.js i18n이 API 경로를 페이지 경로로 해석하는 문제 방지
+  if (pathname.startsWith('/api') || pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api')) {
     // NextAuth API 경로는 무조건 통과 (리다이렉트 루프 방지)
-    if (pathname.startsWith('/api/auth')) {
-      return NextResponse.next();
-    }
-    // API 경로는 i18n 로케일 프리픽스 없이 직접 처리
-    if (pathname.startsWith('/api')) {
-      // 로케일 프리픽스가 있는 경우 제거
-      const cleanPath = pathname.replace(/^\/ko\/api/, '/api').replace(/^\/ja\/api/, '/api');
-      if (cleanPath !== pathname) {
+    if (pathname.startsWith('/api/auth') || pathname.startsWith('/ko/api/auth') || pathname.startsWith('/ja/api/auth')) {
+      // 로케일 프리픽스가 있으면 제거
+      if (pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api')) {
+        const cleanPath = pathname.replace(/^\/(ko|ja)\/api/, '/api');
         const url = request.nextUrl.clone();
         url.pathname = cleanPath;
         return NextResponse.rewrite(url);
       }
       return NextResponse.next();
     }
-    // ✅ 로컬 테스트 환경에서는 API 경로 통과 (프로덕션에서는 기존 로직 유지)
-    // 주의: ALLOW_LOCAL_API_TEST=true가 설정되어 있어야만 로컬에서 테스트 가능
-    if (pathname.startsWith('/api') && isLocal && isDev && allowLocalTest) {
-      // 로컬 개발 환경에서 API 테스트 허용
-      console.log('[Middleware] 로컬 API 테스트 허용:', pathname);
+    
+    // 모든 API 경로에서 로케일 프리픽스 제거
+    if (pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api')) {
+      const cleanPath = pathname.replace(/^\/(ko|ja)\/api/, '/api');
+      const url = request.nextUrl.clone();
+      url.pathname = cleanPath;
+      return NextResponse.rewrite(url);
     }
+    
+    // 이미 정상적인 /api 경로면 통과
+    return NextResponse.next();
+  }
+  
+  // 2) 정적/이미지 파일은 통과
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/images')
+  ) {
     return NextResponse.next();
   }
 
@@ -94,8 +98,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // API 경로를 명시적으로 포함하여 i18n 로케일 프리픽스 제거 처리
   // 관리자 경로와 MUZIIK 구형 페이지 리다이렉트에 적용
+  // API 경로는 가장 먼저 매칭되도록 순서 중요
   matcher: [
-    '/api/:path*',           // API 경로 명시적 포함
+    '/api/:path*',           // API 경로 명시적 포함 (가장 먼저)
+    '/ko/api/:path*',        // 로케일 프리픽스가 있는 API 경로도 포함
+    '/ja/api/:path*',        // 로케일 프리픽스가 있는 API 경로도 포함
     '/admin/:path*',
     '/muziik/ko',
     '/muziik/ko/:path*'

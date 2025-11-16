@@ -20,6 +20,16 @@
       "NODE_OPTIONS": "--max-old-space-size=4096"
     }
   },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/:locale(ko|ja)/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
   "redirects": [
     {
       "source": "/muziik/ko/sapphire",
