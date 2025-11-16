@@ -103,3 +103,4 @@ Playwright 테스트 결과:
 - Playwright 테스트 스크립트: `playwright-remote-kakao-content-test.js`
 - Node.js 호환성 문서: `docs/NODE_20_COMPATIBILITY_CHECK.md`
 
+

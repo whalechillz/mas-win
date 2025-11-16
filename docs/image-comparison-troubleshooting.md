@@ -229,3 +229,4 @@ A: 많은 이미지가 있는 폴더는 일괄 등록 API를 사용하는 것이
 - `pages/api/admin/compare-images.js`: 이미지 비교 API
 - `pages/admin/gallery.tsx`: 갤러리 UI 및 비교 기능
 
+

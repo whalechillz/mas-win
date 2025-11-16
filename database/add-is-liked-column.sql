@@ -10,3 +10,4 @@ CREATE INDEX IF NOT EXISTS idx_image_metadata_is_liked ON image_metadata(is_like
 -- 코멘트 추가
 COMMENT ON COLUMN image_metadata.is_liked IS '이미지 좋아요 상태 (true: 좋아요, false: 좋아요 안 함)';
 
+

@@ -553,3 +553,4 @@ async function generateWithMethodB(promptData, imageCount, metadata, paragraphIn
   };
 }
 
+

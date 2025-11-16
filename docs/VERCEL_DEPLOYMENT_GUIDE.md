@@ -191,3 +191,4 @@ git push origin main
 - **Next.js 배포**: https://nextjs.org/docs/deployment
 - **빌드 에러 해결**: Vercel → Deployments → Build Logs 확인
 
+
