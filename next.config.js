@@ -2,10 +2,11 @@
 module.exports = {
   // i18n 설정
   // API 경로는 i18n에서 자동으로 제외됨 (Next.js 기본 동작)
+  // 하지만 일부 경우 명시적 제외가 필요할 수 있음
   i18n: {
     locales: ['ko', 'ja'],
     defaultLocale: 'ko',
-    localeDetection: true,
+    localeDetection: false, // API 경로 문제 해결을 위해 비활성화
   },
   eslint: {
     // 빌드 시 ESLint 에러 무시 (임시)
