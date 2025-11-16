@@ -11,7 +11,8 @@ export async function middleware(request: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
   const allowLocalTest = process.env.ALLOW_LOCAL_API_TEST === 'true';
   
-  // 1) 정적/이미지/API는 통과
+  // 1) 정적/이미지/API는 통과 (NextAuth API는 반드시 통과)
+  // API 경로는 i18n에서 완전히 제외 (로케일 프리픽스 없이 직접 접근)
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
@@ -20,6 +21,21 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/favicon') ||
     pathname.startsWith('/images')
   ) {
+    // NextAuth API 경로는 무조건 통과 (리다이렉트 루프 방지)
+    if (pathname.startsWith('/api/auth')) {
+      return NextResponse.next();
+    }
+    // API 경로는 i18n 로케일 프리픽스 없이 직접 처리
+    if (pathname.startsWith('/api')) {
+      // 로케일 프리픽스가 있는 경우 제거
+      const cleanPath = pathname.replace(/^\/ko\/api/, '/api').replace(/^\/ja\/api/, '/api');
+      if (cleanPath !== pathname) {
+        const url = request.nextUrl.clone();
+        url.pathname = cleanPath;
+        return NextResponse.rewrite(url);
+      }
+      return NextResponse.next();
+    }
     // ✅ 로컬 테스트 환경에서는 API 경로 통과 (프로덕션에서는 기존 로직 유지)
     // 주의: ALLOW_LOCAL_API_TEST=true가 설정되어 있어야만 로컬에서 테스트 가능
     if (pathname.startsWith('/api') && isLocal && isDev && allowLocalTest) {
@@ -77,5 +93,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // 관리자 경로와 MUZIIK 구형 페이지 리다이렉트에 적용
+  // /api/auth 경로는 matcher에서 제외 (NextAuth 리다이렉트 루프 방지)
+  matcher: [
+    '/admin/:path*',
+    '/muziik/ko',
+    '/muziik/ko/:path*'
+  ],
   matcher: ['/admin/:path*', '/muziik/ko', '/muziik/ko/:path*'],
 };

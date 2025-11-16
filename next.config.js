@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   // i18n 설정
+  // API 경로는 i18n에서 자동으로 제외됨 (Next.js 기본 동작)
   i18n: {
     locales: ['ko', 'ja'],
     defaultLocale: 'ko',
