@@ -123,7 +123,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
-        const imageResponse = await fetch(`${baseUrl}/api/generate-paragraph-images-with-prompts`, {
+        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -205,7 +205,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
-        const imageResponse = await fetch(`${baseUrl}/api/generate-paragraph-images-with-prompts`, {
+        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -362,7 +362,7 @@ export default async function handler(req, res) {
         );
 
         // 이미지 생성
-        const imageResponse = await fetch(`${baseUrl}/api/generate-paragraph-images-with-prompts`, {
+        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
