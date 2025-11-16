@@ -21,6 +21,8 @@ import PromptInspector from './PromptInspector';
 interface WorkflowVisualizationProps {
   calendarData?: any;
   selectedDate?: string;
+  onUpdate?: (updates: any) => void;
+  onSave?: () => Promise<void>;
 }
 
 const nodeTypes = {
@@ -75,7 +77,9 @@ const nodeTypes = {
 
 export default function WorkflowVisualization({
   calendarData,
-  selectedDate
+  selectedDate,
+  onUpdate,
+  onSave
 }: WorkflowVisualizationProps) {
   const todayStr = selectedDate || new Date().toISOString().split('T')[0];
   const [selectedNode, setSelectedNode] = useState<{ accountType: 'account1' | 'account2', type: 'background' | 'profile' | 'feed' } | null>(null);
@@ -454,6 +458,8 @@ export default function WorkflowVisualization({
           selectedDate={selectedDate}
           accountType={selectedNode.accountType}
           type={selectedNode.type}
+          onUpdate={onUpdate}
+          onSave={onSave}
         />
       )}
     </div>

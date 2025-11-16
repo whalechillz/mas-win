@@ -36,6 +36,8 @@ export default function CustomersPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{success: boolean; message: string; count?: number; total?: number; errors?: string[]} | null>(null);
   const [updatingVipLevels, setUpdatingVipLevels] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedCustomerForImage, setSelectedCustomerForImage] = useState<Customer | null>(null);
 
   const fetchCustomers = async (nextPage = page) => {
     setLoading(true);
@@ -376,6 +378,15 @@ export default function CustomersPage() {
                         <button onClick={() => handleEdit(c)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
                           수정
                         </button>
+                        <button 
+                          onClick={() => {
+                            setSelectedCustomerForImage(c);
+                            setShowImageModal(true);
+                          }} 
+                          className="px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                        >
+                          이미지
+                        </button>
                         <button onClick={() => handleDelete(c)} className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
                           삭제
                         </button>
@@ -598,6 +609,17 @@ export default function CustomersPage() {
           }}
         />
       )}
+
+      {/* 고객 이미지 업로드 모달 */}
+      {showImageModal && selectedCustomerForImage && (
+        <CustomerImageModal
+          customer={selectedCustomerForImage}
+          onClose={() => {
+            setShowImageModal(false);
+            setSelectedCustomerForImage(null);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -794,4 +816,237 @@ function CustomerFormModal({ mode, customer, onClose, onSuccess }: {
   );
 }
 
+// 고객 이미지 업로드 모달 컴포넌트
+function CustomerImageModal({ customer, onClose }: {
+  customer: Customer;
+  onClose: () => void;
+}) {
+  const [visitDate, setVisitDate] = useState(new Date().toISOString().slice(0, 10));
+  const [uploading, setUploading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<any[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
+
+  // 고객 이미지 목록 로드
+  const loadCustomerImages = async () => {
+    setLoadingImages(true);
+    try {
+      const response = await fetch(`/api/admin/upload-customer-image?customerId=${customer.id}`);
+      const result = await response.json();
+      if (result.success) {
+        setUploadedImages(result.images || []);
+      }
+    } catch (error) {
+      console.error('이미지 목록 로드 실패:', error);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomerImages();
+  }, [customer.id]);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      // Supabase 클라이언트 초기화
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
+      }
+      const sb = createClient(supabaseUrl, supabaseAnonKey);
+
+      // 고객 ID를 customer-001 형식으로 변환
+      const customerId = `customer-${String(customer.id).padStart(3, '0')}`;
+      const folderPath = `originals/customers/${customerId}/${visitDate}`;
+
+      // 파일명 정리
+      const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
+      const ts = Date.now();
+      const objectPath = `${folderPath}/${ts}_${baseName}`;
+
+      // 서명 업로드 URL 발급
+      const res = await fetch('/api/admin/storage-signed-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: objectPath })
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || '서명 URL 발급 실패');
+      }
+
+      const { token } = await res.json();
+
+      // Supabase SDK로 업로드
+      const { error: uploadError } = await sb.storage
+        .from('blog-images')
+        .uploadToSignedUrl(objectPath, token, file);
+
+      if (uploadError) {
+        throw new Error(`업로드 실패: ${uploadError.message}`);
+      }
+
+      // 공개 URL 가져오기
+      const { data: publicUrlData } = sb.storage
+        .from('blog-images')
+        .getPublicUrl(objectPath);
+      const publicUrl = publicUrlData?.publicUrl;
+
+      if (!publicUrl) {
+        throw new Error('공개 URL을 가져올 수 없습니다.');
+      }
+
+      // 고객 이미지 메타데이터 저장
+      const saveResponse = await fetch('/api/admin/upload-customer-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: customer.id,
+          customerName: customer.name,
+          visitDate: visitDate,
+          imageUrl: publicUrl,
+          filePath: objectPath,
+          fileName: file.name,
+          fileSize: file.size
+        })
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error('메타데이터 저장 실패');
+      }
+
+      alert('이미지 업로드 완료');
+      loadCustomerImages(); // 이미지 목록 새로고침
+    } catch (error: any) {
+      console.error('❌ 이미지 업로드 오류:', error);
+      alert(`업로드 실패: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">
+            고객 이미지 관리: {customer.name}
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+
+        <div className="space-y-6">
+          {/* 방문일자 선택 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              방문일자 *
+            </label>
+            <input
+              type="date"
+              value={visitDate}
+              onChange={(e) => setVisitDate(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
+          {/* 파일 업로드 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              이미지/영상 업로드
+            </label>
+            <div 
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  await handleFileUpload(files[0]);
+                }
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*,video/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleFileUpload(file);
+                  }
+                }}
+                className="hidden"
+                id="customer-image-upload"
+              />
+              <label htmlFor="customer-image-upload" className="cursor-pointer">
+                <svg className="mx-auto h-12 w-12 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="mt-2 block text-sm font-medium text-gray-900">
+                  이미지/영상 파일을 선택하거나 드래그하세요
+                </span>
+                <span className="mt-1 block text-sm text-gray-500">
+                  PNG, JPG, GIF, HEIC, MP4 파일 지원
+                </span>
+              </label>
+            </div>
+            {uploading && (
+              <div className="mt-2 text-sm text-blue-600">업로드 중...</div>
+            )}
+          </div>
+
+          {/* 업로드된 이미지 목록 */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              업로드된 이미지 ({uploadedImages.length}개)
+            </h3>
+            {loadingImages ? (
+              <div className="text-center py-8 text-gray-500">로딩 중...</div>
+            ) : uploadedImages.length > 0 ? (
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {uploadedImages.map((img: any, index: number) => (
+                  <div key={index} className="relative group">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                      {img.imageUrl && (
+                        <img
+                          src={img.imageUrl}
+                          alt={img.fileName || '고객 이미지'}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-600 truncate" title={img.visitDate}>
+                      {img.visitDate}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                업로드된 이미지가 없습니다.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 

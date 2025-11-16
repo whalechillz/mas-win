@@ -8,6 +8,8 @@ import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import { CategoryManagementModal } from '../../components/CategoryManagementModal';
 import FolderTree from '../../components/gallery/FolderTree';
 import { createClient } from '@supabase/supabase-js';
+import { uploadImageToSupabase } from '../../lib/image-upload-utils';
+import FolderSelector from '../../components/admin/FolderSelector';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -49,6 +51,10 @@ interface ImageMetadata {
     isFeatured?: boolean;
     isInContent?: boolean;
     created_at?: string;
+    // 🔧 배포 상태 정보 추가
+    status?: string;
+    published_at?: string;
+    isPublished?: boolean;
   }>;
   last_used_at?: string;     // ✅ 최근 사용 날짜
   // 선택적 상세 정보 (있을 수도 있음)
@@ -399,26 +405,45 @@ export default function GalleryAdmin() {
     try {
       const imageIds = Array.from(selectedForCompare);
       
+      // 🔧 임시 ID 필터링: temp-로 시작하는 ID는 제외
+      const validImageIds = imageIds.filter(id => id && !id.startsWith('temp-'));
+      const tempIds = imageIds.filter(id => id && id.startsWith('temp-'));
+      
+      if (tempIds.length > 0) {
+        console.warn('⚠️ 임시 ID가 포함되어 있습니다:', tempIds);
+        if (validImageIds.length === 0) {
+          alert('선택한 이미지가 아직 데이터베이스에 저장되지 않았습니다.\n페이지를 새로고침 후 다시 시도해주세요.');
+          return;
+        }
+        alert(`일부 이미지(${tempIds.length}개)는 아직 저장되지 않아 제외되었습니다.\n저장된 이미지(${validImageIds.length}개)만 비교합니다.`);
+      }
+      
+      if (validImageIds.length === 0) {
+        alert('비교할 수 있는 유효한 이미지가 없습니다.');
+        return;
+      }
+      
       // 디버깅: 선택된 이미지 ID 확인
-      console.log('🔍 비교할 이미지 ID:', imageIds);
-      const selectedImagesData = images.filter(img => img.id && imageIds.includes(img.id));
+      console.log('🔍 비교할 이미지 ID (유효한 것만):', validImageIds);
+      const selectedImagesData = images.filter(img => img.id && validImageIds.includes(img.id) && !img.id.startsWith('temp-'));
       console.log('🔍 선택된 이미지 데이터:', selectedImagesData.map(img => ({
         id: img.id,
         filename: img.name,
         url: img.url
       })));
 
-      if (selectedImagesData.length !== imageIds.length) {
+      if (selectedImagesData.length !== validImageIds.length) {
         console.warn('⚠️ 일부 이미지를 찾을 수 없습니다:', {
-          requested: imageIds.length,
+          requested: validImageIds.length,
           found: selectedImagesData.length
         });
       }
 
+      // 🔧 유효한 ID만 API로 전송
       const response = await fetch('/api/admin/compare-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageIds }),
+        body: JSON.stringify({ imageIds: validImageIds }),
       });
 
       if (!response.ok) {
@@ -729,16 +754,20 @@ export default function GalleryAdmin() {
   
   // 폴더 목록 상태 (Storage에서 직접 가져오기)
   const [availableFolders, setAvailableFolders] = useState<string[]>([]);
+  const [isLoadingFolders, setIsLoadingFolders] = useState(true);
   
-  // Storage에서 실제 폴더 목록 가져오기
+  // Storage에서 실제 폴더 목록 가져오기 (최적화: 메타데이터 기반 + 캐싱)
   useEffect(() => {
     const fetchFolders = async () => {
+      setIsLoadingFolders(true);
+      const startTime = Date.now();
       try {
         const response = await fetch('/api/admin/folders-list');
         const data = await response.json();
         
         if (response.ok && data.folders) {
-          console.log(`✅ 폴더 목록 로드 성공: ${data.folders.length}개`);
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+          console.log(`✅ 폴더 목록 로드 성공: ${data.folders.length}개 (${elapsed}초, 캐시: ${data.cached ? '사용' : '신규'})`);
           setAvailableFolders(data.folders);
         } else {
           console.error('❌ 폴더 목록 로드 실패:', data.error);
@@ -746,7 +775,13 @@ export default function GalleryAdmin() {
           const folders = new Set<string>();
           images.forEach(img => {
             if (img.folder_path && img.folder_path !== '') {
-              folders.add(img.folder_path);
+              // 하위 경로도 포함
+              const parts = img.folder_path.split('/').filter(Boolean);
+              let currentPath = '';
+              parts.forEach(part => {
+                currentPath = currentPath ? `${currentPath}/${part}` : part;
+                folders.add(currentPath);
+              });
             }
           });
           setAvailableFolders(Array.from(folders).sort());
@@ -757,10 +792,18 @@ export default function GalleryAdmin() {
         const folders = new Set<string>();
         images.forEach(img => {
           if (img.folder_path && img.folder_path !== '') {
-            folders.add(img.folder_path);
+            // 하위 경로도 포함
+            const parts = img.folder_path.split('/').filter(Boolean);
+            let currentPath = '';
+            parts.forEach(part => {
+              currentPath = currentPath ? `${currentPath}/${part}` : part;
+              folders.add(currentPath);
+            });
           }
         });
         setAvailableFolders(Array.from(folders).sort());
+      } finally {
+        setIsLoadingFolders(false);
       }
     };
     
@@ -973,6 +1016,7 @@ export default function GalleryAdmin() {
   const [activeAddTab, setActiveAddTab] = useState<'upload' | 'url'>('upload');
   const [pending, setPending] = useState(false);
   const [addUrl, setAddUrl] = useState('');
+  const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
   
   // 동적 카테고리 로드 함수
   const loadDynamicCategories = async () => {
@@ -2415,11 +2459,162 @@ export default function GalleryAdmin() {
     }
   };
 
+  // Phase 4: 폴더 타입 판단 헬퍼 함수
+  const getFolderType = (folderPath: string | undefined): 'uploaded' | 'originals' | 'variants' | 'references' | 'other' => {
+    if (!folderPath) return 'other';
+    const path = folderPath.toLowerCase();
+    if (path.startsWith('uploaded/')) return 'uploaded';
+    if (path.startsWith('originals/')) return 'originals';
+    if (path.startsWith('variants/')) return 'variants';
+    if (path.startsWith('references/')) return 'references';
+    return 'other';
+  };
+
+  // Phase 4: 삭제 경고 생성 함수
+  const generateDeleteWarning = (image: ImageMetadata): string | null => {
+    const folderType = getFolderType(image.folder_path);
+    const warnings: string[] = [];
+
+    // 1. uploaded/ 외 폴더 삭제 경고
+    if (folderType !== 'uploaded' && folderType !== 'other') {
+      const folderTypeNames = {
+        'originals': '원본',
+        'variants': '변형',
+        'references': '참조'
+      };
+      warnings.push(`⚠️ ${folderTypeNames[folderType]} 폴더의 이미지입니다.`);
+      warnings.push(`이미지를 삭제하면 연결된 콘텐츠에서 이미지가 깨질 수 있습니다.`);
+    }
+
+    // 2. usage_count > 0인 이미지 삭제 경고
+    if (image.usage_count && image.usage_count > 0) {
+      warnings.push(`⚠️ 현재 ${image.usage_count}개 위치에서 사용 중입니다.`);
+      
+      // 사용 위치 상세 정보 추가
+      if (image.used_in && image.used_in.length > 0) {
+        const usageDetails = image.used_in.slice(0, 5).map(usage => {
+          const typeNames = {
+            'blog': '블로그',
+            'funnel': '퍼널',
+            'homepage': '홈페이지',
+            'muziik': 'MUZIIK',
+            'static_page': '정적 페이지'
+          };
+          return `  - ${typeNames[usage.type] || usage.type}: ${usage.title || usage.url}`;
+        }).join('\n');
+        
+        if (image.used_in.length > 5) {
+          warnings.push(`\n사용 위치:\n${usageDetails}\n  ... 외 ${image.used_in.length - 5}개`);
+        } else {
+          warnings.push(`\n사용 위치:\n${usageDetails}`);
+        }
+      }
+    }
+
+    if (warnings.length > 0) {
+      return warnings.join('\n\n');
+    }
+    return null;
+  };
+
   // 일괄 삭제 실행
   // 개별 이미지 삭제 핸들러
   const handleDeleteImage = async (imageName: string) => {
     try {
       console.log('🗑️ 삭제 시도:', imageName);
+      
+      // 🔧 정확한 이미지 매칭: fullPath 또는 name으로 찾기
+      const matchingImages = images.filter(img => {
+        const fullPath = img.folder_path && img.folder_path !== '' 
+          ? `${img.folder_path}/${img.name}` 
+          : img.name;
+        return fullPath === imageName || img.name === imageName;
+      });
+
+      // 중복 이미지가 발견된 경우 (같은 URL을 가진 이미지들)
+      if (matchingImages.length > 1) {
+        // URL 기반으로 실제로 같은 이미지인지 확인
+        const uniqueUrls = new Set(matchingImages.map(img => img.url || img.cdn_url));
+        if (uniqueUrls.size === 1) {
+          // 실제로는 같은 이미지 (중복 표시)
+          const image = matchingImages[0];
+          const duplicateCount = matchingImages.length;
+          
+          // Phase 4: 삭제 전 경고 확인
+          const warning = generateDeleteWarning(image);
+          
+          let confirmMessage = `정말로 이 이미지를 삭제하시겠습니까?\n\n`;
+          confirmMessage += `⚠️ 참고: 중복 표시된 ${duplicateCount}개 항목 중 실제 파일 1개만 삭제됩니다.\n\n`;
+          if (warning) {
+            confirmMessage += `${warning}\n\n`;
+          }
+          confirmMessage += `삭제를 계속하려면 확인을 다시 눌러주세요.`;
+          
+          if (!confirm(confirmMessage)) {
+            return;
+          }
+          
+          // 실제 파일 경로로 삭제 (첫 번째 이미지의 경로 사용)
+          const actualPath = image.folder_path && image.folder_path !== '' 
+            ? `${image.folder_path}/${image.name}` 
+            : image.name;
+          
+          const response = await fetch('/api/admin/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageName: actualPath })
+          });
+
+          if (response.ok) {
+            // 중복된 모든 항목을 UI에서 제거 (URL 기준)
+            const targetUrl = image.url || image.cdn_url;
+            setImages(prev => prev.filter(img => {
+              const imgUrl = img.url || img.cdn_url;
+              const fullPath = img.folder_path && img.folder_path !== '' 
+                ? `${img.folder_path}/${img.name}` 
+                : img.name;
+              // URL이 같거나 경로가 같은 모든 항목 제거
+              return imgUrl !== targetUrl && fullPath !== imageName && img.name !== imageName;
+            }));
+            
+            // 현재 확대된 이미지가 삭제된 경우 모달 닫기
+            if (selectedImageForZoom) {
+              const zoomUrl = selectedImageForZoom.url || selectedImageForZoom.cdn_url;
+              if (zoomUrl === targetUrl || selectedImageForZoom.name === imageName) {
+                setSelectedImageForZoom(null);
+              }
+            }
+            
+            alert(`이미지가 삭제되었습니다. (중복 표시된 ${duplicateCount}개 항목 모두 UI에서 제거됨)`);
+            
+            // ✅ 서버에서 목록 새로고침 (캐시 무효화 포함)
+            setTimeout(() => {
+              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+            }, 500);
+          } else {
+            const error = await response.json().catch(() => ({ error: '삭제 실패' }));
+            alert(`이미지 삭제 실패: ${error.error || '알 수 없는 오류'}`);
+          }
+          return;
+        }
+      }
+
+      // 단일 이미지 삭제 (기존 로직)
+      const image = matchingImages[0];
+      
+      if (!image) {
+        alert('삭제할 이미지를 찾을 수 없습니다.');
+        return;
+      }
+
+      // Phase 4: 삭제 전 경고 확인
+      const warning = generateDeleteWarning(image);
+      if (warning) {
+        const confirmMessage = `정말로 이 이미지를 삭제하시겠습니까?\n\n${warning}\n\n삭제를 계속하려면 확인을 다시 눌러주세요.`;
+        if (!confirm(confirmMessage)) {
+          return;
+        }
+      }
       
       const response = await fetch('/api/admin/delete-image', {
         method: 'POST',
@@ -2437,7 +2632,13 @@ export default function GalleryAdmin() {
         }
         
         // 삭제된 이미지를 상태에서 제거 (즉시 UI 업데이트)
-        setImages(prev => prev.filter(img => img.name !== imageName));
+        // fullPath와 name 모두 확인하여 중복 항목도 제거
+        setImages(prev => prev.filter(img => {
+          const fullPath = img.folder_path && img.folder_path !== '' 
+            ? `${img.folder_path}/${img.name}` 
+            : img.name;
+          return fullPath !== imageName && img.name !== imageName;
+        }));
         
         // 현재 확대된 이미지가 삭제된 경우 모달 닫기
         if (selectedImageForZoom && selectedImageForZoom.name === imageName) {
@@ -2448,8 +2649,7 @@ export default function GalleryAdmin() {
         
         // ✅ 서버에서 목록 새로고침 (캐시 무효화 포함)
         setTimeout(() => {
-          // forceRefresh 파라미터로 캐시 무효화
-          fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+          fetchImages(1, true, folderFilter, includeChildren, searchQuery);
         }, 500);
       } else {
         let errorData;
@@ -2477,26 +2677,88 @@ export default function GalleryAdmin() {
       console.log('🗑️ 일괄 삭제 시작:', selectedIds.length, '개');
       console.log('🔍 선택된 ID들:', selectedIds);
       
-      // 선택된 ID에서 실제 파일명 추출 (폴더 경로 포함)
-      const names = selectedIds.map(id => {
+      // 선택된 ID에서 실제 이미지 객체 추출
+      const selectedImageObjects = selectedIds.map(id => {
         const image = images.find(img => getImageUniqueId(img) === id);
         if (image) {
-          // 폴더 경로가 있는 경우 전체 경로 사용, 없는 경우 파일명만 사용
           const fullPath = image.folder_path && image.folder_path !== '' 
             ? `${image.folder_path}/${image.name}` 
             : image.name;
-          
-          console.log('📝 ID 매칭:', { 
-            id, 
-            actualName: image.name, 
-            folderPath: image.folder_path,
-            fullPath: fullPath
-          });
-          return fullPath;
+          return { image, fullPath };
         }
-        console.warn('⚠️ 매칭되지 않은 ID:', id);
-        return id; // 매칭되지 않으면 ID 그대로 사용
+        return null;
+      }).filter(Boolean) as Array<{ image: ImageMetadata; fullPath: string }>;
+      
+      // 🔧 URL 기반 중복 제거: 같은 URL을 가진 이미지는 하나만 삭제
+      const uniqueByUrl = new Map<string, { image: ImageMetadata; fullPath: string }>();
+      selectedImageObjects.forEach(({ image, fullPath }) => {
+        const url = image.url || image.cdn_url || '';
+        if (url && !uniqueByUrl.has(url)) {
+          uniqueByUrl.set(url, { image, fullPath });
+        } else if (!url) {
+          // URL이 없는 경우 fullPath로 구분
+          if (!uniqueByUrl.has(fullPath)) {
+            uniqueByUrl.set(fullPath, { image, fullPath });
+          }
+        }
       });
+      
+      const uniqueImageObjects = Array.from(uniqueByUrl.values());
+      const duplicateCount = selectedImageObjects.length - uniqueImageObjects.length;
+      
+      // Phase 4: 일괄 삭제 전 경고 확인
+      const warnings: string[] = [];
+      const originalsCount = uniqueImageObjects.filter(({ image }) => 
+        getFolderType(image.folder_path) === 'originals'
+      ).length;
+      const variantsCount = uniqueImageObjects.filter(({ image }) => 
+        getFolderType(image.folder_path) === 'variants'
+      ).length;
+      const referencesCount = uniqueImageObjects.filter(({ image }) => 
+        getFolderType(image.folder_path) === 'references'
+      ).length;
+      const usedImages = uniqueImageObjects.filter(({ image }) => 
+        image.usage_count && image.usage_count > 0
+      );
+      
+      if (originalsCount > 0) {
+        warnings.push(`⚠️ 원본 폴더 이미지: ${originalsCount}개`);
+      }
+      if (variantsCount > 0) {
+        warnings.push(`⚠️ 변형 폴더 이미지: ${variantsCount}개`);
+      }
+      if (referencesCount > 0) {
+        warnings.push(`⚠️ 참조 폴더 이미지: ${referencesCount}개`);
+      }
+      if (usedImages.length > 0) {
+        warnings.push(`⚠️ 사용 중인 이미지: ${usedImages.length}개`);
+        const totalUsage = usedImages.reduce((sum, { image }) => sum + (image.usage_count || 0), 0);
+        warnings.push(`  총 ${totalUsage}개 위치에서 사용 중`);
+      }
+      
+      if (warnings.length > 0 || duplicateCount > 0) {
+        let confirmMessage = `정말로 `;
+        if (duplicateCount > 0) {
+          confirmMessage += `실제 파일 ${uniqueImageObjects.length}개 (중복 표시 ${selectedImageObjects.length}개 중)를 삭제하시겠습니까?\n\n`;
+          confirmMessage += `⚠️ 참고: 선택된 ${selectedImageObjects.length}개 항목 중 실제로는 ${uniqueImageObjects.length}개 파일만 삭제됩니다.\n\n`;
+        } else {
+          confirmMessage += `${uniqueImageObjects.length}개 이미지를 삭제하시겠습니까?\n\n`;
+        }
+        
+        if (warnings.length > 0) {
+          confirmMessage += `${warnings.join('\n')}\n\n`;
+        }
+        
+        confirmMessage += `이미지를 삭제하면 연결된 콘텐츠에서 이미지가 깨질 수 있습니다.\n\n삭제를 계속하려면 확인을 다시 눌러주세요.`;
+        
+        if (!confirm(confirmMessage)) {
+          setIsBulkWorking(false);
+          return;
+        }
+      }
+      
+      // 실제 고유한 파일들만 삭제
+      const names = uniqueImageObjects.map(({ fullPath }) => fullPath);
       
       console.log('🗑️ 실제 삭제할 파일명들:', names);
       
@@ -2530,25 +2792,52 @@ export default function GalleryAdmin() {
       
       // 삭제 검증 결과 확인
       const verification = result.deletionVerification;
+      let successMessage = '';
       if (verification) {
         console.log('🔍 삭제 검증 결과:', verification);
         
         if (!verification.deletionSuccess) {
           console.warn('⚠️ 일부 파일이 삭제되지 않음:', verification.stillExisting);
-          alert(`삭제 완료: ${verification.actuallyDeleted}개 삭제됨\n\n⚠️ 삭제되지 않은 파일: ${verification.stillExisting.length}개\n${verification.stillExisting.join(', ')}`);
+          successMessage = `삭제 완료: ${verification.actuallyDeleted}개 삭제됨\n\n⚠️ 삭제되지 않은 파일: ${verification.stillExisting.length}개\n${verification.stillExisting.join(', ')}`;
         } else {
-          alert(`일괄 삭제 완료: ${verification.actuallyDeleted}개 이미지가 삭제되었습니다.`);
+          if (duplicateCount > 0) {
+            successMessage = `일괄 삭제 완료: 실제 파일 ${verification.actuallyDeleted}개가 삭제되었습니다.\n(중복 표시된 ${selectedImageObjects.length}개 항목 중)`;
+          } else {
+            successMessage = `일괄 삭제 완료: ${verification.actuallyDeleted}개 이미지가 삭제되었습니다.`;
+          }
         }
       } else {
-        alert(`일괄 삭제 완료: ${result.deletedImages.length}개 이미지가 삭제되었습니다.`);
+        if (duplicateCount > 0) {
+          successMessage = `일괄 삭제 완료: 실제 파일 ${result.deletedImages.length}개가 삭제되었습니다.\n(중복 표시된 ${selectedImageObjects.length}개 항목 중)`;
+        } else {
+          successMessage = `일괄 삭제 완료: ${result.deletedImages.length}개 이미지가 삭제되었습니다.`;
+        }
       }
+      alert(successMessage);
       
-      // 삭제된 이미지들을 상태에서 제거
-      setImages(prev => prev.filter(img => !selectedImages.has(getImageUniqueId(img))));
+      // 삭제된 이미지들을 상태에서 제거 (중복 항목도 함께 제거)
+      const deletedUrls = new Set(uniqueImageObjects.map(({ image }) => image.url || image.cdn_url).filter(Boolean));
+      setImages(prev => prev.filter(img => {
+        // 선택된 ID에 있거나, 삭제된 URL과 같은 이미지는 모두 제거
+        const imgUrl = img.url || img.cdn_url;
+        const isSelected = selectedImages.has(getImageUniqueId(img));
+        const isDeletedUrl = imgUrl && deletedUrls.has(imgUrl);
+        const isDeletedPath = names.some(name => {
+          const fullPath = img.folder_path && img.folder_path !== '' 
+            ? `${img.folder_path}/${img.name}` 
+            : img.name;
+          return fullPath === name || img.name === name;
+        });
+        return !isSelected && !isDeletedUrl && !isDeletedPath;
+      }));
       
       // 현재 확대된 이미지가 삭제된 경우 모달 닫기
-      if (selectedImageForZoom && names.includes(selectedImageForZoom.name)) {
-        setSelectedImageForZoom(null);
+      if (selectedImageForZoom) {
+        const zoomUrl = selectedImageForZoom.url || selectedImageForZoom.cdn_url;
+        const isDeleted = deletedUrls.has(zoomUrl) || names.includes(selectedImageForZoom.name);
+        if (isDeleted) {
+          setSelectedImageForZoom(null);
+        }
       }
       
       // 선택 상태 초기화
@@ -3003,6 +3292,7 @@ export default function GalleryAdmin() {
                 onFolderSelect={(folderPath) => {
                   setFolderFilter(folderPath);
                   setCurrentPage(1);
+                  // "all" 클릭 시 항상 초기화 (reset=true)
                   fetchImages(1, true, folderPath, includeChildren, searchQuery);
                 }}
                 includeChildren={includeChildren}
@@ -3548,12 +3838,30 @@ export default function GalleryAdmin() {
                             ✅ 메타데이터 양호 ({image.metadata_quality.score}점)
                           </div>
                         )}
-                        {/* 폴더 경로 표시 */}
-                        {image.folder_path && (
-                          <div className="text-xs text-blue-600 mb-1 truncate" title={`폴더: ${image.folder_path}`}>
-                            📁 {image.folder_path}
-                          </div>
-                        )}
+                        {/* Phase 5: 폴더 타입 배지 표시 */}
+                        {(() => {
+                          const folderType = getFolderType(image.folder_path);
+                          const badgeConfig = {
+                            'uploaded': { label: '임시 업로드', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+                            'originals': { label: '원본', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+                            'variants': { label: '변형', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+                            'references': { label: '참조', color: 'bg-green-100 text-green-700 border-green-300' },
+                            'other': { label: '기타', color: 'bg-gray-100 text-gray-600 border-gray-300' }
+                          };
+                          const badge = badgeConfig[folderType];
+                          return (
+                            <div className="mb-2 flex items-center gap-2">
+                              <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${badge.color}`}>
+                                {badge.label}
+                              </span>
+                              {image.folder_path && (
+                                <span className="text-xs text-blue-600 truncate flex-1" title={`폴더: ${image.folder_path}`}>
+                                  📁 {image.folder_path}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                         
                         <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
                           {image.name}
@@ -3611,35 +3919,82 @@ export default function GalleryAdmin() {
                               🔗 {image.usage_count}회 사용 ({image.used_in.length}개 위치)
                             </div>
                             <div className="space-y-1 max-h-24 overflow-y-auto">
-                              {image.used_in.slice(0, 3).map((usage, idx) => (
-                                <div key={idx} className="text-gray-600 flex items-start">
-                                  <span className="mr-1">
-                                    {usage.type === 'blog' && '📰'}
-                                    {usage.type === 'funnel' && '🎯'}
-                                    {usage.type === 'homepage' && '🏠'}
-                                    {usage.type === 'muziik' && '🎵'}
-                                    {usage.type === 'static_page' && '📄'}
-                                  </span>
-                                  <span className="flex-1 truncate">
-                                    {usage.url ? (
-                                      <a 
-                                        href={usage.url.startsWith('http') ? usage.url : `http://localhost:3000${usage.url}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-800 underline"
-                                        onClick={(e) => e.stopPropagation()}
-                                        title={usage.url}
-                                      >
-                                        {usage.title}
-                                      </a>
-                                    ) : (
-                                      usage.title
-                                    )}
-                                    {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
-                                    {usage.isInContent && !usage.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
-                                  </span>
-                                </div>
-                              ))}
+                              {image.used_in.slice(0, 3).map((usage, idx) => {
+                                // 🔧 배포되지 않은 블로그 판단: status가 명시적으로 draft/archived이거나, isPublished가 false인 경우만
+                                const isUnpublishedBlog = usage.type === 'blog' && 
+                                  (usage.status === 'draft' || usage.status === 'archived' || 
+                                   (usage.isPublished === false && usage.status !== 'published'));
+                                
+                                // 🔧 id가 없거나 유효하지 않으면 slug 사용, 둘 다 없으면 링크 생성 안 함
+                                const getEditId = () => {
+                                  if (usage.id && usage.id !== 'undefined' && usage.id !== 'null' && String(usage.id).trim() !== '') {
+                                    return usage.id;
+                                  }
+                                  if (usage.slug && usage.slug !== 'undefined' && usage.slug !== 'null' && String(usage.slug).trim() !== '') {
+                                    return usage.slug;
+                                  }
+                                  return null;
+                                };
+                                
+                                const editId = getEditId();
+                                
+                                // 🔧 링크 URL 생성: 배포된 블로그는 usage.url 또는 slug로, 미배포는 editId로
+                                let linkUrl = '#';
+                                if (isUnpublishedBlog) {
+                                  linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
+                                } else {
+                                  // 배포된 블로그
+                                  if (usage.url) {
+                                    linkUrl = usage.url.startsWith('http') ? usage.url : `http://localhost:3000${usage.url}`;
+                                  } else if (usage.slug) {
+                                    // url이 없으면 slug로 블로그 페이지 링크 생성
+                                    linkUrl = `http://localhost:3000/blog/${usage.slug}`;
+                                  } else {
+                                    linkUrl = '#';
+                                  }
+                                }
+                                
+                                return (
+                                  <div key={idx} className="text-gray-600 flex items-start">
+                                    <span className="mr-1">
+                                      {usage.type === 'blog' && '📰'}
+                                      {usage.type === 'funnel' && '🎯'}
+                                      {usage.type === 'homepage' && '🏠'}
+                                      {usage.type === 'muziik' && '🎵'}
+                                      {usage.type === 'static_page' && '📄'}
+                                    </span>
+                                    <span className="flex-1 truncate">
+                                      {linkUrl !== '#' ? (
+                                        <a 
+                                          href={linkUrl}
+                                          target={isUnpublishedBlog ? undefined : "_blank"}
+                                          rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
+                                          className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // 🔧 배포되지 않은 블로그는 새 탭에서 열지 않음
+                                            if (isUnpublishedBlog) {
+                                              e.preventDefault();
+                                              if (linkUrl !== '#') {
+                                                window.location.href = linkUrl;
+                                              }
+                                            }
+                                            // 🔧 배포된 블로그는 기본 링크 동작 사용 (target="_blank"로 새 탭에서 열림)
+                                          }}
+                                          title={isUnpublishedBlog ? `초안/미배포: ${usage.title}` : (usage.url || linkUrl)}
+                                        >
+                                          {usage.title}
+                                          {isUnpublishedBlog && ' (초안)'}
+                                        </a>
+                                      ) : (
+                                        <span className="text-gray-500">{usage.title} (링크 없음)</span>
+                                      )}
+                                      {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
+                                      {usage.isInContent && !usage.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                               {image.used_in.length > 3 && (
                                 <div className="text-gray-500 text-xs">
                                   +{image.used_in.length - 3}개 위치 더...
@@ -4826,11 +5181,41 @@ export default function GalleryAdmin() {
                     placeholder="새 폴더명 입력 (예: scraped-images/2025-01-15)"
                   />
                   <button
-                    onClick={() => {
-                      if (newFolderName.trim()) {
-                        // 새 폴더 생성 로직 (향후 구현)
-                        alert(`새 폴더 생성 기능은 향후 구현 예정입니다.\n폴더명: "${newFolderName}"`);
-                        setNewFolderName('');
+                    onClick={async () => {
+                      if (!newFolderName.trim()) {
+                        alert('폴더명을 입력해주세요.');
+                        return;
+                      }
+
+                      // 폴더명 검증 (특수문자, 공백 등)
+                      const folderName = newFolderName.trim();
+                      if (!/^[a-zA-Z0-9가-힣_/-]+$/.test(folderName)) {
+                        alert('폴더명에는 영문, 숫자, 한글, 하이픈(-), 언더스코어(_), 슬래시(/)만 사용할 수 있습니다.');
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch('/api/admin/create-folder', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ folderPath: folderName })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                          alert(`✅ 폴더가 생성되었습니다: ${folderName}`);
+                          setNewFolderName('');
+                          // 폴더 트리 새로고침
+                          if (typeof fetchFolders === 'function') {
+                            fetchFolders();
+                          }
+                        } else {
+                          throw new Error(result.error || '폴더 생성 실패');
+                        }
+                      } catch (error: any) {
+                        console.error('❌ 폴더 생성 오류:', error);
+                        alert(`폴더 생성 실패: ${error.message}`);
                       }
                     }}
                     className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
@@ -4856,7 +5241,7 @@ export default function GalleryAdmin() {
       {/* 이미지 추가 모달 */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">이미지 추가</h3>
               <button onClick={()=>setShowAddModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
@@ -4877,6 +5262,17 @@ export default function GalleryAdmin() {
             <div className="p-4 space-y-4">
               {activeAddTab==='upload' && (
                 <div className="space-y-3">
+                  {/* 폴더 선택 컴포넌트 */}
+                  <FolderSelector
+                    selectedPath={selectedUploadFolder}
+                    onSelectPath={setSelectedUploadFolder}
+                    defaultPath={`uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`}
+                    showLabel={true}
+                    // 🔧 최적화: 이미 가져온 폴더 목록 전달
+                    folders={availableFolders}
+                    isLoadingFolders={isLoadingFolders}
+                  />
+                  
                   {/* 드래그 앤 드롭 업로드 영역 */}
                   <div 
                     className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
@@ -4898,75 +5294,15 @@ export default function GalleryAdmin() {
                         try {
                           setPending(true);
                           
-                          // Supabase 클라이언트 초기화
-                          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-                          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-                          if (!supabaseUrl || !supabaseAnonKey) {
-                            throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
-                          }
-                          const sb = createClient(supabaseUrl, supabaseAnonKey);
-                          
-                          // 1) 파일명 정리 및 경로 생성
-                          const dateStr = new Date().toISOString().slice(0, 10);
-                          const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
-                          const ts = Date.now();
-                          const objectPath = `originals/${dateStr}/${ts}_${baseName}`;
-                          
-                          // 2) 서명 업로드 URL 발급
-                          const res = await fetch('/api/admin/storage-signed-upload', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ path: objectPath })
+                          // 공통 업로드 함수 사용
+                          const { url } = await uploadImageToSupabase(file, {
+                            targetFolder: selectedUploadFolder || undefined,
+                            enableHEICConversion: true,
+                            enableEXIFBackfill: true,
                           });
-                          
-                          if (!res.ok) {
-                            const error = await res.json();
-                            throw new Error(error.error || '서명 URL 발급 실패');
-                          }
-                          
-                          const { token } = await res.json();
-                          
-                          // 3) Supabase SDK로 업로드
-                          const { error: uploadError } = await sb.storage
-                            .from('blog-images')
-                            .uploadToSignedUrl(objectPath, token, file);
-                          
-                          if (uploadError) {
-                            throw new Error(`업로드 실패: ${uploadError.message}`);
-                          }
-                          
-                          // 4) 공개 URL 가져오기
-                          const { data: publicUrlData } = sb.storage
-                            .from('blog-images')
-                            .getPublicUrl(objectPath);
-                          const publicUrl = publicUrlData?.publicUrl;
-                          
-                          if (!publicUrl) {
-                            throw new Error('공개 URL을 가져올 수 없습니다.');
-                          }
-                          
-                          // 5) 메타데이터 저장
-                          await fetch('/api/admin/upsert-image-metadata', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              file_name: file.name,
-                              image_url: publicUrl,
-                              date_folder: dateStr,
-                              width: null,
-                              height: null,
-                              file_size: file.size
-                            })
-                          });
-                          
-                          // 6) EXIF 백필 비동기
-                          fetch('/api/admin/backfill-exif', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ paths: [objectPath] })
-                          }).catch(err => console.error('EXIF 백필 오류:', err));
                           
                           setShowAddModal(false);
+                          setSelectedUploadFolder(''); // 업로드 후 폴더 선택 초기화
                           fetchImages(1, true);
                           alert('이미지 업로드 완료');
                         } catch (e: any) {
@@ -5007,75 +5343,15 @@ export default function GalleryAdmin() {
                             try {
                               setPending(true);
                               
-                              // Supabase 클라이언트 초기화
-                              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-                              const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-                              if (!supabaseUrl || !supabaseAnonKey) {
-                                throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
-                              }
-                              const sb = createClient(supabaseUrl, supabaseAnonKey);
-                              
-                              // 1) 파일명 정리 및 경로 생성
-                              const dateStr = new Date().toISOString().slice(0, 10);
-                              const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
-                              const ts = Date.now();
-                              const objectPath = `originals/${dateStr}/${ts}_${baseName}`;
-                              
-                              // 2) 서명 업로드 URL 발급
-                              const res = await fetch('/api/admin/storage-signed-upload', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ path: objectPath })
+                              // 공통 업로드 함수 사용
+                              const { url } = await uploadImageToSupabase(file, {
+                                targetFolder: selectedUploadFolder || undefined,
+                                enableHEICConversion: true,
+                                enableEXIFBackfill: true,
                               });
-                              
-                              if (!res.ok) {
-                                const error = await res.json();
-                                throw new Error(error.error || '서명 URL 발급 실패');
-                              }
-                              
-                              const { token } = await res.json();
-                              
-                              // 3) Supabase SDK로 업로드
-                              const { error: uploadError } = await sb.storage
-                                .from('blog-images')
-                                .uploadToSignedUrl(objectPath, token, file);
-                              
-                              if (uploadError) {
-                                throw new Error(`업로드 실패: ${uploadError.message}`);
-                              }
-                              
-                              // 4) 공개 URL 가져오기
-                              const { data: publicUrlData } = sb.storage
-                                .from('blog-images')
-                                .getPublicUrl(objectPath);
-                              const publicUrl = publicUrlData?.publicUrl;
-                              
-                              if (!publicUrl) {
-                                throw new Error('공개 URL을 가져올 수 없습니다.');
-                              }
-                              
-                              // 5) 메타데이터 저장
-                              await fetch('/api/admin/upsert-image-metadata', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  file_name: file.name,
-                                  image_url: publicUrl,
-                                  date_folder: dateStr,
-                                  width: null,
-                                  height: null,
-                                  file_size: file.size
-                                })
-                              });
-                              
-                              // 6) EXIF 백필 비동기
-                              fetch('/api/admin/backfill-exif', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ paths: [objectPath] })
-                              }).catch(err => console.error('EXIF 백필 오류:', err));
                               
                               setShowAddModal(false);
+                              setSelectedUploadFolder(''); // 업로드 후 폴더 선택 초기화
                               fetchImages(1, true);
                               alert('이미지 업로드 완료');
                             } catch (e: any) {
@@ -5504,20 +5780,67 @@ export default function GalleryAdmin() {
                                     {u.type === 'static_page' && '📄'}
                                   </span>
                                   <span className="flex-1 min-w-0">
-                                    {u.url ? (
-                                      <a 
-                                        href={u.url.startsWith('http') ? u.url : `http://localhost:3000${u.url}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-800 underline break-all"
-                                        onClick={(e) => e.stopPropagation()}
-                                        title={u.url}
-                                      >
-                                        {u.title}
-                                      </a>
-                                    ) : (
-                                      <span className="text-gray-700">{u.title}</span>
-                                    )}
+                                    {(() => {
+                                      // 🔧 배포되지 않은 블로그 판단: status가 명시적으로 draft/archived이거나, isPublished가 false인 경우만
+                                      const isUnpublishedBlog = u.type === 'blog' && 
+                                        (u.status === 'draft' || u.status === 'archived' || 
+                                         (u.isPublished === false && u.status !== 'published'));
+                                      
+                                      // 🔧 id가 없거나 유효하지 않으면 slug 사용, 둘 다 없으면 링크 생성 안 함
+                                      const getEditId = () => {
+                                        if (u.id && u.id !== 'undefined' && u.id !== 'null' && String(u.id).trim() !== '') {
+                                          return u.id;
+                                        }
+                                        if (u.slug && u.slug !== 'undefined' && u.slug !== 'null' && String(u.slug).trim() !== '') {
+                                          return u.slug;
+                                        }
+                                        return null;
+                                      };
+                                      
+                                      const editId = getEditId();
+                                      
+                                      // 🔧 링크 URL 생성: 배포된 블로그는 usage.url 또는 slug로, 미배포는 editId로
+                                      let linkUrl = '#';
+                                      if (isUnpublishedBlog) {
+                                        linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
+                                      } else {
+                                        // 배포된 블로그
+                                        if (u.url) {
+                                          linkUrl = u.url.startsWith('http') ? u.url : `http://localhost:3000${u.url}`;
+                                        } else if (u.slug) {
+                                          // url이 없으면 slug로 블로그 페이지 링크 생성
+                                          linkUrl = `http://localhost:3000/blog/${u.slug}`;
+                                        } else {
+                                          linkUrl = '#';
+                                        }
+                                      }
+                                      
+                                      return linkUrl !== '#' ? (
+                                        <a 
+                                          href={linkUrl}
+                                          target={isUnpublishedBlog ? undefined : "_blank"}
+                                          rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
+                                          className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline break-all`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // 🔧 배포되지 않은 블로그는 새 탭에서 열지 않음
+                                            if (isUnpublishedBlog) {
+                                              e.preventDefault();
+                                              if (linkUrl !== '#') {
+                                                window.location.href = linkUrl;
+                                              }
+                                            }
+                                            // 🔧 배포된 블로그는 기본 링크 동작 사용 (target="_blank"로 새 탭에서 열림)
+                                          }}
+                                          title={isUnpublishedBlog ? `초안/미배포: ${u.title}` : (u.url || linkUrl)}
+                                        >
+                                          {u.title}
+                                          {isUnpublishedBlog && ' (초안)'}
+                                        </a>
+                                      ) : (
+                                        <span className="text-gray-500">{u.title} (링크 없음)</span>
+                                      );
+                                    })()}
                                     <div className="flex gap-1 mt-0.5">
                                       {u.isFeatured && (
                                         <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">

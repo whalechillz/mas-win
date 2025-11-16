@@ -1,0 +1,57 @@
+🚀 원격 점검 시작...
+
+1️⃣ 로그인 중...
+⚠️ 로그인 폼을 찾을 수 없습니다. 이미 로그인되어 있을 수 있습니다.
+2️⃣ 카카오톡 콘텐츠 페이지로 이동...
+   페이지 제목: 관리자 로그인
+3️⃣ 날짜 선택 (2025-11-19)...
+⚠️ 날짜 입력 필드를 찾을 수 없습니다.
+4️⃣ API 엔드포인트 직접 테스트...
+
+📊 API 테스트 결과:
+
+1. generate-prompt API:
+{
+  "status": 200,
+  "statusText": "",
+  "ok": true,
+  "contentType": "application/json; charset=utf-8",
+  "data": {
+    "success": true
+  }
+}
+
+2. generate-paragraph-images-with-prompts API:
+{
+  "status": 405,
+  "statusText": "",
+  "ok": false,
+  "contentType": "text/html; charset=utf-8",
+  "errorText": ""
+}
+
+3. auto-create-account1 API:
+{
+  "status": 200,
+  "statusText": "",
+  "ok": true
+}
+
+4. auto-create-account2 API:
+{
+  "status": 200,
+  "statusText": "",
+  "ok": true
+}
+
+5️⃣ 스크린샷 저장...
+   ✅ 스크린샷 저장: playwright-remote-kakao-content-test.png
+
+6️⃣ 네트워크 요청 확인...
+   총 1개의 API 요청 발견
+   1. GET https://www.masgolf.co.kr/api/auth/session - 200
+
+📋 점검 결과 요약:
+
+⚠️ 발견된 문제:
+   ❌ generate-paragraph-images-with-prompts API가 HTTP 405 반환

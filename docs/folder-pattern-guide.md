@@ -11,62 +11,68 @@
 
 ```
 masgolf-images/
-├── originals/                    # 원본 이미지 (물리적 파일)
-│   ├── blog/                     # 블로그 이미지
-│   │   └── YYYY-MM/
-│   │       └── {blog-id}/
-│   │
-│   ├── campaigns/                # 월별 퍼널 이미지
-│   │   ├── 2025-05/
-│   │   ├── 2025-06/
-│   │   ├── 2025-07/
-│   │   ├── 2025-08/
-│   │   └── 2025-09/
-│   │
-│   ├── products/                 # 제품 이미지
-│   │   ├── secret-force-gold-2/
-│   │   │   ├── studio/
-│   │   │   ├── detail/
-│   │   │   ├── specs/
-│   │   │   └── gallery/
-│   │   ├── secret-force-pro-3/
-│   │   ├── secret-force-v3/
-│   │   ├── secret-weapon-black/
-│   │   ├── secret-weapon-4-1/
-│   │   ├── muziik-sapphire/
-│   │   ├── muziik-beryl/
-│   │   └── muziik-technology/
-│   │
-│   ├── branding/                 # 브랜딩 이미지
-│   │   ├── massgoo/              # MASSGOO 브랜드 (마쓰구 드라이버)
-│   │   │   └── hero/             # 홈페이지 히어로 이미지 (Phase 7)
-│   │   └── muziik/
-│   │
-│   ├── website/                  # 웹사이트 전용 이미지 (Phase 7)
-│   │   └── homepage/             # 홈페이지 이미지
-│   │       └── hero/             # 히어로 이미지 (대안: branding/massgoo/hero/)
-│   │
-│   ├── locations/                # 매장 이미지 (후속 작업)
-│   ├── customers/                # 고객 콘텐츠 (후속 작업)
-│   ├── team/                     # 팀/스태프 이미지 (후속 작업)
-│   ├── events/                   # 이벤트/행사 이미지 (후속 작업)
-│   ├── testimonials/             # 후기/리뷰 이미지 (후속 작업)
-│   ├── uploaded/                 # 직접 업로드
-│   │   └── YYYY-MM-DD/
-│   └── ai-generated/             # AI 생성 원본
-│       └── YYYY-MM-DD/
+├── uploaded/                     # 직접 업로드된 이미지 (새 구조)
+│   └── YYYY-MM/                  # 년-월 폴더
+│       └── YYYY-MM-DD/           # 날짜별 폴더
+│           └── {timestamp}_{filename}
 │
 ├── variants/                     # 채널별 최적화 버전
 │   └── {image-uuid}/
-│       ├── webp/
-│       ├── jpg/
-│       └── channels/
+│       ├── webp/                 # WebP 변환
+│       ├── jpg/                  # JPG 변환
+│       └── channels/             # 채널별 최적화
 │
-└── references/                   # 참조 메타데이터 (JSON)
-    ├── blog/{post-id}/
-    ├── funnel/{funnel-id}/
-    ├── website/{page-id}/
-    └── sms/{campaign-id}/
+├── references/                   # 참조 메타데이터 (JSON)
+│   ├── blog/{post-id}/
+│   ├── funnel/{funnel-id}/
+│   ├── website/{page-id}/
+│   └── sms/{campaign-id}/
+│
+└── originals/                    # 원본 이미지 (물리적 파일)
+    ├── blog/                     # 블로그 이미지
+    │   └── YYYY-MM/
+    │       └── {blog-id}/
+    │
+    ├── campaigns/                # 월별 퍼널 이미지
+    │   ├── 2025-05/
+    │   ├── 2025-06/
+    │   ├── 2025-07/
+    │   ├── 2025-08/
+    │   └── 2025-09/
+    │
+    ├── products/                 # 제품 이미지
+    │   ├── secret-force-gold-2/
+    │   │   ├── studio/
+    │   │   ├── detail/
+    │   │   ├── specs/
+    │   │   └── gallery/
+    │   ├── secret-force-pro-3/
+    │   ├── secret-force-v3/
+    │   ├── secret-weapon-black/
+    │   ├── secret-weapon-4-1/
+    │   ├── muziik-sapphire/
+    │   ├── muziik-beryl/
+    │   └── muziik-technology/
+    │
+    ├── branding/                 # 브랜딩 이미지
+    │   ├── massgoo/              # MASSGOO 브랜드 (마쓰구 드라이버)
+    │   │   └── hero/             # 홈페이지 히어로 이미지 (Phase 7)
+    │   └── muziik/
+    │
+    ├── website/                  # 웹사이트 전용 이미지 (Phase 7)
+    │   └── homepage/             # 홈페이지 이미지
+    │       └── hero/             # 히어로 이미지 (대안: branding/massgoo/hero/)
+    │
+    ├── customers/                # 고객 콘텐츠 (신규)
+    │   └── customer-{id}/        # 고객 ID (예: customer-001)
+    │       └── YYYY-MM-DD/       # 방문일자별 폴더
+    │
+    ├── locations/                # 매장 이미지 (후속 작업)
+    ├── team/                     # 팀/스태프 이미지 (후속 작업)
+    ├── events/                   # 이벤트/행사 이미지 (후속 작업)
+    ├── testimonials/             # 후기/리뷰 이미지 (후속 작업)
+    └── ai-generated/             # AI 생성 원본
+        └── YYYY-MM-DD/
 ```
 
 ---
@@ -197,19 +203,26 @@ masgolf-images/
 
 ---
 
-### 6. `originals/uploaded/` - 직접 업로드
+### 6. `uploaded/` - 직접 업로드 (신규 구조)
 
-**패턴**: `originals/uploaded/YYYY-MM-DD/`
+**패턴**: `uploaded/YYYY-MM/YYYY-MM-DD/`
 
 **예시**:
-- `originals/uploaded/2025-01-15/`
+- `uploaded/2025-11/2025-11-14/`
 
 **규칙**:
+- 년-월 형식: `YYYY-MM` (4자리 연도-2자리 월)
 - 날짜 형식: `YYYY-MM-DD` (4자리 연도-2자리 월-2자리 일)
 - 갤러리에서 직접 업로드한 이미지
-- 파일명: `{uuid}-{seo-filename}.ext`
+- 블로그 편집에서 업로드한 이미지
+- 이미지 변형으로 생성된 이미지
+- 파일명: `{timestamp}_{filename}`
 
-**사용 시점**: 모든 Phase (갤러리 직접 업로드)
+**사용 시점**: 모든 Phase (갤러리 직접 업로드, 블로그 편집, 이미지 변형)
+
+**마이그레이션**: 
+- 기존 `originals/YYYY-MM-DD/` → `uploaded/YYYY-MM/YYYY-MM-DD/`
+- 기존 `derived/YYYY-MM-DD/` → `uploaded/YYYY-MM/YYYY-MM-DD/` (원본과 병합)
 
 ---
 
@@ -229,7 +242,25 @@ masgolf-images/
 
 ---
 
-### 8. `variants/` - 채널별 최적화 버전 (로딩 속도 & Storage 최적화)
+### 8. `originals/customers/` - 고객 콘텐츠 (신규)
+
+**패턴**: `originals/customers/customer-{id}/YYYY-MM-DD/`
+
+**예시**:
+- `originals/customers/customer-001/2025-11-14/`
+- `originals/customers/customer-123/2025-11-15/`
+
+**규칙**:
+- 고객 ID: `customer-{id}` 형식 (예: customer-001, customer-123)
+- 방문일자: `YYYY-MM-DD` 형식
+- 고객 관리 페이지에서 업로드한 이미지/영상
+- 파일명: `{timestamp}_{filename}`
+
+**사용 시점**: Phase 2 (고객 이미지 관리)
+
+---
+
+### 9. `variants/` - 채널별 최적화 버전 (로딩 속도 & Storage 최적화)
 
 **패턴**: `variants/{image-uuid}/`
 
@@ -284,7 +315,7 @@ masgolf-images/
 
 ---
 
-### 9. `references/` - 참조 메타데이터
+### 10. `references/` - 참조 메타데이터
 
 **패턴**: `references/{type}/{id}/`
 
@@ -379,6 +410,11 @@ Supabase Storage는 빈 폴더를 지원하지 않으므로, `.keep.png` 마커 
 - **2025-01-XX**: 초기 작성
 - **2025-01-XX**: Phase 8 보강 (5월-9월, A/B 테스트 포함)
 - **2025-01-XX**: Phase 7 홈페이지 폴더 구조 추가 (`originals/branding/massgoo/hero/`, `originals/website/homepage/hero/`)
+- **2025-11-XX**: 폴더 구조 개편
+  - `uploaded/YYYY-MM/YYYY-MM-DD/` 구조 추가 (기존 `originals/YYYY-MM-DD/` 대체)
+  - `derived/` 폴더 제거 (원본과 병합)
+  - `originals/customers/customer-{id}/YYYY-MM-DD/` 구조 추가 (고객 이미지 관리)
+  - 루트 폴더: `uploaded/`, `variants/`, `references/` 생성
 
 ---
 

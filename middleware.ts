@@ -14,6 +14,15 @@ export async function middleware(request: NextRequest) {
   // 1) API 경로는 가장 먼저 처리 (i18n 라우팅보다 우선)
   // 프로덕션에서 Next.js i18n이 API 경로를 페이지 경로로 해석하는 문제 방지
   if (pathname.startsWith('/api') || pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api')) {
+    // 🔍 디버깅: API 경로 요청 로깅
+    console.log('[Middleware] 🔍 API 경로 감지:', {
+      pathname,
+      hostname,
+      method: request.method,
+      url: request.url,
+      timestamp: new Date().toISOString(),
+      hasLocalePrefix: pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api'),
+    });
     // NextAuth API 경로는 무조건 통과 (리다이렉트 루프 방지)
     if (pathname.startsWith('/api/auth') || pathname.startsWith('/ko/api/auth') || pathname.startsWith('/ja/api/auth')) {
       // 로케일 프리픽스가 있으면 제거
@@ -98,11 +107,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // API 경로를 명시적으로 포함하여 i18n 로케일 프리픽스 제거 처리
   // 관리자 경로와 MUZIIK 구형 페이지 리다이렉트에 적용
-  // API 경로는 가장 먼저 매칭되도록 순서 중요
   matcher: [
-    '/api/:path*',           // API 경로 명시적 포함 (가장 먼저)
-    '/ko/api/:path*',        // 로케일 프리픽스가 있는 API 경로도 포함
-    '/ja/api/:path*',        // 로케일 프리픽스가 있는 API 경로도 포함
+    '/api/:path*',           // API 경로 명시적 포함
     '/admin/:path*',
     '/muziik/ko',
     '/muziik/ko/:path*'

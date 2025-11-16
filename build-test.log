@@ -1,0 +1,550 @@
+
+> win-masgolf@0.1.0 build
+> next build
+
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Invalid literal value, expected false at "i18n.localeDetection"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+   Skipping validation of types
+   Skipping linting
+   ▲ Next.js 14.0.3
+   - Environments: .env.local, .env
+   - Experiments (use at your own risk):
+     · serverMinification
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Collecting page data ...
+   Generating static pages (0/169) ...
+📁 폴더 트리 구조: {
+  totalFolders: 0,
+  rootChildren: 0,
+  rootChildrenNames: [],
+  originals: {
+    exists: false,
+    path: undefined,
+    childrenCount: 0,
+    childrenNames: []
+  },
+  scrapedImages: {
+    exists: false,
+    path: undefined,
+    childrenCount: 0,
+    childrenNames: []
+  },
+  sampleFolders: []
+}
+   Generating static pages (42/169) 
+   Generating static pages (84/169) 
+📁 폴더 트리 구조: {
+  totalFolders: 0,
+  rootChildren: 0,
+  rootChildrenNames: [],
+  originals: {
+    exists: false,
+    path: undefined,
+    childrenCount: 0,
+    childrenNames: []
+  },
+  scrapedImages: {
+    exists: false,
+    path: undefined,
+    childrenCount: 0,
+    childrenNames: []
+  },
+  sampleFolders: []
+}
+📁 폴더 트리 구조: {
+  totalFolders: 0,
+  rootChildren: 0,
+  rootChildrenNames: [],
+  originals: {
+    exists: false,
+    path: undefined,
+    childrenCount: 0,
+    childrenNames: []
+  },
+  scrapedImages: {
+    exists: false,
+    path: undefined,
+    childrenCount: 0,
+    childrenNames: []
+  },
+  sampleFolders: []
+}
+   Generating static pages (126/169) 
+ ✓ Generating static pages (169/169) 
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (pages)                                        Size     First Load JS
+┌ ○ /                                                8.82 kB         105 kB
+├   /_app                                            0 B            90.1 kB
+├ ○ /25-05                                           581 B          90.6 kB
+├ ○ /25-06                                           529 B          90.6 kB
+├ ○ /25-07                                           2.17 kB        92.2 kB
+├ ○ /25-08                                           3.13 kB        93.2 kB
+├ ○ /25-09                                           6.34 kB        96.4 kB
+├ ○ /25-09-backup-20250912-012657                    6.37 kB        96.4 kB
+├ ○ /25-09-backup-20251108-095735                    6.36 kB        96.4 kB
+├ ○ /25-09-backup-20251108-095905                    6.36 kB        96.4 kB
+├ ○ /25-09-backup-20251108-102609                    6.36 kB        96.4 kB
+├ ○ /404                                             524 B          90.6 kB
+├ ○ /about                                           6.57 kB         103 kB
+├ ○ /admin                                           121 kB          259 kB
+├ ○ /admin/ai                                        324 B          90.4 kB
+├ ○ /admin/ai-dashboard                              7.53 kB         104 kB
+├ ○ /admin/ai-management                             3.92 kB         133 kB
+├ ○ /admin/ai-management-redirect                    451 B          90.5 kB
+├ ○ /admin/blog                                      38.9 kB         141 kB
+├ ○ /admin/blog-migration                            2.38 kB        92.5 kB
+├ ○ /admin/blog-simple                               1.41 kB        91.5 kB
+├ ○ /admin/category-management                       3.2 kB         95.9 kB
+├ ○ /admin/content-calendar                          4.28 kB          97 kB
+├ ○ /admin/content-calendar-hub                      11.2 kB         104 kB
+├ ○ /admin/content-calendar-new                      3.29 kB          96 kB
+├ ○ /admin/content-calendar-simple                   2.05 kB        94.7 kB
+├ ○ /admin/customer-import                           3.01 kB        95.7 kB
+├ ○ /admin/customers                                 7.35 kB         100 kB
+├ ○ /admin/funnel-editor                             8.67 kB        98.7 kB
+├ ○ /admin/gallery                                   48 kB           141 kB
+├ ○ /admin/kakao                                     1.48 kB        97.5 kB
+├ ○ /admin/kakao-content                             78.8 kB         183 kB
+├   └ css/a275cc2b185e04f8.css                       1.56 kB
+├ ○ /admin/kakao-list                                2.82 kB        95.5 kB
+├ λ /admin/login                                     1.31 kB        91.4 kB
+├ ○ /admin/multichannel-dashboard                    3.67 kB        96.3 kB
+├ ○ /admin/naver-blog                                3.39 kB        99.4 kB
+├ ○ /admin/naver-blog-advanced                       8.19 kB         104 kB
+├ ○ /admin/naver-blog-list                           2.74 kB        95.4 kB
+├ ○ /admin/sms                                       15.5 kB         111 kB
+├ ○ /admin/sms-list                                  3.43 kB        96.1 kB
+├ λ /api/admin/ai-content-extractor                  0 B            90.1 kB
+├ λ /api/admin/ai-stats                              0 B            90.1 kB
+├ λ /api/admin/ai-usage-stats                        0 B            90.1 kB
+├ λ /api/admin/all-images                            0 B            90.1 kB
+├ λ /api/admin/analyze-all-blog-images               0 B            90.1 kB
+├ λ /api/admin/analyze-naver-seo                     0 B            90.1 kB
+├ λ /api/admin/auto-tags                             0 B            90.1 kB
+├ λ /api/admin/backfill-exif                         0 B            90.1 kB
+├ λ /api/admin/batch-download-images                 0 B            90.1 kB
+├ λ /api/admin/batch-register-images                 0 B            90.1 kB
+├ λ /api/admin/blog                                  0 B            90.1 kB
+├ λ /api/admin/blog-analytics                        0 B            90.1 kB
+├ λ /api/admin/blog-analytics-reset                  0 B            90.1 kB
+├ λ /api/admin/blog-analytics-simple                 0 B            90.1 kB
+├ λ /api/admin/blog-categories                       0 B            90.1 kB
+├ λ /api/admin/blog-download                         0 B            90.1 kB
+├ λ /api/admin/blog-images                           0 B            90.1 kB
+├ λ /api/admin/blog-stats                            0 B            90.1 kB
+├ λ /api/admin/blog/[id]                             0 B            90.1 kB
+├ λ /api/admin/blog/combine-posts                    0 B            90.1 kB
+├ λ /api/admin/calendar/attach-to-blog               0 B            90.1 kB
+├ λ /api/admin/categories                            0 B            90.1 kB
+├ λ /api/admin/check-and-remove-duplicates           0 B            90.1 kB
+├ λ /api/admin/check-image-registration-status       0 B            90.1 kB
+├ λ /api/admin/cleanup-all-file                      0 B            90.1 kB
+├ λ /api/admin/cleanup-duplicate-metadata            0 B            90.1 kB
+├ λ /api/admin/cleanup-duplicates                    0 B            90.1 kB
+├ λ /api/admin/cleanup-orphaned-metadata             0 B            90.1 kB
+├ λ /api/admin/cleanup-replicate-duplicates          0 B            90.1 kB
+├ λ /api/admin/compare-images                        0 B            90.1 kB
+├ λ /api/admin/connect-missing-blog-ids              0 B            90.1 kB
+├ λ /api/admin/content-calendar                      0 B            90.1 kB
+├ λ /api/admin/content-calendar-hub                  0 B            90.1 kB
+├ λ /api/admin/content-calendar-simple               0 B            90.1 kB
+├ λ /api/admin/content-hub/derive                    0 B            90.1 kB
+├ λ /api/admin/create-ai-usage-table                 0 B            90.1 kB
+├ λ /api/admin/create-blog-from-calendar             0 B            90.1 kB
+├ λ /api/admin/create-blog-post                      0 B            90.1 kB
+├ λ /api/admin/create-blog-sept21                    0 B            90.1 kB
+├ λ /api/admin/create-blog-sept22                    0 B            90.1 kB
+├ λ /api/admin/create-blog-sept23                    0 B            90.1 kB
+├ λ /api/admin/create-blog-sept24                    0 B            90.1 kB
+├ λ /api/admin/create-campaign-folders               0 B            90.1 kB
+├ λ /api/admin/create-folder                         0 B            90.1 kB
+├ λ /api/admin/create-phase7-folders                 0 B            90.1 kB
+├ λ /api/admin/create-root-folders                   0 B            90.1 kB
+├ λ /api/admin/customers                             0 B            90.1 kB
+├ λ /api/admin/customers/compare-phones              0 B            90.1 kB
+├ λ /api/admin/customers/import-missing              0 B            90.1 kB
+├ λ /api/admin/customers/update-vip-levels           0 B            90.1 kB
+├ λ /api/admin/debug-storage-duplicates              0 B            90.1 kB
+├ λ /api/admin/delete-folder                         0 B            90.1 kB
+├ λ /api/admin/delete-image                          0 B            90.1 kB
+├ λ /api/admin/detect-extension-duplicates           0 B            90.1 kB
+├ λ /api/admin/diagnose-duplicates                   0 B            90.1 kB
+├ λ /api/admin/duplicate-images                      0 B            90.1 kB
+├ λ /api/admin/extract-exif                          0 B            90.1 kB
+├ λ /api/admin/find-duplicates                       0 B            90.1 kB
+├ λ /api/admin/find-duplicates-with-blog             0 B            90.1 kB
+├ λ /api/admin/fix-blog-post                         0 B            90.1 kB
+├ λ /api/admin/fix-missing-blog-post-ids             0 B            90.1 kB
+├ λ /api/admin/folders-list                          0 B            90.1 kB
+├ λ /api/admin/generate-alt-batch                    0 B            90.1 kB
+├ λ /api/admin/generate-blog-content                 0 B            90.1 kB
+├ λ /api/admin/generate-metadata-for-folder          0 B            90.1 kB
+├ λ /api/admin/generate-variations                   0 B            90.1 kB
+├ λ /api/admin/google-analytics                      0 B            90.1 kB
+├ λ /api/admin/image-ai-analyzer                     0 B            90.1 kB
+├ λ /api/admin/image-asset-manager                   0 B            90.1 kB
+├ λ /api/admin/image-categories                      0 B            90.1 kB
+├ λ /api/admin/image-count                           0 B            90.1 kB
+├ λ /api/admin/image-derivatives                     0 B            90.1 kB
+├ λ /api/admin/image-link-check                      0 B            90.1 kB
+├ λ /api/admin/image-metadata                        0 B            90.1 kB
+├ λ /api/admin/image-metadata-batch                  0 B            90.1 kB
+├ λ /api/admin/image-optimizer                       0 B            90.1 kB
+├ λ /api/admin/image-proxy                           0 B            90.1 kB
+├ λ /api/admin/image-recommendation-engine           0 B            90.1 kB
+├ λ /api/admin/image-tag-relations                   0 B            90.1 kB
+├ λ /api/admin/image-tags                            0 B            90.1 kB
+├ λ /api/admin/image-usage-tracker                   0 B            90.1 kB
+├ λ /api/admin/image-versions                        0 B            90.1 kB
+├ λ /api/admin/import-customers                      0 B            90.1 kB
+├ λ /api/admin/improve-blog-sept21                   0 B            90.1 kB
+├ λ /api/admin/improve-blog-sept22                   0 B            90.1 kB
+├ λ /api/admin/improve-blog-sept23                   0 B            90.1 kB
+├ λ /api/admin/improve-blog-sept24                   0 B            90.1 kB
+├ λ /api/admin/kakao                                 0 B            90.1 kB
+├ λ /api/admin/manage-channels                       0 B            90.1 kB
+├ λ /api/admin/migrate-campaign-images               0 B            90.1 kB
+├ λ /api/admin/migrate-image-versions                0 B            90.1 kB
+├ λ /api/admin/migrate-to-uploaded-structure         0 B            90.1 kB
+├ λ /api/admin/move-image-to-folder                  0 B            90.1 kB
+├ λ /api/admin/move-image-to-root                    0 B            90.1 kB
+├ λ /api/admin/naver-blog                            0 B            90.1 kB
+├ λ /api/admin/naver-blog/[id]                       0 B            90.1 kB
+├ λ /api/admin/naver-trends                          0 B            90.1 kB
+├ λ /api/admin/op-manual/[campaign]                  0 B            90.1 kB
+├ λ /api/admin/optimize-seo                          0 B            90.1 kB
+├ λ /api/admin/organize-images-by-blog               0 B            90.1 kB
+├ λ /api/admin/remove-duplicates                     0 B            90.1 kB
+├ λ /api/admin/remove-duplicates-with-blog           0 B            90.1 kB
+├ λ /api/admin/rename-folder                         0 B            90.1 kB
+├ λ /api/admin/rename-image                          0 B            90.1 kB
+├ λ /api/admin/save-external-image                   0 B            90.1 kB
+├ λ /api/admin/schedule-publish                      0 B            90.1 kB
+├ λ /api/admin/scrape-webpage-images                 0 B            90.1 kB
+├ λ /api/admin/sms                                   0 B            90.1 kB
+├ λ /api/admin/sms/history                           0 B            90.1 kB
+├ λ /api/admin/solapi-connect                        0 B            90.1 kB
+├ λ /api/admin/storage-signed-upload                 0 B            90.1 kB
+├ λ /api/admin/sync-blog-to-calendar                 0 B            90.1 kB
+├ λ /api/admin/sync-blog-with-dedupe                 0 B            90.1 kB
+├ λ /api/admin/sync-channel-status                   0 B            90.1 kB
+├ λ /api/admin/sync-metadata-by-blog                 0 B            90.1 kB
+├ λ /api/admin/sync-missing-metadata                 0 B            90.1 kB
+├ λ /api/admin/toggle-image-like                     0 B            90.1 kB
+├ λ /api/admin/update-blog-campaign-urls             0 B            90.1 kB
+├ λ /api/admin/update-funnel-image-urls              0 B            90.1 kB
+├ λ /api/admin/upload-customer-image                 0 B            90.1 kB
+├ λ /api/admin/upscale-image                         0 B            90.1 kB
+├ λ /api/admin/upsert-image-metadata                 0 B            90.1 kB
+├ λ /api/admin/users                                 0 B            90.1 kB
+├ λ /api/advanced-presets                            0 B            90.1 kB
+├ λ /api/ai/compress-text                            0 B            90.1 kB
+├ λ /api/ai/improve-text                             0 B            90.1 kB
+├ λ /api/ai/psychology-messages                      0 B            90.1 kB
+├ λ /api/analytics/ab-test-results                   0 B            90.1 kB
+├ λ /api/analytics/advanced-metrics                  0 B            90.1 kB
+├ λ /api/analytics/funnel-metrics                    0 B            90.1 kB
+├ λ /api/analytics/performance-metrics               0 B            90.1 kB
+├ λ /api/analytics/real-time-winner                  0 B            90.1 kB
+├ λ /api/analytics/scroll-metrics                    0 B            90.1 kB
+├ λ /api/analytics/version-tracking                  0 B            90.1 kB
+├ λ /api/analyze-image-general                       0 B            90.1 kB
+├ λ /api/analyze-image-google-ai                     0 B            90.1 kB
+├ λ /api/analyze-image-prompt                        0 B            90.1 kB
+├ λ /api/auth/[...nextauth]                          0 B            90.1 kB
+├ λ /api/auth/login                                  0 B            90.1 kB
+├ λ /api/batch-processor                             0 B            90.1 kB
+├ λ /api/blog/[slug]                                 0 B            90.1 kB
+├ λ /api/blog/annual-content-generate                0 B            90.1 kB
+├ λ /api/blog/auto-generate                          0 B            90.1 kB
+├ λ /api/blog/generate-full-content                  0 B            90.1 kB
+├ λ /api/blog/generate-metatags                      0 B            90.1 kB
+├ λ /api/blog/generate-summary                       0 B            90.1 kB
+├ λ /api/blog/posts                                  0 B            90.1 kB
+├ λ /api/blog/posts/create                           0 B            90.1 kB
+├ λ /api/blog/save-to-calendar                       0 B            90.1 kB
+├ λ /api/blog/sync-to-hub-ai                         0 B            90.1 kB
+├ λ /api/blog/sync-to-hub-direct                     0 B            90.1 kB
+├ λ /api/blog/update-calendar-status                 0 B            90.1 kB
+├ λ /api/booking                                     0 B            90.1 kB
+├ λ /api/bookings                                    0 B            90.1 kB
+├ λ /api/campaign-list                               0 B            90.1 kB
+├ λ /api/campaigns                                   0 B            90.1 kB
+├ λ /api/campaigns/kpi                               0 B            90.1 kB
+├ λ /api/change-password                             0 B            90.1 kB
+├ λ /api/channels/convert                            0 B            90.1 kB
+├ λ /api/channels/sms                                0 B            90.1 kB
+├ λ /api/channels/sms/[id]                           0 B            90.1 kB
+├ λ /api/channels/sms/bulk-delete                    0 B            90.1 kB
+├ λ /api/channels/sms/delete                         0 B            90.1 kB
+├ λ /api/channels/sms/list                           0 B            90.1 kB
+├ λ /api/channels/sms/save                           0 B            90.1 kB
+├ λ /api/channels/sms/send                           0 B            90.1 kB
+├ λ /api/check-admin-users                           0 B            90.1 kB
+├ λ /api/check-env                                   0 B            90.1 kB
+├ λ /api/contact/muziik                              0 B            90.1 kB
+├ λ /api/contacts                                    0 B            90.1 kB
+├ λ /api/content-calendar/add-generated-content      0 B            90.1 kB
+├ λ /api/content-calendar/generate-annual            0 B            90.1 kB
+├ λ /api/content-calendar/generate-channel-content   0 B            90.1 kB
+├ λ /api/content-calendar/generate-hub-content       0 B            90.1 kB
+├ λ /api/content-calendar/load                       0 B            90.1 kB
+├ λ /api/content-calendar/load-md-files              0 B            90.1 kB
+├ λ /api/content-calendar/regenerate-titles          0 B            90.1 kB
+├ λ /api/content-calendar/save-md-files              0 B            90.1 kB
+├ λ /api/conversion/analytics                        0 B            90.1 kB
+├ λ /api/conversion/track                            0 B            90.1 kB
+├ λ /api/debug-404                                   0 B            90.1 kB
+├ λ /api/debug-duplicates                            0 B            90.1 kB
+├ λ /api/debug-folder-files                          0 B            90.1 kB
+├ λ /api/debug-supabase                              0 B            90.1 kB
+├ λ /api/debug-table-structure                       0 B            90.1 kB
+├ λ /api/debug/ab-test-debug                         0 B            90.1 kB
+├ λ /api/debug/ab-test-events-check                  0 B            90.1 kB
+├ λ /api/debug/env-check                             0 B            90.1 kB
+├ λ /api/debug/ga4-09-data-check                     0 B            90.1 kB
+├ λ /api/debug/ga4-connection-test                   0 B            90.1 kB
+├ λ /api/debug/ga4-events-test                       0 B            90.1 kB
+├ λ /api/debug/ga4-live-check                        0 B            90.1 kB
+├ λ /api/debug/ga4-real-data-check                   0 B            90.1 kB
+├ λ /api/debug/ga4-simple-test                       0 B            90.1 kB
+├ λ /api/debug/google-ads-comprehensive-test         0 B            90.1 kB
+├ λ /api/debug/google-ads-connection                 0 B            90.1 kB
+├ λ /api/debug/google-ads-customer-test              0 B            90.1 kB
+├ λ /api/debug/google-ads-detailed                   0 B            90.1 kB
+├ λ /api/debug/google-ads-detailed-test              0 B            90.1 kB
+├ λ /api/debug/google-ads-fix-customer               0 B            90.1 kB
+├ λ /api/debug/google-ads-refresh-token-test         0 B            90.1 kB
+├ λ /api/debug/google-ads-test                       0 B            90.1 kB
+├ λ /api/debug/scroll-test                           0 B            90.1 kB
+├ λ /api/debug/simple-test                           0 B            90.1 kB
+├ λ /api/delete-image-supabase                       0 B            90.1 kB
+├ λ /api/force-refresh-data                          0 B            90.1 kB
+├ λ /api/funnel-content                              0 B            90.1 kB
+├ λ /api/funnel-daily-views                          0 B            90.1 kB
+├ λ /api/funnel-management                           0 B            90.1 kB
+├ λ /api/funnel-save                                 0 B            90.1 kB
+├ λ /api/ga4-campaign-metrics                        0 B            90.1 kB
+├ λ /api/ga4-daily                                   0 B            90.1 kB
+├ λ /api/ga4-funnel                                  0 B            90.1 kB
+├ λ /api/ga4-funnel-user-behavior                    0 B            90.1 kB
+├ λ /api/ga4-hourly                                  0 B            90.1 kB
+├ λ /api/ga4-monthly                                 0 B            90.1 kB
+├ λ /api/ga4-realtime                                0 B            90.1 kB
+├ λ /api/ga4-scroll-depth-2025-07                    0 B            90.1 kB
+├ λ /api/ga4-top-pages-2025-07                       0 B            90.1 kB
+├ λ /api/ga4-user-behavior                           0 B            90.1 kB
+├ λ /api/ga4-user-behavior-filtered                  0 B            90.1 kB
+├ λ /api/generate-blog-content                       0 B            90.1 kB
+├ λ /api/generate-blog-image                         0 B            90.1 kB
+├ λ /api/generate-blog-image-fal                     0 B            90.1 kB
+├ λ /api/generate-blog-image-fal-variation           0 B            90.1 kB
+├ λ /api/generate-blog-image-google                  0 B            90.1 kB
+├ λ /api/generate-blog-image-kie                     0 B            90.1 kB
+├ λ /api/generate-blog-image-replicate-flux          0 B            90.1 kB
+├ λ /api/generate-blog-image-stability               0 B            90.1 kB
+├ λ /api/generate-blog-title                         0 B            90.1 kB
+├ λ /api/generate-content                            0 B            90.1 kB
+├ λ /api/generate-customer-journey                   0 B            90.1 kB
+├ λ /api/generate-enhanced-content                   0 B            90.1 kB
+├ λ /api/generate-kakao-content                      0 B            90.1 kB
+├ λ /api/generate-localized-content                  0 B            90.1 kB
+├ λ /api/generate-multichannel-content               0 B            90.1 kB
+├ λ /api/generate-paragraph-images                   0 B            90.1 kB
+├ λ /api/generate-paragraph-images-fixed             0 B            90.1 kB
+├ λ /api/generate-paragraph-images-with-prompts      0 B            90.1 kB
+├ λ /api/generate-paragraph-prompts                  0 B            90.1 kB
+├ λ /api/generate-pixar-story                        0 B            90.1 kB
+├ λ /api/generate-slug                               0 B            90.1 kB
+├ λ /api/generate-smart-prompt                       0 B            90.1 kB
+├ λ /api/generate-storybrand                         0 B            90.1 kB
+├ λ /api/get-image-prompt                            0 B            90.1 kB
+├ λ /api/get-recommended-images                      0 B            90.1 kB
+├ λ /api/google-ads/campaigns                        0 B            90.1 kB
+├ λ /api/health                                      0 B            90.1 kB
+├ λ /api/html/[filename]                             0 B            90.1 kB
+├ λ /api/image-proxy                                 0 B            90.1 kB
+├ λ /api/improve-blog-content                        0 B            90.1 kB
+├ λ /api/improve-prompt                              0 B            90.1 kB
+├ λ /api/integrated/ai-suggestions                   0 B            90.1 kB
+├ λ /api/integrated/campaign-keywords                0 B            90.1 kB
+├ λ /api/integrated/contents                         0 B            90.1 kB
+├ λ /api/integrated/dashboard                        0 B            90.1 kB
+├ λ /api/integrated/employee-quota                   0 B            90.1 kB
+├ λ /api/integrated/employee-quota-v2                0 B            90.1 kB
+├ λ /api/integrated/funnel-pages                     0 B            90.1 kB
+├ λ /api/integrated/funnel-plans                     0 B            90.1 kB
+├ λ /api/integrated/funnel-plans-v2                  0 B            90.1 kB
+├ λ /api/integrated/funnel-plans/recent              0 B            90.1 kB
+├ λ /api/integrated/generate-content                 0 B            90.1 kB
+├ λ /api/integrated/generate-content-v2              0 B            90.1 kB
+├ λ /api/integrated/google-ads-utm                   0 B            90.1 kB
+├ λ /api/integrated/kpi                              0 B            90.1 kB
+├ λ /api/integrated/kpi-sync                         0 B            90.1 kB
+├ λ /api/integrated/kpi-sync-v2                      0 B            90.1 kB
+├ λ /api/integrated/kpi-v2                           0 B            90.1 kB
+├ λ /api/integrated/monthly-themes                   0 B            90.1 kB
+├ λ /api/integrated/validate-blog                    0 B            90.1 kB
+├ λ /api/integrated/validate-content                 0 B            90.1 kB
+├ λ /api/integrated/validate-content-v2              0 B            90.1 kB
+├ λ /api/integrated/validated-contents               0 B            90.1 kB
+├ λ /api/integrated/validation-rules                 0 B            90.1 kB
+├ λ /api/integrated/workflow-status                  0 B            90.1 kB
+├ λ /api/integrated/yearly-overview                  0 B            90.1 kB
+├ λ /api/kakao-content/auto-create-account1          0 B            90.1 kB
+├ λ /api/kakao-content/auto-create-account2          0 B            90.1 kB
+├ λ /api/kakao-content/auto-generate-today           0 B            90.1 kB
+├ λ /api/kakao-content/calendar-delete               0 B            90.1 kB
+├ λ /api/kakao-content/calendar-load                 0 B            90.1 kB
+├ λ /api/kakao-content/calendar-save                 0 B            90.1 kB
+├ λ /api/kakao-content/evaluate-images               0 B            90.1 kB
+├ λ /api/kakao-content/fetch-gallery-images-by-date  0 B            90.1 kB
+├ λ /api/kakao-content/generate-base-prompt          0 B            90.1 kB
+├ λ /api/kakao-content/generate-feed-caption         0 B            90.1 kB
+├ λ /api/kakao-content/generate-prompt               0 B            90.1 kB
+├ λ /api/kakao-content/generate-prompt-message       0 B            90.1 kB
+├ λ /api/kakao-content/save                          0 B            90.1 kB
+├ λ /api/kakao-content/slack-daily-notification      0 B            90.1 kB
+├ λ /api/kakao-content/slack-send-account            0 B            90.1 kB
+├ λ /api/kakao-content/sync-json-from-supabase       0 B            90.1 kB
+├ λ /api/kakao-content/update-profile                0 B            90.1 kB
+├ λ /api/kie-ai-webhook                              0 B            90.1 kB
+├ λ /api/kpi/[year]/[month]                          0 B            90.1 kB
+├ λ /api/kpi/employee-quota                          0 B            90.1 kB
+├ λ /api/kpi/sync                                    0 B            90.1 kB
+├ λ /api/learning-system                             0 B            90.1 kB
+├ λ /api/mcp-helpers/generate-ad-copy                0 B            90.1 kB
+├ λ /api/mcp-helpers/generate-multichannel-content   0 B            90.1 kB
+├ λ /api/migrate-blog-browser-download               0 B            90.1 kB
+├ λ /api/migrate-blog-enhanced                       0 B            90.1 kB
+├ λ /api/migrate-blog-playwright-capture             0 B            90.1 kB
+├ λ /api/migrate-blog-production                     0 B            90.1 kB
+├ λ /api/migrate-blog-professional                   0 B            90.1 kB
+├ λ /api/migrate-blog-real-playwright                0 B            90.1 kB
+├ λ /api/migrate-naver-blog                          0 B            90.1 kB
+├ λ /api/migrate-naver-blog-playwright               0 B            90.1 kB
+├ λ /api/migrate-naver-blog-simple                   0 B            90.1 kB
+├ λ /api/migrate-wix-images                          0 B            90.1 kB
+├ λ /api/multichannel/auto-generate                  0 B            90.1 kB
+├ λ /api/multichannel/channels/google-ad             0 B            90.1 kB
+├ λ /api/multichannel/channels/kakao                 0 B            90.1 kB
+├ λ /api/multichannel/channels/naver-ad              0 B            90.1 kB
+├ λ /api/multichannel/channels/naver-blog            0 B            90.1 kB
+├ λ /api/multichannel/channels/sms                   0 B            90.1 kB
+├ λ /api/multichannel/generate-images                0 B            90.1 kB
+├ λ /api/multichannel/preview                        0 B            90.1 kB
+├ λ /api/naver-blog-scraper                          0 B            90.1 kB
+├ λ /api/optimize-seo                                0 B            90.1 kB
+├ λ /api/page-tracking-dates                         0 B            90.1 kB
+├ λ /api/performance-metrics                         0 B            90.1 kB
+├ λ /api/performance-metrics-filtered                0 B            90.1 kB
+├ λ /api/products                                    0 B            90.1 kB
+├ λ /api/products/[slug]                             0 B            90.1 kB
+├ λ /api/quiz-result                                 0 B            90.1 kB
+├ λ /api/quiz-save                                   0 B            90.1 kB
+├ λ /api/recreate-image-google-ai                    0 B            90.1 kB
+├ λ /api/regenerate-image-from-prompt                0 B            90.1 kB
+├ λ /api/reset-admin-password                        0 B            90.1 kB
+├ λ /api/save-generated-image                        0 B            90.1 kB
+├ λ /api/save-images-to-storage                      0 B            90.1 kB
+├ λ /api/scrape-blog-content                         0 B            90.1 kB
+├ λ /api/scrape-naver-views                          0 B            90.1 kB
+├ λ /api/short-links/create                          0 B            90.1 kB
+├ λ /api/simple-ai-image-improvement                 0 B            90.1 kB
+├ λ /api/simple-ai-improvement                       0 B            90.1 kB
+├ λ /api/simple-debug                                0 B            90.1 kB
+├ λ /api/slack-contact                               0 B            90.1 kB
+├ λ /api/slack/kakao-regenerate                      0 B            90.1 kB
+├ λ /api/slack/notify                                0 B            90.1 kB
+├ λ /api/slack/notify-backup-20250707_151514         0 B            90.1 kB
+├ λ /api/slack/notify-beautiful                      0 B            90.1 kB
+├ λ /api/slack/notify-minimal                        0 B            90.1 kB
+├ λ /api/slack/notify-simple                         0 B            90.1 kB
+├ λ /api/slack/notify-updated                        0 B            90.1 kB
+├ λ /api/solapi/upload-image                         0 B            90.1 kB
+├ λ /api/solapi/webhook                              0 B            90.1 kB
+├ λ /api/stats/realtime                              0 B            90.1 kB
+├ λ /api/team                                        0 B            90.1 kB
+├ λ /api/team-login                                  0 B            90.1 kB
+├ λ /api/test-db-connection                          0 B            90.1 kB
+├ λ /api/test-migration                              0 B            90.1 kB
+├ λ /api/test-mms                                    0 B            90.1 kB
+├ λ /api/test-sms                                    0 B            90.1 kB
+├ λ /api/track-phone-click                           0 B            90.1 kB
+├ λ /api/track-view                                  0 B            90.1 kB
+├ λ /api/tracking/conversion                         0 B            90.1 kB
+├ λ /api/tracking/dashboard                          0 B            90.1 kB
+├ λ /api/translate-korean-to-english                 0 B            90.1 kB
+├ λ /api/upload-image                                0 B            90.1 kB
+├ λ /api/upload-image-supabase                       0 B            90.1 kB
+├ λ /api/user-settings                               0 B            90.1 kB
+├ λ /api/validate-seo                                0 B            90.1 kB
+├ λ /api/vary-existing-image                         0 B            90.1 kB
+├ λ /blog                                            3.79 kB         100 kB
+├ λ /blog/[slug]                                     19.7 kB         116 kB
+├ ○ /collection                                      2.15 kB        98.8 kB
+├ ○ /collection/[slug]                               3.18 kB        99.8 kB
+├ ○ /contact                                         5.56 kB         102 kB
+├ ○ /homepage                                        6.14 kB         103 kB
+├ ○ /manual                                          4.51 kB        94.6 kB
+├ ○ /manual/interactive                              1.96 kB          92 kB
+├ ○ /muziik                                          8.73 kB         101 kB
+├ ● /muziik/[product]                                5.83 kB        98.5 kB
+├   ├ /ko/muziik/sapphire
+├   ├ /ko/muziik/beryl
+├   ├ /ja/muziik/sapphire
+├   └ /ja/muziik/beryl
+├ ○ /muziik/about                                    6.69 kB        99.4 kB
+├ ○ /muziik/contact                                  6.84 kB        99.5 kB
+├ ○ /muziik/index_backup                             3.81 kB        96.5 kB
+├ ○ /muziik/technology                               7.02 kB        99.7 kB
+├ ○ /products/[slug]                                 723 B          90.8 kB
+├ ○ /products/gold2-sapphire                         4.79 kB        98.8 kB
+├ ○ /products/weapon-beryl                           4.78 kB        98.8 kB
+├ λ /s/[code]                                        451 B          90.5 kB
+├ ○ /team-dashboard                                  1.72 kB        91.8 kB
+└ ○ /team-login                                      1.89 kB          92 kB
++ First Load JS shared by all                        111 kB
+  ├ chunks/framework-0a1398323079f1a5.js             45.2 kB
+  ├ chunks/main-dc6da2207e68ba55.js                  32.7 kB
+  ├ chunks/pages/_app-e682ea017ba5d06c.js            10 kB
+  ├ chunks/webpack-e37a1fb787373bc1.js               2.13 kB
+  └ css/120f45359c352903.css                         20.6 kB
+
+ƒ Middleware                                         60.8 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+λ  (Dynamic)  server-rendered on demand using Node.js
+
+
+> win-masgolf@0.1.0 postbuild
+> next-sitemap
+
+✨ [next-sitemap] Loading next-sitemap config: file:///Users/m2/MASLABS/win.masgolf.co.kr/next-sitemap.config.js
+✅ [next-sitemap] Generation completed
+┌───────────────┬────────┐
+│ (index)       │ Values │
+├───────────────┼────────┤
+│ indexSitemaps │ 1      │
+│ sitemaps      │ 1      │
+└───────────────┴────────┘
+-----------------------------------------------------
+ SITEMAP INDICES 
+-----------------------------------------------------
+
+   ○ https://masgolf.co.kr/sitemap.xml
+
+
+-----------------------------------------------------
+ SITEMAPS 
+-----------------------------------------------------
+
+   ○ https://masgolf.co.kr/sitemap-0.xml
+
+

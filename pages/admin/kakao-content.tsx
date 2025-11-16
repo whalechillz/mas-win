@@ -422,7 +422,7 @@ export default function KakaoContentPage() {
       });
 
       // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/generate-paragraph-images-with-prompts', {
+      const response = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -514,7 +514,7 @@ export default function KakaoContentPage() {
       });
 
       // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/generate-paragraph-images-with-prompts', {
+      const response = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -599,7 +599,7 @@ export default function KakaoContentPage() {
       });
 
       // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/generate-paragraph-images-with-prompts', {
+      const response = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

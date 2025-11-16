@@ -1,4 +1,4 @@
-// 폴더 목록 조회 API (Storage에서 직접 조회)
+// 폴더 목록 조회 API (최적화: 메타데이터 기반 + 캐싱)
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,47 +10,148 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// 🔧 폴더 목록 캐싱 (5분간 유효)
+let foldersCache = null;
+let foldersCacheTimestamp = 0;
+const FOLDERS_CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+// 캐시 무효화 함수 (외부에서 호출 가능)
+export function invalidateFoldersCache() {
+  foldersCache = null;
+  foldersCacheTimestamp = 0;
+  console.log('🗑️ 폴더 목록 캐시 무효화 완료');
+}
+
+// 폴백: Storage에서 직접 조회 (재귀적, 하위 경로 포함)
+async function getFoldersFromStorage() {
+  const folders = new Set();
+  
+  // 🔧 재귀적으로 모든 폴더 조회 (하위 경로 포함)
+  const getAllFolders = async (prefix = '') => {
+    const { data: files, error } = await supabase.storage
+      .from('blog-images')
+      .list(prefix, {
+        limit: 1000,
+        sortBy: { column: 'name', order: 'asc' }
+      });
+
+    if (error) {
+      console.error(`❌ 폴더 조회 에러 (${prefix}):`, error);
+      return;
+    }
+
+    if (!files) return;
+
+    for (const file of files) {
+      if (!file.id) {
+        // 폴더인 경우
+        const folderPath = prefix ? `${prefix}/${file.name}` : file.name;
+        folders.add(folderPath);
+        // 재귀적으로 하위 폴더 조회
+        await getAllFolders(folderPath);
+      }
+    }
+  };
+
+  await getAllFolders('');
+  return Array.from(folders).sort();
+}
+
 export default async function handler(req, res) {
+  const startTime = Date.now();
   console.log('🔍 폴더 목록 조회 API 요청:', req.method, req.url);
   
   try {
     if (req.method === 'GET') {
+      // 🔧 캐시 확인
+      const now = Date.now();
+      if (foldersCache && (now - foldersCacheTimestamp) < FOLDERS_CACHE_DURATION) {
+        const cacheTime = ((now - foldersCacheTimestamp) / 1000).toFixed(1);
+        console.log(`✅ 폴더 목록 캐시 사용: ${foldersCache.length}개 (${cacheTime}초 전 캐시)`);
+        return res.status(200).json({ 
+          folders: foldersCache,
+          count: foldersCache.length,
+          cached: true
+        });
+      }
+
+      // 🔧 최적화: 이미지 메타데이터에서 폴더 경로 추출 (더 빠름)
+      const { data: images, error } = await supabase
+        .from('image_metadata')
+        .select('folder_path')
+        .not('folder_path', 'is', null)
+        .neq('folder_path', '');
+
+      if (error) {
+        console.error('❌ 메타데이터 조회 에러:', error);
+        // 폴백: Storage에서 직접 조회
+        console.log('🔄 Storage에서 직접 조회로 전환...');
+        const folderList = await getFoldersFromStorage();
+        
+        // 캐시 저장
+        foldersCache = folderList;
+        foldersCacheTimestamp = now;
+        
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`✅ 폴더 목록 조회 완료 (Storage): ${folderList.length}개 (${elapsed}초)`);
+        
+        return res.status(200).json({ 
+          folders: folderList,
+          count: folderList.length,
+          cached: false
+        });
+      }
+
+      // 폴더 경로 추출 및 정규화 (하위 경로도 포함)
       const folders = new Set();
-      
-      // 재귀적으로 모든 폴더 조회
-      const getAllFolders = async (prefix = '') => {
-        const { data: files, error } = await supabase.storage
-          .from('blog-images')
-          .list(prefix, {
-            sortBy: { column: 'created_at', order: 'desc' }
-          });
-
-        if (error) {
-          console.error(`❌ 폴더 조회 에러 (${prefix}):`, error);
-          return;
-        }
-
-        if (!files) return;
-
-        for (const file of files) {
-          if (!file.id) {
-            // 폴더인 경우
-            const folderPath = prefix ? `${prefix}/${file.name}` : file.name;
-            folders.add(folderPath);
-            // 재귀적으로 하위 폴더 조회
-            await getAllFolders(folderPath);
+      if (images && images.length > 0) {
+        images.forEach(img => {
+          if (img.folder_path) {
+            // 하위 경로도 포함 (예: originals/blog/2025-11 → originals, originals/blog, originals/blog/2025-11)
+            const parts = img.folder_path.split('/').filter(Boolean);
+            let currentPath = '';
+            parts.forEach(part => {
+              currentPath = currentPath ? `${currentPath}/${part}` : part;
+              folders.add(currentPath);
+            });
           }
-        }
-      };
+        });
+      }
 
-      await getAllFolders('');
-
+      // 🔧 메타데이터에서 추출한 폴더가 2개 이하(originals, scraped-images만)인 경우 Storage에서 직접 조회
       const folderList = Array.from(folders).sort();
-      console.log('✅ 폴더 목록 조회 완료:', folderList.length, '개');
+      if (folderList.length <= 2) {
+        console.log('⚠️ 메타데이터에 하위 경로가 없음. Storage에서 직접 조회...');
+        const storageFolders = await getFoldersFromStorage();
+        
+        // Storage에서 가져온 폴더와 메타데이터 폴더 병합
+        storageFolders.forEach(folder => folders.add(folder));
+        const mergedFolderList = Array.from(folders).sort();
+        
+        foldersCache = mergedFolderList;
+        foldersCacheTimestamp = now;
+        
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`✅ 폴더 목록 조회 완료 (메타데이터 + Storage 병합): ${mergedFolderList.length}개 (${elapsed}초)`);
+        
+        return res.status(200).json({ 
+          folders: mergedFolderList,
+          count: mergedFolderList.length,
+          cached: false
+        });
+      }
+      
+      // 🔧 캐시 저장
+      foldersCache = folderList;
+      foldersCacheTimestamp = now;
+      
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`✅ 폴더 목록 조회 완료 (메타데이터 기반): ${folderList.length}개 (${elapsed}초)`);
 
       return res.status(200).json({ 
         folders: folderList,
-        count: folderList.length
+        count: folderList.length,
+        cached: false
       });
     } else {
       return res.status(405).json({ error: 'Method Not Allowed' });

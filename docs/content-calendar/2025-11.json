@@ -97,7 +97,7 @@
             "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account1/profile/kakao-account1-profile-1762931413804-1.png"
           },
           "message": "리듬이 거리다.",
-          "status": "planned",
+          "status": "published",
           "created": true,
           "createdAt": "2025-11-12T23:49:45.946Z"
         },
@@ -116,7 +116,7 @@
             "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/profile/kakao-account1-profile-1762948709092-1-1.png"
           },
           "message": "오늘도 자신감 있게.",
-          "status": "planned",
+          "status": "published",
           "created": true,
           "createdAt": "2025-11-12T11:58:51.756Z"
         },
@@ -144,12 +144,14 @@
           "background": {
             "image": "감성 컷",
             "prompt": "감성적인 골프장 풍경, 따뜻한 톤, 자연스러운 분위기",
-            "status": "planned"
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-16/account1/background/kakao-account1-background-1763053667298-1-1.png"
           },
           "profile": {
             "image": "시니어 골퍼",
             "prompt": "시니어 골퍼, 감성적인 배경, 감사의 표정",
-            "status": "planned"
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-16/account1/profile/kakao-account1-profile-1763053682881-1-1.png"
           },
           "message": "감사의 스윙으로 마무리.",
           "status": "planned",
@@ -241,7 +243,7 @@
             "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-13/account2/profile/kakao-account2-profile-1762931515224-1.png"
           },
           "message": "Performance Beyond Distance.",
-          "status": "planned",
+          "status": "published",
           "created": true,
           "createdAt": "2025-11-12T23:50:03.978Z"
         },
@@ -257,10 +259,10 @@
             "image": "젊은 골퍼",
             "prompt": "A young Korean golfer, aged between 30-50 years, featuring distinct Asian facial features, stands confidently in a fitting room background that exudes a technical atmosphere. The image captures a cool blue-gray tone, emphasizing innovation and a modern aesthetic. The golfer is the central subject, showcasing a poised swing that symbolizes the connection between technique and mindset, aligned with the weekly theme \"비거리의 감성 – 스윙과 마음의 연결.\" The composition is ultra-realistic and photorealistic, shot in high quality (8K resolution), with professional lighting that highlights the golfer's form and expression. The setting reflects an authentic Korean atmosphere, ensuring a clean composition suitable for a KakaoTalk profile image, with no text overlays or promotional content, presented in a square format (1:1) for optimal viewing on the platform.",
             "status": "planned",
-            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/profile/kakao-account2-profile-1762948824382-1-1.png"
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/profile/kakao-account2-profile-1762948825211-1-2.png"
           },
           "message": "AI Precision Swing.",
-          "status": "planned",
+          "status": "published",
           "created": true,
           "createdAt": "2025-11-12T12:00:49.242Z"
         },
@@ -276,7 +278,7 @@
             "image": "젊은 골퍼",
             "prompt": "A young Korean golfer, aged between 30-50 years, with distinct Asian facial features, is captured in an innovative pose on a natural Korean golf course, embodying the theme \"비거리의 감성 – 스윙과 마음의 연결\". The scene is infused with a cool blue-gray tone, creating a modern and fresh atmosphere. The golfer, the main subject, is framed in a square format, perfectly suited for a KakaoTalk profile picture. The image showcases ultra-realistic, photorealistic quality in 8K resolution, emphasizing professional lighting and composition that highlight the authentic Korean ambiance. The golfer is wearing a stylish cap featuring the \"MASSGOO\" logo embroidered naturally, ensuring brand visibility without overwhelming the main subject. The surroundings are devoid of any Western or Caucasian individuals, focusing solely on the rich representation of Korean golfing culture. This visual resonates with tech enthusiasts among local customers, aligning with the brand strategy of medium weight and warm audience temperature. The overall composition captures the essence of the golfer's swing and the emotional connection to the game, making it an ideal profile image.",
             "status": "planned",
-            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/profile/kakao-account2-profile-1762961600363-1-1.png"
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/profile/kakao-account2-profile-1763214611239-1-1.png"
           },
           "message": "Power Meets Control.",
           "status": "planned",
@@ -288,12 +290,14 @@
           "background": {
             "image": "감성 조명 컷",
             "prompt": "감성적인 조명, 현대적인 디자인, 쿨 블루 톤",
-            "status": "planned"
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-16/account2/background/kakao-account2-background-1763053780920-1-1.png"
           },
           "profile": {
             "image": "젊은 골퍼",
             "prompt": "젊은 골퍼, 조명 배경, 기술적인 감성",
-            "status": "planned"
+            "status": "planned",
+            "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-16/account2/profile/kakao-account2-profile-1763053798146-1-1.png"
           },
           "message": "기술에도 감정이 있다.",
           "status": "planned",
@@ -390,7 +394,8 @@
           "status": "planned",
           "created": true,
           "createdAt": "2025-11-12T11:58:51.756Z",
-          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/feed/kakao-account1-feed-1762948730758-1-1.png"
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account1/feed/kakao-account1-feed-1762948730758-1-1.png",
+          "url": "https://masgolf.co.kr/muziik"
         },
         "account2": {
           "imageCategory": "피팅 상담의 모습",
@@ -399,7 +404,8 @@
           "status": "planned",
           "created": true,
           "createdAt": "2025-11-12T12:00:49.242Z",
-          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/feed/kakao-account2-feed-1762948848218-1-1.png"
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-14/account2/feed/kakao-account2-feed-1762948848218-1-1.png",
+          "url": "https://masgolf.co.kr/muziik"
         }
       },
       {
@@ -411,7 +417,8 @@
           "status": "planned",
           "created": true,
           "createdAt": "2025-11-12T15:22:39.185Z",
-          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/feed/kakao-account1-feed-1762960958735-1-1.jpg"
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account1/feed/kakao-account1-feed-1762952407437-1-2.jpg",
+          "url": "https://masgolf.co.kr"
         },
         "account2": {
           "imageCategory": "시니어 골퍼의 스윙",
@@ -420,7 +427,8 @@
           "status": "planned",
           "created": true,
           "createdAt": "2025-11-12T15:33:36.603Z",
-          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/feed/kakao-account2-feed-1762961642359-1-1.jpg"
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-15/account2/feed/kakao-account2-feed-1762958454372-0-1-methodA.jpg",
+          "url": "https://masgolf.co.kr"
         }
       },
       {
@@ -431,7 +439,8 @@
           "caption": "시니어 골퍼도 비거리 20m 증가 가능",
           "status": "planned",
           "created": false,
-          "createdAt": null
+          "createdAt": null,
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-16/account1/feed/kakao-account1-feed-1763219803562-1-1.jpg"
         },
         "account2": {
           "imageCategory": "젊은 골퍼의 스윙",
@@ -439,7 +448,9 @@
           "caption": "완벽한 스윙을 위한 첫걸음",
           "status": "planned",
           "created": false,
-          "createdAt": null
+          "createdAt": null,
+          "imageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-16/account2/feed/kakao-account2-feed-1763053814591-1-1.jpg",
+          "url": "https://www.mas9golf.com"
         }
       },
       {

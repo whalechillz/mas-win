@@ -1,7 +1,6 @@
 // pages/api/kakao-content/slack-daily-notification.js
 // 매일 아침 8시 30분에 카카오톡 콘텐츠를 슬랙으로 전송하는 API
-import fs from 'fs';
-import path from 'path';
+// Supabase에서 직접 데이터를 읽어옵니다
 import { sendSlackNotification, formatKakaoContentSlackMessage } from '../../../lib/slack-notification';
 
 export default async function handler(req, res) {
@@ -22,18 +21,22 @@ export default async function handler(req, res) {
     
     console.log(`📅 오늘 날짜: ${todayStr}, 월: ${monthStr}`);
     
-    // 캘린더 JSON 파일 읽기
-    const calendarPath = path.join(process.cwd(), 'docs', 'content-calendar', `${monthStr}.json`);
+    // Supabase에서 캘린더 데이터 로드
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     
-    if (!fs.existsSync(calendarPath)) {
-      console.error(`❌ 캘린더 파일이 없습니다: ${calendarPath}`);
-      return res.status(404).json({ 
-        error: 'Calendar file not found',
-        path: calendarPath 
-      });
+    const calendarResponse = await fetch(`${baseUrl}/api/kakao-content/calendar-load?month=${monthStr}`);
+    
+    if (!calendarResponse.ok) {
+      const errorData = await calendarResponse.json().catch(() => ({}));
+      throw new Error(`캘린더 데이터 로드 실패: ${errorData.message || calendarResponse.statusText}`);
     }
     
-    const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
+    const { calendarData } = await calendarResponse.json();
+    
+    if (!calendarData) {
+      throw new Error('캘린더 데이터를 찾을 수 없습니다');
+    }
     
     // 오늘 날짜의 콘텐츠 찾기
     const account1Data = calendarData.profileContent?.account1?.dailySchedule?.find(d => d.date === todayStr);
@@ -41,7 +44,7 @@ export default async function handler(req, res) {
     const feedData = calendarData.kakaoFeed?.dailySchedule?.find(d => d.date === todayStr);
     
     // 슬랙 메시지 생성 (유틸리티 함수 사용, created: false도 포함)
-    const slackMessage = formatKakaoContentSlackMessage({
+    const slackMessage = await formatKakaoContentSlackMessage({
       date: todayStr,
       account1Data,
       account2Data,

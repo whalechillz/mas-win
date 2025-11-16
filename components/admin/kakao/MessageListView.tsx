@@ -11,6 +11,7 @@ interface MessageItem {
     created: boolean;
     status: string;
     imageUrl?: string;
+    publishedAt?: string;
   };
   account2: {
     profileMessage?: string;
@@ -18,6 +19,7 @@ interface MessageItem {
     created: boolean;
     status: string;
     imageUrl?: string;
+    publishedAt?: string;
   };
 }
 
@@ -40,6 +42,34 @@ export default function MessageListView({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showImages, setShowImages] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // 메시지 정리 함수
+  const cleanMessage = (message: string | undefined): string | undefined => {
+    if (!message) return undefined;
+    
+    let cleaned = message.trim();
+    
+    // "json { message: " 패턴 제거
+    cleaned = cleaned.replace(/^json\s*\{\s*message\s*:\s*/i, '');
+    cleaned = cleaned.replace(/\s*\}\s*$/i, '');
+    
+    // 따옴표 제거 (앞뒤 따옴표)
+    cleaned = cleaned.replace(/^["'`]+|["'`]+$/g, '');
+    
+    return cleaned.trim() || undefined;
+  };
+
+  // 캡션 정리 함수 (피드 캡션용)
+  const cleanCaption = (caption: string | undefined): string | undefined => {
+    if (!caption) return undefined;
+    
+    let cleaned = caption.trim();
+    
+    // 따옴표 제거 (앞뒤 따옴표)
+    cleaned = cleaned.replace(/^["'`]+|["'`]+$/g, '');
+    
+    return cleaned.trim() || undefined;
+  };
 
   // 모든 메시지 추출
   const messages = useMemo(() => {
@@ -64,13 +94,19 @@ export default function MessageListView({
       }
       const msgItem = dateMap.get(item.date)!;
       if (item.message) {
-        msgItem.account1.profileMessage = item.message;
+        msgItem.account1.profileMessage = cleanMessage(item.message);
       }
       if (item.background?.imageUrl) {
         msgItem.account1.imageUrl = item.background.imageUrl;
       }
       msgItem.account1.created = item.created || false;
-      msgItem.account1.status = item.status || 'planned';
+      // status와 publishedAt은 데이터가 있을 때만 업데이트 (초기값 덮어쓰기 방지)
+      if (item.status) {
+        msgItem.account1.status = item.status;
+      }
+      if (item.publishedAt) {
+        msgItem.account1.publishedAt = item.publishedAt;
+      }
     });
 
     // Account2 프로필 메시지
@@ -84,13 +120,19 @@ export default function MessageListView({
       }
       const msgItem = dateMap.get(item.date)!;
       if (item.message) {
-        msgItem.account2.profileMessage = item.message;
+        msgItem.account2.profileMessage = cleanMessage(item.message);
       }
       if (item.background?.imageUrl) {
         msgItem.account2.imageUrl = item.background.imageUrl;
       }
       msgItem.account2.created = item.created || false;
-      msgItem.account2.status = item.status || 'planned';
+      // status와 publishedAt은 데이터가 있을 때만 업데이트 (초기값 덮어쓰기 방지)
+      if (item.status) {
+        msgItem.account2.status = item.status;
+      }
+      if (item.publishedAt) {
+        msgItem.account2.publishedAt = item.publishedAt;
+      }
     });
 
     // 피드 캡션
@@ -104,12 +146,18 @@ export default function MessageListView({
       }
       const msgItem = dateMap.get(item.date)!;
       if (item.account1?.caption) {
-        msgItem.account1.feedCaption = item.account1.caption;
+        msgItem.account1.feedCaption = cleanCaption(item.account1.caption);
         msgItem.account1.created = item.account1.created || msgItem.account1.created;
+        if (item.account1.status) {
+          msgItem.account1.status = item.account1.status;
+        }
       }
       if (item.account2?.caption) {
-        msgItem.account2.feedCaption = item.account2.caption;
+        msgItem.account2.feedCaption = cleanCaption(item.account2.caption);
         msgItem.account2.created = item.account2.created || msgItem.account2.created;
+        if (item.account2.status) {
+          msgItem.account2.status = item.account2.status;
+        }
       }
     });
 
@@ -212,23 +260,46 @@ export default function MessageListView({
   };
 
   const getStatusBadge = (created: boolean, status: string, accountName: string) => {
-    if (created) {
+    if (status === 'published') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+          <CheckCircle className="w-3 h-3" />
+          배포됨
+        </span>
+      );
+    } else if (created) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
           <CheckCircle className="w-3 h-3" />
           생성됨
         </span>
       );
+    } else {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+          계획됨
+        </span>
+      );
+    }
+  };
+
+  const getDeploymentBadge = (publishedAt: string | undefined, status: string) => {
+    if (publishedAt && status === 'published') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+          발행됨
+        </span>
+      );
     } else if (status === 'published') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
           배포됨
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-          계획됨
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">
+          미배포
         </span>
       );
     }
@@ -344,13 +415,14 @@ export default function MessageListView({
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">프로필</th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">피드</th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">상태</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">배포 상태</th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">작업</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredMessages.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center">
+                <td colSpan={7} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <FileText className="w-12 h-12 text-gray-400" />
                     <p className="text-gray-500 font-medium">
@@ -416,6 +488,11 @@ export default function MessageListView({
                           {getStatusBadge(item.account1.created, item.account1.status, account1Name)}
                         </td>
 
+                        {/* 배포 상태 */}
+                        <td className="px-6 py-4">
+                          {getDeploymentBadge(item.account1.publishedAt, item.account1.status)}
+                        </td>
+
                         {/* 작업 */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
@@ -434,7 +511,7 @@ export default function MessageListView({
                       {/* 확장된 행 (이미지 미리보기) */}
                       {isExpanded && showImages && item.account1.imageUrl && (
                         <tr className="bg-gray-50">
-                          <td colSpan={6} className="px-6 py-4">
+                          <td colSpan={7} className="px-6 py-4">
                             <div>
                               <h4 className="text-sm font-semibold text-gray-700 mb-2">{account1Name}</h4>
                               <img 
@@ -503,6 +580,11 @@ export default function MessageListView({
                           {getStatusBadge(item.account2.created, item.account2.status, account2Name)}
                         </td>
 
+                        {/* 배포 상태 */}
+                        <td className="px-6 py-4">
+                          {getDeploymentBadge(item.account2.publishedAt, item.account2.status)}
+                        </td>
+
                         {/* 작업 */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
@@ -521,7 +603,7 @@ export default function MessageListView({
                       {/* 확장된 행 (이미지 미리보기) */}
                       {isExpanded && showImages && item.account2.imageUrl && (
                         <tr className="bg-gray-50">
-                          <td colSpan={6} className="px-6 py-4">
+                          <td colSpan={7} className="px-6 py-4">
                             <div>
                               <h4 className="text-sm font-semibold text-gray-700 mb-2">{account2Name}</h4>
                               <img 

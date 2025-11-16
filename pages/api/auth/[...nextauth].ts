@@ -123,13 +123,39 @@ export default NextAuth({
     }
   },
   pages: {
-    signIn: '/admin/login',
-    error: '/api/auth/error'
+    signIn: '/admin/login'
+    // error 페이지 제거 - 리다이렉트 루프 방지
   },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30일
+    updateAge: 24 * 60 * 60, // 24시간마다 업데이트
   },
   secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024',
-  debug: process.env.NODE_ENV === 'development'
+  debug: process.env.NODE_ENV === 'development',
+  // 로컬 개발 환경 설정
+  ...(process.env.NODE_ENV === 'development' && {
+    url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    useSecureCookies: false, // 로컬 개발용
+    cookies: {
+      sessionToken: {
+        name: `next-auth.session-token`,
+        options: {
+          httpOnly: true,
+          sameSite: 'lax',
+          path: '/',
+          secure: false, // 로컬 개발용
+        },
+      },
+      callbackUrl: {
+        name: `next-auth.callback-url`,
+        options: {
+          httpOnly: true,
+          sameSite: 'lax',
+          path: '/',
+          secure: false, // 로컬 개발용
+        },
+      },
+    },
+  })
 })

@@ -472,15 +472,17 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
     blogPosts: [],
     funnelPages: [],
     staticPages: [],
+    kakaoProfile: [],
+    kakaoFeed: [],
     externalUsage: [],
     totalUsage: 0
   };
 
   try {
-    // 1. 블로그 게시물에서 사용 확인
+    // 1. 블로그 게시물에서 사용 확인 (배포되지 않은 블로그도 포함)
     const { data: blogPosts, error: blogError } = await supabase
       .from('blog_posts')
-      .select('id, title, content, featured_image, slug, created_at')
+      .select('id, title, content, featured_image, slug, created_at, status, published_at')
       .or(`content.ilike.%${imageUrl}%,featured_image.eq.${imageUrl}`);
     
     if (!blogError && blogPosts) {
@@ -490,6 +492,10 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
         slug: post.slug,
         type: 'blog_post',
         url: `/blog/${post.slug}`,
+        // 🔧 배포 상태 정보 추가
+        status: post.status || 'published',
+        published_at: post.published_at,
+        isPublished: post.status === 'published' && post.published_at !== null,
         isFeatured: post.featured_image === imageUrl,
         isInContent: post.content.includes(imageUrl),
         created_at: post.created_at
@@ -573,7 +579,57 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
       console.log('정적 페이지 테이블이 없거나 접근할 수 없습니다.');
     }
 
-    // 4. 홈페이지 및 MUZIIK 페이지에서 사용 확인
+    // 4. 카카오 프로필 콘텐츠에서 사용 확인
+    try {
+      const { data: profileContent, error: profileError } = await supabase
+        .from('kakao_profile_content')
+        .select('id, date, account, background_image_url, profile_image_url, message, created_at')
+        .or(`background_image_url.eq.${imageUrl},profile_image_url.eq.${imageUrl}`);
+      
+      if (!profileError && profileContent) {
+        usage.kakaoProfile = profileContent.map(item => ({
+          id: item.id,
+          date: item.date,
+          account: item.account,
+          type: 'kakao_profile',
+          title: `카카오 프로필 (${item.account === 'account1' ? 'MAS GOLF ProWhale' : 'MASGOLF Tech'})`,
+          url: `/admin/kakao-content?date=${item.date}`,
+          isBackground: item.background_image_url === imageUrl,
+          isProfile: item.profile_image_url === imageUrl,
+          message: item.message,
+          created_at: item.created_at
+        }));
+      }
+    } catch (error) {
+      console.warn('⚠️ 카카오 프로필 콘텐츠 확인 오류:', error.message);
+      usage.kakaoProfile = [];
+    }
+
+    // 5. 카카오 피드 콘텐츠에서 사용 확인
+    try {
+      const { data: feedContent, error: feedError } = await supabase
+        .from('kakao_feed_content')
+        .select('id, date, account, image_url, caption, created_at')
+        .eq('image_url', imageUrl);
+      
+      if (!feedError && feedContent) {
+        usage.kakaoFeed = feedContent.map(item => ({
+          id: item.id,
+          date: item.date,
+          account: item.account,
+          type: 'kakao_feed',
+          title: `카카오 피드 (${item.account === 'account1' ? 'MAS GOLF ProWhale' : 'MASGOLF Tech'})`,
+          url: `/admin/kakao-content?date=${item.date}`,
+          caption: item.caption,
+          created_at: item.created_at
+        }));
+      }
+    } catch (error) {
+      console.warn('⚠️ 카카오 피드 콘텐츠 확인 오류:', error.message);
+      usage.kakaoFeed = [];
+    }
+
+    // 6. 홈페이지 및 MUZIIK 페이지에서 사용 확인
     try {
       // imageUrl에서 파일 경로 추출
       const storageUrlMatch = imageUrl.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
@@ -599,14 +655,15 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
       usage.muziik = [];
     }
 
-    // 5. 외부 사용 확인 (웹 서버 로그 분석)
+    // 7. 외부 사용 확인 (웹 서버 로그 분석)
     const externalUsage = await checkExternalUsage(imageUrl);
     usage.externalUsage = externalUsage;
 
-    // 6. 총 사용 횟수 계산 (각 위치당 1회로 계산)
+    // 8. 총 사용 횟수 계산 (각 위치당 1회로 계산)
     // 실제로는 같은 위치에서 여러 번 사용될 수 있지만, 
     // 현재는 위치 개수로 계산 (향후 개선 가능)
     usage.totalUsage = usage.blogPosts.length + usage.funnelPages.length + usage.staticPages.length + 
+                       (usage.kakaoProfile?.length || 0) + (usage.kakaoFeed?.length || 0) +
                        usage.homepage.length + usage.muziik.length;
     
     // used_in 배열 구성 (비교 API에서 사용)
@@ -648,6 +705,24 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
         url: item.url,
         isFeatured: item.isFeatured,
         isInContent: item.isInContent
+      })),
+      ...(usage.kakaoProfile || []).map(item => ({
+        type: 'kakao_profile',
+        title: item.title,
+        url: item.url,
+        date: item.date,
+        account: item.account,
+        isBackground: item.isBackground,
+        isProfile: item.isProfile,
+        created_at: item.created_at
+      })),
+      ...(usage.kakaoFeed || []).map(item => ({
+        type: 'kakao_feed',
+        title: item.title,
+        url: item.url,
+        date: item.date,
+        account: item.account,
+        created_at: item.created_at
       }))
     ];
 
@@ -687,6 +762,8 @@ export default async function handler(req, res) {
           blogPosts: usage.blogPosts.length,
           funnelPages: usage.funnelPages.length,
           staticPages: usage.staticPages.length,
+          kakaoProfile: (usage.kakaoProfile || []).length,
+          kakaoFeed: (usage.kakaoFeed || []).length,
           homepage: usage.homepage.length,
           muziik: usage.muziik.length,
           isUsed: usage.totalUsage > 0,

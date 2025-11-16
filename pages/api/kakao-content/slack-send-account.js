@@ -1,8 +1,15 @@
 // pages/api/kakao-content/slack-send-account.js
 // 계정별 카카오톡 콘텐츠를 슬랙으로 전송하는 API
-import fs from 'fs';
-import path from 'path';
+// Supabase에서 직접 데이터를 읽어옵니다
+import { createServerSupabase } from '../../../lib/supabase';
 import { sendSlackNotification, formatKakaoContentSlackMessage } from '../../../lib/slack-notification';
+
+// 다음 달 계산 헬퍼 함수
+function getNextMonth(month) {
+  const [year, monthNum] = month.split('-').map(Number);
+  const nextMonth = monthNum === 12 ? `${year + 1}-01` : `${year}-${String(monthNum + 1).padStart(2, '0')}`;
+  return `${nextMonth}-01`;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -40,22 +47,119 @@ export default async function handler(req, res) {
     
     console.log(`📅 요청된 날짜: ${date}, 월: ${monthStr}, 계정: ${account}`);
     
-    // 캘린더 JSON 파일 읽기
-    const calendarPath = path.join(process.cwd(), 'docs', 'content-calendar', `${monthStr}.json`);
-    
-    if (!fs.existsSync(calendarPath)) {
-      console.error(`❌ 캘린더 파일이 없습니다: ${calendarPath}`);
-      return res.status(404).json({ 
-        error: 'Calendar file not found',
-        path: calendarPath 
-      });
+    // Supabase에서 직접 데이터 로드 (API 호출 대신)
+    const supabase = createServerSupabase();
+
+    // 프로필 콘텐츠 로드
+    const { data: profileData, error: profileError } = await supabase
+      .from('kakao_profile_content')
+      .select('*')
+      .eq('account', account)
+      .eq('date', date)
+      .single();
+
+    if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = not found
+      console.error('프로필 데이터 로드 오류:', profileError);
+      throw profileError;
     }
-    
-    const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
+
+    // 피드 콘텐츠 로드
+    const { data: feedData, error: feedError } = await supabase
+      .from('kakao_feed_content')
+      .select('*')
+      .eq('account', account)
+      .eq('date', date)
+      .single();
+
+    if (feedError && feedError.code !== 'PGRST116') { // PGRST116 = not found
+      console.error('피드 데이터 로드 오류:', feedError);
+      throw feedError;
+    }
+
+    // JSON 형식으로 변환
+    const calendarData = {
+      month: monthStr,
+      profileContent: {
+        account1: {
+          account: '010-6669-9000',
+          name: 'MAS GOLF ProWhale',
+          persona: '시니어 중심 감성형 브랜딩',
+          tone: '따뜻한 톤 (골드·브라운)',
+          dailySchedule: []
+        },
+        account2: {
+          account: '010-5704-0013',
+          name: 'MASGOLF Tech',
+          persona: '하이테크 중심 혁신형 브랜딩',
+          tone: '블랙톤 젊은 매너',
+          dailySchedule: []
+        }
+      },
+      kakaoFeed: {
+        dailySchedule: []
+      }
+    };
+
+    // 프로필 데이터 변환
+    if (profileData) {
+      const profile = profileData;
+      const scheduleItem = {
+        date: profile.date,
+        background: {
+          image: profile.background_image || '',
+          prompt: profile.background_prompt || '',
+          basePrompt: profile.background_base_prompt || null,
+          status: profile.status || 'planned',
+          imageUrl: profile.background_image_url || undefined
+        },
+        profile: {
+          image: profile.profile_image || '',
+          prompt: profile.profile_prompt || '',
+          basePrompt: profile.profile_base_prompt || null,
+          status: profile.status || 'planned',
+          imageUrl: profile.profile_image_url || undefined
+        },
+        message: profile.message || '',
+        status: profile.status || 'planned',
+        created: profile.created || false,
+        publishedAt: profile.published_at || undefined,
+        createdAt: profile.created_at || undefined
+      };
+      calendarData.profileContent[account].dailySchedule.push(scheduleItem);
+    }
+
+    // 피드 데이터 변환
+    if (feedData) {
+      const feed = feedData;
+      const feedItem = {
+        date: feed.date,
+        account1: account === 'account1' ? {
+          imageCategory: feed.image_category || '',
+          imagePrompt: feed.image_prompt || '',
+          caption: feed.caption || '',
+          status: feed.status || 'planned',
+          created: feed.created || false,
+          imageUrl: feed.image_url || undefined,
+          url: feed.url || undefined,
+          createdAt: feed.created_at || undefined
+        } : null,
+        account2: account === 'account2' ? {
+          imageCategory: feed.image_category || '',
+          imagePrompt: feed.image_prompt || '',
+          caption: feed.caption || '',
+          status: feed.status || 'planned',
+          created: feed.created || false,
+          imageUrl: feed.image_url || undefined,
+          url: feed.url || undefined,
+          createdAt: feed.created_at || undefined
+        } : null
+      };
+      calendarData.kakaoFeed.dailySchedule.push(feedItem);
+    }
     
     // 해당 날짜의 콘텐츠 찾기
     const accountData = calendarData.profileContent?.[account]?.dailySchedule?.find(d => d.date === date);
-    const feedData = calendarData.kakaoFeed?.dailySchedule?.find(d => d.date === date);
+    const feedDataItem = calendarData.kakaoFeed?.dailySchedule?.find(d => d.date === date);
     
     if (!accountData) {
       return res.status(404).json({ 
@@ -64,7 +168,7 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!feedData) {
+    if (!feedDataItem) {
       return res.status(404).json({ 
         error: 'Feed data not found',
         details: `${date} 날짜의 피드 데이터를 찾을 수 없습니다.`
@@ -73,12 +177,12 @@ export default async function handler(req, res) {
 
     // 계정별 피드 데이터 준비
     const accountFeedData = {
-      account1: account === 'account1' ? feedData.account1 : null,
-      account2: account === 'account2' ? feedData.account2 : null
+      account1: account === 'account1' ? feedDataItem.account1 : null,
+      account2: account === 'account2' ? feedDataItem.account2 : null
     };
 
     // 슬랙 메시지 생성 (해당 계정만 포함)
-    const slackMessage = formatKakaoContentSlackMessage({
+    const slackMessage = await formatKakaoContentSlackMessage({
       date: date,
       account1Data: account === 'account1' ? accountData : null,
       account2Data: account === 'account2' ? accountData : null,

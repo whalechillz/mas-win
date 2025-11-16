@@ -1,9 +1,8 @@
 // pages/api/kakao-content/auto-generate-today.js
 // 오늘 날짜의 카카오톡 콘텐츠 자동 생성 API
 // 슬랙에서 "다시" 명령 시 호출
+// Supabase에서 직접 데이터를 읽어옵니다
 
-import fs from 'fs';
-import path from 'path';
 import { sendSlackNotification, formatKakaoContentSlackMessage } from '../../../lib/slack-notification';
 
 export default async function handler(req, res) {
@@ -105,67 +104,70 @@ export default async function handler(req, res) {
     
     // 3. 생성 완료 후 최종 알림 (생성된 콘텐츠 정보 포함)
     try {
-      // 캘린더 파일 다시 읽기 (생성된 콘텐츠 반영)
-      const calendarPath = path.join(process.cwd(), 'docs', 'content-calendar', `${monthStr}.json`);
-      if (fs.existsSync(calendarPath)) {
-        const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-        const account1Data = calendarData.profileContent?.account1?.dailySchedule?.find(d => d.date === todayStr);
-        const account2Data = calendarData.profileContent?.account2?.dailySchedule?.find(d => d.date === todayStr);
-        const feedData = calendarData.kakaoFeed?.dailySchedule?.find(d => d.date === todayStr);
+      // Supabase에서 캘린더 데이터 로드 (생성된 콘텐츠 반영)
+      const calendarResponse = await fetch(`${baseUrl}/api/kakao-content/calendar-load?month=${monthStr}`);
+      
+      if (calendarResponse.ok) {
+        const { calendarData } = await calendarResponse.json();
+        if (calendarData) {
+          const account1Data = calendarData.profileContent?.account1?.dailySchedule?.find(d => d.date === todayStr);
+          const account2Data = calendarData.profileContent?.account2?.dailySchedule?.find(d => d.date === todayStr);
+          const feedData = calendarData.kakaoFeed?.dailySchedule?.find(d => d.date === todayStr);
         
-        // 슬랙 메시지 생성 (생성된 콘텐츠 정보 포함)
-        const slackMessage = formatKakaoContentSlackMessage({
-          date: todayStr,
-          account1Data,
-          account2Data,
-          feedData,
-          calendarData,
-          includeNotCreated: true
-        });
-        
-        // 완료 메시지 추가
-        slackMessage.text = `✅ *${todayStr} 카카오톡 콘텐츠 생성 완료!*\n━━━━━━━━━━━━━━━━━━━\n\n` + slackMessage.text;
-        
-        // 생성 결과 요약 추가
-        const summaryFields = [];
-        if (results.account1.success) {
-          summaryFields.push({
-            title: '대표폰',
-            value: '✅ 생성 완료',
-            short: true
+          // 슬랙 메시지 생성 (생성된 콘텐츠 정보 포함)
+          const slackMessage = await formatKakaoContentSlackMessage({
+            date: todayStr,
+            account1Data,
+            account2Data,
+            feedData,
+            calendarData,
+            includeNotCreated: true
           });
-        } else {
-          summaryFields.push({
-            title: '대표폰',
-            value: `❌ 생성 실패: ${results.account1.error || '알 수 없는 오류'}`,
-            short: true
+          
+          // 완료 메시지 추가
+          slackMessage.text = `✅ *${todayStr} 카카오톡 콘텐츠 생성 완료!*\n━━━━━━━━━━━━━━━━━━━\n\n` + slackMessage.text;
+          
+          // 생성 결과 요약 추가
+          const summaryFields = [];
+          if (results.account1.success) {
+            summaryFields.push({
+              title: '대표폰',
+              value: '✅ 생성 완료',
+              short: true
+            });
+          } else {
+            summaryFields.push({
+              title: '대표폰',
+              value: `❌ 생성 실패: ${results.account1.error || '알 수 없는 오류'}`,
+              short: true
+            });
+          }
+          
+          if (results.account2.success) {
+            summaryFields.push({
+              title: '업무폰',
+              value: '✅ 생성 완료',
+              short: true
+            });
+          } else {
+            summaryFields.push({
+              title: '업무폰',
+              value: `❌ 생성 실패: ${results.account2.error || '알 수 없는 오류'}`,
+              short: true
+            });
+          }
+          
+          slackMessage.attachments.unshift({
+            color: (results.account1.success && results.account2.success) ? '#36a64f' : '#FFA500',
+            title: '생성 결과 요약',
+            fields: summaryFields,
+            footer: '자동 생성 완료',
+            ts: Math.floor(Date.now() / 1000)
           });
+          
+          await sendSlackNotification(slackMessage);
+          console.log('✅ 생성 완료 알림 전송 완료');
         }
-        
-        if (results.account2.success) {
-          summaryFields.push({
-            title: '업무폰',
-            value: '✅ 생성 완료',
-            short: true
-          });
-        } else {
-          summaryFields.push({
-            title: '업무폰',
-            value: `❌ 생성 실패: ${results.account2.error || '알 수 없는 오류'}`,
-            short: true
-          });
-        }
-        
-        slackMessage.attachments.unshift({
-          color: (results.account1.success && results.account2.success) ? '#36a64f' : '#FFA500',
-          title: '생성 결과 요약',
-          fields: summaryFields,
-          footer: '자동 생성 완료',
-          ts: Math.floor(Date.now() / 1000)
-        });
-        
-        await sendSlackNotification(slackMessage);
-        console.log('✅ 생성 완료 알림 전송 완료');
       }
     } catch (slackError) {
       console.error('생성 완료 알림 전송 실패:', slackError);

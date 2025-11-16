@@ -262,8 +262,9 @@ const PRESETS = {
       
       const imageBuffer = await imageFetchResponse.arrayBuffer();
       const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const yearMonth = dateStr.slice(0, 7); // YYYY-MM
       const fileName = `existing-variation-${Date.now()}.png`;
-      const objectPath = `originals/${dateStr}/${fileName}`; // originals/YYYY-MM-DD/ 형식으로 통일
+      const objectPath = `uploaded/${yearMonth}/${dateStr}/${fileName}`; // uploaded/YYYY-MM/YYYY-MM-DD/ 형식으로 변경
       
       // Supabase Storage에 업로드
       const { data: uploadData, error: uploadError } = await supabase.storage

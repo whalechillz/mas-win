@@ -951,6 +951,144 @@ export default async function handler(req, res) {
         });
       }
 
+      // 🔧 배치 사용 위치 조회: 사용 위치가 필요한 이미지 URL 수집
+      const urlsNeedingUsageInfo = [];
+      const imageUrlToIndexMap = new Map();
+      
+      imageUrls.forEach(({ file, url, fullPath }, index) => {
+        const metadata = metadataMap.get(url);
+        let usageCount = metadata?.usage_count || 0;
+        
+        // 모든 폴더를 배치 조회로 통일 (정확도 향상)
+        // campaigns 폴더도 배치 조회로 처리하여 모든 사용 위치 확인
+        if (fullPath) {
+          // 모든 이미지를 배치 조회 대상에 포함 (usage_count와 관계없이)
+          urlsNeedingUsageInfo.push(url);
+          imageUrlToIndexMap.set(url, index);
+        } else if (usageCount > 0) {
+          // fullPath가 없어도 usage_count > 0이면 배치 조회 대상
+          urlsNeedingUsageInfo.push(url);
+          imageUrlToIndexMap.set(url, index);
+        }
+      });
+      
+      // 🔧 배치로 사용 위치 정보 조회 (한 번의 API 호출)
+      const usageInfoMap = new Map();
+      if (urlsNeedingUsageInfo.length > 0) {
+        try {
+          const batchStartTime = Date.now();
+          const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrls: urlsNeedingUsageInfo })
+          });
+          
+          if (usageResponse.ok) {
+            const batchData = await usageResponse.json();
+            if (batchData.results && Array.isArray(batchData.results)) {
+              batchData.results.forEach(result => {
+                if (result.imageUrl && result.usage) {
+                  const usage = result.usage;
+                  const usedIn = [];
+                  
+                  // 사용 위치 정보 수집
+                  if (usage.blogPosts && usage.blogPosts.length > 0) {
+                    usedIn.push(...usage.blogPosts.map(post => ({
+                      type: 'blog',
+                      title: post.title,
+                      url: post.url,
+                      isFeatured: post.isFeatured,
+                      isInContent: post.isInContent,
+                      created_at: post.created_at
+                    })));
+                  }
+                  
+                  if (usage.funnelPages && usage.funnelPages.length > 0) {
+                    usedIn.push(...usage.funnelPages.map(page => ({
+                      type: 'funnel',
+                      title: page.title,
+                      url: page.url,
+                      isFeatured: page.isFeatured,
+                      isInContent: page.isInContent,
+                      created_at: page.created_at
+                    })));
+                  }
+                  
+                  if (usage.homepage && usage.homepage.length > 0) {
+                    usedIn.push(...usage.homepage.map(item => ({
+                      type: 'homepage',
+                      title: item.title,
+                      url: item.url,
+                      location: item.location,
+                      isFeatured: item.isFeatured,
+                      isInContent: item.isInContent
+                    })));
+                  }
+                  
+                  if (usage.muziik && usage.muziik.length > 0) {
+                    usedIn.push(...usage.muziik.map(item => ({
+                      type: 'muziik',
+                      title: item.title,
+                      url: item.url,
+                      location: item.location,
+                      isFeatured: item.isFeatured,
+                      isInContent: item.isInContent
+                    })));
+                  }
+                  
+                  if (usage.kakaoProfile && usage.kakaoProfile.length > 0) {
+                    usedIn.push(...usage.kakaoProfile.map(item => ({
+                      type: 'kakao_profile',
+                      title: item.title,
+                      url: item.url,
+                      date: item.date,
+                      account: item.account,
+                      isBackground: item.isBackground,
+                      isProfile: item.isProfile,
+                      created_at: item.created_at
+                    })));
+                  }
+                  
+                  if (usage.kakaoFeed && usage.kakaoFeed.length > 0) {
+                    usedIn.push(...usage.kakaoFeed.map(item => ({
+                      type: 'kakao_feed',
+                      title: item.title,
+                      url: item.url,
+                      date: item.date,
+                      account: item.account,
+                      created_at: item.created_at
+                    })));
+                  }
+                  
+                  // 최근 사용 날짜 계산
+                  const allDates = usedIn
+                    .filter(item => item.created_at)
+                    .map(item => new Date(item.created_at))
+                    .sort((a, b) => b - a);
+                  const lastUsedAt = allDates.length > 0 ? allDates[0].toISOString() : null;
+                  
+                  // 총 사용 횟수 계산 (배치 조회 결과 사용)
+                  const totalUsage = usage.totalUsage || usedIn.length;
+                  
+                  usageInfoMap.set(result.imageUrl, {
+                    usedIn,
+                    lastUsedAt,
+                    totalUsage
+                  });
+                }
+              });
+              
+              const batchElapsed = ((Date.now() - batchStartTime) / 1000).toFixed(2);
+              console.log(`✅ 배치 사용 위치 조회 완료: ${urlsNeedingUsageInfo.length}개 이미지 (${batchElapsed}초)`);
+            }
+          } else {
+            console.warn('⚠️ 배치 사용 위치 조회 실패:', usageResponse.status);
+          }
+        } catch (error) {
+          console.warn('⚠️ 배치 사용 위치 조회 오류:', error.message);
+        }
+      }
+      
       // 이미지 데이터 생성 (사용 횟수 실시간 계산)
       const imagesWithUrl = await Promise.all(imageUrls.map(async ({ file, url, fullPath }) => {
         const metadata = metadataMap.get(url);
@@ -966,76 +1104,13 @@ export default async function handler(req, res) {
         let lastUsedAt = null;
         
         if (fullPath) {
-          // campaigns 폴더의 경우에만 실시간 계산 (성능 최적화)
-          if (fullPath.includes('campaigns/')) {
-            usageCount = await calculateUsageCount(fullPath, file.name);
-          }
-          
-          // 사용 위치 상세 정보 수집 (usage_count > 0인 경우만)
-          if (usageCount > 0) {
-            try {
-              const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(url)}`);
-              if (usageResponse.ok) {
-                const usageData = await usageResponse.json();
-                const usage = usageData.usage || {};
-                
-                // 사용 위치 정보 수집
-                if (usage.blogPosts && usage.blogPosts.length > 0) {
-                  usedIn.push(...usage.blogPosts.map(post => ({
-                    type: 'blog',
-                    title: post.title,
-                    url: post.url,
-                    isFeatured: post.isFeatured,
-                    isInContent: post.isInContent,
-                    created_at: post.created_at
-                  })));
-                }
-                
-                if (usage.funnelPages && usage.funnelPages.length > 0) {
-                  usedIn.push(...usage.funnelPages.map(page => ({
-                    type: 'funnel',
-                    title: page.title,
-                    url: page.url,
-                    isFeatured: page.isFeatured,
-                    isInContent: page.isInContent,
-                    created_at: page.created_at
-                  })));
-                }
-                
-                if (usage.homepage && usage.homepage.length > 0) {
-                  usedIn.push(...usage.homepage.map(item => ({
-                    type: 'homepage',
-                    title: item.title,
-                    url: item.url,
-                    location: item.location,
-                    isFeatured: item.isFeatured,
-                    isInContent: item.isInContent
-                  })));
-                }
-                
-                if (usage.muziik && usage.muziik.length > 0) {
-                  usedIn.push(...usage.muziik.map(item => ({
-                    type: 'muziik',
-                    title: item.title,
-                    url: item.url,
-                    location: item.location,
-                    isFeatured: item.isFeatured,
-                    isInContent: item.isInContent
-                  })));
-                }
-                
-                // 최근 사용 날짜 계산
-                const allDates = usedIn
-                  .filter(item => item.created_at)
-                  .map(item => new Date(item.created_at))
-                  .sort((a, b) => b - a);
-                if (allDates.length > 0) {
-                  lastUsedAt = allDates[0].toISOString();
-                }
-              }
-            } catch (error) {
-              console.warn(`⚠️ 사용 위치 정보 수집 오류 (${url}):`, error.message);
-            }
+          // 🔧 배치로 조회한 사용 위치 정보 사용 (모든 폴더 통일)
+          const usageInfo = usageInfoMap.get(url);
+          if (usageInfo) {
+            usedIn = usageInfo.usedIn;
+            lastUsedAt = usageInfo.lastUsedAt;
+            // 배치 조회 결과로 사용 횟수 업데이트 (모든 폴더)
+            usageCount = usageInfo.totalUsage || usedIn.length;
           }
         }
         
@@ -1046,7 +1121,46 @@ export default async function handler(req, res) {
           .eq('cdn_url', url)
           .single();
         
-        const imageAssetId = assetData?.id || null;
+        let imageAssetId = assetData?.id || null;
+
+        // image_assets에 없으면 자동으로 등록
+        if (!imageAssetId && url) {
+          try {
+            // 파일 정보 추출
+            const fileName = file.name || path.basename(url);
+            const fileExt = path.extname(fileName).slice(1).toLowerCase() || 'jpg';
+            const folderPath = file.folderPath || url;
+            
+            // image_assets에 자동 등록
+            const { data: newAsset, error: insertError } = await supabase
+              .from('image_assets')
+              .insert({
+                filename: fileName,
+                original_filename: fileName,
+                file_path: folderPath,
+                file_size: file.metadata?.size || 0,
+                mime_type: `image/${fileExt}`,
+                format: fileExt,
+                cdn_url: url,
+                upload_source: 'auto_registered',
+                status: 'active',
+                alt_text: metadata?.alt_text || '',
+                title: metadata?.title || fileName.replace(/\.[^/.]+$/, ''),
+                description: metadata?.description || '',
+              })
+              .select('id')
+              .single();
+            
+            if (!insertError && newAsset) {
+              imageAssetId = newAsset.id;
+              console.log(`✅ 자동 등록 완료: ${fileName} (${imageAssetId})`);
+            } else if (insertError) {
+              console.error(`❌ 자동 등록 실패 (${fileName}):`, insertError.message);
+            }
+          } catch (error) {
+            console.error('❌ 자동 등록 중 오류:', error);
+          }
+        }
 
         return {
           id: imageAssetId, // image_assets 테이블의 id 사용
@@ -1070,6 +1184,7 @@ export default async function handler(req, res) {
           last_used_at: lastUsedAt,
           upload_source: metadata?.upload_source || 'manual',
           status: metadata?.status || 'active',
+          is_liked: metadata?.is_liked || false, // 좋아요 상태
           // ✅ 메타데이터 품질 정보 추가
           has_metadata: !!metadata,
           has_quality_metadata: hasQualityMeta,  // 의미 있는 메타데이터 존재 여부

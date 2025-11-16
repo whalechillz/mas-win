@@ -7,7 +7,11 @@ export default function App({
   pageProps: { session, ...pageProps },
 }: AppProps) {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider 
+      session={session}
+      refetchOnWindowFocus={false}
+      refetchInterval={0} // 세션 자동 갱신 비활성화
+    >
       <Component {...pageProps} />
     </SessionProvider>
   )

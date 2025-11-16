@@ -368,10 +368,12 @@ const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
     
     // ✅ 찾지 못했고 시간이 남아있으면 하위 폴더 검색 (넉넉히)
     // ✅ 우선순위: originals/blog/YYYY-MM 폴더 먼저 검색 (이미 이동된 이미지)
+    // ✅ Phase 4: uploaded/YYYY-MM/YYYY-MM-DD 폴더도 검색 추가
     if (!foundImage && (Date.now() - startTime) < maxSearchTime * 0.8) {
       try {
         // ✅ 먼저 originals/blog 폴더 검색 (이미 이동된 이미지가 있을 수 있음)
         const yearMonthFolders = [];
+        const uploadedFolders = [];
         const currentYear = new Date().getFullYear();
         const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
         
@@ -381,7 +383,11 @@ const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
           date.setMonth(date.getMonth() - i);
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
-          yearMonthFolders.push(`originals/blog/${year}-${month}`);
+          const dateStr = `${year}-${month}`;
+          yearMonthFolders.push(`originals/blog/${dateStr}`);
+          
+          // ✅ uploaded/YYYY-MM 폴더 추가
+          uploadedFolders.push(`uploaded/${dateStr}`);
         }
         
         // ✅ originals/blog/YYYY-MM 폴더 우선 검색
@@ -424,6 +430,73 @@ const findImageInStorage = async (fileName, maxSearchTime = 5000) => {
             }
           } catch (error) {
             console.warn(`⚠️ 폴더 검색 오류 (${folderPath}):`, error.message);
+            continue;
+          }
+        }
+        
+        // ✅ Phase 4: uploaded/YYYY-MM/YYYY-MM-DD 폴더 검색
+        for (const uploadedYearMonth of uploadedFolders) {
+          if (foundImage || (Date.now() - startTime) >= maxSearchTime) break;
+          
+          try {
+            // uploaded/YYYY-MM 폴더 내의 날짜별 하위 폴더 검색
+            const { data: dateFolders } = await supabase.storage
+              .from('blog-images')
+              .list(uploadedYearMonth, {
+                limit: 100,
+                sortBy: { column: 'name', order: 'desc' }
+              });
+            
+            if (dateFolders) {
+              // 날짜별 폴더 검색 (최신 순으로)
+              for (const dateFolder of dateFolders) {
+                if (foundImage || (Date.now() - startTime) >= maxSearchTime) break;
+                if (dateFolder.id) continue; // 파일이면 스킵
+                
+                const dateFolderPath = `${uploadedYearMonth}/${dateFolder.name}`;
+                
+                try {
+                  const { data: folderFiles } = await supabase.storage
+                    .from('blog-images')
+                    .list(dateFolderPath, {
+                      limit: 1000,
+                      sortBy: { column: 'name', order: 'asc' }
+                    });
+                  
+                  if (folderFiles) {
+                    for (const file of folderFiles) {
+                      if (file.id) {
+                        const fileLower = file.name.toLowerCase();
+                        const searchLower = fileName.toLowerCase();
+                        
+                        if (fileLower === searchLower || fileLower.includes(searchLower)) {
+                          const fullPath = `${dateFolderPath}/${file.name}`;
+                          const { data: urlData } = supabase.storage
+                            .from('blog-images')
+                            .getPublicUrl(fullPath);
+                          
+                          foundImage = {
+                            id: file.id,
+                            name: file.name,
+                            currentPath: fullPath,
+                            folderPath: dateFolderPath,
+                            url: urlData.publicUrl,
+                            size: file.metadata?.size || 0,
+                            created_at: file.created_at
+                          };
+                          return foundImage; // 찾았으면 즉시 반환
+                        }
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.warn(`⚠️ uploaded 폴더 검색 오류 (${dateFolderPath}):`, error.message);
+                  continue;
+                }
+              }
+            }
+          } catch (error) {
+            console.warn(`⚠️ uploaded 폴더 목록 조회 오류 (${uploadedYearMonth}):`, error.message);
             continue;
           }
         }
@@ -1270,4 +1343,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

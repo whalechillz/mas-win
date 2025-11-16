@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -11,6 +10,8 @@ import { useSession } from 'next-auth/react';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../components/admin/VariationRecommendationModal';
+import { uploadImageToSupabase } from '../../lib/image-upload-utils';
+import FolderSelector from '../../components/admin/FolderSelector';
 import { 
   PUBLISH_CATEGORIES, 
   BRAND_STRATEGY_CONTENT_TYPES,
@@ -482,6 +483,7 @@ export default function BlogAdmin() {
   const [showExistingImageModal, setShowExistingImageModal] = useState(false);
   const [selectedExistingImage, setSelectedExistingImage] = useState('');
   const [isGeneratingExistingVariation, setIsGeneratingExistingVariation] = useState(false);
+  const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
   
   // 간단 AI 이미지 개선 관련 상태
   const [simpleAIImageRequest, setSimpleAIImageRequest] = useState('');
@@ -2498,7 +2500,7 @@ export default function BlogAdmin() {
       setImageGenerationStep('1단계: 프롬프트 준비 중...');
       
       setImageGenerationStep(`2단계: FAL AI로 이미지 생성 중... (${paragraphPrompts.length}개 단락)`);
-      const res = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const res = await fetch('/api/generate-paragraph-images-with-prompts', {
         method: 'POST',
             headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2626,7 +2628,7 @@ export default function BlogAdmin() {
       setImageGenerationStep('1단계: 골드톤 프롬프트 준비 중...');
       
       setImageGenerationStep(`2단계: FAL AI로 골드톤 이미지 생성 중... (${goldTonePrompts.length}개 단락)`);
-      const res = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const res = await fetch('/api/generate-paragraph-images-with-prompts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2725,7 +2727,7 @@ export default function BlogAdmin() {
       setImageGenerationStep(`2단계: FAL AI로 블랙톤 이미지 생성 중... (${prompts.length}개 단락)`);
       
       // 프롬프트로 이미지 생성 (수정된 프롬프트로 이미지 생성과 동일한 로직)
-      const res = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const res = await fetch('/api/generate-paragraph-images-with-prompts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -3642,77 +3644,18 @@ export default function BlogAdmin() {
     }
   };
 
-  // 파일 업로드 처리 함수 (HEIC 변환 + 리사이즈 후 Supabase Storage 직접 업로드)
-  const handleFileUpload = async (file) => {
+  // 파일 업로드 처리 함수 (공통 함수 사용)
+  const handleFileUpload = async (file: File) => {
     try {
-      // 1) HEIC → JPEG 변환 (필요 시)
-      let processedFile = file;
-      if (
-        file.type === 'image/heic' ||
-        file.type === 'image/heif' ||
-        file.name.toLowerCase().endsWith('.heic') ||
-        file.name.toLowerCase().endsWith('.heif')
-      ) {
-        console.log('🔄 HEIC 파일 변환 중...');
-        const heic2any = (await import('heic2any')).default;
-        const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-        processedFile = new File([convertedBlob[0]], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
-          type: 'image/jpeg'
-        });
-        console.log('✅ HEIC → JPG 변환 완료');
-      }
-
-      // 2) 리사이즈(긴 변 기준 2000px) 파생본 생성
-      const createDerivedBlob = async (inputFile: File): Promise<Blob> => {
-        const toImageBitmap = (blob: Blob) => new Promise<ImageBitmap>((resolve, reject) => {
-          const r = new FileReader();
-          r.onload = () => {
-            const url = String(r.result);
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const maxSide = 2000;
-              let { width, height } = img;
-              if (width > height && width > maxSide) {
-                height = Math.round((height * maxSide) / width);
-                width = maxSide;
-              } else if (height >= width && height > maxSide) {
-                width = Math.round((width * maxSide) / height);
-                height = maxSide;
-              }
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              if (!ctx) return reject(new Error('canvas context 실패'));
-              ctx.drawImage(img, 0, 0, width, height);
-              canvas.toBlob((b) => {
-                if (!b) return reject(new Error('리사이즈 실패'));
-                resolve(createImageBitmap(img));
-              });
-            };
-            img.onerror = reject;
-            img.src = url;
-          };
-          r.onerror = reject;
-          r.readAsDataURL(inputFile);
-        });
-        // 위의 toImageBitmap는 그리는 용도로만 사용되므로 다시 그려 Blob을 얻는다.
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const fr = new FileReader();
-          fr.onload = () => resolve(String(fr.result));
-          fr.onerror = reject;
-          fr.readAsDataURL(inputFile);
-        });
-        const baseImg = await new Promise<HTMLImageElement>((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = dataUrl;
-        });
-        const canvas = document.createElement('canvas');
-        const maxSide = 2000;
-        let { width, height } = baseImg;
-        if (width > height && width > maxSide) {
+      // 공통 업로드 함수 사용
+      const { url } = await uploadImageToSupabase(file, {
+        targetFolder: selectedUploadFolder || undefined,
+        enableHEICConversion: true,
+        enableEXIFBackfill: true, // EXIF 백필 추가
+      });
+      
+      // 에디터/미리보기에는 업로드된 URL 사용
+      setSelectedExistingImage(url);
           height = Math.round((height * maxSide) / width);
           width = maxSide;
         } else if (height >= width && height > maxSide) {
@@ -3729,8 +3672,6 @@ export default function BlogAdmin() {
         );
       };
 
-      const derivedBlob = await createDerivedBlob(processedFile);
-
       // 3) Supabase Storage로 직접 업로드
       // Supabase 클라이언트 (익명키)
       const { createClient } = await import('@supabase/supabase-js');
@@ -3744,62 +3685,46 @@ export default function BlogAdmin() {
       const m = String(today.getMonth() + 1).padStart(2, '0');
       const d = String(today.getDate()).padStart(2, '0');
       const dateFolder = `${y}-${m}-${d}`;
+      const yearMonth = `${y}-${m}`; // YYYY-MM
       const baseName = (processedFile.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
       const ts = Date.now();
 
-      // originals
-      const originalPath = `originals/${dateFolder}/${ts}_${baseName}`;
+      // uploaded 폴더 구조로 변경: uploaded/YYYY-MM/YYYY-MM-DD/
+      const uploadedPath = `uploaded/${yearMonth}/${dateFolder}/${ts}_${baseName}`;
       // 서버에서 서명 업로드 URL 발급
       const signRes1 = await fetch('/api/admin/storage-signed-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: originalPath })
+        body: JSON.stringify({ path: uploadedPath })
       });
-      if (!signRes1.ok) throw new Error('서명 URL 발급 실패(원본)');
+      if (!signRes1.ok) throw new Error('서명 URL 발급 실패');
       const { token: token1 } = await signRes1.json();
       // 서명 URL로 업로드 (공식 SDK 사용)
       {
         const { error } = await sb.storage
           .from('blog-images')
-          .uploadToSignedUrl(originalPath, token1, processedFile);
-        if (error) throw new Error(`원본 업로드 실패: ${error.message}`);
-      }
-
-      // derived (리사이즈본)
-      const derivedPath = `derived/${dateFolder}/${ts}_${baseName.replace(/\.[^.]+$/, '.jpg')}`;
-      const signRes2 = await fetch('/api/admin/storage-signed-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: derivedPath })
-      });
-      if (!signRes2.ok) throw new Error('서명 URL 발급 실패(파생본)');
-      const { token: token2 } = await signRes2.json();
-      {
-        const derivedFile = new File([derivedBlob], 'derived.jpg', { type: 'image/jpeg' });
-        const { error } = await sb.storage
-          .from('blog-images')
-          .uploadToSignedUrl(derivedPath, token2, derivedFile);
-        if (error) throw new Error(`파생본 업로드 실패: ${error.message}`);
+          .uploadToSignedUrl(uploadedPath, token1, processedFile);
+        if (error) throw new Error(`업로드 실패: ${error.message}`);
       }
 
       // 공개 URL 구성
-      const { data: pub1 } = sb.storage.from('blog-images').getPublicUrl(originalPath);
-      const { data: pub2 } = sb.storage.from('blog-images').getPublicUrl(derivedPath);
+      const { data: pub1 } = sb.storage.from('blog-images').getPublicUrl(uploadedPath);
 
-      console.log('✅ 업로드 완료', { original: pub1?.publicUrl, derived: pub2?.publicUrl });
+      console.log('✅ 업로드 완료', { uploaded: pub1?.publicUrl });
 
-      // 4) 메타데이터 저장 (파생본 우선 표시)
+      // 4) 메타데이터 저장
       try {
         await fetch('/api/admin/image-metadata', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            imageName: derivedPath,
-            imageUrl: pub2?.publicUrl,
+            imageName: uploadedPath,
+            imageUrl: pub1?.publicUrl,
             original_url: pub1?.publicUrl,
-            file_name: derivedPath,
-            folder_path: `derived/${dateFolder}`,
-            content_type: 'derived',
+            file_name: uploadedPath.split('/').pop(),
+            folder_path: `uploaded/${yearMonth}/${dateFolder}`,
+            date_folder: dateFolder,
+            content_type: 'uploaded',
             title: baseName,
             alt_text: '',
             keywords: [],
@@ -3809,8 +3734,8 @@ export default function BlogAdmin() {
         console.warn('메타데이터 저장 경고:', e);
       }
 
-      // 에디터/미리보기에는 파생본 URL을 기본 선택
-      setSelectedExistingImage(pub2?.publicUrl || '');
+      // 에디터/미리보기에는 업로드된 URL 사용
+      setSelectedExistingImage(pub1?.publicUrl || '');
 
     } catch (error) {
       console.error('❌ 파일 업로드 오류:', error);

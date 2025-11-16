@@ -58,6 +58,28 @@ export default function FolderTree({
       });
     });
 
+    // 🔧 디버깅: 폴더 구조 확인
+    const originalsNode = root.children.get('originals');
+    const scrapedNode = root.children.get('scraped-images');
+    console.log('📁 폴더 트리 구조:', {
+      totalFolders: folders.length,
+      rootChildren: root.children.size,
+      rootChildrenNames: Array.from(root.children.keys()),
+      originals: {
+        exists: !!originalsNode,
+        path: originalsNode?.path,
+        childrenCount: originalsNode?.children.size || 0,
+        childrenNames: originalsNode ? Array.from(originalsNode.children.keys()) : [],
+      },
+      scrapedImages: {
+        exists: !!scrapedNode,
+        path: scrapedNode?.path,
+        childrenCount: scrapedNode?.children.size || 0,
+        childrenNames: scrapedNode ? Array.from(scrapedNode.children.keys()) : [],
+      },
+      sampleFolders: folders.slice(0, 10), // 처음 10개만 표시
+    });
+
     return root;
   }, [folders]);
 
@@ -109,6 +131,19 @@ export default function FolderTree({
 
     const isExpanded = expandedFolders.has(node.path);
     const hasChildren = node.children.size > 0;
+    
+    // 🔧 디버깅: 특정 노드의 children 확인
+    if (node.name === 'originals' || node.name === 'scraped-images') {
+      console.log(`🔍 ${node.name} 폴더 렌더링:`, {
+        path: node.path,
+        hasChildren,
+        childrenCount: node.children.size,
+        children: Array.from(node.children.keys()),
+        isExpanded,
+        expandedFolders: Array.from(expandedFolders),
+      });
+    }
+    
     const isSelected = selectedFolder === node.path || 
                        (selectedFolder !== 'all' && node.path.startsWith(selectedFolder));
     const isDragOver = dragOverFolder === node.path;
@@ -140,14 +175,16 @@ export default function FolderTree({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  console.log(`🔄 토글 클릭: ${node.path}, 현재 확장 상태: ${isExpanded}`);
                   toggleFolder(node.path);
                 }}
                 className="mr-1 w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                title={`${isExpanded ? '축소' : '확장'} (하위 폴더 ${node.children.size}개)`}
               >
                 {isExpanded ? '▼' : '▶'}
               </button>
             ) : (
-              <span className="mr-1 w-4 h-4 flex items-center justify-center text-gray-400">•</span>
+              <span className="mr-1 w-4 h-4 flex items-center justify-center text-gray-400" title="하위 폴더 없음">•</span>
             )}
             
             {/* 폴더 이름 */}

@@ -1,4 +1,4 @@
-import { logFALAIUsage } from '../../lib/ai-usage-logger';
+import { logFALAIUsage } from '../../../lib/ai-usage-logger';
 import { createClient } from '@supabase/supabase-js';
 const sharp = require('sharp');
 
@@ -7,6 +7,30 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req, res) {
+  // 🔍 디버깅: 요청 정보 로깅
+  const debugInfo = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url,
+    pathname: req.url?.split('?')[0],
+    headers: {
+      host: req.headers.host,
+      'user-agent': req.headers['user-agent'],
+      referer: req.headers.referer,
+      origin: req.headers.origin,
+      'x-matched-path': req.headers['x-matched-path'],
+      'x-vercel-id': req.headers['x-vercel-id'],
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'x-forwarded-host': req.headers['x-forwarded-host'],
+    },
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL_ENV: process.env.VERCEL_ENV,
+    },
+  };
+  
+  console.log('🔍 [API Debug] generate-paragraph-images-with-prompts 요청 도달:', JSON.stringify(debugInfo, null, 2));
+  
   // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,11 +38,16 @@ export default async function handler(req, res) {
   
   // OPTIONS 요청 처리 (CORS preflight)
   if (req.method === 'OPTIONS') {
+    console.log('🔍 [API Debug] OPTIONS 요청 처리');
     return res.status(200).end();
   }
   
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    console.log(`🔍 [API Debug] 잘못된 메서드: ${req.method}, POST만 허용`);
+    return res.status(405).json({ 
+      message: 'Method not allowed',
+      debug: debugInfo
+    });
   }
 
   try {
@@ -523,3 +552,4 @@ async function generateWithMethodB(promptData, imageCount, metadata, paragraphIn
     method: `portrait direct (${usedSize})`
   };
 }
+
