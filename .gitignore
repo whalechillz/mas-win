@@ -43,3 +43,10 @@ docs/e2e-tests/TEST_CREDENTIALS.md
 docs/e2e-tests/*.md
 .env.local.bak
 .env.local
+
+# Environment files
+.env.local.bak
+.env*.bak
+.env.local
+.env*.local
+.env
