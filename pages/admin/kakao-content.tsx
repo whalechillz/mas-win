@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import KakaoAccountEditor from '../../components/admin/kakao/KakaoAccountEditor';
 import ImageSelectionModal from '../../components/admin/kakao/ImageSelectionModal';
 import MessageListView from '../../components/admin/kakao/MessageListView';
 import WorkflowVisualization from '../../components/admin/kakao/WorkflowVisualization';
+import VariationTestPanel from '../../components/admin/kakao/VariationTestPanel';
+import VariationPreview from '../../components/admin/kakao/VariationPreview';
 import { generateGoldToneImages, generateBlackToneImages, generateImagePrompts, generateKakaoImagePrompts } from '../../lib/ai-image-generation';
 import { promptConfigManager } from '../../lib/prompt-config-manager';
-import { Rocket, Calendar, Settings, Loader, ChevronLeft, ChevronRight, CheckCircle, Clock, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Rocket, Calendar, Settings, Loader, ChevronLeft, ChevronRight, CheckCircle, Clock, ChevronDown, ChevronUp, Sparkles, TestTube, Eye } from 'lucide-react';
 
 interface CalendarData {
   profileContent: {
@@ -87,6 +90,7 @@ interface CalendarData {
 }
 
 export default function KakaoContentPage() {
+  const router = useRouter();
   const [calendarData, setCalendarData] = useState<CalendarData | null>(null);
   const [loading, setLoading] = useState(true);
   const [todayStr, setTodayStr] = useState('');
@@ -122,8 +126,10 @@ export default function KakaoContentPage() {
   // 토글 상태
   const [isBrandStrategyExpanded, setIsBrandStrategyExpanded] = useState(false);
   const [isPromptConfigExpanded, setIsPromptConfigExpanded] = useState(false);
-  const [isDateSummaryExpanded, setIsDateSummaryExpanded] = useState(true); // 날짜 발행 요약 토글
+  const [isDateSummaryExpanded, setIsDateSummaryExpanded] = useState(false); // 날짜 발행 요약 토글 (기본 접힘)
   const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false); // 워크플로우 토글
+  const [isVariationTestExpanded, setIsVariationTestExpanded] = useState(false); // 베리에이션 테스트 토글
+  const [isVariationPreviewExpanded, setIsVariationPreviewExpanded] = useState(false); // 베리에이션 미리보기 토글
 
   // 오늘 날짜 계산
   useEffect(() => {
@@ -139,6 +145,21 @@ export default function KakaoContentPage() {
       setSelectedDates([dateStr]);
     }
   }, []);
+
+  // URL 파라미터에서 date 읽기
+  useEffect(() => {
+    if (router.isReady) {
+      const { date } = router.query;
+      if (date && typeof date === 'string') {
+        // URL 파라미터에서 날짜를 읽어서 selectedDate 설정
+        console.log('📅 URL에서 날짜 파라미터 읽기:', date);
+        setSelectedDate(date);
+        setSelectedDates([date]);
+        // 해당 날짜의 데이터 로드
+        loadCalendarData(date);
+      }
+    }
+  }, [router.isReady, router.query]);
 
   // 날짜 범위 계산 함수
   const getDateRange = (mode: 'today' | 'week' | 'month' | 'list') => {
@@ -193,40 +214,57 @@ export default function KakaoContentPage() {
     }
   }, []);
 
-  // 캘린더 데이터 로드
-  useEffect(() => {
-    const loadCalendar = async () => {
-      try {
-        setLoading(true);
-        const today = new Date();
-        const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
-        const data = await res.json();
-        
-        if (data.success && data.calendarData) {
-          setCalendarData(data.calendarData);
-        } else {
-          console.error('캘린더 로드 실패:', data.message);
-          // Supabase가 비어있을 경우 JSON 파일로 폴백 시도
-          try {
-            const fallbackRes = await fetch(`/api/content-calendar/load?month=${monthStr}`);
-            const fallbackData = await fallbackRes.json();
-            if (fallbackData.success && fallbackData.calendar) {
-              setCalendarData(fallbackData.calendar);
-            }
-          } catch (fallbackError) {
-            console.error('폴백 로드 실패:', fallbackError);
+  // 캘린더 데이터 로드 함수
+  const loadCalendarData = async (targetDate?: string) => {
+    try {
+      setLoading(true);
+      // 선택된 날짜가 있으면 해당 날짜의 월 사용, 없으면 오늘 날짜 사용
+      const dateToUse = targetDate || selectedDate || todayStr;
+      const dateObj = dateToUse ? new Date(dateToUse) : new Date();
+      const monthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
+      const data = await res.json();
+      
+      if (data.success && data.calendarData) {
+        setCalendarData(data.calendarData);
+      } else {
+        console.error('캘린더 로드 실패:', data.message);
+        // Supabase가 비어있을 경우 JSON 파일로 폴백 시도
+        try {
+          const fallbackRes = await fetch(`/api/content-calendar/load?month=${monthStr}`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && fallbackData.calendar) {
+            setCalendarData(fallbackData.calendar);
           }
+        } catch (fallbackError) {
+          console.error('폴백 로드 실패:', fallbackError);
         }
-      } catch (error) {
-        console.error('캘린더 로드 오류:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('캘린더 로드 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadCalendar();
+  // 캘린더 데이터 로드 (초기 로드)
+  useEffect(() => {
+    loadCalendarData();
   }, []);
+
+  // 선택된 날짜가 변경될 때 해당 월의 데이터 로드
+  useEffect(() => {
+    if (selectedDate) {
+      const selectedDateObj = new Date(selectedDate);
+      const selectedMonth = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}`;
+      
+      // 현재 로드된 월과 선택된 날짜의 월이 다르면 다시 로드
+      if (!calendarData || calendarData.month !== selectedMonth) {
+        loadCalendarData(selectedDate);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   // 공통 저장 함수 (Supabase에 저장)
   const saveCalendarData = async (updatedData: CalendarData): Promise<void> => {
@@ -282,7 +320,23 @@ export default function KakaoContentPage() {
 
   // 선택된 날짜의 데이터 가져오기
   const getDateData = (date: string) => {
-    if (!calendarData || !date) return null;
+    if (!date) {
+      // 날짜가 없을 때 기본 빈 구조 반환
+      return {
+        account1Profile: null,
+        account2Profile: null,
+        feed: null
+      };
+    }
+
+    if (!calendarData) {
+      // 캘린더 데이터가 없을 때 기본 빈 구조 반환
+      return {
+        account1Profile: null,
+        account2Profile: null,
+        feed: null
+      };
+    }
 
     // created 여부와 관계없이 해당 날짜 데이터 가져오기
     const account1Profile = calendarData.profileContent?.account1?.dailySchedule?.find(
@@ -296,9 +350,9 @@ export default function KakaoContentPage() {
     );
 
     return {
-      account1Profile,
-      account2Profile,
-      feed
+      account1Profile: account1Profile || null,
+      account2Profile: account2Profile || null,
+      feed: feed || null
     };
   };
 
@@ -422,7 +476,7 @@ export default function KakaoContentPage() {
       });
 
       // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const response = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -514,7 +568,7 @@ export default function KakaoContentPage() {
       });
 
       // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const response = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -599,7 +653,7 @@ export default function KakaoContentPage() {
       });
 
       // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const response = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -643,192 +697,50 @@ export default function KakaoContentPage() {
     }
   };
 
-  // 계정 1 자동 생성
+  // 계정 1 자동 생성 (API 호출 방식)
   const handleAccount1AutoCreate = async () => {
-    const currentData = getDateData(selectedDate || todayStr);
-    if (!currentData?.account1Profile || !currentData?.feed) return;
+    const currentDate = selectedDate || todayStr;
     
     try {
       setIsCreatingAll(true);
       
-      // 프로필 이미지 생성 (프롬프트도 저장)
-      if (!currentData.account1Profile.background.imageUrl) {
-        const bgResult = await handleGenerateGoldToneImage('background', currentData.account1Profile.background.prompt);
-        if (bgResult.imageUrls.length > 0) {
-          currentData.account1Profile.background.imageUrl = bgResult.imageUrls[0];
-          // 생성된 프롬프트 저장
-          if (bgResult.generatedPrompt) {
-            currentData.account1Profile.background.prompt = bgResult.generatedPrompt;
-          }
-        }
-      }
+      // API를 통해 자동 생성
+      const success = await generateForSingleDate(currentDate, 'account1', false);
       
-      if (!currentData.account1Profile.profile.imageUrl) {
-        const profileResult = await handleGenerateGoldToneImage('profile', currentData.account1Profile.profile.prompt);
-        if (profileResult.imageUrls.length > 0) {
-          currentData.account1Profile.profile.imageUrl = profileResult.imageUrls[0];
-          // 생성된 프롬프트 저장
-          if (profileResult.generatedPrompt) {
-            currentData.account1Profile.profile.prompt = profileResult.generatedPrompt;
-          }
-        }
-      }
-      
-      // 피드 이미지 생성 (프롬프트도 저장)
-      if (!currentData.feed.account1.imageUrl) {
-        const feedResult = await handleGenerateFeedImage(currentData.feed.account1.imagePrompt, 'gold');
-        if (feedResult.imageUrls.length > 0) {
-          currentData.feed.account1.imageUrl = feedResult.imageUrls[0];
-          // 생성된 프롬프트 저장
-          if (feedResult.generatedPrompt) {
-            currentData.feed.account1.imagePrompt = feedResult.generatedPrompt;
-          }
-        }
-      }
-      
-      // 상태 업데이트 및 캘린더 파일 저장
-      const updated = { ...calendarData! };
-            const currentDate = selectedDate || todayStr;
-            const profileIndex = updated.profileContent.account1.dailySchedule.findIndex(
-              p => p.date === currentDate
-            );
-            if (profileIndex >= 0) {
-              updated.profileContent.account1.dailySchedule[profileIndex] = {
-                ...updated.profileContent.account1.dailySchedule[profileIndex],
-                background: {
-                  ...updated.profileContent.account1.dailySchedule[profileIndex].background,
-                  imageUrl: currentData.account1Profile.background.imageUrl,
-                  prompt: currentData.account1Profile.background.prompt // 생성된 프롬프트 저장
-                },
-                profile: {
-                  ...updated.profileContent.account1.dailySchedule[profileIndex].profile,
-                  imageUrl: currentData.account1Profile.profile.imageUrl,
-                  prompt: currentData.account1Profile.profile.prompt // 생성된 프롬프트 저장
-                },
-                created: true,
-                createdAt: new Date().toISOString()
-              };
-            }
-            
-            const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
-              f => f.date === currentDate
-            );
-            if (feedIndex >= 0 && currentData.feed?.account1) {
-              updated.kakaoFeed.dailySchedule[feedIndex].account1 = {
-                ...updated.kakaoFeed.dailySchedule[feedIndex].account1,
-                imageUrl: currentData.feed.account1.imageUrl,
-                imagePrompt: currentData.feed.account1.imagePrompt, // 생성된 프롬프트 저장
-                created: true,
-                createdAt: new Date().toISOString()
-              };
-            }
-      
-      setCalendarData(updated);
-
-      // Supabase에 저장
-      try {
-        await saveCalendarData(updated);
+      if (success) {
+        // 생성 완료 후 캘린더 데이터 다시 로드
+        await loadCalendarData();
         alert('✅ 계정 1 자동 생성 완료!\n\n- Supabase에 저장됨 (로컬/배포 동기화)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
-      } catch (error) {
-        alert(`자동 생성 완료, 하지만 저장 실패했습니다.`);
+      } else {
+        alert('⚠️ 자동 생성이 완료되었지만 일부 이미지가 생성되지 않았을 수 있습니다.');
       }
     } catch (error: any) {
+      console.error('계정 1 자동 생성 오류:', error);
       alert(`자동 생성 실패: ${error.message}`);
     } finally {
       setIsCreatingAll(false);
     }
   };
 
-  // 계정 2 자동 생성
+  // 계정 2 자동 생성 (API 호출 방식)
   const handleAccount2AutoCreate = async () => {
-    const currentData = getDateData(selectedDate || todayStr);
-    if (!currentData?.account2Profile || !currentData?.feed) return;
+    const currentDate = selectedDate || todayStr;
     
     try {
       setIsCreatingAll(true);
       
-      // 프로필 이미지 생성 (프롬프트도 저장)
-      if (!currentData.account2Profile.background.imageUrl) {
-        const bgResult = await handleGenerateBlackToneImage('background', currentData.account2Profile.background.prompt);
-        if (bgResult.imageUrls.length > 0) {
-          currentData.account2Profile.background.imageUrl = bgResult.imageUrls[0];
-          // 생성된 프롬프트 저장
-          if (bgResult.generatedPrompt) {
-            currentData.account2Profile.background.prompt = bgResult.generatedPrompt;
-          }
-        }
-      }
+      // API를 통해 자동 생성
+      const success = await generateForSingleDate(currentDate, 'account2', false);
       
-      if (!currentData.account2Profile.profile.imageUrl) {
-        const profileResult = await handleGenerateBlackToneImage('profile', currentData.account2Profile.profile.prompt);
-        if (profileResult.imageUrls.length > 0) {
-          currentData.account2Profile.profile.imageUrl = profileResult.imageUrls[0];
-          // 생성된 프롬프트 저장
-          if (profileResult.generatedPrompt) {
-            currentData.account2Profile.profile.prompt = profileResult.generatedPrompt;
-          }
-        }
-      }
-      
-      // 피드 이미지 생성 (프롬프트도 저장)
-      if (!currentData.feed.account2.imageUrl) {
-        const feedResult = await handleGenerateFeedImage(currentData.feed.account2.imagePrompt, 'black');
-        if (feedResult.imageUrls.length > 0) {
-          currentData.feed.account2.imageUrl = feedResult.imageUrls[0];
-          // 생성된 프롬프트 저장
-          if (feedResult.generatedPrompt) {
-            currentData.feed.account2.imagePrompt = feedResult.generatedPrompt;
-          }
-        }
-      }
-      
-      // 상태 업데이트 및 캘린더 파일 저장
-      const updated = { ...calendarData! };
-      const currentDate = selectedDate || todayStr;
-      const profileIndex = updated.profileContent.account2.dailySchedule.findIndex(
-        p => p.date === currentDate
-      );
-      if (profileIndex >= 0) {
-        updated.profileContent.account2.dailySchedule[profileIndex] = {
-          ...updated.profileContent.account2.dailySchedule[profileIndex],
-          background: {
-            ...updated.profileContent.account2.dailySchedule[profileIndex].background,
-            imageUrl: currentData.account2Profile.background.imageUrl,
-            prompt: currentData.account2Profile.background.prompt // 생성된 프롬프트 저장
-          },
-          profile: {
-            ...updated.profileContent.account2.dailySchedule[profileIndex].profile,
-            imageUrl: currentData.account2Profile.profile.imageUrl,
-            prompt: currentData.account2Profile.profile.prompt // 생성된 프롬프트 저장
-          },
-          created: true,
-          createdAt: new Date().toISOString()
-        };
-      }
-      
-      const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
-        f => f.date === currentDate
-      );
-            if (feedIndex >= 0 && currentData.feed?.account2) {
-              updated.kakaoFeed.dailySchedule[feedIndex].account2 = {
-                ...updated.kakaoFeed.dailySchedule[feedIndex].account2,
-                imageUrl: currentData.feed.account2.imageUrl,
-                imagePrompt: currentData.feed.account2.imagePrompt, // 생성된 프롬프트 저장
-                created: true,
-                createdAt: new Date().toISOString()
-              };
-            }
-      
-      setCalendarData(updated);
-
-      // Supabase에 저장
-      try {
-        await saveCalendarData(updated);
+      if (success) {
+        // 생성 완료 후 캘린더 데이터 다시 로드
+        await loadCalendarData();
         alert('✅ 계정 2 자동 생성 완료!\n\n- Supabase에 저장됨 (로컬/배포 동기화)\n\n실제 카카오톡 업로드는 수동 또는 자동화 스크립트로 진행하세요.');
-      } catch (error) {
-        alert(`자동 생성 완료, 하지만 저장 실패했습니다.`);
+      } else {
+        alert('⚠️ 자동 생성이 완료되었지만 일부 이미지가 생성되지 않았을 수 있습니다.');
       }
     } catch (error: any) {
+      console.error('계정 2 자동 생성 오류:', error);
       alert(`자동 생성 실패: ${error.message}`);
     } finally {
       setIsCreatingAll(false);
@@ -1125,48 +1037,8 @@ export default function KakaoContentPage() {
     );
   }
 
-  if (!selectedDateData || !selectedDateData.account1Profile || !selectedDateData.account2Profile || !selectedDateData.feed) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <AdminNav />
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* 저장 상태 표시 */}
-          {saveStatus.status !== 'idle' && (
-            <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
-              saveStatus.status === 'saving' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-              saveStatus.status === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
-              'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              {saveStatus.status === 'saving' && (
-                <Loader className="w-4 h-4 animate-spin" />
-              )}
-              {saveStatus.status === 'success' && (
-                <span className="text-green-600">✓</span>
-              )}
-              {saveStatus.status === 'error' && (
-                <span className="text-red-600">✗</span>
-              )}
-              <span className="text-sm font-medium">{saveStatus.message}</span>
-            </div>
-          )}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800">
-              선택된 날짜({selectedDate || todayStr})의 캘린더 데이터가 없습니다.
-            </p>
-            <p className="text-sm text-yellow-700 mt-2">
-              {!selectedDateData ? '캘린더 데이터를 불러올 수 없습니다.' : 
-               !selectedDateData.account1Profile ? '계정 1 프로필 데이터가 없습니다.' :
-               !selectedDateData.account2Profile ? '계정 2 프로필 데이터가 없습니다.' :
-               !selectedDateData.feed ? '피드 데이터가 없습니다.' : ''}
-            </p>
-            <p className="text-xs text-yellow-600 mt-2">
-              💡 팁: `docs/content-calendar/2025-11.json` 파일에 오늘 날짜 데이터를 추가해주세요.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // 데이터가 없어도 UI는 표시 (베리에이션 미리보기와 계정 자동 생성 버튼 사용 가능)
+  // 경고 메시지만 표시하고 계속 진행
 
   // 배포 상태 업데이트 핸들러
   const handlePublishStatusChange = async (account: 'account1' | 'account2', status: 'created' | 'published') => {
@@ -1328,7 +1200,7 @@ export default function KakaoContentPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
                 카카오톡 콘텐츠 생성
               </h1>
               <div className="flex items-center gap-2 text-gray-600">
@@ -1502,6 +1374,83 @@ export default function KakaoContentPage() {
                 )}
               </div>
             )}
+
+            {/* 데이터 없음 경고 메시지 */}
+            {(!selectedDateData?.account1Profile || !selectedDateData?.account2Profile || !selectedDateData?.feed) && (
+              <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800 font-medium">
+                  ⚠️ 선택된 날짜({selectedDate || todayStr})의 캘린더 데이터가 없습니다.
+                </p>
+                <p className="text-sm text-yellow-700 mt-2">
+                  {!selectedDateData?.account1Profile ? '• 계정 1 프로필 데이터가 없습니다. ' : ''}
+                  {!selectedDateData?.account2Profile ? '• 계정 2 프로필 데이터가 없습니다. ' : ''}
+                  {!selectedDateData?.feed ? '• 피드 데이터가 없습니다. ' : ''}
+                </p>
+                <p className="text-xs text-yellow-600 mt-2">
+                  💡 "계정 자동 생성" 버튼을 클릭하여 데이터를 생성할 수 있습니다.
+                </p>
+              </div>
+            )}
+
+            {/* 베리에이션 미리보기 및 테스트 섹션 */}
+            <div className="mt-4 space-y-4">
+              {/* 베리에이션 미리보기 */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                <button
+                  onClick={() => setIsVariationPreviewExpanded(!isVariationPreviewExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isVariationPreviewExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                    <Eye className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-gray-900">베리에이션 미리보기</span>
+                  </div>
+                </button>
+                {isVariationPreviewExpanded && (
+                  <div className="p-4 border-t border-gray-200">
+                    <VariationPreview
+                      selectedDate={selectedDate || todayStr}
+                      accountType={calendarData?.profileContent?.account1 ? 'account1' : 'account2'}
+                      onDateChange={(date) => {
+                        setSelectedDate(date);
+                        setSelectedDates([date]);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* 베리에이션 테스트 */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                <button
+                  onClick={() => setIsVariationTestExpanded(!isVariationTestExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isVariationTestExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                    <TestTube className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium text-gray-900">베리에이션 테스트</span>
+                  </div>
+                </button>
+                {isVariationTestExpanded && (
+                  <div className="p-4 border-t border-gray-200">
+                    <VariationTestPanel
+                      onTestComplete={(results) => {
+                        console.log('베리에이션 테스트 완료:', results);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* 워크플로우 시각화 (보기 모드 선택 버튼 바로 아래) */}
             {viewMode !== 'list' && selectedDate && (
@@ -2165,7 +2114,8 @@ export default function KakaoContentPage() {
                   imageUrl: data.imageUrl,
                   caption: data.caption,
                   imagePrompt: data.imagePrompt, // 프롬프트도 저장
-                  url: data.url // URL도 저장
+                  url: data.url, // URL도 저장
+                  basePrompt: data.basePrompt // basePrompt도 저장
                 };
               }
               setCalendarData(updated);
@@ -2299,7 +2249,8 @@ export default function KakaoContentPage() {
                   imageUrl: data.imageUrl,
                   caption: data.caption,
                   imagePrompt: data.imagePrompt, // 프롬프트도 저장
-                  url: data.url // URL도 저장
+                  url: data.url, // URL도 저장
+                  basePrompt: data.basePrompt // basePrompt도 저장
                 };
               }
               setCalendarData(updated);

@@ -1,5 +1,5 @@
 import { createSolapiSignature } from '../../../utils/solapiSignature.js';
-import formidable from 'formidable';
+// Formidable은 동적 import로 로드 (Vercel 환경 호환성)
 import fs from 'fs';
 
 const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
@@ -26,6 +26,8 @@ export default async function handler(req, res) {
       });
     }
 
+    // Formidable 동적 import (Vercel 환경 호환성)
+    const formidable = (await import('formidable')).default;
     // formidable을 사용하여 multipart/form-data 파싱
     const form = formidable({
       maxFileSize: 5 * 1024 * 1024, // 5MB 제한

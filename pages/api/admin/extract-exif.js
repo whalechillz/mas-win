@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import exifr from 'exifr';
-import sharp from 'sharp';
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 export const config = {
   api: {
@@ -52,6 +52,8 @@ export default async function handler(req, res) {
     // 2) 보조: sharp 메타데이터 (기본 width/height, orientation 등)
     let sharpMeta = null;
     try {
+      // Sharp 동적 import (Vercel 환경 호환성)
+      const sharp = (await import('sharp')).default;
       sharpMeta = await sharp(buffer).metadata();
     } catch (_) {}
 

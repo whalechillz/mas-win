@@ -1269,6 +1269,9 @@ export default function GalleryAdmin() {
   // 일괄 편집/삭제 상태
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  // 비교 모달 개별 삭제 확인 모달
+  const [showCompareDeleteConfirm, setShowCompareDeleteConfirm] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<any>(null);
   const [bulkEditForm, setBulkEditForm] = useState({
     alt_text: '',
     keywords: '', // 쉼표 구분, 추가 모드
@@ -5702,12 +5705,26 @@ export default function GalleryAdmin() {
 
                 return (
                   <div key={img.id} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-lg">
-                    {/* 이미지 썸네일 */}
-                    <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden shadow-inner">
+                    {/* 이미지 썸네일 - 원본 비율 유지 */}
+                    <div 
+                      className="bg-gray-100 rounded-lg mb-4 overflow-hidden shadow-inner flex items-center justify-center"
+                      style={{ 
+                        maxHeight: '600px',
+                        minHeight: '200px',
+                        width: compareResult.images.length === 1 ? 'auto' : '100%',
+                        maxWidth: compareResult.images.length === 1 ? '600px' : '100%',
+                        margin: compareResult.images.length === 1 ? '0 auto' : '0',
+                        aspectRatio: img.width && img.height ? `${img.width} / ${img.height}` : undefined
+                      }}
+                    >
                       <img
                         src={img.cdnUrl}
                         alt={img.altText || img.filename}
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full object-contain"
+                        style={{
+                          width: img.width && img.height ? 'auto' : '100%',
+                          height: img.width && img.height ? 'auto' : '100%'
+                        }}
                       />
                     </div>
                     
@@ -5719,6 +5736,16 @@ export default function GalleryAdmin() {
                           {img.filename}
                         </div>
                       </div>
+                      
+                      {/* 파일 위치 추가 */}
+                      {img.filePath && (
+                        <div>
+                          <div className="text-xs font-semibold text-gray-500 mb-1">파일 위치</div>
+                          <div className="text-sm text-gray-700 break-all" title={img.filePath}>
+                            📁 {img.filePath}
+                          </div>
+                        </div>
+                      )}
                       
                       <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -5737,176 +5764,216 @@ export default function GalleryAdmin() {
                         </div>
                         <div>
                           <div className="text-xs font-semibold text-gray-500 mb-1">사용 현황</div>
-                          <div className={`text-sm font-semibold ${img.usage ? 'text-green-600' : 'text-gray-400'}`}>
-                            {img.usage ? `✅ ${img.usageCount}회` : '❌ 미사용'}
-                          </div>
+                          {img.usage && img.usedIn && img.usedIn.length > 0 ? (
+                            <div className="text-sm font-semibold text-green-600">
+                              ✅ {img.usageCount}회 사용 ({img.usedIn.length}개 위치)
+                            </div>
+                          ) : (
+                            <div className="text-sm font-semibold text-gray-400">
+                              ❌ 미사용
+                            </div>
+                          )}
                         </div>
                       </div>
                       
-                      {/* 사용 위치 */}
-                      {usedInList.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                            <span>🔗</span>
-                            <span>사용 위치 ({usedInList.length}개)</span>
-                            {commonLocations.length > 0 && (
-                              <span className="ml-auto text-green-600 text-xs">
-                                공통 {commonLocations.length}개
-                              </span>
-                            )}
-                            {uniqueLocations.length > 0 && (
-                              <span className="text-orange-600 text-xs">
-                                고유 {uniqueLocations.length}개
-                              </span>
-                            )}
-                          </div>
-                          <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                            {usedInList.map((u: any, idx: number) => {
-                              const isCommon = commonLocations.some(loc => 
-                                loc.type === u.type && loc.title === u.title
-                              );
-                              return (
-                                <div 
-                                  key={idx} 
-                                  className={`text-xs p-2 rounded flex items-start gap-2 ${
-                                    isCommon ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'
-                                  }`}
-                                >
-                                  <span className="text-base">
-                                    {u.type === 'blog' && '📰'}
-                                    {u.type === 'funnel' && '🎯'}
-                                    {u.type === 'homepage' && '🏠'}
-                                    {u.type === 'muziik' && '🎵'}
-                                    {u.type === 'static_page' && '📄'}
-                                  </span>
-                                  <span className="flex-1 min-w-0">
-                                    {(() => {
-                                      // 🔧 배포되지 않은 블로그 판단: status가 명시적으로 draft/archived이거나, isPublished가 false인 경우만
-                                      const isUnpublishedBlog = u.type === 'blog' && 
-                                        (u.status === 'draft' || u.status === 'archived' || 
-                                         (u.isPublished === false && u.status !== 'published'));
-                                      
-                                      // 🔧 id가 없거나 유효하지 않으면 slug 사용, 둘 다 없으면 링크 생성 안 함
-                                      const getEditId = () => {
-                                        if (u.id && u.id !== 'undefined' && u.id !== 'null' && String(u.id).trim() !== '') {
-                                          return u.id;
-                                        }
-                                        if (u.slug && u.slug !== 'undefined' && u.slug !== 'null' && String(u.slug).trim() !== '') {
-                                          return u.slug;
-                                        }
-                                        return null;
-                                      };
-                                      
-                                      const editId = getEditId();
-                                      
-                                      // 🔧 링크 URL 생성: 배포된 블로그는 usage.url 또는 slug로, 미배포는 editId로
-                                      let linkUrl = '#';
-                                      if (isUnpublishedBlog) {
-                                        linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
+                      {/* 사용 위치 - URL별 그룹화 */}
+                      {usedInList.length > 0 && (() => {
+                        // URL별로 그룹화
+                        const groupedByUrl: { [key: string]: { url: string, title: string, locations: any[], count: number, lastUsed: string | null, type: string, isCommon: boolean } } = {};
+                        
+                        usedInList.forEach((u: any) => {
+                          // URL 키 생성 (url이 있으면 url, 없으면 title 사용)
+                          const urlKey = u.url || u.title || '링크 없음';
+                          
+                          if (!groupedByUrl[urlKey]) {
+                            const isCommon = commonLocations.some(loc => 
+                              loc.type === u.type && loc.title === u.title
+                            );
+                            
+                            groupedByUrl[urlKey] = {
+                              url: u.url || '',
+                              title: u.title || '',
+                              locations: [],
+                              count: 0,
+                              lastUsed: null,
+                              type: u.type || '',
+                              isCommon: isCommon
+                            };
+                          }
+                          
+                          groupedByUrl[urlKey].locations.push(u);
+                          groupedByUrl[urlKey].count++;
+                          
+                          // 가장 최근 사용일 추적
+                          if (u.updated_at || u.last_used_at) {
+                            const usedDate = u.updated_at || u.last_used_at;
+                            if (!groupedByUrl[urlKey].lastUsed || usedDate > groupedByUrl[urlKey].lastUsed) {
+                              groupedByUrl[urlKey].lastUsed = usedDate;
+                            }
+                          }
+                        });
+                        
+                        const groupedList = Object.values(groupedByUrl);
+                        
+                        return (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                              <span>🔗</span>
+                              <span>사용 위치 ({usedInList.length}개)</span>
+                              {commonLocations.length > 0 && (
+                                <span className="ml-auto text-green-600 text-xs">
+                                  공통 {commonLocations.length}개
+                                </span>
+                              )}
+                              {uniqueLocations.length > 0 && (
+                                <span className="text-orange-600 text-xs">
+                                  고유 {uniqueLocations.length}개
+                                </span>
+                              )}
+                            </div>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {groupedList.map((group, groupIdx) => {
+                                const u = group.locations[0]; // 첫 번째 항목을 기준으로 링크 생성
+                                
+                                // 🔧 배포되지 않은 블로그 판단
+                                const isUnpublishedBlog = u.type === 'blog' && 
+                                  (u.status === 'draft' || u.status === 'archived' || 
+                                   (u.isPublished === false && u.status !== 'published'));
+                                
+                                // 🔧 id가 없거나 유효하지 않으면 slug 사용
+                                const getEditId = () => {
+                                  if (u.id && u.id !== 'undefined' && u.id !== 'null' && String(u.id).trim() !== '') {
+                                    return u.id;
+                                  }
+                                  if (u.slug && u.slug !== 'undefined' && u.slug !== 'null' && String(u.slug).trim() !== '') {
+                                    return u.slug;
+                                  }
+                                  return null;
+                                };
+                                
+                                const editId = getEditId();
+                                
+                                // 🔧 링크 URL 생성
+                                let linkUrl = '#';
+                                if (isUnpublishedBlog) {
+                                  linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
+                                } else {
+                                  // 카카오 콘텐츠인 경우 날짜 파라미터 사용
+                                  if (u.type === 'kakao_profile' || u.type === 'kakao_feed') {
+                                    // date 속성을 우선 사용 (가장 정확함)
+                                    if (u.date) {
+                                      linkUrl = `/admin/kakao-content?date=${u.date}`;
+                                    } else if (u.url) {
+                                      // url이 있으면 그대로 사용 (이미 날짜 포함되어 있을 수 있음)
+                                      // 상대 경로인 경우 그대로 사용, 절대 경로인 경우 변환
+                                      if (u.url.startsWith('http')) {
+                                        linkUrl = u.url;
                                       } else {
-                                        // 배포된 블로그
-                                        if (u.url) {
-                                          linkUrl = u.url.startsWith('http') ? u.url : `http://localhost:3000${u.url}`;
-                                        } else if (u.slug) {
-                                          // url이 없으면 slug로 블로그 페이지 링크 생성
-                                          linkUrl = `http://localhost:3000/blog/${u.slug}`;
-                                        } else {
-                                          linkUrl = '#';
-                                        }
+                                        linkUrl = u.url; // 상대 경로는 그대로 사용
                                       }
-                                      
-                                      return linkUrl !== '#' ? (
-                                        <a 
-                                          href={linkUrl}
-                                          target={isUnpublishedBlog ? undefined : "_blank"}
-                                          rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
-                                          className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline break-all`}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            // 🔧 배포되지 않은 블로그는 새 탭에서 열지 않음
-                                            if (isUnpublishedBlog) {
-                                              e.preventDefault();
-                                              if (linkUrl !== '#') {
-                                                window.location.href = linkUrl;
+                                    } else {
+                                      linkUrl = '#';
+                                    }
+                                  } else if (u.url) {
+                                    linkUrl = u.url.startsWith('http') ? u.url : `http://localhost:3000${u.url}`;
+                                  } else if (u.slug) {
+                                    linkUrl = `http://localhost:3000/blog/${u.slug}`;
+                                  } else {
+                                    linkUrl = '#';
+                                  }
+                                }
+                                
+                                return (
+                                  <div 
+                                    key={groupIdx} 
+                                    className={`text-xs p-2.5 rounded border ${
+                                      group.isCommon ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'
+                                    }`}
+                                  >
+                                    {/* URL/제목 */}
+                                    <div className="font-semibold text-gray-800 mb-1.5 flex items-center gap-2">
+                                      <span className="text-base">
+                                        {group.type === 'blog' && '📰'}
+                                        {group.type === 'funnel' && '🎯'}
+                                        {group.type === 'homepage' && '🏠'}
+                                        {group.type === 'muziik' && '🎵'}
+                                        {group.type === 'static_page' && '📄'}
+                                        {(group.type === 'kakao_profile' || group.type === 'kakao_feed') && '💬'}
+                                      </span>
+                                      <span className="flex-1 min-w-0">
+                                        {linkUrl !== '#' ? (
+                                          <a 
+                                            href={linkUrl}
+                                            target={isUnpublishedBlog ? undefined : "_blank"}
+                                            rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
+                                            className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline break-all`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (isUnpublishedBlog) {
+                                                e.preventDefault();
+                                                if (linkUrl !== '#') {
+                                                  window.location.href = linkUrl;
+                                                }
                                               }
-                                            }
-                                            // 🔧 배포된 블로그는 기본 링크 동작 사용 (target="_blank"로 새 탭에서 열림)
-                                          }}
-                                          title={isUnpublishedBlog ? `초안/미배포: ${u.title}` : (u.url || linkUrl)}
-                                        >
-                                          {u.title}
-                                          {isUnpublishedBlog && ' (초안)'}
-                                        </a>
-                                      ) : (
-                                        <span className="text-gray-500">{u.title} (링크 없음)</span>
-                                      );
-                                    })()}
-                                    <div className="flex gap-1 mt-0.5">
-                                      {u.isFeatured && (
+                                            }}
+                                            title={isUnpublishedBlog ? `초안/미배포: ${group.title}` : (u.url || linkUrl)}
+                                          >
+                                            {group.title}
+                                            {isUnpublishedBlog && ' (초안)'}
+                                          </a>
+                                        ) : (
+                                          <span className="text-gray-500">{group.title} (링크 없음)</span>
+                                        )}
+                                      </span>
+                                    </div>
+                                    
+                                    {/* 위치 개수 및 사용일 */}
+                                    <div className="text-gray-600 text-xs mt-1 flex items-center gap-2">
+                                      <span>위치 {group.count}개</span>
+                                      {group.lastUsed && (
+                                        <>
+                                          <span>•</span>
+                                          <span>사용일: {new Date(group.lastUsed).toLocaleDateString('ko-KR', { 
+                                            year: 'numeric', 
+                                            month: '2-digit', 
+                                            day: '2-digit' 
+                                          })}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                    
+                                    {/* 배지들 */}
+                                    <div className="flex gap-1 mt-1.5">
+                                      {group.locations.some((loc: any) => loc.isFeatured) && (
                                         <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">
                                           대표
                                         </span>
                                       )}
-                                      {u.isInContent && !u.isFeatured && (
+                                      {group.locations.some((loc: any) => loc.isInContent && !loc.isFeatured) && (
                                         <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                                           본문
                                         </span>
                                       )}
-                                      {isCommon && (
+                                      {group.isCommon && (
                                         <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs">
                                           공통
                                         </span>
                                       )}
                                     </div>
-                                  </span>
-                                </div>
-                              );
-                            })}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                       
                       {/* 개별 삭제 버튼 */}
                       {!img.usage && (
                         <button
-                          onClick={async () => {
-                            if (!confirm(`이 이미지를 삭제하시겠습니까?\n\n${img.filename}`)) {
-                              return;
-                            }
-
-                            try {
-                              const response = await fetch('/api/admin/image-asset-manager', {
-                                method: 'DELETE',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ 
-                                  id: img.id,
-                                  permanent: true 
-                                }),
-                              });
-
-                              if (!response.ok) {
-                                const errorData = await response.json();
-                                throw new Error(errorData.error || errorData.details || '삭제 실패');
-                              }
-
-                              const result = await response.json();
-                              if (!result.success) {
-                                throw new Error(result.error || '삭제 실패');
-                              }
-
-                              alert(`✅ 이미지 삭제 완료!\n\n${img.filename}`);
-
-                              setShowCompareModal(false);
-                              setCompareResult(null);
-                              setSelectedForCompare(new Set());
-                              setTimeout(() => {
-                                fetchImages(1, true, folderFilter, includeChildren, searchQuery);
-                              }, 100);
-
-                            } catch (error: any) {
-                              console.error('❌ 이미지 삭제 오류:', error);
-                              alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
-                            }
+                          onClick={() => {
+                            setImageToDelete(img);
+                            setShowCompareDeleteConfirm(true);
                           }}
                           className="w-full mt-4 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition-colors shadow-sm"
                         >
@@ -5995,13 +6062,17 @@ export default function GalleryAdmin() {
                         alert(`⚠️ ${successCount}개 삭제 완료, ${failCount}개 실패\n\n${results.filter(r => !r.success).map(r => `${r.filename}: ${r.error}`).join('\n')}`);
                       }
 
-                      // 모달 닫기 및 이미지 목록 새로고침
+                      // ✅ 삭제된 이미지들을 로컬 상태에서도 즉시 제거
+                      const deletedIds = results.filter(r => r.success).map(r => r.id);
+                      setImages((prev: any[]) => prev.filter((i: any) => !deletedIds.includes(i.id)));
+
+                      // 모달 닫기 및 이미지 목록 새로고침 (캐시 무효화, 타이밍 증가)
                       setShowCompareModal(false);
                       setCompareResult(null);
                       setSelectedForCompare(new Set());
                       setTimeout(() => {
-                        fetchImages(1, true, folderFilter, includeChildren, searchQuery);
-                      }, 100);
+                        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                      }, 500);
 
                     } catch (error: any) {
                       console.error('❌ 이미지 삭제 오류:', error);
@@ -6013,6 +6084,117 @@ export default function GalleryAdmin() {
                   🗑️ 미사용 이미지 삭제 ({compareResult.images.filter((img: any) => !img.usage).length}개)
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 비교 모달 개별 삭제 확인 모달 */}
+      {showCompareDeleteConfirm && imageToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-red-600 text-xl">⚠️</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  이미지 삭제 확인
+                </h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  <span className="font-semibold text-red-600">{imageToDelete.filename}</span> 이미지를 삭제하시겠습니까?
+                  <br />
+                  <span className="text-red-600">이 작업은 되돌릴 수 없습니다.</span>
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => {
+                      setShowCompareDeleteConfirm(false);
+                      setImageToDelete(null);
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!imageToDelete) return;
+
+                      try {
+                        console.log('🗑️ 이미지 삭제 시작:', {
+                          id: imageToDelete.id,
+                          filename: imageToDelete.filename,
+                          usage: imageToDelete.usage,
+                          usageCount: imageToDelete.usageCount
+                        });
+
+                        const response = await fetch('/api/admin/image-asset-manager', {
+                          method: 'DELETE',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            id: imageToDelete.id,
+                            permanent: true 
+                          }),
+                        });
+
+                        console.log('📡 API 응답 상태:', response.status, response.statusText);
+
+                        if (!response.ok) {
+                          const errorData = await response.json();
+                          console.error('❌ API 오류 응답:', errorData);
+                          throw new Error(errorData.error || errorData.details || '삭제 실패');
+                        }
+
+                        const result = await response.json();
+                        console.log('📦 API 응답 데이터:', result);
+
+                        if (!result.success) {
+                          console.error('❌ 삭제 실패:', result);
+                          throw new Error(result.error || '삭제 실패');
+                        }
+
+                        // ✅ 모달을 닫지 않고 삭제된 이미지만 목록에서 제거
+                        setCompareResult((prev: any) => {
+                          if (!prev) return null;
+                          return {
+                            ...prev,
+                            images: prev.images.filter((i: any) => i.id !== imageToDelete.id)
+                          };
+                        });
+
+                        // ✅ 로컬 images 상태에서도 즉시 제거
+                        setImages((prev: any[]) => prev.filter((i: any) => i.id !== imageToDelete.id));
+
+                        // ✅ 이미지 목록 새로고침 (캐시 무효화, 타이밍 증가)
+                        setTimeout(() => {
+                          fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                        }, 500);
+
+                        // 모달 닫기
+                        setShowCompareDeleteConfirm(false);
+                        setImageToDelete(null);
+
+                        alert(`✅ 이미지 삭제 완료!\n\n${imageToDelete.filename}\n\n다른 이미지도 삭제할 수 있습니다.`);
+
+                      } catch (error: any) {
+                        console.error('❌ 이미지 삭제 오류:', error);
+                        console.error('❌ 상세 오류 정보:', {
+                          imageId: imageToDelete.id,
+                          filename: imageToDelete.filename,
+                          error: error.message,
+                          stack: error.stack
+                        });
+                        alert(`이미지 삭제 중 오류가 발생했습니다:\n\n${error.message}\n\n콘솔을 확인해주세요.`);
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

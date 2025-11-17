@@ -1,6 +1,6 @@
 import { logFALAIUsage } from '../../../lib/ai-usage-logger';
 import { createClient } from '@supabase/supabase-js';
-const sharp = require('sharp');
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -71,6 +71,17 @@ export default async function handler(req, res) {
       
       console.log(`🔄 단락 ${i + 1} 이미지 생성 중... (${validImageCount}개)`);
       
+      // Phase 2.2: 날짜 기반 시드값 생성 (같은 날짜면 같은 시드, 다른 날짜면 다른 시드)
+      let variationSeed = null;
+      if (metadata && metadata.date) {
+        const dateObj = new Date(metadata.date);
+        const dateSeed = dateObj.getTime() % 1000000; // 날짜 기반 시드 (0-999999)
+        const accountOffset = metadata.account === 'account1' ? 0 : 1000000;
+        const typeOffset = metadata.type === 'background' ? 0 : metadata.type === 'profile' ? 2000000 : 3000000;
+        variationSeed = dateSeed + accountOffset + typeOffset;
+        console.log(`🌱 날짜 기반 시드값 생성: ${variationSeed} (date: ${metadata.date}, account: ${metadata.account}, type: ${metadata.type})`);
+      }
+      
       // 기본 방식: FAL AI hidream-i1-dev로 이미지 생성 (고품질)
       const falResponse = await fetch('https://fal.run/fal-ai/hidream-i1-dev', {
         method: 'POST',
@@ -83,7 +94,8 @@ export default async function handler(req, res) {
           num_images: validImageCount, // 여러 개 생성 가능
           image_size: "square",
           num_inference_steps: 28,
-          seed: null
+          seed: variationSeed, // Phase 2.2: 날짜별 고정 시드값
+          negative_prompt: "text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, written content"
         })
       });
 
@@ -158,6 +170,9 @@ export default async function handler(req, res) {
           if (metadata && metadata.type === 'feed') {
             try {
               console.log(`🔄 피드 이미지 카카오톡 최적화 시작 (1080x1350, 세로형 4:5, AI 크롭)...`);
+              
+              // Sharp 동적 import (Vercel 환경 호환성)
+              const sharp = (await import('sharp')).default;
               
               // 카카오톡 피드 최적 사이즈: 1080x1350 (4:5 세로형) - AI 기반 중요 영역 크롭
               finalBuffer = await sharp(imageBuffer)
@@ -332,6 +347,11 @@ export default async function handler(req, res) {
   }
 }
 
+// ============================================
+// 사용되지 않는 함수들 (향후 사용 가능성을 위해 주석 처리)
+// ============================================
+
+/*
 // 방식 A: square 생성 후 Sharp 크롭
 async function generateWithMethodA(promptData, imageCount, metadata, paragraphIndex) {
   const startTime = Date.now();
@@ -373,6 +393,9 @@ async function generateWithMethodA(promptData, imageCount, metadata, paragraphIn
     const imageFetchResponse = await fetch(imageData.url);
     let imageBuffer = await imageFetchResponse.arrayBuffer();
     imageBuffer = Buffer.from(imageBuffer);
+    
+    // Sharp 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
     
     // Sharp로 1080x1350 크롭
     const finalBuffer = await sharp(imageBuffer)
@@ -426,8 +449,10 @@ async function generateWithMethodA(promptData, imageCount, metadata, paragraphIn
     method: 'square + sharp crop'
   };
 }
+*/
 
-// 방식 B: portrait로 직접 생성
+// 방식 B: portrait로 직접 생성 (현재 미사용)
+/*
 async function generateWithMethodB(promptData, imageCount, metadata, paragraphIndex) {
   const startTime = Date.now();
   console.log(`🔄 방식 B 시작: portrait 직접 생성`);
@@ -491,6 +516,9 @@ async function generateWithMethodB(promptData, imageCount, metadata, paragraphIn
     let imageBuffer = await imageFetchResponse.arrayBuffer();
     imageBuffer = Buffer.from(imageBuffer);
     
+    // Sharp 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
+    
     // 필요시 정확한 사이즈로 리사이즈 (이미 세로형이면 스킵 가능)
     let finalBuffer = imageBuffer;
     const sharpImage = sharp(imageBuffer);
@@ -552,5 +580,4 @@ async function generateWithMethodB(promptData, imageCount, metadata, paragraphIn
     method: `portrait direct (${usedSize})`
   };
 }
-
-
+*/

@@ -208,8 +208,8 @@ Guidelines:
 // 이미지 메타데이터 추출 및 최적화
 async function extractImageMetadata(imageBuffer) {
   try {
-    // Sharp 라이브러리 사용
-    const sharp = await import('sharp');
+    // Sharp 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
     
     const metadata = await sharp(imageBuffer).metadata();
     

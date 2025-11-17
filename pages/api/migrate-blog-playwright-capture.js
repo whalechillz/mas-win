@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
+// Sharp는 사용하지 않음 (필요시 동적 import로 추가)
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,

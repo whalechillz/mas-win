@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -88,6 +88,8 @@ export default async function handler(req, res) {
           const imageBuffer = await imageResponse.arrayBuffer();
           const buffer = Buffer.from(imageBuffer);
           
+          // Sharp 동적 import (Vercel 환경 호환성)
+          const sharp = (await import('sharp')).default;
           // Sharp로 WebP 최적화
           const optimizedBuffer = await sharp(buffer)
             .webp({ quality: 95 })

@@ -2498,7 +2498,7 @@ export default function BlogAdmin() {
       setImageGenerationStep('1단계: 프롬프트 준비 중...');
       
       setImageGenerationStep(`2단계: FAL AI로 이미지 생성 중... (${paragraphPrompts.length}개 단락)`);
-      const res = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const res = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
             headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2626,7 +2626,7 @@ export default function BlogAdmin() {
       setImageGenerationStep('1단계: 골드톤 프롬프트 준비 중...');
       
       setImageGenerationStep(`2단계: FAL AI로 골드톤 이미지 생성 중... (${goldTonePrompts.length}개 단락)`);
-      const res = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const res = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2725,7 +2725,7 @@ export default function BlogAdmin() {
       setImageGenerationStep(`2단계: FAL AI로 블랙톤 이미지 생성 중... (${prompts.length}개 단락)`);
       
       // 프롬프트로 이미지 생성 (수정된 프롬프트로 이미지 생성과 동일한 로직)
-      const res = await fetch('/api/kakao-content/generate-paragraph-images-with-prompts', {
+      const res = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

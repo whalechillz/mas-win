@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -20,13 +20,20 @@ export default async function handler(req, res) {
 
   try {
     // FormData에서 파일 추출
-    const formidable = require('formidable');
+    const formidable = (await import('formidable')).default;
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB 제한
     });
 
-    const [fields, files] = await form.parse(req);
+    // Promise 래퍼로 변환 (formidable 버전 호환성)
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
+    });
     const file = files.file?.[0];
+    const targetFolder = fields.targetFolder?.[0] || ''; // targetFolder 파라미터 읽기
 
     if (!file) {
       return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
@@ -42,6 +49,8 @@ export default async function handler(req, res) {
 
     // 이미지 메타데이터 추출
     try {
+      // Sharp 동적 import (Vercel 환경 호환성)
+      const sharp = (await import('sharp')).default;
       const sharpImage = sharp(imageBuffer);
       imageMetadata = await sharpImage.metadata();
       
@@ -59,6 +68,8 @@ export default async function handler(req, res) {
     // 이미지 최적화 (항상 실행)
     try {
       if (imageMetadata) {
+        // Sharp 동적 import (Vercel 환경 호환성)
+        const sharp = (await import('sharp')).default;
         // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
         const optimizedImage = sharp(imageBuffer)
           .rotate() // EXIF 회전 정보 자동 적용
@@ -75,6 +86,7 @@ export default async function handler(req, res) {
         processedBuffer = await optimizedImage.toBuffer();
         
         // 최적화된 이미지 메타데이터 확인
+        // sharp는 위에서 import했으므로 같은 스코프에서 재사용 가능
         const optimizedMetadata = await sharp(processedBuffer).metadata();
         console.log(`🔄 최적화된 이미지 메타데이터:`, {
           width: optimizedMetadata.width,
@@ -102,11 +114,16 @@ export default async function handler(req, res) {
     const randomString = Math.random().toString(36).substring(2, 8);
     const fileExtension = finalFileName.split('.').pop();
     const uniqueFileName = `blog-${timestamp}-${randomString}.${fileExtension}`;
+    
+    // targetFolder가 있으면 경로에 포함
+    const uploadPath = targetFolder 
+      ? `${targetFolder}/${uniqueFileName}`.replace(/\/+/g, '/') // 중복 슬래시 제거
+      : uniqueFileName;
 
     // Supabase Storage에 업로드
     const { data, error } = await supabase.storage
       .from('blog-images') // 버킷 이름
-      .upload(uniqueFileName, processedBuffer, {
+      .upload(uploadPath, processedBuffer, {
         contentType: 'image/jpeg',
         cacheControl: '3600',
         upsert: false
@@ -123,7 +140,7 @@ export default async function handler(req, res) {
     // 공개 URL 생성
     const { data: publicUrlData } = supabase.storage
       .from('blog-images')
-      .getPublicUrl(uniqueFileName);
+      .getPublicUrl(uploadPath);
 
     const imageUrl = publicUrlData.publicUrl;
 
@@ -293,10 +310,17 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('이미지 업로드 오류:', error);
+    console.error('❌ 이미지 업로드 오류:', error);
+    console.error('에러 스택:', error.stack);
+    console.error('에러 상세:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
+    });
     res.status(500).json({ 
       error: '이미지 업로드에 실패했습니다.',
-      details: error.message 
+      details: error.message,
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
     });
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Image, Sparkles, X, RotateCcw, Edit2, Save, RefreshCw } from 'lucide-react';
+import { Image, Sparkles, X, RotateCcw, RefreshCw } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
 
 interface FeedData {
@@ -69,10 +69,6 @@ export default function FeedManager({
 }: FeedManagerProps) {
   const [showGallery, setShowGallery] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [editingBasePrompt, setEditingBasePrompt] = useState<{
-    isEditing: boolean;
-    value: string;
-  }>({ isEditing: false, value: '' });
   const [isGeneratingBasePrompt, setIsGeneratingBasePrompt] = useState(false);
   const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
   const [isRecoveringImage, setIsRecoveringImage] = useState(false);
@@ -165,7 +161,12 @@ export default function FeedManager({
 
       const data = await response.json();
       if (data.success && data.basePrompt) {
-        setEditingBasePrompt({ isEditing: true, value: data.basePrompt });
+        // 자동으로 저장
+        if (onBasePromptUpdate) {
+          onBasePromptUpdate(data.basePrompt);
+        }
+        onUpdate({ ...feedData, basePrompt: data.basePrompt });
+        alert('✅ basePrompt가 자동 생성되어 저장되었습니다.');
       } else {
         throw new Error(data.message || 'basePrompt 생성 실패');
       }
@@ -176,23 +177,6 @@ export default function FeedManager({
     }
   };
 
-  // basePrompt 저장
-  const handleSaveBasePrompt = async () => {
-    if (!editingBasePrompt.value.trim()) {
-      alert('basePrompt를 입력해주세요.');
-      return;
-    }
-
-    // 부모 컴포넌트에 basePrompt 저장 요청
-    if (onBasePromptUpdate) {
-      onBasePromptUpdate(editingBasePrompt.value);
-    }
-    
-    // feedData에도 업데이트
-    onUpdate({ ...feedData, basePrompt: editingBasePrompt.value });
-    
-    setEditingBasePrompt({ isEditing: false, value: '' });
-  };
 
   // 프롬프트 재생성 (basePrompt 기반)
   const handleRegeneratePrompt = async () => {
@@ -273,7 +257,7 @@ export default function FeedManager({
   return (
     <div className="space-y-4">
       {/* 이미지 카테고리 */}
-      <div className="border rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           피드 이미지
         </label>
@@ -286,65 +270,28 @@ export default function FeedManager({
           <div className="border-t pt-2 mt-2">
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-medium text-gray-600">Base Prompt (요일별 템플릿)</label>
-              <div className="flex gap-1">
-                {editingBasePrompt.isEditing ? (
+              <button
+                onClick={handleGenerateBasePrompt}
+                disabled={isGeneratingBasePrompt}
+                className="text-xs px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center gap-1"
+                title="자동 생성"
+              >
+                {isGeneratingBasePrompt ? (
                   <>
-                    <button
-                      onClick={handleSaveBasePrompt}
-                      className="text-xs px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded"
-                      title="저장"
-                    >
-                      <Save className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => setEditingBasePrompt({ isEditing: false, value: '' })}
-                      className="text-xs px-2 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded"
-                      title="취소"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    <span>생성 중...</span>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={() => {
-                        const currentBasePrompt = getBasePrompt();
-                        setEditingBasePrompt({ isEditing: true, value: currentBasePrompt || '' });
-                      }}
-                      className="text-xs px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
-                      title="편집"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={handleGenerateBasePrompt}
-                      disabled={isGeneratingBasePrompt}
-                      className="text-xs px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded disabled:opacity-50"
-                      title="요일별 자동 생성"
-                    >
-                      {isGeneratingBasePrompt ? (
-                        <RefreshCw className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <RefreshCw className="w-3 h-3" />
-                      )}
-                    </button>
+                    <RefreshCw className="w-3 h-3" />
+                    <span>자동 생성</span>
                   </>
                 )}
-              </div>
+              </button>
             </div>
-            {editingBasePrompt.isEditing ? (
-              <textarea
-                value={editingBasePrompt.value}
-                onChange={(e) => setEditingBasePrompt({ ...editingBasePrompt, value: e.target.value })}
-                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                rows={2}
-                placeholder="basePrompt 입력..."
-              />
-            ) : (
-              <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                {getBasePrompt() || 'basePrompt 없음'}
-              </div>
-            )}
+            <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+              {getBasePrompt() || 'basePrompt 없음'}
+            </div>
           </div>
           
           <div className="text-xs text-gray-500 max-h-20 overflow-y-auto flex items-start justify-between gap-2 mt-2">
@@ -426,7 +373,7 @@ export default function FeedManager({
       </div>
 
       {/* 캡션 */}
-      <div className="border rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           피드 캡션
         </label>
@@ -443,7 +390,7 @@ export default function FeedManager({
       </div>
 
       {/* URL */}
-      <div className="border rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           피드 URL (캡션 하단에 표시)
         </label>

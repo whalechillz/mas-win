@@ -31,6 +31,33 @@ export default async function handler(req, res) {
       });
     }
 
+    // Phase 2.1: 날짜 기반 변형 요소 계산
+    const dateObj = date ? new Date(date) : new Date();
+    const dayOfMonth = dateObj.getDate();
+    const month = dateObj.getMonth() + 1; // 1-12
+    
+    // 월 초/중/말 분위기
+    let monthPhaseMood = '';
+    if (dayOfMonth <= 10) {
+      monthPhaseMood = 'new beginning, energetic atmosphere, fresh start';
+    } else if (dayOfMonth <= 20) {
+      monthPhaseMood = 'stable, balanced atmosphere, steady progress';
+    } else {
+      monthPhaseMood = 'completion, achievement, gratitude, finishing touch';
+    }
+    
+    // 계절별 분위기
+    let seasonMood = '';
+    if (month >= 3 && month <= 5) {
+      seasonMood = 'spring rhythm, softness, gentle atmosphere';
+    } else if (month >= 6 && month <= 8) {
+      seasonMood = 'summer energy, distance, vibrant atmosphere';
+    } else if (month >= 9 && month <= 11) {
+      seasonMood = 'autumn precision, balance, refined atmosphere';
+    } else {
+      seasonMood = 'winter preparation, maintenance, calm atmosphere';
+    }
+
     // 계정별 한국 골퍼 명시 (배경 이미지일 때는 배경 중심, 사람은 최소화)
     const koreanGolferSpec = type === 'background'
       ? accountType === 'account1'
@@ -77,7 +104,8 @@ export default async function handler(req, res) {
 - Use "MASSGOO" (not "MASGOO") as the official brand name`
       : `**Style Guidelines:**
 - No text overlays, no watermarks, no promotional text
-- Clean composition without unnecessary textual content`;
+- Clean composition without unnecessary textual content
+- ABSOLUTELY NO text, words, or written content in the image`;
 
     const systemPrompt = `You are an expert image prompt generator for KakaoTalk content.
 Create a detailed, vivid English prompt for AI image generation.
@@ -89,6 +117,8 @@ Create a detailed, vivid English prompt for AI image generation.
 4. Weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
 5. Brand strategy: ${JSON.stringify(brandStrategy || {})}
 6. Date context: ${date || 'today'}
+7. Month phase mood: ${monthPhaseMood} (reflects the energy of ${dayOfMonth <= 10 ? 'early' : dayOfMonth <= 20 ? 'mid' : 'late'} month)
+8. Seasonal atmosphere: ${seasonMood} (reflects the current season)
 
 ${brandGuideline}
 

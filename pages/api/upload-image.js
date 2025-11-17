@@ -1,4 +1,4 @@
-import formidable from 'formidable';
+// Formidable은 동적 import로 로드 (Vercel 환경 호환성)
 import { createClient } from '@supabase/supabase-js';
 
 export const config = {
@@ -26,6 +26,8 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Formidable 동적 import (Vercel 환경 호환성)
+    const formidable = (await import('formidable')).default;
     // formidable 설정 (메모리에 저장)
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -35,7 +37,13 @@ export default async function handler(req, res) {
       },
     });
 
-    const [fields, files] = await form.parse(req);
+    // Promise 래퍼로 변환 (formidable 버전 호환성)
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
+    });
     
     if (!files.image || files.image.length === 0) {
       return res.status(400).json({ message: '이미지 파일이 필요합니다.' });

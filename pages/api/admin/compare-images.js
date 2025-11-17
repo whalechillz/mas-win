@@ -6,7 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -36,6 +36,8 @@ function normalizeFileNameWithoutExt(fileName) {
 // pHash 계산 함수 (Perceptual Hash)
 async function calculatePHash(imageBuffer) {
   try {
+    // Sharp 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
     // 1. 이미지를 32x32 그레이스케일로 리사이즈
     const resized = await sharp(imageBuffer)
       .resize(32, 32, { fit: 'fill' })
@@ -195,6 +197,30 @@ async function checkImageUsage(imageId, filePath, fileName, cdnUrl) {
           isInContent: page.isInContent
         })));
       }
+      // 카카오 프로필 콘텐츠 추가
+      if (data.usage.kakaoProfile && data.usage.kakaoProfile.length > 0) {
+        usedIn.push(...data.usage.kakaoProfile.map(item => ({
+          type: 'kakao_profile',
+          title: item.title,
+          url: item.url,
+          date: item.date,
+          account: item.account,
+          isBackground: item.isBackground,
+          isProfile: item.isProfile,
+          created_at: item.created_at
+        })));
+      }
+      // 카카오 피드 콘텐츠 추가
+      if (data.usage.kakaoFeed && data.usage.kakaoFeed.length > 0) {
+        usedIn.push(...data.usage.kakaoFeed.map(item => ({
+          type: 'kakao_feed',
+          title: item.title,
+          url: item.url,
+          date: item.date,
+          account: item.account,
+          created_at: item.created_at
+        })));
+      }
     }
     
     const total = data.usage?.totalUsage || data.summary?.totalUsage || usedIn.length;
@@ -314,6 +340,8 @@ export default async function handler(req, res) {
             
             // 이미지 픽셀 사이즈 추출
             try {
+              // Sharp 동적 import (Vercel 환경 호환성)
+              const sharp = (await import('sharp')).default;
               const metadata = await sharp(imageBuffer).metadata();
               width = metadata.width;
               height = metadata.height;

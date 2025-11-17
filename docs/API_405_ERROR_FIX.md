@@ -161,3 +161,59 @@ node playwright-remote-kakao-content-test.js
 - Next.js i18n은 기본적으로 API 경로를 제외해야 하지만, middleware에서 명시적으로 처리하는 것이 안전합니다.
 - Vercel의 함수 runtime 설정은 Next.js 프로젝트에서 `package.json`의 `engines.node`를 사용합니다.
 
+---
+
+## 🔧 Sharp 모듈 Vercel 배포 에러 해결 (2025-11-16)
+
+### 문제
+- Vercel 프로덕션에서 `Error: Could not load the "sharp" module using the linux-x64 runtime` 발생
+- HTTP 405/500 에러로 API 실패
+- `x-matched-path: /ko/500`으로 i18n이 에러 페이지로 라우팅
+
+### 원인
+- Sharp 모듈을 정적 import로 로드할 때 Vercel의 linux-x64 환경에서 바이너리 로드 실패
+- `import sharp from 'sharp'` 방식이 Vercel 서버리스 함수에서 작동하지 않음
+- Sharp 모듈 로드 실패로 500 에러 발생 → i18n이 `/ko/500`으로 라우팅 → 405 에러로 표시
+
+### 해결책
+Sharp를 동적 import로 변경:
+
+```javascript
+// ❌ 이전 (정적 import - Vercel에서 실패)
+import sharp from 'sharp';
+
+// ✅ 수정 후 (동적 import - Vercel 호환)
+const sharp = (await import('sharp')).default;
+```
+
+### 적용 위치
+1. **피드 이미지 최적화** (1080x1350 크롭) - 사용 중
+   ```javascript
+   if (metadata && metadata.type === 'feed') {
+     const sharp = (await import('sharp')).default;
+     finalBuffer = await sharp(imageBuffer)
+       .resize(1080, 1350, { fit: 'cover', position: 'entropy' })
+       .jpeg({ quality: 90 })
+       .toBuffer();
+   }
+   ```
+
+2. **방식 A 함수** (square 생성 후 크롭) - 현재 미사용 (주석 처리됨)
+3. **방식 B 함수** (portrait 리사이즈) - 현재 미사용 (주석 처리됨)
+
+### 추가 수정 사항
+- 사용되지 않는 `generateWithMethodA`, `generateWithMethodB` 함수 주석 처리
+- 파일명 변경: `generate-paragraph-images-with-prompts.js` → `generate-images.js`
+- API 경로 변경: `/api/generate-paragraph-images-with-prompts` → `/api/kakao-content/generate-images`
+
+### 참고
+- `upload-image-supabase.js`는 정적 import로 작동하지만, `generate-images.js`는 동적 import 필요
+- Vercel 환경에서 Sharp 사용 시 동적 import 권장
+- 동적 import는 실제 사용 시점에 모듈을 로드하므로 Vercel의 서버리스 환경에서 더 안정적
+
+### 테스트 결과
+- ✅ 로컬 빌드 성공
+- ✅ 프로덕션 배포 성공
+- ✅ API 테스트 성공 (HTTP 200)
+- ✅ 이미지 생성 및 Supabase 저장 정상 작동
+

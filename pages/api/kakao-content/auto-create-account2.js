@@ -95,7 +95,37 @@ export default async function handler(req, res) {
     // 배경 이미지 생성
     if (!dateData.background_image_url || forceRegenerate) {
       try {
-        const bgPrompt = dateData.background_prompt || dateData.background_image || '하이테크 매장';
+        // basePrompt 자동 생성 (없는 경우)
+        let bgPrompt = dateData.background_base_prompt;
+        if (!bgPrompt) {
+          try {
+            console.log(`🔄 배경 basePrompt 자동 생성 중... (${date})`);
+            const basePromptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-base-prompt`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                date,
+                accountType: 'account2',
+                type: 'background',
+                weeklyTheme
+              })
+            });
+            
+            if (basePromptResponse.ok) {
+              const basePromptData = await basePromptResponse.json();
+              if (basePromptData.success && basePromptData.basePrompt) {
+                bgPrompt = basePromptData.basePrompt;
+                dateData.background_base_prompt = bgPrompt;
+                console.log(`✅ 배경 basePrompt 자동 생성 완료: ${bgPrompt}`);
+              }
+            }
+          } catch (basePromptError) {
+            console.warn('⚠️ basePrompt 자동 생성 실패, 기본값 사용:', basePromptError.message);
+          }
+        }
+        
+        // basePrompt가 여전히 없으면 fallback 사용
+        bgPrompt = bgPrompt || dateData.background_prompt || dateData.background_image || '하이테크 매장';
         
         // 프롬프트 생성
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
@@ -122,7 +152,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
-        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
+        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -176,7 +206,37 @@ export default async function handler(req, res) {
     // 프로필 이미지 생성
     if (!dateData.profile_image_url || forceRegenerate) {
       try {
-        const profilePrompt = dateData.profile_prompt || dateData.profile_image || '젊은 골퍼';
+        // basePrompt 자동 생성 (없는 경우)
+        let profilePrompt = dateData.profile_base_prompt;
+        if (!profilePrompt) {
+          try {
+            console.log(`🔄 프로필 basePrompt 자동 생성 중... (${date})`);
+            const basePromptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-base-prompt`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                date,
+                accountType: 'account2',
+                type: 'profile',
+                weeklyTheme
+              })
+            });
+            
+            if (basePromptResponse.ok) {
+              const basePromptData = await basePromptResponse.json();
+              if (basePromptData.success && basePromptData.basePrompt) {
+                profilePrompt = basePromptData.basePrompt;
+                dateData.profile_base_prompt = profilePrompt;
+                console.log(`✅ 프로필 basePrompt 자동 생성 완료: ${profilePrompt}`);
+              }
+            }
+          } catch (basePromptError) {
+            console.warn('⚠️ basePrompt 자동 생성 실패, 기본값 사용:', basePromptError.message);
+          }
+        }
+        
+        // basePrompt가 여전히 없으면 fallback 사용
+        profilePrompt = profilePrompt || dateData.profile_prompt || dateData.profile_image || '젊은 골퍼';
         
         // 프롬프트 생성
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
@@ -203,7 +263,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
-        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
+        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -298,7 +358,55 @@ export default async function handler(req, res) {
     // 피드 이미지 생성
     if (feedData && (!feedData.image_url || forceRegenerate)) {
       try {
-        const feedPrompt = feedData.image_prompt || feedData.image_category || '젊은 골퍼의 스윙';
+        // Phase 2.3: 이미지 카테고리 로테이션 (피드 이미지 카테고리가 없을 때)
+        if (!feedData.image_category) {
+          const categories = [
+            '시니어 골퍼의 스윙',
+            '피팅 상담의 모습',
+            '매장의 모습',
+            '젊은 골퍼의 스윙',
+            '제품 컷',
+            '감성 컷'
+          ];
+          
+          // 날짜 기반 인덱스 (주 단위로 순환)
+          const dayOfMonth = new Date(date).getDate();
+          const categoryIndex = Math.floor((dayOfMonth - 1) / 7) % categories.length;
+          feedData.image_category = categories[categoryIndex];
+          console.log(`🔄 피드 이미지 카테고리 자동 선택: ${feedData.image_category} (날짜: ${date}, 주차: ${Math.floor((dayOfMonth - 1) / 7) + 1})`);
+        }
+        
+        // basePrompt 자동 생성 (없는 경우)
+        let feedPrompt = feedData.base_prompt;
+        if (!feedPrompt) {
+          try {
+            console.log(`🔄 피드 basePrompt 자동 생성 중... (${date})`);
+            const basePromptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-base-prompt`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                date,
+                accountType: 'account2',
+                type: 'feed',
+                weeklyTheme
+              })
+            });
+            
+            if (basePromptResponse.ok) {
+              const basePromptData = await basePromptResponse.json();
+              if (basePromptData.success && basePromptData.basePrompt) {
+                feedPrompt = basePromptData.basePrompt;
+                feedData.base_prompt = feedPrompt;
+                console.log(`✅ 피드 basePrompt 자동 생성 완료: ${feedPrompt}`);
+              }
+            }
+          } catch (basePromptError) {
+            console.warn('⚠️ basePrompt 자동 생성 실패, 기본값 사용:', basePromptError.message);
+          }
+        }
+        
+        // basePrompt가 여전히 없으면 fallback 사용
+        feedPrompt = feedPrompt || feedData.image_prompt || feedData.image_category || '젊은 골퍼의 스윙';
         
         // 프롬프트 생성
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
@@ -325,7 +433,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
-        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
+        const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

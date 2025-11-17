@@ -69,7 +69,8 @@ export default async function handler(req, res) {
           // Sharp로 이미지 처리
           let processedBuffer = imageBuffer;
           if (config.resize) {
-            const sharp = require('sharp');
+            // Sharp 동적 import (Vercel 환경 호환성)
+            const sharp = (await import('sharp')).default;
             processedBuffer = await sharp(imageBuffer)
               .resize(config.resize.width, config.resize.height, config.resize.options || {})
               .jpeg({ quality: config.quality || 80 })

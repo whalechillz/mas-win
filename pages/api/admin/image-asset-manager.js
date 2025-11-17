@@ -292,63 +292,231 @@ async function handleImageDelete(req, res) {
       return res.status(400).json({ error: '이미지 ID가 필요합니다.' });
     }
 
-    console.log('🗑️ 이미지 삭제:', id, permanent ? '(영구)' : '(아카이브)');
+    console.log('🗑️ 이미지 삭제 시작:', { id, permanent });
 
     if (permanent) {
-      // 영구 삭제: Storage에서도 제거
-      const { data: image } = await supabase
+      // 1. 이미지 조회 (에러 처리 포함)
+      const { data: image, error: fetchError } = await supabase
         .from('image_assets')
-        .select('file_path')
+        .select('file_path, filename')
         .eq('id', id)
-        .single();
+        .maybeSingle(); // single() 대신 maybeSingle() 사용 (없으면 null 반환)
 
-      if (image) {
-        // Supabase Storage에서 파일 삭제
-        const { error: storageError } = await supabase.storage
+      if (fetchError) {
+        console.error('❌ 이미지 조회 오류:', fetchError);
+        throw new Error(`이미지 조회 실패: ${fetchError.message}`);
+      }
+
+      if (!image) {
+        console.warn('⚠️ 이미지를 찾을 수 없습니다:', id);
+        return res.status(404).json({ 
+          error: '이미지를 찾을 수 없습니다.',
+          success: false
+        });
+      }
+
+      console.log('📋 삭제할 이미지 정보:', { id, file_path: image.file_path, filename: image.filename });
+
+      // 2. Supabase Storage에서 파일 삭제
+      if (image.file_path) {
+        const { data: storageData, error: storageError } = await supabase.storage
           .from('blog-images')
           .remove([image.file_path]);
 
         if (storageError) {
-          console.error('Storage 삭제 오류:', storageError);
+          console.error('❌ Storage 삭제 오류:', storageError);
+          // Storage 삭제 실패해도 DB 삭제는 진행 (파일은 수동으로 삭제 필요)
+          console.warn('⚠️ Storage 삭제 실패했지만 DB 삭제는 계속 진행합니다.');
+        } else {
+          console.log('✅ Storage 삭제 성공:', image.file_path);
         }
       }
 
-      // 데이터베이스에서 완전 삭제
-      const { error: deleteError } = await supabase
+      // 3. 데이터베이스에서 완전 삭제 (삭제된 행 수 확인)
+      const { data: deleteData, error: deleteError } = await supabase
         .from('image_assets')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select('id, file_path, filename, cdn_url'); // 삭제된 행 반환 (cdn_url 포함)
 
       if (deleteError) {
-        throw deleteError;
+        console.error('❌ DB 삭제 오류:', deleteError);
+        throw new Error(`DB 삭제 실패: ${deleteError.message}`);
       }
+
+      // 4. 삭제 검증 (실제로 삭제되었는지 확인)
+      if (!deleteData || deleteData.length === 0) {
+        console.warn('⚠️ 삭제된 행이 없습니다:', id);
+        // 이미 삭제되었거나 ID가 잘못된 경우
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('image_assets')
+          .select('id')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (verifyError) {
+          console.error('❌ 검증 중 오류:', verifyError);
+          throw new Error(`삭제 검증 실패: ${verifyError.message}`);
+        }
+
+        if (verifyData) {
+          // 여전히 존재함 - 삭제 실패
+          console.error('❌ 삭제 실패: 이미지가 여전히 존재합니다.');
+          throw new Error('이미지 삭제에 실패했습니다. 이미지가 여전히 존재합니다.');
+        } else {
+          // 이미 삭제됨 - 성공으로 처리
+          console.log('✅ 이미지가 이미 삭제되어 있었습니다.');
+          return res.status(200).json({
+            success: true,
+            message: '이미지가 이미 삭제되어 있었습니다.',
+            alreadyDeleted: true
+          });
+        }
+      }
+
+      console.log('✅ 이미지 삭제 완료:', { id, deletedRows: deleteData.length });
+
+      // ✅ image_metadata 테이블에서도 삭제 (갤러리 표시 제거)
+      let metadataDeleted = false;
+      if (deleteData && deleteData.length > 0) {
+        const deletedAsset = deleteData[0];
+        
+        // cdn_url로 image_metadata 찾아서 삭제
+        if (deletedAsset.cdn_url) {
+          const { error: metadataError, count: metadataCount } = await supabase
+            .from('image_metadata')
+            .delete()
+            .eq('image_url', deletedAsset.cdn_url);
+          
+          if (metadataError) {
+            console.warn('⚠️ image_metadata 삭제 실패 (cdn_url):', metadataError);
+          } else {
+            metadataDeleted = true;
+            console.log(`✅ image_metadata 삭제 성공 (cdn_url): ${metadataCount || 0}개 행 삭제됨`);
+          }
+        }
+        
+        // file_path로도 시도 (file_name 매칭)
+        if (deletedAsset.file_path) {
+          const fileName = deletedAsset.file_path.split('/').pop();
+          if (fileName) {
+            // 방법 1: file_name 정확 매칭
+            const { error: metadataError2, count: metadataCount2 } = await supabase
+              .from('image_metadata')
+              .delete()
+              .eq('file_name', fileName);
+            
+            if (metadataError2) {
+              console.warn('⚠️ image_metadata 삭제 실패 (file_name):', metadataError2);
+            } else if (metadataCount2 > 0) {
+              metadataDeleted = true;
+              console.log(`✅ image_metadata 삭제 성공 (file_name): ${metadataCount2}개 행 삭제됨`);
+            }
+            
+            // 방법 2: LIKE 연산자로 부분 매칭 (방법 1이 실패한 경우)
+            if (!metadataDeleted && fileName) {
+              const { error: metadataError3, count: metadataCount3 } = await supabase
+                .from('image_metadata')
+                .delete()
+                .like('file_name', `%${fileName}%`);
+              
+              if (metadataError3) {
+                console.warn('⚠️ image_metadata 삭제 실패 (file_name LIKE):', metadataError3);
+              } else if (metadataCount3 > 0) {
+                metadataDeleted = true;
+                console.log(`✅ image_metadata 삭제 성공 (file_name LIKE): ${metadataCount3}개 행 삭제됨`);
+              }
+            }
+          }
+        }
+        
+        // image_url로도 시도 (URL 기반)
+        if (!metadataDeleted && deletedAsset.cdn_url) {
+          try {
+            const { error: metadataError4, count: metadataCount4 } = await supabase
+              .from('image_metadata')
+              .delete()
+              .eq('image_url', deletedAsset.cdn_url);
+            
+            if (metadataError4) {
+              console.warn('⚠️ image_metadata 삭제 실패 (image_url):', metadataError4);
+            } else if (metadataCount4 > 0) {
+              metadataDeleted = true;
+              console.log(`✅ image_metadata 삭제 성공 (image_url): ${metadataCount4}개 행 삭제됨`);
+            }
+          } catch (urlError) {
+            console.warn('⚠️ image_metadata 삭제 시도 중 오류:', urlError);
+          }
+        }
+      }
+      
+      if (!metadataDeleted) {
+        console.warn('⚠️ image_metadata에서 삭제된 행이 없습니다. (이미 삭제되었거나 존재하지 않을 수 있음)');
+      }
+
+      // 5. 삭제 후 최종 검증
+      const { data: finalVerify, error: finalVerifyError } = await supabase
+        .from('image_assets')
+        .select('id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (finalVerifyError) {
+        console.error('❌ 최종 검증 중 오류:', finalVerifyError);
+        // 검증 오류는 무시하고 삭제 성공으로 처리 (이미 삭제되었을 가능성)
+      } else if (finalVerify) {
+        console.error('❌ 삭제 검증 실패: 이미지가 여전히 존재합니다.');
+        throw new Error('삭제 검증 실패: 이미지가 여전히 데이터베이스에 존재합니다.');
+      } else {
+        console.log('✅ 삭제 검증 성공: 이미지가 완전히 삭제되었습니다.');
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: '이미지가 영구 삭제되었습니다.',
+        deletedId: id,
+        deletedRows: deleteData.length,
+        metadataDeleted: metadataDeleted
+      });
+
     } else {
       // 아카이브: 상태만 변경
-      const { error: archiveError } = await supabase
+      const { data: archiveData, error: archiveError } = await supabase
         .from('image_assets')
         .update({ 
           status: 'archived',
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (archiveError) {
-        throw archiveError;
+        console.error('❌ 아카이브 오류:', archiveError);
+        throw new Error(`아카이브 실패: ${archiveError.message}`);
       }
+
+      if (!archiveData || archiveData.length === 0) {
+        return res.status(404).json({
+          error: '이미지를 찾을 수 없습니다.',
+          success: false
+        });
+      }
+
+      console.log('✅ 이미지 아카이브 완료:', { id, archivedRows: archiveData.length });
+
+      return res.status(200).json({
+        success: true,
+        message: '이미지가 아카이브되었습니다.',
+        archivedId: id
+      });
     }
-
-    console.log('✅ 이미지 삭제 완료');
-
-    return res.status(200).json({
-      success: true,
-      message: permanent ? '이미지가 영구 삭제되었습니다.' : '이미지가 아카이브되었습니다.'
-    });
 
   } catch (error) {
     console.error('❌ 이미지 삭제 오류:', error);
     return res.status(500).json({
       error: '이미지 삭제 중 오류가 발생했습니다.',
-      details: error.message
+      details: error.message,
+      success: false
     });
   }
 }
@@ -363,7 +531,8 @@ async function downloadImage(imageUrl) {
 }
 
 async function extractImageMetadata(imageBuffer) {
-  const sharp = await import('sharp');
+  // Sharp 동적 import (Vercel 환경 호환성)
+  const sharp = (await import('sharp')).default;
   const metadata = await sharp(imageBuffer).metadata();
   
   return {
@@ -469,7 +638,8 @@ async function triggerAIAnalysis(imageId, imageUrl) {
 
 async function generateOptimizedVersions(imageId, imageBuffer, filename) {
   try {
-    const sharp = await import('sharp');
+    // Sharp 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
     const baseFilename = filename.split('.')[0];
     
     // 다양한 크기 생성

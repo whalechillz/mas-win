@@ -890,6 +890,46 @@ const GalleryPicker: React.FC<Props> = ({
                       </button>
                       <button
                         type="button"
+                        title="Photopea에서 편집"
+                        className="px-4 py-2 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-lg font-medium transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // CORS 프록시를 통해 이미지 로드 (Photopea에서 CORS 문제 해결)
+                          const proxyUrl = `${window.location.origin}/api/kakao-content/image-proxy?url=${encodeURIComponent(img.url)}`;
+                          const photopeaUrl = `https://www.photopea.com/#local:${encodeURIComponent(proxyUrl)}`;
+                          window.open(photopeaUrl, '_blank');
+                        }}
+                      >
+                        ✏️ 수정
+                      </button>
+                      <button
+                        type="button"
+                        title="이미지 다운로드"
+                        className="px-4 py-2 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg font-medium transition-colors"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            // 이미지 다운로드
+                            const response = await fetch(img.url);
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = img.name || `image-${Date.now()}.jpg`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                          } catch (error) {
+                            console.error('다운로드 오류:', error);
+                            alert('이미지 다운로드에 실패했습니다.');
+                          }
+                        }}
+                      >
+                        ⬇️ 다운로드
+                      </button>
+                      <button
+                        type="button"
                         title={likedImages.has(img.url) ? "좋아요 취소" : "좋아요"}
                         className={`px-4 py-2 text-xs rounded-lg shadow-lg font-medium transition-colors ${
                           likedImages.has(img.url)

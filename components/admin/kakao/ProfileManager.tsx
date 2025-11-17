@@ -33,6 +33,7 @@ interface ProfileManagerProps {
   accountKey?: 'account1' | 'account2';
   calendarData?: any;
   selectedDate?: string;
+  onBasePromptUpdate?: (type: 'background' | 'profile', basePrompt: string) => void;
 }
 
 export default function ProfileManager({
@@ -43,7 +44,8 @@ export default function ProfileManager({
   isGenerating = false,
   accountKey,
   calendarData,
-  selectedDate
+  selectedDate,
+  onBasePromptUpdate
 }: ProfileManagerProps) {
   const [showBackgroundGallery, setShowBackgroundGallery] = useState(false);
   const [showProfileGallery, setShowProfileGallery] = useState(false);
@@ -52,6 +54,8 @@ export default function ProfileManager({
   const [showMessageList, setShowMessageList] = useState(false);
   const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState<'background' | 'profile' | null>(null);
   const [isRecoveringImage, setIsRecoveringImage] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
+  const [isGeneratingBasePrompt, setIsGeneratingBasePrompt] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
+  const [editingBasePrompt, setEditingBasePrompt] = useState<{ type: 'background' | 'profile' | null; value: string }>({ type: null, value: '' });
 
   const handleGenerateBackground = async () => {
     try {
@@ -151,6 +155,59 @@ export default function ProfileManager({
     await handleAutoRecoverImage(type);
   };
 
+  // basePrompt 자동 생성
+  const handleGenerateBasePrompt = async (type: 'background' | 'profile') => {
+    try {
+      setIsGeneratingBasePrompt({ ...isGeneratingBasePrompt, [type]: true });
+      
+      const weeklyTheme = calendarData?.profileContent?.[accountKey || 'account1']?.weeklyThemes?.week1 || 
+                          '비거리의 감성 – 스윙과 마음의 연결';
+      
+      const response = await fetch('/api/kakao-content/generate-base-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: selectedDate || new Date().toISOString().split('T')[0],
+          accountType: accountKey || (account.tone === 'gold' ? 'account1' : 'account2'),
+          type: type,
+          weeklyTheme: weeklyTheme
+        })
+      });
+
+      const data = await response.json();
+      if (data.success && data.basePrompt) {
+        setEditingBasePrompt({ type, value: data.basePrompt });
+        
+        // 부모 컴포넌트에 basePrompt 저장 요청
+        if (onBasePromptUpdate) {
+          onBasePromptUpdate(type, data.basePrompt);
+        }
+      } else {
+        throw new Error(data.message || 'basePrompt 생성 실패');
+      }
+    } catch (error: any) {
+      alert(`basePrompt 생성 실패: ${error.message}`);
+    } finally {
+      setIsGeneratingBasePrompt({ ...isGeneratingBasePrompt, [type]: false });
+    }
+  };
+
+  // basePrompt 저장
+  const handleSaveBasePrompt = async (type: 'background' | 'profile') => {
+    if (!editingBasePrompt.value.trim()) {
+      alert('basePrompt를 입력해주세요.');
+      return;
+    }
+
+    // 부모 컴포넌트에 basePrompt 저장 요청
+    if (onBasePromptUpdate) {
+      onBasePromptUpdate(type, editingBasePrompt.value);
+    }
+    
+    setEditingBasePrompt({ type: null, value: '' });
+    alert('✅ basePrompt가 저장되었습니다.');
+  };
+
   // 프롬프트 재생성 함수 (프롬프트 재생성 + 이미지 자동 재생성)
   const handleRegeneratePrompt = async (type: 'background' | 'profile') => {
     try {
@@ -231,11 +288,62 @@ export default function ProfileManager({
   return (
     <div className="space-y-4">
       {/* 배경 이미지 */}
-      <div className="border rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           배경 이미지
         </label>
         <div className="space-y-2">
+          {/* Base Prompt 섹션 */}
+          <div className="bg-gray-50 p-2 rounded text-xs">
+            <div className="flex items-center justify-between mb-1">
+              <strong className="text-gray-700">Base Prompt (요일별 템플릿):</strong>
+              {editingBasePrompt.type === 'background' ? (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleSaveBasePrompt('background')}
+                    className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs"
+                  >
+                    💾 저장
+                  </button>
+                  <button
+                    onClick={() => setEditingBasePrompt({ type: null, value: '' })}
+                    className="px-2 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded text-xs"
+                  >
+                    ❌ 취소
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleGenerateBasePrompt('background')}
+                  disabled={isGeneratingBasePrompt.background || isGenerating}
+                  className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50"
+                >
+                  {isGeneratingBasePrompt.background ? '🔄 생성 중...' : '🔄 자동 생성'}
+                </button>
+              )}
+            </div>
+            {editingBasePrompt.type === 'background' ? (
+              <textarea
+                value={editingBasePrompt.value}
+                onChange={(e) => setEditingBasePrompt({ type: 'background', value: e.target.value })}
+                className="w-full p-1 border rounded text-xs"
+                rows={2}
+                placeholder="basePrompt를 입력하세요..."
+              />
+            ) : (
+              <div className="text-gray-500 italic">
+                {calendarData && accountKey && selectedDate ? (
+                  (() => {
+                    const schedule = calendarData.profileContent?.[accountKey]?.dailySchedule?.find((s: any) => s.date === selectedDate);
+                    return schedule?.background?.basePrompt || 'basePrompt 없음';
+                  })()
+                ) : (
+                  'basePrompt 없음'
+                )}
+              </div>
+            )}
+          </div>
+          
           <div className="text-sm text-gray-600">
             <strong>설명:</strong> {profileData.background.image}
           </div>
@@ -258,7 +366,8 @@ export default function ProfileManager({
               <img 
                 src={profileData.background.imageUrl} 
                 alt="배경 이미지"
-                className="w-full aspect-video object-cover rounded"
+                className="w-full aspect-square object-cover rounded border border-gray-200"
+                style={{ maxWidth: '400px' }}
                 onError={handleImageError.bind(null, 'background')}
               />
               {isRecoveringImage.background && (
@@ -315,11 +424,62 @@ export default function ProfileManager({
       </div>
 
       {/* 프로필 이미지 */}
-      <div className="border rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           프로필 이미지
         </label>
         <div className="space-y-2">
+          {/* Base Prompt 섹션 */}
+          <div className="bg-gray-50 p-2 rounded text-xs">
+            <div className="flex items-center justify-between mb-1">
+              <strong className="text-gray-700">Base Prompt (요일별 템플릿):</strong>
+              {editingBasePrompt.type === 'profile' ? (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleSaveBasePrompt('profile')}
+                    className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs"
+                  >
+                    💾 저장
+                  </button>
+                  <button
+                    onClick={() => setEditingBasePrompt({ type: null, value: '' })}
+                    className="px-2 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded text-xs"
+                  >
+                    ❌ 취소
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleGenerateBasePrompt('profile')}
+                  disabled={isGeneratingBasePrompt.profile || isGenerating}
+                  className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50"
+                >
+                  {isGeneratingBasePrompt.profile ? '🔄 생성 중...' : '🔄 자동 생성'}
+                </button>
+              )}
+            </div>
+            {editingBasePrompt.type === 'profile' ? (
+              <textarea
+                value={editingBasePrompt.value}
+                onChange={(e) => setEditingBasePrompt({ type: 'profile', value: e.target.value })}
+                className="w-full p-1 border rounded text-xs"
+                rows={2}
+                placeholder="basePrompt를 입력하세요..."
+              />
+            ) : (
+              <div className="text-gray-500 italic">
+                {calendarData && accountKey && selectedDate ? (
+                  (() => {
+                    const schedule = calendarData.profileContent?.[accountKey]?.dailySchedule?.find((s: any) => s.date === selectedDate);
+                    return schedule?.profile?.basePrompt || 'basePrompt 없음';
+                  })()
+                ) : (
+                  'basePrompt 없음'
+                )}
+              </div>
+            )}
+          </div>
+          
           <div className="text-sm text-gray-600">
             <strong>설명:</strong> {profileData.profile.image}
           </div>
@@ -399,7 +559,7 @@ export default function ProfileManager({
       </div>
 
       {/* 메시지 */}
-      <div className="border rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-700">
             프로필 메시지

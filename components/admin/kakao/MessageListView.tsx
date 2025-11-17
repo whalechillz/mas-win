@@ -164,6 +164,42 @@ export default function MessageListView({
     return Array.from(dateMap.values());
   }, [calendarData]);
 
+  // 날짜별 발행 상태 계산 함수 (getPublishStatus와 동일한 로직) - useMemo 이전에 정의
+  const getDatePublishStatus = (date: string) => {
+    if (!calendarData) return { status: 'empty', label: '미작성' };
+    
+    const account1Schedule = calendarData.profileContent?.account1?.dailySchedule || [];
+    const account2Schedule = calendarData.profileContent?.account2?.dailySchedule || [];
+    const feedSchedule = calendarData.kakaoFeed?.dailySchedule || [];
+    
+    const account1Profile = account1Schedule.find((item: any) => item.date === date);
+    const account2Profile = account2Schedule.find((item: any) => item.date === date);
+    const feed = feedSchedule.find((item: any) => item.date === date);
+    
+    const hasProfile1 = account1Profile?.background?.imageUrl && 
+                       account1Profile?.profile?.imageUrl && 
+                       account1Profile?.message;
+    const hasProfile2 = account2Profile?.background?.imageUrl && 
+                       account2Profile?.profile?.imageUrl && 
+                       account2Profile?.message;
+    const hasFeed1 = feed?.account1?.imageUrl && feed?.account1?.caption;
+    const hasFeed2 = feed?.account2?.imageUrl && feed?.account2?.caption;
+    
+    const isCreated = account1Profile?.created || account2Profile?.created;
+    const isPublished = account1Profile?.status === 'published' || 
+                       account2Profile?.status === 'published';
+    
+    if (isPublished) {
+      return { status: 'published', label: '발행됨' };
+    } else if (isCreated && hasProfile1 && hasProfile2 && hasFeed1 && hasFeed2) {
+      return { status: 'ready', label: '발행 준비' };
+    } else if (hasProfile1 || hasProfile2 || hasFeed1 || hasFeed2) {
+      return { status: 'partial', label: '부분 완료' };
+    } else {
+      return { status: 'empty', label: '미작성' };
+    }
+  };
+
   // 필터링 및 정렬
   const filteredMessages = useMemo(() => {
     let filtered = [...messages];
@@ -179,33 +215,30 @@ export default function MessageListView({
       });
     }
 
-    // 타입 필터
+    // 타입 필터 - 데이터를 삭제하지 않고 필터링만 수행
     if (filterType !== 'all') {
-      filtered = filtered.map(item => {
-        const newItem = { ...item };
+      filtered = filtered.filter(item => {
         if (filterType === 'profile') {
-          newItem.account1.feedCaption = undefined;
-          newItem.account2.feedCaption = undefined;
+          return (item.account1.profileMessage || item.account2.profileMessage);
         } else {
-          newItem.account1.profileMessage = undefined;
-          newItem.account2.profileMessage = undefined;
+          return (item.account1.feedCaption || item.account2.feedCaption);
         }
-        return newItem;
-      }).filter(item => 
-        item.account1.profileMessage || item.account1.feedCaption ||
-        item.account2.profileMessage || item.account2.feedCaption
-      );
+      });
     }
 
-    // 상태 필터
+    // 상태 필터 - 날짜별 발행 상태 기반으로 필터링
     if (filterStatus !== 'all') {
       filtered = filtered.filter(item => {
+        const publishStatus = getDatePublishStatus(item.date);
         if (filterStatus === 'created') {
-          return item.account1.created || item.account2.created;
+          // 생성됨 = 발행됨 또는 발행 준비
+          return publishStatus.status === 'published' || publishStatus.status === 'ready';
         } else if (filterStatus === 'published') {
-          return item.account1.status === 'published' || item.account2.status === 'published';
+          // 배포됨 = 발행됨
+          return publishStatus.status === 'published';
         } else {
-          return item.account1.status === 'planned' && item.account2.status === 'planned';
+          // 계획됨 = 미작성
+          return publishStatus.status === 'empty';
         }
       });
     }
@@ -244,7 +277,7 @@ export default function MessageListView({
     });
 
     return filtered;
-  }, [messages, filterAccount, filterType, filterStatus, searchTerm, sortBy, sortOrder]);
+  }, [messages, filterAccount, filterType, filterStatus, searchTerm, sortBy, sortOrder, calendarData]);
 
   const account1Name = calendarData?.profileContent?.account1?.name || '대표폰';
   const account2Name = calendarData?.profileContent?.account2?.name || '업무폰';
@@ -259,41 +292,54 @@ export default function MessageListView({
     setExpandedRows(newExpanded);
   };
 
-  const getStatusBadge = (created: boolean, status: string, accountName: string) => {
-    if (status === 'published') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-          <CheckCircle className="w-3 h-3" />
-          배포됨
-        </span>
-      );
-    } else if (created) {
+  const getStatusBadge = (created: boolean, status: string, accountName: string, date: string) => {
+    // 날짜별 발행 상태 확인
+    const publishStatus = getDatePublishStatus(date);
+    
+    if (publishStatus.status === 'published') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
           <CheckCircle className="w-3 h-3" />
           생성됨
         </span>
       );
+    } else if (publishStatus.status === 'ready') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
+          <CheckCircle className="w-3 h-3" />
+          생성됨
+        </span>
+      );
+    } else if (created || publishStatus.status === 'partial') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+          <CheckCircle className="w-3 h-3" />
+          부분 완료
+        </span>
+      );
     } else {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-          계획됨
+          미작성
         </span>
       );
     }
   };
 
-  const getDeploymentBadge = (publishedAt: string | undefined, status: string) => {
-    if (publishedAt && status === 'published') {
+  const getDeploymentBadge = (publishedAt: string | undefined, status: string, date: string) => {
+    // 날짜별 발행 상태 확인
+    const publishStatus = getDatePublishStatus(date);
+    
+    if (publishStatus.status === 'published') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
           발행됨
         </span>
       );
-    } else if (status === 'published') {
+    } else if (publishStatus.status === 'ready') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-          배포됨
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">
+          미배포
         </span>
       );
     } else {
@@ -342,8 +388,11 @@ export default function MessageListView({
           <select
             id="filter-account"
             value={filterAccount}
-            onChange={(e) => setFilterAccount(e.target.value as 'all' | 'account1' | 'account2')}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            onChange={(e) => {
+              const newValue = e.target.value as 'all' | 'account1' | 'account2';
+              setFilterAccount(newValue);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
             aria-label="계정 필터 선택"
           >
             <option value="all">전체 계정</option>
@@ -355,8 +404,11 @@ export default function MessageListView({
           <select
             id="filter-type"
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value as 'all' | 'profile' | 'feed')}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            onChange={(e) => {
+              const newValue = e.target.value as 'all' | 'profile' | 'feed';
+              setFilterType(newValue);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
             aria-label="타입 필터 선택"
           >
             <option value="all">전체 타입</option>
@@ -368,8 +420,11 @@ export default function MessageListView({
           <select
             id="filter-status"
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as 'all' | 'created' | 'published' | 'planned')}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            onChange={(e) => {
+              const newValue = e.target.value as 'all' | 'created' | 'published' | 'planned';
+              setFilterStatus(newValue);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
             aria-label="상태 필터 선택"
           >
             <option value="all">전체 상태</option>
@@ -462,9 +517,11 @@ export default function MessageListView({
                         {/* 프로필 메시지 */}
                         <td className="px-6 py-4">
                           {item.account1.profileMessage ? (
-                            <div className="flex items-start gap-2 max-w-xs">
+                            <div className="flex items-start gap-2" style={{ maxWidth: '300px' }}>
                               <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700 line-clamp-2">{item.account1.profileMessage}</span>
+                              <span className="text-sm text-gray-700 line-clamp-1">
+                                {item.account1.profileMessage}
+                              </span>
                             </div>
                           ) : (
                             <span className="text-sm text-gray-400">-</span>
@@ -474,9 +531,11 @@ export default function MessageListView({
                         {/* 피드 캡션 */}
                         <td className="px-6 py-4">
                           {item.account1.feedCaption ? (
-                            <div className="flex items-start gap-2 max-w-xs">
+                            <div className="flex items-start gap-2" style={{ maxWidth: '300px' }}>
                               <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700 line-clamp-2">{item.account1.feedCaption}</span>
+                              <span className="text-sm text-gray-700 line-clamp-1">
+                                {item.account1.feedCaption}
+                              </span>
                             </div>
                           ) : (
                             <span className="text-sm text-gray-400">-</span>
@@ -485,12 +544,12 @@ export default function MessageListView({
                         
                         {/* 상태 */}
                         <td className="px-6 py-4">
-                          {getStatusBadge(item.account1.created, item.account1.status, account1Name)}
+                          {getStatusBadge(item.account1.created, item.account1.status, account1Name, item.date)}
                         </td>
 
                         {/* 배포 상태 */}
                         <td className="px-6 py-4">
-                          {getDeploymentBadge(item.account1.publishedAt, item.account1.status)}
+                          {getDeploymentBadge(item.account1.publishedAt, item.account1.status, item.date)}
                         </td>
 
                         {/* 작업 */}
@@ -554,9 +613,11 @@ export default function MessageListView({
                         {/* 프로필 메시지 */}
                         <td className="px-6 py-4">
                           {item.account2.profileMessage ? (
-                            <div className="flex items-start gap-2 max-w-xs">
+                            <div className="flex items-start gap-2" style={{ maxWidth: '300px' }}>
                               <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700 line-clamp-2">{item.account2.profileMessage}</span>
+                              <span className="text-sm text-gray-700 line-clamp-2">
+                                {item.account2.profileMessage}
+                              </span>
                             </div>
                           ) : (
                             <span className="text-sm text-gray-400">-</span>
@@ -566,9 +627,11 @@ export default function MessageListView({
                         {/* 피드 캡션 */}
                         <td className="px-6 py-4">
                           {item.account2.feedCaption ? (
-                            <div className="flex items-start gap-2 max-w-xs">
+                            <div className="flex items-start gap-2" style={{ maxWidth: '300px' }}>
                               <FileText className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700 line-clamp-2">{item.account2.feedCaption}</span>
+                              <span className="text-sm text-gray-700 line-clamp-2">
+                                {item.account2.feedCaption}
+                              </span>
                             </div>
                           ) : (
                             <span className="text-sm text-gray-400">-</span>
@@ -577,12 +640,12 @@ export default function MessageListView({
                         
                         {/* 상태 */}
                         <td className="px-6 py-4">
-                          {getStatusBadge(item.account2.created, item.account2.status, account2Name)}
+                          {getStatusBadge(item.account2.created, item.account2.status, account2Name, item.date)}
                         </td>
 
                         {/* 배포 상태 */}
                         <td className="px-6 py-4">
-                          {getDeploymentBadge(item.account2.publishedAt, item.account2.status)}
+                          {getDeploymentBadge(item.account2.publishedAt, item.account2.status, item.date)}
                         </td>
 
                         {/* 작업 */}
@@ -635,9 +698,15 @@ export default function MessageListView({
             {filteredMessages.length > 0 && (
               <>
                 {' '}(생성됨: <span className="font-semibold text-green-600">
-                  {filteredMessages.filter(m => m.account1.created || m.account2.created).length}
+                  {filteredMessages.filter(m => {
+                    const status = getDatePublishStatus(m.date);
+                    return status.status === 'published' || status.status === 'ready';
+                  }).length}
                 </span>개, 배포됨: <span className="font-semibold text-purple-600">
-                  {filteredMessages.filter(m => m.account1.status === 'published' || m.account2.status === 'published').length}
+                  {filteredMessages.filter(m => {
+                    const status = getDatePublishStatus(m.date);
+                    return status.status === 'published';
+                  }).length}
                 </span>개)
               </>
             )}

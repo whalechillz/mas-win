@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, Loader, User, MessageSquare, CheckCircle2, Circle, Upload, Smartphone, Send, RotateCcw, ChevronDown, Image, FileText } from 'lucide-react';
+import { CheckCircle, Loader, User, MessageSquare, CheckCircle2, Circle, Upload, Smartphone, Send, RotateCcw, ChevronDown, Image, FileText, Rocket, Sparkles } from 'lucide-react';
 import ProfileManager from './ProfileManager';
 import FeedManager from './FeedManager';
 
@@ -25,6 +25,7 @@ interface FeedData {
   caption: string;
   imageUrl?: string;
   url?: string;
+  basePrompt?: string;
 }
 
 interface KakaoAccountEditorProps {
@@ -440,328 +441,318 @@ export default function KakaoAccountEditor({
 
   return (
     <div className={`border-2 rounded-lg p-6 ${toneColor}`}>
-      {/* 계정 헤더 */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {account.name} ({account.number})
-            </h3>
-            <div className="text-sm text-gray-600 mt-1">
-              <div>페르소나: {account.persona}</div>
-              <div>톤: {account.tone === 'gold' ? '골드톤 시니어 매너' : '블랙톤 젊은 매너'}</div>
-            </div>
+      {/* 계정 헤더 - 컴팩트 버전 */}
+      <div className="mb-3">
+        <div className="flex items-center gap-3 mb-3">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {account.name} ({account.number})
+          </h3>
+          {/* 페르소나/톤 정보 - 인라인 배지 형태 */}
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
+              {account.persona}
+            </span>
+            <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
+              account.tone === 'gold' 
+                ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                : 'bg-gray-50 text-gray-700 border-gray-200'
+            }`}>
+              {account.tone === 'gold' ? '골드톤' : '블랙톤'}
+            </span>
           </div>
-          <div className="flex flex-col gap-3">
-            {/* 누락 항목 안내 */}
-            {missingItems.length > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-yellow-900">
-                      누락된 항목: {missingItems.join(', ')}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handlePartialGenerate(missingItems[0] === '배경 이미지' ? 'background' : missingItems[0] === '프로필 이미지' ? 'profile' : missingItems[0] === '피드 이미지' ? 'feed' : missingItems[0] === '프로필 메시지' ? 'message' : 'caption')}
-                    disabled={isGenerating || isCreating}
-                    className="text-xs px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
-                  >
-                    생성
-                  </button>
-                </div>
-              </div>
-            )}
+        </div>
+      </div>
 
-            {/* 생성 그룹 */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption ? (
-                  <>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-700">생성 완료</span>
-                    </div>
-                    <div className="relative" ref={partialRegenerateMenuRef}>
+      {/* 액션 패널 - 컴팩트 버전 */}
+      <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-3 mb-4 shadow-sm">
+        {/* 통합 상태 바 - 생성 상태와 배포 상태를 한 줄에 */}
+        <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-gray-200">
+          {/* 왼쪽: 콘텐츠 생성 상태 */}
+          <div className="flex items-center gap-3 flex-1">
+            {/* 생성 상태 & 액션 버튼 */}
+            {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption ? (
+              <>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg shadow-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-semibold text-green-700">생성 완료</span>
+                </div>
+                <div className="relative" ref={partialRegenerateMenuRef}>
+                  <button
+                    onClick={() => setShowPartialRegenerateMenu(!showPartialRegenerateMenu)}
+                    disabled={isGenerating || isCreating}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-orange-200 hover:border-orange-300 text-orange-700 rounded-lg text-xs font-medium transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" />
+                    <span>재생성</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showPartialRegenerateMenu ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showPartialRegenerateMenu && !isGenerating && (
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-[200px] overflow-hidden">
                       <button
-                        onClick={() => setShowPartialRegenerateMenu(!showPartialRegenerateMenu)}
-                        disabled={isGenerating || isCreating}
-                        className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        onClick={() => handlePartialRegenerate('all')}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm font-medium transition-colors"
                       >
-                        {isGenerating ? (
-                          <>
-                            <Loader className="w-4 h-4 animate-spin" />
-                            <span>재생성 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <RotateCcw className="w-4 h-4" />
-                            <span>재생성</span>
-                            <ChevronDown className="w-4 h-4" />
-                          </>
-                        )}
+                        전체 재생성
                       </button>
-                      {showPartialRegenerateMenu && !isGenerating && (
-                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px]">
-                          <button
-                            onClick={() => handlePartialRegenerate('all')}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                          >
-                            전체 재생성
-                          </button>
-                          <div className="border-t border-gray-200" />
-                          <button
-                            onClick={() => handlePartialRegenerate('background')}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                          >
-                            <Image className="w-4 h-4" />
-                            배경 이미지만
-                          </button>
-                          <button
-                            onClick={() => handlePartialRegenerate('profile')}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                          >
-                            <Image className="w-4 h-4" />
-                            프로필 이미지만
-                          </button>
-                          <button
-                            onClick={() => handlePartialRegenerate('feed')}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                          >
-                            <Image className="w-4 h-4" />
-                            피드 이미지만
-                          </button>
-                          <button
-                            onClick={() => handlePartialRegenerate('message')}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                          >
-                            <FileText className="w-4 h-4" />
-                            프로필 메시지만
-                          </button>
-                          <button
-                            onClick={() => handlePartialRegenerate('caption')}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                          >
-                            <FileText className="w-4 h-4" />
-                            피드 캡션만
-                          </button>
+                      <div className="border-t border-gray-200" />
+                      <button
+                        onClick={() => handlePartialRegenerate('background')}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                      >
+                        <Image className="w-4 h-4 text-gray-500" />
+                        배경 이미지만
+                      </button>
+                      <button
+                        onClick={() => handlePartialRegenerate('profile')}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                      >
+                        <Image className="w-4 h-4 text-gray-500" />
+                        프로필 이미지만
+                      </button>
+                      <button
+                        onClick={() => handlePartialRegenerate('feed')}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                      >
+                        <Image className="w-4 h-4 text-gray-500" />
+                        피드 이미지만
+                      </button>
+                      <button
+                        onClick={() => handlePartialRegenerate('message')}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                      >
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        프로필 메시지만
+                      </button>
+                      <button
+                        onClick={() => handlePartialRegenerate('caption')}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                      >
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        피드 캡션만
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleAutoCreate}
+                  disabled={isGenerating || isCreating}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-xs font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  title="계정 자동 생성"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader className="w-3.5 h-3.5 animate-spin" />
+                      <span>생성 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="w-3.5 h-3.5 group-hover:translate-y-[-2px] transition-transform" />
+                      <span>전체 생성</span>
+                    </>
+                  )}
+                </button>
+                <div className="relative" ref={partialGenerateMenuRef}>
+                  <button
+                    onClick={() => setShowPartialGenerateMenu(!showPartialGenerateMenu)}
+                    disabled={isGenerating || isCreating}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-blue-200 hover:border-blue-300 text-blue-700 rounded-lg text-xs font-medium transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                    <span>선택 생성</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showPartialGenerateMenu ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showPartialGenerateMenu && !isGenerating && (
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-[200px] overflow-hidden">
+                      {!profileData.background.imageUrl && (
+                        <button
+                          onClick={() => handlePartialGenerate('background')}
+                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <Image className="w-4 h-4 text-gray-500" />
+                          배경 이미지
+                        </button>
+                      )}
+                      {!profileData.profile.imageUrl && (
+                        <button
+                          onClick={() => handlePartialGenerate('profile')}
+                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <Image className="w-4 h-4 text-gray-500" />
+                          프로필 이미지
+                        </button>
+                      )}
+                      {!feedData.imageUrl && (
+                        <button
+                          onClick={() => handlePartialGenerate('feed')}
+                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <Image className="w-4 h-4 text-gray-500" />
+                          피드 이미지
+                        </button>
+                      )}
+                      {(!profileData.message || profileData.message.trim() === '') && (
+                        <button
+                          onClick={() => handlePartialGenerate('message')}
+                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <FileText className="w-4 h-4 text-gray-500" />
+                          프로필 메시지
+                        </button>
+                      )}
+                      {(!feedData.caption || feedData.caption.trim() === '') && (
+                        <button
+                          onClick={() => handlePartialGenerate('caption')}
+                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <FileText className="w-4 h-4 text-gray-500" />
+                          피드 캡션
+                        </button>
+                      )}
+                      {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption && (
+                        <div className="px-4 py-2.5 text-xs text-gray-500 bg-gray-50">
+                          모든 항목이 생성되었습니다
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* 오른쪽: 배포 상태 */}
+          {onPublishStatusChange && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => {
+                  const newStatus = publishStatus === 'published' ? 'created' : 'published';
+                  onPublishStatusChange(newStatus);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shadow-sm hover:shadow-md ${
+                  publishStatus === 'published'
+                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 hover:from-green-200 hover:to-emerald-200 border-2 border-green-300'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-300'
+                }`}
+                title={publishStatus === 'published' ? '배포 완료 - 클릭하여 배포 대기로 변경' : '배포 대기 - 클릭하여 배포 완료로 변경'}
+              >
+                {publishStatus === 'published' ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>배포 완료</span>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={handleAutoCreate}
-                      disabled={isGenerating || isCreating}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      title="계정 자동 생성"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader className="w-4 h-4 animate-spin" />
-                          <span>생성 중...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4" />
-                          <span>계정 자동 생성</span>
-                        </>
-                      )}
-                    </button>
-                    <div className="relative" ref={partialGenerateMenuRef}>
-                      <button
-                        onClick={() => setShowPartialGenerateMenu(!showPartialGenerateMenu)}
-                        disabled={isGenerating || isCreating}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <span>부분 생성</span>
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-                      {showPartialGenerateMenu && !isGenerating && (
-                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px]">
-                          {!profileData.background.imageUrl && (
-                            <button
-                              onClick={() => handlePartialGenerate('background')}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                            >
-                              <Image className="w-4 h-4" />
-                              배경 이미지
-                            </button>
-                          )}
-                          {!profileData.profile.imageUrl && (
-                            <button
-                              onClick={() => handlePartialGenerate('profile')}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                            >
-                              <Image className="w-4 h-4" />
-                              프로필 이미지
-                            </button>
-                          )}
-                          {!feedData.imageUrl && (
-                            <button
-                              onClick={() => handlePartialGenerate('feed')}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                            >
-                              <Image className="w-4 h-4" />
-                              피드 이미지
-                            </button>
-                          )}
-                          {(!profileData.message || profileData.message.trim() === '') && (
-                            <button
-                              onClick={() => handlePartialGenerate('message')}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                            >
-                              <FileText className="w-4 h-4" />
-                              프로필 메시지
-                            </button>
-                          )}
-                          {(!feedData.caption || feedData.caption.trim() === '') && (
-                            <button
-                              onClick={() => handlePartialGenerate('caption')}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
-                            >
-                              <FileText className="w-4 h-4" />
-                              피드 캡션
-                            </button>
-                          )}
-                          {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption && (
-                            <div className="px-4 py-2 text-xs text-gray-500">
-                              모든 항목이 생성되었습니다
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <Circle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>배포 대기</span>
                   </>
                 )}
-              </div>
-              
-              {/* 진행 상태 표시 */}
-              {generationProgress && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 animate-fade-in">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Loader className="w-4 h-4 animate-spin text-blue-600" />
-                      <span className="text-sm font-medium text-blue-900">{generationProgress.currentStep}</span>
-                    </div>
-                    <span className="text-xs text-blue-600 font-medium">
-                      {generationProgress.progress} / {generationProgress.totalSteps}
-                    </span>
-                  </div>
-                  <div className="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out relative"
-                      style={{ width: `${(generationProgress.progress / generationProgress.totalSteps) * 100}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              )}
+              </button>
             </div>
-
-            {/* 배포 그룹 */}
-            {(profileData.background.imageUrl && profileData.profile.imageUrl) && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={handleUploadToKakao}
-                    disabled={isUploading || !profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title={!profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message 
-                      ? '이미지와 메시지를 먼저 생성해주세요' 
-                      : '카카오톡 프로필 업데이트'}
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader className="w-4 h-4 animate-spin" />
-                        <span>업로드 중...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Smartphone className="w-4 h-4" />
-                        <span>카카오톡 업로드</span>
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleSendToSlack}
-                    disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title={!feedData.imageUrl || !feedData.caption 
-                      ? '피드 이미지와 캡션을 먼저 생성해주세요' 
-                      : '슬랙으로 전송'}
-                  >
-                    {isSendingSlack ? (
-                      <>
-                        <Loader className="w-4 h-4 animate-spin" />
-                        <span>전송 중...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>슬랙 전송</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                
-                {/* 배포 진행 상태 표시 */}
-                {(isUploading || isSendingSlack) && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 animate-fade-in">
-                    <div className="flex items-center gap-2">
-                      <Loader className="w-4 h-4 animate-spin text-purple-600" />
-                      <span className="text-sm font-medium text-purple-900">
-                        {isUploading ? '카카오톡 업로드 중...' : '슬랙 전송 중...'}
-                      </span>
-                    </div>
-                    <div className="mt-2 w-full bg-purple-200 rounded-full h-1.5">
-                      <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full animate-pulse" style={{ width: '100%' }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
+          
+        {/* 누락 항목 알림 (세련된 디자인) */}
+        {missingItems.length > 0 && (
+          <div className="flex items-start gap-3 p-3.5 bg-amber-50/50 border border-amber-200/50 rounded-lg mb-3">
+            <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-xs">⚠️</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-900 mb-1">
+                {missingItems.length}개 항목 누락
+              </p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                {missingItems.join(', ')}
+              </p>
+            </div>
+          </div>
+        )}
         
-        {/* 배포 상태 별도 줄 */}
-        {onPublishStatusChange && (
-          <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-            <button
-              onClick={() => {
-                const newStatus = publishStatus === 'published' ? 'created' : 'published';
-                onPublishStatusChange(newStatus);
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                publishStatus === 'published'
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
-              }`}
-              title={publishStatus === 'published' ? '배포 완료 - 클릭하여 배포 대기로 변경' : '배포 대기 - 클릭하여 배포 완료로 변경'}
-            >
-              {publishStatus === 'published' ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  <span>배포 완료</span>
-                </>
-              ) : (
-                <>
-                  <Circle className="w-4 h-4 flex-shrink-0" />
-                  <span>배포 대기</span>
-                </>
-              )}
-            </button>
-            {publishStatus === 'published' && publishedAt && (
-              <span className="text-xs text-gray-500 whitespace-nowrap">
-                {new Date(publishedAt).toLocaleDateString('ko-KR', { 
-                  month: 'short', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+        {/* 진행 상태 표시 - 컴팩트 */}
+        {generationProgress && (
+          <div className="mt-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Loader className="w-4 h-4 animate-spin text-blue-600" />
+                <span className="text-sm font-semibold text-blue-900">{generationProgress.currentStep}</span>
+              </div>
+              <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                {generationProgress.progress} / {generationProgress.totalSteps}
               </span>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out relative"
+                style={{ width: `${(generationProgress.progress / generationProgress.totalSteps) * 100}%` }}
+              >
+                <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 섹션 2: 배포 및 전송 */}
+        {(profileData.background.imageUrl && profileData.profile.imageUrl) && (
+          <div className="mb-3 pb-3 border-b border-gray-200">
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <button
+                  onClick={handleUploadToKakao}
+                  disabled={isUploading || !profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  title={!profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message 
+                    ? '이미지와 메시지를 먼저 생성해주세요' 
+                    : '카카오톡 프로필 업데이트'}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>업로드 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span>카카오톡</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleSendToSlack}
+                  disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  title={!feedData.imageUrl || !feedData.caption 
+                    ? '피드 이미지와 캡션을 먼저 생성해주세요' 
+                    : '슬랙으로 전송'}
+                >
+                  {isSendingSlack ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>전송 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span>슬랙</span>
+                    </>
+                  )}
+                </button>
+            </div>
+            
+            {/* 배포 진행 상태 표시 */}
+            {(isUploading || isSendingSlack) && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 mb-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Loader className="w-4 h-4 animate-spin text-purple-600" />
+                  <span className="text-sm font-semibold text-purple-900">
+                    {isUploading ? '카카오톡 업로드 중...' : '슬랙 전송 중...'}
+                  </span>
+                </div>
+                <div className="w-full bg-purple-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -801,7 +792,25 @@ export default function KakaoAccountEditor({
           accountKey={accountKey}
           calendarData={calendarData}
           selectedDate={selectedDate}
-          onBasePromptUpdate={onBasePromptUpdate}
+          onBasePromptUpdate={async (basePrompt: string) => {
+            // 피드용 basePrompt 업데이트 핸들러
+            if (calendarData && accountKey && selectedDate && setCalendarData && saveCalendarData) {
+              const updated = { ...calendarData };
+              const feedIndex = updated.kakaoFeed?.dailySchedule?.findIndex(
+                (f: any) => f.date === selectedDate
+              );
+              
+              if (feedIndex >= 0 && updated.kakaoFeed?.dailySchedule?.[feedIndex]) {
+                if (!updated.kakaoFeed.dailySchedule[feedIndex][accountKey]) {
+                  updated.kakaoFeed.dailySchedule[feedIndex][accountKey] = {};
+                }
+                updated.kakaoFeed.dailySchedule[feedIndex][accountKey].basePrompt = basePrompt;
+                
+                setCalendarData(updated);
+                await saveCalendarData(updated);
+              }
+            }
+          }}
         />
       </div>
     </div>

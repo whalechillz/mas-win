@@ -5,7 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { chromium } from 'playwright';
-import sharp from 'sharp';
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성) - 필요시 사용
 import { convertWixToHighQuality, extractWixFileName } from '../../lib/wix-image-utils.js';
 
 const supabase = createClient(
@@ -57,6 +57,8 @@ async function optimizeToWebP(imageBuffer, imageName) {
   try {
     console.log(`🎨 ${imageName} WebP 최적화 시작...`);
     
+    // Sharp 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
     const optimizedBuffer = await sharp(imageBuffer)
       .resize(1200, 1200, { 
         fit: 'inside',

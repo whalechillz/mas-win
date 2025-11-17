@@ -1,6 +1,6 @@
 // 외부 이미지를 Supabase Storage에 저장하는 API
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
+// Sharp는 사용하지 않음 (필요시 동적 import로 추가)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

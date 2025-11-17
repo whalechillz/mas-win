@@ -7,6 +7,10 @@
   "functions": {
     "pages/api/**/*.js": {
       "maxDuration": 50
+    },
+    "pages/api/kakao-content/generate-images.js": {
+      "maxDuration": 50,
+      "memory": 1024
     }
   },
   "crons": [

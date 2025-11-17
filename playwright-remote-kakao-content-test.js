@@ -141,7 +141,7 @@ async function testKakaoContentGeneration() {
       
       // 2. generate-paragraph-images-with-prompts API 테스트 (새 경로)
       try {
-        const imageRes = await fetch(`${baseUrl}/api/kakao-content/generate-paragraph-images-with-prompts`, {
+        const imageRes = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

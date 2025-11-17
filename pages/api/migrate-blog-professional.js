@@ -4,7 +4,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import sharp from "sharp";
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 import OpenAI from "openai";
 
 const supabase = createClient(
@@ -255,6 +255,8 @@ export default async function handler(req, res) {
             continue;
           }
 
+          // Sharp 동적 import (Vercel 환경 호환성)
+          const sharp = (await import('sharp')).default;
           const optimizedBuffer = await sharp(buffer)
             .resize(1200, 800, { fit: "inside", withoutEnlargement: true })
             .webp({ quality: 90 })
