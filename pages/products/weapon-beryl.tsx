@@ -32,9 +32,8 @@ export default function WeaponBerylProduct() {
         <header className="bg-black shadow-lg sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="flex justify-between items-center">
-              <Link href="/" className="flex items-center space-x-2 sm:space-x-4 cursor-pointer hover:opacity-80 transition-opacity">
-                <span className="text-lg sm:text-2xl font-bold text-white">MUZIIK</span>
-                <span className="text-lg sm:text-2xl font-bold text-white">X MASSGOO</span>
+              <Link href="/" className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                <span className="text-lg sm:text-2xl font-bold text-white">MUZIIK X MASSGOO</span>
               </Link>
               <a href="tel:080-028-8888" className="bg-red-600 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-red-700 transition-colors font-bold text-sm sm:text-base whitespace-nowrap">
                 <span className="hidden sm:inline">080-028-8888 (무료 상담)</span>
@@ -699,9 +698,8 @@ export default function WeaponBerylProduct() {
         <footer className="bg-gray-900 text-white py-12">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <div className="flex items-center justify-center space-x-4 mb-6">
-                <span className="text-2xl font-bold">MUZIIK</span>
-                <span className="text-2xl font-bold">X MASSGOO</span>
+              <div className="flex items-center justify-center mb-6">
+                <span className="text-2xl font-bold">MUZIIK X MASSGOO</span>
               </div>
               <p className="text-gray-400 mb-4">© 2025 MASGOLF X MUZIIK. All rights reserved.</p>
               <p className="text-sm text-gray-500">
