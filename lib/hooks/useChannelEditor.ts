@@ -256,17 +256,20 @@ export const useChannelEditor = (
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          // 발송 성공 시 상태 업데이트
-          updateFormData({ status: 'sent' });
-          return data.result;
-        } else {
-          throw new Error(data.message || '발송 실패');
-        }
+      const data = await response.json();
+      
+      // 부분 성공 처리 (207 Multi-Status)
+      if (response.status === 207 || (response.ok && data.success)) {
+        // 부분 성공 또는 전체 성공
+        const status = data.result?.failCount > 0 ? 'partial' : 'sent';
+        updateFormData({ status: status as any });
+        return data.result;
+      } else if (response.ok && !data.success) {
+        // 전체 실패
+        throw new Error(data.message || '발송 실패');
       } else {
-        throw new Error('발송 중 오류가 발생했습니다.');
+        // HTTP 오류
+        throw new Error(data.message || '발송 중 오류가 발생했습니다.');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';

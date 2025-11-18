@@ -420,7 +420,30 @@ export default function SMSAdmin() {
         blogPostId ? parseInt(blogPostId as string) : undefined
       );
 
-      await sendMessage(channelPostId);
+      const result = await sendMessage(channelPostId);
+      
+      // 부분 성공 처리
+      if (result) {
+        const successCount = result.successCount || 0;
+        const failCount = result.failCount || 0;
+        const totalCount = result.sentCount || 0;
+        
+        if (failCount > 0 && successCount > 0) {
+          // 부분 성공
+          const message = `부분 성공: ${successCount}건 발송 성공, ${failCount}건 실패\n\n총 ${totalCount}명 중 ${successCount}명에게 메시지가 전송되었습니다.`;
+          if (result.chunkErrors && result.chunkErrors.length > 0) {
+            alert(`${message}\n\n실패한 청크: ${result.chunkErrors.length}개`);
+          } else {
+            alert(message);
+          }
+        } else if (successCount > 0) {
+          // 전체 성공
+          alert(`SMS가 성공적으로 발송되었습니다.\n\n총 ${successCount}건 발송 완료`);
+        } else {
+          // 전체 실패
+          throw new Error(`발송 실패: 모든 메시지 발송에 실패했습니다.`);
+        }
+      }
       
       // SMS 발송 후 허브 상태를 "발행됨"으로 업데이트
       if (hub) {
@@ -446,10 +469,11 @@ export default function SMSAdmin() {
         }
       }
       
-      alert('SMS가 성공적으로 발송되었습니다.');
       router.push('/admin/sms');
-    } catch (error) {
-      alert('발송 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      const errorMessage = error.message || '발송 중 오류가 발생했습니다.';
+      alert(errorMessage);
+      console.error('SMS 발송 오류:', error);
     } finally {
       setIsSending(false);
     }

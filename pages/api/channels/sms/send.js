@@ -136,27 +136,92 @@ export default async function handler(req, res) {
       for (const m of allMessages) m.type = 'LMS';
     }
 
-    // 200건씩 청크 전송 및 응답 집계
+    // 200건씩 청크 전송 및 응답 집계 (부분 성공 처리)
     const chunkSize = 200;
     let aggregated = { groupIds: [], messageResults: [], successCount: 0, failCount: 0 };
+    const chunkErrors = []; // 실패한 청크 정보 저장
+    const totalChunks = Math.ceil(allMessages.length / chunkSize);
+    
     for (let i = 0; i < allMessages.length; i += chunkSize) {
+      const chunkIndex = Math.floor(i / chunkSize) + 1;
       const chunk = allMessages.slice(i, i + chunkSize);
       const payload = { messages: chunk };
-      const resp = await fetch('https://api.solapi.com/messages/v4/send-many/detail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify(payload)
-      });
-      const json = await resp.json();
-      console.log('Solapi chunk 응답:', json);
-      if (!resp.ok) {
-        throw new Error(`Solapi API 오류: ${resp.status} - ${JSON.stringify(json)}`);
+      
+      try {
+        const resp = await fetch('https://api.solapi.com/messages/v4/send-many/detail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify(payload)
+        });
+        const json = await resp.json();
+        console.log(`Solapi chunk ${chunkIndex}/${totalChunks} 응답:`, json);
+        
+        if (!resp.ok) {
+          // 청크 실패 시 오류 기록하지만 계속 진행
+          const errorInfo = {
+            chunkIndex,
+            status: resp.status,
+            error: json,
+            messageCount: chunk.length,
+            range: `${i + 1}-${Math.min(i + chunkSize, allMessages.length)}`
+          };
+          chunkErrors.push(errorInfo);
+          console.error(`❌ 청크 ${chunkIndex} 발송 실패:`, errorInfo);
+          
+          // 실패한 청크의 메시지들을 failCount에 추가
+          aggregated.failCount += chunk.length;
+          
+          // 실패한 메시지들을 messageResults에 추가 (status: 'failed')
+          chunk.forEach((msg, idx) => {
+            aggregated.messageResults.push({
+              to: msg.to,
+              status: 'failed',
+              errorCode: json.errorCode || 'CHUNK_ERROR',
+              errorMessage: json.errorMessage || `청크 ${chunkIndex} 발송 실패`
+            });
+          });
+          
+          continue; // 다음 청크 계속 진행
+        }
+        
+        // 성공한 청크 처리
+        aggregated.groupIds.push(json.groupInfo?.groupId);
+        aggregated.messageResults.push(...(json.messages || []));
+        aggregated.successCount += json.groupInfo?.successCount || 0;
+        aggregated.failCount += json.groupInfo?.failCount || 0;
+        
+        console.log(`✅ 청크 ${chunkIndex} 발송 성공: ${json.groupInfo?.successCount || 0}건 성공, ${json.groupInfo?.failCount || 0}건 실패`);
+        
+      } catch (chunkError) {
+        // 네트워크 오류 등 예외 처리
+        const errorInfo = {
+          chunkIndex,
+          error: chunkError.message,
+          messageCount: chunk.length,
+          range: `${i + 1}-${Math.min(i + chunkSize, allMessages.length)}`
+        };
+        chunkErrors.push(errorInfo);
+        console.error(`❌ 청크 ${chunkIndex} 예외 발생:`, errorInfo);
+        
+        // 실패한 청크의 메시지들을 failCount에 추가
+        aggregated.failCount += chunk.length;
+        
+        // 실패한 메시지들을 messageResults에 추가
+        chunk.forEach((msg) => {
+          aggregated.messageResults.push({
+            to: msg.to,
+            status: 'failed',
+            errorCode: 'NETWORK_ERROR',
+            errorMessage: chunkError.message
+          });
+        });
       }
-      aggregated.groupIds.push(json.groupInfo?.groupId);
-      aggregated.messageResults.push(...(json.messages || []));
-      aggregated.successCount += json.groupInfo?.successCount || 0;
-      aggregated.failCount += json.groupInfo?.failCount || 0;
     }
+    
+    // 부분 성공 여부 확인
+    const hasPartialSuccess = aggregated.successCount > 0 && aggregated.failCount > 0;
+    const allFailed = aggregated.successCount === 0 && aggregated.failCount > 0;
+    const allSuccess = aggregated.failCount === 0 && aggregated.successCount > 0;
 
     // per-recipient 로그 및 연락 이벤트 기록 (고객 매핑은 후속 단계에서 강화)
     try {
@@ -195,17 +260,18 @@ export default async function handler(req, res) {
       console.error('per-recipient 로깅 오류:', e);
     }
 
-    // 발송 결과를 데이터베이스에 업데이트
+    // 발송 결과를 데이터베이스에 업데이트 (부분 성공도 처리)
+    const finalStatus = allSuccess ? 'sent' : (hasPartialSuccess ? 'partial' : 'failed');
     const { error: updateError } = await supabase
       .from('channel_sms')
       .update({
-        status: 'sent',
+        status: finalStatus,
         solapi_group_id: aggregated.groupIds[0] || null,
         solapi_message_id: null,
         sent_at: new Date().toISOString(),
         sent_count: uniqueToSend.length,
-        success_count: aggregated.successCount || uniqueToSend.length,
-        fail_count: aggregated.failCount || 0
+        success_count: aggregated.successCount,
+        fail_count: aggregated.failCount
       })
       .eq('id', channelPostId);
 
@@ -239,17 +305,33 @@ export default async function handler(req, res) {
       console.error('AI 사용량 로깅 중 예외:', logError);
     }
 
-    return res.status(200).json({
-      success: true,
+    // 응답 메시지 결정
+    let responseMessage = 'SMS가 성공적으로 발송되었습니다.';
+    let responseStatus = 200;
+    
+    if (hasPartialSuccess) {
+      responseMessage = `부분 성공: ${aggregated.successCount}건 발송 성공, ${aggregated.failCount}건 실패`;
+      responseStatus = 207; // Multi-Status (부분 성공)
+    } else if (allFailed) {
+      responseMessage = `발송 실패: 모든 메시지 발송에 실패했습니다.`;
+      responseStatus = 500;
+    }
+    
+    return res.status(responseStatus).json({
+      success: !allFailed, // 부분 성공도 success: true
       result: {
         groupIds: aggregated.groupIds,
         sentCount: uniqueToSend.length,
-        successCount: aggregated.successCount || uniqueToSend.length,
-        failCount: aggregated.failCount || 0
+        successCount: aggregated.successCount,
+        failCount: aggregated.failCount,
+        totalChunks: totalChunks,
+        failedChunks: chunkErrors.length,
+        chunkErrors: chunkErrors.length > 0 ? chunkErrors : undefined
       },
       duplicates: candidates.length - uniqueToSend.length,
-      message: 'SMS가 성공적으로 발송되었습니다.',
-      solapiResponse: aggregated
+      message: responseMessage,
+      solapiResponse: aggregated,
+      warnings: chunkErrors.length > 0 ? `일부 청크 발송 실패: ${chunkErrors.length}개 청크` : undefined
     });
 
   } catch (error) {
