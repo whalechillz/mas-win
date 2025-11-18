@@ -174,7 +174,8 @@ export default function WeaponBerylProduct() {
               <h3 className="text-3xl font-bold text-white mb-8 text-center">시크리트웨폰 블랙 MUZIIK</h3>
               <p className="text-center text-gray-400 mb-8">상품 스펙 안내</p>
               
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 mb-8">
+                <div></div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">230</div>
                   <div className="text-xs text-gray-400">스티프 레귤러</div>
@@ -190,72 +191,97 @@ export default function WeaponBerylProduct() {
               </div>
 
               <div className="space-y-6 mb-8">
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">헤드 각도</div>
-                  <div className="text-white font-bold text-xl text-center">10°</div>
-                  <div className="text-gray-400 text-sm text-right">드로우 페이스 0.5° [10.5°®]</div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">최적 무게</div>
-                  <div className="col-span-2">
-                    <div className="flex gap-6 justify-end">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">277</div>
-                        <div className="text-gray-400 text-xs">230</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">280</div>
-                        <div className="text-gray-400 text-xs">240</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">283</div>
-                        <div className="text-gray-400 text-xs">250</div>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">헤드 각도</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-xl">10°</div>
+                    <div className="text-gray-400 text-sm mt-1">드로우 페이스 0.5° [10.5°®]</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">탄성 샤프트</div>
-                  <div className="col-span-2">
-                    <div className="flex gap-6 justify-end">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">42</div>
-                        <div className="text-gray-400 text-xs">Torque 4.8</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">47</div>
-                        <div className="text-gray-400 text-xs">Torque 3.8</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">49</div>
-                        <div className="text-gray-400 text-xs">Torque 3.8</div>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">최적 무게</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">277</div>
+                    <div className="text-gray-400 text-xs">230</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">280</div>
+                    <div className="text-gray-400 text-xs">240</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">283</div>
+                    <div className="text-gray-400 text-xs">250</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">탄성 그립</div>
-                  <div className="text-white font-bold text-xl text-center">35</div>
-                  <div className="text-gray-400 text-sm text-right">600 스탠다드 [장갑 23호 ±1 적합]</div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">탄성 샤프트</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">42</div>
+                    <div className="text-gray-400 text-xs">Torque 4.8</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">47</div>
+                    <div className="text-gray-400 text-xs">Torque 3.8</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">49</div>
+                    <div className="text-gray-400 text-xs">Torque 3.8</div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">고반발 헤드</div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">탄성 그립</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-xl">35</div>
+                    <div className="text-gray-400 text-sm mt-1">600 스탠다드 [장갑 23호 ±1 적합]</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">고반발 헤드</div>
                   <div className="text-white font-bold text-xl text-center">193</div>
-                  <div className="text-gray-400 text-sm text-right"></div>
+                  <div className="text-gray-400 text-sm text-center"></div>
+                  <div className="text-gray-400 text-sm text-center"></div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">헤드 라이각</div>
-                  <div className="text-white font-bold text-xl text-center">59.5°</div>
-                  <div className="text-gray-400 text-sm text-right">표준 [키 165cm-175cm 적합]</div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">헤드 라이각</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-xl">59.5°</div>
+                    <div className="text-gray-400 text-sm mt-1">표준 [키 165cm-175cm 적합]</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">킥 포인트</div>
-                  <div className="text-white font-bold text-xl text-center">Mid Low</div>
-                  <div className="text-gray-400 text-sm text-right">중하단</div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">킥 포인트</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-xl">Mid Low</div>
+                    <div className="text-gray-400 text-sm mt-1">중하단</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">-</div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">최적의 길이 & 헤드 부피</div>
-                  <div className="col-span-2">
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">최적의 길이 & 헤드 부피</div>
+                  <div className="col-span-3">
                     <div className="grid grid-cols-2 gap-6">
                       <div className="text-center">
                         <div className="text-gray-400 text-sm mb-2">최적의 길이</div>
@@ -268,47 +294,40 @@ export default function WeaponBerylProduct() {
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">최적 밸런스</div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">최적 밸런스</div>
                   <div className="text-white font-bold text-xl text-center">D2</div>
-                  <div className="text-gray-400 text-sm text-right"></div>
+                  <div className="text-gray-400 text-sm text-center"></div>
+                  <div className="text-gray-400 text-sm text-center"></div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold">샤프트 진동수</div>
-                  <div className="col-span-2">
-                    <div className="flex gap-6 justify-end">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">230</div>
-                        <div className="text-gray-400 text-xs">cpm</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">240</div>
-                        <div className="text-gray-400 text-xs">cpm</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">250</div>
-                        <div className="text-gray-400 text-xs">cpm</div>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">샤프트 진동수</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">230</div>
+                    <div className="text-gray-400 text-xs">cpm</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">240</div>
+                    <div className="text-gray-400 text-xs">cpm</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">250</div>
+                    <div className="text-gray-400 text-xs">cpm</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 py-4">
-                  <div className="text-gray-300 font-semibold">맞춤 볼스피드</div>
-                  <div className="col-span-2">
-                    <div className="flex gap-6 justify-end">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">58</div>
-                        <div className="text-gray-400 text-xs">m/s</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">62</div>
-                        <div className="text-gray-400 text-xs">m/s</div>
-                      </div>
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-white font-bold text-lg">66</div>
-                        <div className="text-gray-400 text-xs">m/s</div>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-4 py-4">
+                  <div className="text-gray-300 font-semibold whitespace-nowrap">맞춤 볼스피드</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">58</div>
+                    <div className="text-gray-400 text-xs">m/s</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">62</div>
+                    <div className="text-gray-400 text-xs">m/s</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">66</div>
+                    <div className="text-gray-400 text-xs">m/s</div>
                   </div>
                 </div>
               </div>
