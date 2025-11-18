@@ -324,15 +324,23 @@ const getMetadataQualityIssues = (metadata) => {
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
+  // ✅ 타임아웃 방지: 55초 제한 (60초 설정 고려하여 여유 있게)
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('요청 시간 초과 (55초 제한)')), 55000);
+  });
+  
   try {
-    // 캐시 무효화 요청 처리 (forceRefresh 파라미터)
-    const { forceRefresh } = req.query;
-    if (forceRefresh === 'true' || forceRefresh === '1') {
-      invalidateCache();
-      console.log('🔄 캐시 강제 무효화 요청 처리');
-    }
-    
-    if (req.method === 'GET') {
+    // ✅ 타임아웃과 함께 실행
+    await Promise.race([
+      (async () => {
+        // 캐시 무효화 요청 처리 (forceRefresh 파라미터)
+        const { forceRefresh } = req.query;
+        if (forceRefresh === 'true' || forceRefresh === '1') {
+          invalidateCache();
+          console.log('🔄 캐시 강제 무효화 요청 처리');
+        }
+        
+        if (req.method === 'GET') {
       const { limit = 1000, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '' } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
@@ -1222,9 +1230,22 @@ export default async function handler(req, res) {
         error: '지원하지 않는 HTTP 메서드입니다.'
       });
     }
+      })(),
+      timeoutPromise
+    ]);
     
   } catch (error) {
     console.error('❌ 전체 이미지 조회 API 오류:', error);
+    
+    // ✅ 타임아웃 오류 구분
+    if (error.message && (error.message.includes('시간 초과') || error.message.includes('초과'))) {
+      return res.status(504).json({
+        error: '요청 시간 초과',
+        details: '이미지 목록 조회가 너무 오래 걸려 시간 초과되었습니다.',
+        suggestion: '캐시가 생성될 때까지 잠시 후 다시 시도해주세요.'
+      });
+    }
+    
     return res.status(500).json({
       error: '서버 오류가 발생했습니다.',
       details: error.message
