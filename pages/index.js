@@ -183,9 +183,9 @@ export default function Home({ hostname }) {
                   className="text-gray-700 hover:text-gray-900 transition-colors"
                   aria-label="메뉴 열기/닫기"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                    </svg>
                 </button>
               </div>
             </div>
@@ -249,21 +249,21 @@ export default function Home({ hostname }) {
                 우아한 엔지니어링. 폭발적인 파워. 세대를 뛰어넘는 퍼포먼스.
               </p>
             </div>
-            <div className="flex flex-col md:flex-row gap-4 justify-center">
-              <a
-                href="https://www.mas9golf.com/try-a-massgoo"
+              <div className="flex flex-col md:flex-row gap-4 justify-center">
+              <a 
+                href="https://www.mas9golf.com/try-a-massgoo" 
                 className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                무료 시타 신청하기
-              </a>
-              <Link
+                  무료 시타 신청하기
+                </a>
+              <Link 
                 href="/#products"
                 className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all border-2 border-white/30 hover:border-white/50"
               >
-                제품 둘러보기
-              </Link>
+                  제품 둘러보기
+                </Link>
+              </div>
             </div>
-          </div>
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
             <div className="animate-bounce">
               <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,12 +288,12 @@ export default function Home({ hostname }) {
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">LIMITED</span>
                     <span className="bg-green-400/20 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">하이테크 얼리 어답터</span>
-                  </div>
+              </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <h3 className="text-2xl font-bold mb-2">시크리트웨폰 블랙 MUZIIK</h3>
                     <p className="text-green-400 text-sm font-semibold">혁명적인 차세대 기술</p>
-                  </div>
-                </div>
+              </div>
+              </div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-yellow-500/30 hover:border-yellow-400 transition-all">
                   <Image
                     src="/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp"
@@ -593,40 +593,40 @@ export default function Home({ hostname }) {
                     key={product.id}
                     onClick={() => handleProductClick(product)}
                     className={`bg-white rounded-lg shadow-lg overflow-hidden ${borderClass} cursor-pointer hover:shadow-2xl transition-all`}
-                  >
-                    <div className="relative min-h-80 md:h-72">
-                      <Image
+              >
+                <div className="relative min-h-80 md:h-72">
+                    <Image
                         src={product.images[0]}
                         alt={product.name}
-                        fill
-                        className="object-cover"
+                      fill
+                      className="object-cover"
                         priority={product.id === 'gold2-sapphire' || product.id === 'black-beryl'}
-                      />
+                    />
                       {product.badges?.left && (
                         <div className={`absolute top-2 left-2 ${badgeLeftClass} px-2 py-1 rounded text-sm font-bold`}>
                           {product.badges.left}
-                        </div>
+                </div>
                       )}
                       {product.badges?.right && (
                         <div className={`absolute top-2 right-2 ${badgeRightClass} px-2 py-1 rounded text-sm font-bold`}>
                           {product.badges.right}
-                        </div>
+                </div>
                       )}
-                    </div>
-                    <div className="p-4">
+                </div>
+                <div className="p-4">
                       <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
                       <p className="text-sm text-gray-600 mb-2">{product.subtitle}</p>
                       <p className="text-xl font-bold text-red-600 mb-3">{product.price}</p>
-                      <ul className="text-sm text-gray-600 space-y-1">
+                  <ul className="text-sm text-gray-600 space-y-1">
                         {product.features.map((feature, index) => (
                           <li key={index}>• {feature}</li>
                         ))}
-                      </ul>
-                    </div>
-                  </div>
+                  </ul>
+                </div>
+              </div>
                 );
               })}
-            </div>
+                </div>
             <div className="text-center mt-8">
               <a
                 href="https://www.mas9golf.com/try-a-massgoo"
@@ -643,14 +643,14 @@ export default function Home({ hostname }) {
           <div className="absolute inset-0 opacity-5">
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-green-400 to-green-600 rounded-full blur-3xl"></div>
-          </div>
+            </div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent">
                 퍼포먼스의 변화
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">기술이 만드는 새로운 가능성</p>
-            </div>
+              </div>
             <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
               <div className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-yellow-300">
                 <div className="relative min-h-80 md:h-96 overflow-hidden bg-gradient-to-br from-yellow-50 to-white">
@@ -662,7 +662,7 @@ export default function Home({ hostname }) {
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
-                  </div>
+                </div>
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트포스 골드 2 MUZIIK</span>
                   </div>
@@ -670,7 +670,7 @@ export default function Home({ hostname }) {
                     <div className="text-3xl font-black text-green-600 mb-1">+35m</div>
                     <div className="text-xs text-gray-600 font-semibold">비거리 증가</div>
                   </div>
-                </div>
+              </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold mb-1">김성호 대표</h3>
                   <p className="text-sm text-gray-500 mb-4">62세</p>
@@ -689,7 +689,7 @@ export default function Home({ hostname }) {
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
-                  </div>
+                </div>
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트웨폰 블랙 MUZIIK</span>
                   </div>
@@ -697,7 +697,7 @@ export default function Home({ hostname }) {
                     <div className="text-3xl font-black text-green-400 mb-1">+40m</div>
                     <div className="text-xs text-gray-400 font-semibold">비거리 증가</div>
                   </div>
-                </div>
+              </div>
                 <div className="p-6 text-white">
                   <h3 className="text-lg font-bold mb-1">이재민 회장</h3>
                   <p className="text-sm text-gray-400 mb-4">58세</p>
@@ -716,12 +716,12 @@ export default function Home({ hostname }) {
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
-                  </div>
+                </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
                     <div className="text-3xl font-black text-green-600 mb-1">+32m</div>
                     <div className="text-xs text-gray-600 font-semibold">비거리 증가</div>
-                  </div>
-                </div>
+              </div>
+            </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold mb-1">박준영 원장</h3>
                   <p className="text-sm text-gray-500 mb-4">65세</p>
@@ -760,7 +760,7 @@ export default function Home({ hostname }) {
                 MASSGOO 전문가가 직접 답변해 드립니다.<br />
                 고급스러운 문의 페이지에서 편리하게 문의하세요.
               </p>
-              <Link
+              <Link 
                 href="/contact"
                 className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl"
               >
@@ -903,65 +903,65 @@ export default function Home({ hostname }) {
               <div className="py-6 px-4">
                 <div className="grid md:grid-cols-3 gap-8 text-sm text-gray-400">
                   {/* MASSGOO 브랜드 정보 */}
-                  <div>
+              <div>
                     <div className="mb-4">
-                      <div className="relative h-10 w-auto max-w-[140px] mb-4">
-                        <Image
-                          src="/main/logo/massgoo_logo_white.png"
-                          alt="MASSGOO 로고"
-                          width={140}
-                          height={40}
-                          className="h-10 w-auto object-contain max-w-full"
-                        />
-                      </div>
+                  <div className="relative h-10 w-auto max-w-[140px] mb-4">
+                    <Image
+                      src="/main/logo/massgoo_logo_white.png"
+                      alt="MASSGOO 로고"
+                      width={140}
+                      height={40}
+                      className="h-10 w-auto object-contain max-w-full"
+                    />
+                  </div>
                       <p className="text-sm text-gray-400 mb-4">MASGOLF® 프리미엄 드라이버 브랜드</p>
                       <p className="text-gray-300 mb-4 leading-relaxed">
                         MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 하이테크를 추구하는 얼리 어답터부터 피팅을 중시하는 시니어 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
-                      </p>
+                </p>
                     </div>
                     <div className="space-y-2">
-                      <p>사업자명: MASGOLF® | 대표자명: 김탁수</p>
-                      <p>사업자등록번호: 877-07-00641</p>
-                      <p>통신판매업신고번호: 제 2017-수원영통-0623호</p>
-                      <p>상표권 등록일: 2003-07-31</p>
-                    </div>
-                  </div>
-                  
-                  {/* 시타 센터 정보 */}
-                  <div>
+                  <p>사업자명: MASGOLF® | 대표자명: 김탁수</p>
+                  <p>사업자등록번호: 877-07-00641</p>
+                  <p>통신판매업신고번호: 제 2017-수원영통-0623호</p>
+                  <p>상표권 등록일: 2003-07-31</p>
+                </div>
+              </div>
+
+              {/* 시타 센터 정보 */}
+              <div>
                     <h4 className="font-bold mb-4 text-white">시타 센터</h4>
                     <div className="space-y-4">
-                      <div>
-                        <p className="font-medium mb-2">주소</p>
-                        <p className="text-sm">수원시 영통구 법조로 149번길 200</p>
-                        <p className="text-sm text-yellow-400">(광교 갤러리아에서 차량 5분)</p>
-                      </div>
-                      <div>
-                        <p className="font-medium mb-2">연락처</p>
-                        <p className="text-sm">방문 상담 예약: 031-215-0013</p>
-                        <p className="text-sm">비거리 상담: 080-028-8888 (무료)</p>
-                      </div>
-                      <div>
-                        <p className="font-medium mb-2">영업시간</p>
-                        <p className="text-sm">월-금 09:00 - 18:00</p>
-                        <p className="text-sm text-yellow-400">주말은 예약제로 운영합니다</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* 연락처 정보 */}
                   <div>
+                    <p className="font-medium mb-2">주소</p>
+                    <p className="text-sm">수원시 영통구 법조로 149번길 200</p>
+                    <p className="text-sm text-yellow-400">(광교 갤러리아에서 차량 5분)</p>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-2">연락처</p>
+                    <p className="text-sm">방문 상담 예약: 031-215-0013</p>
+                    <p className="text-sm">비거리 상담: 080-028-8888 (무료)</p>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-2">영업시간</p>
+                    <p className="text-sm">월-금 09:00 - 18:00</p>
+                    <p className="text-sm text-yellow-400">주말은 예약제로 운영합니다</p>
+                  </div>
+                </div>
+              </div>
+
+                  {/* 연락처 정보 */}
+              <div>
                     <h4 className="font-bold mb-4 text-white">연락처</h4>
                     <div className="space-y-2">
-                      <div>
-                        <p className="font-medium mb-2">이메일</p>
-                        <p className="text-sm">hello@masgolf.co.kr</p>
-                      </div>
-                      <div>
-                        <p className="font-medium mb-2">웹사이트</p>
+                  <div>
+                    <p className="font-medium mb-2">이메일</p>
+                    <p className="text-sm">hello@masgolf.co.kr</p>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-2">웹사이트</p>
                         <p className="text-sm">www.mas9golf.com</p>
                         <p className="text-sm">www.masgolf.co.kr</p>
-                      </div>
+                    </div>
                       <div className="mt-4">
                         <Link
                           href="/about"
@@ -969,7 +969,7 @@ export default function Home({ hostname }) {
                         >
                           브랜드 스토리 →
                         </Link>
-                      </div>
+                  </div>
                       <div className="mt-2">
                         <a
                           href="https://www.mas9golf.com/try-a-massgoo"
@@ -977,20 +977,20 @@ export default function Home({ hostname }) {
                           rel="noopener noreferrer"
                           className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
-                          무료 시타 신청 +30m 비거리
-                        </a>
+                      무료 시타 신청 +30m 비거리
+                    </a>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             {/* 저작권 정보 */}
             <div className="py-4 text-center text-xs text-gray-500 border-t border-gray-800">
-              <p>© 2025 MASGOLF All Rights Reserved.</p>
-            </div>
-          </div>
+                  <p>© 2025 MASGOLF All Rights Reserved.</p>
+                </div>
+              </div>
         </footer>
 
         {/* 제품 모달 */}
@@ -1026,7 +1026,7 @@ export default function Home({ hostname }) {
                     fill
                     className="object-contain"
                   />
-                </div>
+            </div>
 
                 {/* 썸네일 이미지 갤러리 (여러 이미지가 있는 경우만) */}
                 {selectedProduct.images.length > 1 && (
@@ -1050,7 +1050,7 @@ export default function Home({ hostname }) {
                         />
                       </button>
                     ))}
-                  </div>
+    </div>
                 )}
 
                 {/* 제품 정보 */}

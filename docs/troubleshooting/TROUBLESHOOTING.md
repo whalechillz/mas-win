@@ -103,3 +103,106 @@ if (deleteData && deleteData.length > 0) {
 - `uploaded` 또는 `originals` 폴더에 대한 삭제 제한은 없음 (코드상 제한 없음)
 - 일괄 삭제는 경고만 표시하고 실제 삭제는 가능
 - 삭제 후 `image_assets`와 `image_metadata` 모두에서 제거되어야 갤러리에서 사라짐
+
+---
+
+# NextAuth 로그인 리다이렉트 루프 문제 해결
+
+## 문제: ERR_TOO_MANY_REDIRECTS 오류 발생
+
+### 증상
+- 로그인 페이지 접속 시 `ERR_TOO_MANY_REDIRECTS` 오류 발생
+- `/api/auth/session` 요청이 실패
+- NextAuth `CLIENT_FETCH_ERROR` 발생
+- 로그인 페이지가 계속 리다이렉트됨
+
+### 원인 분석
+1. **NextAuth error 페이지 설정 문제:**
+   - `/api/auth/error` 페이지가 리다이렉트를 반복하여 루프 발생
+   - NextAuth의 error 페이지는 실제 페이지 컴포넌트여야 함 (API 라우트 아님)
+
+2. **Middleware 리다이렉트 루프:**
+   - `/api/auth/session` 요청이 middleware에서 잘못 처리될 수 있음
+   - NextAuth API 경로가 인증 체크 대상에 포함될 수 있음
+
+3. **Supabase 클라이언트 초기화 실패:**
+   - 환경 변수가 설정되지 않아 `supabaseAdmin`이 null
+   - `authorize` 함수에서 throw로 인한 오류 처리 문제
+
+### 해결 방법 (2025-11-17 해결됨)
+
+#### 1. NextAuth 설정 수정 (`pages/api/auth/[...nextauth].ts`)
+- error 페이지 참조 제거 (리다이렉트 루프 방지)
+- `supabaseAdmin` null 체크 개선 (throw 대신 null 반환)
+
+```typescript
+// Supabase 클라이언트 확인
+if (!supabaseAdmin) {
+  console.error('❌ Supabase 클라이언트가 초기화되지 않았습니다.')
+  console.error('   환경 변수 확인: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY')
+  return null // throw 대신 null 반환하여 NextAuth가 적절히 처리하도록
+}
+```
+
+```typescript
+pages: {
+  signIn: '/admin/login'
+  // error 페이지는 로그인 페이지에서 직접 처리
+}
+```
+
+#### 2. Middleware 개선 (`middleware.ts`)
+- `/api/auth/*` 모든 경로가 인증 체크 없이 통과하도록 명확히 처리
+- NextAuth API는 리다이렉트 없이 바로 통과
+
+```typescript
+// NextAuth API 경로는 무조건 통과 (리다이렉트 루프 방지)
+// /api/auth/* 모든 경로 포함 (session, signin, callback, error 등)
+if (pathname.startsWith('/api/auth') || pathname.startsWith('/ko/api/auth') || pathname.startsWith('/ja/api/auth')) {
+  // NextAuth API는 인증 체크 없이 바로 통과
+  return NextResponse.next();
+}
+```
+
+#### 3. 로그인 페이지 개선 (`pages/admin/login.tsx`)
+- NextAuth 오류 코드별 메시지 처리
+- URL 파라미터 오류 메시지 표시
+
+```typescript
+if (result?.error) {
+  // NextAuth 오류 코드에 따른 메시지
+  const errorMessages: { [key: string]: string } = {
+    Configuration: '서버 설정 오류가 발생했습니다. 관리자에게 문의하세요.',
+    AccessDenied: '접근이 거부되었습니다.',
+    Verification: '인증 오류가 발생했습니다.',
+    CredentialsSignin: '아이디와 비밀번호를 확인해주세요.',
+  };
+  setError(errorMessages[result.error] || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+}
+```
+
+### 관련 파일
+- `pages/api/auth/[...nextauth].ts` - NextAuth 설정
+- `pages/admin/login.tsx` - 로그인 페이지
+- `middleware.ts` - 미들웨어 (리다이렉트 처리)
+- `lib/supabase-admin.ts` - Supabase 클라이언트 초기화
+
+### 검증 방법
+1. Playwright 테스트 실행:
+   ```bash
+   node playwright-test-login.js
+   ```
+
+2. 브라우저에서 확인:
+   - `http://localhost:3000/admin/login` 접속
+   - 콘솔에서 `ERR_TOO_MANY_REDIRECTS` 오류 없음 확인
+   - 로그인 폼이 정상적으로 표시됨
+
+3. 실제 로그인 시도:
+   - 아이디/비밀번호 입력 후 로그인 버튼 클릭
+   - 리다이렉트 루프 없이 정상 로그인 완료
+
+### 참고사항
+- NextAuth의 error 페이지는 `/pages` 디렉토리에 페이지 컴포넌트로 만들어야 함 (API 라우트 아님)
+- 환경 변수 `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` 확인 필수
+- Middleware에서 `/api/auth/*` 경로는 반드시 인증 체크 없이 통과해야 함

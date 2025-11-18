@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
@@ -9,6 +9,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // URL 파라미터에서 오류 메시지 읽기
+  useEffect(() => {
+    const errorParam = router.query.error as string;
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+    }
+  }, [router.query]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +31,14 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+        // NextAuth 오류 코드에 따른 메시지
+        const errorMessages: { [key: string]: string } = {
+          Configuration: '서버 설정 오류가 발생했습니다. 관리자에게 문의하세요.',
+          AccessDenied: '접근이 거부되었습니다.',
+          Verification: '인증 오류가 발생했습니다.',
+          CredentialsSignin: '아이디와 비밀번호를 확인해주세요.',
+        };
+        setError(errorMessages[result.error] || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
       } else {
         // 로그인 성공 시 이전 페이지로 리다이렉트 또는 /admin으로 이동
         const callbackUrl = (router.query.callbackUrl as string) || '/admin';

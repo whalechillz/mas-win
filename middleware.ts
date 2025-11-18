@@ -24,6 +24,7 @@ export async function middleware(request: NextRequest) {
       hasLocalePrefix: pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api'),
     });
     // NextAuth API 경로는 무조건 통과 (리다이렉트 루프 방지)
+    // /api/auth/* 모든 경로 포함 (session, signin, callback, error 등)
     if (pathname.startsWith('/api/auth') || pathname.startsWith('/ko/api/auth') || pathname.startsWith('/ja/api/auth')) {
       // 로케일 프리픽스가 있으면 제거
       if (pathname.startsWith('/ko/api') || pathname.startsWith('/ja/api')) {
@@ -32,6 +33,7 @@ export async function middleware(request: NextRequest) {
         url.pathname = cleanPath;
         return NextResponse.rewrite(url);
       }
+      // NextAuth API는 인증 체크 없이 바로 통과
       return NextResponse.next();
     }
     

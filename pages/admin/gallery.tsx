@@ -1171,6 +1171,7 @@ export default function GalleryAdmin() {
   // 이미지 지연 로딩 컴포넌트
   const LazyImage = ({ src, alt, className, ...props }: any) => {
     const imgRef = useRef<HTMLImageElement>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
     
     useEffect(() => {
       if (imgRef.current && imageObserver) {
@@ -1178,15 +1179,39 @@ export default function GalleryAdmin() {
       }
     }, [imageObserver]);
     
+    // 배포 환경에서 지연 로딩이 작동하지 않을 수 있으므로, 
+    // Intersection Observer가 작동하지 않는 경우를 대비해 즉시 로드도 시도
+    useEffect(() => {
+      if (imgRef.current && src && !isLoaded) {
+        const img = imgRef.current;
+        const dataSrc = img.dataset.src;
+        if (dataSrc && !img.src) {
+          // Intersection Observer가 이미 처리했는지 확인
+          if (!img.src || img.src === window.location.href) {
+            img.src = dataSrc;
+            setIsLoaded(true);
+          }
+        }
+      }
+    }, [src, isLoaded]);
+    
     return (
       <img
         ref={imgRef}
         data-src={src}
+        src={src} // 배포 환경 호환성을 위해 src도 직접 설정
         alt={alt}
         className={className}
+        loading="lazy" // 네이티브 지연 로딩도 활성화
         {...props}
         onError={(e) => {
-          (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+          const target = e.target as HTMLImageElement;
+          // data-src가 있으면 다시 시도
+          if (target.dataset.src && target.src !== target.dataset.src) {
+            target.src = target.dataset.src;
+          } else {
+            target.src = '/placeholder-image.jpg';
+          }
         }}
       />
     );

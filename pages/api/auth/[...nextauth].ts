@@ -27,6 +27,13 @@ export default NextAuth({
         
         console.log('로그인 시도:', { login, cleanPhone, isPhone, password })
         
+        // Supabase 클라이언트 확인
+        if (!supabaseAdmin) {
+          console.error('❌ Supabase 클라이언트가 초기화되지 않았습니다.')
+          console.error('   환경 변수 확인: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY')
+          return null // throw 대신 null 반환하여 NextAuth가 적절히 처리하도록
+        }
+
         let user
         if (isPhone) {
           // 전화번호로 로그인
@@ -124,7 +131,7 @@ export default NextAuth({
   },
   pages: {
     signIn: '/admin/login'
-    // error 페이지 제거 - 리다이렉트 루프 방지
+    // error 페이지는 로그인 페이지에서 직접 처리
   },
   session: {
     strategy: 'jwt',

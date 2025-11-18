@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Gold2SapphireProduct() {
@@ -32,10 +33,10 @@ export default function Gold2SapphireProduct() {
         <header className="bg-white shadow-lg sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link href="/" className="flex items-center space-x-2 sm:space-x-4 cursor-pointer hover:opacity-80 transition-opacity">
                 <span className="text-lg sm:text-2xl font-bold text-gray-800">MUZIIK</span>
                 <span className="text-lg sm:text-2xl font-bold text-gray-800">X MASSGOO</span>
-              </div>
+              </Link>
               <a href="tel:080-028-8888" className="bg-red-600 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-red-700 transition-colors font-bold text-sm sm:text-base whitespace-nowrap">
                 <span className="hidden sm:inline">080-028-8888 (무료 상담)</span>
                 <span className="sm:hidden">전화</span>
@@ -46,29 +47,31 @@ export default function Gold2SapphireProduct() {
 
         {/* 제품 히어로 섹션 */}
         <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
               {/* 제품 이미지 */}
-              <div className="space-y-4">
-                <div className="relative aspect-square">
-                  <Image 
-                    src={productImages[selectedImage]} 
-                    alt="GOLD 2 + 사파이어 콤보" 
-                    fill
-                    className="object-cover rounded-2xl shadow-2xl"
-                  />
-                  <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+              <div className="space-y-4 w-full max-w-full overflow-hidden">
+                <div className="relative aspect-square w-full max-w-full">
+                  <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
+                    <Image 
+                      src={productImages[selectedImage]} 
+                      alt="GOLD 2 + 사파이어 콤보" 
+                      fill
+                      className="object-contain rounded-2xl"
+                    />
+                  </div>
+                  <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
                     NEW
                   </div>
                 </div>
                 
-                {/* 썸네일 이미지들 */}
-                <div className="flex space-x-4">
+                {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
+                <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
                   {productImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
-                      className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
                         selectedImage === index ? 'border-red-600' : 'border-gray-300'
                       }`}
                     >
@@ -85,25 +88,25 @@ export default function Gold2SapphireProduct() {
               </div>
 
               {/* 제품 정보 */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
                     시크리트포스 GOLD 2 + MUZIIK 사파이어
                   </h1>
-                  <p className="text-xl text-gray-600 mb-6">
+                  <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-4 sm:mb-6">
                     일본 장인정신 + 혁신 기술의 완벽한 조합
                   </p>
-                  <div className="flex items-center space-x-4 mb-6">
-                    <span className="text-3xl font-bold text-red-600">2,200,000원</span>
-                    <span className="text-lg text-gray-500 line-through">4,500,000원</span>
-                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-600 whitespace-nowrap">2,200,000원</span>
+                    <span className="text-sm sm:text-base lg:text-lg text-gray-500 line-through whitespace-nowrap">4,500,000원</span>
+                    <span className="bg-red-100 text-red-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap">
                       51% 할인
                     </span>
                   </div>
                 </div>
 
-                {/* 핵심 특징 */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* 핵심 특징 - 모바일에서 1열 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-400">
                     <h3 className="font-bold text-gray-900 mb-2">2.2mm 초박형 페이스</h3>
                     <p className="text-sm text-gray-600">실제 측정 검증 (경쟁사 2.7~3.3mm)</p>
@@ -122,15 +125,15 @@ export default function Gold2SapphireProduct() {
                   </div>
                 </div>
 
-                {/* 구매 버튼 */}
-                <div className="space-y-4">
-                  <a href="tel:080-028-8888" className="w-full bg-red-600 text-white text-xl font-bold py-4 px-8 rounded-lg hover:bg-red-700 transition-colors text-center block">
+                {/* 구매 버튼 - 모바일 최적화 */}
+                <div className="space-y-3 sm:space-y-4 w-full">
+                  <a href="tel:080-028-8888" className="w-full bg-red-600 text-white text-base sm:text-lg lg:text-xl font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg hover:bg-red-700 transition-colors text-center block whitespace-nowrap overflow-hidden text-ellipsis">
                     080-028-8888 무료 상담하기
                   </a>
-                  <a href="https://smartstore.naver.com/mas9golf/products/12581045696" target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 text-white text-xl font-bold py-4 px-8 rounded-lg hover:bg-blue-700 transition-colors text-center block">
+                  <a href="https://smartstore.naver.com/mas9golf/products/12581045696" target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 text-white text-base sm:text-lg lg:text-xl font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg hover:bg-blue-700 transition-colors text-center block whitespace-nowrap overflow-hidden text-ellipsis">
                     네이버 스마트스토어에서 구매하기
                   </a>
-                  <p className="text-center text-sm text-gray-500">
+                  <p className="text-center text-xs sm:text-sm text-gray-500">
                     KGFA 1급 전문 피터가 직접 상담
                   </p>
                 </div>
@@ -172,7 +175,7 @@ export default function Gold2SapphireProduct() {
             </div>
 
             {/* 상세 스펙 테이블 */}
-            <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-4 sm:p-8 shadow-2xl border border-gray-800 overflow-x-auto">
+            <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-4 sm:p-8 shadow-2xl border border-gray-800 overflow-x-auto product-scrollbar">
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8 text-center">시크리트포스 골드 2 MUZIIK</h3>
               <p className="text-center text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">상품 스펙 안내</p>
               
@@ -308,7 +311,7 @@ export default function Gold2SapphireProduct() {
 
               <div className="mt-8 pt-8 border-t border-gray-800">
                 <h4 className="text-xl font-bold text-white mb-6 text-center">DOGATTI GENERATION SAPPHIRE 40/50</h4>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto product-scrollbar">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-700">
@@ -366,8 +369,8 @@ export default function Gold2SapphireProduct() {
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto product-scrollbar-light">
+                <table className="w-full min-w-[600px] sm:min-w-0">
                   <thead>
                     <tr className="border-b border-gray-300">
                       <th className="text-left py-4 px-4 font-bold">구분</th>
