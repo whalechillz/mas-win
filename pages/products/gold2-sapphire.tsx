@@ -420,37 +420,29 @@ export default function Gold2SapphireProduct() {
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 그립</div>
-                  <div className="text-center">
+                  <div className="col-span-2 text-center">
                     <div className="text-white font-bold text-xl">35</div>
                     <div className="text-gray-400 text-sm mt-1">600 스탠다드 [장갑 23호 ±1 적합]</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-gray-400 text-sm">-</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">고반발 헤드</div>
-                  <div className="text-white font-bold text-xl text-center">188</div>
-                  <div className="text-gray-400 text-sm text-right"></div>
+                  <div className="col-span-2 text-center">
+                    <div className="text-white font-bold text-xl">188</div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">헤드 라이각</div>
-                  <div className="text-center">
+                  <div className="col-span-2 text-center">
                     <div className="text-white font-bold text-xl">59°</div>
                     <div className="text-gray-400 text-sm mt-1">표준 [키 165cm-175cm 적합]</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-gray-400 text-sm">-</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">킥 포인트</div>
-                  <div className="text-center">
+                  <div className="col-span-2 text-center">
                     <div className="text-white font-bold text-xl">Double Kick</div>
                     <div className="text-gray-400 text-sm mt-1">더블 킥</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-gray-400 text-sm">-</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
@@ -670,13 +662,9 @@ export default function Gold2SapphireProduct() {
         {/* 고객 후기 슬라이드 섹션 */}
         <section className="py-12 bg-gray-50">
           <div className="container mx-auto px-4 max-w-4xl">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                실제 고객 후기
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600">
-                마쓰구 드라이버를 경험한 고객들의 생생한 후기
-              </p>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">실제 고객 후기</h2>
+              <p className="text-lg text-gray-600">마쓰구 드라이버를 경험한 고객들의 생생한 후기</p>
             </div>
 
             {isLoadingReviews ? (
@@ -698,7 +686,7 @@ export default function Gold2SapphireProduct() {
                         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                           {/* 후기 이미지 */}
                           {review.featured_image && (
-                            <div className="flex-shrink-0 w-full sm:w-32 h-32 rounded-lg overflow-hidden bg-gray-200">
+                            <div className="flex-shrink-0 w-full aspect-[4/3] sm:w-32 sm:aspect-square rounded-lg overflow-hidden bg-gray-200">
                               <Image
                                 src={review.featured_image}
                                 alt={review.title}
