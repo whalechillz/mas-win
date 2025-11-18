@@ -369,11 +369,17 @@ export default function Gold2SapphireProduct() {
             </div>
 
             {/* 상세 스펙 테이블 */}
-            <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-4 sm:p-8 shadow-2xl border border-gray-800 overflow-x-auto product-scrollbar">
+            <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-4 sm:p-8 shadow-2xl border border-gray-800">
+              {/* 타이틀 영역 - 스크롤 밖에 배치 */}
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8 text-center">시크리트포스 골드 2 MUZIIK</h3>
               <p className="text-center text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">상품 스펙 안내</p>
               
-              <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 mb-6 sm:mb-8 min-w-[600px] sm:min-w-0">
+              {/* 구분선 */}
+              <div className="border-t border-gray-800 mb-6 sm:mb-8"></div>
+              
+              {/* 스크롤 가능한 영역 - 카드와 테이블만 */}
+              <div className="overflow-x-auto product-scrollbar">
+                <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 mb-6 sm:mb-8 min-w-[600px] sm:min-w-0">
                 <div></div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">A200</div>
@@ -385,17 +391,14 @@ export default function Gold2SapphireProduct() {
                 </div>
               </div>
 
-              <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 min-w-[600px] sm:min-w-0">
-                <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
-                  <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">헤드 각도</div>
-                  <div className="text-center">
-                    <div className="text-white font-bold text-xl">10°</div>
-                    <div className="text-gray-400 text-sm mt-1">드로우 페이스 0.5° [10.5°®]</div>
+                <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 min-w-[600px] sm:min-w-0">
+                  <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">헤드 각도</div>
+                    <div className="col-span-2 text-center">
+                      <div className="text-white font-bold text-xl">10°</div>
+                      <div className="text-gray-400 text-sm mt-1">드로우 페이스 0.5° [10.5°®]</div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-gray-400 text-sm">-</div>
-                  </div>
-                </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">최적 무게</div>
                   <div className="text-center">
@@ -493,6 +496,7 @@ export default function Gold2SapphireProduct() {
                     <div className="text-gray-400 text-xs">m/s</div>
                   </div>
                 </div>
+              </div>
               </div>
 
               <div className="mt-8 pt-8 border-t border-gray-800">
