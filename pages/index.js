@@ -10,6 +10,7 @@ export default function Home({ hostname }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [footerExpanded, setFooterExpanded] = useState(false);
+  const [driverMenuOpen, setDriverMenuOpen] = useState(false);
 
   // 제품 데이터 정의
   const products = [
@@ -168,7 +169,45 @@ export default function Home({ hostname }) {
                 </div>
               </Link>
               <nav className="hidden md:flex space-x-8 items-center">
-                <a href="https://www.masgolf.co.kr/" className="text-gray-700 hover:text-gray-900">드라이버</a>
+                {/* 드라이버 드롭다운 메뉴 */}
+                <div 
+                  className="relative"
+                  onMouseEnter={() => setDriverMenuOpen(true)}
+                  onMouseLeave={() => setDriverMenuOpen(false)}
+                >
+                  <button className="text-gray-700 hover:text-gray-900 flex items-center">
+                    드라이버
+                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {driverMenuOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                      <Link 
+                        href="/products/weapon-beryl"
+                        className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                        onClick={() => setDriverMenuOpen(false)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-gray-900">시크리트웨폰 블랙 MUZIIK</span>
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded">LIMITED</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">MUZIIK 협업 제품</p>
+                      </Link>
+                      <Link 
+                        href="/products/gold2-sapphire"
+                        className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                        onClick={() => setDriverMenuOpen(false)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-gray-900">시크리트포스 골드 2 MUZIIK</span>
+                          <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded">BEST</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">MUZIIK 협업 제품</p>
+                      </Link>
+                    </div>
+                  )}
+                </div>
                 <Link href="/#technology" className="text-gray-700 hover:text-gray-900">기술력</Link>
                 <Link href="/#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
                 <Link href="/about" className="text-gray-700 hover:text-gray-900">브랜드 스토리</Link>
@@ -193,7 +232,55 @@ export default function Home({ hostname }) {
             {mobileMenuOpen && (
               <div className="md:hidden mt-4 pb-4">
                 <nav className="flex flex-col space-y-2">
-                  <a href="https://www.masgolf.co.kr/" className="text-gray-700 hover:text-gray-900 py-2">드라이버</a>
+                  {/* 드라이버 서브메뉴 */}
+                  <div>
+                    <button
+                      onClick={() => setDriverMenuOpen(!driverMenuOpen)}
+                      className="w-full text-left text-gray-700 hover:text-gray-900 py-2 flex items-center justify-between"
+                    >
+                      <span>드라이버</span>
+                      <svg 
+                        className={`w-4 h-4 transition-transform ${driverMenuOpen ? 'rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {driverMenuOpen && (
+                      <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-200">
+                        <Link 
+                          href="/products/weapon-beryl"
+                          className="block py-2 text-gray-700 hover:text-gray-900"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setDriverMenuOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">시크리트웨폰 블랙 MUZIIK</span>
+                            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded ml-2">LIMITED</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">MUZIIK 협업 제품</p>
+                        </Link>
+                        <Link 
+                          href="/products/gold2-sapphire"
+                          className="block py-2 text-gray-700 hover:text-gray-900"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setDriverMenuOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">시크리트포스 골드 2 MUZIIK</span>
+                            <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded ml-2">BEST</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">MUZIIK 협업 제품</p>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                   <Link href="/#technology" className="text-gray-700 hover:text-gray-900 py-2">기술력</Link>
                   <Link href="/#reviews" className="text-gray-700 hover:text-gray-900 py-2">고객후기</Link>
                   <Link href="/about" className="text-gray-700 hover:text-gray-900 py-2">브랜드 스토리</Link>

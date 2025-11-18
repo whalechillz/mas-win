@@ -57,6 +57,11 @@ export default function WeaponBerylProduct() {
                       alt="웨폰 블랙 + 베릴 콤보" 
                       fill
                       className="object-contain rounded-2xl"
+                      onError={(e) => {
+                        console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
                     />
                   </div>
                   <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
@@ -80,6 +85,11 @@ export default function WeaponBerylProduct() {
                         width={80} 
                         height={80}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('썸네일 이미지 로드 실패:', image);
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
                       />
                     </button>
                   ))}
@@ -158,10 +168,13 @@ export default function WeaponBerylProduct() {
               <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
                 <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
                   <Image
-                    src="/main/technology/nanolevel-resin.jpg"
+                    src="/main/technology/nano-resin-structure.webp"
                     alt="나노레벨 수지 채택"
                     fill
                     className="object-cover"
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', '/main/technology/nano-resin-structure.webp');
+                    }}
                   />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
@@ -190,10 +203,13 @@ export default function WeaponBerylProduct() {
               <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
                 <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
                   <Image
-                    src="/main/technology/impact-torque.jpg"
+                    src="/main/technology/reverse-torque-prevention.webp"
                     alt="임팩트시 역토크 방지"
                     fill
                     className="object-cover"
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', '/main/technology/reverse-torque-prevention.webp');
+                    }}
                   />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
@@ -222,10 +238,13 @@ export default function WeaponBerylProduct() {
               <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
                 <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
                   <Image
-                    src="/main/technology/titanium-graphite.jpg"
+                    src="/main/technology/titanium-graphite-structure.webp"
                     alt="티타늄 그라파이트 사용"
                     fill
                     className="object-cover"
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', '/main/technology/titanium-graphite-structure.webp');
+                    }}
                   />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
