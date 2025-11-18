@@ -11,6 +11,14 @@
     "pages/api/kakao-content/generate-images.js": {
       "maxDuration": 50,
       "memory": 1024
+    },
+    "pages/api/admin/all-images.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "pages/api/admin/folders-list.js": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "crons": [
