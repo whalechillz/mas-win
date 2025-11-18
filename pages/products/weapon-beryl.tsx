@@ -1,10 +1,15 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
 
 export default function WeaponBerylProduct() {
   const [selectedImage, setSelectedImage] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
   const productImages = [
     '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
@@ -17,6 +22,59 @@ export default function WeaponBerylProduct() {
     '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
     '/main/products/black-beryl/massgoo_sw_black_muz_23.webp',
   ];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchReviews = async () => {
+      try {
+        const responses = await Promise.all(
+          REVIEW_CATEGORIES.map((category) =>
+            fetch(`/api/blog/posts?category=${encodeURIComponent(category)}&limit=6`)
+              .then((res) => res.json())
+              .catch((error) => {
+                console.error('후기 로드 실패:', category, error);
+                return { posts: [] };
+              })
+          )
+        );
+
+        const combinedPosts = responses
+          .flatMap((data) => data.posts || [])
+          .reduce((acc, post) => {
+            if (!acc.find((item) => item.id === post.id)) {
+              acc.push(post);
+            }
+            return acc;
+          }, []);
+
+        if (isMounted) {
+          setReviews(combinedPosts);
+        }
+      } catch (error) {
+        console.error('후기 로드 실패:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingReviews(false);
+        }
+      }
+    };
+
+    fetchReviews();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reviews.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentReviewIndex((prev) => (prev + 1) % reviews.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [reviews.length]);
 
   return (
     <>
@@ -662,6 +720,122 @@ export default function WeaponBerylProduct() {
               </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* 고객 후기 슬라이드 섹션 */}
+        <section className="py-12 bg-gray-50">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                실제 고객 후기
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600">
+                시크리트웨폰 블랙 + 베릴 콤보를 경험한 고객들의 생생한 후기
+              </p>
+            </div>
+
+            {isLoadingReviews ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">후기를 불러오는 중...</p>
+              </div>
+            ) : reviews.length > 0 ? (
+              <div className="relative">
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 overflow-hidden">
+                  <div className="relative min-h-[200px]">
+                    {reviews.map((review, index) => (
+                      <div
+                        key={review.id}
+                        className={`absolute inset-0 transition-opacity duration-500 ${
+                          index === currentReviewIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                          {review.featured_image && (
+                            <div className="flex-shrink-0 w-full sm:w-32 h-32 rounded-lg overflow-hidden bg-gray-200">
+                              <Image
+                                src={review.featured_image}
+                                alt={review.title}
+                                width={128}
+                                height={128}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex-1">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                              {review.title}
+                            </h3>
+                            <p className="text-sm sm:text-base text-gray-600 mb-3 line-clamp-3">
+                              {review.excerpt || review.content?.substring(0, 150) + '...'}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                {new Date(review.published_at).toLocaleDateString('ko-KR')}
+                              </span>
+                              <a
+                                href={`/blog/${review.slug}`}
+                                className="text-sm text-green-600 hover:text-green-700 font-semibold"
+                              >
+                                자세히 보기 →
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {reviews.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="이전 후기"
+                      onClick={() =>
+                        setCurrentReviewIndex((prev) =>
+                          prev === 0 ? reviews.length - 1 : prev - 1
+                        )
+                      }
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-lg font-bold text-gray-600">{'<'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="다음 후기"
+                      onClick={() =>
+                        setCurrentReviewIndex((prev) => (prev + 1) % reviews.length)
+                      }
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-lg font-bold text-gray-600">{'>'}</span>
+                    </button>
+                  </>
+                )}
+
+                {reviews.length > 1 && (
+                  <div className="flex justify-center mt-6 space-x-2">
+                    {reviews.map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        aria-label={`후기 ${index + 1} 보기`}
+                        onClick={() => setCurrentReviewIndex(index)}
+                        className={`w-2.5 h-2.5 rounded-full ${
+                          index === currentReviewIndex ? 'bg-green-600' : 'bg-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500">표시할 후기가 없습니다.</p>
+              </div>
+            )}
           </div>
         </section>
 

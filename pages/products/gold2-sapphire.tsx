@@ -1,10 +1,15 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
 
 export default function Gold2SapphireProduct() {
   const [selectedImage, setSelectedImage] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
   const productImages = [
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
@@ -18,6 +23,61 @@ export default function Gold2SapphireProduct() {
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_22.webp',
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_23.webp',
   ];
+
+  // 블로그 후기 가져오기
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchReviews = async () => {
+      try {
+        const responses = await Promise.all(
+          REVIEW_CATEGORIES.map((category) =>
+            fetch(`/api/blog/posts?category=${encodeURIComponent(category)}&limit=6`)
+              .then((res) => res.json())
+              .catch((error) => {
+                console.error('후기 로드 실패:', category, error);
+                return { posts: [] };
+              })
+          )
+        );
+
+        const combinedPosts = responses
+          .flatMap((data) => data.posts || [])
+          .reduce((acc, post) => {
+            if (!acc.find((item) => item.id === post.id)) {
+              acc.push(post);
+            }
+            return acc;
+          }, []);
+
+        if (isMounted) {
+          setReviews(combinedPosts);
+        }
+      } catch (error) {
+        console.error('후기 로드 실패:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingReviews(false);
+        }
+      }
+    };
+
+    fetchReviews();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 자동 슬라이드 (5초마다)
+  useEffect(() => {
+    if (reviews.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentReviewIndex((prev) => (prev + 1) % reviews.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [reviews.length]);
 
   return (
     <>
@@ -604,6 +664,124 @@ export default function Gold2SapphireProduct() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* 고객 후기 슬라이드 섹션 */}
+        <section className="py-12 bg-gray-50">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                실제 고객 후기
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600">
+                마쓰구 드라이버를 경험한 고객들의 생생한 후기
+              </p>
+            </div>
+
+            {isLoadingReviews ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">후기를 불러오는 중...</p>
+              </div>
+            ) : reviews.length > 0 ? (
+              <div className="relative">
+                {/* 후기 카드 */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 overflow-hidden">
+                  <div className="relative min-h-[200px]">
+                    {reviews.map((review, index) => (
+                      <div
+                        key={review.id}
+                        className={`absolute inset-0 transition-opacity duration-500 ${
+                          index === currentReviewIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                          {/* 후기 이미지 */}
+                          {review.featured_image && (
+                            <div className="flex-shrink-0 w-full sm:w-32 h-32 rounded-lg overflow-hidden bg-gray-200">
+                              <Image
+                                src={review.featured_image}
+                                alt={review.title}
+                                width={128}
+                                height={128}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+
+                          {/* 후기 내용 */}
+                          <div className="flex-1">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                              {review.title}
+                            </h3>
+                            <p className="text-sm sm:text-base text-gray-600 mb-3 line-clamp-3">
+                              {review.excerpt || review.content?.substring(0, 150) + '...'}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                {new Date(review.published_at).toLocaleDateString('ko-KR')}
+                              </span>
+                              <a
+                                href={`/blog/${review.slug}`}
+                                className="text-sm text-red-600 hover:text-red-700 font-semibold"
+                              >
+                                자세히 보기 →
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 슬라이드 네비게이션 */}
+                {reviews.length > 1 && (
+                  <>
+                    {/* 이전 버튼 */}
+                    <button
+                      onClick={() =>
+                        setCurrentReviewIndex((prev) => (prev === 0 ? reviews.length - 1 : prev - 1))
+                      }
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-12 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors"
+                      aria-label="이전 후기"
+                    >
+                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    {/* 다음 버튼 */}
+                    <button
+                      onClick={() => setCurrentReviewIndex((prev) => (prev + 1) % reviews.length)}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-12 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors"
+                      aria-label="다음 후기"
+                    >
+                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+
+                    {/* 인디케이터 */}
+                    <div className="flex justify-center gap-2 mt-6">
+                      {reviews.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentReviewIndex(index)}
+                          className={`h-2 rounded-full transition-all ${
+                            index === currentReviewIndex ? 'w-8 bg-red-600' : 'w-2 bg-gray-300 hover:bg-gray-400'
+                          }`}
+                          aria-label={`후기 ${index + 1}로 이동`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-2xl">
+                <p className="text-gray-500">후기가 아직 없습니다.</p>
+              </div>
+            )}
           </div>
         </section>
 
