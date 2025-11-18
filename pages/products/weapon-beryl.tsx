@@ -141,6 +141,122 @@ export default function WeaponBerylProduct() {
           </div>
         </section>
 
+        {/* 혁신적인 테크놀로지 섹션 */}
+        <section className="py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                혁신적인 테크놀로지
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-300">
+                MUZIIK 독자 기술이 실현하는, 골프 샤프트의 새로운 가능성.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+              {/* 1. 나노레벨 수지 채택 */}
+              <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+                  <Image
+                    src="/main/technology/nanolevel-resin.jpg"
+                    alt="나노레벨 수지 채택"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  나노레벨 수지 채택
+                </h3>
+                <p className="text-gray-300 mb-4 text-sm sm:text-base">
+                  수지 함유율을 감소시키고 카본 밀도를 높여 반발성과 타감의 향상을 실현합니다.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    수지 함유율 감소
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    카본 밀도 향상
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    반발성 향상
+                  </li>
+                </ul>
+              </div>
+
+              {/* 2. 임팩트시 역토크 방지 */}
+              <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+                  <Image
+                    src="/main/technology/impact-torque.jpg"
+                    alt="임팩트시 역토크 방지"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  임팩트시 역토크 방지
+                </h3>
+                <p className="text-gray-300 mb-4 text-sm sm:text-base">
+                  경량 샤프트 특유의 역토크를 억제하여 헤드의 직진성과 방향성을 향상시킵니다.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    역토크 발생 감소
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    헤드 스피드 향상
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    방향성 안정
+                  </li>
+                </ul>
+              </div>
+
+              {/* 3. 티타늄 그라파이트 사용 */}
+              <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+                  <Image
+                    src="/main/technology/titanium-graphite.jpg"
+                    alt="티타늄 그라파이트 사용"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  티타늄 그라파이트 사용
+                </h3>
+                <p className="text-gray-300 mb-4 text-sm sm:text-base">
+                  경량이면서도 전장 제작으로 초고탄성을 실현. 휨 복원과 임팩트시 안정감을 양립합니다.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    전장 티타늄 파이버 사용
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    경량성 유지
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    초고탄성 실현
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    임팩트시 안정감
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 기술 사양 섹션 */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
