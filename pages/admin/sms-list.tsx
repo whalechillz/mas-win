@@ -19,6 +19,7 @@ interface SMSMessage {
   fail_count?: number;
   calendar_id?: string; // 허브 콘텐츠 ID
   note?: string; // 메모
+  solapi_group_id?: string; // 솔라피 그룹 ID
 }
 
 export default function SMSListAdmin() {
@@ -28,6 +29,7 @@ export default function SMSListAdmin() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'draft' | 'sent'>('all');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [syncingIds, setSyncingIds] = useState<number[]>([]);
   const allChecked = messages.length > 0 && selectedIds.length === messages.length;
 
   useEffect(() => {
@@ -106,6 +108,76 @@ export default function SMSListAdmin() {
     } catch (e:any) {
       console.error('일괄 삭제 오류:', e);
       alert(`일괄 삭제 중 오류: ${e.message}`);
+    }
+  };
+
+  const handleSyncSolapi = async (messageId: number, groupId: string) => {
+    if (!groupId) {
+      alert('솔라피 그룹 ID가 없습니다.');
+      return;
+    }
+
+    // 디버깅: 현재 메시지 정보 확인
+    const currentMessage = messages.find(m => m.id === messageId);
+    console.log('🔄 동기화 시작:', {
+      messageId,
+      groupId,
+      messageRecipients: currentMessage?.recipient_numbers?.length || 0,
+      messageStatus: currentMessage?.status,
+      messageSolapiGroupId: currentMessage?.solapi_group_id
+    });
+
+    if (!confirm(`솔라피에서 최신 발송 상태를 동기화하시겠습니까?\n\n메시지 ID: ${messageId}\n그룹 ID: ${groupId}\n수신자: ${currentMessage?.recipient_numbers?.length || 0}명`)) {
+      return;
+    }
+
+    setSyncingIds(prev => [...prev, messageId]);
+    
+    try {
+      const response = await fetch('/api/admin/sync-solapi-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          groupId
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const { successCount, failCount, sendingCount, status, totalCount, recipientCount, mismatch } = result.data;
+        
+        // 수신자 수와 솔라피 결과 비교
+        if (mismatch) {
+          console.warn(`⚠️ 수신자 수 불일치: DB=${recipientCount}명, 솔라피=${totalCount}건`);
+        }
+        
+        let alertMessage = `솔라피 동기화 완료!\n\n` +
+          `메시지 ID: ${messageId}\n` +
+          `그룹 ID: ${groupId}\n` +
+          `상태: ${status === 'sent' ? '발송됨' : status === 'partial' ? '부분 성공' : '실패'}\n` +
+          `총 발송: ${totalCount}건\n` +
+          `성공: ${successCount}건\n` +
+          `실패: ${failCount}건\n` +
+          (sendingCount > 0 ? `발송중: ${sendingCount}건\n` : '');
+        
+        if (mismatch) {
+          alertMessage += `\n⚠️ 주의: 수신자 수와 불일치 (DB: ${recipientCount}명, 솔라피: ${totalCount}건)\n` +
+            `다른 메시지의 그룹 ID를 조회했을 수 있습니다.`;
+        }
+        
+        alert(alertMessage);
+        // 목록 새로고침
+        fetchMessages();
+      } else {
+        throw new Error(result.message || '동기화 실패');
+      }
+    } catch (error: any) {
+      console.error('솔라피 동기화 오류:', error);
+      alert('솔라피 동기화 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setSyncingIds(prev => prev.filter(id => id !== messageId));
     }
   };
 
@@ -239,37 +311,37 @@ export default function SMSListAdmin() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3">
+                      <th className="px-3 py-2 w-12">
                         <input type="checkbox" checked={allChecked} onChange={handleToggleAll} />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        메시지
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                        ID
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        메모
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        타입
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                         상태
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                        타입
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                         수신자
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        생성일
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                         발송일
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                        솔라피 그룹 ID
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                         발송 결과
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        허브 연동 ID
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                        메시지
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                        메모
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                         작업
                       </th>
                     </tr>
@@ -277,99 +349,153 @@ export default function SMSListAdmin() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {messages.map((message) => (
                       <tr key={message.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
+                        {/* 체크박스 */}
+                        <td className="px-3 py-2">
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(message.id)}
                             onChange={() => handleToggleSelect(message.id)}
                           />
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="max-w-xs">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {message.message_text}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {message.message_text.length}자
-                            </p>
-                          </div>
+                        
+                        {/* ID */}
+                        <td className="px-3 py-2">
+                          <span className="text-xs font-mono text-gray-600 font-semibold">
+                            #{message.id}
+                          </span>
                         </td>
-                        <td className="px-6 py-4">
-                          {message.note ? (
-                            <div className="max-w-xs">
-                              <p className="text-sm text-gray-700 truncate" title={message.note}>
-                                {message.note}
-                              </p>
+                        
+                        {/* 상태 */}
+                        <td className="px-3 py-2">
+                          {getStatusBadge(message.status)}
+                        </td>
+                        
+                        {/* 타입 */}
+                        <td className="px-3 py-2">
+                          {getMessageTypeBadge(message.message_type)}
+                        </td>
+                        
+                        {/* 수신자 */}
+                        <td className="px-3 py-2">
+                          <span className="text-sm font-semibold text-gray-900">
+                            {message.recipient_numbers?.length || 0}명
+                          </span>
+                        </td>
+                        
+                        {/* 발송일 (간소화) */}
+                        <td className="px-3 py-2 text-xs text-gray-500">
+                          {message.sent_at 
+                            ? (() => {
+                                const sentDate = new Date(message.sent_at);
+                                const now = new Date();
+                                const diffDays = Math.floor((now.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24));
+                                if (diffDays === 0) return '오늘';
+                                if (diffDays === 1) return '어제';
+                                if (diffDays < 7) return `${diffDays}일 전`;
+                                return `${sentDate.getMonth() + 1}/${sentDate.getDate()}`;
+                              })()
+                            : '-'
+                          }
+                        </td>
+                        
+                        {/* 솔라피 그룹 ID (간소화) */}
+                        <td className="px-3 py-2">
+                          {message.solapi_group_id ? (
+                            <div className="flex flex-col gap-0.5">
+                              <span 
+                                className="text-xs font-mono text-blue-600 cursor-pointer hover:text-blue-800 hover:underline truncate"
+                                title={`솔라피 그룹 ID: ${message.solapi_group_id}\n클릭하여 솔라피 콘솔에서 확인`}
+                                onClick={() => {
+                                  window.open(`https://console.solapi.com/message-log?criteria=groupId&value=${message.solapi_group_id}&cond=eq`, '_blank');
+                                }}
+                              >
+                                {message.solapi_group_id.length > 15 
+                                  ? `${message.solapi_group_id.substring(0, 15)}...`
+                                  : message.solapi_group_id
+                                }
+                              </span>
+                              {message.status !== 'draft' && (
+                                <button
+                                  onClick={() => handleSyncSolapi(message.id, message.solapi_group_id!)}
+                                  disabled={syncingIds.includes(message.id)}
+                                  className="text-xs text-green-600 hover:text-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="솔라피에서 최신 발송 상태 동기화"
+                                >
+                                  {syncingIds.includes(message.id) ? '동기화 중...' : '🔄'}
+                                </button>
+                              )}
                             </div>
                           ) : (
                             <span className="text-xs text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          {getMessageTypeBadge(message.message_type)}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(message.status)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-900">
-                            {message.recipient_numbers?.length || 0}명
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {new Date(message.created_at).toLocaleDateString('ko-KR')}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {message.sent_at 
-                            ? new Date(message.sent_at).toLocaleDateString('ko-KR')
-                            : '-'
-                          }
-                        </td>
-                        <td className="px-6 py-4">
-                          {message.status === 'sent' && (
-                            <div className="text-xs">
-                              <div className="text-green-600">
-                                성공: {message.success_count || 0}
+                        
+                        {/* 발송 결과 (간소화) */}
+                        <td className="px-3 py-2">
+                          {message.status !== 'draft' ? (
+                            <div className="text-xs space-y-0.5">
+                              <div className="flex items-center gap-1">
+                                <span className="text-green-600">✅</span>
+                                <span>{message.success_count || 0}</span>
+                                <span className="text-red-600 ml-1">❌</span>
+                                <span>{message.fail_count || 0}</span>
                               </div>
-                              <div className="text-red-600">
-                                실패: {message.fail_count || 0}
-                              </div>
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {message.calendar_id ? (
-                            <div className="flex items-center space-x-2">
-                              <span 
-                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
-                                title={`허브 ID: ${message.calendar_id}`}
-                                onClick={() => {
-                                  // 허브 콘텐츠로 이동
-                                  window.open(`/admin/content-calendar-hub`, '_blank');
-                                }}
-                              >
-                                {message.calendar_id.substring(0, 8)}...
-                              </span>
+                              {message.sent_count && (
+                                <div className="text-gray-500">
+                                  📊 {message.sent_count}건
+                                </div>
+                              )}
                             </div>
                           ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              미연결
-                            </span>
+                            <span className="text-xs text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
+                        
+                        {/* 메시지 (축약) */}
+                        <td className="px-3 py-2">
+                          <div className="max-w-[200px]">
+                            <p 
+                              className="text-xs text-gray-900 truncate" 
+                              title={message.message_text}
+                            >
+                              {message.message_text}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {message.message_text.length}자
+                            </p>
+                          </div>
+                        </td>
+                        
+                        {/* 메모 (축약) */}
+                        <td className="px-3 py-2">
+                          {message.note ? (
+                            <p 
+                              className="text-xs text-gray-700 truncate max-w-[200px]" 
+                              title={message.note}
+                            >
+                              {message.note}
+                            </p>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                        </td>
+                        
+                        {/* 작업 */}
+                        <td className="px-3 py-2">
+                          <div className="flex space-x-1">
                             <button
                               onClick={() => handleEdit(message.id)}
                               className="text-blue-600 hover:text-blue-800 text-sm"
+                              title="편집"
                             >
-                              편집
+                              ✏️
                             </button>
                             <button
                               onClick={() => handleDelete(message.id)}
                               className="text-red-600 hover:text-red-800 text-sm"
+                              title="삭제"
                             >
-                              삭제
+                              🗑️
                             </button>
                           </div>
                         </td>

@@ -502,6 +502,87 @@ export default function SMSAdmin() {
     }
   };
 
+  // 스탭진 테스트 발송 함수
+  const handleTestSend = async () => {
+    const testNumbers = [
+      '010-6669-9000',
+      '010-5704-0013'
+    ];
+
+    if (!formData.content?.trim()) {
+      alert('메시지 내용을 입력해주세요.');
+      return;
+    }
+
+    if (!confirm(`스탭진 테스트 발송을 진행하시겠습니까?\n\n테스트 번호: ${testNumbers.join(', ')}\n\n기존 메시지는 변경되지 않으며, 테스트 메시지가 새로 생성됩니다.`)) {
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      // 1. 테스트 전용 새 메시지 생성 (기존 메시지 내용 복사, 테스트 번호만 사용)
+      const testMessageResponse = await fetch('/api/admin/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: formData.content,
+          type: formData.messageType || 'MMS',
+          status: 'draft', // 먼저 draft로 생성
+          calendar_id: hub || null,
+          recipientNumbers: testNumbers, // 테스트 번호만
+          imageUrl: formData.imageUrl || null,
+          shortLink: formData.shortLink || null,
+          note: `[스탭진 테스트] ${note || '테스트 발송'}`
+        })
+      });
+
+      const testMessageResult = await testMessageResponse.json();
+      
+      if (!testMessageResult.success) {
+        throw new Error(testMessageResult.message || '테스트 메시지 생성 실패');
+      }
+
+      const testMessageId = testMessageResult.smsContent?.id || testMessageResult.smsId;
+      
+      // 2. 테스트 메시지 정보를 DB에서 가져오기
+      const messageInfoResponse = await fetch(`/api/channels/sms/${testMessageId}`);
+      const messageInfo = await messageInfoResponse.json();
+      
+      if (!messageInfo.success || !messageInfo.post) {
+        throw new Error('테스트 메시지 정보를 가져올 수 없습니다.');
+      }
+
+      // 3. 테스트 메시지의 수신자 번호를 명시적으로 전달하여 발송
+      const sendResponse = await fetch('/api/channels/sms/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelPostId: testMessageId,
+          messageType: messageInfo.post.formData.messageType || formData.messageType || 'MMS',
+          messageText: messageInfo.post.formData.content || formData.content,
+          content: messageInfo.post.formData.content || formData.content,
+          imageUrl: messageInfo.post.formData.imageUrl || formData.imageUrl || null,
+          shortLink: messageInfo.post.formData.shortLink || formData.shortLink || null,
+          recipientNumbers: messageInfo.post.formData.recipientNumbers || testNumbers // DB에서 가져온 테스트 번호만 사용
+        })
+      });
+
+      const sendResult = await sendResponse.json();
+      
+      if (sendResult.success) {
+        const successCount = sendResult.result?.successCount || 0;
+        alert(`스탭진 테스트 발송 완료!\n\n${successCount}건 발송 성공\n\n테스트 메시지 ID: ${testMessageId}\nSMS 리스트에서 확인할 수 있습니다.`);
+      } else {
+        throw new Error(sendResult.message || '테스트 발송 실패');
+      }
+    } catch (error: any) {
+      alert('테스트 발송 중 오류가 발생했습니다: ' + error.message);
+      console.error('테스트 발송 오류:', error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -1074,12 +1155,39 @@ export default function SMSAdmin() {
                       현재 <span className="font-bold text-blue-600">{formData.recipientNumbers?.length || 0}명</span> 선택됨
                     </p>
                   </div>
-                  <button
-                    onClick={() => setShowCustomerSelector(true)}
-                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                  >
-                    👥 고객 DB에서 선택
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        // 스탭진 테스트 번호 추가
+                        const testNumbers = [
+                          '010-6669-9000',
+                          '010-5704-0013'
+                          // 필요시 더 추가 가능
+                        ];
+                        const existingNumbers = formData.recipientNumbers || [];
+                        // 중복 제거하면서 추가
+                        const uniqueNumbers = [...new Set([...existingNumbers, ...testNumbers])];
+                        updateFormData({ recipientNumbers: uniqueNumbers });
+                        alert(`스탭진 테스트 번호 ${testNumbers.length}개가 추가되었습니다.\n\n추가된 번호:\n${testNumbers.join('\n')}`);
+                      }}
+                      className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                    >
+                      🧪 스탭진 테스트
+                    </button>
+                    <button
+                      onClick={handleTestSend}
+                      disabled={isSending}
+                      className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 disabled:opacity-50"
+                    >
+                      {isSending ? '테스트 발송 중...' : '🚀 스탭진 테스트 발송'}
+                    </button>
+                    <button
+                      onClick={() => setShowCustomerSelector(true)}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      👥 고객 DB에서 선택
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {(formData.recipientNumbers || []).map((number, index) => (

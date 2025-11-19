@@ -62,14 +62,51 @@ export default async function handler(req, res) {
     // Solapi의 콜백은 다양한 포맷이 가능하므로, 우선 원본을 기록
     console.log('Solapi webhook payload 수신:', JSON.stringify(payload).substring(0, 500));
 
-    // 간단 요약 정보 작성
-    const events = Array.isArray(payload.messages) ? payload.messages : [payload];
-    const successCnt = events.filter(e => String(e.status || '').toLowerCase() === 'delivered').length;
-    const failCnt = events.filter(e => String(e.status || '').toLowerCase() === 'failed').length;
+    // 그룹 ID 추출 (payload에서 groupId 또는 groupId 필드 확인)
+    const groupId = payload.groupId || payload.group_id || payload.groupInfo?.groupId || payload.message?.groupId || null;
 
-    const note = `Solapi 웹훅 수신 - delivered:${successCnt}, failed:${failCnt}`;
+    // 솔라피 Webhook은 다양한 형태로 올 수 있으므로, 그룹 통계를 직접 조회
+    let successCnt = 0;
+    let failCnt = 0;
+    let totalCount = 0;
+    let sendingCount = 0;
+
+    // 1. payload에서 직접 통계 추출 시도
+    if (payload.count) {
+      successCnt = payload.count.successful || payload.count.success || 0;
+      failCnt = payload.count.failed || payload.count.fail || 0;
+      totalCount = payload.count.total || 0;
+      sendingCount = payload.count.sending || (totalCount - successCnt - failCnt);
+    } else if (payload.groupInfo?.count) {
+      successCnt = payload.groupInfo.count.successful || payload.groupInfo.count.success || 0;
+      failCnt = payload.groupInfo.count.failed || payload.groupInfo.count.fail || 0;
+      totalCount = payload.groupInfo.count.total || 0;
+      sendingCount = payload.groupInfo.count.sending || (totalCount - successCnt - failCnt);
+    } else if (Array.isArray(payload.messages)) {
+      // 개별 메시지 배열인 경우
+      const events = payload.messages;
+      successCnt = events.filter(e => String(e.status || '').toLowerCase() === 'delivered' || String(e.status || '').toLowerCase() === 'success').length;
+      failCnt = events.filter(e => String(e.status || '').toLowerCase() === 'failed' || String(e.status || '').toLowerCase() === 'fail').length;
+      totalCount = events.length;
+      sendingCount = events.filter(e => String(e.status || '').toLowerCase() === 'sending' || String(e.status || '').toLowerCase() === 'pending').length;
+    } else {
+      // 단일 메시지인 경우
+      const status = String(payload.status || '').toLowerCase();
+      if (status === 'delivered' || status === 'success') {
+        successCnt = 1;
+        totalCount = 1;
+      } else if (status === 'failed' || status === 'fail') {
+        failCnt = 1;
+        totalCount = 1;
+      } else {
+        sendingCount = 1;
+        totalCount = 1;
+      }
+    }
+
+    const note = `Solapi 웹훅 수신 - 성공:${successCnt}, 실패:${failCnt}, 발송중:${sendingCount}, 총:${totalCount}${groupId ? `, groupId:${groupId}` : ''}`;
     
-    // Supabase에 기록 (에러가 나도 웹훅은 성공으로 처리)
+    // 1. contact_events에 기록
     try {
       const { error: ceErr } = await supabase.from('contact_events').insert([
         {
@@ -87,8 +124,75 @@ export default async function handler(req, res) {
         console.log('웹훅 contact_events 적재 성공:', note);
       }
     } catch (dbErr) {
-      // DB 에러는 로그만 남기고 웹훅은 성공으로 처리
       console.error('웹훅 DB 적재 예외:', dbErr);
+    }
+
+    // 2. groupId가 있으면 channel_sms 상태 업데이트
+    if (groupId) {
+      try {
+        console.log(`🔄 그룹 ID로 메시지 찾기: ${groupId}`);
+        
+        // solapi_group_id로 메시지 찾기
+        const { data: messages, error: findError } = await supabase
+          .from('channel_sms')
+          .select('id, status, success_count, fail_count, sent_count, recipient_numbers')
+          .eq('solapi_group_id', groupId);
+
+        if (findError) {
+          console.error('메시지 조회 오류:', findError);
+        } else if (messages && messages.length > 0) {
+          // 각 메시지에 대해 상태 업데이트
+          for (const msg of messages) {
+            // 현재 상태와 웹훅에서 받은 정보를 종합하여 업데이트
+            const currentSuccess = msg.success_count || 0;
+            const currentFail = msg.fail_count || 0;
+            
+            // 웹훅에서 받은 정보로 카운트 업데이트 (더 큰 값 사용 - 누적)
+            const newSuccessCount = Math.max(currentSuccess, successCnt);
+            const newFailCount = Math.max(currentFail, failCnt);
+            const newTotalCount = totalCount > 0 ? totalCount : (newSuccessCount + newFailCount + sendingCount);
+
+            // 상태 결정
+            let newStatus = msg.status;
+            if (sendingCount > 0) {
+              newStatus = 'partial'; // 아직 발송 중
+            } else if (failCnt === 0 && successCnt > 0) {
+              newStatus = 'sent'; // 모두 성공
+            } else if (successCnt === 0 && failCnt > 0) {
+              newStatus = 'failed'; // 모두 실패
+            } else if (successCnt > 0 && failCnt > 0) {
+              newStatus = 'partial'; // 부분 성공
+            } else if (newSuccessCount > 0 && newFailCount === 0) {
+              newStatus = 'sent'; // 성공 카운트가 있으면 sent
+            }
+
+            const { error: updateError } = await supabase
+              .from('channel_sms')
+              .update({
+                status: newStatus,
+                success_count: newSuccessCount,
+                fail_count: newFailCount,
+                sent_count: newTotalCount,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', msg.id);
+
+            if (updateError) {
+              console.error(`메시지 ID ${msg.id} 업데이트 오류:`, updateError);
+            } else {
+              console.log(`✅ 메시지 ID ${msg.id} 상태 업데이트: ${newStatus} (성공:${newSuccessCount}, 실패:${newFailCount}, 총:${newTotalCount})`);
+            }
+          }
+        } else {
+          console.log(`⚠️ 그룹 ID ${groupId}에 해당하는 메시지를 찾을 수 없습니다.`);
+        }
+      } catch (updateErr) {
+        // 업데이트 오류는 로그만 남기고 웹훅은 성공으로 처리
+        console.error('channel_sms 업데이트 예외:', updateErr);
+      }
+    } else {
+      console.log('⚠️ 웹훅 payload에 groupId가 없어 channel_sms 업데이트를 건너뜁니다.');
+      console.log('Payload 구조:', JSON.stringify(payload).substring(0, 500));
     }
 
     // 항상 200 응답 반환 (Solapi가 재시도하지 않도록)

@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
     let query = supabase
       .from('channel_sms')
-      .select('*, calendar_id')
+      .select('*, calendar_id, solapi_group_id')
       .order('created_at', { ascending: false });
 
     // 소프트 삭제 제외
