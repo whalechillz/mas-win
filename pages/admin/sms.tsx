@@ -1118,38 +1118,6 @@ export default function SMSAdmin() {
                 </div>
               </div>
 
-              {/* 짧은 링크 생성 */}
-              {formData.content && (
-                <ShortLinkGenerator
-                  originalUrl={`https://win.masgolf.co.kr${router.asPath}`}
-                  onLinkGenerated={(shortLink) => updateFormData({ shortLink })}
-                />
-              )}
-
-              {/* 이미지 선택 (MMS) */}
-              {formData.messageType === 'MMS' && (
-                <AIImagePicker
-                  selectedImage={formData.imageUrl}
-                  onImageSelect={(imageUrl) => updateFormData({ imageUrl })}
-                  channelType="sms"
-                />
-              )}
-
-              {/* 메모 입력 */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">메모</h3>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="메시지에 대한 메모나 코멘트를 입력하세요..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  💡 메모는 메시지 관리 시 참고용으로 사용됩니다.
-                </p>
-              </div>
-
             </div>
 
             {/* 오른쪽: 미리보기 및 도구 */}
@@ -1192,6 +1160,38 @@ export default function SMSAdmin() {
                   />
                 </div>
               )}
+
+              {/* 짧은 링크 생성 */}
+              {formData.content && (
+                <ShortLinkGenerator
+                  originalUrl={`https://win.masgolf.co.kr${router.asPath}`}
+                  onLinkGenerated={(shortLink) => updateFormData({ shortLink })}
+                />
+              )}
+
+              {/* 이미지 선택 (MMS) */}
+              {formData.messageType === 'MMS' && (
+                <AIImagePicker
+                  selectedImage={formData.imageUrl}
+                  onImageSelect={(imageUrl) => updateFormData({ imageUrl })}
+                  channelType="sms"
+                />
+              )}
+
+              {/* 메모 입력 */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">메모</h3>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="메시지에 대한 메모나 코멘트를 입력하세요..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 메모는 메시지 관리 시 참고용으로 사용됩니다.
+                </p>
+              </div>
 
               {/* 모바일 미리보기 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
