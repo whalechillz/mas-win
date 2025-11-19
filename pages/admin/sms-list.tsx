@@ -18,6 +18,7 @@ interface SMSMessage {
   success_count?: number;
   fail_count?: number;
   calendar_id?: string; // 허브 콘텐츠 ID
+  note?: string; // 메모
 }
 
 export default function SMSListAdmin() {
@@ -245,6 +246,9 @@ export default function SMSListAdmin() {
                         메시지
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        메모
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         타입
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -289,6 +293,17 @@ export default function SMSListAdmin() {
                               {message.message_text.length}자
                             </p>
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {message.note ? (
+                            <div className="max-w-xs">
+                              <p className="text-sm text-gray-700 truncate" title={message.note}>
+                                {message.note}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           {getMessageTypeBadge(message.message_type)}

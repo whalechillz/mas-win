@@ -50,19 +50,28 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     // SMS 생성
-    const { message, type, status, hub_content_id, calendar_id } = req.body;
+    const { message, type, status, hub_content_id, calendar_id, recipientNumbers, imageUrl, shortLink, note, scheduledAt } = req.body;
 
     try {
+      const insertData = {
+        message_text: message || '새 SMS 메시지를 입력하세요',
+        message_type: type || 'SMS300',
+        status: status || 'draft',
+        calendar_id: calendar_id || hub_content_id || null, // calendar_id 우선 사용
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // 선택적 필드 추가
+      if (recipientNumbers) insertData.recipient_numbers = recipientNumbers;
+      if (imageUrl) insertData.image_url = imageUrl;
+      if (shortLink) insertData.short_link = shortLink;
+      if (note) insertData.note = note;
+      if (scheduledAt) insertData.scheduled_at = scheduledAt;
+
       const { data: newSMS, error } = await supabase
         .from('channel_sms')
-        .insert({
-          message_text: message || '새 SMS 메시지를 입력하세요',
-          message_type: type || 'SMS300',
-          status: status || 'draft',
-          calendar_id: calendar_id || hub_content_id || null, // calendar_id 우선 사용
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -119,7 +128,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     // SMS 수정
-    const { id, message, type, status, hub_content_id, calendar_id } = req.body;
+    const { id, message, type, status, hub_content_id, calendar_id, recipientNumbers, imageUrl, shortLink, note, scheduledAt } = req.body;
 
     if (!id) {
       console.error('❌ SMS 수정 오류: ID가 필요합니다.');
@@ -131,15 +140,24 @@ export default async function handler(req, res) {
     }
 
     try {
+        const updateData = {
+          message_text: message,
+          message_type: type || 'SMS300',
+          status: status || 'draft',
+          calendar_id: calendar_id || hub_content_id || null, // calendar_id 업데이트
+          updated_at: new Date().toISOString()
+        };
+
+        // 선택적 필드 업데이트
+        if (recipientNumbers !== undefined) updateData.recipient_numbers = recipientNumbers;
+        if (imageUrl !== undefined) updateData.image_url = imageUrl;
+        if (shortLink !== undefined) updateData.short_link = shortLink;
+        if (note !== undefined) updateData.note = note;
+        if (scheduledAt !== undefined) updateData.scheduled_at = scheduledAt;
+
         const { data: updatedSMS, error } = await supabase
           .from('channel_sms')
-          .update({
-            message_text: message,
-            message_type: type || 'SMS300',
-            status: status || 'draft',
-            calendar_id: calendar_id || hub_content_id || null, // calendar_id 업데이트
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', id)
           .select()
           .single();

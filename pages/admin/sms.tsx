@@ -41,6 +41,7 @@ export default function SMSAdmin() {
   const [imageId, setImageId] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
+  const [note, setNote] = useState<string>(''); // 메모 상태
   // 길이 프리셋/사용자 지정
   const [targetLength, setTargetLength] = useState<number | ''>('');
   const [lengthOptions, setLengthOptions] = useState({
@@ -240,28 +241,49 @@ export default function SMSAdmin() {
     fetchBlogPosts();
   }, []);
 
-  // 편집 모드 처리 - 두 가지 URL 패턴 모두 지원
+  // SMS 데이터 로드 (note 포함)
   useEffect(() => {
+    const loadSMSData = async (smsId: number) => {
+      try {
+        const response = await fetch(`/api/admin/sms?id=${smsId}`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.smsContent) {
+            const sms = result.smsContent;
+            // formData 업데이트
+            updateFormData({
+              content: sms.message_text || '',
+              messageType: sms.message_type || 'SMS300',
+              imageUrl: sms.image_url || '',
+              shortLink: sms.short_link || '',
+              recipientNumbers: sms.recipient_numbers || []
+            });
+            // note 로드
+            if (sms.note) {
+              setNote(sms.note);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('SMS 데이터 로드 오류:', error);
+      }
+    };
+
     if (mode === 'edit' && edit) {
       // 허브 시스템에서 온 경우: ?edit=26&mode=edit
       console.log('편집 모드로 SMS 로드 (허브 시스템):', edit);
+      loadSMSData(parseInt(edit as string));
       loadPost(parseInt(edit as string));
-    } else if (id) {
+    } else if (id && mode !== 'edit' && !edit) {
       // SMS 관리에서 온 경우: ?id=26
       console.log('SMS 관리에서 로드:', id);
-      loadPost(parseInt(id as string));
-    }
-  }, [mode, edit, id, loadPost]);
-
-  // 페이지 로드 시 데이터 로드 (편집 모드가 아닌 경우만)
-  useEffect(() => {
-    if (id && mode !== 'edit' && !edit) {
-      // SMS 관리에서 직접 접근한 경우만
+      loadSMSData(parseInt(id as string));
       loadPost(parseInt(id as string));
     } else if (blogPostId) {
+      // 블로그에서 가져오기
       loadFromBlog(parseInt(blogPostId as string));
     }
-  }, [id, blogPostId, mode, edit, loadPost, loadFromBlog]);
+  }, [mode, edit, id, blogPostId, loadPost, loadFromBlog, updateFormData]);
 
   // 인증 확인
   if (status === 'loading') {
@@ -332,7 +354,8 @@ export default function SMSAdmin() {
         type: formData.messageType || 'SMS300',
         status: 'draft',
         calendar_id: hub || null, // hub_content_id → calendar_id로 수정
-        id: id || null // PUT 요청 시 id를 body에 포함
+        id: id || null, // PUT 요청 시 id를 body에 포함
+        note: note || null // 메모 추가
       };
 
       console.log('📝 SMS 저장 데이터:', smsData);
@@ -1111,6 +1134,21 @@ export default function SMSAdmin() {
                   channelType="sms"
                 />
               )}
+
+              {/* 메모 입력 */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">메모</h3>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="메시지에 대한 메모나 코멘트를 입력하세요..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 메모는 메시지 관리 시 참고용으로 사용됩니다.
+                </p>
+              </div>
 
             </div>
 
