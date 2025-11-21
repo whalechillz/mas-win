@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../../components/admin/AdminNav';
+import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
 
 type Customer = {
   id: number;
@@ -38,6 +39,8 @@ export default function CustomersPage() {
   const [updatingVipLevels, setUpdatingVipLevels] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedCustomerForImage, setSelectedCustomerForImage] = useState<Customer | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<Customer | null>(null);
 
   const fetchCustomers = async (nextPage = page) => {
     setLoading(true);
@@ -387,6 +390,15 @@ export default function CustomersPage() {
                         >
                           이미지
                         </button>
+                        <button
+                          onClick={() => {
+                            setSelectedCustomerForHistory(c);
+                            setShowHistoryModal(true);
+                          }}
+                          className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          📱 메시지
+                        </button>
                         <button onClick={() => handleDelete(c)} className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
                           삭제
                         </button>
@@ -618,6 +630,18 @@ export default function CustomersPage() {
             setShowImageModal(false);
             setSelectedCustomerForImage(null);
           }}
+        />
+      )}
+
+      {/* 고객 메시지 이력 모달 */}
+      {showHistoryModal && selectedCustomerForHistory && (
+        <CustomerMessageHistoryModal
+          isOpen={showHistoryModal}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedCustomerForHistory(null);
+          }}
+          customer={selectedCustomerForHistory}
         />
       )}
     </>
@@ -1049,4 +1073,5 @@ function CustomerImageModal({ customer, onClose }: {
     </div>
   );
 }
+
 

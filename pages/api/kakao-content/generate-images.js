@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompts, blogPostId, metadata, imageCount = 1 } = req.body; // metadata: { account, type, date, message }, imageCount: 생성할 이미지 개수
+    const { prompts, blogPostId, metadata, imageCount = 1, textOption } = req.body; // textOption 추가
 
     if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
       return res.status(400).json({ message: 'Valid prompts array is required' });
@@ -60,16 +60,27 @@ export default async function handler(req, res) {
     // imageCount는 1, 2, 4만 허용
     const validImageCount = [1, 2, 4].includes(imageCount) ? imageCount : 1;
 
-    console.log(`📝 수정된 프롬프트로 이미지 생성 시작: ${prompts.length}개 프롬프트, 각 ${validImageCount}개 이미지`);
+    console.log(`📝 수정된 프롬프트로 이미지 생성 시작: ${prompts.length}개 프롬프트, 각 ${validImageCount}개 이미지, textOption: ${textOption || 'none'}`);
     
     const paragraphImages = [];
+
+    // negative_prompt 동적 조정
+    let negativePrompt = "text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, written content";
+    
+    if (textOption === 'english' || textOption === 'korean') {
+      // 텍스트를 포함하려는 경우, negative_prompt에서 텍스트 제거 지시를 빼기
+      negativePrompt = "watermark, caption, subtitle, low quality, blurry, distorted, bad quality";
+    } else if (textOption === 'none') {
+      // 텍스트를 완전히 제거하려는 경우, negative_prompt 강화
+      negativePrompt = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
+    }
 
     // 각 프롬프트에 대해 이미지 생성
     for (let i = 0; i < prompts.length; i++) {
       const promptData = prompts[i];
       const startedAt = Date.now();
       
-      console.log(`🔄 단락 ${i + 1} 이미지 생성 중... (${validImageCount}개)`);
+      console.log(`🔄 단락 ${i + 1} 이미지 생성 중... (${validImageCount}개, textOption: ${textOption || 'none'})`);
       
       // Phase 2.2: 날짜 기반 시드값 생성 (같은 날짜면 같은 시드, 다른 날짜면 다른 시드)
       let variationSeed = null;
@@ -95,7 +106,7 @@ export default async function handler(req, res) {
           image_size: "square",
           num_inference_steps: 28,
           seed: variationSeed, // Phase 2.2: 날짜별 고정 시드값
-          negative_prompt: "text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, written content"
+          negative_prompt: negativePrompt // 동적 negative_prompt 사용
         })
       });
 

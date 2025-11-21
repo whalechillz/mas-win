@@ -1,15 +1,94 @@
+import { createClient } from '@supabase/supabase-js';
 import { createSolapiSignature } from '../../../utils/solapiSignature.js';
-// Formidable은 동적 import로 로드 (Vercel 환경 호환성)
+import { compressImageForSolapi } from '../../../lib/server/compressImageForSolapi.js';
 import fs from 'fs';
 
-const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
-const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "";
+const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || '';
+const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || '';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_BUCKET = process.env.NEXT_PUBLIC_IMAGE_BUCKET || 'blog-images';
 
-// Next.js API에서 파일 업로드를 위한 설정
 export const config = {
   api: {
-    bodyParser: false, // multipart/form-data를 위해 비활성화
-  },
+    bodyParser: false
+  }
+};
+
+const getFirstFieldValue = (value) => {
+  if (Array.isArray(value)) return value[0];
+  return value;
+};
+
+const buildStoragePaths = (messageId) => {
+  const now = new Date();
+  const dateFolder = now.toISOString().slice(0, 10);
+  const safeId = messageId?.toString().trim() || `temp-${now.getTime()}`;
+  const folderPath = `originals/mms/${dateFolder}/${safeId}`;
+  const fileName = `mms-${safeId}-${now.getTime()}.jpg`;
+  const storagePath = `${folderPath}/${fileName}`;
+  return { folderPath, storagePath, fileName, dateFolder, safeId };
+};
+
+const uploadOriginalToSupabase = async (supabase, path, buffer, contentType) => {
+  const { error } = await supabase.storage
+    .from(SUPABASE_BUCKET)
+    .upload(path, buffer, {
+      contentType: contentType || 'image/jpeg',
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) {
+    throw new Error(`Supabase 업로드 실패: ${error.message}`);
+  }
+
+  const { data } = supabase.storage
+    .from(SUPABASE_BUCKET)
+    .getPublicUrl(path);
+
+  return data?.publicUrl;
+};
+
+const upsertImageMetadata = async (supabase, payload) => {
+  if (!payload.image_url) return;
+
+  const metadataPayload = {
+    image_url: payload.image_url,
+    folder_path: payload.folder_path || null,
+    date_folder: payload.date_folder || null,
+    source: 'mms',
+    channel: 'sms',
+    file_size: payload.file_size || null,
+    width: payload.width || null,
+    height: payload.height || null,
+    format: 'jpg',
+    upload_source: 'mms-editor',
+    tags: payload.tags || [],
+    original_path: payload.original_path || null,
+    updated_at: new Date().toISOString()
+  };
+
+  if (payload.file_name) {
+    metadataPayload.file_name = payload.file_name;
+  }
+
+  let { error } = await supabase
+    .from('image_metadata')
+    .upsert(metadataPayload, { onConflict: 'image_url' });
+
+  if (error && error.code === '42703') {
+    const fallback = { ...metadataPayload };
+    delete fallback.file_name;
+    delete fallback.original_path;
+    ({ error } = await supabase
+      .from('image_metadata')
+      .upsert(fallback, { onConflict: 'image_url' }));
+  }
+
+  if (error) {
+    console.error('⚠️ image_metadata upsert 실패:', error.message);
+  }
 };
 
 export default async function handler(req, res) {
@@ -18,73 +97,95 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 환경 변수 검증
     if (!SOLAPI_API_KEY || !SOLAPI_API_SECRET) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Solapi 환경 변수가 설정되지 않았습니다.' 
+      return res.status(500).json({
+        success: false,
+        message: 'Solapi 환경 변수가 설정되지 않았습니다.'
       });
     }
 
-    // Formidable 동적 import (Vercel 환경 호환성)
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      return res.status(500).json({
+        success: false,
+        message: 'Supabase 환경 변수가 설정되지 않았습니다.'
+      });
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
     const formidable = (await import('formidable')).default;
-    // formidable을 사용하여 multipart/form-data 파싱
     const form = formidable({
-      maxFileSize: 5 * 1024 * 1024, // 5MB 제한
+      maxFileSize: 5 * 1024 * 1024,
       keepExtensions: true,
       filter: ({ mimetype }) => {
-        // 이미지 파일만 허용 (JPG, PNG, GIF)
         if (!mimetype) return false;
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
         return allowedTypes.includes(mimetype.toLowerCase());
       }
     });
 
-    // Promise 래퍼로 변환 (formidable 버전 호환성)
     const [fields, files] = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
+      form.parse(req, (err, parsedFields, parsedFiles) => {
         if (err) reject(err);
-        else resolve([fields, files]);
+        else resolve([parsedFields, parsedFiles]);
       });
     });
-    
-    // 파일이 업로드되었는지 확인
+
     if (!files.file || !Array.isArray(files.file) || files.file.length === 0) {
       return res.status(400).json({ success: false, message: '파일이 필요합니다.' });
     }
 
     const file = files.file[0];
-    
-    // JPG 파일만 허용 (Solapi MMS 요구사항)
-    if (!file.mimetype || !['image/jpeg', 'image/jpg'].includes(file.mimetype.toLowerCase())) {
-      if (file.filepath) {
+    if (!file?.mimetype || !['image/jpeg', 'image/jpg'].includes(file.mimetype.toLowerCase())) {
+      if (file?.filepath) {
         try { fs.unlinkSync(file.filepath); } catch (e) {}
       }
-      return res.status(400).json({ 
-        success: false, 
-        message: 'JPG 형식의 파일만 사용가능합니다.' 
+      return res.status(400).json({
+        success: false,
+        message: 'JPG 형식의 파일만 사용가능합니다.'
       });
     }
 
-    console.log('업로드된 파일 정보:', {
-      originalFilename: file.originalFilename,
-      mimetype: file.mimetype,
-      size: file.size,
-      filepath: file.filepath
+    if (!file.filepath || !fs.existsSync(file.filepath)) {
+      return res.status(400).json({
+        success: false,
+        message: '파일 경로가 올바르지 않습니다.'
+      });
+    }
+
+    const originalBuffer = fs.readFileSync(file.filepath);
+    const compressionInfo = await compressImageForSolapi(originalBuffer);
+    const uploadBuffer = compressionInfo.buffer;
+
+    const messageIdField =
+      getFirstFieldValue(fields?.messageId) ||
+      getFirstFieldValue(fields?.id) ||
+      null;
+
+    const { folderPath, storagePath, fileName, dateFolder, safeId } =
+      buildStoragePaths(messageIdField);
+
+    const supabaseUrl = await uploadOriginalToSupabase(
+      supabase,
+      storagePath,
+      originalBuffer,
+      file.mimetype
+    );
+
+    await upsertImageMetadata(supabase, {
+      image_url: supabaseUrl,
+      folder_path: folderPath,
+      date_folder: dateFolder,
+      file_size: originalBuffer.length,
+      width: compressionInfo.originalWidth,
+      height: compressionInfo.originalHeight,
+      file_name: fileName,
+      original_path: storagePath,
+      tags: [`sms-${safeId}`]
     });
 
-    // Solapi에 이미지 업로드
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
-    
-    // 파일을 Buffer로 읽어서 base64로 인코딩
-    const fileBuffer = fs.readFileSync(file.filepath);
-    const base64Data = fileBuffer.toString('base64');
-    
-    console.log('Solapi 업로드 시작...');
-    console.log('Auth headers:', authHeaders);
-    console.log('File size:', file.size, 'bytes');
-    
-    // Solapi storage API에 base64 데이터로 업로드
+    const base64Data = uploadBuffer.toString('base64');
+
     const response = await fetch('https://api.solapi.com/storage/v1/files', {
       method: 'POST',
       headers: {
@@ -93,36 +194,39 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         file: base64Data,
-        name: file.originalFilename,
-        type: 'MMS' // Solapi에서 요구하는 타입
+        name: file.originalFilename || fileName,
+        type: 'MMS'
       })
     });
 
     const result = await response.json();
-    console.log('Solapi 업로드 응답:', result);
-
     if (!response.ok) {
-      throw new Error(`이미지 업로드 실패: ${JSON.stringify(result)}`);
+      throw new Error(result?.message || 'Solapi 업로드 중 오류가 발생했습니다.');
     }
 
-    // 임시 파일 삭제
     fs.unlinkSync(file.filepath);
 
     return res.status(200).json({
       success: true,
       imageId: result.fileId,
       message: '이미지가 성공적으로 업로드되었습니다.',
-      fileName: file.originalFilename,
-      fileSize: file.size,
-      fileType: file.mimetype
+      fileName: file.originalFilename || fileName,
+      fileSize: originalBuffer.length,
+      fileType: file.mimetype,
+      supabaseUrl,
+      storagePath,
+      compressionInfo
     });
-
   } catch (error) {
     console.error('이미지 업로드 오류:', error);
+
     return res.status(500).json({
       success: false,
-      message: '이미지 업로드 중 오류가 발생했습니다.',
-      error: error.message
+      message: error.message || '이미지 업로드 중 오류가 발생했습니다.',
+      error: process.env.NODE_ENV === 'development' ? error : undefined
     });
+  } finally {
+    // Formidable 임시 파일은 명시적으로 삭제 필요
+    // try/catch 내부에서 처리됐지만 혹시 남아있다면 제거
   }
 }

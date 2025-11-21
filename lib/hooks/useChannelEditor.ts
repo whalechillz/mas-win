@@ -164,13 +164,19 @@ export const useChannelEditor = (
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setFormData(data.post.formData);
+          setFormData(prev => ({
+            ...prev,
+            ...data.post.formData
+          }));
           return data.post;
         } else {
           throw new Error(data.message || '포스트 로드 실패');
         }
+      } else if (response.status === 404) {
+        // 404 오류 시 더 명확한 메시지
+        throw new Error(`메시지 ID ${channelPostId}를 찾을 수 없습니다. 목록에서 확인해주세요.`);
       } else {
-        throw new Error('포스트 로드 중 오류가 발생했습니다.');
+        throw new Error(`포스트 로드 중 오류가 발생했습니다. (${response.status})`);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
@@ -258,14 +264,18 @@ export const useChannelEditor = (
 
       const data = await response.json();
       
-      // 부분 성공 처리 (207 Multi-Status)
-      if (response.status === 207 || (response.ok && data.success)) {
+      // 성공 카운트 확인 (실제 발송 성공 여부 판단)
+      const successCount = data.result?.successCount || 0;
+      const failCount = data.result?.failCount || 0;
+      
+      // 부분 성공 처리 (207 Multi-Status 또는 successCount > 0)
+      if (response.status === 207 || (response.ok && (data.success || successCount > 0))) {
         // 부분 성공 또는 전체 성공
-        const status = data.result?.failCount > 0 ? 'partial' : 'sent';
+        const status = failCount > 0 && successCount > 0 ? 'partial' : (successCount > 0 ? 'sent' : 'failed');
         updateFormData({ status: status as any });
         return data.result;
-      } else if (response.ok && !data.success) {
-        // 전체 실패
+      } else if (response.ok && !data.success && successCount === 0) {
+        // 전체 실패 (successCount가 0인 경우만)
         throw new Error(data.message || '발송 실패');
       } else {
         // HTTP 오류

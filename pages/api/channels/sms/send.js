@@ -22,7 +22,8 @@ export default async function handler(req, res) {
       content, // formData에서 오는 필드명
       imageUrl,
       recipientNumbers,
-      shortLink
+      shortLink,
+      honorific = '고객님' // 기본값: 고객님
     } = req.body;
 
     // 환경 변수 검증
@@ -68,6 +69,46 @@ export default async function handler(req, res) {
     // 메시지 타입 매핑 (SMS300은 지원하지 않으므로 LMS로 변환)
     const solapiType = messageType === 'SMS300' ? 'LMS' : messageType;
     const fromNumber = SOLAPI_SENDER.replace(/[\-\s]/g, '');
+
+    // ⭐ 이미지 URL 처리: HTTP URL이면 Solapi에 재업로드하여 imageId 획득
+    let solapiImageId = imageUrl || null;
+    if (solapiType === 'MMS' && imageUrl) {
+      // HTTP URL인지 확인 (https:// 또는 http://로 시작)
+      const isHttpUrl = /^https?:\/\//i.test(imageUrl);
+      
+      if (isHttpUrl) {
+        // HTTP URL이면 Solapi에 재업로드
+        try {
+          console.log('🔄 HTTP URL 감지, Solapi에 재업로드 중:', imageUrl);
+          const reuploadResponse = await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/solapi/reupload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageUrl: imageUrl,
+              messageId: channelPostId
+            })
+          });
+          
+          if (reuploadResponse.ok) {
+            const reuploadResult = await reuploadResponse.json();
+            if (reuploadResult.success && reuploadResult.imageId) {
+              solapiImageId = reuploadResult.imageId;
+              console.log('✅ Solapi 재업로드 성공, imageId:', solapiImageId);
+            } else {
+              console.warn('⚠️ Solapi 재업로드 실패, 원본 URL 사용:', reuploadResult.message);
+            }
+          } else {
+            console.warn('⚠️ Solapi 재업로드 API 오류, 원본 URL 사용');
+          }
+        } catch (reuploadError) {
+          console.error('❌ Solapi 재업로드 중 오류:', reuploadError);
+          // 재업로드 실패해도 계속 진행 (이미지 없이 발송 시도)
+        }
+      } else {
+        // 이미 Solapi imageId인 경우 그대로 사용
+        solapiImageId = imageUrl;
+      }
+    }
 
     // 1) 수신거부(Opt-out) 고객 제외 처리
     let candidates = validNumbers.map(n => n.replace(/[\-\s]/g, ''));
@@ -122,17 +163,105 @@ export default async function handler(req, res) {
     // Solapi v4 API로 발송 (성공한 test-sms 방식 사용)
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
-    // 전체 수신자 messages 구성
-    const allMessages = uniqueToSend.map(num => ({
-      to: num,
-      from: fromNumber,
-      text: finalMessage,
-      type: solapiType,
-      ...(solapiType === 'MMS' && imageUrl ? { imageId: imageUrl } : {})
-    }));
+    // ⭐ 전화번호 정규화 및 포맷팅 헬퍼 함수
+    const normalizePhone = (phone = '') => phone.replace(/[^0-9]/g, '');
+    const formatPhone = (phone = '') => {
+      if (!phone) return '';
+      const normalized = normalizePhone(phone);
+      if (normalized.length === 11) {
+        return `${normalized.slice(0, 3)}-${normalized.slice(3, 7)}-${normalized.slice(7)}`;
+      }
+      if (normalized.length === 10) {
+        return `${normalized.slice(0, 3)}-${normalized.slice(3, 6)}-${normalized.slice(6)}`;
+      }
+      return phone;
+    };
+
+    // ⭐ 고객 이름 조회 (개인화용)
+    let customerNameMap = new Map();
+    const hasNameVariable = finalMessage.includes('{name}') || 
+                            finalMessage.includes('{고객명}') || 
+                            finalMessage.includes('{{name}}');
+    
+    if (hasNameVariable) {
+      try {
+        const normalizedPhones = uniqueToSend.map(num => {
+          const normalized = normalizePhone(num);
+          const formatted = formatPhone(normalized);
+          return { normalized, formatted, original: num };
+        });
+        
+        const allPhones = [
+          ...normalizedPhones.map(p => p.normalized),
+          ...normalizedPhones.map(p => p.formatted),
+          ...normalizedPhones.map(p => p.original)
+        ];
+        
+        const { data: customers, error: customerError } = await supabase
+          .from('customers')
+          .select('phone, name')
+          .in('phone', allPhones);
+        
+        if (!customerError && customers) {
+          customers.forEach(c => {
+            const normalized = normalizePhone(c.phone);
+            customerNameMap.set(normalized, c.name || '');
+            // 포맷된 번호로도 매핑
+            const formatted = formatPhone(normalized);
+            customerNameMap.set(formatted, c.name || '');
+            // 원본 번호로도 매핑
+            customerNameMap.set(c.phone, c.name || '');
+          });
+        }
+      } catch (e) {
+        console.error('고객 이름 조회 오류(무시하고 진행):', e);
+      }
+    }
+
+    // ⭐ 이름 처리 함수 (VIP 형식도 그대로 사용)
+    const formatCustomerName = (name) => {
+      if (!name) return '';
+      return name.trim(); // VIP 형식이어도 그대로 반환
+    };
+
+    // 전체 수신자 messages 구성 (개인화 적용)
+    const allMessages = uniqueToSend.map(num => {
+      let personalizedMessage = finalMessage;
+      
+      // 이름 변수 치환
+      if (hasNameVariable) {
+        const normalized = normalizePhone(num);
+        const formatted = formatPhone(normalized);
+        const customerName = customerNameMap.get(normalized) || 
+                             customerNameMap.get(formatted) || 
+                             customerNameMap.get(num) || 
+                             '';
+        
+        // 이름 처리 (VIP 형식도 그대로 사용)
+        const formattedName = formatCustomerName(customerName);
+        
+        // 변수 치환: {name} → "이름+호칭" 또는 "호칭만"
+        const nameWithHonorific = formattedName 
+          ? `${formattedName}${honorific}` 
+          : honorific;
+        
+        personalizedMessage = personalizedMessage
+          .replace(/\{name\}/g, nameWithHonorific)
+          .replace(/\{고객명\}/g, nameWithHonorific)
+          .replace(/\{\{name\}\}/g, nameWithHonorific);
+      }
+      
+      return {
+        to: num,
+        from: fromNumber,
+        text: personalizedMessage,
+        type: solapiType,
+        ...(solapiType === 'MMS' && solapiImageId ? { imageId: solapiImageId } : {})
+      };
+    });
 
     // MMS인데 이미지가 없으면 LMS로 변경
-    if (solapiType === 'MMS' && !imageUrl) {
+    if (solapiType === 'MMS' && !solapiImageId) {
       for (const m of allMessages) m.type = 'LMS';
     }
 
@@ -187,10 +316,17 @@ export default async function handler(req, res) {
         // 성공한 청크 처리
         aggregated.groupIds.push(json.groupInfo?.groupId);
         aggregated.messageResults.push(...(json.messages || []));
-        aggregated.successCount += json.groupInfo?.successCount || 0;
-        aggregated.failCount += json.groupInfo?.failCount || 0;
         
-        console.log(`✅ 청크 ${chunkIndex} 발송 성공: ${json.groupInfo?.successCount || 0}건 성공, ${json.groupInfo?.failCount || 0}건 실패`);
+        // groupInfo의 카운트가 없으면 messages 배열의 개수로 추정
+        const chunkSuccessCount = json.groupInfo?.successCount || 
+          (json.messages?.filter(m => (m.status || '').toLowerCase() !== 'failed').length || 0);
+        const chunkFailCount = json.groupInfo?.failCount || 
+          (json.messages?.filter(m => (m.status || '').toLowerCase() === 'failed').length || 0);
+        
+        aggregated.successCount += chunkSuccessCount;
+        aggregated.failCount += chunkFailCount;
+        
+        console.log(`✅ 청크 ${chunkIndex} 발송 성공: ${chunkSuccessCount}건 성공, ${chunkFailCount}건 실패`);
         
       } catch (chunkError) {
         // 네트워크 오류 등 예외 처리
@@ -262,21 +398,73 @@ export default async function handler(req, res) {
 
     // 발송 결과를 데이터베이스에 업데이트 (부분 성공도 처리)
     const finalStatus = allSuccess ? 'sent' : (hasPartialSuccess ? 'partial' : 'failed');
+    
+    // 모든 그룹 ID를 콤마로 구분하여 저장
+    const allGroupIds = aggregated.groupIds.filter(Boolean);
+    const groupIdsString = allGroupIds.length > 0 ? allGroupIds.join(',') : null;
+    
+    // ⭐ 그룹별 상세 정보 수집 (발송 직후 가능한 정보만)
+    const groupStatuses = [];
+    for (let i = 0; i < allGroupIds.length; i++) {
+      const groupId = allGroupIds[i];
+      // 청크별로 발송된 메시지 수 계산 (대략적인 추정)
+      const chunkSize = 200; // 기본 청크 크기
+      const startIndex = i * chunkSize;
+      const endIndex = Math.min((i + 1) * chunkSize, uniqueToSend.length);
+      const estimatedCount = endIndex - startIndex;
+      
+      // 발송 직후에는 정확한 성공/실패 건수를 알 수 없으므로, 나중에 업데이트될 수 있도록 기본값 설정
+      groupStatuses.push({
+        groupId: groupId,
+        successCount: 0, // 나중에 업데이트됨
+        failCount: 0, // 나중에 업데이트됨
+        totalCount: estimatedCount,
+        sendingCount: estimatedCount, // 발송 직후에는 모두 발송중으로 간주
+        lastSyncedAt: new Date().toISOString()
+      });
+    }
+    
     const { error: updateError } = await supabase
       .from('channel_sms')
       .update({
         status: finalStatus,
-        solapi_group_id: aggregated.groupIds[0] || null,
+        solapi_group_id: groupIdsString, // 모든 그룹 ID 저장 (콤마 구분)
         solapi_message_id: null,
         sent_at: new Date().toISOString(),
         sent_count: uniqueToSend.length,
         success_count: aggregated.successCount,
-        fail_count: aggregated.failCount
+        fail_count: aggregated.failCount,
+        group_statuses: groupStatuses // ⭐ 그룹별 상세 정보 저장 (초기값)
       })
       .eq('id', channelPostId);
 
     if (updateError) {
       console.error('SMS 상태 업데이트 오류:', updateError);
+    }
+
+    // 발송 후 자동 검증: 그룹 ID가 누락되었는지 확인 (비동기로 실행, 응답은 기다리지 않음)
+    if (groupIdsString && allGroupIds.length > 0) {
+      // 백그라운드에서 실행 (응답을 기다리지 않음)
+      setTimeout(async () => {
+        try {
+          // 발송된 수신자 수와 그룹 ID 개수 비교
+          const expectedGroups = Math.ceil(uniqueToSend.length / 200); // 200명당 1개 그룹
+          const actualGroups = allGroupIds.length;
+          
+          if (actualGroups < expectedGroups && uniqueToSend.length > 200) {
+            console.warn(`⚠️ 그룹 ID 누락 가능성 감지:`);
+            console.warn(`   수신자: ${uniqueToSend.length}명`);
+            console.warn(`   예상 그룹 수: ${expectedGroups}개`);
+            console.warn(`   실제 그룹 수: ${actualGroups}개`);
+            console.warn(`   저장된 그룹 IDs: ${groupIdsString}`);
+            console.warn(`   💡 솔라피 콘솔에서 확인하거나 수동 동기화를 권장합니다.`);
+          } else {
+            console.log(`✅ 그룹 ID 검증 완료: ${actualGroups}개 그룹 (예상: ${expectedGroups}개)`);
+          }
+        } catch (verifyError) {
+          console.error('그룹 ID 자동 검증 오류:', verifyError);
+        }
+      }, 5000); // 5초 후 실행 (발송 완료 대기)
     }
 
     // AI 사용량 로그에도 SMS 발송 기록 추가
@@ -403,6 +591,5 @@ export default async function handler(req, res) {
       message: errorMessage,
       error: error.message,
       details: error.response?.data
-    });
-  }
+    });  }
 }

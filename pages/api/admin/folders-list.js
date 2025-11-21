@@ -126,39 +126,29 @@ export default async function handler(req, res) {
         });
       }
 
-      // 🔧 메타데이터에서 추출한 폴더가 2개 이하(originals, scraped-images만)인 경우 Storage에서 직접 조회
+      // 🔧 메타데이터 폴더와 Storage 폴더 병합 (항상 Storage에서도 조회하여 누락 방지)
       const folderList = Array.from(folders).sort();
-      if (folderList.length <= 2) {
-        console.log('⚠️ 메타데이터에 하위 경로가 없음. Storage에서 직접 조회...');
-        const storageFolders = await getFoldersFromStorage();
-        
-        // Storage에서 가져온 폴더와 메타데이터 폴더 병합
-        storageFolders.forEach(folder => folders.add(folder));
-        const mergedFolderList = Array.from(folders).sort();
-        
-        foldersCache = mergedFolderList;
-        foldersCacheTimestamp = now;
-        
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-        console.log(`✅ 폴더 목록 조회 완료 (메타데이터 + Storage 병합): ${mergedFolderList.length}개 (${elapsed}초)`);
-        
-        return res.status(200).json({ 
-          folders: mergedFolderList,
-          count: mergedFolderList.length,
-          cached: false
-        });
-      }
+      console.log(`📋 메타데이터에서 추출한 폴더: ${folderList.length}개`);
+      
+      // Storage에서 직접 조회하여 모든 폴더 확보
+      console.log('🔄 Storage에서 직접 조회 중...');
+      const storageFolders = await getFoldersFromStorage();
+      console.log(`📋 Storage에서 추출한 폴더: ${storageFolders.length}개`);
+      
+      // Storage에서 가져온 폴더와 메타데이터 폴더 병합
+      storageFolders.forEach(folder => folders.add(folder));
+      const mergedFolderList = Array.from(folders).sort();
       
       // 🔧 캐시 저장
-      foldersCache = folderList;
+      foldersCache = mergedFolderList;
       foldersCacheTimestamp = now;
       
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`✅ 폴더 목록 조회 완료 (메타데이터 기반): ${folderList.length}개 (${elapsed}초)`);
+      console.log(`✅ 폴더 목록 조회 완료 (메타데이터 + Storage 병합): ${mergedFolderList.length}개 (${elapsed}초)`);
 
       return res.status(200).json({ 
-        folders: folderList,
-        count: folderList.length,
+        folders: mergedFolderList,
+        count: mergedFolderList.length,
         cached: false
       });
     } else {

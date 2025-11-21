@@ -1,0 +1,17 @@
+Timestamp: 2025-11-19T12:21:33.150Z
+BaseURL: http://localhost:3000
+Console logs:
+[console:info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[console:verbose] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
+[console:log] [HMR] connected
+[console:error] Failed to load resource: the server responded with a status of 404 (Not Found)
+[console:log] [Fast Refresh] rebuilding
+[console:log] [Fast Refresh] done in 87ms
+[console:error] 연락처 데이터 로드 오류: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at eval (webpack-in…abase/supabase-js/dist/module/lib/fetch.js:11:58), hint: , code: }
+[console:info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[console:log] [HMR] connected
+[console:log] 고객 목록 업데이트: {count: 2822, page: 1}
+[console:log] 고객 목록 업데이트: {count: 2822, page: 1}
+[console:log] 고객 목록 업데이트: {count: 2822, page: 1}
+Page errors:

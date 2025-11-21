@@ -93,7 +93,7 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
             <img
               src={selectedImage}
               alt="선택된 이미지"
-              className="w-full h-48 object-cover rounded-lg border border-gray-200"
+              className="w-full max-h-96 h-auto object-contain rounded-lg border border-gray-200"
             />
             <button
               onClick={() => onImageSelect('')}

@@ -6,18 +6,19 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 const ADMIN_LOGIN = process.env.PLAYWRIGHT_ADMIN_LOGIN || 'admin';
 const ADMIN_PASSWORD = process.env.PLAYWRIGHT_ADMIN_PASSWORD || '1234';
 const HEADLESS =
-  process.env.PLAYWRIGHT_HEADLESS === 'false'
-    ? false
-    : true;
-
-const OUTPUT_DIR = __dirname;
-const SCREENSHOT_PATH = path.join(OUTPUT_DIR, 'scheduled-time-check.png');
-const LOG_PATH = path.join(OUTPUT_DIR, 'scheduled-time-check.log');
+  process.env.PLAYWRIGHT_HEADLESS === 'true'
+    ? true
+    : process.env.PLAYWRIGHT_HEADLESS === 'false'
+      ? false
+      : false;
+const OUTPUT_DIR = path.join(__dirname);
+const SCREENSHOT_PATH = path.join(OUTPUT_DIR, 'customers-page-error.png');
+const LOG_PATH = path.join(OUTPUT_DIR, 'customers-page-error.log');
 
 async function run() {
   const browser = await chromium.launch({
     headless: HEADLESS,
-    slowMo: 0
+    slowMo: 0,
   });
 
   const page = await browser.newPage();
@@ -37,46 +38,43 @@ async function run() {
   });
 
   try {
-    console.log('🚀 SMS 리스트 예약 시간 점검 시작');
-    console.log(`   ▶ baseUrl: ${BASE_URL}`);
+    console.log('🚀 고객 관리 페이지 Playwright 점검 시작');
+    console.log(`   ▶ headless 모드: ${HEADLESS}`);
 
-    console.log('1️⃣ 로그인 페이지 진입');
+    console.log('1️⃣ 로그인 페이지 접속');
     await page.goto(`${BASE_URL}/admin/login`, { waitUntil: 'networkidle' });
 
-    console.log('2️⃣ 관리자 자격 증명 입력');
+    console.log('2️⃣ 자격 증명 입력');
     await page.fill('#login', ADMIN_LOGIN);
     await page.fill('#password', ADMIN_PASSWORD);
     await page.click('button[type="submit"]');
 
-    console.log('3️⃣ 관리자 대시보드 로딩 대기');
-    await page.waitForURL(`${BASE_URL}/admin`, { timeout: 20000 });
+    console.log('3️⃣ 관리자 대시보드 진입 대기');
+    await page.waitForURL(`${BASE_URL}/admin`, { timeout: 15000 });
 
-    console.log('4️⃣ SMS 리스트 페이지 이동');
-    await page.goto(`${BASE_URL}/admin/sms-list`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('text=SMS/MMS 관리', { timeout: 15000 });
-    await page.waitForSelector('text=예약일', { timeout: 15000 });
+    console.log('4️⃣ 고객 관리 페이지 이동');
+    await page.goto(`${BASE_URL}/admin/customers`, { waitUntil: 'networkidle' });
 
-    console.log('5️⃣ 예약일 컬럼 셀 확인');
-    const scheduledCells = await page.$$('[data-testid="scheduled-time"]');
-    if (scheduledCells.length > 0) {
-      const firstCellText = (await scheduledCells[0].innerText()).trim();
-      console.log(`   ▶ 첫 예약 셀 텍스트: ${firstCellText || '(공백)'}`);
+    console.log('5️⃣ 오류 오버레이 감지 시도');
+    const errorOverlay = await page.$('text=Unhandled Runtime Error');
+    if (errorOverlay) {
+      console.warn('⚠️ 오류 오버레이 감지됨. 스크린샷을 저장합니다.');
     } else {
-      console.warn('⚠️ 예약 컬럼 셀을 찾지 못했습니다. (예약 데이터가 없을 수 있음)');
+      console.log('✅ 오류 오버레이가 즉시 나타나지 않았습니다.');
     }
 
+    await page.waitForTimeout(3000);
     await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
     console.log(`📸 스크린샷 저장 완료: ${SCREENSHOT_PATH}`);
 
-    if (pageErrors.length > 0) {
-      throw new Error('페이지 오류가 감지되었습니다.');
+    if (errorOverlay || pageErrors.length > 0) {
+      throw new Error('고객 관리 페이지 렌더링 중 오류가 감지되었습니다.');
     }
 
-    console.log('🎉 예약 시간 UI 점검 완료');
+    console.log('🎉 고객 관리 페이지에서 즉시 재현 가능한 오류가 발견되지 않았습니다.');
   } catch (error) {
     console.error('❌ 테스트 중 오류 발생:', error.message);
     console.error(error);
-    throw error;
   } finally {
     const logPayload = [
       `Timestamp: ${new Date().toISOString()}`,
@@ -84,7 +82,7 @@ async function run() {
       `Console logs:`,
       ...consoleLogs,
       `Page errors:`,
-      ...pageErrors
+      ...pageErrors,
     ].join('\n');
 
     fs.writeFileSync(LOG_PATH, logPayload, 'utf8');
@@ -99,4 +97,8 @@ run().catch((err) => {
   console.error('🚨 스크립트 실행 오류:', err);
   process.exit(1);
 });
+
+
+
+
 

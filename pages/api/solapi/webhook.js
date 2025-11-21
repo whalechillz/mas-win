@@ -185,6 +185,95 @@ export default async function handler(req, res) {
           }
         } else {
           console.log(`⚠️ 그룹 ID ${groupId}에 해당하는 메시지를 찾을 수 없습니다.`);
+          
+          // 그룹 ID로 찾지 못한 경우, sent_at 시간(±5분)으로 메시지 찾기
+          try {
+            const groupTime = payload.dateCreated || payload.dateSent || payload.groupInfo?.dateCreated || payload.groupInfo?.dateSent;
+            if (groupTime) {
+              const searchTime = new Date(groupTime);
+              const startTime = new Date(searchTime.getTime() - 5 * 60 * 1000); // 5분 전
+              const endTime = new Date(searchTime.getTime() + 5 * 60 * 1000); // 5분 후
+              
+              console.log(`🔍 시간 기반 메시지 검색: ${startTime.toISOString()} ~ ${endTime.toISOString()}`);
+              
+              // sent_at 시간 기준으로 메시지 찾기 (solapi_group_id가 null이거나 다른 그룹 ID를 가진 메시지)
+              const { data: timeBasedMessages, error: timeFindError } = await supabase
+                .from('channel_sms')
+                .select('id, status, success_count, fail_count, sent_count, recipient_numbers, solapi_group_id')
+                .gte('sent_at', startTime.toISOString())
+                .lte('sent_at', endTime.toISOString())
+                .order('sent_at', { ascending: false })
+                .limit(10);
+              
+              if (timeFindError) {
+                console.error('시간 기반 메시지 검색 오류:', timeFindError);
+              } else if (timeBasedMessages && timeBasedMessages.length > 0) {
+                // 가장 가까운 메시지에 그룹 ID 추가/업데이트
+                const targetMessage = timeBasedMessages[0];
+                const existingGroupIds = targetMessage.solapi_group_id 
+                  ? targetMessage.solapi_group_id.split(',').map(g => g.trim()).filter(Boolean)
+                  : [];
+                
+                // 새 그룹 ID가 없으면 추가
+                if (!existingGroupIds.includes(groupId)) {
+                  existingGroupIds.push(groupId);
+                  const newGroupIdsString = existingGroupIds.join(',');
+                  
+                  console.log(`✅ 시간 기반으로 메시지 찾음: ID ${targetMessage.id}`);
+                  console.log(`   기존 그룹 ID: ${targetMessage.solapi_group_id || '없음'}`);
+                  console.log(`   새 그룹 ID 추가: ${newGroupIdsString}`);
+                  
+                  // 현재 상태와 웹훅에서 받은 정보를 종합하여 업데이트
+                  const currentSuccess = targetMessage.success_count || 0;
+                  const currentFail = targetMessage.fail_count || 0;
+                  
+                  const newSuccessCount = Math.max(currentSuccess, successCnt);
+                  const newFailCount = Math.max(currentFail, failCnt);
+                  const newTotalCount = totalCount > 0 ? totalCount : (newSuccessCount + newFailCount + sendingCount);
+                  
+                  // 상태 결정
+                  let newStatus = targetMessage.status;
+                  if (sendingCount > 0) {
+                    newStatus = 'partial';
+                  } else if (failCnt === 0 && successCnt > 0) {
+                    newStatus = 'sent';
+                  } else if (successCnt === 0 && failCnt > 0) {
+                    newStatus = 'failed';
+                  } else if (successCnt > 0 && failCnt > 0) {
+                    newStatus = 'partial';
+                  } else if (newSuccessCount > 0 && newFailCount === 0) {
+                    newStatus = 'sent';
+                  }
+                  
+                  const { error: updateError } = await supabase
+                    .from('channel_sms')
+                    .update({
+                      solapi_group_id: newGroupIdsString,
+                      status: newStatus,
+                      success_count: newSuccessCount,
+                      fail_count: newFailCount,
+                      sent_count: newTotalCount,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('id', targetMessage.id);
+                  
+                  if (updateError) {
+                    console.error(`메시지 ID ${targetMessage.id} 업데이트 오류:`, updateError);
+                  } else {
+                    console.log(`✅ 메시지 ID ${targetMessage.id} 그룹 ID 추가 및 상태 업데이트: ${newStatus} (성공:${newSuccessCount}, 실패:${newFailCount}, 총:${newTotalCount})`);
+                  }
+                } else {
+                  console.log(`ℹ️ 메시지 ID ${targetMessage.id}에 이미 그룹 ID ${groupId}가 포함되어 있습니다.`);
+                }
+              } else {
+                console.log(`⚠️ 시간 기반 검색으로도 메시지를 찾을 수 없습니다.`);
+              }
+            } else {
+              console.log(`⚠️ 웹훅 payload에 시간 정보가 없어 시간 기반 검색을 할 수 없습니다.`);
+            }
+          } catch (timeSearchError) {
+            console.error('시간 기반 메시지 검색 예외:', timeSearchError);
+          }
         }
       } catch (updateErr) {
         // 업데이트 오류는 로그만 남기고 웹훅은 성공으로 처리

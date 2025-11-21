@@ -1,0 +1,10 @@
+Timestamp: 2025-11-19T15:00:04.656Z
+BaseURL: http://localhost:3000
+Console logs:
+[console:info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[console:log] [HMR] connected
+[console:log] [Fast Refresh] rebuilding
+[console:log] [Fast Refresh] done in 286ms
+[console:info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[console:log] [HMR] connected
+Page errors:

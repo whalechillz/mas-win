@@ -56,6 +56,7 @@ export default function ProfileManager({
   const [isRecoveringImage, setIsRecoveringImage] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
   const [isGeneratingBasePrompt, setIsGeneratingBasePrompt] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
   const [editingBasePrompt, setEditingBasePrompt] = useState<{ type: 'background' | 'profile' | null; value: string }>({ type: null, value: '' });
+  const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<{ background: string | null; profile: string | null }>({ background: null, profile: null });
 
   const handleGenerateBackground = async () => {
     try {
@@ -225,6 +226,93 @@ export default function ProfileManager({
     
     setEditingBasePrompt({ type: null, value: '' });
     alert('✅ basePrompt가 저장되었습니다.');
+  };
+
+  // 텍스트 옵션으로 이미지 재생성 함수
+  const handleRegenerateWithTextOption = async (type: 'background' | 'profile', textOption: 'english' | 'korean' | 'none') => {
+    try {
+      setIsRegeneratingWithTextOption(prev => ({ ...prev, [type]: textOption }));
+      
+      let modifiedPrompt = type === 'background' 
+        ? profileData.background.prompt 
+        : profileData.profile.prompt;
+      
+      // 기존 텍스트 관련 지시사항 제거 (더 강력하게)
+      modifiedPrompt = modifiedPrompt.replace(/\.?\s*(Include|ABSOLUTELY NO|no text|text overlay|watermark|caption|subtitle|written content|text|words|letters)[^.]*\.?/gi, '');
+      
+      // account type에 맞는 나이/인물 지시사항 강화
+      const accountType = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
+      const ageSpec = accountType === 'account1' 
+        ? 'Korean senior golfer (50-70 years old, Korean ethnicity, Asian facial features, silver/gray hair)'
+        : 'Korean young golfer (30-50 years old, Korean ethnicity, Asian facial features)';
+      
+      // MASSGOO 브랜딩 (프로필 이미지에만)
+      const brandSpec = type === 'profile' 
+        ? 'CRITICAL: If the golfer is wearing a cap, hat, or any headwear, the cap MUST have "MASSGOO" logo or embroidery clearly visible and readable. If the golfer is wearing clothing (polo shirt, jacket, etc.), the clothing MUST have "MASSGOO" logo or branding clearly visible. The brand name "MASSGOO" must be naturally integrated into the cap/hat fabric as embroidery or printed logo, and on clothing as a logo patch or embroidered text. Use "MASSGOO" (not "MASGOO") as the official brand name.'
+        : '';
+      
+      if (type === 'background') {
+        // 배경 이미지: 워딩만 추가 (정확한 텍스트 명시)
+        if (textOption === 'english') {
+          modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. Include elegant English text overlay at the bottom center of the image with the exact text: "Connecting Swing and Heart" in minimal and sophisticated typography, white or light colored serif font.`;
+        } else if (textOption === 'korean') {
+          modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. Include elegant Korean text overlay at the bottom center of the image with the exact text: "비거리의 감성 – 스윙과 마음의 연결" in minimal and sophisticated typography, white or light colored serif font.`;
+        } else if (textOption === 'none') {
+          modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ABSOLUTELY NO text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, or any written content whatsoever in the image. The image must be completely text-free.`;
+        }
+      } else if (type === 'profile') {
+        // 프로필 이미지: 로고만 추가 (워딩 불필요)
+        modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec}`;
+        if (textOption === 'none') {
+          modifiedPrompt += ' ABSOLUTELY NO text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, or any written content whatsoever in the image. The image must be completely text-free.';
+        }
+      }
+      
+      // 프롬프트 재생성 없이 직접 이미지 생성 API 호출
+      const account = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
+      
+      const response = await fetch('/api/kakao-content/generate-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompts: [{ prompt: modifiedPrompt, paragraph: '' }],
+          imageCount: 1,
+          textOption: textOption, // 텍스트 옵션 전달
+          metadata: {
+            account: account,
+            type: type,
+            date: selectedDate || new Date().toISOString().split('T')[0],
+            message: type === 'background' 
+              ? profileData.background.image 
+              : profileData.profile.image
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const imageUrls = data.imageUrls || [];
+      
+      if (imageUrls.length > 0) {
+        onUpdate({
+          ...profileData,
+          [type]: {
+            ...profileData[type],
+            prompt: modifiedPrompt,
+            imageUrl: imageUrls[0]
+          }
+        });
+        alert(`✅ ${textOption === 'english' ? '영어 자막' : textOption === 'korean' ? '한글 자막' : '노텍스트'} 옵션으로 이미지가 재생성되었습니다.`);
+      }
+    } catch (error: any) {
+      alert(`이미지 재생성 실패: ${error.message}`);
+    } finally {
+      setIsRegeneratingWithTextOption(prev => ({ ...prev, [type]: null }));
+    }
   };
 
   // 프롬프트 재생성 함수 (프롬프트 재생성 + 이미지 자동 재생성)
@@ -413,7 +501,7 @@ export default function ProfileManager({
             </div>
           )}
           
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             <button
               onClick={() => setShowBackgroundGallery(true)}
               className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm"
@@ -421,23 +509,53 @@ export default function ProfileManager({
               <Image className="w-4 h-4" />
               갤러리에서 선택
             </button>
-            <button
-              onClick={handleGenerateBackground}
-              disabled={isGeneratingBackground || isGenerating}
-              className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-            >
-              {isGeneratingBackground ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleGenerateBackground}
+                disabled={isGeneratingBackground || isGenerating}
+                className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
+              >
+                {isGeneratingBackground ? (
+                  <>
+                    <Sparkles className="w-4 h-4 animate-spin" />
+                    생성 중...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-4 h-4" />
+                    {profileData.background.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                  </>
+                )}
+              </button>
+              {profileData.background.imageUrl && (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin" />
-                  생성 중...
-                </>
-              ) : (
-                <>
-                  <RotateCcw className="w-4 h-4" />
-                  {profileData.background.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                  <button
+                    onClick={() => handleRegenerateWithTextOption('background', 'english')}
+                    disabled={isRegeneratingWithTextOption.background !== null || isGeneratingBackground || isGenerating}
+                    className="w-6 h-6 text-xs font-bold bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
+                    title="영어 자막 추가"
+                  >
+                    E
+                  </button>
+                  <button
+                    onClick={() => handleRegenerateWithTextOption('background', 'korean')}
+                    disabled={isRegeneratingWithTextOption.background !== null || isGeneratingBackground || isGenerating}
+                    className="w-6 h-6 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
+                    title="한글 자막 추가"
+                  >
+                    K
+                  </button>
+                  <button
+                    onClick={() => handleRegenerateWithTextOption('background', 'none')}
+                    disabled={isRegeneratingWithTextOption.background !== null || isGeneratingBackground || isGenerating}
+                    className="w-6 h-6 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
+                    title="텍스트 없음"
+                  >
+                    X
+                  </button>
                 </>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -548,7 +666,7 @@ export default function ProfileManager({
             </div>
           )}
           
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             <button
               onClick={() => setShowProfileGallery(true)}
               className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm"
@@ -556,23 +674,53 @@ export default function ProfileManager({
               <Image className="w-4 h-4" />
               갤러리에서 선택
             </button>
-            <button
-              onClick={handleGenerateProfile}
-              disabled={isGeneratingProfile || isGenerating}
-              className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-            >
-              {isGeneratingProfile ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleGenerateProfile}
+                disabled={isGeneratingProfile || isGenerating}
+                className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
+              >
+                {isGeneratingProfile ? (
+                  <>
+                    <Sparkles className="w-4 h-4 animate-spin" />
+                    생성 중...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-4 h-4" />
+                    {profileData.profile.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                  </>
+                )}
+              </button>
+              {profileData.profile.imageUrl && (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin" />
-                  생성 중...
-                </>
-              ) : (
-                <>
-                  <RotateCcw className="w-4 h-4" />
-                  {profileData.profile.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                  <button
+                    onClick={() => handleRegenerateWithTextOption('profile', 'english')}
+                    disabled={isRegeneratingWithTextOption.profile !== null || isGeneratingProfile || isGenerating}
+                    className="w-6 h-6 text-xs font-bold bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
+                    title="영어 자막 추가"
+                  >
+                    E
+                  </button>
+                  <button
+                    onClick={() => handleRegenerateWithTextOption('profile', 'korean')}
+                    disabled={isRegeneratingWithTextOption.profile !== null || isGeneratingProfile || isGenerating}
+                    className="w-6 h-6 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
+                    title="한글 자막 추가"
+                  >
+                    K
+                  </button>
+                  <button
+                    onClick={() => handleRegenerateWithTextOption('profile', 'none')}
+                    disabled={isRegeneratingWithTextOption.profile !== null || isGeneratingProfile || isGenerating}
+                    className="w-6 h-6 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
+                    title="텍스트 없음"
+                  >
+                    X
+                  </button>
                 </>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </div>
