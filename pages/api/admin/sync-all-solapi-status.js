@@ -98,10 +98,28 @@ export default async function handler(req, res) {
         const groupInfo = solapiData.groupInfo || solapiData;
         const count = groupInfo.count || {};
         
-        const totalCount = count.total || groupInfo.totalCount || 0;
-        const successCount = count.successful || groupInfo.successCount || 0;
-        const failCount = count.failed || groupInfo.failCount || 0;
-        const sendingCount = count.sending || groupInfo.sendingCount || (totalCount - successCount - failCount);
+        const getNumber = (...values) => {
+          for (const value of values) {
+            if (typeof value === 'number' && !Number.isNaN(value)) {
+              return value;
+            }
+          }
+          return 0;
+        };
+
+        let totalCount = getNumber(count.total, groupInfo.totalCount, solapiData.total, solapiData.totalCount);
+        let successCount = getNumber(count.successful, count.success, count.successCount, groupInfo.successCount, solapiData.successful, solapiData.successCount);
+        let failCount = getNumber(count.failed, count.fail, count.failCount, groupInfo.failCount, solapiData.failed, solapiData.failCount);
+        let sendingCount = getNumber(count.sending, count.sendingCount, groupInfo.sendingCount, solapiData.sending, solapiData.sendingCount, totalCount - successCount - failCount);
+
+        const registeredSuccess = getNumber(count.registeredSuccess, groupInfo.registeredSuccess, solapiData.registeredSuccess);
+        const registeredFailed = getNumber(count.registeredFailed, groupInfo.registeredFailed, solapiData.registeredFailed);
+
+        if (registeredSuccess || registeredFailed) {
+          totalCount = Math.max(totalCount, registeredSuccess + registeredFailed, totalCount);
+          successCount += registeredSuccess;
+          failCount += registeredFailed;
+        }
 
         // 상태 결정
         let finalStatus = message.status;

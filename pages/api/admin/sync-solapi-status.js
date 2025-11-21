@@ -93,11 +93,77 @@ export default async function handler(req, res) {
       count = groupInfo;
     }
     
-    // 다양한 필드명 시도 (솔라피 API 문서에 따라 다를 수 있음)
-    let totalCount = count.total || count.totalCount || groupInfo?.totalCount || groupInfo?.total || solapiData.total || solapiData.totalCount || 0;
-    let successCount = count.successful || count.success || count.successCount || groupInfo?.successCount || groupInfo?.successful || groupInfo?.success || solapiData.successful || solapiData.successCount || 0;
-    let failCount = count.failed || count.fail || count.failCount || groupInfo?.failCount || groupInfo?.failed || groupInfo?.fail || solapiData.failed || solapiData.failCount || 0;
-    let sendingCount = count.sending || count.sendingCount || groupInfo?.sendingCount || groupInfo?.sending || solapiData.sending || solapiData.sendingCount || (totalCount - successCount - failCount);
+    // RAW DATA 구조에 맞게 수정 (count.sentSuccess, count.sentFailed 등)
+    const getNumber = (...values) => {
+      for (const value of values) {
+        if (typeof value === 'number' && !Number.isNaN(value)) {
+          return value;
+        }
+      }
+      return 0;
+    };
+
+    let totalCount = getNumber(
+      count.total,
+      count.sentTotal,
+      count.totalCount,
+      groupInfo?.totalCount,
+      groupInfo?.total,
+      solapiData.total,
+      solapiData.totalCount
+    );
+
+    let successCount = getNumber(
+      count.sentSuccess,
+      count.successful,
+      count.success,
+      count.successCount,
+      groupInfo?.successCount,
+      groupInfo?.successful,
+      groupInfo?.success,
+      solapiData.successful,
+      solapiData.successCount
+    );
+
+    let failCount = getNumber(
+      count.sentFailed,
+      count.failed,
+      count.fail,
+      count.failCount,
+      groupInfo?.failCount,
+      groupInfo?.failed,
+      groupInfo?.fail,
+      solapiData.failed,
+      solapiData.failCount
+    );
+
+    let sendingCount = getNumber(
+      count.sentPending,
+      count.sending,
+      count.sendingCount,
+      groupInfo?.sendingCount,
+      groupInfo?.sending,
+      solapiData.sending,
+      solapiData.sendingCount,
+      totalCount - successCount - failCount
+    );
+
+    const registeredSuccess = getNumber(
+      count.registeredSuccess,
+      groupInfo?.registeredSuccess,
+      solapiData.registeredSuccess
+    );
+    const registeredFailed = getNumber(
+      count.registeredFailed,
+      groupInfo?.registeredFailed,
+      solapiData.registeredFailed
+    );
+
+    if (registeredSuccess || registeredFailed) {
+      totalCount = Math.max(totalCount, registeredSuccess + registeredFailed, totalCount);
+      successCount += registeredSuccess;
+      failCount += registeredFailed;
+    }
 
     console.log(`📊 솔라피 그룹 정보에서 추출 결과:`);
     console.log(`   - 총: ${totalCount}건`);
@@ -275,6 +341,33 @@ export default async function handler(req, res) {
     const recipientCount = currentMessage.recipient_numbers?.length || 0;
     const mismatch = totalCount > 0 && totalCount !== recipientCount;
     
+    // 누락된 그룹 ID 찾기: 수신자 수가 200 이상이고 솔라피 발송 건수가 200의 배수일 때
+    let allGroupIds = currentMessage.solapi_group_id ? 
+      currentMessage.solapi_group_id.split(',').map(g => g.trim()).filter(Boolean) : 
+      [];
+    
+    if (mismatch && recipientCount > 200 && totalCount < recipientCount) {
+      console.log(`🔍 누락된 그룹 ID 찾기 시작...`);
+      console.log(`   수신자: ${recipientCount}명, 현재 그룹 발송: ${totalCount}건`);
+      
+      try {
+        // 발송 시간 기준으로 ±5분 범위 내의 그룹 찾기
+        const sentAt = currentMessage.sent_at ? new Date(currentMessage.sent_at) : new Date();
+        const startTime = new Date(sentAt.getTime() - 5 * 60 * 1000); // 5분 전
+        const endTime = new Date(sentAt.getTime() + 5 * 60 * 1000); // 5분 후
+        
+        // 솔라피 메시지 로그 API로 같은 시간대 그룹 찾기
+        // 참고: 솔라피 API는 시간 범위로 검색할 수 있지만, 여기서는 간단히 첫 번째 그룹 ID의 패턴을 기반으로 추정
+        // 실제로는 솔라피 콘솔에서 수동으로 확인하거나, 발송 시 로그를 확인해야 함
+        
+        console.log(`   ⚠️ 자동 그룹 ID 찾기는 제한적입니다.`);
+        console.log(`   솔라피 콘솔에서 같은 시간대(${startTime.toISOString()} ~ ${endTime.toISOString()})의 그룹을 확인하세요.`);
+        console.log(`   또는 발송 시 서버 로그에서 모든 그룹 ID를 확인할 수 있습니다.`);
+      } catch (searchError) {
+        console.error('그룹 ID 검색 오류:', searchError);
+      }
+    }
+    
     if (mismatch) {
       console.warn(`⚠️ 수신자 수 불일치 감지!`);
       console.warn(`   메시지 ID: ${messageId}`);
@@ -282,6 +375,7 @@ export default async function handler(req, res) {
       console.warn(`   솔라피 총 발송: ${totalCount}건`);
       console.warn(`   그룹 ID: ${groupId}`);
       console.warn(`   DB 그룹 ID: ${currentMessage.solapi_group_id || '없음'}`);
+      console.warn(`   현재 저장된 그룹 수: ${allGroupIds.length}개`);
     } else if (totalCount === 0 && recipientCount > 0) {
       console.warn(`⚠️ 솔라피 총 발송 건수가 0입니다. 응답 구조를 확인하세요.`);
     } else {
@@ -308,13 +402,69 @@ export default async function handler(req, res) {
 
     // 6. DB 업데이트 (totalCount가 0이면 수신자 수 사용)
     const finalTotalCount = totalCount > 0 ? totalCount : recipientCount;
+    
+    // ⭐ group_statuses 업데이트
+    const existingStatuses = currentMessage.group_statuses || [];
+    const updatedStatuses = [...existingStatuses];
+    
+    // 기존 상태 찾기
+    const existingIndex = updatedStatuses.findIndex(
+      s => s.groupId === groupId
+    );
+    
+    const statusToSave = {
+      groupId: groupId,
+      successCount: successCount || 0,
+      failCount: failCount || 0,
+      totalCount: finalTotalCount || 0,
+      sendingCount: sendingCount || 0,
+      lastSyncedAt: new Date().toISOString()
+    };
+    
+    if (existingIndex >= 0) {
+      updatedStatuses[existingIndex] = statusToSave;
+    } else {
+      updatedStatuses.push(statusToSave);
+    }
+    
+    // ⭐ 전체 그룹 기준 집계 (상태 결정에 사용)
+    const aggregateCounts = updatedStatuses.reduce(
+      (acc, statusEntry) => {
+        acc.success += statusEntry.successCount || 0;
+        acc.fail += statusEntry.failCount || 0;
+        acc.sending += statusEntry.sendingCount || 0;
+        acc.total += statusEntry.totalCount || 0;
+        return acc;
+      },
+      { success: 0, fail: 0, sending: 0, total: 0 }
+    );
+
+    let aggregatedFinalStatus = currentMessage.status;
+    if (aggregateCounts.sending > 0) {
+      aggregatedFinalStatus = 'partial';
+    } else if (aggregateCounts.fail === 0 && aggregateCounts.success > 0) {
+      aggregatedFinalStatus = 'sent';
+    } else if (aggregateCounts.success === 0 && aggregateCounts.fail > 0) {
+      aggregatedFinalStatus = 'failed';
+    } else if (aggregateCounts.success > 0 && aggregateCounts.fail > 0) {
+      aggregatedFinalStatus = 'partial';
+    } else if (finalTotalCount > 0 && aggregateCounts.success === 0 && aggregateCounts.fail === 0) {
+      aggregatedFinalStatus = 'partial';
+    }
+
+    const aggregatedTotalCount = aggregateCounts.total || finalTotalCount;
+    const aggregatedSuccessCount = aggregateCounts.success || successCount || 0;
+    const aggregatedFailCount = aggregateCounts.fail || failCount || 0;
+    const aggregatedSendingCount = aggregateCounts.sending || sendingCount || 0;
+
     const { error: updateError } = await supabase
       .from('channel_sms')
       .update({
-        status: finalStatus,
-        sent_count: finalTotalCount,
-        success_count: successCount,
-        fail_count: failCount,
+        status: aggregatedFinalStatus,
+        sent_count: aggregatedTotalCount,
+        success_count: aggregatedSuccessCount,
+        fail_count: aggregatedFailCount,
+        group_statuses: updatedStatuses, // ⭐ 그룹별 상세 정보 저장
         updated_at: new Date().toISOString()
       })
       .eq('id', messageId);
@@ -324,7 +474,7 @@ export default async function handler(req, res) {
       throw updateError;
     }
 
-    console.log(`✅ 동기화 완료: 상태=${finalStatus}, 성공=${successCount}건, 실패=${failCount}건, 총=${finalTotalCount}건`);
+    console.log(`✅ 동기화 완료: 상태=${aggregatedFinalStatus}, 성공=${aggregatedSuccessCount}건, 실패=${aggregatedFailCount}건, 총=${aggregatedTotalCount}건`);
 
     return res.status(200).json({
       success: true,
@@ -332,11 +482,11 @@ export default async function handler(req, res) {
       data: {
         messageId,
         groupId,
-        totalCount: finalTotalCount,
-        successCount,
-        failCount,
-        sendingCount,
-        status: finalStatus,
+        totalCount: aggregatedTotalCount,
+        successCount: aggregatedSuccessCount,
+        failCount: aggregatedFailCount,
+        sendingCount: aggregatedSendingCount,
+        status: aggregatedFinalStatus,
         previousStatus: currentMessage.status,
         recipientCount, // DB 수신자 수
         mismatch, // 불일치 여부

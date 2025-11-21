@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { TitleScorer } from '../../components/shared/TitleScorer';
@@ -29,7 +29,6 @@ export default function SMSAdmin() {
     resetForm
   } = useChannelEditor('sms');
 
-  const [showPreview, setShowPreview] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [blogPosts, setBlogPosts] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState('');
@@ -39,9 +38,15 @@ export default function SMSAdmin() {
   const [mobilePreviewText, setMobilePreviewText] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageId, setImageId] = useState('');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
   const [note, setNote] = useState<string>(''); // 메모 상태
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [hasScheduledTime, setHasScheduledTime] = useState(false);
+  const [savingSchedule, setSavingSchedule] = useState(false);
+  const [savedSmsId, setSavedSmsId] = useState<number | null>(null); // 저장된 SMS ID
   // 길이 프리셋/사용자 지정
   const [targetLength, setTargetLength] = useState<number | ''>('');
   const [lengthOptions, setLengthOptions] = useState({
@@ -49,6 +54,110 @@ export default function SMSAdmin() {
     psychologyTone: true,
     emphasizeCTA: true
   });
+  // 자동 분할 옵션
+  const [autoSplit, setAutoSplit] = useState(false);
+  const [splitSize, setSplitSize] = useState(100);
+  // 수동 분할용 분할 크기 (수신자 번호 섹션에서 사용)
+  const [manualSplitSize, setManualSplitSize] = useState(100);
+  // 호칭 선택 (개인화용)
+  const [honorific, setHonorific] = useState<string>('고객님');
+  
+  // 메시지에 이름 변수가 있는지 확인
+  const hasNameVariable = useMemo(() => {
+    const content = formData.content || '';
+    return content.includes('{name}') || 
+           content.includes('{고객명}') || 
+           content.includes('{{name}}');
+  }, [formData.content]);
+
+  const currentSmsNumericId = useMemo(() => {
+    if (mode === 'edit' && edit) {
+      const parsed = parseInt(edit as string, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    if (id) {
+      const parsed = parseInt(id as string, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    // 저장된 ID가 있으면 사용
+    return savedSmsId;
+  }, [mode, edit, id, savedSmsId]);
+
+  const fetchLatestPreview = useCallback(async (smsId: number) => {
+    try {
+      const response = await fetch(`/api/admin/mms-images?messageId=${smsId}&limit=1`);
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      const previewUrl = data?.images?.[0]?.url;
+      if (previewUrl) {
+        setImagePreviewUrl(previewUrl);
+      }
+    } catch (err) {
+      console.error('MMS 이미지 프리뷰 조회 오류:', err);
+    }
+  }, []);
+
+  // 한국 시간대 상수 (UTC+9)
+  const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+
+  const isHttpUrl = (value?: string | null) => {
+    if (!value || typeof value !== 'string') return false;
+    return /^https?:\/\//i.test(value.trim());
+  };
+
+  // Date 객체를 datetime-local 입력 형식으로 변환 (로컬 시간 기준)
+  const formatDateForInput = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // UTC ISO 문자열을 datetime-local 입력 형식으로 변환 (한국 시간 기준)
+  const convertUTCToLocalInput = (iso?: string | null) => {
+    if (!iso) return '';
+    const utcDate = new Date(iso);
+    if (Number.isNaN(utcDate.getTime())) return '';
+    // UTC에 9시간을 더해서 한국 시간(KST)으로 변환
+    const kstDate = new Date(utcDate.getTime() + KST_OFFSET_MS);
+    return formatDateForInput(kstDate);
+  };
+
+  // datetime-local 입력값을 UTC ISO 문자열로 변환 (한국 시간 기준으로 명시적 처리)
+  const convertLocalInputToUTC = (value?: string) => {
+    if (!value) return null;
+    // datetime-local 형식: "2025-11-20T08:30"
+    // 한국 시간대(UTC+9)를 명시적으로 지정: "2025-11-20T08:30:00+09:00"
+    const kstString = `${value}:00+09:00`;
+    const kstDate = new Date(kstString);
+    if (Number.isNaN(kstDate.getTime())) return null;
+    // toISOString()이 자동으로 UTC로 변환 (9시간 빼짐)
+    return kstDate.toISOString();
+  };
+
+  const formatScheduleDisplay = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const getDefaultScheduleValue = () => {
+    const defaultDate = new Date();
+    defaultDate.setHours(defaultDate.getHours() + 1, 0, 0, 0);
+    return formatDateForInput(defaultDate);
+  };
 
   const applyLengthPreset = (len: number) => {
     setTargetLength(len);
@@ -160,19 +269,40 @@ export default function SMSAdmin() {
       
       const formData = new FormData();
       formData.append('file', file);
+      if (currentSmsNumericId) {
+        formData.append('messageId', String(currentSmsNumericId));
+      }
 
       const response = await fetch('/api/solapi/upload-image', {
         method: 'POST',
         body: formData
       });
 
+      // Content-Type 확인
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ 이미지 업로드 API가 JSON이 아닌 응답을 반환했습니다:', {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          preview: text.substring(0, 200)
+        });
+        throw new Error(`이미지 업로드 오류: ${response.status} ${response.statusText}`);
+      }
+
       const result = await response.json();
 
       if (result.success) {
         setImageId(result.imageId);
         setSelectedImage(file);
-        // formData에 imageId 저장
-        updateFormData({ imageUrl: result.imageId });
+        // ⭐ Supabase URL을 우선적으로 저장 (갤러리/표시용)
+        const imageUrlToSave = result.supabaseUrl || result.imageId;
+        if (result.supabaseUrl) {
+          setImagePreviewUrl(result.supabaseUrl);
+        }
+        // formData에 Supabase URL 저장 (DB에 저장될 값)
+        updateFormData({ imageUrl: imageUrlToSave });
         alert('이미지가 업로드되었습니다.');
       } else {
         alert('이미지 업로드에 실패했습니다: ' + result.message);
@@ -185,10 +315,49 @@ export default function SMSAdmin() {
     }
   };
 
+  const handleGalleryImageSelect = async (selectedUrl: string) => {
+    if (!selectedUrl) {
+      handleImageRemove();
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const response = await fetch('/api/solapi/reupload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedUrl,
+          messageId: currentSmsNumericId
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || '갤러리 이미지를 준비하는 중 오류가 발생했습니다.');
+      }
+
+      setSelectedImage(null);
+      setImageId(result.imageId);
+      // ⭐ Supabase URL을 우선적으로 저장
+      const imageUrlToSave = result.supabaseUrl || selectedUrl || result.imageId;
+      setImagePreviewUrl(result.supabaseUrl || selectedUrl);
+      // formData에 Supabase URL 저장 (DB에 저장될 값)
+      updateFormData({ imageUrl: imageUrlToSave });
+      alert('갤러리 이미지가 MMS 전송용으로 준비되었습니다.');
+    } catch (error: any) {
+      console.error('갤러리 이미지 재업로드 오류:', error);
+      alert(error?.message || '갤러리 이미지 재업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   // 이미지 제거 함수
   const handleImageRemove = () => {
     setSelectedImage(null);
     setImageId('');
+    setImagePreviewUrl('');
     // formData에서도 imageUrl 제거
     updateFormData({ imageUrl: '' });
   };
@@ -231,8 +400,14 @@ export default function SMSAdmin() {
       try {
         const response = await fetch('/api/admin/blog');
         if (response.ok) {
-          const data = await response.json();
-          setBlogPosts(data.posts || []);
+          // Content-Type 확인
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            setBlogPosts(data.posts || []);
+          } else {
+            console.error('❌ 블로그 API가 JSON이 아닌 응답을 반환했습니다.');
+          }
         }
       } catch (error) {
         console.error('블로그 포스트 로드 실패:', error);
@@ -246,44 +421,123 @@ export default function SMSAdmin() {
     const loadSMSData = async (smsId: number) => {
       try {
         const response = await fetch(`/api/admin/sms?id=${smsId}`);
+        
+        // Content-Type 확인
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('❌ API가 JSON이 아닌 응답을 반환했습니다:', {
+            status: response.status,
+            statusText: response.statusText,
+            contentType,
+            preview: text.substring(0, 200)
+          });
+          throw new Error(`API 오류: ${response.status} ${response.statusText}`);
+        }
+        
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.smsContent) {
             const sms = result.smsContent;
+            // savedSmsId 설정
+            if (sms.id) {
+              setSavedSmsId(sms.id);
+            }
             // formData 업데이트
             updateFormData({
               content: sms.message_text || '',
               messageType: sms.message_type || 'SMS300',
               imageUrl: sms.image_url || '',
               shortLink: sms.short_link || '',
-              recipientNumbers: sms.recipient_numbers || []
+              recipientNumbers: sms.recipient_numbers || [],
+              status: sms.status || 'draft'
             });
+            if (sms.image_url) {
+              if (isHttpUrl(sms.image_url)) {
+                setImagePreviewUrl(sms.image_url);
+              } else if (sms.id) {
+                fetchLatestPreview(sms.id);
+              }
+            } else if (sms.id) {
+              fetchLatestPreview(sms.id);
+            }
             // note 로드
             if (sms.note) {
               setNote(sms.note);
+            } else {
+              setNote('');
             }
+            
+            // honorific 로드
+            if (sms.honorific) {
+              setHonorific(sms.honorific);
+            } else {
+              setHonorific('고객님'); // 기본값
+            }
+
+            if (sms.scheduled_at) {
+              setScheduledAt(convertUTCToLocalInput(sms.scheduled_at));
+              setIsScheduled(true);
+              setHasScheduledTime(true);
+            } else {
+              setScheduledAt('');
+              setIsScheduled(false);
+              setHasScheduledTime(false);
+            }
+          } else {
+            console.error('❌ SMS 데이터 로드 실패:', result);
           }
+        } else {
+          // 에러 응답 처리
+          if (response.status === 404) {
+            // 404 오류 시 목록으로 이동
+            alert(`메시지 ID ${smsId}를 찾을 수 없습니다.\n목록으로 이동합니다.`);
+            router.push('/admin/sms-list');
+            return;
+          }
+          const errorText = await response.text();
+          console.error('❌ SMS 조회 API 오류:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText.substring(0, 200)
+          });
+          alert(`메시지를 불러올 수 없습니다: ${response.status} ${response.statusText}\n목록으로 이동합니다.`);
+          router.push('/admin/sms-list');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('SMS 데이터 로드 오류:', error);
+        // 사용자에게 친화적인 에러 메시지 표시
+        alert(`메시지를 불러올 수 없습니다: ${error.message}\n목록으로 이동합니다.`);
+        router.push('/admin/sms-list');
+        if (error.message && error.message.includes('JSON')) {
+          alert('서버 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+        }
       }
     };
 
     if (mode === 'edit' && edit) {
       // 허브 시스템에서 온 경우: ?edit=26&mode=edit
       console.log('편집 모드로 SMS 로드 (허브 시스템):', edit);
-      loadSMSData(parseInt(edit as string));
+      const numericId = parseInt(edit as string);
+      loadSMSData(numericId);
       loadPost(parseInt(edit as string));
     } else if (id && mode !== 'edit' && !edit) {
       // SMS 관리에서 온 경우: ?id=26
       console.log('SMS 관리에서 로드:', id);
-      loadSMSData(parseInt(id as string));
+      const numericId = parseInt(id as string);
+      loadSMSData(numericId);
       loadPost(parseInt(id as string));
     } else if (blogPostId) {
       // 블로그에서 가져오기
       loadFromBlog(parseInt(blogPostId as string));
     }
-  }, [mode, edit, id, blogPostId, loadPost, loadFromBlog, updateFormData]);
+  }, [mode, edit, id, blogPostId, loadPost, loadFromBlog, updateFormData, fetchLatestPreview]);
+
+  useEffect(() => {
+    if (!imagePreviewUrl && isHttpUrl(formData.imageUrl)) {
+      setImagePreviewUrl(formData.imageUrl);
+    }
+  }, [formData.imageUrl, imagePreviewUrl]);
 
   // 인증 확인
   if (status === 'loading') {
@@ -326,6 +580,7 @@ export default function SMSAdmin() {
   // 문자 길이 상태 (실시간 업데이트)
   const messageLength = getMessageLength();
   const maxLength = getMaxLength();
+  const mobileImagePreview = imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '');
 
   // 문자 길이 상태
   const getLengthStatus = () => {
@@ -334,6 +589,188 @@ export default function SMSAdmin() {
     if (percentage > 100) return { color: 'text-red-600', bg: 'bg-red-500' };
     if (percentage > 80) return { color: 'text-yellow-600', bg: 'bg-yellow-500' };
     return { color: 'text-green-600', bg: 'bg-green-500' };
+  };
+
+  const buildSmsPayload = (overrides: Record<string, any> = {}) => {
+    const currentStatus = formData.status || 'draft';
+    const baseRecipients =
+      overrides.recipientNumbers !== undefined
+        ? overrides.recipientNumbers
+        : formData.recipientNumbers || [];
+    const sanitizedRecipients = Array.isArray(baseRecipients)
+      ? (baseRecipients as string[]).filter((num) => num && num.trim().length > 0)
+      : [];
+    const scheduledOverride = overrides.hasOwnProperty('scheduledAt')
+      ? overrides.scheduledAt
+      : isScheduled && scheduledAt
+        ? convertLocalInputToUTC(scheduledAt)
+        : null;
+
+    const payload: any = {
+      id: overrides.hasOwnProperty('id')
+        ? overrides.id
+        : currentSmsNumericId !== null
+          ? currentSmsNumericId
+          : undefined,
+      message: overrides.message ?? (formData.content || formData.title || ''),
+      type: overrides.type ?? (formData.messageType || 'SMS300'),
+      status: overrides.status ?? currentStatus,
+      calendar_id: overrides.calendar_id ?? (hub || null),
+      recipientNumbers: sanitizedRecipients,
+      imageUrl: overrides.imageUrl ?? (formData.imageUrl || null),
+      shortLink: overrides.shortLink ?? (formData.shortLink || null),
+      note: overrides.note ?? (note || null),
+      scheduledAt: scheduledOverride,
+      honorific: overrides.honorific ?? honorific
+    };
+
+    if (payload.id === undefined || payload.id === null) {
+      delete payload.id;
+    }
+
+    return payload;
+  };
+
+  const handleToggleSchedule = (checked: boolean) => {
+    setIsScheduled(checked);
+    if (checked) {
+      setScheduledAt((prev) => prev || getDefaultScheduleValue());
+      setHasScheduledTime(false);
+    } else {
+      setScheduledAt('');
+      setHasScheduledTime(false);
+    }
+  };
+
+  const handleSaveScheduledTime = async () => {
+    if (!isScheduled) {
+      alert('예약 발송을 먼저 활성화해주세요.');
+      return;
+    }
+    if (!scheduledAt) {
+      alert('예약 시간을 선택해주세요.');
+      return;
+    }
+
+    // ⭐ 메시지 ID가 없으면 먼저 저장
+    let channelPostId = currentSmsNumericId;
+    if (!channelPostId) {
+      try {
+        channelPostId = await saveDraft(
+          calendarId ? parseInt(calendarId as string) : undefined,
+          blogPostId ? parseInt(blogPostId as string) : undefined
+        );
+        setSavedSmsId(channelPostId);
+      } catch (error: any) {
+        alert('메시지를 먼저 저장해주세요: ' + error.message);
+        return;
+      }
+    }
+
+    // 한국 시간 기준으로 직접 비교 (간단하고 명확)
+    const scheduledKST = new Date(scheduledAt); // datetime-local은 한국 시간으로 입력됨
+    const nowKST = new Date(); // 현재도 한국 시간
+
+    // 과거 시간 체크 (한국 시간 기준)
+    if (scheduledKST <= nowKST) {
+      alert('예약 시간은 현재 시간보다 미래여야 합니다.');
+      return;
+    }
+
+    // 최소 예약 시간 체크 (5분) - 한국 시간 기준
+    const minScheduledTime = new Date(nowKST.getTime() + 5 * 60 * 1000); // 5분 후
+    if (scheduledKST < minScheduledTime) {
+      const minutesUntil = Math.ceil((scheduledKST.getTime() - nowKST.getTime()) / (60 * 1000));
+      if (!confirm(`예약 시간이 ${minutesUntil}분 후입니다. 최소 5분 후로 설정하는 것을 권장합니다.\n\n계속하시겠습니까?`)) {
+        return;
+      }
+    }
+
+    // DB 저장 시에만 UTC로 변환
+    const scheduledUtc = convertLocalInputToUTC(scheduledAt);
+    if (!scheduledUtc) {
+      alert('유효한 예약 시간을 선택해주세요.');
+      return;
+    }
+
+    setSavingSchedule(true);
+    try {
+      // ⭐ 메시지 내용도 함께 저장
+      const payload = buildSmsPayload({
+        id: channelPostId,
+        scheduledAt: scheduledUtc
+      });
+      const response = await fetch('/api/admin/sms', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || '예약 시간을 저장하지 못했습니다.');
+      }
+      setSavedSmsId(channelPostId);
+      setHasScheduledTime(true);
+      alert(`예약 시간과 메시지가 저장되었습니다.\n\n예약 시간: ${formatScheduleDisplay(scheduledAt)}\n\n예약 시간이 되면 자동으로 발송됩니다.`);
+    } catch (error: any) {
+      console.error('예약 시간 저장 오류:', error);
+      alert(error.message || '예약 시간을 저장하지 못했습니다.');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
+  const handleCancelScheduled = async () => {
+    const hasServerSchedule = currentSmsNumericId && hasScheduledTime;
+    if (!isScheduled && !hasServerSchedule) {
+      return;
+    }
+
+    if (hasServerSchedule && !confirm('예약 설정을 취소하시겠습니까?')) {
+      return;
+    }
+
+    if (!hasServerSchedule) {
+      setIsScheduled(false);
+      setScheduledAt('');
+      setHasScheduledTime(false);
+      return;
+    }
+
+    setSavingSchedule(true);
+    try {
+      const payload = buildSmsPayload({
+        id: currentSmsNumericId ?? undefined,
+        scheduledAt: null
+      });
+      const response = await fetch('/api/admin/sms', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || '예약을 취소하지 못했습니다.');
+      }
+      setIsScheduled(false);
+      setScheduledAt('');
+      setHasScheduledTime(false);
+      alert('예약이 취소되었습니다.');
+    } catch (error: any) {
+      console.error('예약 취소 오류:', error);
+      alert(error.message || '예약을 취소하지 못했습니다.');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
+  // 배열을 청크로 나누는 헬퍼 함수
+  const chunkArray = <T,>(array: T[], size: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
   };
 
   // 초안 저장
@@ -345,18 +782,63 @@ export default function SMSAdmin() {
         id: id,
         channelKey: router.query.channelKey,
         allQuery: router.query,
-        formData: formData
+        formData: formData,
+        autoSplit,
+        splitSize
       });
 
       // SMS 데이터 직접 저장 (useChannelEditor 대신 직접 API 호출)
-      const smsData = {
-        message: formData.content || formData.title || '',
-        type: formData.messageType || 'SMS300',
-        status: 'draft',
-        calendar_id: hub || null, // hub_content_id → calendar_id로 수정
-        id: id || null, // PUT 요청 시 id를 body에 포함
-        note: note || null // 메모 추가
-      };
+      const currentStatus = formData.status || 'draft';
+      const recipientNumbers = formData.recipientNumbers || [];
+
+      // 자동 분할 처리
+      if (autoSplit && !id && !currentSmsNumericId && recipientNumbers.length > splitSize) {
+        // 새 메시지이고 자동 분할이 활성화되어 있고 수신자가 분할 크기보다 많을 때
+        const chunks = chunkArray(recipientNumbers, splitSize);
+        const totalChunks = chunks.length;
+        
+        console.log(`📦 자동 분할 저장: ${recipientNumbers.length}명 → ${totalChunks}개 메시지로 분할`);
+
+        const createdIds: number[] = [];
+
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          const chunkNote = note 
+            ? `${note} [${i + 1}차/${totalChunks}차]`
+            : `[${i + 1}차/${totalChunks}차]`;
+
+          const smsData = buildSmsPayload({
+            recipientNumbers: chunk,
+            note: chunkNote
+          });
+
+          const response = await fetch('/api/admin/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(smsData)
+          });
+
+          const result = await response.json();
+          
+          if (result.success) {
+            const newSmsId = result.smsId || result.smsContent?.id;
+            if (newSmsId) {
+              createdIds.push(newSmsId);
+            }
+          } else {
+            throw new Error(`분할 메시지 ${i + 1} 저장 실패: ${result.message}`);
+          }
+        }
+
+        if (createdIds.length > 0) {
+          alert(`✅ ${totalChunks}개의 메시지로 자동 분할 저장되었습니다.\n\n생성된 메시지 ID: ${createdIds.join(', ')}`);
+          router.push('/admin/sms-list');
+          return;
+        }
+      }
+
+      // 일반 저장 (자동 분할이 아니거나 기존 메시지 수정)
+      const smsData = buildSmsPayload();
 
       console.log('📝 SMS 저장 데이터:', smsData);
 
@@ -376,11 +858,21 @@ export default function SMSAdmin() {
       console.log('📝 SMS 저장 결과:', result);
 
       if (result.success) {
+        // 저장된 ID 업데이트
+        const newSmsId = result.smsId || result.smsContent?.id;
+        if (newSmsId) {
+          setSavedSmsId(newSmsId);
+          // URL도 업데이트 (새 메시지인 경우)
+          if (!id && !currentSmsNumericId) {
+            router.replace(`/admin/sms?id=${newSmsId}`, undefined, { shallow: true });
+          }
+        }
+        
         // 허브 연동이 있는 경우 상태 동기화
-        if (hub && result.smsId) {
+        if (hub && newSmsId) {
           // 동적 채널 키 확인 (URL에서 channelKey 파라미터 추출)
           const channelKey = router.query.channelKey || 'sms';
-          console.log('🔄 허브 상태 동기화 시작:', { hub, channelKey, smsId: result.smsId });
+          console.log('🔄 허브 상태 동기화 시작:', { hub, channelKey, smsId: newSmsId });
           
           try {
             const syncResponse = await fetch('/api/admin/sync-channel-status', {
@@ -389,7 +881,7 @@ export default function SMSAdmin() {
               body: JSON.stringify({
                 hubContentId: hub,
                 channel: channelKey, // 동적 채널 키 사용
-                channelContentId: result.smsId,
+                channelContentId: newSmsId,
                 status: '수정중'
               })
             });
@@ -411,6 +903,9 @@ export default function SMSAdmin() {
         } else {
           alert('초안이 저장되었습니다.');
         }
+        
+        // 저장 후 목록으로 이동
+        router.push('/admin/sms-list');
       } else {
         throw new Error(result.message || '저장 실패');
       }
@@ -418,6 +913,210 @@ export default function SMSAdmin() {
       console.error('❌ SMS 저장 오류:', error);
       alert('저장 중 오류가 발생했습니다: ' + error.message);
     }
+  };
+
+  // 수동 분할 핸들러
+  const handleManualSplit = async () => {
+    const recipientNumbers = formData.recipientNumbers || [];
+    
+    if (recipientNumbers.length === 0) {
+      alert('수신자 번호가 없습니다.');
+      return;
+    }
+
+    if (!manualSplitSize || manualSplitSize <= 0) {
+      alert('분할 크기를 입력해주세요.');
+      return;
+    }
+
+    if (manualSplitSize > recipientNumbers.length) {
+      alert(`분할 크기(${manualSplitSize}명)가 수신자 수(${recipientNumbers.length}명)보다 큽니다.`);
+      return;
+    }
+
+    const totalChunks = Math.ceil(recipientNumbers.length / manualSplitSize);
+    
+    if (!confirm(`${recipientNumbers.length}명을 ${manualSplitSize}명씩 분할하여 ${totalChunks}개의 메시지를 생성하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      // 청크로 분할
+      const chunks = chunkArray(recipientNumbers, manualSplitSize);
+
+      // 현재 메모에서 기본 메모 추출 (예: "구매자 1514명중 3차")
+      const baseNote = note || '';
+      // "(1번 분할)", "(2번 분할)" 등의 패턴이 이미 있으면 제거
+      const cleanNote = baseNote.replace(/\s*\(\d+번\s*분할\)\s*$/, '').trim();
+
+      const createdIds: number[] = [];
+
+      // 1. 원본 메시지 업데이트 (첫 번째 청크)
+      const firstChunk = chunks[0];
+      const firstNote = cleanNote ? `${cleanNote} (1번 분할)` : '(1번 분할)';
+
+      if (currentSmsNumericId) {
+        // 기존 메시지가 있으면 업데이트
+        const smsData = buildSmsPayload({
+          recipientNumbers: firstChunk,
+          note: firstNote
+        });
+
+        const response = await fetch('/api/admin/sms', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...smsData, id: currentSmsNumericId })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          createdIds.push(currentSmsNumericId);
+          console.log(`✅ 원본 메시지 업데이트 완료: ID ${currentSmsNumericId}`);
+        } else {
+          throw new Error(result.message || '원본 메시지 업데이트 실패');
+        }
+      } else {
+        // 새 메시지면 첫 번째 청크로 저장
+        const smsData = buildSmsPayload({
+          recipientNumbers: firstChunk,
+          note: firstNote
+        });
+
+        const response = await fetch('/api/admin/sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(smsData)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const newId = result.smsId || result.smsContent?.id;
+          if (newId) {
+            createdIds.push(newId);
+            setSavedSmsId(newId);
+            console.log(`✅ 첫 번째 메시지 생성 완료: ID ${newId}`);
+          } else {
+            throw new Error('첫 번째 메시지 ID를 받지 못했습니다.');
+          }
+        } else {
+          throw new Error(result.message || '첫 번째 메시지 생성 실패');
+        }
+      }
+
+      // 2. 나머지 청크들을 새 메시지로 생성
+      for (let i = 1; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const chunkNote = cleanNote ? `${cleanNote} (${i + 1}번 분할)` : `(${i + 1}번 분할)`;
+
+        const smsData = buildSmsPayload({
+          recipientNumbers: chunk,
+          note: chunkNote
+        });
+
+        const response = await fetch('/api/admin/sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(smsData)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const newId = result.smsId || result.smsContent?.id;
+          if (newId) {
+            createdIds.push(newId);
+            console.log(`✅ ${i + 1}번째 메시지 생성 완료: ID ${newId}`);
+          } else {
+            console.error(`❌ ${i + 1}번째 메시지 ID를 받지 못했습니다.`);
+          }
+        } else {
+          console.error(`❌ ${i + 1}번째 메시지 생성 실패:`, result.message);
+        }
+      }
+
+      alert(`✅ 분할 완료!\n\n` +
+        `총 ${totalChunks}개의 메시지가 생성되었습니다.\n` +
+        `생성된 메시지 ID: ${createdIds.join(', ')}\n\n` +
+        `SMS 리스트에서 확인하세요.`);
+
+      // 현재 페이지를 첫 번째 메시지로 이동
+      if (createdIds.length > 0) {
+        router.push(`/admin/sms?id=${createdIds[0]}`);
+      }
+
+    } catch (error: any) {
+      console.error('❌ 분할 오류:', error);
+      alert(`분할 중 오류가 발생했습니다: ${error.message}`);
+    }
+  };
+
+  // 새로 저장 (이미 보낸 메시지를 새 메시지로 복사)
+  const handleSaveAsNew = async () => {
+    try {
+      // 예약 시간을 초기화하여 새 메시지 생성
+      const smsData = buildSmsPayload({
+        scheduledAt: null, // 예약 시간 초기화
+        status: 'draft'     // 상태를 draft로 강제
+      });
+      // id 제거하여 새 메시지로 생성
+      delete smsData.id;
+      
+      const response = await fetch('/api/admin/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(smsData)
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        const newId = result.smsId || result.smsContent?.id;
+        if (newId) {
+          // 예약 시간 상태도 초기화
+          setIsScheduled(false);
+          setScheduledAt('');
+          setHasScheduledTime(false);
+          
+          // 새 메시지로 이동
+          router.push(`/admin/sms?id=${newId}`);
+          alert('새 메시지로 저장되었습니다.');
+        } else {
+          throw new Error('새 메시지 ID를 받지 못했습니다.');
+        }
+      } else {
+        throw new Error(result.message || '새로 저장 실패');
+      }
+    } catch (error: any) {
+      console.error('❌ 새로 저장 오류:', error);
+      alert('새로 저장 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  // 목록으로 이동
+  const handleClose = () => {
+    // 저장된 메시지면 바로 목록으로
+    if (currentSmsNumericId) {
+      router.push('/admin/sms-list');
+      return;
+    }
+    
+    // 새 메시지이고 내용이 있으면 확인
+    if (formData.content.trim() || formData.recipientNumbers?.length) {
+      if (confirm('작성 중인 내용이 있습니다. 정말 나가시겠습니까?')) {
+        router.push('/admin/sms-list');
+      }
+    } else {
+      router.push('/admin/sms-list');
+    }
+  };
+
+  // 저장 버튼 텍스트 동적 변경
+  const getSaveButtonText = () => {
+    if (currentSmsNumericId) {
+      if (formData.status === 'sent') {
+        return '수정 저장';
+      }
+      return '저장';
+    }
+    return '저장';
   };
 
   // 실제 발송
@@ -432,40 +1131,123 @@ export default function SMSAdmin() {
       return;
     }
 
+    // ⭐ 예약 시간이 저장되어 있으면 예약 발송 안내
+    if (hasScheduledTime && isScheduled && scheduledAt) {
+      const scheduledKST = new Date(scheduledAt);
+      const nowKST = new Date();
+      
+      if (scheduledKST > nowKST) {
+        alert(`이 메시지는 예약 발송으로 설정되어 있습니다.\n\n예약 시간: ${formatScheduleDisplay(scheduledAt)}\n\n즉시 발송하려면 먼저 예약을 취소해주세요.`);
+        return;
+      }
+    }
+
     if (!confirm('정말로 SMS를 발송하시겠습니까?')) {
       return;
     }
 
     setIsSending(true);
     try {
+      // 스탭 테스트 번호 확인
+      const testNumbers = ['010-6669-9000', '010-5704-0013'];
+      const recipientNumbers = formData.recipientNumbers || [];
+      const testNumberCount = recipientNumbers.filter(num => 
+        testNumbers.some(testNum => num.includes(testNum.replace(/-/g, '')) || num === testNum)
+      ).length;
+      
+      // 메모에 스탭 테스트 포함 정보 추가
+      let finalNote = note || '';
+      if (testNumberCount > 0) {
+        if (finalNote && !finalNote.includes('[스탭 테스트 포함:')) {
+          finalNote = `${finalNote} [스탭 테스트 포함: ${testNumberCount}건]`;
+        } else if (!finalNote) {
+          finalNote = `[스탭 테스트 포함: ${testNumberCount}건]`;
+        }
+        // formData에 메모 업데이트 (saveDraft에서 사용)
+        setNote(finalNote);
+      }
+      
       const channelPostId = id ? parseInt(id as string) : await saveDraft(
         calendarId ? parseInt(calendarId as string) : undefined,
         blogPostId ? parseInt(blogPostId as string) : undefined
       );
-
-      const result = await sendMessage(channelPostId);
       
-      // 부분 성공 처리
+      // 기존 메시지인 경우 메모 업데이트
+      if (id && finalNote !== note) {
+        try {
+          const currentStatus = formData.status || 'draft';
+          const payload = buildSmsPayload({
+            id: currentSmsNumericId ?? undefined,
+            note: finalNote,
+            status: currentStatus
+          });
+          await fetch('/api/admin/sms', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (updateError) {
+          console.error('메모 업데이트 오류:', updateError);
+        }
+      }
+
+      // ⭐ 호칭을 포함하여 발송
+      // sendMessage는 formData를 직접 참조하므로, API를 직접 호출하여 honorific을 확실히 전달
+      const sendResponse = await fetch('/api/channels/sms/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelPostId,
+          messageType: formData.messageType || 'MMS',
+          messageText: formData.content,
+          content: formData.content,
+          imageUrl: formData.imageUrl || null,
+          shortLink: formData.shortLink || null,
+          recipientNumbers: formData.recipientNumbers || [],
+          honorific: honorific // ⭐ 호칭 전달
+        })
+      });
+
+      const sendResult = await sendResponse.json();
+      
+      // sendMessage와 동일한 결과 형식으로 변환
+      const result = sendResult.result || {
+        groupIds: sendResult.result?.groupIds || [],
+        sentCount: sendResult.result?.sentCount || 0,
+        successCount: sendResult.result?.successCount || 0,
+        failCount: sendResult.result?.failCount || 0
+      };
+      
+      // 부분 성공 처리 (result가 없거나 successCount가 0인 경우만 에러)
       if (result) {
         const successCount = result.successCount || 0;
         const failCount = result.failCount || 0;
         const totalCount = result.sentCount || 0;
         
-        if (failCount > 0 && successCount > 0) {
-          // 부분 성공
-          const message = `부분 성공: ${successCount}건 발송 성공, ${failCount}건 실패\n\n총 ${totalCount}명 중 ${successCount}명에게 메시지가 전송되었습니다.`;
-          if (result.chunkErrors && result.chunkErrors.length > 0) {
-            alert(`${message}\n\n실패한 청크: ${result.chunkErrors.length}개`);
+        if (successCount > 0) {
+          // 성공이 있는 경우 (전체 성공 또는 부분 성공)
+          if (failCount > 0) {
+            // 부분 성공
+            const message = `부분 성공: ${successCount}건 발송 성공, ${failCount}건 실패\n\n총 ${totalCount}명 중 ${successCount}명에게 메시지가 전송되었습니다.`;
+            if (result.chunkErrors && result.chunkErrors.length > 0) {
+              alert(`${message}\n\n실패한 청크: ${result.chunkErrors.length}개`);
+            } else {
+              alert(message);
+            }
           } else {
-            alert(message);
+            // 전체 성공
+            alert(`SMS가 성공적으로 발송되었습니다.\n\n총 ${successCount}건 발송 완료`);
           }
-        } else if (successCount > 0) {
-          // 전체 성공
-          alert(`SMS가 성공적으로 발송되었습니다.\n\n총 ${successCount}건 발송 완료`);
-        } else {
-          // 전체 실패
+        } else if (failCount > 0) {
+          // 전체 실패 (successCount가 0이고 failCount > 0)
           throw new Error(`발송 실패: 모든 메시지 발송에 실패했습니다.`);
+        } else {
+          // 카운트 정보가 없는 경우 (동기화 필요)
+          alert(`발송 요청이 완료되었습니다.\n\n발송 결과는 SMS 리스트에서 확인하거나 동기화 버튼을 눌러주세요.`);
         }
+      } else {
+        // result가 없는 경우 (동기화 필요)
+        alert(`발송 요청이 완료되었습니다.\n\n발송 결과는 SMS 리스트에서 확인하거나 동기화 버튼을 눌러주세요.`);
       }
       
       // SMS 발송 후 허브 상태를 "발행됨"으로 업데이트
@@ -532,7 +1314,7 @@ export default function SMSAdmin() {
           recipientNumbers: testNumbers, // 테스트 번호만
           imageUrl: formData.imageUrl || null,
           shortLink: formData.shortLink || null,
-          note: `[스탭진 테스트] ${note || '테스트 발송'}`
+          note: `[스탭진 테스트] ${note || '테스트 발송'} [스탭 테스트 포함: ${testNumbers.length}건]`
         })
       });
 
@@ -563,15 +1345,21 @@ export default function SMSAdmin() {
           content: messageInfo.post.formData.content || formData.content,
           imageUrl: messageInfo.post.formData.imageUrl || formData.imageUrl || null,
           shortLink: messageInfo.post.formData.shortLink || formData.shortLink || null,
-          recipientNumbers: messageInfo.post.formData.recipientNumbers || testNumbers // DB에서 가져온 테스트 번호만 사용
+          recipientNumbers: messageInfo.post.formData.recipientNumbers || testNumbers, // DB에서 가져온 테스트 번호만 사용
+          honorific: honorific // ⭐ 호칭 전달
         })
       });
 
       const sendResult = await sendResponse.json();
       
       if (sendResult.success) {
-        const successCount = sendResult.result?.successCount || 0;
-        alert(`스탭진 테스트 발송 완료!\n\n${successCount}건 발송 성공\n\n테스트 메시지 ID: ${testMessageId}\nSMS 리스트에서 확인할 수 있습니다.`);
+        // successCount가 0이면 실제 발송된 메시지 수(sentCount)를 사용
+        const successCount = sendResult.result?.successCount || 
+                            sendResult.result?.sentCount || 
+                            (sendResult.result?.groupIds?.length ? testNumbers.length : 0);
+        const failCount = sendResult.result?.failCount || 0;
+        
+        alert(`스탭진 테스트 발송 완료!\n\n${successCount}건 발송 성공${failCount > 0 ? `, ${failCount}건 실패` : ''}\n\n테스트 메시지 ID: ${testMessageId}\nSMS 리스트에서 확인할 수 있습니다.`);
       } else {
         throw new Error(sendResult.message || '테스트 발송 실패');
       }
@@ -607,25 +1395,45 @@ export default function SMSAdmin() {
                       <span className="text-xs text-blue-600">(ID: {hub})</span>
                     </div>
                     <p className="text-xs text-blue-600 mt-1">
-                      초안 저장 시 자동으로 허브 상태가 동기화됩니다.
+                      저장 시 자동으로 허브 상태가 동기화됩니다.
                     </p>
                   </div>
                 )}
               </div>
               <div className="flex gap-3">
                 <button
+                  onClick={handleClose}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                >
+                  목록으로
+                </button>
+                <button
                   onClick={handleSaveDraft}
                   disabled={isLoading}
                   className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
                 >
-                  {isLoading ? '저장 중...' : '초안 저장'}
+                  {isLoading ? '저장 중...' : getSaveButtonText()}
                 </button>
+                {currentSmsNumericId && formData.status === 'sent' && (
+                  <button
+                    onClick={handleSaveAsNew}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:opacity-50"
+                  >
+                    {isLoading ? '저장 중...' : '새로 저장'}
+                  </button>
+                )}
                 <button
                   onClick={handleSend}
-                  disabled={isLoading || isSending || !formData.content.trim()}
+                  disabled={
+                    isLoading || 
+                    isSending || 
+                    !formData.content.trim() || 
+                    (hasScheduledTime && isScheduled) // ⭐ 예약 시간이 저장되어 있으면 비활성화
+                  }
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                 >
-                  {isSending ? '발송 중...' : 'SMS 발송'}
+                  {isSending ? '발송 중...' : hasScheduledTime && isScheduled ? '예약 발송됨' : 'SMS 발송'}
                 </button>
               </div>
             </div>
@@ -730,7 +1538,59 @@ export default function SMSAdmin() {
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h3 className="font-semibold text-gray-800 mb-3">이미지 첨부 (MMS)</h3>
                   
-                  {!selectedImage ? (
+                  {selectedImage ? (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <img 
+                          src={URL.createObjectURL(selectedImage)} 
+                          alt="미리보기" 
+                          className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={handleImageRemove}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">
+                          <strong>파일명:</strong> {selectedImage.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          <strong>크기:</strong> {(selectedImage.size / 1024 / 1024).toFixed(2)}MB
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          <strong>이미지 ID:</strong> {imageId}
+                        </p>
+                      </div>
+                    </div>
+                  ) : imagePreviewUrl ? (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <img
+                          src={imagePreviewUrl}
+                          alt="선택된 이미지"
+                          className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={handleImageRemove}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      {imageId && (
+                        <p className="text-center text-xs text-blue-600">
+                          <strong>Solapi 이미지 ID:</strong> {imageId}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <input
                         type="file"
@@ -761,43 +1621,14 @@ export default function SMSAdmin() {
                         <p className="text-sm text-gray-600">
                           {isUploadingImage ? '업로드 중...' : '이미지를 선택하거나 드래그하세요'}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF (최대 5MB)</p>
+                        <p className="text-xs text-gray-500 mt-1">JPG 형식만 가능 (200KB 권장)</p>
                       </label>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="relative">
-                        <img 
-                          src={URL.createObjectURL(selectedImage)} 
-                          alt="미리보기" 
-                          className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
-                        />
-                        <button
-                          onClick={handleImageRemove}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">
-                          <strong>파일명:</strong> {selectedImage.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          <strong>크기:</strong> {(selectedImage.size / 1024 / 1024).toFixed(2)}MB
-                        </p>
-                        <p className="text-xs text-blue-600 mt-1">
-                          <strong>이미지 ID:</strong> {imageId}
-                        </p>
-                      </div>
                     </div>
                   )}
                   
                   <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                     <p className="text-sm text-yellow-800">
-                      💡 <strong>MMS 안내:</strong> 이미지가 포함된 메시지입니다. 이미지를 업로드해주세요.
+                      💡 <strong>MMS 안내:</strong> 이미지가 포함된 메시지입니다. 이미지를 업로드하거나 갤러리에서 선택해주세요.
                     </p>
                   </div>
                 </div>
@@ -824,6 +1655,29 @@ export default function SMSAdmin() {
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-800">메시지 내용</h3>
+                  {/* 호칭 선택 버튼 */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-700 whitespace-nowrap">호칭:</label>
+                    <div className="flex gap-1">
+                      {['선생님', '고객님', '님'].map((h) => (
+                        <button
+                          key={h}
+                          onClick={() => setHonorific(h)}
+                          disabled={!hasNameVariable}
+                          className={`px-3 py-1 text-xs rounded transition-colors ${
+                            !hasNameVariable
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : honorific === h 
+                                ? 'bg-blue-600 text-white font-medium' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                          title={!hasNameVariable ? '메시지에 {name} 변수를 추가해주세요' : ''}
+                        >
+                          {h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="flex items-center gap-3">
                     <div className={`text-sm ${getLengthStatus().color}`}>
                       {messageLength}/{maxLength}자
@@ -923,6 +1777,17 @@ export default function SMSAdmin() {
                     )}
                   </div>
                 </div>
+                <p className="mt-2 text-xs text-right">
+                  {hasNameVariable ? (
+                    <span className="text-gray-500">
+                      호칭은 버튼에서 선택하고 메시지에는 {'{name}'}만 입력해주세요. 예: {'{name}'}, 안녕하세요!
+                    </span>
+                  ) : (
+                    <span className="text-yellow-600 font-medium">
+                      ⚠️ 메시지에 {'{name}'} 변수를 추가하면 호칭 버튼을 사용할 수 있습니다.
+                    </span>
+                  )}
+                </p>
                 <textarea
                   value={formData.content}
                   onChange={(e) => updateFormData({ content: e.target.value })}
@@ -1166,13 +2031,18 @@ export default function SMSAdmin() {
                         ];
                         const existingNumbers = formData.recipientNumbers || [];
                         // 중복 제거하면서 추가
-                        const uniqueNumbers = [...new Set([...existingNumbers, ...testNumbers])];
+                        const uniqueNumbers = [...existingNumbers];
+                        testNumbers.forEach((testNumber) => {
+                          if (!uniqueNumbers.includes(testNumber)) {
+                            uniqueNumbers.push(testNumber);
+                          }
+                        });
                         updateFormData({ recipientNumbers: uniqueNumbers });
                         alert(`스탭진 테스트 번호 ${testNumbers.length}개가 추가되었습니다.\n\n추가된 번호:\n${testNumbers.join('\n')}`);
                       }}
                       className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
                     >
-                      🧪 스탭진 테스트
+                      🧪 스탭진 추가
                     </button>
                     <button
                       onClick={handleTestSend}
@@ -1189,6 +2059,45 @@ export default function SMSAdmin() {
                     </button>
                   </div>
                 </div>
+                
+                {/* 수동 분할 기능 */}
+                {formData.recipientNumbers && formData.recipientNumbers.length > 0 && (
+                  <div className="mb-4 p-3 bg-gray-50 border border-gray-300 rounded-md">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                        분할 크기:
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={formData.recipientNumbers.length}
+                        value={manualSplitSize}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 100;
+                          setManualSplitSize(Math.min(Math.max(1, value), formData.recipientNumbers.length));
+                        }}
+                        className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="100"
+                      />
+                      <span className="text-sm text-gray-600">명씩</span>
+                      <button
+                        onClick={handleManualSplit}
+                        disabled={!manualSplitSize || manualSplitSize <= 0 || manualSplitSize > formData.recipientNumbers.length}
+                        className="ml-auto px-4 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        📦 분할
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      💡 {formData.recipientNumbers.length}명을 {manualSplitSize}명씩 분할하면 <strong>{Math.ceil(formData.recipientNumbers.length / manualSplitSize)}개</strong>의 메시지가 생성됩니다.
+                      {note && (
+                        <span className="block mt-1">
+                          메모: "{note}" → "{note.replace(/\s*\(\d+번\s*분할\)\s*$/, '').trim()} (1번 분할)", "(2번 분할)" 등으로 자동 생성됩니다.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   {(formData.recipientNumbers || []).map((number, index) => (
                     <div key={index} className="flex gap-2">
@@ -1277,13 +2186,116 @@ export default function SMSAdmin() {
                 />
               )}
 
-              {/* 이미지 선택 (MMS) */}
+              {/* 이미지 선택 및 모바일 미리보기 (MMS) */}
               {formData.messageType === 'MMS' && (
-                <AIImagePicker
-                  selectedImage={formData.imageUrl}
-                  onImageSelect={(imageUrl) => updateFormData({ imageUrl })}
-                  channelType="sms"
-                />
+                <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+                  {/* 이미지 선택 */}
+                  <AIImagePicker
+                    selectedImage={imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '')}
+                    onImageSelect={handleGalleryImageSelect}
+                    channelType="sms"
+                  />
+                  
+                  {/* 모바일 미리보기 (실시간 표시) */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <h3 className="font-semibold text-gray-800 mb-4">모바일 미리보기</h3>
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <div className="bg-white rounded-lg p-4 max-w-xs mx-auto">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                            M
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">마쓰구골프</div>
+                            <div className="text-xs text-gray-500">031-215-3990</div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-100 rounded-lg p-3 mb-2">
+                          <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                            {formData.content || '새 SMS 메시지를 입력하세요'}
+                            {formData.shortLink && `\n\n링크: ${formData.shortLink}`}
+                          </div>
+                          {mobileImagePreview && (
+                            <img
+                              src={mobileImagePreview}
+                              alt="MMS 이미지"
+                              className="mt-2 w-full h-auto max-h-64 object-contain rounded"
+                            />
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date().toLocaleString('ko-KR')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 예약 발송 (보낸 메시지는 비활성화) */}
+              {formData.status !== 'sent' && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">예약 발송</h3>
+                    <p className="text-xs text-gray-500">원하는 날짜와 시간에 자동으로 발송합니다.</p>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={isScheduled}
+                      onChange={(e) => handleToggleSchedule(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    예약 사용
+                  </label>
+                </div>
+
+                {isScheduled ? (
+                  <div className="space-y-3">
+                    <input
+                      type="datetime-local"
+                      value={scheduledAt}
+                      min={formatDateForInput(new Date())}
+                      onChange={(e) => {
+                        setScheduledAt(e.target.value);
+                        setHasScheduledTime(false);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500">
+                      {hasScheduledTime && scheduledAt
+                        ? `저장된 시간: ${formatScheduleDisplay(scheduledAt)}`
+                        : '예약 시간을 저장하면 리스트에서도 확인할 수 있습니다.'}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={handleSaveScheduledTime}
+                        disabled={savingSchedule || !currentSmsNumericId}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {savingSchedule ? '저장 중...' : currentSmsNumericId ? '예약 시간 저장' : '메시지 저장 후 설정 가능'}
+                      </button>
+                      {hasScheduledTime && (
+                        <button
+                          onClick={handleCancelScheduled}
+                          disabled={savingSchedule}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                        >
+                          예약 취소
+                        </button>
+                      )}
+                    </div>
+                    {!currentSmsNumericId && (
+                      <p className="text-xs text-yellow-600">
+                        예약을 저장하려면 먼저 상단의 &quot;저장&quot; 버튼으로 메시지를 저장해주세요.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">예약 발송을 사용하려면 체크박스를 활성화하세요.</p>
+                )}
+              </div>
               )}
 
               {/* 메모 입력 */}
@@ -1301,50 +2313,61 @@ export default function SMSAdmin() {
                 </p>
               </div>
 
-              {/* 모바일 미리보기 */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-800">모바일 미리보기</h3>
-                  <button
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    {showPreview ? '숨기기' : '미리보기'}
-                  </button>
-                </div>
-                
-                {showPreview && (
-                  <div className="bg-gray-900 rounded-lg p-4">
-                    <div className="bg-white rounded-lg p-4 max-w-xs mx-auto">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          M
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">마쓰구골프</div>
-                          <div className="text-xs text-gray-500">031-215-3990</div>
-                        </div>
-                      </div>
-                      <div className="bg-gray-100 rounded-lg p-3 mb-2">
-                        <div className="text-sm text-gray-800 whitespace-pre-wrap">
-                          {formData.content}
-                          {formData.shortLink && `\n\n링크: ${formData.shortLink}`}
-                        </div>
-                        {formData.imageUrl && (
-                          <img
-                            src={formData.imageUrl}
-                            alt="MMS 이미지"
-                            className="mt-2 w-full h-32 object-cover rounded"
-                          />
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {new Date().toLocaleString('ko-KR')}
-                      </div>
+              {/* 자동 분할 옵션 (새 메시지일 때만 표시) */}
+              {!id && !currentSmsNumericId && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">자동 분할 저장</h3>
+                      <p className="text-xs text-gray-500">수신자가 많을 때 자동으로 여러 메시지로 나눠서 저장합니다.</p>
                     </div>
+                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={autoSplit}
+                        onChange={(e) => setAutoSplit(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      자동 분할 사용
+                    </label>
                   </div>
-                )}
-              </div>
+
+                  {autoSplit && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          분할 크기
+                        </label>
+                        <select
+                          value={splitSize}
+                          onChange={(e) => setSplitSize(parseInt(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {[100, 200, 400, 500].map((size) => (
+                            <option key={size} value={size}>
+                              {size}명씩
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {formData.recipientNumbers && formData.recipientNumbers.length > 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                          <p className="text-xs text-blue-800">
+                            📊 현재 수신자: <strong>{formData.recipientNumbers.length}명</strong>
+                            {formData.recipientNumbers.length > splitSize && (
+                              <>
+                                <br />
+                                💡 저장 시 <strong>{Math.ceil(formData.recipientNumbers.length / splitSize)}개</strong>의 메시지로 자동 분할됩니다.
+                              </>
+                            )}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
 
             </div>
           </div>

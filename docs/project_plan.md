@@ -33,7 +33,120 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 완료된 작업 (2025-11-21)
+
+### SMS 호칭 버튼 사용 안내 추가 ✅ (2025-11-21)
+- **배경**: `{name}` 변수와 호칭 버튼을 혼용할 때 사용자 혼동이 발생해 호칭이 중복되는 사례가 보고됨.
+- **조치**: `pages/admin/sms.tsx`의 메시지 입력 섹션에 안내 문구 추가 → “호칭은 버튼에서 선택하고 메시지에는 `{name}`만 입력해주세요. 예: `{name}`, 안녕하세요!”
+- **효과**: 에디터 내에서 즉시 가이드를 제공해 `{name}` 변수 사용법을 명확히 하고, 잘못된 메시지 구성으로 인한 발송 오류를 예방.
+
+### 스탭진 테스트 UX 조정 ✅ (2025-11-21)
+- **요청**: 스탭진 번호 추가 버튼과 분할 기본값이 혼동을 준다는 피드백.
+- **조치**:
+  - 수신자 섹션의 버튼 라벨을 “🧪 스탭진 추가”로 변경하여 역할을 명확히 함.
+  - 수동/자동 분할의 기본 크기를 100명으로 조정하고 자동 분할 옵션에 100명 선택지를 추가.
+- **효과**: 테스트 번호 추가와 실제 발송 버튼을 명확히 구분하고, 자주 사용하는 100명 단위 분할 작업을 더 빠르게 수행 가능.
+
+### SMS 호칭 저장 및 Solapi 동기화 상태 자동화 ✅ (2025-11-21)
+- **호칭 저장**: `channel_sms` 테이블에 `honorific` 컬럼을 추가하고 기본값을 `'고객님'`으로 설정. `pages/admin/sms.tsx`, `pages/api/admin/sms.js`, `pages/api/channels/sms/send.js`에서 저장/로드/발송 로직을 모두 반영해 메시지를 다시 열어도 선택한 호칭이 유지되도록 개선.
+- **상태 자동 업데이트**: `pages/api/admin/sync-solapi-status.js`에서 그룹별 동기화 결과를 누적 집계해 전체 성공/실패 건수에 따라 `status`, `success_count`, `fail_count`, `sent_count`를 자동으로 업데이트. 여러 그룹으로 나뉜 발송의 동기화 버튼을 누르면 상태가 즉시 `발송됨/부분 발송/실패`로 재평가됨.
+
+## ✅ 최근 완료된 작업 (2025-11-19)
+
+### SMS 예약 발송 UX 개선 및 상태 표기 통일 ✅ (2025-11-19)
+- **SMS 리스트 상태 표기 한글 통일** (`pages/admin/sms-list.tsx`)
+  - `getStatusBadge` 함수에 `partial` 케이스 추가: "부분 발송" (노란색 배지)
+  - 모든 상태를 한글로 통일: "초안" (draft), "발송됨" (sent), "부분 발송" (partial), "실패" (failed)
+- **발송 결과 표기 개선** (`pages/admin/sms-list.tsx`)
+  - 이모지 제거 (✅, ❌, 📊) → 텍스트로 변경: "성공", "실패", "총 N건"
+  - 가독성 향상 및 일관성 확보
+- **예약 발송 검증 강화** (`pages/admin/sms.tsx`)
+  - 과거 시간 저장 불가: 현재 시간보다 미래인지 검증
+  - 최소 예약 시간 검증: 5분 미만 시 경고 후 확인 요청
+  - 보낸 메시지(`status: 'sent'`)는 예약 발송 섹션 비활성화
+- **저장 후 ID 업데이트** (`pages/admin/sms.tsx`)
+  - `savedSmsId` 상태 추가하여 저장된 메시지 ID 추적
+  - `currentSmsNumericId` 계산 시 `savedSmsId`도 고려하여 저장 직후 예약 발송 버튼 활성화
+  - 새 메시지 저장 시 URL 자동 업데이트 (`router.replace` with `shallow: true`)
+- **"새로 저장" 기능 추가** (`pages/admin/sms.tsx`)
+  - 이미 보낸 메시지(`status: 'sent'`)에서만 표시되는 버튼
+  - 현재 메시지 내용을 복사하여 새 메시지(draft)로 생성
+  - 예약 시간, 수신자 번호, 메모 등 모든 정보 복사
+  - 생성된 새 메시지 페이지로 자동 이동
+- **"목록으로" 버튼 추가** (`pages/admin/sms.tsx`)
+  - 상단 헤더에 "목록으로" 버튼 추가 (저장 버튼 왼쪽)
+  - 저장된 메시지면 바로 목록으로 이동
+  - 새 메시지이고 내용이 있으면 확인 후 이동
+  - 블로그 관리의 "닫기" 기능과 동일한 UX 제공
+- **저장 버튼 텍스트 동적 변경** (`pages/admin/sms.tsx`)
+  - 보낸 메시지: "수정 저장"
+  - 기존 메시지: "저장"
+  - 새 메시지: "저장"
+- **변경 파일**:
+  - `pages/admin/sms-list.tsx` (상태 표기, 발송 결과 개선)
+  - `pages/admin/sms.tsx` (예약 발송 검증, 저장 후 ID 업데이트, 새로 저장, 목록으로 버튼)
+- **빌드 테스트**: ✅ 성공
+
+### SMS 예약 발송 UX/데이터 연동 및 E2E 검증 ✅ (2025-11-19)
+- **에디터 기능 구현** (`pages/admin/sms.tsx`)
+  - 예약 발송 토글·`datetime-local` 입력·저장/취소 버튼을 우측 패널에 추가하고, 타임존 변환 헬퍼(`convertUTCToLocalInput`, `convertLocalInputToUTC`)로 로컬↔UTC를 안전하게 동기화
+  - 예약 상태(`isScheduled`, `scheduledAt`, `hasScheduledTime`)를 메시지 로드/저장 시 자동 반영하고, 저장 API payload를 빌드하는 `buildSmsPayload` 헬퍼를 도입해 `scheduled_at`, `note`, 수신자, 이미지 등의 필드를 일관되게 전송
+  - 예약 전용 PUT 호출(`handleSaveScheduledTime`, `handleCancelScheduled`)을 추가해 이미 저장된 메시지도 UI에서 바로 수정/취소 가능하도록 구현
+- **리스트 UI 개선** (`pages/admin/sms-list.tsx`)
+  - `scheduled_at` 컬럼을 인터페이스/테이블에 추가하고 `formatScheduledDate`, `getRelativeScheduleLabel` 헬퍼로 Solapi 스타일(`MM/DD HH:MM:SS`) + 상대 시간(`n시간 후/전`)을 동시에 표기, 미래 예약은 파란색으로 강조
+  - 예약 정렬/툴팁 확인을 위한 `data-testid="scheduled-time"` 속성을 부여해 테스트 및 운영 점검을 용이하게 함
+- **Playwright E2E 스크립트 작성** (`e2e-test/check-scheduled-time-consistency.js`)
+  - 관리자 로그인 → `admin/sms-list` 이동 → “예약일” 헤더와 첫 번째 셀 텍스트를 검사하고, 결과를 스크린샷(`scheduled-time-check.png`)과 로그(`scheduled-time-check.log`)로 남기는 시나리오 추가
+  - 실행 중 dev 서버 캐시 이슈를 해결하기 위해 서버를 재기동한 뒤 `PLAYWRIGHT_HEADLESS=true` 모드로 성공적으로 통과
+- **빌드/QA**
+  - `npm run build` 재실행으로 예약 관련 구문 오류를 정정한 후 전체 빌드 성공을 확인
+  - 로컬 서버 재시작 → E2E 테스트 순서를 문서화된 운영 규칙과 동일하게 수행
+
+### SMS/고객 API 빌드 복구 및 정리 ✅ (2025-11-19)
+- **현상**: `npm run build` 시 `pages/api/admin/customers/[phone]/messages.js`, `pages/api/channels/sms/send.js`, `pages/api/solapi/upload-image.js`에서 중복 선언 및 중괄호 누락으로 컴파일 실패
+- **조치**:
+  - 고객 메시지 API의 중복된 `supabase`, `normalizePhone`, `formatPhone`, `handler` 선언 제거 후 단일 핸들러 유지
+  - SMS 발송 API의 `export default handler` 범위 재구성, 누락된 닫는 중괄호 추가로 모든 `return`이 함수 내부에서 실행되도록 복원
+  - Solapi 이미지 업로드 API 말미에 잘못 남아 있던 중복 응답 블록 제거
+  - 전체 수정 후 `npm run build` 재실행으로 정상 완료 확인
+- **변경 파일**:
+  - `pages/api/admin/customers/[phone]/messages.js`
+  - `pages/api/channels/sms/send.js`
+  - `pages/api/solapi/upload-image.js`
+- **결과**: 빌드 성공, 고객 메시지/발송 API 안정화, Solapi 이미지 업로드도 정상 동작
+
+### 고객 메시지 이력 모달 구현 ✅ (2025-11-19)
+- **요구사항**: 고객 관리 페이지에서 각 고객이 받은 SMS/MMS 이력을 확인하고 바로 Solapi 또는 SMS 편집 페이지로 이동할 수 있어야 함
+- **구현 내용**:
+  - `components/admin/CustomerMessageHistoryModal.tsx`: API 연동, 로딩/에러 처리, 상태 배지, Solapi/SMS 상세 보기 버튼이 포함된 모달을 신규 구현
+  - 고객 정보와 메시지 50건까지를 불러와 시간 순서대로 표시하고, 메모·성공/실패 건수·이미지 여부 등을 한 카드에서 확인 가능
+  - 메시지 ID가 DB에서 삭제된 경우 Solapi 그룹 ID를 이용해 `/api/admin/sync-solapi-status`로 자동 동기화를 시도하여 상세 정보를 복구하고, 그래도 실패하면 안내 메시지를 띄우도록 개선
+- **결과**: 고객 관리 화면의 “📱 메시지” 버튼 클릭 시 더 이상 컴포넌트 오류가 발생하지 않으며, 운영자가 고객별 메시지 히스토리를 즉시 확인 가능
+
+### SMS 소프트 삭제 복구 및 재동기화 계획 수립 ✅ (2025-11-19)
+- **내용**:
+  - `channel_sms` 테이블에서 `deleted_at`가 설정된 레코드(IDs 80, 72, 69, 66, 64)를 복구하여 목록에 다시 노출
+  - `/docs/solapi-recovery-plan.md` 문서를 신설해 Solapi API 기반 재동기화/복구 전략을 체계화
+    - 단계별(소프트 삭제 복구 → Solapi API 동기화 → 완전 삭제 데이터 재생성) 시나리오 명시
+    - `sync-solapi-status`와 Playwright 기반 스크립트 활용 방안 포함
+- **결과**: 숨김 처리된 메시지 복구가 완료되었고, 향후 Solapi 서버에서 데이터를 다시 불러와 재생성하는 절차가 정리됨
+
 ## ✅ 최근 완료된 작업 (2025-11-16)
+
+### SMS/MMS 에디터 상태 보존 및 리스트 UI 복구 ✅ (2025-11-19)
+- **현상**: 발송 완료된 메시지(#94)를 편집 화면에서 메모만 수정해도 상태가 `draft`로 바뀌어 리스트에서 발송 결과/동기화 버튼이 사라짐
+- **원인**: `pages/admin/sms.tsx`가 로드 시 `status`를 `formData`에 넣지 않고, 저장/PUT 요청에 항상 `'draft'`를 전송
+- **조치**:
+  - SMS 로딩 시 `status`까지 `formData`에 포함
+  - 초안 저장 및 메모 동기화 시 기존 상태를 그대로 서버에 전달
+  - 이미 잘못 저장된 `channel_sms` ID 94의 `status`를 Supabase에서 `sent`로 복구
+- **결과**: 메모 수정 후에도 발송 결과/동기화 버튼이 유지되고, 리스트에 성공/실패 카운트가 다시 표시됨
+- **변경/수정 항목**:
+  - `pages/admin/sms.tsx`
+    * SMS 로드 시 상태 반영
+    * 상단 안내 및 버튼 텍스트를 “저장”으로 변경
+  - `lib/hooks/useChannelEditor.ts` (채널 포스트 로드 시 기존 상태와 병합하도록 수정)
+  - Supabase `channel_sms` 데이터 수동 복구 (#94, #92, #93)
 
 ### Sharp 모듈 Vercel 호환성 수정 ✅
 - **문제**: 이미지 업로드 시 500 Internal Server Error 발생
