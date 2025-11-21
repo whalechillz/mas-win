@@ -5,47 +5,35 @@
 
 import { createServerSupabase } from '../../../lib/supabase';
 
-// 이미지 존재 여부 확인 함수
+// 이미지 존재 여부 확인 함수 (HTTP HEAD 요청만 사용 - 가장 간단하고 확실함)
 async function checkImageExists(supabase, imageUrl) {
   if (!imageUrl) return false;
   
   try {
-    // URL에서 파일 경로 추출
-    // 예: https://xxx.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-20/account1/background/image.jpg
-    // -> originals/daily-branding/kakao/2025-11-20/account1/background/image.jpg
-    const urlParts = imageUrl.split('/');
-    const publicIndex = urlParts.findIndex(part => part === 'public');
-    if (publicIndex === -1) return false;
+    // HTTP HEAD 요청으로 실제 파일 존재 여부 확인
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
     
-    const pathParts = urlParts.slice(publicIndex + 1);
-    const fileName = pathParts[pathParts.length - 1];
-    const folderPath = pathParts.slice(0, -1).join('/');
+    const response = await fetch(imageUrl, { 
+      method: 'HEAD',
+      signal: controller.signal
+    });
     
-    // Storage에서 파일 존재 여부 확인
-    const { data, error } = await supabase.storage
-      .from('blog-images')
-      .list(folderPath, {
-        limit: 1000,
-        search: fileName
-      });
+    clearTimeout(timeoutId);
     
-    if (error) {
-      console.warn(`⚠️ 이미지 존재 확인 오류 (${imageUrl}):`, error.message);
+    if (response.ok) {
+      return true;
+    } else {
+      console.log(`🗑️ 이미지 파일 없음 (HTTP ${response.status}): ${imageUrl}`);
       return false;
     }
-    
-    if (!data || data.length === 0) {
-      return false;
-    }
-    
-    const exists = data.some(file => file.name === fileName);
-    if (!exists) {
-      console.log(`🗑️ 이미지 파일 없음 (DB에는 있음): ${folderPath}/${fileName}`);
-    }
-    return exists;
   } catch (error) {
-    console.error('이미지 존재 확인 예외:', error);
-    return false;
+    if (error.name === 'AbortError') {
+      console.warn(`⚠️ 이미지 존재 확인 타임아웃: ${imageUrl}`);
+    } else {
+      console.warn(`⚠️ 이미지 존재 확인 오류: ${imageUrl}`, error.message);
+    }
+    return false; // 네트워크 오류 등으로 확인 불가 시 false
   }
 }
 
