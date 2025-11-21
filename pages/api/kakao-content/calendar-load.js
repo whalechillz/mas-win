@@ -12,7 +12,7 @@ async function checkImageExists(supabase, imageUrl) {
   try {
     // HTTP HEAD 요청으로 실제 파일 존재 여부 확인
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2초 타임아웃 (5초 → 2초로 단축)
     
     const response = await fetch(imageUrl, { 
       method: 'HEAD',
@@ -21,19 +21,10 @@ async function checkImageExists(supabase, imageUrl) {
     
     clearTimeout(timeoutId);
     
-    if (response.ok) {
-      return true;
-    } else {
-      console.log(`🗑️ 이미지 파일 없음 (HTTP ${response.status}): ${imageUrl}`);
-      return false;
-    }
+    return response.ok; // 200-299 상태 코드면 true
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.warn(`⚠️ 이미지 존재 확인 타임아웃: ${imageUrl}`);
-    } else {
-      console.warn(`⚠️ 이미지 존재 확인 오류: ${imageUrl}`, error.message);
-    }
-    return false; // 네트워크 오류 등으로 확인 불가 시 false
+    // 타임아웃이나 네트워크 오류 시 false 반환 (로그 생략하여 성능 향상)
+    return false;
   }
 }
 
@@ -106,21 +97,49 @@ export default async function handler(req, res) {
       }
     };
 
-    // 프로필 데이터 변환 (이미지 존재 여부 확인)
+    // 프로필 데이터 변환 (이미지 존재 여부 확인 - 병렬 처리)
     const profileByDate = {};
+    
+    // 모든 이미지 URL 수집 및 병렬 확인
+    const profileImageChecks = [];
     for (const item of profileData) {
       if (!profileByDate[item.date]) {
         profileByDate[item.date] = { account1: null, account2: null };
       }
       
-      // 이미지 존재 여부 확인
-      const backgroundImageUrl = item.background_image_url 
-        ? (await checkImageExists(supabase, item.background_image_url) ? item.background_image_url : undefined)
-        : undefined;
+      if (item.background_image_url) {
+        profileImageChecks.push({
+          key: `${item.date}_${item.account}_background`,
+          url: item.background_image_url
+        });
+      }
       
-      const profileImageUrl = item.profile_image_url
-        ? (await checkImageExists(supabase, item.profile_image_url) ? item.profile_image_url : undefined)
-        : undefined;
+      if (item.profile_image_url) {
+        profileImageChecks.push({
+          key: `${item.date}_${item.account}_profile`,
+          url: item.profile_image_url
+        });
+      }
+    }
+    
+    // 모든 이미지 확인을 병렬로 실행
+    const profileImageResults = await Promise.all(
+      profileImageChecks.map(async ({ key, url }) => ({
+        key,
+        exists: await checkImageExists(supabase, url),
+        url
+      }))
+    );
+    
+    // 결과를 Map으로 변환하여 빠른 조회
+    const profileImageMap = new Map(
+      profileImageResults.map(r => [r.key, r.exists ? r.url : undefined])
+    );
+    
+    // 프로필 데이터 변환 (확인된 결과 사용)
+    for (const item of profileData) {
+      const backgroundKey = `${item.date}_${item.account}_background`;
+      const profileKey = `${item.date}_${item.account}_profile`;
       
       const scheduleItem = {
         date: item.date,
@@ -129,14 +148,14 @@ export default async function handler(req, res) {
           prompt: item.background_prompt || '',
           basePrompt: item.background_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: backgroundImageUrl
+          imageUrl: profileImageMap.get(backgroundKey)
         },
         profile: {
           image: item.profile_image || '',
           prompt: item.profile_prompt || '',
           basePrompt: item.profile_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: profileImageUrl
+          imageUrl: profileImageMap.get(profileKey)
         },
         message: item.message || '',
         status: item.status || 'planned',
@@ -158,17 +177,41 @@ export default async function handler(req, res) {
       }
     });
 
-    // 피드 데이터 변환 (이미지 존재 여부 확인)
+    // 피드 데이터 변환 (이미지 존재 여부 확인 - 병렬 처리)
     const feedByDate = {};
+    
+    // 모든 피드 이미지 URL 수집 및 병렬 확인
+    const feedImageChecks = [];
     for (const item of feedData) {
       if (!feedByDate[item.date]) {
         feedByDate[item.date] = { date: item.date, account1: null, account2: null };
       }
       
-      // 이미지 존재 여부 확인
-      const feedImageUrl = item.image_url
-        ? (await checkImageExists(supabase, item.image_url) ? item.image_url : undefined)
-        : undefined;
+      if (item.image_url) {
+        feedImageChecks.push({
+          key: `${item.date}_${item.account}`,
+          url: item.image_url
+        });
+      }
+    }
+    
+    // 모든 피드 이미지 확인을 병렬로 실행
+    const feedImageResults = await Promise.all(
+      feedImageChecks.map(async ({ key, url }) => ({
+        key,
+        exists: await checkImageExists(supabase, url),
+        url
+      }))
+    );
+    
+    // 결과를 Map으로 변환하여 빠른 조회
+    const feedImageMap = new Map(
+      feedImageResults.map(r => [r.key, r.exists ? r.url : undefined])
+    );
+    
+    // 피드 데이터 변환 (확인된 결과 사용)
+    for (const item of feedData) {
+      const feedKey = `${item.date}_${item.account}`;
       
       feedByDate[item.date][item.account] = {
         imageCategory: item.image_category || '',
@@ -176,7 +219,7 @@ export default async function handler(req, res) {
         caption: item.caption || '',
         status: item.status || 'planned',
         created: item.created || false,
-        imageUrl: feedImageUrl,
+        imageUrl: feedImageMap.get(feedKey),
         url: item.url || undefined,
         createdAt: item.created_at || undefined
       };
