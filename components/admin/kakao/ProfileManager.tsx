@@ -151,6 +151,25 @@ export default function ProfileManager({
     const img = event.currentTarget;
     console.warn(`⚠️ ${type} 이미지 로드 실패:`, img.src);
     
+    // 이미지 URL을 즉시 undefined로 설정하여 표시 제거 (캐시된 이미지 방지)
+    if (type === 'background') {
+      onUpdate({
+        ...profileData,
+        background: {
+          ...profileData.background,
+          imageUrl: undefined
+        }
+      });
+    } else {
+      onUpdate({
+        ...profileData,
+        profile: {
+          ...profileData.profile,
+          imageUrl: undefined
+        }
+      });
+    }
+    
     // 자동 복구 시도
     await handleAutoRecoverImage(type);
   };

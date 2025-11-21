@@ -122,6 +122,12 @@ export default function FeedManager({
     const img = event.currentTarget;
     console.warn('⚠️ 피드 이미지 로드 실패:', img.src);
     
+    // 이미지 URL을 즉시 undefined로 설정하여 표시 제거 (캐시된 이미지 방지)
+    onUpdate({
+      ...feedData,
+      imageUrl: undefined
+    });
+    
     // 자동 복구 시도
     await handleAutoRecoverImage();
   };

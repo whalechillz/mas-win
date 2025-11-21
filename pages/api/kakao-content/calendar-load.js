@@ -5,6 +5,50 @@
 
 import { createServerSupabase } from '../../../lib/supabase';
 
+// 이미지 존재 여부 확인 함수
+async function checkImageExists(supabase, imageUrl) {
+  if (!imageUrl) return false;
+  
+  try {
+    // URL에서 파일 경로 추출
+    // 예: https://xxx.supabase.co/storage/v1/object/public/blog-images/originals/daily-branding/kakao/2025-11-20/account1/background/image.jpg
+    // -> originals/daily-branding/kakao/2025-11-20/account1/background/image.jpg
+    const urlParts = imageUrl.split('/');
+    const publicIndex = urlParts.findIndex(part => part === 'public');
+    if (publicIndex === -1) return false;
+    
+    const pathParts = urlParts.slice(publicIndex + 1);
+    const fileName = pathParts[pathParts.length - 1];
+    const folderPath = pathParts.slice(0, -1).join('/');
+    
+    // Storage에서 파일 존재 여부 확인
+    const { data, error } = await supabase.storage
+      .from('blog-images')
+      .list(folderPath, {
+        limit: 1000,
+        search: fileName
+      });
+    
+    if (error) {
+      console.warn(`⚠️ 이미지 존재 확인 오류 (${imageUrl}):`, error.message);
+      return false;
+    }
+    
+    if (!data || data.length === 0) {
+      return false;
+    }
+    
+    const exists = data.some(file => file.name === fileName);
+    if (!exists) {
+      console.log(`🗑️ 이미지 파일 없음 (DB에는 있음): ${folderPath}/${fileName}`);
+    }
+    return exists;
+  } catch (error) {
+    console.error('이미지 존재 확인 예외:', error);
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
@@ -74,12 +118,21 @@ export default async function handler(req, res) {
       }
     };
 
-    // 프로필 데이터 변환
+    // 프로필 데이터 변환 (이미지 존재 여부 확인)
     const profileByDate = {};
-    profileData.forEach(item => {
+    for (const item of profileData) {
       if (!profileByDate[item.date]) {
         profileByDate[item.date] = { account1: null, account2: null };
       }
+      
+      // 이미지 존재 여부 확인
+      const backgroundImageUrl = item.background_image_url 
+        ? (await checkImageExists(supabase, item.background_image_url) ? item.background_image_url : undefined)
+        : undefined;
+      
+      const profileImageUrl = item.profile_image_url
+        ? (await checkImageExists(supabase, item.profile_image_url) ? item.profile_image_url : undefined)
+        : undefined;
       
       const scheduleItem = {
         date: item.date,
@@ -88,14 +141,14 @@ export default async function handler(req, res) {
           prompt: item.background_prompt || '',
           basePrompt: item.background_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: item.background_image_url || undefined
+          imageUrl: backgroundImageUrl
         },
         profile: {
           image: item.profile_image || '',
           prompt: item.profile_prompt || '',
           basePrompt: item.profile_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: item.profile_image_url || undefined
+          imageUrl: profileImageUrl
         },
         message: item.message || '',
         status: item.status || 'planned',
@@ -105,7 +158,7 @@ export default async function handler(req, res) {
       };
 
       profileByDate[item.date][item.account] = scheduleItem;
-    });
+    }
 
     // account1과 account2로 분리
     Object.keys(profileByDate).forEach(date => {
@@ -117,12 +170,17 @@ export default async function handler(req, res) {
       }
     });
 
-    // 피드 데이터 변환
+    // 피드 데이터 변환 (이미지 존재 여부 확인)
     const feedByDate = {};
-    feedData.forEach(item => {
+    for (const item of feedData) {
       if (!feedByDate[item.date]) {
         feedByDate[item.date] = { date: item.date, account1: null, account2: null };
       }
+      
+      // 이미지 존재 여부 확인
+      const feedImageUrl = item.image_url
+        ? (await checkImageExists(supabase, item.image_url) ? item.image_url : undefined)
+        : undefined;
       
       feedByDate[item.date][item.account] = {
         imageCategory: item.image_category || '',
@@ -130,11 +188,11 @@ export default async function handler(req, res) {
         caption: item.caption || '',
         status: item.status || 'planned',
         created: item.created || false,
-        imageUrl: item.image_url || undefined,
+        imageUrl: feedImageUrl,
         url: item.url || undefined,
         createdAt: item.created_at || undefined
       };
-    });
+    }
 
     calendarData.kakaoFeed.dailySchedule = Object.values(feedByDate);
 
