@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     // SMS 생성
-    const { message, type, status, hub_content_id, calendar_id, recipientNumbers, imageUrl, shortLink, note, scheduledAt } = req.body;
+    const { message, type, status, hub_content_id, calendar_id, recipientNumbers, imageUrl, shortLink, note, scheduledAt, honorific } = req.body;
 
     try {
       const insertData = {
@@ -67,7 +67,23 @@ export default async function handler(req, res) {
       if (imageUrl) insertData.image_url = imageUrl;
       if (shortLink) insertData.short_link = shortLink;
       if (note) insertData.note = note;
-      if (scheduledAt) insertData.scheduled_at = scheduledAt;
+      if (scheduledAt) {
+        // scheduledAt이 유효한 ISO 문자열인지 검증하고 UTC로 변환
+        try {
+          const date = new Date(scheduledAt);
+          if (Number.isNaN(date.getTime())) {
+            console.error('❌ 잘못된 예약 시간 형식:', scheduledAt);
+            throw new Error('유효하지 않은 예약 시간 형식입니다.');
+          }
+          // UTC ISO 문자열로 명시적 변환
+          insertData.scheduled_at = date.toISOString();
+          console.log(`✅ 예약 시간 저장: ${scheduledAt} -> ${insertData.scheduled_at}`);
+        } catch (error) {
+          console.error('❌ 예약 시간 변환 오류:', error);
+          throw new Error('예약 시간 변환 중 오류가 발생했습니다.');
+        }
+      }
+      if (honorific) insertData.honorific = honorific;
 
       const { data: newSMS, error } = await supabase
         .from('channel_sms')
@@ -128,7 +144,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     // SMS 수정
-    const { id, message, type, status, hub_content_id, calendar_id, recipientNumbers, imageUrl, shortLink, note, scheduledAt } = req.body;
+    const { id, message, type, status, hub_content_id, calendar_id, recipientNumbers, imageUrl, shortLink, note, scheduledAt, honorific } = req.body;
 
     if (!id) {
       console.error('❌ SMS 수정 오류: ID가 필요합니다.');
@@ -153,7 +169,27 @@ export default async function handler(req, res) {
         if (imageUrl !== undefined) updateData.image_url = imageUrl;
         if (shortLink !== undefined) updateData.short_link = shortLink;
         if (note !== undefined) updateData.note = note;
-        if (scheduledAt !== undefined) updateData.scheduled_at = scheduledAt;
+        if (scheduledAt !== undefined) {
+          // scheduledAt이 유효한 ISO 문자열인지 검증하고 UTC로 변환
+          if (scheduledAt) {
+            try {
+              const date = new Date(scheduledAt);
+              if (Number.isNaN(date.getTime())) {
+                console.error('❌ 잘못된 예약 시간 형식:', scheduledAt);
+                throw new Error('유효하지 않은 예약 시간 형식입니다.');
+              }
+              // UTC ISO 문자열로 명시적 변환
+              updateData.scheduled_at = date.toISOString();
+              console.log(`✅ 예약 시간 저장: ${scheduledAt} -> ${updateData.scheduled_at}`);
+            } catch (error) {
+              console.error('❌ 예약 시간 변환 오류:', error);
+              throw new Error('예약 시간 변환 중 오류가 발생했습니다.');
+            }
+          } else {
+            updateData.scheduled_at = null;
+          }
+        }
+        if (honorific !== undefined) updateData.honorific = honorific;
 
         const { data: updatedSMS, error } = await supabase
           .from('channel_sms')
