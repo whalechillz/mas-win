@@ -324,9 +324,9 @@ const getMetadataQualityIssues = (metadata) => {
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
-  // ✅ 타임아웃 방지: 55초 제한 (60초 설정 고려하여 여유 있게)
+  // ✅ 타임아웃 방지: Vercel Pro 60초 제한 고려하여 50초로 설정 (안전 마진)
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (55초 제한)')), 55000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (50초 제한)')), 50000);
   });
   
   try {
@@ -735,24 +735,45 @@ export default async function handler(req, res) {
 
           console.log(`✅ 폴더 조회 완료 (${folderPath || '루트'}): ${allFilesInFolder.length}개 파일/폴더`);
 
+          // ✅ 성능 최적화: 폴더와 파일 분리 후 병렬 처리
+          const folders = [];
+          const files = [];
+          
           for (const file of allFilesInFolder) {
             if (!file.id) {
-              // 폴더인 경우 재귀적으로 조회
-              const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
-              await getAllImagesRecursively(subFolderPath);
+              folders.push(file);
             } else {
-              // 이미지 파일인 경우
-              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-              // .keep.png 마커 파일 제외
-              const isKeepFile = file.name.toLowerCase() === '.keep.png';
-              
-              if (isImage && !isKeepFile) {
-                allFiles.push({
-                  ...file,
-                  folderPath: folderPath // 폴더 경로 추가
-                });
-              }
+              files.push(file);
+            }
+          }
+          
+          // ✅ 폴더들을 병렬로 조회 (최대 10개씩 동시 처리)
+          if (folders.length > 0) {
+            const folderPromises = folders.map(file => {
+              const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+              return getAllImagesRecursively(subFolderPath);
+            });
+            
+            // 최대 10개씩 배치로 병렬 처리 (Supabase 부하 방지)
+            const batchSize = 10;
+            for (let i = 0; i < folderPromises.length; i += batchSize) {
+              const batch = folderPromises.slice(i, i + batchSize);
+              await Promise.all(batch);
+            }
+          }
+          
+          // 이미지 파일 처리
+          for (const file of files) {
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+            const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+            // .keep.png 마커 파일 제외
+            const isKeepFile = file.name.toLowerCase() === '.keep.png';
+            
+            if (isImage && !isKeepFile) {
+              allFiles.push({
+                ...file,
+                folderPath: folderPath // 폴더 경로 추가
+              });
             }
           }
         };
@@ -815,24 +836,45 @@ export default async function handler(req, res) {
             }
           }
 
+          // ✅ 성능 최적화: 폴더와 파일 분리 후 병렬 처리
+          const folders = [];
+          const files = [];
+          
           for (const file of allFilesInFolder) {
             if (!file.id) {
-              // 폴더인 경우 재귀적으로 조회
-              const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
-              await getAllImagesForPagination(subFolderPath);
+              folders.push(file);
             } else {
-              // 이미지 파일인 경우
-              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-              // .keep.png 마커 파일 제외
-              const isKeepFile = file.name.toLowerCase() === '.keep.png';
-              
-              if (isImage && !isKeepFile) {
-                allFilesForPagination.push({
-                  ...file,
-                  folderPath: folderPath // 폴더 경로 추가
-                });
-              }
+              files.push(file);
+            }
+          }
+          
+          // ✅ 폴더들을 병렬로 조회 (최대 10개씩 동시 처리)
+          if (folders.length > 0) {
+            const folderPromises = folders.map(file => {
+              const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+              return getAllImagesForPagination(subFolderPath);
+            });
+            
+            // 최대 10개씩 배치로 병렬 처리 (Supabase 부하 방지)
+            const batchSize = 10;
+            for (let i = 0; i < folderPromises.length; i += batchSize) {
+              const batch = folderPromises.slice(i, i + batchSize);
+              await Promise.all(batch);
+            }
+          }
+          
+          // 이미지 파일 처리
+          for (const file of files) {
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+            const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+            // .keep.png 마커 파일 제외
+            const isKeepFile = file.name.toLowerCase() === '.keep.png';
+            
+            if (isImage && !isKeepFile) {
+              allFilesForPagination.push({
+                ...file,
+                folderPath: folderPath // 폴더 경로 추가
+              });
             }
           }
         };
@@ -1122,14 +1164,9 @@ export default async function handler(req, res) {
           }
         }
         
-        // image_assets 테이블에서 id 가져오기
-        const { data: assetData } = await supabase
-          .from('image_assets')
-          .select('id')
-          .eq('cdn_url', url)
-          .single();
-        
-        let imageAssetId = assetData?.id || null;
+        // ✅ 성능 최적화: 이미 조회한 assetsMap에서 id 가져오기 (중복 쿼리 제거)
+        const asset = assetsMap.get(url);
+        let imageAssetId = asset?.id || null;
 
         // image_assets에 없으면 자동으로 등록
         if (!imageAssetId && url) {

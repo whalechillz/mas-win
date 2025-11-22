@@ -22,12 +22,23 @@ export function invalidateFoldersCache() {
   console.log('🗑️ 폴더 목록 캐시 무효화 완료');
 }
 
-// 폴백: Storage에서 직접 조회 (재귀적, 하위 경로 포함)
-async function getFoldersFromStorage() {
+// 폴백: Storage에서 직접 조회 (재귀적, 하위 경로 포함, 성능 최적화)
+async function getFoldersFromStorage(maxDepth = 5, startTime = Date.now(), maxTime = 45000) {
   const folders = new Set();
   
-  // 🔧 재귀적으로 모든 폴더 조회 (하위 경로 포함)
-  const getAllFolders = async (prefix = '') => {
+  // ✅ 성능 최적화: 재귀적으로 모든 폴더 조회 (병렬 처리 + 타임아웃 체크)
+  const getAllFolders = async (prefix = '', depth = 0) => {
+    // 타임아웃 체크
+    if (Date.now() - startTime > maxTime) {
+      console.log(`⚠️ 타임아웃 방지를 위해 폴더 조회 중단 (${folders.size}개 수집됨)`);
+      return;
+    }
+    
+    // 최대 깊이 제한
+    if (depth > maxDepth) {
+      return;
+    }
+    
     const { data: files, error } = await supabase.storage
       .from('blog-images')
       .list(prefix, {
@@ -42,13 +53,22 @@ async function getFoldersFromStorage() {
 
     if (!files) return;
 
-    for (const file of files) {
-      if (!file.id) {
-        // 폴더인 경우
+    // ✅ 성능 최적화: 폴더들을 병렬로 처리
+    const folderFiles = files.filter(file => !file.id);
+    
+    if (folderFiles.length > 0) {
+      const folderPromises = folderFiles.map(file => {
         const folderPath = prefix ? `${prefix}/${file.name}` : file.name;
         folders.add(folderPath);
         // 재귀적으로 하위 폴더 조회
-        await getAllFolders(folderPath);
+        return getAllFolders(folderPath, depth + 1);
+      });
+      
+      // 최대 10개씩 배치로 병렬 처리 (Supabase 부하 방지)
+      const batchSize = 10;
+      for (let i = 0; i < folderPromises.length; i += batchSize) {
+        const batch = folderPromises.slice(i, i + batchSize);
+        await Promise.all(batch);
       }
     }
   };
@@ -61,9 +81,9 @@ export default async function handler(req, res) {
   const startTime = Date.now();
   console.log('🔍 폴더 목록 조회 API 요청:', req.method, req.url);
   
-  // ✅ 타임아웃 방지: 55초 제한 (60초 설정 고려하여 여유 있게)
+  // ✅ 타임아웃 방지: Vercel Pro 60초 제한 고려하여 50초로 설정 (안전 마진)
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (55초 제한)')), 55000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (50초 제한)')), 50000);
   });
   
   try {
@@ -92,9 +112,9 @@ export default async function handler(req, res) {
 
       if (error) {
         console.error('❌ 메타데이터 조회 에러:', error);
-        // 폴백: Storage에서 직접 조회
+        // 폴백: Storage에서 직접 조회 (타임아웃 체크 포함)
         console.log('🔄 Storage에서 직접 조회로 전환...');
-        const folderList = await getFoldersFromStorage();
+        const folderList = await getFoldersFromStorage(5, startTime, 45000);
         
         // 캐시 저장
         foldersCache = folderList;
@@ -130,9 +150,9 @@ export default async function handler(req, res) {
       const folderList = Array.from(folders).sort();
       console.log(`📋 메타데이터에서 추출한 폴더: ${folderList.length}개`);
       
-      // Storage에서 직접 조회하여 모든 폴더 확보
+      // Storage에서 직접 조회하여 모든 폴더 확보 (타임아웃 체크 포함)
       console.log('🔄 Storage에서 직접 조회 중...');
-      const storageFolders = await getFoldersFromStorage();
+      const storageFolders = await getFoldersFromStorage(5, startTime, 45000);
       console.log(`📋 Storage에서 추출한 폴더: ${storageFolders.length}개`);
       
       // Storage에서 가져온 폴더와 메타데이터 폴더 병합
