@@ -130,11 +130,11 @@ export default function Home({ hostname }) {
     <>
       <Head>
         <title>MASSGOO - 프리미엄 골프 클럽의 새로운 기준</title>
-        <meta name="description" content="시니어 골퍼를 위한 특별한 선택, 2.2mm 초박형 페이스로 젊은 날의 비거리를 돌려드립니다." />
+        <meta name="description" content="비거리 회복을 원하는 골퍼를 위한 특별한 선택, 2.2mm 초박형 페이스로 젊은 날의 비거리를 돌려드립니다." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
         <meta property="og:title" content="MASSGOO - 프리미엄 골프 클럽의 새로운 기준" />
-        <meta property="og:description" content="시니어 골퍼를 위한 특별한 선택, 2.2mm 초박형 페이스로 젊은 날의 비거리를 돌려드립니다." />
+        <meta property="og:description" content="비거리 회복을 원하는 골퍼를 위한 특별한 선택, 2.2mm 초박형 페이스로 젊은 날의 비거리를 돌려드립니다." />
         <meta property="og:image" content="https://www.masgolf.co.kr/main/hero/hero-main-image.webp" />
         <meta property="og:url" content="https://www.masgolf.co.kr" />
         <meta property="og:type" content="website" />
@@ -144,7 +144,7 @@ export default function Home({ hostname }) {
         <meta property="og:image:type" content="image/webp" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="MASSGOO - 프리미엄 골프 클럽의 새로운 기준" />
-        <meta name="twitter:description" content="시니어 골퍼를 위한 특별한 선택, 2.2mm 초박형 페이스로 젊은 날의 비거리를 돌려드립니다." />
+        <meta name="twitter:description" content="비거리 회복을 원하는 골퍼를 위한 특별한 선택, 2.2mm 초박형 페이스로 젊은 날의 비거리를 돌려드립니다." />
         <meta name="twitter:image" content="https://www.masgolf.co.kr/main/hero/hero-main-image.webp" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://www.masgolf.co.kr" />
@@ -374,7 +374,7 @@ export default function Home({ hostname }) {
                   />
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">LIMITED</span>
-                    <span className="bg-green-400/20 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">하이테크 얼리 어답터</span>
+                    <span className="bg-green-400/20 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">나노 카본 기술</span>
               </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <h3 className="text-2xl font-bold mb-2">시크리트웨폰 블랙 MUZIIK</h3>
@@ -390,7 +390,7 @@ export default function Home({ hostname }) {
                   />
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold">BEST</span>
-                    <span className="bg-yellow-400/20 text-yellow-300 px-3 py-1 rounded-full text-xs font-semibold">피팅 선호 시니어</span>
+                    <span className="bg-yellow-400/20 text-yellow-300 px-3 py-1 rounded-full text-xs font-semibold">비거리 회복</span>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <h3 className="text-2xl font-bold mb-2">시크리트포스 골드 2 MUZIIK</h3>
@@ -452,7 +452,7 @@ export default function Home({ hostname }) {
                         <span className="text-yellow-400 text-xl mr-3">✓</span>
                         <div>
                           <h4 className="font-semibold mb-1">가벼우면서도 강한</h4>
-                          <p className="text-gray-300 text-sm">ONE-FLEX A200·A215. 시니어에게 최적화된 설계</p>
+                          <p className="text-gray-300 text-sm">ONE-FLEX A200·A215. 비거리 회복을 위한 최적화 설계</p>
                         </div>
                       </div>
                       <div className="flex items-start">
@@ -1003,7 +1003,7 @@ export default function Home({ hostname }) {
                   </div>
                       <p className="text-sm text-gray-400 mb-4">MASGOLF® 프리미엄 드라이버 브랜드</p>
                       <p className="text-gray-300 mb-4 leading-relaxed">
-                        MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 하이테크를 추구하는 얼리 어답터부터 피팅을 중시하는 시니어 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
+                        MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 나노레벨 카본 기술을 추구하는 골퍼부터 비거리 회복을 원하는 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
                 </p>
                     </div>
                     <div className="space-y-2">

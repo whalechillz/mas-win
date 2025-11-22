@@ -383,11 +383,11 @@ export default function Gold2SapphireProduct() {
                 <div></div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">A200</div>
-                  <div className="text-xs text-gray-400">R3, R2, R1, R</div>
+                  <div className="text-xs text-gray-400">ONE FLEX (초경량)</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">A215</div>
-                  <div className="text-xs text-gray-400">R1, R, SR</div>
+                  <div className="text-xs text-gray-400">ONE FLEX (경량)</div>
                 </div>
               </div>
 
@@ -402,11 +402,13 @@ export default function Gold2SapphireProduct() {
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">최적 무게</div>
                   <div className="text-center">
-                    <div className="text-white font-bold text-lg">272g</div>
+                    <div className="text-white font-bold text-lg">272</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                     <div className="text-gray-400 text-xs">268g-276g</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-white font-bold text-lg">283g</div>
+                    <div className="text-white font-bold text-lg">283</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                     <div className="text-gray-400 text-xs">279g-287g</div>
                   </div>
                 </div>
@@ -414,17 +416,27 @@ export default function Gold2SapphireProduct() {
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 샤프트</div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">44</div>
-                    <div className="text-gray-400 text-xs">Torque 4.8</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">53</div>
-                    <div className="text-gray-400 text-xs">Torque 4.0</div>
+                    <div className="text-gray-400 text-xs">gram</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">토크</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">4.8</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">4.0</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 그립</div>
                   <div className="col-span-2 text-center">
                     <div className="text-white font-bold text-xl">35</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                     <div className="text-gray-400 text-sm mt-1">600 스탠다드 [장갑 23호 ±1 적합]</div>
                   </div>
                 </div>
@@ -432,6 +444,7 @@ export default function Gold2SapphireProduct() {
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">고반발 헤드</div>
                   <div className="col-span-2 text-center">
                     <div className="text-white font-bold text-xl">188</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
@@ -500,7 +513,7 @@ export default function Gold2SapphireProduct() {
               </div>
 
               <div className="mt-8 pt-8 border-t border-gray-800">
-                <h4 className="text-xl font-bold text-white mb-6 text-center">DOGATTI GENERATION SAPPHIRE 40/50</h4>
+                <h4 className="text-xl font-bold text-white mb-6 text-center">DOGATTI GENERATION SAPPHIRE</h4>
                 <div className="overflow-x-auto product-scrollbar">
                   <table className="w-full">
                     <thead>
@@ -517,22 +530,22 @@ export default function Gold2SapphireProduct() {
                     </thead>
                     <tbody>
                       <tr className="border-b border-gray-800">
-                        <td className="py-4 px-4 font-semibold text-white">40</td>
+                        <td className="py-4 px-4 font-semibold text-white">A200(ONE FLEX 40)</td>
                         <td className="text-center py-4 px-4 text-gray-300">1130</td>
-                        <td className="text-center py-4 px-4 text-gray-300">45</td>
+                        <td className="text-center py-4 px-4 text-gray-300">44</td>
                         <td className="text-center py-4 px-4 text-gray-300">8.55</td>
                         <td className="text-center py-4 px-4 text-gray-300">15.05</td>
-                        <td className="text-center py-4 px-4 text-gray-300">5.0</td>
+                        <td className="text-center py-4 px-4 text-gray-300">4.8</td>
                         <td className="text-center py-4 px-4 text-white font-bold">200</td>
                         <td className="text-center py-4 px-4 text-gray-300">더블킥</td>
                       </tr>
                       <tr>
-                        <td className="py-4 px-4 font-semibold text-white">50</td>
+                        <td className="py-4 px-4 font-semibold text-white">A215(ONE FLEX 50)</td>
                         <td className="text-center py-4 px-4 text-gray-300">1130</td>
-                        <td className="text-center py-4 px-4 text-gray-300">54</td>
+                        <td className="text-center py-4 px-4 text-gray-300">53</td>
                         <td className="text-center py-4 px-4 text-gray-300">8.55</td>
                         <td className="text-center py-4 px-4 text-gray-300">15.4</td>
-                        <td className="text-center py-4 px-4 text-gray-300">4.2</td>
+                        <td className="text-center py-4 px-4 text-gray-300">4.0</td>
                         <td className="text-center py-4 px-4 text-white font-bold">215</td>
                         <td className="text-center py-4 px-4 text-gray-300">더블킥</td>
                       </tr>
@@ -555,7 +568,7 @@ export default function Gold2SapphireProduct() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">다른 브랜드와의 비교</h2>
-              <p className="text-lg text-gray-600">피팅 선호 시니어 골퍼가 인정하는 성능</p>
+              <p className="text-lg text-gray-600">비거리 회복을 원하는 골퍼가 인정하는 성능</p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -611,7 +624,7 @@ export default function Gold2SapphireProduct() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">실제 성능 데이터</h2>
-              <p className="text-lg text-gray-600">피팅 선호 시니어 골퍼가 인정하는 성능</p>
+              <p className="text-lg text-gray-600">비거리 회복을 원하는 골퍼가 인정하는 성능</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -620,7 +633,7 @@ export default function Gold2SapphireProduct() {
                   <div className="absolute inset-0">
                     <Image 
                       src="/main/testimonials/hero-faces/review-face-01.jpg"
-                      alt="피팅 선호 시니어 골퍼 후기"
+                      alt="비거리 회복 추구 후기"
                       fill
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
                     />
@@ -635,7 +648,7 @@ export default function Gold2SapphireProduct() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">피팅 선호 시니어 골퍼</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">비거리 회복 추구</h3>
                   <p className="text-sm text-gray-500 mb-4">62세, 비거리 회복 추구</p>
                   <p className="text-gray-700 text-sm leading-relaxed italic">
                     &quot;오토플렉스 사파이어 샤프트와 결합한 골드 2를 처음 사용했을 때 놀랐습니다. 첫 시타부터 체감되는 비거리 증가가 있었고, 이제 젊은 후배들과 비거리 차이가 거의 없습니다.&quot;

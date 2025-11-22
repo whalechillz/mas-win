@@ -380,15 +380,15 @@ export default function WeaponBerylProduct() {
                 <div></div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">230</div>
-                  <div className="text-xs text-gray-400">스티프 레귤러</div>
+                  <div className="text-xs text-gray-400">부드러움</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">240</div>
-                  <div className="text-xs text-gray-400">스티프</div>
+                  <div className="text-xs text-gray-400">표준</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
                   <div className="text-2xl font-black text-white mb-1">250</div>
-                  <div className="text-xs text-gray-400">엑스</div>
+                  <div className="text-xs text-gray-400">강함</div>
                 </div>
               </div>
 
@@ -404,36 +404,49 @@ export default function WeaponBerylProduct() {
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">최적 무게</div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">277</div>
-                    <div className="text-gray-400 text-xs">230</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">280</div>
-                    <div className="text-gray-400 text-xs">240</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">283</div>
-                    <div className="text-gray-400 text-xs">250</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 샤프트</div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">42</div>
-                    <div className="text-gray-400 text-xs">Torque 4.8</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">47</div>
-                    <div className="text-gray-400 text-xs">Torque 3.8</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                   <div className="text-center">
                     <div className="text-white font-bold text-lg">49</div>
-                    <div className="text-gray-400 text-xs">Torque 3.8</div>
+                    <div className="text-gray-400 text-xs">gram</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                  <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">토크</div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">4.8</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">3.8</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg">3.8</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 그립</div>
                   <div className="col-span-3 text-center">
                     <div className="text-white font-bold text-xl">35</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                     <div className="text-gray-400 text-sm mt-1">600 스탠다드 [장갑 23호 ±1 적합]</div>
                   </div>
                 </div>
@@ -441,6 +454,7 @@ export default function WeaponBerylProduct() {
                   <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">고반발 헤드</div>
                   <div className="col-span-3 text-center">
                     <div className="text-white font-bold text-xl">193</div>
+                    <div className="text-gray-400 text-xs">gram</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
@@ -529,32 +543,32 @@ export default function WeaponBerylProduct() {
                   </thead>
                   <tbody>
                       <tr className="border-b border-gray-800">
-                        <td className="py-4 px-4 font-semibold text-white">R2</td>
+                        <td className="py-4 px-4 font-semibold text-white">230(부드러움) R2</td>
                         <td className="text-center py-4 px-4 text-gray-300">1136</td>
-                        <td className="text-center py-4 px-4 text-gray-300">42</td>
+                        <td className="text-center py-4 px-4 text-gray-300">43</td>
                         <td className="text-center py-4 px-4 text-gray-300">8.55</td>
                         <td className="text-center py-4 px-4 text-gray-300">14.95</td>
-                        <td className="text-center py-4 px-4 text-gray-300">5.0</td>
+                        <td className="text-center py-4 px-4 text-gray-300">4.8</td>
                         <td className="text-center py-4 px-4 text-white font-bold">230</td>
                         <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
                     </tr>
                       <tr className="border-b border-gray-800">
-                        <td className="py-4 px-4 font-semibold text-white">R</td>
+                        <td className="py-4 px-4 font-semibold text-white">240(표준) R</td>
                         <td className="text-center py-4 px-4 text-gray-300">1136</td>
-                        <td className="text-center py-4 px-4 text-gray-300">48</td>
+                        <td className="text-center py-4 px-4 text-gray-300">47</td>
                         <td className="text-center py-4 px-4 text-gray-300">8.55</td>
                         <td className="text-center py-4 px-4 text-gray-300">15.1</td>
-                        <td className="text-center py-4 px-4 text-gray-300">4.0</td>
+                        <td className="text-center py-4 px-4 text-gray-300">3.8</td>
                         <td className="text-center py-4 px-4 text-white font-bold">240</td>
                         <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
                     </tr>
                       <tr>
-                        <td className="py-4 px-4 font-semibold text-white">SR</td>
+                        <td className="py-4 px-4 font-semibold text-white">250(강함) SR</td>
                         <td className="text-center py-4 px-4 text-gray-300">1136</td>
                         <td className="text-center py-4 px-4 text-gray-300">49</td>
                         <td className="text-center py-4 px-4 text-gray-300">8.55</td>
                         <td className="text-center py-4 px-4 text-gray-300">15.15</td>
-                        <td className="text-center py-4 px-4 text-gray-300">4.0</td>
+                        <td className="text-center py-4 px-4 text-gray-300">3.8</td>
                         <td className="text-center py-4 px-4 text-white font-bold">250</td>
                         <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
                     </tr>

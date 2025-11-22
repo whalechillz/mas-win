@@ -400,7 +400,7 @@ export default function About() {
                 <div className="bg-gray-50 rounded-xl p-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">시크리트웨폰 블랙 MUZIIK</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    풀 티타늄 4X 샤프트와 블랙 PVD 코팅의 완벽한 조합. 하이테크 얼리 어답터를 위한 궁극의 콤보.
+                    풀 티타늄 4X 샤프트와 블랙 PVD 코팅의 완벽한 조합. 나노레벨 카본 기술의 궁극의 콤보.
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-8">
@@ -643,7 +643,7 @@ export default function About() {
                         </div>
                         <p className="text-sm text-gray-400 mb-4">MASGOLF® 프리미엄 드라이버 브랜드</p>
                         <p className="text-gray-300 mb-4 leading-relaxed">
-                          MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 하이테크를 추구하는 얼리 어답터부터 피팅을 중시하는 시니어 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
+                          MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 나노레벨 카본 기술을 추구하는 골퍼부터 비거리 회복을 원하는 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
                         </p>
                       </div>
                       <div className="space-y-2">
