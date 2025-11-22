@@ -79,8 +79,8 @@ export default function WeaponBerylProduct() {
   return (
     <>
       <Head>
-        <title>시크리트웨폰 블랙 + MUZIIK 베릴 | 하이테크 얼리아답터를 위한 궁극의 콤보</title>
-        <meta name="description" content="프리미엄 비주얼 + 최고 성능의 완벽한 조합. 블랙 PVD 코팅 + 에메랄드 그린 샤프트. 하이테크 얼리아답터를 위한 리미티드 에디션." />
+        <title>시크리트웨폰 블랙 + MUZIIK 베릴 | 나노레벨 카본 기술의 궁극의 콤보</title>
+        <meta name="description" content="프리미엄 비주얼 + 최고 성능의 완벽한 조합. 블랙 PVD 코팅 + 에메랄드 그린 샤프트. 나노레벨 카본 기술의 리미티드 에디션." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -160,7 +160,7 @@ export default function WeaponBerylProduct() {
                     시크리트웨폰 블랙 + MUZIIK 베릴
                   </h1>
                   <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-4 sm:mb-6">
-                    하이테크 얼리아답터를 위한 궁극의 콤보
+                    나노레벨 카본 기술의 궁극의 콤보
                   </p>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
                     <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600 whitespace-nowrap">2,200,000원</span>
@@ -338,7 +338,7 @@ export default function WeaponBerylProduct() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">프리미엄 디자인의 완벽한 조합</h2>
-              <p className="text-lg text-gray-600">하이테크 얼리아답터를 위한 최고급 기술</p>
+              <p className="text-lg text-gray-600">나노레벨 카본 기술의 최고급 성능</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 mb-12">
@@ -548,7 +548,7 @@ export default function WeaponBerylProduct() {
                         <td className="text-center py-4 px-4 text-white font-bold">240</td>
                         <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
                     </tr>
-                      <tr className="border-b border-gray-800">
+                      <tr>
                         <td className="py-4 px-4 font-semibold text-white">SR</td>
                         <td className="text-center py-4 px-4 text-gray-300">1136</td>
                         <td className="text-center py-4 px-4 text-gray-300">49</td>
@@ -558,29 +558,9 @@ export default function WeaponBerylProduct() {
                         <td className="text-center py-4 px-4 text-white font-bold">250</td>
                         <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
                     </tr>
-                      <tr className="border-b border-gray-800">
-                        <td className="py-4 px-4 font-semibold text-white">S</td>
-                        <td className="text-center py-4 px-4 text-gray-300">1136</td>
-                        <td className="text-center py-4 px-4 text-gray-300">50</td>
-                        <td className="text-center py-4 px-4 text-gray-300">8.55</td>
-                        <td className="text-center py-4 px-4 text-gray-300">15.2</td>
-                        <td className="text-center py-4 px-4 text-gray-300">4.0</td>
-                        <td className="text-center py-4 px-4 text-white font-bold">260</td>
-                        <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
-                    </tr>
-                    <tr>
-                        <td className="py-4 px-4 font-semibold text-white">X</td>
-                        <td className="text-center py-4 px-4 text-gray-300">1136</td>
-                        <td className="text-center py-4 px-4 text-gray-300">53</td>
-                        <td className="text-center py-4 px-4 text-gray-300">8.55</td>
-                        <td className="text-center py-4 px-4 text-gray-300">15.3</td>
-                        <td className="text-center py-4 px-4 text-gray-300">3.9</td>
-                        <td className="text-center py-4 px-4 text-white font-bold">270</td>
-                        <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
-                    </tr>
                   </tbody>
                 </table>
-                <p className="text-sm text-gray-500 mt-4 text-center">※ BERYL 50 (SR: 55g, S: 56g, X: 57g) 中調子</p>
+                <p className="text-sm text-gray-500 mt-4 text-center">※ BERYL 50 (SR: 55g) 中調子</p>
                 </div>
               </div>
               <div className="mt-8 pt-8 border-t border-gray-800">
@@ -598,7 +578,7 @@ export default function WeaponBerylProduct() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">다른 브랜드와의 비교</h2>
-              <p className="text-lg text-gray-600">하이테크 얼리아답터가 인정하는 성능</p>
+              <p className="text-lg text-gray-600">프로 골퍼가 인정하는 성능</p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -654,7 +634,7 @@ export default function WeaponBerylProduct() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">실제 성능 데이터</h2>
-              <p className="text-lg text-gray-600">하이테크 얼리아답터가 인정하는 성능</p>
+              <p className="text-lg text-gray-600">실제 사용자가 인정하는 성능</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -663,7 +643,7 @@ export default function WeaponBerylProduct() {
                   <div className="absolute inset-0">
                     <Image 
                       src="/main/testimonials/hero-faces/review-face-02.jpg"
-                      alt="하이테크 얼리 어답터 후기"
+                      alt="프로 골퍼 후기"
                       fill
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
                     />
@@ -678,7 +658,7 @@ export default function WeaponBerylProduct() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-bold text-white mb-1">하이테크 얼리 어답터</h3>
+                  <h3 className="text-lg font-bold text-white mb-1">최신 기술 선호자</h3>
                   <p className="text-sm text-gray-400 mb-4">최신 기술 선호자</p>
                   <p className="text-gray-300 text-sm leading-relaxed italic">
                     &quot;블랙 PVD 코팅과 에메랄드 그린 샤프트의 조합이 정말 인상적입니다. 비거리도 확실히 늘었고, 무엇보다 시각적으로도 완벽합니다.&quot;
@@ -823,7 +803,7 @@ export default function WeaponBerylProduct() {
           <div className="container mx-auto px-4">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">리미티드 에디션</h2>
-              <p className="text-lg text-gray-600 mb-8">하이테크 얼리아답터만을 위한 특별한 제품</p>
+              <p className="text-lg text-gray-600 mb-8">프리미엄 골퍼를 위한 특별한 제품</p>
               
               <div className="grid md:grid-cols-3 gap-8 mb-8">
                 <div className="bg-gradient-to-br from-white to-emerald-50 rounded-lg p-6 shadow-md border border-emerald-100">

@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompts, blogPostId, metadata, imageCount = 1, textOption } = req.body; // textOption 추가
+    const { prompts, blogPostId, metadata, imageCount = 1, textOption, logoOption } = req.body; // logoOption 추가
 
     if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
       return res.status(400).json({ message: 'Valid prompts array is required' });
@@ -60,18 +60,25 @@ export default async function handler(req, res) {
     // imageCount는 1, 2, 4만 허용
     const validImageCount = [1, 2, 4].includes(imageCount) ? imageCount : 1;
 
-    console.log(`📝 수정된 프롬프트로 이미지 생성 시작: ${prompts.length}개 프롬프트, 각 ${validImageCount}개 이미지, textOption: ${textOption || 'none'}`);
+    console.log(`📝 수정된 프롬프트로 이미지 생성 시작: ${prompts.length}개 프롬프트, 각 ${validImageCount}개 이미지, textOption: ${textOption || 'none'}, logoOption: ${logoOption || 'none'}`);
     
     const paragraphImages = [];
 
     // negative_prompt 동적 조정
     let negativePrompt = "text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, written content";
     
-    if (textOption === 'english' || textOption === 'korean') {
+    // logoOption 처리 (우선순위: logoOption > textOption)
+    if (logoOption === 'none') {
+      // 로고 없음: MASSGOO 브랜딩 제거
+      negativePrompt = "MASSGOO, logo, branding, text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
+    } else if (textOption === 'english' || textOption === 'korean') {
       // 텍스트를 포함하려는 경우, negative_prompt에서 텍스트 제거 지시를 빼기
       negativePrompt = "watermark, caption, subtitle, low quality, blurry, distorted, bad quality";
     } else if (textOption === 'none') {
-      // 텍스트를 완전히 제거하려는 경우, negative_prompt 강화
+      // 텍스트를 완전히 제거하려는 경우, negative_prompt 강화 (로고는 허용)
+      negativePrompt = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
+    } else {
+      // 기본값: 텍스트 없음, 로고는 허용
       negativePrompt = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
     }
 
@@ -80,7 +87,7 @@ export default async function handler(req, res) {
       const promptData = prompts[i];
       const startedAt = Date.now();
       
-      console.log(`🔄 단락 ${i + 1} 이미지 생성 중... (${validImageCount}개, textOption: ${textOption || 'none'})`);
+      console.log(`🔄 단락 ${i + 1} 이미지 생성 중... (${validImageCount}개, textOption: ${textOption || 'none'}, logoOption: ${logoOption || 'none'})`);
       
       // Phase 2.2: 날짜 기반 시드값 생성 (같은 날짜면 같은 시드, 다른 날짜면 다른 시드)
       let variationSeed = null;

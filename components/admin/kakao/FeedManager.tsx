@@ -261,33 +261,37 @@ export default function FeedManager({
     }
   };
 
-  // 텍스트 옵션으로 이미지 재생성 함수
-  const handleRegenerateWithTextOption = async (textOption: 'english' | 'korean' | 'none') => {
+  // 로고 옵션으로 이미지 재생성 함수
+  const handleRegenerateWithLogoOption = async (logoOption: 'logo' | 'full-brand' | 'none') => {
     try {
-      setIsRegeneratingWithTextOption(textOption);
+      setIsRegeneratingWithTextOption(logoOption);
       
       let modifiedPrompt = feedData.imagePrompt;
       
-      // 기존 텍스트 관련 지시사항 제거 (더 강력하게)
-      modifiedPrompt = modifiedPrompt.replace(/\.?\s*(Include|ABSOLUTELY NO|no text|text overlay|watermark|caption|subtitle|written content|text|words|letters)[^.]*\.?/gi, '');
+      // 기존 브랜딩 관련 지시사항 제거
+      modifiedPrompt = modifiedPrompt.replace(/\.?\s*(CRITICAL.*?MASSGOO|brandSpec|logo|branding|embroidery|ABSOLUTELY NO.*?MASSGOO)[^.]*\.?/gi, '');
       
-      // account type에 맞는 나이/인물 지시사항 강화
+      // account type에 맞는 나이/인물 지시사항
       const accountType = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
       const ageSpec = accountType === 'account1' 
         ? 'Korean senior golfer (50-70 years old, Korean ethnicity, Asian facial features, silver/gray hair)'
         : 'Korean young golfer (30-50 years old, Korean ethnicity, Asian facial features)';
       
-      // MASSGOO 브랜딩 (피드 이미지는 항상 골퍼가 포함되므로)
-      const brandSpec = 'CRITICAL: If the golfer is wearing a cap, hat, or any headwear, the cap MUST have "MASSGOO" logo or embroidery clearly visible and readable. If the golfer is wearing clothing (polo shirt, jacket, etc.), the clothing MUST have "MASSGOO" logo or branding clearly visible. The brand name "MASSGOO" must be naturally integrated into the cap/hat fabric as embroidery or printed logo, and on clothing as a logo patch or embroidered text. Use "MASSGOO" (not "MASGOO") as the official brand name.';
-      
-      // 피드 이미지: 워딩 + 로고 둘 다 추가 (정확한 텍스트 명시)
-      if (textOption === 'english') {
-        modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec} Include elegant English text overlay at the bottom center of the image with the exact text: "Connecting Swing and Heart" in minimal and sophisticated typography, white or light colored serif font.`;
-      } else if (textOption === 'korean') {
-        modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec} Include elegant Korean text overlay at the bottom center of the image with the exact text: "비거리의 감성 – 스윙과 마음의 연결" in minimal and sophisticated typography, white or light colored serif font.`;
-      } else if (textOption === 'none') {
-        modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec} ABSOLUTELY NO text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, or any written content whatsoever in the image. The image must be completely text-free.`;
+      // 로고 옵션에 따른 브랜딩 지시사항
+      let brandSpec = '';
+      if (logoOption === 'logo') {
+        // L: 인물의 옷, 모자, 건물, 매장, 조형물에 MASSGOO 로고
+        brandSpec = 'CRITICAL: If the golfer is wearing a cap, hat, or any headwear, the cap MUST have "MASSGOO" logo or embroidery clearly visible and readable. If the golfer is wearing clothing (polo shirt, jacket, etc.), the clothing MUST have "MASSGOO" logo or branding clearly visible. If the scene includes buildings, stores, or structures, include "MASSGOO" store sign, logo, or branding visible on storefronts, interior walls, displays, or architectural elements. If the scene includes sculptures or decorative elements, include "MASSGOO" branding naturally integrated. The brand name "MASSGOO" must be naturally integrated into the cap/hat fabric as embroidery or printed logo, on clothing as a logo patch or embroidered text, and on buildings/structures as realistic store signs or architectural elements. Use "MASSGOO" (not "MASGOO") as the official brand name.';
+      } else if (logoOption === 'full-brand') {
+        // BL: 전체 MASSGOO (로고 + 브랜딩 요소 전체)
+        brandSpec = 'CRITICAL: Prominently feature "MASSGOO" branding throughout the entire image. Include "MASSGOO" logo or embroidery on golfer\'s cap, hat, or headwear clearly visible and readable. Include "MASSGOO" logo or branding on golfer\'s clothing (polo shirt, jacket, etc.) clearly visible. If the scene includes buildings, stores, or structures, prominently display "MASSGOO" store signs, logos, or branding on storefronts, interior walls, displays, or architectural elements. If the scene includes sculptures, decorative elements, or background elements, integrate "MASSGOO" branding naturally throughout. The brand name "MASSGOO" should be visible in multiple locations naturally integrated into the scene. Use "MASSGOO" (not "MASGOO") as the official brand name.';
+      } else {
+        // X: 아무것도 안 넣음
+        brandSpec = 'ABSOLUTELY NO "MASSGOO" branding, logo, text, or any brand elements whatsoever in the image. No logos on caps, hats, clothing, buildings, stores, structures, or any elements. The image must be completely brand-free.';
       }
+      
+      // 피드 이미지: 나이 스펙 + 브랜딩 옵션
+      modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec}`;
       
       // 프롬프트 재생성 없이 직접 이미지 생성 API 호출
       const account = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
@@ -298,7 +302,7 @@ export default function FeedManager({
         body: JSON.stringify({
           prompts: [{ prompt: modifiedPrompt, paragraph: '' }],
           imageCount: 1,
-          textOption: textOption, // 텍스트 옵션 전달
+          logoOption: logoOption, // 로고 옵션 전달
           metadata: {
             account: account,
             type: 'feed',
@@ -322,7 +326,7 @@ export default function FeedManager({
           imagePrompt: modifiedPrompt,
           imageUrl: imageUrls[0]
         });
-        alert(`✅ ${textOption === 'english' ? '영어 자막' : textOption === 'korean' ? '한글 자막' : '노텍스트'} 옵션으로 이미지가 재생성되었습니다.`);
+        alert(`✅ ${logoOption === 'logo' ? '로고 추가' : logoOption === 'full-brand' ? '전체 브랜딩' : '브랜딩 없음'} 옵션으로 이미지가 재생성되었습니다.`);
       }
     } catch (error: any) {
       alert(`이미지 재생성 실패: ${error.message}`);
@@ -449,26 +453,26 @@ export default function FeedManager({
               {feedData.imageUrl && (
                 <>
                   <button
-                    onClick={() => handleRegenerateWithTextOption('english')}
+                    onClick={() => handleRegenerateWithLogoOption('logo')}
                     disabled={isRegeneratingWithTextOption !== null || isGeneratingImage || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
-                    title="영어 자막 추가"
+                    title="인물 옷/모자/건물/매장/조형물에 MASSGOO 로고 추가"
                   >
-                    E
+                    L
                   </button>
                   <button
-                    onClick={() => handleRegenerateWithTextOption('korean')}
+                    onClick={() => handleRegenerateWithLogoOption('full-brand')}
                     disabled={isRegeneratingWithTextOption !== null || isGeneratingImage || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
-                    title="한글 자막 추가"
+                    title="전체 MASSGOO 브랜딩 추가"
                   >
-                    K
+                    BL
                   </button>
                   <button
-                    onClick={() => handleRegenerateWithTextOption('none')}
+                    onClick={() => handleRegenerateWithLogoOption('none')}
                     disabled={isRegeneratingWithTextOption !== null || isGeneratingImage || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
-                    title="텍스트 없음"
+                    title="브랜딩 없음"
                   >
                     X
                   </button>

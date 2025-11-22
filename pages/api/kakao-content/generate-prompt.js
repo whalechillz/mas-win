@@ -75,28 +75,29 @@ export default async function handler(req, res) {
       : 'Feed image for KakaoTalk (square format, engaging golf scene for daily feed)';
 
     // MASSGOO 브랜드 포함 여부 결정
+    // 프로필 이미지는 항상 MASSGOO 로고 포함 (시니어 모델 포함)
     const includeBrand = 
+      // 프로필 이미지: 항상 포함
+      (type === 'profile') ||
       // 배경 이미지: 매장 관련
       (type === 'background' && (prompt.includes('매장') || prompt.includes('store') || prompt.includes('MASSGOO'))) ||
-      // 프로필 이미지: 모자 관련
-      (type === 'profile' && (prompt.includes('모자') || prompt.includes('cap') || prompt.includes('hat'))) ||
-      // 피드 이미지: 매장, 피팅, 모자 관련
-      (type === 'feed' && (
-        prompt.includes('매장') || 
+      // 피드 이미지: 항상 포함 (골퍼가 포함되므로)
+      (type === 'feed') ||
+      // 기타: 매장, 피팅, 모자 관련
+      (prompt.includes('매장') || 
         prompt.includes('store') || 
         prompt.includes('피팅') || 
         prompt.includes('fitting') ||
         prompt.includes('MASSGOO') ||
         prompt.includes('모자') ||
         prompt.includes('cap') ||
-        prompt.includes('hat')
-      ));
+        prompt.includes('hat'));
     
     const brandGuideline = includeBrand
       ? `**IMPORTANT - BRAND VISIBILITY:**
+- For profile images: CRITICAL - The golfer MUST have "MASSGOO" logo or embroidery on their cap, hat, or headwear clearly visible and readable. If wearing clothing (polo shirt, jacket, etc.), the clothing MUST have "MASSGOO" logo or branding clearly visible. The brand name "MASSGOO" must be naturally integrated into the cap/hat fabric as embroidery or printed logo, and on clothing as a logo patch or embroidered text.
 - For store/fitting room images: Include "MASSGOO" store sign, logo, or branding visible on the storefront, interior walls, displays, or fitting room areas
-- For images with caps/hats: Include "MASSGOO" logo/embroidery on the cap or hat naturally
-- For feed images: If the scene includes a store, fitting room, or golfer wearing a cap, include MASSGOO branding appropriately
+- For feed images: If the golfer is wearing a cap, hat, or any headwear, the cap MUST have "MASSGOO" logo or embroidery clearly visible. If the golfer is wearing clothing, the clothing MUST have "MASSGOO" logo or branding clearly visible. If the scene includes a store, fitting room, include MASSGOO branding appropriately.
 - Brand name should be naturally integrated into the scene, not as an overlay
 - Store signs should be realistic and part of the architecture
 - Cap logos should be embroidered or printed on the fabric naturally

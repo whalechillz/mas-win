@@ -72,8 +72,10 @@ const GalleryPicker: React.FC<Props> = ({
       
       if (folderFilter) {
         params.append('prefix', folderFilter);
-        // originals/daily-branding/kakao 루트 폴더인 경우 하위 폴더 포함
-        const includeChildren = folderFilter === 'originals/daily-branding/kakao' ? 'true' : 'false';
+        // originals/daily-branding/kakao로 시작하는 경로인 경우 하위 폴더 포함
+        // 날짜별 폴더(YYYY-MM-DD 패턴)가 포함된 경우에도 하위 폴더 포함
+        const isKakaoFolder = folderFilter.startsWith('originals/daily-branding/kakao');
+        const includeChildren = isKakaoFolder ? 'true' : 'false';
         params.append('includeChildren', includeChildren);
       }
       
