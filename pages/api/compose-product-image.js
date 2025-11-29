@@ -82,10 +82,15 @@ function getAbsoluteProductImageUrl(productImageUrl) {
   
   // 상대 경로인 경우 공개 도메인으로 변환
   // 프로덕션 환경에서는 실제 도메인 사용
+  // 로컬 개발 환경에서는 환경 변수가 없으면 null 반환 (제품 이미지 제외)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   
   if (!baseUrl) {
+    // 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행
+    if (process.env.NODE_ENV === 'development') {
+      return null; // null 반환하여 제품 이미지 제외
+    }
     throw new Error(`제품 이미지 URL을 공개 URL로 변환할 수 없습니다. NEXT_PUBLIC_SITE_URL 또는 VERCEL_URL 환경 변수를 설정해주세요. 상대 경로: ${productImageUrl}`);
   }
   
@@ -161,21 +166,39 @@ export default async function handler(req, res) {
     if (productImageUrl) {
       try {
         const absoluteProductUrl = getAbsoluteProductImageUrl(productImageUrl);
-        imageUrls.push(absoluteProductUrl);
-        console.log('✅ 제품 이미지 포함:', absoluteProductUrl);
+        if (absoluteProductUrl) {
+          imageUrls.push(absoluteProductUrl);
+          console.log('✅ 제품 이미지 포함:', absoluteProductUrl);
+        } else {
+          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외합니다. FAL AI는 로컬호스트에 접근할 수 없습니다.');
+        }
       } catch (error) {
         console.error('❌ 제품 이미지 URL 변환 실패:', error.message);
-        throw error;
+        // 로컬 개발 환경에서는 에러를 던지지 않고 경고만
+        if (process.env.NODE_ENV === 'production') {
+          throw error;
+        } else {
+          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행합니다.');
+        }
       }
     } else if (product.imageUrl) {
       // 제품 데이터에서 이미지 URL 사용
       try {
         const absoluteProductUrl = getAbsoluteProductImageUrl(product.imageUrl);
-        imageUrls.push(absoluteProductUrl);
-        console.log('✅ 제품 이미지 포함 (데이터베이스):', absoluteProductUrl);
+        if (absoluteProductUrl) {
+          imageUrls.push(absoluteProductUrl);
+          console.log('✅ 제품 이미지 포함 (데이터베이스):', absoluteProductUrl);
+        } else {
+          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외합니다.');
+        }
       } catch (error) {
         console.error('❌ 제품 이미지 URL 변환 실패:', error.message);
-        throw error;
+        // 로컬 개발 환경에서는 에러를 던지지 않고 경고만
+        if (process.env.NODE_ENV === 'production') {
+          throw error;
+        } else {
+          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행합니다.');
+        }
       }
     }
     
