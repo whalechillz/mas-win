@@ -80,7 +80,17 @@ export default function Home({ hostname }) {
       subtitle: '고반발 드라이버',
       price: '1,150,000원',
       features: ['DAT55G 티타늄', '2.3mm 페이스', 'COR 0.86'],
-      images: ['/main/products/secret-force-pro3.webp'],
+      images: [
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_00.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_01.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_02.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_03.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_04.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_05.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_06.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_07.jpg',
+        '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_08.jpg',
+      ],
       badges: null,
       borderColor: null,
     },
@@ -90,7 +100,15 @@ export default function Home({ hostname }) {
       subtitle: '투어 드라이버',
       price: '950,000원',
       features: ['DAT55G 티타늄', '2.4mm 페이스', 'COR 0.85'],
-      images: ['/main/products/secret-force-v3.webp'],
+      images: [
+        '/main/products/v3/마쓰구_시크리트포스_V3_05_00.jpg',
+        '/main/products/v3/마쓰구_시크리트포스_V3_공홈_02.jpg',
+        '/main/products/v3/마쓰구_시크리트포스_V3_공홈_03.jpg',
+        '/main/products/v3/마쓰구_시크리트포스_V3_공홈_04.jpg',
+        '/main/products/v3/마쓰구_시크리트포스_V3_공홈_05.jpg',
+        '/main/products/v3/마쓰구_시크리트포스_V3_공홈_06.jpg',
+        '/main/products/v3/마쓰구_시크리트포스_V3_공홈_07.jpg',
+      ],
       badges: null,
       borderColor: null,
     },
@@ -100,7 +118,17 @@ export default function Home({ hostname }) {
       subtitle: '프리미엄 리미티드',
       price: '1,700,000원',
       features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
-      images: ['/main/products/secret-weapon-black.webp'],
+      images: [
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_00_01.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_01.png',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_02.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_03.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_04.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_05.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_06.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_07.jpg',
+        '/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_08_01.jpg',
+      ],
       badges: { left: 'LIMITED', right: null, leftColor: 'purple', rightColor: null },
       borderColor: 'purple',
     },
@@ -110,13 +138,40 @@ export default function Home({ hostname }) {
       subtitle: '프리미엄 드라이버',
       price: '1,700,000원',
       features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
-      images: ['/main/products/secret-weapon-4-1.webp'],
+      images: [
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_00_01.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_01.png',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_02.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_03.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_04.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_05.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_06.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_07.jpg',
+        '/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_08_01.jpg',
+      ],
       badges: null,
       borderColor: null,
     },
   ];
 
   const handleProductClick = (product) => {
+    // 1,2,3번 제품은 각각의 제품 페이지로 이동
+    if (product.id === 'gold2-sapphire') {
+      router.push('/products/gold2-sapphire');
+      return;
+    }
+    if (product.id === 'black-beryl') {
+      router.push('/products/weapon-beryl');
+      return;
+    }
+    if (product.id === 'gold2') {
+      // gold2 제품 페이지가 없으면 모달 표시
+      setSelectedProduct(product);
+      setSelectedImageIndex(0);
+      return;
+    }
+    
+    // 4,5,6,7번 제품은 모달로 표시 (기존 동작 유지)
     setSelectedProduct(product);
     setSelectedImageIndex(0);
   };
