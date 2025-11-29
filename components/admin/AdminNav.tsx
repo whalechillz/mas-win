@@ -10,8 +10,8 @@ const AdminNav = () => {
   return (
     <div className="bg-white border-b sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-12">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
+        <div className="flex items-center justify-between min-h-12 py-2">
+          <div className="flex items-center gap-2 text-sm text-gray-700 flex-wrap">
             <Link href="/admin" className={`px-2 py-1 rounded font-semibold ${isActive('/admin') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>관리자</Link>
             <span className="text-gray-300">|</span>
             <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>블로그 관리</Link>
@@ -23,7 +23,9 @@ const AdminNav = () => {
             <Link href="/admin/category-management" className={`px-2 py-1 rounded ${isActive('/admin/category-management') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📂 카테고리 관리</Link>
         <Link href="/admin/content-calendar-hub" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar-hub') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>🎯 허브 시스템</Link>
             <Link href="/admin/multichannel-dashboard" className={`px-2 py-1 rounded ${isActive('/admin/multichannel-dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📊 멀티채널 대시보드</Link>
+            <Link href="/admin/ai-image-generator" className={`px-2 py-1 rounded ${isActive('/admin/ai-image-generator') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>🎨 AI 이미지 생성</Link>
             <Link href="/admin/ai-dashboard" className={`px-2 py-1 rounded ${isActive('/admin/ai-dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>AI 관리</Link>
+            <Link href="/admin/booking" className={`px-2 py-1 rounded font-medium ${isActive('/admin/booking') ? 'bg-red-600 text-white' : 'hover:bg-red-50 text-red-600'}`}>📅 시타예약</Link>
             <Link href="/admin/customers" className={`px-2 py-1 rounded ${isActive('/admin/customers') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>👥 고객</Link>
           </div>
           

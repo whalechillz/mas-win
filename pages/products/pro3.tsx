@@ -12,15 +12,15 @@ export default function Pro3Product() {
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
   const productImages = [
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_00.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_01.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_02.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_03.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_04.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_05.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_06.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_07.jpg',
-    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_08.jpg',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_00.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_01.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_02.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_03.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_04.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_05.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_06.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_07.webp',
+    '/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_08.webp',
   ];
 
   // 블로그 후기 가져오기
