@@ -135,7 +135,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
               {/* 제품 이미지 */}
               <div className="relative w-20 h-20 bg-gray-50 rounded overflow-hidden flex-shrink-0">
                 <Image
-                  src={encodeURI(product.imageUrl)}
+                  src={product.imageUrl}
                   alt={product.name}
                   fill
                   className="object-contain"
