@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2025-11-29T01:03:04.211Z",
+  "urlMapping": [
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589662-4.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589208-3.webp"
+    },
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590440-6.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590044-5.webp"
+    },
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591360-8.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590842-7.webp"
+    },
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592268-10.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591887-9.webp"
+    },
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771593103-12.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592666-11.webp"
+    }
+  ],
+  "summary": {
+    "totalPosts": 164,
+    "updated": 1,
+    "failed": 0
+  },
+  "updatedPosts": [
+    {
+      "id": 123,
+      "title": "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다.",
+      "contentUpdated": true,
+      "featuredUpdated": false,
+      "replacedCount": 5,
+      "replacedUrls": [
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757771589662-4.webp",
+          "newFileName": "complete-migration-1757771589208-3.webp"
+        },
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757771590440-6.webp",
+          "newFileName": "complete-migration-1757771590044-5.webp"
+        },
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757771591360-8.webp",
+          "newFileName": "complete-migration-1757771590842-7.webp"
+        },
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757771592268-10.webp",
+          "newFileName": "complete-migration-1757771591887-9.webp"
+        },
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757771593103-12.webp",
+          "newFileName": "complete-migration-1757771592666-11.webp"
+        }
+      ]
+    }
+  ]
+}

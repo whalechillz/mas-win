@@ -534,8 +534,12 @@ export default function SMSAdmin() {
   }, [mode, edit, id, blogPostId, loadPost, loadFromBlog, updateFormData, fetchLatestPreview]);
 
   useEffect(() => {
-    if (!imagePreviewUrl && isHttpUrl(formData.imageUrl)) {
+    // formData.imageUrl이 HTTP URL이면 imagePreviewUrl 설정
+    if (isHttpUrl(formData.imageUrl)) {
       setImagePreviewUrl(formData.imageUrl);
+    } else if (!formData.imageUrl && imagePreviewUrl) {
+      // imageUrl이 없어지면 imagePreviewUrl도 초기화
+      setImagePreviewUrl('');
     }
   }, [formData.imageUrl, imagePreviewUrl]);
 

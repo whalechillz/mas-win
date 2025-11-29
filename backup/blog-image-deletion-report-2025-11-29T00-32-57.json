@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2025-11-29T00:32:57.949Z",
+  "summary": {
+    "totalBlogPosts": 4,
+    "blogPostIds": [
+      122,
+      305,
+      304,
+      303
+    ],
+    "totalUniqueImageUrls": 11,
+    "hashCalculationSuccess": 8,
+    "hashCalculationFailed": 3,
+    "duplicateGroupsCount": 2,
+    "totalDuplicateImages": 4,
+    "deletionCandidatesCount": 2,
+    "totalImagesToRemove": 2,
+    "estimatedSpaceToSave": 400000
+  },
+  "deletionCandidates": [
+    {
+      "hash_md5": "8a9476f68e3e1d3b02d1bc127243d95e",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        305
+      ],
+      "blogPostTitles": [
+        "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험"
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777702116-2.webp",
+          "path": "complete-migration-1757777702116-2.webp",
+          "fileName": "complete-migration-1757777702116-2.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            305
+          ],
+          "blogPostTitles": [
+            "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험"
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777702664-3.webp",
+          "path": "complete-migration-1757777702664-3.webp",
+          "fileName": "complete-migration-1757777702664-3.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            305
+          ],
+          "blogPostTitles": [
+            "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험"
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    },
+    {
+      "hash_md5": "479d935010f95908c53f1cb5acdd4438",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        305
+      ],
+      "blogPostTitles": [
+        "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험"
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777704699-4.webp",
+          "path": "complete-migration-1757777704699-4.webp",
+          "fileName": "complete-migration-1757777704699-4.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            305
+          ],
+          "blogPostTitles": [
+            "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험"
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777705122-5.webp",
+          "path": "complete-migration-1757777705122-5.webp",
+          "fileName": "complete-migration-1757777705122-5.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            305
+          ],
+          "blogPostTitles": [
+            "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험"
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    }
+  ]
+}

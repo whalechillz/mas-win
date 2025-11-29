@@ -8,6 +8,7 @@ import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { createClient } from '@supabase/supabase-js';
 import { CONTENT_STRATEGY, CUSTOMER_PERSONAS, CUSTOMER_CHANNELS } from '../../lib/masgolf-brand-data';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import VariationRecommendationModal from '../../components/admin/VariationRecommendationModal';
@@ -115,6 +116,7 @@ export default function BlogAdmin() {
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState('');
   const [scrapedData, setScrapedData] = useState(null);
+
 
   // AI 프리셋 상수 정의 (16단계 확장)
   const AI_PRESETS = {
@@ -5392,6 +5394,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
           </div>
         </div>
       )}
+
           {activeTab === 'list' && (
             <div className="bg-white rounded-lg shadow-md p-6">
               {/* 검색 및 필터 */}

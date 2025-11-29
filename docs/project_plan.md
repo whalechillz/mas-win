@@ -33,6 +33,701 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 완료된 작업
+
+### 프리미엄 드라이버 컬렉션 페이지: 제품 클릭 링크 개선 및 모달 이미지 갤러리 추가 ✅ (2025-01-XX)
+- **목적**: 프리미엄 드라이버 컬렉션에서 제품 이미지 클릭 시 적절한 페이지로 연결하고, 모달에서 여러 이미지 표시
+- **완료된 작업**:
+  1. **제품 클릭 링크 분기 처리** ✅:
+     - 1번 제품 (시크리트포스 골드 2 MUZIIK): `/products/gold2-sapphire` 페이지로 이동
+     - 2번 제품 (시크리트웨폰 블랙 MUZIIK): `/products/weapon-beryl` 페이지로 이동
+     - 3번 제품 (시크리트포스 골드 2): 모달 표시 (제품 페이지 없음)
+     - 4번 제품 (시크리트포스 PRO 3): 모달 표시 (9장 이미지)
+     - 5번 제품 (시크리트포스 V3): 모달 표시 (8장 이미지)
+     - 6번 제품 (시크리트웨폰 블랙): 모달 표시 (10장 이미지)
+     - 7번 제품 (시크리트웨폰 골드 4.1): 모달 표시 (10장 이미지)
+  2. **모달 이미지 갤러리 업데이트** ✅:
+     - PRO 3: 9장 이미지 추가 (메인 + 공홈 8장)
+     - V3: 8장 이미지 추가 (메인 + 공홈 7장)
+     - 웨폰 블랙: 10장 이미지 추가 (메인 + 공홈 9장)
+     - 골드 웨폰 4.1: 10장 이미지 추가 (메인 + 공홈 9장)
+     - 모달에서 썸네일 갤러리로 여러 이미지 선택 및 표시 가능
+- **변경 파일**:
+  - `pages/index.js` (`handleProductClick` 함수 수정, products 배열의 images 업데이트)
+- **결과**: 제품 페이지가 있는 제품은 해당 페이지로 이동하고, 모달로 표시되는 제품들도 여러 장의 이미지를 갤러리 형태로 확인할 수 있음
+
+### AI 이미지 제품 합성 시스템: 제품 이미지 경로 업데이트 및 제품 페이지 생성 ✅ (2025-01-XX)
+- **목적**: 제품 합성에 사용되는 이미지를 솔 이미지로 업데이트하고, PRO 3, V3, 골드 웨폰 4.1 제품 페이지 생성
+- **완료된 작업**:
+  1. **제품 이미지 URL 업데이트** ✅:
+     - 골드2 뮤직 (gold2-sapphire): `마쓰구_시크리트포스_골드_2_500.png`
+     - 골드2 (gold2): `마쓰구_시크리트포스_골드_2_500.png`
+     - 웨폰 블랙 뮤직 (black-beryl): `마쓰구_시크리트웨폰_블랙_500.png`
+     - 웨폰 블랙 (weapon-black): `마쓰구_시크리트웨폰_블랙_500.png`
+     - 골드 웨폰 4.1 (weapon-gold-4-1): `마쓰구_시크리트웨폰_4.1_500.png`
+     - PRO 3 (pro3): `마쓰구_시크리트포스_PRO_500.png`
+     - V3 (v3): `마쓰구_시크리트포스_V3_05_00.jpg` (솔 이미지로 업데이트)
+  2. **PRO 3 제품 페이지 생성** ✅:
+     - `pages/products/pro3.tsx` 생성
+     - 9장의 제품 이미지 설정 (메인 이미지 + 공홈 이미지 8장)
+     - 가격: 1,150,000원
+     - 제품 상세 정보, 고객 후기 섹션 포함
+  3. **V3 제품 페이지 생성** ✅:
+     - `pages/products/v3.tsx` 생성
+     - 8장의 제품 이미지 설정 (메인 이미지 + 공홈 이미지 7장)
+     - 가격: 950,000원
+     - 제품 상세 정보, 고객 후기 섹션 포함
+  4. **시크리트웨폰 골드 4.1 제품 페이지 생성** ✅:
+     - `pages/products/gold-weapon4.tsx` 생성
+     - 10장의 제품 이미지 설정 (메인 이미지 + 공홈 이미지 9장)
+     - 가격: 1,700,000원
+     - 제품 상세 정보, 고객 후기 섹션 포함
+     - 골드 톤에 맞는 배경색 적용 (from-yellow-50 via-white to-yellow-100)
+- **변경 파일**:
+  - `lib/product-composition.ts` (제품 이미지 URL 업데이트, V3 이미지 경로 수정)
+  - `pages/products/pro3.tsx` (신규 생성)
+  - `pages/products/v3.tsx` (신규 생성)
+  - `pages/products/gold-weapon4.tsx` (신규 생성)
+- **결과**: 제품 합성 시 솔 이미지가 사용되며, PRO 3, V3, 골드 웨폰 4.1 제품 페이지가 생성되어 제품 상세 정보를 확인할 수 있음
+
+### 블로그 글 302 (Mas9Popup) AI 이미지 생성 및 추가 완료 ✅ (2025-11-29)
+- **목적**: 마쓰구 이미지 생성기 API를 사용하여 AI 이미지 생성 및 블로그 콘텐츠에 추가
+- **완료된 작업**:
+  1. **기존 DALL-E 3 이미지 제거** ✅:
+     - 이전에 생성된 DALL-E 3 이미지 2장 제거 (품질 문제)
+  2. **마쓰구 이미지 생성기 API로 재생성** ✅:
+     - `/api/kakao-content/generate-images` API 사용 (FAL AI hidream-i1-dev)
+     - "비공인 드라이버의 필요성" 이미지 1장 생성
+     - "고반발 골프 드라이버" 이미지 1장 생성
+     - 한국 골퍼 스펙 자동 적용 (50-70세, 한국인 외모)
+     - 시니어 감성형 브랜딩 톤 적용
+     - 총 2장 생성 완료
+  3. **이미지 업로드 및 추가** ✅:
+     - 생성된 이미지를 Supabase Storage에 업로드 (`originals/blog/2017-03/302/`)
+     - 첫 번째 이미지를 본문 시작 부분에 추가
+     - 두 번째 이미지를 본문 중간에 추가
+  4. **메타데이터 생성** ✅:
+     - 생성된 이미지 2장에 메타데이터 생성 완료 (일반 메타 생성 사용)
+- **변경 파일**:
+  - `scripts/generate-masgolf-images-for-blog-302.js` (신규, 마쓰구 이미지 생성기 API 사용)
+  - `scripts/generate-and-add-images-to-blog-302.js` (기존, DALL-E 3 사용 - 더 이상 사용 안 함)
+- **최종 상태**:
+  - 블로그 글 이미지: 3개 (대표 이미지 1개 + AI 생성 이미지 2개)
+  - 갤러리 이미지: 2개 (AI 생성 이미지)
+  - 메타데이터: 2개 생성 완료
+- **결과**: AI 이미지 생성 및 추가 완료, 메타데이터 생성 완료
+
+### 블로그 글 302 (Mas9Popup) 최적화 완료 ✅ (2025-11-29)
+- **목적**: 제목 표현 개선, 중복 제목 제거, 관련 포스트 제거, 문서 업데이트
+- **완료된 작업**:
+  1. **제목 표현 개선** ✅:
+     - "Mas9Popup:" → "Mas9Popup -" (콜론을 하이픈으로 변경)
+  2. **콘텐츠 정제** ✅:
+     - 과도한 키워드 반복 제거 (4개 수정)
+     - 플레이스홀더 이미지 제거
+  3. **하드코딩된 관련 포스트 제거** ✅:
+     - "관련 포스트" 섹션 제거 (동적 "관련 게시물"로 대체)
+  4. **태그 섹션 제거** ✅:
+     - "### 태그" 섹션 제거
+  5. **문서 업데이트** ✅:
+     - `docs/blog-post-optimization-guide.md`에 제목 표현 개선 가이드 추가
+     - AI 이미지 생성 및 추가 가이드 추가
+     - 관련 포스트 → 관련 게시물 용어 통일 명시
+- **결과**: 블로그 글 302 최적화 완료, 문서 업데이트 완료
+
+### 블로그 글 303 (스타와 함께 마쓰구와 함께) 슬러그 변경 및 콘텐츠 수정 완료 ✅ (2025-11-29)
+- **목적**: 슬러그 변경, 콘텐츠 정리, YouTube 영상 추가
+- **완료된 작업**:
+  1. **슬러그 변경** ✅:
+     - `massgoo` → `golf-event-with-stars-and-massgoo`
+     - 새 URL: `/blog/golf-event-with-stars-and-massgoo`
+  2. **콘텐츠 정리** ✅:
+     - 링크 제거: `[[Mas9Golf] 충북경제단체 골프친선대회 협찬행사^^](/blog/mas9golf friendly-tournament-sponsorship)`
+     - 이미지 제거: `complete migration 1757772544303 1` 이미지
+  3. **YouTube 영상 추가** ✅:
+     - YouTube iframe 추가: `https://www.youtube.com/embed/pdXs9OgRbFU?start=18`
+     - 18초부터 재생되도록 설정
+- **결과**: 슬러그 변경 및 콘텐츠 수정 완료, YouTube 영상 추가 완료
+
+### 블로그 글 303 (스타와 함께 마쓰구와 함께) 슬러그 변경 및 이미지 복구 완료 ✅ (2025-11-29)
+- **목적**: 슬러그 변경 및 깨진 이미지 복구
+- **완료된 작업**:
+  1. **슬러그 변경** ✅:
+     - `golf-event-with-stars-and-matsugu` → `massgoo`
+  2. **이미지 복구** ✅:
+     - 루트 폴더에서 massgoo 관련 이미지 3개 발견 및 복구
+     - 이미지를 `originals/blog/2017-03/303/` 폴더로 이동
+     - 콘텐츠에 이미지 추가 및 URL 업데이트
+  3. **메타데이터 생성** ✅:
+     - 복구된 이미지 3개에 메타데이터 생성 완료 (일반 메타 생성 사용)
+- **최종 상태**:
+  - 블로그 글 이미지: 4개 (YouTube 썸네일 1개 + 복구된 이미지 3개)
+  - 갤러리 이미지: 3개 (복구된 이미지)
+  - 슬러그: `massgoo`
+- **결과**: 슬러그 변경 및 이미지 복구 완료, 모든 이미지 메타데이터 생성 완료
+
+### 블로그 글 303 (스타와 함께 마쓰구와 함께) 마이그레이션 완료 ✅ (2025-11-29)
+- **목적**: 5번째 블로그 글 마이그레이션 및 최적화
+- **완료된 작업**:
+  1. **콘텐츠 최적화** ✅:
+     - 하드코딩된 관련 포스트 섹션 제거
+     - 태그 섹션 제거
+     - 플레이스홀더 이미지 1개 제거 ("이미지URL")
+     - 중복 이미지 1개 제거
+     - 과도한 키워드 패턴 정제 (2개 수정)
+     - 텍스트 단락 개선 (3개 단락 추가)
+  2. **이미지 관리** ✅:
+     - YouTube 썸네일 이미지 1개 확인 (대표 이미지로 사용 중)
+     - 플레이스홀더 이미지 제거로 콘텐츠 정리
+  3. **메타데이터** ⚠️:
+     - YouTube 썸네일은 외부 URL이므로 메타데이터 생성 불필요
+- **결과**: 블로그 글 303 마이그레이션 완료, 플레이스홀더 이미지 제거로 콘텐츠 정리 완료
+
+### 블로그 글 304 (마쓰구 탄생 스토리) 마이그레이션 완료 ✅ (2025-11-29)
+- **목적**: 4번째 블로그 글 마이그레이션 및 최적화
+- **완료된 작업**:
+  1. **콘텐츠 최적화** ✅:
+     - 하드코딩된 관련 포스트 섹션 제거
+     - 태그 섹션 제거
+     - 플레이스홀더 이미지 2개 제거 ("드라이버이미지URL", "마쓰구이미지URL")
+     - 텍스트 단락 개선 (11개 단락 추가)
+  2. **이미지 관리** ✅:
+     - 대표 이미지 1개 확인 (originals/blog/2017-03/304/)
+     - 플레이스홀더 이미지 제거로 콘텐츠 정리
+  3. **메타데이터 생성** ✅:
+     - 대표 이미지 1개에 메타데이터 생성 완료 (일반 메타 생성 사용)
+- **결과**: 블로그 글 304 마이그레이션 완료, 플레이스홀더 이미지 제거로 콘텐츠 정리 완료
+
+### 블로그 이미지 마이그레이션 프로세스 개선 및 이경영 글 최적화 완료 ✅ (2025-11-29)
+- **목적**: 블로그 이미지 마이그레이션 프로세스 개선 및 문서화
+- **완료된 작업**:
+  1. **문서 업데이트** ✅:
+     - `docs/blog-image-migration-and-cleanup-plan.md`: 이미지 이동 후 대기 시간 및 메타데이터 생성 방법 설명 추가
+     - `docs/blog-post-optimization-guide.md`: 메타데이터 생성 방법 및 대기 시간 가이드 추가
+  2. **스크립트 개선** ✅:
+     - `scripts/optimize-blog-post-complete.js`: 이미지 이동 후 10초 대기 시간 자동 추가 (Storage 안정화)
+  3. **이경영 글(ID: 305) 최적화 완료** ✅:
+     - 루트 폴더에 있던 이미지 2개를 갤러리 폴더로 이동 완료
+     - 깨진 이미지 2개 제거 완료
+     - 주황색 옷 이미지 복구 완료 (Storage 루트에서 찾아서 이동)
+     - 모든 이미지(3개)에 메타데이터 생성 완료 (일반 메타 생성 사용)
+  4. **메타데이터 생성 방법 명확화** ✅:
+     - 블로그 이미지는 "일반 메타 생성" 사용 (골프 AI 생성 아님)
+     - 이유: 연령대 분석이나 골프 카테고리 자동 결정 같은 특화 기능이 필요 없음
+     - ALT, Title, Description, Keywords만 있으면 충분
+
+### 제목 중복 제거 기능 개선 및 김구식 글 최적화 완료 ✅ (2025-11-29)
+- **목적**: 제목과 내용 상단 타이틀의 중복 제거로 가독성 및 SEO 최적화
+- **완료된 작업**:
+  1. **`refine-blog-content.js` 개선** ✅:
+     - 한글 조사(을/를, 이/가, 은/는 등) 처리 추가로 유사도 계산 정확도 향상
+     - 마크다운 제목(# ## ###)과 원본 제목의 중복 제거 (유사도 40% 이상)
+     - 내용 상단 타이틀과 원본 제목의 중복 제거 (유사도 40% 이상, 핵심 키워드 3개 이상 매칭)
+     - 예: 제목 "마쓰구골프 드라이버를 사용하는 세계적인 골프지도자 김구식 선생님을 소개합니다."와 내용 상단 "세계적인 골프지도자 김구식 선생님 소개 - 고반발드라이버 비거리향상 추천" 중복 제거
+  2. **문서 업데이트** ✅:
+     - `docs/blog-post-optimization-guide.md`에 제목 중복 제거 가이드 추가
+     - Phase 3 콘텐츠 정제 섹션에 상세 설명 추가
+  3. **김구식 글(ID: 122) 최적화 완료** ✅:
+     - 중복 마크다운 제목 제거 완료 (유사도 62.5%)
+     - 전체 최적화 스크립트 실행 완료 (11/11 단계 성공)
+     - 이미지 배치 최적화 완료
+     - 가독성 및 SEO 개선 완료
+
+### 블로그 포스트 최적화 가이드 작성 및 강석 글 최적화 완료 ✅ (2025-11-29)
+- **목적**: 블로그 포스트의 이미지 중복 제거, 콘텐츠 정제, 이미지 배치 최적화
+- **완료된 작업**:
+  1. **최적화 가이드 문서 작성** ✅:
+     - `docs/blog-post-optimization-guide.md` 생성
+     - `docs/blog-paragraph-splitting-and-image-placement-guide.md` 생성 (단락 분할 및 이미지 배치 가이드)
+     - 6단계 작업 체크리스트 (현황 분석 → 중복 제거 → 콘텐츠 정제 → 이미지 배치 → 메타데이터 → 검증)
+     - 9개의 실행 스크립트 작성 및 문서화
+  2. **실행 스크립트 작성** ✅:
+     - `scripts/analyze-blog-gallery-images.js`: 블로그와 갤러리 이미지 비교 분석
+     - `scripts/remove-duplicate-blog-images.js`: 블로그 글 내 중복 이미지 제거
+     - `scripts/refine-blog-content.js`: 과도한 키워드 제거, 자연스러운 문장으로 수정
+     - `scripts/remove-hardcoded-related-posts.js`: 하드코딩된 관련 포스트 섹션 제거
+     - `scripts/remove-tags-section-from-content.js`: content 내 태그 섹션 제거
+     - `scripts/restore-missing-images-to-content.js`: 갤러리에 있지만 content에 없는 이미지 복구
+     - `scripts/improve-paragraph-splitting.js`: 텍스트 단락을 문장 단위로 분리
+     - `scripts/optimize-image-placement.js`: 이미지를 글 중간중간에 적절히 배치
+     - `scripts/optimize-blog-post-complete.js`: 모든 최적화 단계를 자동으로 실행하는 통합 스크립트
+  3. **강석 글(ID 123) 최적화 완료** ✅:
+     - **현황 분석**: 블로그 글 13개 이미지 → 고유 7개, 중복 6개 확인
+     - **중복 제거**: 6개 중복 이미지 제거 완료 (13개 → 7개)
+     - **콘텐츠 정제**: 과도한 키워드 반복 4개 수정 ("고반발드라이버 추천 - 드라이버추천 추천 - 골프드라이버 추천 - 비거리향상 추천" → "고반발드라이버 비거리향상 추천")
+     - **하드코딩된 관련 포스트 제거**: content 내 관련 포스트 섹션 제거 완료
+     - **태그 섹션 제거**: content 내 태그 섹션 제거 완료
+     - **누락된 이미지 복구**: 갤러리에 있지만 content에 없는 3개 이미지 복구 완료
+     - **텍스트 단락 개선**: 텍스트 단락을 문장 단위로 분리 (4개 → 11개)
+     - **이미지 배치 최적화**: 7개 이미지를 글 중간중간에 적절히 배치 완료
+     - **최종 결과**: 
+       - 블로그 글 이미지 7개 = 갤러리 이미지 7개, 중복 0개
+       - 이미지/텍스트 비율: 0.64 (적절)
+       - 총 단락: 18개 (제목 3개 + 텍스트 11개 + 이미지 7개)
+  4. **다음 블로그 글 마이그레이션 준비** ✅:
+     - 통합 스크립트 생성: `scripts/optimize-blog-post-complete.js`
+     - 모든 최적화 단계를 자동으로 실행하는 원클릭 솔루션 제공
+- **참고 문서**: 
+  - `docs/blog-post-optimization-guide.md`
+  - `docs/blog-paragraph-splitting-and-image-placement-guide.md`
+
+### 블로그 이미지 마이그레이션 및 정리 계획 수립 및 Phase 1 완료 ✅ (2025-11-29)
+- **목적**: Wix에서 마이그레이션된 블로그 이미지들을 체계적으로 정리하고 최적화
+- **완료된 작업**:
+  1. **계획 문서 작성** ✅:
+     - `docs/blog-image-migration-and-cleanup-plan.md` 생성
+     - 5단계 실행 계획 수립 (분석 → 정리 → 중복 제거 → 메타데이터 → 검증)
+  2. **Phase 1: 전체 분석 완료** ✅:
+     - 전체 블로그 이미지 현황 파악 (164개 글, 524개 고유 이미지)
+     - 중복 이미지 그룹 식별 (2개 그룹, 4개 이미지)
+     - Storage에서 못 찾은 이미지 확인 (93개)
+     - 외부 URL 확인 (7개)
+     - 분석 결과 저장: `backup/blog-image-analysis-2025-11-29T00-19-21.json`
+     - 중복 그룹 저장: `backup/blog-duplicate-groups-2025-11-29T00-19-21.json`
+  3. **Phase 1 스크립트 생성** ✅:
+     - `scripts/phase1-analyze-all-blog-images.js` 생성
+- **분석 결과 요약**:
+  - 총 블로그 글: 164개
+  - 고유 이미지 URL: 524개
+  - Storage에서 찾음: 424개 (80.9%)
+  - Storage에서 못 찾음: 93개 (17.8%) ⚠️
+  - 외부 URL: 7개 (1.3%) ⚠️
+  - 중복 이미지 그룹: 2개 (4개 이미지)
+- **다음 단계**: Phase 2 (발행일 순서로 글별 정리) - 강석 글부터 시작
+- **변경 파일**:
+  - `docs/blog-image-migration-and-cleanup-plan.md` (신규)
+  - `scripts/phase1-analyze-all-blog-images.js` (신규)
+  - `backup/blog-image-analysis-2025-11-29T00-19-21.json` (분석 결과)
+  - `backup/blog-duplicate-groups-2025-11-29T00-19-21.json` (중복 그룹)
+
+### 80번 메시지 이미지 복구 완료 ✅ (2025-11-28)
+- **목적**: 솔라피 콘솔에서 수동으로 다운로드한 이미지를 Supabase Storage에 업로드하여 80번 메시지의 이미지 복구
+- **완료된 작업**:
+  1. **로컬 파일 기반 이미지 복구 스크립트 생성** ✅:
+     - `scripts/recover-message-80-image-from-file.js` 생성
+     - 로컬 파일 경로를 받아서 Supabase Storage에 업로드
+     - `image_metadata` 테이블에 메타데이터 저장
+     - `channel_sms.image_url` 업데이트
+  2. **이미지 복구 실행** ✅:
+     - 다운로드 폴더의 이미지 파일(`나노레벨_40g_티타늄샤프트 (1).jpg`, 210.37KB) 사용
+     - Supabase Storage 경로: `originals/mms/2025-11-18/80/mms-80-1764338795245-1.jpg`
+     - 공개 URL 생성 및 DB 업데이트 완료
+     - 메타데이터 ID: 56563
+- **변경 파일**:
+  - `scripts/recover-message-80-image-from-file.js` (신규)
+- **결과**: SMS 편집 페이지(`/admin/sms?id=80`)에서 이미지가 정상적으로 표시됨
+
+### 고객 메시지 이력 한글화 및 상태 노출 개선 ✅ (2025-11-28)
+- **목적**: 고객 메시지 이력 모달에서 영어 상태값(Sent/Partial 등) 대신 직관적인 한글 라벨을 제공해 운영자가 메시지 상태를 빠르게 파악할 수 있도록 개선
+- **완료된 작업**:
+  1. 발송 상태(`sendStatus`) 한글화: `sent → 발송 완료`, `partial → 일부 발송`, `failed → 발송 실패`, `scheduled → 예약 발송`
+  2. 메시지 상태(`messageStatus`) 한글화: `sent → 메시지 완료`, `partial → 메시지 부분 발송`, `draft → 초안`, `scheduled → 예약됨` 등
+  3. 메시지 타입(SMS/LMS/MMS)은 기존값을 유지하고 나머지 배지 문구만 한글로 변환
+- **변경 파일**:
+  - `components/admin/CustomerMessageHistoryModal.tsx`
+
+### 알리고 템플릿 내용 확인 및 마이그레이션 계획서 업데이트 ✅ (2025-11-27)
+- **목적**: 알리고 템플릿 내용 확인 후 솔라피 마이그레이션 계획서 업데이트
+- **완료된 작업**:
+  1. **템플릿 내용 확인** ✅:
+     - 기본안내 (TI_8967): 고반발 드라이버 상세정보 안내 템플릿 내용 확인
+     - 시타사이트&약도안내 최신 (TV_5953): 시타 예약 안내 템플릿 내용 확인
+     - 당일시타예약최신: 당일 시타 예약 리마인더 템플릿 내용 확인
+  2. **마이그레이션 계획서 업데이트** ✅:
+     - 각 템플릿의 상세 내용, 버튼 설정, 변수 정보 추가
+     - 솔라피 등록용 템플릿 가이드 작성
+     - 우선순위 업데이트 (3개 템플릿 모두 우선 등록 필요로 표시)
+  3. **템플릿 상세 정보**:
+     - **기본안내 (TI_8967)**: 제품 상세정보 안내, 버튼: 마쓰구 공식 홈페이지
+     - **시타사이트&약도안내 (TV_5953)**: 시타 예약 안내, 버튼 2개 (시타 예약하기, 약도 안내)
+     - **당일시타예약최신**: 당일 시타 예약 리마인더, 버튼: 약도 안내
+- **변경 파일**:
+  - `docs/aligo-to-solapi-migration-plan.md`: 3개 템플릿 상세 내용 추가, 우선순위 업데이트
+- **다음 단계**:
+  - 솔라피 대시보드에서 3개 템플릿 등록
+  - 템플릿 검수 완료 대기
+  - 코드에 템플릿 코드 반영
+
+### 예약 관리 고객 동기화 기능 추가 ✅ (2025-11-26)
+- **목적**: 예약 관리에서 고객 연결 상태 확인 및 동기화 기능 추가
+- **완료된 작업**:
+  1. **고객 연결 상태 표시** ✅:
+     - ✅ 연결됨: 초록색 체크 아이콘 표시
+     - 🔗 연결 필요: 주황색 링크 아이콘 표시 (고객 정보는 있지만 customer_profile_id가 없음)
+     - ⚠️ 고객 정보 없음: 회색 경고 아이콘 표시
+  2. **개별 동기화 기능** ✅:
+     - 각 예약 행에 동기화 버튼(🔄) 추가 (연결이 필요한 경우에만 표시)
+     - 동기화 모달에서 선택 가능한 항목:
+       - 이름 동기화 (예약 이름 → 고객 이름)
+       - 전화번호 동기화
+       - 이메일 동기화 (예약 이메일 ↔ 고객 이메일)
+       - 고객 연결 (customer_profile_id 설정) - 필수 권장
+  3. **일괄 동기화 기능** ✅:
+     - 체크박스 컬럼 추가 (전체 선택/해제 지원)
+     - 선택된 예약들을 한 번에 동기화
+     - 동기화 옵션 선택 가능 (이름, 전화번호, 이메일, 고객 연결)
+     - 동기화 가능한 예약만 필터링 (고객 정보가 있는 예약만)
+  4. **동기화 모달** ✅:
+     - 예약 정보와 고객 정보 비교 표시
+     - 변경될 내용 미리보기
+     - 체크박스로 동기화할 항목 선택
+     - 고객 연결 상태 표시
+- **파일 수정**:
+  - `components/admin/bookings/BookingListView.tsx`: 고객 연결 상태 확인, 개별/일괄 동기화 기능, 동기화 모달 추가
+  - `pages/admin/booking/index.tsx`: 고객 데이터 1,000건 제한 문제 해결을 위해 페이지네이션 로드 적용 (누락 고객도 동기화 가능)
+  - `pages/admin/customers/index.tsx`: URL 파라미터 기반 자동 검색/편집 지원 (`?phone=...&autoEdit=true`)
+  - `components/admin/bookings/QuickAddBookingModal.tsx`: 고객 검색 자동완성(이름/전화) 및 기본 서비스 “마쓰구 드라이버 시타서비스” 적용
+  - `pages/api/bookings/next-available.ts`: ‘다음 예약 가능일’ 문자열이 실제 날짜와 일치하도록 KST 기준 포맷 로직 수정
+  - `pages/booking.tsx`: 사용자가 선택한 예약 정보에 요일 표기를 추가해 가독성 향상
+  - `pages/booking/form.tsx`: 기본 정보 입력 UX 개선 (전화번호 자동 포맷·숫자 키패드, 이메일 토글, 고객 안내 단순화)
+  - `pages/booking/form.tsx`: 골프 정보 단계의 탄도/구질 선택 UI를 시각 아이콘(**▽30°/△45°/▲60°**, 방향 화살표)으로 개선하고 구질 복수 선택을 지원
+  - `pages/booking/form.tsx`: 연령대 선택을 골프 정보 단계로 이동하고, 연령대에 따라 클럽/비거리 placeholder·추천값이 자동 변경되도록 개선
+
+### 프로덕션 빌드 테스트 및 배포 완료 ✅ (2025-11-23)
+- **목적**: 빌드 테스트 후 프로덕션 배포
+- **완료된 작업**:
+  1. **빌드 테스트 실행** ✅:
+     - `npm run predeploy` 실행
+     - `.next` 폴더 삭제 및 빌드 캐시 정리
+     - Next.js 프로덕션 빌드 성공 (190개 페이지 생성)
+     - Sitemap 생성 완료
+  2. **Vercel 프로덕션 배포** ✅:
+     - Vercel CLI를 통한 프로덕션 배포 실행
+     - 배포 URL: `https://mas-936rt7ypd-taksoo-kims-projects.vercel.app`
+     - 배포 상태: Ready (완료)
+     - 빌드 시간: 약 2분
+- **배포 정보**:
+  - 배포 시간: 2025-11-23
+  - 배포 환경: Production
+  - 빌드 상태: 성공
+  - 배포 상태: Ready
+
+### AI 이미지 생성 고도화: No Makeup 및 ChatGPT 프롬프트 최적화 ✅ (2025-11-23)
+- **목적**: AI 이미지 생성 메뉴에 자연스러운 인물 사진 옵션(No Makeup) 및 ChatGPT 프롬프트 최적화 기능 추가
+- **완료된 작업**:
+  1. **No Makeup 옵션 추가** ✅:
+     - 자연스러운 인물 사진 생성 옵션 추가
+     - 기본값: true (활성화)
+     - 프롬프트에 'no makeup, natural skin, authentic appearance, realistic skin texture' 자동 추가
+     - 토글 스위치 UI 추가 (파란색 스타일)
+  2. **ChatGPT 프롬프트 최적화 옵션 추가** ✅:
+     - ChatGPT를 사용하여 프롬프트를 영어로 최적화하는 옵션 추가
+     - 기본값: false (선택사항)
+     - `/api/kakao-content/generate-prompt` API 연동
+     - 추가 시간 소요 안내 포함
+  3. **프롬프트 개선** ✅:
+     - `buildUniversalPrompt` 함수에 자연스러운 스타일 스펙 추가
+     - 한국인 외모 강화 지시 유지
+     - 자연스러운 피부 질감, 현실적인 인물 특징 강조
+  4. **피팅 이미지 업데이트** ✅:
+     - 새로 생성된 No Makeup 적용 이미지로 `try-a-massgoo.tsx` 업데이트
+     - URL: `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/ai-generated/2025-11-23/ai-generated-senior-emotional-feed-1763898284516-1-1.jpg`
+- **파일 수정**:
+  - `pages/admin/ai-image-generator.tsx`: No Makeup 옵션, ChatGPT 최적화 옵션 추가, 프롬프트 로직 개선
+  - `pages/try-a-massgoo.tsx`: 새로 생성된 피팅 이미지 URL 업데이트
+
+### 피팅 이미지 생성 및 예약 프론트 페이지 개선 ✅ (2025-11-23)
+- **목적**: AI 이미지 생성 메뉴에 피팅 이미지 프리셋 추가 및 예약 프론트 페이지를 브랜드 색상(블랙/골드/블루)에 맞게 개선
+- **완료된 작업**:
+  1. **AI 이미지 생성 페이지에 피팅 이미지 프리셋 추가** ✅:
+     - "🎯 피팅 이미지 생성" 프리셋 버튼 추가
+     - 클릭 시 자동으로 프롬프트, 브랜딩 톤(시니어 중심 감성형), 이미지 타입(피드), 브랜딩 옵션(전체 브랜딩) 설정
+     - 전문 피터 작업 장면 프롬프트 자동 입력
+     - No Makeup 옵션 기본값 true로 설정
+  2. **try-a-massgoo.tsx 히어로 섹션 개선** ✅:
+     - 블랙 배경 + 매장 실제 사진 (`massgoo_studio_test_3.png`) 배경 적용
+     - 골드 그라데이션 타이틀 (KGFA 1급 시타 체험하기)
+     - 골드 액센트 배지 (KGFA 1급 전문 피터)
+     - 블루 CTA 버튼 (신뢰감 강조)
+  3. **try-a-massgoo.tsx 서비스 소개에 실제 이미지 추가** ✅:
+     - KGFA 1급 전문 피터: 시타 상담 장면 (`IMG_2630.jpeg`)
+     - 정밀 스윙 분석: 시타 체험 장면 (`massgoo_studio_test_3.png`)
+     - 맞춤형 추천: 전문 피터 작업 이미지 (AI 생성 가능 안내)
+  4. **모든 예약 페이지 색상 통일** ✅:
+     - `booking.tsx`: 진행 단계, 입력 필드, CTA 버튼 (빨간색 → 블루)
+     - `booking/form.tsx`: 모든 입력 필드 포커스, 필수 표시, 에러 메시지, CTA 버튼 (빨간색 → 블루)
+     - `booking/success.tsx`: 진행 단계, CTA 버튼 (빨간색 → 블루)
+     - `booking/check-distance.tsx`: 에러 메시지 (빨간색 → 블루)
+     - `try-a-massgoo.tsx`: 네비게이션 버튼, 링크, 진행 단계 (빨간색 → 블루)
+  5. **골드 액센트 추가** ✅:
+     - 히어로 섹션 타이틀: 골드 그라데이션 텍스트
+     - 배지: 골드 배경 (KGFA 1급 전문 피터)
+- **파일 수정**:
+  - `pages/admin/ai-image-generator.tsx`: 피팅 이미지 프리셋 버튼 추가
+  - `pages/try-a-massgoo.tsx`: 히어로 섹션, 서비스 소개, 색상 통일
+  - `pages/booking.tsx`: 색상 통일 (빨간색 → 블루)
+  - `pages/booking/form.tsx`: 색상 통일 (빨간색 → 블루)
+  - `pages/booking/success.tsx`: 색상 통일 (빨간색 → 블루)
+  - `pages/booking/check-distance.tsx`: 색상 통일 (빨간색 → 블루)
+
+### AI 이미지 생성 메뉴 추가 ✅ (2025-11-23)
+- **목적**: 빠르고 간편하게 MASSGOO 브랜딩이 적용된 고품질 이미지를 생성할 수 있는 전용 메뉴 구축
+- **완료된 작업**:
+  1. **관리자 네비게이션 메뉴 추가** ✅:
+     - 멀티채널 대시보드와 AI 관리 사이에 "🎨 AI 이미지 생성" 메뉴 추가
+     - `/admin/ai-image-generator` 경로로 접근
+  2. **AI 이미지 생성 페이지 생성** ✅:
+     - 브랜딩 톤 선택: 시니어 중심 감성적 브랜딩 (골드 톤), 하이테크 중심 혁신형 브랜딩 (블랙 톤)
+     - 이미지 타입 선택: 배경 이미지 (가로형), 프로필 이미지 (정사각형), 피드 이미지 (정사각형)
+     - 브랜딩 옵션: 전체 브랜딩 (강조), 로고 포함, 브랜딩 없음
+     - 생성 개수: 1개, 2개, 4개 선택 가능
+  3. **한국 골퍼 스펙 자동 적용** ✅:
+     - 시니어 중심: 50-70세 한국인 골퍼
+     - 하이테크 중심: 40-60세 한국인 골퍼
+     - 한국인 외모, 한국인 피부톤, 현실적인 한국인 얼굴 특징 자동 적용
+  4. **365일 24시간 적용 가능한 프롬프트 시스템** ✅:
+     - 계절/요일에 구애받지 않는 범용 이미지 생성
+     - 시즌별 요소 제거, 중립적 구성
+     - 핵심 메시지와 브랜드 정체성에 집중
+     - 어떤 요일, 어떤 월, 어떤 계절에도 사용 가능
+  5. **기존 카카오톡 콘텐츠 생성 API 활용** ✅:
+     - `/api/kakao-content/generate-images` API 통합
+     - MASSGOO 브랜딩 자동 적용
+     - Supabase 자동 저장
+     - 사용량 로깅
+- **파일 생성**:
+  - `pages/admin/ai-image-generator.tsx` - AI 이미지 생성 메인 페이지
+- **파일 수정**:
+  - `components/admin/AdminNav.tsx` - AI 이미지 생성 메뉴 추가
+- **주요 기능**:
+  - 간편한 UI로 빠른 이미지 생성
+  - 브랜딩 톤별 자동 색상 및 분위기 적용
+  - 한국 골퍼 스펙 자동 적용
+  - 계절/요일 무관 범용 이미지 생성
+  - 생성된 이미지 즉시 확인 및 다운로드
+
+## ✅ 최근 완료된 작업 (2025-11-26)
+
+### 동반 방문자 패턴 처리 완료 ✅ (2025-11-26)
+- **목적**: 이름에 "(여자)", "(여자손님 모시고 옴)" 등 동반 방문자 정보가 포함된 예약을 정규화하고 방문 횟수 업데이트
+- **완료된 작업**:
+  1. **동반 방문자 패턴 처리 스크립트 작성** ✅:
+     - `scripts/fix-companion-visitors.js` 생성
+     - 이름에서 괄호 부분 제거하여 기본 이름으로 정규화
+     - notes 필드에 동반 방문자 정보 추가
+     - 같은 전화번호를 가진 고객의 visit_count 업데이트
+  2. **처리 결과** ✅:
+     - 총 21건 처리 완료
+     - 주요 처리 사례:
+       - "도규환(여자)" → "도규환" (방문 2회, notes에 "여자 동반 방문" 추가)
+       - "박춘은(여자손님 모시고 옴)" → "박춘은" (방문 4회, notes에 "여자 동반 방문" 추가)
+       - "(AS)", "(보상매입)", "(그립교체)" 등 서비스 유형 정보도 notes에 추가
+  3. **데이터 정규화** ✅:
+     - 모든 동반 방문자 패턴 이름 정규화
+     - 고객 테이블의 visit_count 자동 업데이트
+     - 고객 이름도 정규화된 이름으로 업데이트
+- **파일 생성**:
+  - `scripts/fix-companion-visitors.js`: 동반 방문자 패턴 처리 스크립트
+- **처리 통계**:
+  - 처리 완료: 21건
+  - 오류: 0건
+  - 주요 패턴: (여자), (여자손님 모시고 옴), (AS), (보상매입), (그립교체), (2인) 등
+
+### Low Confidence 매칭 마이그레이션 완료 ✅ (2025-11-26)
+- **목적**: Low Confidence 매칭 19건을 처리하여 bookings 테이블에 추가
+- **완료된 작업**:
+  1. **마이그레이션 스크립트 작성** ✅:
+     - `scripts/migrate-low-confidence-matches.js` 생성
+     - AS 분리 로직 구현
+     - 이름 정제 로직 구현
+     - 복수명 처리 로직 구현
+  2. **데이터 처리** ✅:
+     - 처리 완료: 16건
+     - 삭제 대상: 1건 (시타 - 이름만 있어 유효하지 않음)
+  3. **주요 처리 내용**:
+     - AS 분리: 진지화AS, 최원구AS, 김춘택AS, 윤의권AS, 김명배AS, 김태정AS
+     - 이름 정제: 김대진(2인) → 김대진, 장철 → 박장철, 김석현점검 → 김석현
+     - 재방문 추가: 모든 매칭을 기존 고객에 재방문으로 추가
+     - 복수명 처리: 송영의,이관욱 AS → 이관욱만 처리 (송영의 전화번호 없음)
+  4. **데이터 수정** ✅:
+     - `scripts/fix-low-confidence-bookings.js` 생성
+     - 최동우고객 → 최동우로 이름 수정
+     - 이동열, 오세집 AS 방문 플래그 수정
+- **파일 생성**:
+  - `scripts/migrate-low-confidence-matches.js`: Low Confidence 매칭 마이그레이션 스크립트
+  - `scripts/fix-low-confidence-bookings.js`: 생성된 예약 데이터 수정 스크립트
+  - `backup/low-confidence-migration-*.json`: 마이그레이션 결과 보고서
+
+### High/Medium Confidence 매칭 마이그레이션 완료 ✅ (2025-11-26)
+- **목적**: High/Medium Confidence 매칭 73건을 처리하여 bookings 테이블에 추가
+- **완료된 작업**:
+  1. **마이그레이션 스크립트 작성** ✅:
+     - `scripts/migrate-high-medium-matches.js` 생성
+     - High Confidence 18건 자동 처리
+     - Medium Confidence 55건 자동 처리
+     - 재방문으로 처리 (기존 고객에 추가)
+  2. **스크립트 실행** ✅:
+     - High Confidence 18건 처리 완료
+     - Medium Confidence 55건 처리 완료
+     - 총 73건 추가
+  3. **최종 결과**:
+     - 총 처리: 89건 (High 18 + Medium 55 + Low 16)
+     - 예상 총 예약 수: 1,073건 (기존 1,000건 + 추가 73건)
+- **파일 생성**:
+  - `scripts/migrate-high-medium-matches.js`: High/Medium Confidence 매칭 마이그레이션 스크립트
+  - `backup/high-medium-migration-*.json`: 마이그레이션 결과 보고서
+
+### 전화번호 매칭 기능 구현 완료 ✅ (2025-11-26)
+- **목적**: 전화번호 없는 302건의 예약 데이터를 자동으로 매칭하여 전화번호 찾기
+- **완료된 작업**:
+  1. **자동 매칭 스크립트 작성** ✅:
+     - `scripts/match-missing-phones.js` 생성
+     - 이름, 날짜, 이메일 기준 매칭
+     - 신뢰도별 분류 (High/Medium/Low)
+  2. **매칭 결과 적용 스크립트 작성** ✅:
+     - `scripts/apply-phone-matches.js` 생성
+     - High confidence 매칭 자동 적용 옵션
+     - 원본 CSV 백업 및 업데이트된 CSV 생성
+  3. **매칭 결과**:
+     - 매칭 성공: 92건 (High: 18건, Medium: 55건, Low: 19건)
+     - 매칭 실패: 210건 (수동 입력 필요)
+  4. **문서화** ✅:
+     - `docs/phases/detailed-plans/phase-6-phone-matching-guide.md` 작성
+- **파일 생성**:
+  - `scripts/match-missing-phones.js`: 자동 매칭 스크립트
+  - `scripts/apply-phone-matches.js`: 매칭 결과 적용 스크립트
+  - `docs/phases/detailed-plans/phase-6-phone-matching-guide.md`: 사용 가이드
+- **보고서 생성**:
+  - `backup/phone-matching-report-*.json`: 상세 매칭 보고서
+  - `backup/phone-updates-*.csv`: CSV 업데이트 가이드
+
+### 관리자 페이지 개선: Phase 3, 4 완료 ✅ (2025-11-26)
+- **목적**: 고객별 그룹화 뷰 추가 및 데이터 차이 분석 완료
+- **완료된 작업**:
+  1. **고객별 그룹화 뷰 구현** ✅:
+     - `CustomerGroupedView.tsx` 컴포넌트 생성
+     - 고객별 예약 이력 아코디언 형태로 표시
+     - 고객 검색 및 정렬 기능 (방문 횟수, 고객명, 마지막 방문일)
+     - 고객별 통계 표시 (방문 횟수, 노쇼 횟수, 참석 횟수, 첫/마지막 방문일)
+     - 관리자 페이지에 "고객별" 탭 추가
+  2. **데이터 차이 분석 완료** ✅:
+     - `analyze-migration-difference.js` 스크립트 작성
+     - CSV 1,247건 → DB 945건 차이 원인 분석
+     - 제외된 데이터: 전화번호 없음 302건, 중복 예약 47건
+     - 분석 보고서 생성 (`backup/migration-difference-analysis-*.json`)
+  3. **마이그레이션 스크립트 개선** ✅:
+     - `--use-registration-date` 옵션 추가 (예약 날짜/시간 없을 때 등록일 사용)
+     - `--verbose` 옵션 추가 (상세 로그 출력)
+     - 처리 통계 출력 개선
+- **파일 생성**:
+  - `components/admin/bookings/CustomerGroupedView.tsx`: 고객별 그룹화 뷰 컴포넌트
+  - `scripts/analyze-migration-difference.js`: 데이터 차이 분석 스크립트
+- **파일 수정**:
+  - `pages/admin/booking/index.tsx`: 고객별 탭 추가
+  - `scripts/migrate-wix-bookings.js`: 옵션 추가 및 통계 개선
+  - `docs/phases/detailed-plans/phase-6-admin-improvement-plan.md`: Phase 3, 4 완료 표시
+
+### 관리자 페이지 개선: 통계 데이터 및 필터 기능 강화 ✅ (2025-11-26)
+- **목적**: 의미있는 통계 데이터 표시 및 노쇼/취소 필터 기능 추가
+- **완료된 작업**:
+  1. **통계 데이터 추가** ✅:
+     - 최다 방문 고객 TOP 10 표시 (방문 횟수, 노쇼 횟수, 첫/마지막 방문일)
+     - 노쇼율 통계 (전체 노쇼율, 노쇼 건수)
+     - 재방문율 통계 (재방문 고객 수, 재방문율)
+     - 평균 방문 횟수 통계
+     - 참석 상태 통계 (참석, 노쇼, 취소, 대기중)
+  2. **필터 기능 강화** ✅:
+     - 참석 상태 필터 추가 (전체, 참석, 노쇼, 취소, 대기중)
+     - 예약 상태 필터와 참석 상태 필터 복합 사용 가능
+  3. **UI 개선** ✅:
+     - 통계 카드 시각화 개선 (색상 코딩, 아이콘 추가)
+     - 최다 방문 고객 목록 스크롤 가능한 섹션 추가
+- **파일 수정**:
+  - `components/admin/bookings/BookingDashboard.tsx`: 통계 데이터 계산 및 표시 로직 추가
+  - `components/admin/bookings/BookingListView.tsx`: 참석 상태 필터 추가
+  - `docs/phases/detailed-plans/phase-6-admin-improvement-plan.md`: 개선 계획 문서 작성
+
+### Wix 예약 데이터 대규모 마이그레이션 구현 및 실행 완료 ✅ (2025-11-26)
+- **목적**: Wix 900건 예약 데이터를 기존 683건 대체 및 전화번호 파싱 규칙 정의
+- **완료된 작업**:
+  1. **전화번호 파싱 및 정규화 함수 구현** ✅:
+     - `normalizePhone()` 함수 개선 (82 분리, 01→010 변환)
+     - `formatPhoneNumber()` 함수 개선 (하이픈 추가)
+     - `lib/formatters.js`에 함수 추가
+  2. **마이그레이션 스크립트 개선** ✅:
+     - 동적 양식 필드 파싱 함수 구현 (`parseFormFields()`)
+     - 클럽 정보 구조화 파싱 함수 구현 (`parseClubInfo()`)
+     - 비거리 정규화 함수 구현 (`normalizeDistance()`)
+     - 탄도, 구질 파싱 함수 구현 (`parseTrajectory()`, `parseShotShape()`)
+     - 기존 데이터 백업 및 삭제 로직 추가
+     - `club` 필드 NOT NULL 제약조건 처리 (null → 빈 문자열)
+  3. **마이그레이션 실행 완료** ✅:
+     - CSV 파일: 1251줄 (약 1250건)
+     - 마이그레이션 결과: 고객 681명, 예약 945건
+     - 오류: 0건
+     - 기존 데이터 백업 완료
+  4. **문서 업데이트** ✅:
+     - 전화번호 파싱 규칙 문서화
+     - 마이그레이션 가이드 업데이트
+- **파일 수정**:
+  - `scripts/migrate-wix-bookings.js`: 전화번호 정규화, 동적 필드 파싱, 클럽 정보 구조화 구현
+  - `lib/formatters.js`: `normalizePhone()` 함수 추가
+  - `docs/phases/detailed-plans/phase-6-booking-system-final-plan.md`: 구현 완료 내용 추가
+  - `/Users/m2/Desktop/phase-6-booking-system-final-plan.md`: 전화번호 파싱 규칙 추가
+  - `/Users/m2/Desktop/phase-6-시타예약-마이그레이션.md`: 전화번호 정규화 규칙 추가
+
+## ✅ 최근 완료된 작업 (2025-11-23)
+
+### 시타 예약 시스템 Wix 수준 개선 - Phase 1 완료 ✅ (2025-11-23)
+- **목적**: Wix 관리자 수준의 시타 예약 관리 시스템 구축
+- **완료된 작업**:
+  1. **데이터베이스 스키마 확장** ✅:
+     - `customers` 테이블: email, wix_registered_at, visit_count, no_show_count, last_visit_date 필드 추가
+     - `bookings` 테이블: attendance_status 필드 추가
+     - `booking_blocks` 테이블 생성 (예약 불가 시간대 관리)
+     - `customer_booking_stats` 뷰 생성
+     - **Supabase에서 모든 쿼리 실행 완료**
+  2. **Wix 데이터 마이그레이션 스크립트**:
+     - `scripts/migrate-wix-bookings.js` 작성
+     - CSV 파일 파싱 및 데이터 정제
+     - 등록일 vs 최초 문의일 비교 로직
+     - 이메일 필터링 로직 (@aa.aa, massgoogolf@gmail.com 제외)
+     - 방문 횟수 및 노쇼 횟수 계산
+  3. **캘린더 페이지 기능**:
+     - 빠른 예약 추가 모달 (`QuickAddBookingModal.tsx`)
+     - 예약 불가 시간 설정 모달 (`BlockTimeModal.tsx`)
+     - 시간대 클릭/더블클릭 이벤트 처리
+     - 예약 불가 시간대 회색 블록 표시
+  4. **대시보드 상세 모달**:
+     - 공통 모달 컴포넌트 (`BookingDetailModal.tsx`)
+     - 대시보드에서 이름 클릭 시 모달 표시
+     - 모달에서 예약 수정/삭제 기능
+  5. **API 엔드포인트**:
+     - `/api/bookings/blocks` - 예약 불가 시간대 CRUD
+     - `/api/bookings/quick-add` - 빠른 예약 추가
+     - `/api/bookings/available` - 예약 가능 시간 조회 (블록 제외)
+- **파일 생성**:
+  - `docs/phases/detailed-plans/phase-6-migration-schema.sql`
+  - `scripts/migrate-wix-bookings.js`
+  - `components/admin/bookings/BookingDetailModal.tsx`
+  - `components/admin/bookings/QuickAddBookingModal.tsx`
+  - `components/admin/bookings/BlockTimeModal.tsx`
+  - `pages/api/bookings/blocks.ts`
+  - `pages/api/bookings/quick-add.ts`
+- **파일 수정**:
+  - `components/admin/bookings/BookingCalendarView.tsx` - 빠른 예약 추가 및 예약 불가 시간 기능 통합
+  - `components/admin/bookings/BookingDashboard.tsx` - 이름 클릭 시 모달 표시
+  - `pages/api/bookings/available.ts` - 예약 불가 시간대 제외 로직 추가
+  - `pages/admin/booking/index.tsx` - supabase prop 전달
+
+### 시타 예약 관리자 페이지 Wix 수준 재구성 ✅ (2025-11-21)
+- **목적**: 기존 예약 관리 페이지를 Wix 관리자 수준으로 재구성
+- **작업 내용**:
+  - 기존 파일 삭제: `pages/admin/booking.tsx`, `components/admin/bookings/BookingManagement.tsx`
+  - 새로운 구조 생성:
+    - `/pages/admin/booking/index.tsx`: 메인 페이지 (대시보드/캘린더/목록 뷰 전환)
+    - `/components/admin/bookings/BookingDashboard.tsx`: 통계 및 대시보드 뷰
+    - `/components/admin/bookings/BookingCalendarView.tsx`: 주간/월간 캘린더 뷰 (Wix 스타일)
+    - `/components/admin/bookings/BookingListView.tsx`: 예약 목록 뷰 (필터링, 검색, 편집)
+  - 주요 기능:
+    - 대시보드: 통계 카드, 상태별 통계, 다가오는 예약 목록
+    - 캘린더 뷰: 주간/월간 전환, 시간대별 예약 표시, 예약 상세 모달
+    - 목록 뷰: 고급 필터링 (날짜, 상태, 서비스), 검색, 인라인 편집, 고객 정보 연동
+  - 의존성 추가: `date-fns` (날짜 처리)
+- **파일 변경**:
+  - 삭제: `pages/admin/booking.tsx`, `components/admin/bookings/BookingManagement.tsx`
+  - 생성: `pages/admin/booking/index.tsx`, `components/admin/bookings/BookingDashboard.tsx`, `components/admin/bookings/BookingCalendarView.tsx`, `components/admin/bookings/BookingListView.tsx`
+
 ## ✅ 최근 완료된 작업 (2025-11-21)
 
 ### 카카오 콘텐츠 캘린더 로딩 속도 최적화 ✅ (2025-11-21)
@@ -592,6 +1287,17 @@
   3. 프롬프트 설정 관리 (`prompt-settings-manager.md`) - 슬롯 기반 API 연결 계획 추가
   4. Self-Adaptive Automation (`self-adaptive-automation.md`)
   5. 갤러리 이미지 자산 관리 (`gallery-asset-management.md`)
+
+### 예약 알림/메시징 아키텍처 정리 ✅
+- **문서 위치**: `docs/booking-communication-plan.md`
+- **주요 내용**:
+  - Solapi SMS/카카오톡/Slack을 활용한 예약 알림 플로우 정의 (예약 신청/확정/완료)
+  - 기존 SMS 발송 API (`pages/api/channels/sms/send.js`, `pages/api/admin/send-scheduled-sms.js`, `pages/api/admin/sms.js`) 재사용 계획
+  - 카카오 콘텐츠용 Slack 모듈 (`lib/slack-notification.js`, `pages/api/kakao-content/slack-*.js`)을 활용한 예약 알림 Slack API 설계
+  - 예약 전용 알림 API 초안 정의:
+    - `/api/bookings/notify-customer` (고객 카카오톡/문자 알림)
+    - `/api/slack/booking-notify` (관리자 Slack 알림)
+  - “예약 알림 센터” UI 방향: 예약별 알림 이력·재발송·실패 사유 확인 기능을 한 곳에서 관리
 - **README 작성**: `docs/shared-systems/README.md`
 
 ### 카카오톡 프로필 업데이트 자동화 완료 ✅ (2025-11-12)
@@ -817,6 +1523,27 @@
   - `pages/api/generate-paragraph-images-with-prompts.js` (피드 이미지 Sharp 최적화)
   - `pages/api/kakao-content/evaluate-images.js` (신규, 이미지 품질 평가 API)
 
+## 2025-01-XX: 예약 폼 골프 정보 섹션 개선 (2차)
+
+### 완료된 작업
+- **샤프트 강도 옵션 확장**: R2, R1을 L과 R 사이에 추가 (총 7개 옵션: L, R2, R1, R, SR, S, X)
+- **탄도 표기 개선**: 각도 표시(30°, 45°, 60°) 제거, 한글 표기로 변경 (저탄도, 중탄도, 고탄도)
+- **레이블 정리**: 탄도와 구질 라벨에서 "(선택)" 제거
+- **레이아웃 조정**: 샤프트 강도 그리드를 `grid-cols-5`에서 `grid-cols-7`로 변경
+- **변경 파일**:
+  - `pages/booking/form.tsx` (샤프트 강도 옵션 추가, 탄도 한글 표기, 레이블 정리)
+
+## 2025-01-XX: 예약 폼 골프 정보 섹션 개선 (3차)
+
+### 완료된 작업
+- **샤프트 강도/로프트 각도 버튼 개선**: "잘 모르겠어요" 버튼을 그리드 밖으로 분리하고 "선택 안 함"으로 문구 변경
+- **탄도 다중 선택 기능**: 최대 2개까지 선택 가능, 조합 표기 (중저탄도, 중고탄도, 저고탄도)
+- **구질 한글 표기 개선**: 영어 표기(Straight, Hook, Draw, Fade, Slice)를 한글(스트레이트, 훅, 드로우, 페이드, 슬라이스)로 변경
+- **구질 다중 선택 제한**: 최대 2개까지 선택 가능, 하단에 선택된 구질 표시
+- **연령대 입력 방식 개선**: 드롭다운 선택식에서 숫자 입력 필드로 변경, 실제 나이 입력 후 자동으로 연령대 그룹화
+- **변경 파일**:
+  - `pages/booking/form.tsx` (탄도/구질 다중 선택, 한글 표기, 연령대 숫자 입력, 버튼 레이아웃 개선)
+
 - **문서화**
   - `docs/KAKAO_CONTENT_STORAGE_GUIDE.md` - 저장 구조 가이드
   - `docs/DAILY_BRANDING_GUIDE.md` - 데일리 브랜딩 가이드
@@ -971,6 +1698,27 @@
   - `pages/api/generate-paragraph-images-with-prompts.js` (피드 이미지 Sharp 최적화)
   - `pages/api/kakao-content/evaluate-images.js` (신규, 이미지 품질 평가 API)
 
+## 2025-01-XX: 예약 폼 골프 정보 섹션 개선 (2차)
+
+### 완료된 작업
+- **샤프트 강도 옵션 확장**: R2, R1을 L과 R 사이에 추가 (총 7개 옵션: L, R2, R1, R, SR, S, X)
+- **탄도 표기 개선**: 각도 표시(30°, 45°, 60°) 제거, 한글 표기로 변경 (저탄도, 중탄도, 고탄도)
+- **레이블 정리**: 탄도와 구질 라벨에서 "(선택)" 제거
+- **레이아웃 조정**: 샤프트 강도 그리드를 `grid-cols-5`에서 `grid-cols-7`로 변경
+- **변경 파일**:
+  - `pages/booking/form.tsx` (샤프트 강도 옵션 추가, 탄도 한글 표기, 레이블 정리)
+
+## 2025-01-XX: 예약 폼 골프 정보 섹션 개선 (3차)
+
+### 완료된 작업
+- **샤프트 강도/로프트 각도 버튼 개선**: "잘 모르겠어요" 버튼을 그리드 밖으로 분리하고 "선택 안 함"으로 문구 변경
+- **탄도 다중 선택 기능**: 최대 2개까지 선택 가능, 조합 표기 (중저탄도, 중고탄도, 저고탄도)
+- **구질 한글 표기 개선**: 영어 표기(Straight, Hook, Draw, Fade, Slice)를 한글(스트레이트, 훅, 드로우, 페이드, 슬라이스)로 변경
+- **구질 다중 선택 제한**: 최대 2개까지 선택 가능, 하단에 선택된 구질 표시
+- **연령대 입력 방식 개선**: 드롭다운 선택식에서 숫자 입력 필드로 변경, 실제 나이 입력 후 자동으로 연령대 그룹화
+- **변경 파일**:
+  - `pages/booking/form.tsx` (탄도/구질 다중 선택, 한글 표기, 연령대 숫자 입력, 버튼 레이아웃 개선)
+
 - **문서화**
   - `docs/KAKAO_CONTENT_STORAGE_GUIDE.md` - 저장 구조 가이드
   - `docs/DAILY_BRANDING_GUIDE.md` - 데일리 브랜딩 가이드
@@ -1125,3 +1873,168 @@
   - `pages/api/generate-paragraph-images-with-prompts.js` (피드 이미지 Sharp 최적화)
   - `pages/api/kakao-content/evaluate-images.js` (신규, 이미지 품질 평가 API)
 
+## 2025-01-XX: 예약 폼 골프 정보 섹션 개선 (2차)
+
+### 완료된 작업
+- **샤프트 강도 옵션 확장**: R2, R1을 L과 R 사이에 추가 (총 7개 옵션: L, R2, R1, R, SR, S, X)
+- **탄도 표기 개선**: 각도 표시(30°, 45°, 60°) 제거, 한글 표기로 변경 (저탄도, 중탄도, 고탄도)
+- **레이블 정리**: 탄도와 구질 라벨에서 "(선택)" 제거
+- **레이아웃 조정**: 샤프트 강도 그리드를 `grid-cols-5`에서 `grid-cols-7`로 변경
+- **변경 파일**:
+  - `pages/booking/form.tsx` (샤프트 강도 옵션 추가, 탄도 한글 표기, 레이블 정리)
+
+## 2025-01-XX: 예약 폼 골프 정보 섹션 개선 (3차)
+
+### 완료된 작업
+- **샤프트 강도/로프트 각도 버튼 개선**: "잘 모르겠어요" 버튼을 그리드 밖으로 분리하고 "선택 안 함"으로 문구 변경
+- **탄도 다중 선택 기능**: 최대 2개까지 선택 가능, 조합 표기 (중저탄도, 중고탄도, 저고탄도)
+- **구질 한글 표기 개선**: 영어 표기(Straight, Hook, Draw, Fade, Slice)를 한글(스트레이트, 훅, 드로우, 페이드, 슬라이스)로 변경
+- **구질 다중 선택 제한**: 최대 2개까지 선택 가능, 하단에 선택된 구질 표시
+- **연령대 입력 방식 개선**: 드롭다운 선택식에서 숫자 입력 필드로 변경, 실제 나이 입력 후 자동으로 연령대 그룹화
+- **변경 파일**:
+  - `pages/booking/form.tsx` (탄도/구질 다중 선택, 한글 표기, 연령대 숫자 입력, 버튼 레이아웃 개선)
+
+
+## 2025-01-XX: 예약 알림/커뮤니케이션 시스템 구현 ✅
+
+### 완료된 작업
+- **예약 고객 알림 API 생성** ✅:
+  - 파일: `pages/api/bookings/notify-customer.ts`
+  - 기능: 예약 ID와 알림 타입을 받아서 고객에게 카카오톡 알림톡 발송, 실패 시 SMS로 자동 대체
+  - 지원 알림 타입: `booking_received`, `booking_confirmed`, `booking_completed`
+  - 메시지 템플릿: 각 타입별 카카오톡/SMS 템플릿 포함
+  - 날짜/시간 포맷팅: 한글 형식으로 자동 변환 (예: 2025년 11월 27일, 오후 2시)
+
+- **Slack 예약 알림 API 생성** ✅:
+  - 파일: `pages/api/slack/booking-notify.js`
+  - 기능: 예약 생성/확정/완료 이벤트를 Slack으로 전송
+  - 메시지 포맷: Block Kit 형식으로 예약 정보 상세 표시
+  - 지원 이벤트: `booking_created`, `booking_confirmed`, `booking_completed`
+
+- **예약 생성 시 자동 알림 연동** ✅:
+  - 파일: `pages/api/bookings.ts` (POST 핸들러)
+  - 예약 생성 성공 후 자동으로:
+    - 고객에게 `booking_received` 알림 발송 (카카오톡 → SMS 대체)
+    - 관리자에게 Slack 알림 전송
+  - 알림 실패해도 예약은 성공 처리 (에러 무시)
+
+- **예약 확정 시 자동 알림 연동** ✅:
+  - 파일: `components/admin/bookings/BookingListView.tsx` (`updateBookingStatus` 함수)
+  - 예약 상태가 `pending` → `confirmed`로 변경될 때:
+    - 고객에게 `booking_confirmed` 알림 발송
+    - 관리자에게 Slack 알림 전송
+  - 예약 상태가 `confirmed` → `completed`로 변경될 때:
+    - 고객에게 `booking_completed` 감사 메시지 발송 (선택사항)
+    - 관리자에게 Slack 알림 전송
+
+- **변경 파일**:
+  - `pages/api/bookings/notify-customer.ts` (신규 생성)
+  - `pages/api/slack/booking-notify.js` (신규 생성)
+  - `pages/api/bookings.ts` (예약 생성 시 알림 연동)
+  - `components/admin/bookings/BookingListView.tsx` (예약 상태 변경 시 알림 연동)
+
+### 향후 작업 (선택사항)
+- 관리자 UI에 알림 발송 버튼 및 이력 표시
+- 알림 발송 로그 저장 (Supabase 테이블)
+- 예약 리마인더 (예약 전날/당일 자동 발송)
+
+---
+
+## 🔮 옵션 기능 / 향후 구현 예정
+
+### MMS 이미지 중복 통합 및 최적화 (옵션)
+
+**목적**: 기존 중복 이미지 통합 및 향후 중복 방지 시스템 구축
+
+**구현 시점**: 
+- 추후 최종 정리 단계에서 구현
+- 또는 중복 데이터가 문제가 되었을 때 구현
+
+**구현 계획**:
+
+#### 1단계: 기존 중복 이미지 통합 (1회성 작업)
+- 중복 이미지 그룹 찾기 (`hash_md5` 기준)
+- 각 그룹에서 메인 이미지 선택 (우선순위: 사용 중인 것 > 최신 것)
+- 나머지 이미지들의 경로를 `references`에 저장
+- `channel_sms` 테이블의 `image_url`을 메인 이미지로 업데이트
+- 중복 이미지 파일 삭제 (또는 보관)
+
+**예시**:
+- `originals/mms/2025-11-28/98/mms-98-xxx.jpg` (메인, 유지)
+- `originals/mms/2025-11-28/113/mms-113-xxx.jpg` (중복, 삭제)
+- `originals/mms/2025-11-28/113/mms-113-yyy.jpg` (중복, 삭제)
+
+→ 메인 이미지의 `references`에 저장:
+```json
+{
+  "references": [
+    {
+      "type": "mms",
+      "message_id": 98,
+      "date_folder": "2025-11-28",
+      "original_path": "originals/mms/2025-11-28/98/mms-98-xxx.jpg"
+    },
+    {
+      "type": "mms",
+      "message_id": 113,
+      "date_folder": "2025-11-28",
+      "original_path": "originals/mms/2025-11-28/113/mms-113-xxx.jpg",
+      "merged_from": true
+    }
+  ]
+}
+```
+
+#### 2단계: 신규 업로드 시 중복 방지 (개선 제안 2)
+- 업로드 전 `hash_md5` 체크
+- 중복이면 `references` 업데이트 후 기존 URL 반환
+- 신규면 저장 후 `references` 생성
+
+**구현 예시**:
+```javascript
+// 업로드 전 중복 체크
+const hash = await calculateMD5(imageBuffer);
+const existing = await findImageByHash(hash);
+
+if (existing) {
+  // 기존 이미지의 references에 새 메시지 정보 추가
+  await updateImageReferences(existing.id, {
+    type: 'mms',
+    message_id: newMessageId,
+    date_folder: sentDate,
+    used_at: new Date().toISOString()
+  });
+  return existing.image_url; // 새로 저장 안 함
+} else {
+  // 신규 이미지 저장 (기존 로직)
+}
+```
+
+#### 3단계: 갤러리 날짜별 필터링 (가상 심볼릭 링크)
+- 날짜별로 보이도록 쿼리
+- `date_folder` 또는 `references`에서 날짜별 조회
+
+**쿼리 예시**:
+```javascript
+// 날짜별로 보이도록 쿼리
+SELECT * FROM image_metadata
+WHERE 
+  date_folder = '2025-11-28'  -- 직접 저장된 경우
+  OR "references" @> '[{"date_folder": "2025-11-28"}]'  -- 참조된 경우
+```
+
+**장점**:
+- ✅ 저장 공간 절약 (중복 이미지 제거)
+- ✅ 날짜별 접근 가능 (`references`로 날짜별 조회)
+- ✅ 사용 이력 추적 (모든 사용 기록 보존)
+- ✅ 기존 데이터 복구 (통합 스크립트로 기존 중복 정리)
+- ✅ 향후 중복 방지 (업로드 시 자동 중복 체크)
+
+**필요 파일**:
+- `scripts/merge-duplicate-mms-images.js` (중복 통합 스크립트)
+- `pages/api/solapi/upload-image.js` 수정 (신규 중복 방지)
+- `pages/api/admin/mms-images.js` 수정 (날짜별 필터링)
+
+**참고**: 
+- Supabase Storage는 객체 스토리지이므로 전통적인 파일 시스템 심볼릭 링크는 불가능하지만, 메타데이터 참조 방식으로 동일한 효과를 구현할 수 있습니다.
+- `image_metadata` 테이블에 이미 `references` JSONB 컬럼과 `usage_count`, `hash_md5` 등이 준비되어 있어 추가 스키마 변경이 필요 없습니다.

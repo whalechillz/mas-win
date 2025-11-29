@@ -1,0 +1,730 @@
+{
+  "scrapedAt": "2025-11-27T00:05:14.449Z",
+  "totalCount": 20,
+  "templates": [
+    {
+      "code": "TY_1512",
+      "name": "시타채 대여안내 수정",
+      "altSms": "발송안함",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TY_1512\n                \n                    시타채 대여안내 수정\n                \n                발송안함\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TY_1512",
+        "시타채 대여안내 수정",
+        "발송안함",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 0
+    },
+    {
+      "code": "TW_8855",
+      "name": "마쓰구 리펀드(최신)",
+      "altSms": "발송",
+      "status": "",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TW_8855\n                \n                    마쓰구 리펀드(최신)\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TW_8855",
+        "마쓰구 리펀드(최신)",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 1,
+      "content": "",
+      "variables": [],
+      "buttons": [
+        {
+          "name": "마스골프(mas9golf)",
+          "href": "/admin/"
+        },
+        {
+          "name": "로그아웃",
+          "href": "/logout.html"
+        },
+        {
+          "name": "내 정보관리",
+          "href": "/admin/"
+        },
+        {
+          "name": "고객센터",
+          "href": "/qna/help.html"
+        },
+        {
+          "name": "홈",
+          "href": "/main.html"
+        },
+        {
+          "name": "문자보내기",
+          "href": "/shop/"
+        },
+        {
+          "name": "충전하기",
+          "href": "/shop/charge.html"
+        },
+        {
+          "name": "주소록/그룹관리",
+          "href": "/shop/input_member.html"
+        },
+        {
+          "name": "발신번호",
+          "href": "/cert_step2.html"
+        },
+        {
+          "name": "전송결과보기",
+          "href": "/shop/result_list.html"
+        },
+        {
+          "name": "문자API",
+          "href": "/admin/api/info.html"
+        },
+        {
+          "name": "카카오톡",
+          "href": "/shop/kakaointro.html"
+        },
+        {
+          "name": "RCS(채팅+)",
+          "href": "/shop/rcsintro.html"
+        },
+        {
+          "name": "홈",
+          "href": "/shop/kakaointro.html"
+        },
+        {
+          "name": "카카오채널 관리",
+          "href": "/shop/kakaoplus.html"
+        },
+        {
+          "name": "템플릿관리",
+          "href": "/shop/kakaotemplate.html"
+        },
+        {
+          "name": "템플릿예제",
+          "href": "/shop/kakaotemplatesample.html"
+        },
+        {
+          "name": "신청/인증",
+          "href": "/shop/kakaoauth.html"
+        },
+        {
+          "name": "API스펙",
+          "href": "/shop/kakaoapispec.html"
+        },
+        {
+          "name": "API예제",
+          "href": "/shop/kakaoexample.html"
+        },
+        {
+          "name": "긴급검수 요청",
+          "href": "https://cs.kakao.com/requests?category=481&locale=ko&node=46306&service=159"
+        },
+        {
+          "name": "시타채 대여안내 수정",
+          "href": null
+        },
+        {
+          "name": "시타사이트&약도안내 최신",
+          "href": null
+        },
+        {
+          "name": "기본안내",
+          "href": null
+        },
+        {
+          "name": "2",
+          "href": "/shop/kakaotemplate.html?cp=2&range=&kword=&seq=2421"
+        },
+        {
+          "name": "서비스 이용약관",
+          "href": "javascript:void(0);"
+        },
+        {
+          "name": "개인정보 처리방침",
+          "href": "javascript:void(0);"
+        },
+        {
+          "name": "고객센터",
+          "href": "/qna/help.html"
+        },
+        {
+          "name": "02-511-4560",
+          "href": "tel:02-511-4560"
+        },
+        {
+          "name": "cs@alipeople.kr",
+          "href": "mailto:cs@alipeople.kr"
+        },
+        {
+          "name": "고객 지원팀 상담 버튼",
+          "href": null
+        }
+      ]
+    },
+    {
+      "code": "TW_8789",
+      "name": "구매감사편지(최신)",
+      "altSms": "발송",
+      "status": "",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TW_8789\n                \n                    구매감사편지(최신)\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TW_8789",
+        "구매감사편지(최신)",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 2,
+      "content": "",
+      "variables": [],
+      "buttons": [
+        {
+          "name": "마스골프(mas9golf)",
+          "href": "/admin/"
+        },
+        {
+          "name": "로그아웃",
+          "href": "/logout.html"
+        },
+        {
+          "name": "내 정보관리",
+          "href": "/admin/"
+        },
+        {
+          "name": "고객센터",
+          "href": "/qna/help.html"
+        },
+        {
+          "name": "홈",
+          "href": "/main.html"
+        },
+        {
+          "name": "문자보내기",
+          "href": "/shop/"
+        },
+        {
+          "name": "충전하기",
+          "href": "/shop/charge.html"
+        },
+        {
+          "name": "주소록/그룹관리",
+          "href": "/shop/input_member.html"
+        },
+        {
+          "name": "발신번호",
+          "href": "/cert_step2.html"
+        },
+        {
+          "name": "전송결과보기",
+          "href": "/shop/result_list.html"
+        },
+        {
+          "name": "문자API",
+          "href": "/admin/api/info.html"
+        },
+        {
+          "name": "카카오톡",
+          "href": "/shop/kakaointro.html"
+        },
+        {
+          "name": "RCS(채팅+)",
+          "href": "/shop/rcsintro.html"
+        },
+        {
+          "name": "홈",
+          "href": "/shop/kakaointro.html"
+        },
+        {
+          "name": "카카오채널 관리",
+          "href": "/shop/kakaoplus.html"
+        },
+        {
+          "name": "템플릿관리",
+          "href": "/shop/kakaotemplate.html"
+        },
+        {
+          "name": "템플릿예제",
+          "href": "/shop/kakaotemplatesample.html"
+        },
+        {
+          "name": "신청/인증",
+          "href": "/shop/kakaoauth.html"
+        },
+        {
+          "name": "API스펙",
+          "href": "/shop/kakaoapispec.html"
+        },
+        {
+          "name": "API예제",
+          "href": "/shop/kakaoexample.html"
+        },
+        {
+          "name": "긴급검수 요청",
+          "href": "https://cs.kakao.com/requests?category=481&locale=ko&node=46306&service=159"
+        },
+        {
+          "name": "시타채 대여안내 수정",
+          "href": null
+        },
+        {
+          "name": "시타사이트&약도안내 최신",
+          "href": null
+        },
+        {
+          "name": "기본안내",
+          "href": null
+        },
+        {
+          "name": "2",
+          "href": "/shop/kakaotemplate.html?cp=2&range=&kword=&seq=2421"
+        },
+        {
+          "name": "서비스 이용약관",
+          "href": "javascript:void(0);"
+        },
+        {
+          "name": "개인정보 처리방침",
+          "href": "javascript:void(0);"
+        },
+        {
+          "name": "고객센터",
+          "href": "/qna/help.html"
+        },
+        {
+          "name": "02-511-4560",
+          "href": "tel:02-511-4560"
+        },
+        {
+          "name": "cs@alipeople.kr",
+          "href": "mailto:cs@alipeople.kr"
+        },
+        {
+          "name": "고객 지원팀 상담 버튼",
+          "href": null
+        }
+      ]
+    },
+    {
+      "code": "TW_0243",
+      "name": "마쓰구 구매 보증서",
+      "altSms": "발송",
+      "status": "",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TW_0243\n                \n                    마쓰구 구매 보증서\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TW_0243",
+        "마쓰구 구매 보증서",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 3,
+      "content": "",
+      "variables": [],
+      "buttons": [
+        {
+          "name": "마스골프(mas9golf)",
+          "href": "/admin/"
+        },
+        {
+          "name": "로그아웃",
+          "href": "/logout.html"
+        },
+        {
+          "name": "내 정보관리",
+          "href": "/admin/"
+        },
+        {
+          "name": "고객센터",
+          "href": "/qna/help.html"
+        },
+        {
+          "name": "홈",
+          "href": "/main.html"
+        },
+        {
+          "name": "문자보내기",
+          "href": "/shop/"
+        },
+        {
+          "name": "충전하기",
+          "href": "/shop/charge.html"
+        },
+        {
+          "name": "주소록/그룹관리",
+          "href": "/shop/input_member.html"
+        },
+        {
+          "name": "발신번호",
+          "href": "/cert_step2.html"
+        },
+        {
+          "name": "전송결과보기",
+          "href": "/shop/result_list.html"
+        },
+        {
+          "name": "문자API",
+          "href": "/admin/api/info.html"
+        },
+        {
+          "name": "카카오톡",
+          "href": "/shop/kakaointro.html"
+        },
+        {
+          "name": "RCS(채팅+)",
+          "href": "/shop/rcsintro.html"
+        },
+        {
+          "name": "홈",
+          "href": "/shop/kakaointro.html"
+        },
+        {
+          "name": "카카오채널 관리",
+          "href": "/shop/kakaoplus.html"
+        },
+        {
+          "name": "템플릿관리",
+          "href": "/shop/kakaotemplate.html"
+        },
+        {
+          "name": "템플릿예제",
+          "href": "/shop/kakaotemplatesample.html"
+        },
+        {
+          "name": "신청/인증",
+          "href": "/shop/kakaoauth.html"
+        },
+        {
+          "name": "API스펙",
+          "href": "/shop/kakaoapispec.html"
+        },
+        {
+          "name": "API예제",
+          "href": "/shop/kakaoexample.html"
+        },
+        {
+          "name": "긴급검수 요청",
+          "href": "https://cs.kakao.com/requests?category=481&locale=ko&node=46306&service=159"
+        },
+        {
+          "name": "시타채 대여안내 수정",
+          "href": null
+        },
+        {
+          "name": "시타사이트&약도안내 최신",
+          "href": null
+        },
+        {
+          "name": "기본안내",
+          "href": null
+        },
+        {
+          "name": "2",
+          "href": "/shop/kakaotemplate.html?cp=2&range=&kword=&seq=2421"
+        },
+        {
+          "name": "서비스 이용약관",
+          "href": "javascript:void(0);"
+        },
+        {
+          "name": "개인정보 처리방침",
+          "href": "javascript:void(0);"
+        },
+        {
+          "name": "고객센터",
+          "href": "/qna/help.html"
+        },
+        {
+          "name": "02-511-4560",
+          "href": "tel:02-511-4560"
+        },
+        {
+          "name": "cs@alipeople.kr",
+          "href": "mailto:cs@alipeople.kr"
+        },
+        {
+          "name": "고객 지원팀 상담 버튼",
+          "href": null
+        }
+      ]
+    },
+    {
+      "code": "TV_5953",
+      "name": "시타사이트&약도안내 최신",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TV_5953\n                \n                    시타사이트&약도안내 최신\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TV_5953",
+        "시타사이트&약도안내 최신",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 4
+    },
+    {
+      "code": "TV_5952",
+      "name": "당일시타예약최신",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TV_5952\n                \n                    당일시타예약최신\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TV_5952",
+        "당일시타예약최신",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 5
+    },
+    {
+      "code": "TV_5950",
+      "name": "시타예약최신",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TV_5950\n                \n                    시타예약최신\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TV_5950",
+        "시타예약최신",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 6
+    },
+    {
+      "code": "TU_2446",
+      "name": "빈박스 발송",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TU_2446\n                \n                    빈박스 발송\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TU_2446",
+        "빈박스 발송",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 7
+    },
+    {
+      "code": "TU_0747",
+      "name": "시타 취소",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TU_0747\n                \n                    시타 취소\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TU_0747",
+        "시타 취소",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 8
+    },
+    {
+      "code": "TP_6093",
+      "name": "무게추 사용방법(최신)",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TP_6093\n                \n                    무게추 사용방법(최신)\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TP_6093",
+        "무게추 사용방법(최신)",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 9
+    },
+    {
+      "code": "TI_8967",
+      "name": "기본안내",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_8967\n                \n                    기본안내\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_8967",
+        "기본안내",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 10
+    },
+    {
+      "code": "TI_8433",
+      "name": "[AS] 방문상담예약",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_8433\n                \n                    [AS] 방문상담예약\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_8433",
+        "[AS] 방문상담예약",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 11
+    },
+    {
+      "code": "TI_5495",
+      "name": "[AS] 발송완료",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5495\n                \n                    [AS] 발송완료\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5495",
+        "[AS] 발송완료",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 12
+    },
+    {
+      "code": "TI_5494",
+      "name": "[AS] 접수",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5494\n                \n                    [AS] 접수\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5494",
+        "[AS] 접수",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 13
+    },
+    {
+      "code": "TI_5493",
+      "name": "[AS] 입금확인",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5493\n                \n                    [AS] 입금확인\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5493",
+        "[AS] 입금확인",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 14
+    },
+    {
+      "code": "TI_5492",
+      "name": "[AS] 입금요청",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5492\n                \n                    [AS] 입금요청\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5492",
+        "[AS] 입금요청",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 15
+    },
+    {
+      "code": "TI_5475",
+      "name": "주문확인",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5475\n                \n                    주문확인\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5475",
+        "주문확인",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 16
+    },
+    {
+      "code": "TI_5462",
+      "name": "발송완료",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5462\n                \n                    발송완료\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5462",
+        "발송완료",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 17
+    },
+    {
+      "code": "TI_5460",
+      "name": "입금확인",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5460\n                \n                    입금확인\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5460",
+        "입금확인",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 18
+    },
+    {
+      "code": "TI_5458",
+      "name": "입금요청",
+      "altSms": "발송",
+      "status": "승인완료",
+      "rawText": "\n                \n                \n                    @마쓰구골프                        (정상)\n                    \n                \n                TI_5458\n                \n                    입금요청\n                \n                발송\n                \n                        승인완료                    \n\n\t\t\t\t",
+      "cells": [
+        "",
+        "@마쓰구골프                        (정상)",
+        "TI_5458",
+        "입금요청",
+        "발송",
+        "승인완료"
+      ],
+      "tableIndex": 5,
+      "rowIndex": 19
+    }
+  ]
+}

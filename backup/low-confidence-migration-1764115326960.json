@@ -1,0 +1,81 @@
+{
+  "processed": [],
+  "deleted": [
+    {
+      "id": 15,
+      "original": {
+        "name": "시타",
+        "email": "massgoogolf@naver.com",
+        "date": "2022-08-01",
+        "service": "마쓰구 드라이버 시타 서비스"
+      },
+      "reason": "이름이 '시타'만 있어 유효하지 않음"
+    }
+  ],
+  "errors": [
+    {
+      "id": 1,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 2,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 3,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 4,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 5,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 6,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 7,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 8,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 9,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 10,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 11,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 12,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 13,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 14,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 16,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    },
+    {
+      "id": 17,
+      "error": "Could not find the 'customer_id' column of 'bookings' in the schema cache"
+    }
+  ]
+}

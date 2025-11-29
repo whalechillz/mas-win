@@ -201,17 +201,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 신규 고객 등록 시 최근 연락일을 현재 시간으로 자동 설정
       const now = new Date().toISOString();
 
+      // 날짜 필드 처리: 날짜만 있는 경우 시간을 00:00:00으로 설정 (한국 시간 기준)
+      const dateFields = {
+        first_inquiry_date,
+        first_purchase_date,
+        last_purchase_date,
+        last_service_date,
+        last_contact_date: last_contact_date || null
+      };
+
+      const processedDates: any = {};
+      for (const [field, value] of Object.entries(dateFields)) {
+        if (value && typeof value === 'string') {
+          // 날짜만 있는 경우 (YYYY-MM-DD 형식)
+          if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            // 한국 시간대 기준으로 00:00:00으로 설정
+            processedDates[field] = `${value}T00:00:00+09:00`;
+          } else {
+            processedDates[field] = value;
+          }
+        } else {
+          processedDates[field] = value;
+        }
+      }
+
+      // last_contact_date가 없으면 현재 시간으로 설정
+      if (!processedDates.last_contact_date) {
+        processedDates.last_contact_date = now;
+      }
+
       const { data, error } = await supabase
         .from('customers')
         .insert({
           name,
           phone: cleanPhone,
           address: address || null,
-          first_inquiry_date: first_inquiry_date || null,
-          first_purchase_date: first_purchase_date || null,
-          last_purchase_date: last_purchase_date || null,
-          last_service_date: last_service_date || null,
-          last_contact_date: last_contact_date || now, // 명시적으로 지정하지 않으면 현재 시간
+          first_inquiry_date: processedDates.first_inquiry_date || null,
+          first_purchase_date: processedDates.first_purchase_date || null,
+          last_purchase_date: processedDates.last_purchase_date || null,
+          last_service_date: processedDates.last_service_date || null,
+          last_contact_date: processedDates.last_contact_date,
           opt_out: false,
           created_at: now,
           updated_at: now,
@@ -242,12 +271,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         update.phone = cleanPhone;
       }
 
+      // 날짜 필드 처리: 날짜만 있는 경우 시간을 00:00:00으로 설정 (한국 시간 기준)
+      const dateFields = ['first_inquiry_date', 'first_purchase_date', 'last_purchase_date', 'last_service_date', 'last_contact_date'];
+      for (const field of dateFields) {
+        if (update[field] && typeof update[field] === 'string') {
+          // 날짜만 있는 경우 (YYYY-MM-DD 형식)
+          if (/^\d{4}-\d{2}-\d{2}$/.test(update[field])) {
+            // 한국 시간대 기준으로 00:00:00으로 설정
+            update[field] = `${update[field]}T00:00:00+09:00`;
+          }
+        }
+      }
+
       // TODO: 나중에 판매 히스토리/서비스 히스토리 추가 시 
       // 해당 히스토리 생성 시 last_contact_date를 자동으로 현재 시간으로 업데이트하도록 구현
       // 예: purchase_events 테이블에 INSERT 시 trigger로 자동 업데이트
       // 예: service_events 테이블에 INSERT 시 trigger로 자동 업데이트
 
       update.updated_at = new Date().toISOString();
+      
+      // 고객 이름이 변경된 경우, 같은 전화번호를 가진 모든 예약의 이름도 자동 업데이트
+      if (update.name) {
+        // 먼저 현재 고객 정보 조회 (전화번호 확인용)
+        const { data: currentCustomer } = await supabase
+          .from('customers')
+          .select('phone')
+          .eq('id', id)
+          .single();
+        
+        if (currentCustomer && currentCustomer.phone) {
+          // 같은 전화번호를 가진 모든 예약의 이름 업데이트
+          const { error: bookingUpdateError } = await supabase
+            .from('bookings')
+            .update({ name: update.name })
+            .eq('phone', currentCustomer.phone);
+          
+          if (bookingUpdateError) {
+            console.error('예약 이름 동기화 오류:', bookingUpdateError);
+            // 예약 업데이트 실패해도 고객 업데이트는 계속 진행
+          }
+        }
+      }
+      
       const { data, error } = await supabase.from('customers').update(update).eq('id', id).select().single();
       if (error) return res.status(500).json({ success: false, message: error.message });
       return res.status(200).json({ success: true, data });

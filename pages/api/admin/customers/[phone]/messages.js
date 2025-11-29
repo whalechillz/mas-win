@@ -76,16 +76,16 @@ export default async function handler(req, res) {
       const { data: smsDetails, error: smsError } = await supabase
         .from('channel_sms')
         .select(
-          'id, message_text, message_type, status, note, solapi_group_id, sent_at, success_count, fail_count, image_url'
+          'id, message_text, message_type, status, note, solapi_group_id, sent_at, success_count, fail_count, image_url, created_at'
         )
         .in('id', messageIds);
 
       if (smsError) {
         console.error('channel_sms 조회 오류:', smsError);
-        return res.status(500).json({ success: false, message: 'Failed to fetch SMS details.' });
+        // channel_sms 조회 실패해도 message_logs는 반환 (부분 실패 허용)
+      } else {
+        smsDetailsMap = new Map((smsDetails || []).map((item) => [item.id, item]));
       }
-
-      smsDetailsMap = new Map((smsDetails || []).map((item) => [item.id, item]));
     }
 
     const messages = logs.map((log) => {
@@ -98,8 +98,9 @@ export default async function handler(req, res) {
         messageText: detail?.message_text || null,
         messageType: detail?.message_type || log.message_type || null,
         sentAt: log.sent_at || detail?.sent_at || null,
-        sendStatus: log.status || null,
-        messageStatus: detail?.status || null,
+        createdAt: detail?.created_at || null, // 메시지 생성 시간 추가
+        sendStatus: log.status || null, // message_logs의 발송 상태 (실제 발송 결과)
+        messageStatus: detail?.status || null, // channel_sms의 전체 메시지 상태
         note: detail?.note || null,
         solapiGroupId: detail?.solapi_group_id || null,
         successCount:

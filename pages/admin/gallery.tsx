@@ -90,6 +90,13 @@ export default function GalleryAdmin() {
   const [extensionDuplicateResult, setExtensionDuplicateResult] = useState<any>(null);
   const [showExtensionDuplicateModal, setShowExtensionDuplicateModal] = useState(false);
   
+  // 블로그 중복 이미지 관리 관련 상태
+  const [isAnalyzingBlogDuplicates, setIsAnalyzingBlogDuplicates] = useState(false);
+  const [blogDuplicateAnalysis, setBlogDuplicateAnalysis] = useState<any>(null);
+  const [showBlogDuplicateModal, setShowBlogDuplicateModal] = useState(false);
+  const [selectedDuplicateHashes, setSelectedDuplicateHashes] = useState<Set<string>>(new Set());
+  const [isRemovingDuplicates, setIsRemovingDuplicates] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -278,6 +285,103 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 블로그 중복 이미지 분석 핸들러
+  const handleAnalyzeBlogDuplicates = async (blogPostIds?: number[]) => {
+    setIsAnalyzingBlogDuplicates(true);
+    setBlogDuplicateAnalysis(null);
+    setSelectedDuplicateHashes(new Set());
+
+    try {
+      const response = await fetch('/api/admin/analyze-blog-duplicates-by-hash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blogPostIds }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.details || '분석 실패');
+      }
+
+      const data = await response.json();
+
+      if (data.summary.duplicateGroupsCount === 0) {
+        alert(`[완료] 중복 이미지가 없습니다.\n\n분석한 글: ${data.summary.totalBlogPosts}개\n이미지 URL: ${data.summary.totalUniqueImageUrls}개`);
+        setIsAnalyzingBlogDuplicates(false);
+        return;
+      }
+
+      setBlogDuplicateAnalysis(data);
+      setShowBlogDuplicateModal(true);
+
+    } catch (error: any) {
+      console.error('[오류] 블로그 중복 이미지 분석 오류:', error);
+      alert(`블로그 중복 이미지 분석 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsAnalyzingBlogDuplicates(false);
+    }
+  };
+
+  // 블로그 중복 이미지 삭제 핸들러
+  const handleRemoveBlogDuplicates = async () => {
+    if (!blogDuplicateAnalysis || selectedDuplicateHashes.size === 0) {
+      alert('삭제할 그룹을 선택해주세요.');
+      return;
+    }
+
+    const selectedGroups = blogDuplicateAnalysis.deletionCandidates.filter((group: any) =>
+      selectedDuplicateHashes.has(group.hash_md5)
+    );
+    const totalImagesToRemove = selectedGroups.reduce((sum: number, group: any) => sum + group.removeCount, 0);
+    const totalSpaceToSave = selectedGroups.reduce((sum: number, group: any) => {
+      return sum + group.imagesToRemove.reduce((groupSum: number, img: any) => groupSum + (img.size || 0), 0);
+    }, 0);
+
+    if (!confirm(`⚠️ 선택한 ${selectedDuplicateHashes.size}개 그룹의 ${totalImagesToRemove}개 중복 이미지를 삭제하시겠습니까?\n\n예상 절약 공간: ${(totalSpaceToSave / 1024 / 1024).toFixed(2)} MB\n\n이 작업은 되돌릴 수 없습니다.`)) {
+      return;
+    }
+
+    setIsRemovingDuplicates(true);
+
+    try {
+      const response = await fetch('/api/admin/remove-blog-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deletionCandidates: blogDuplicateAnalysis.deletionCandidates,
+          selectedHashes: Array.from(selectedDuplicateHashes),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.details || '삭제 실패');
+      }
+
+      const result = await response.json();
+
+      if (result.results.failed.length === 0) {
+        alert(`[완료] ${result.summary.totalDeleted}개 이미지 삭제 완료!\n\n절약된 공간: ${(result.summary.totalSpaceSaved / 1024 / 1024).toFixed(2)} MB`);
+      } else {
+        alert(`[경고] ${result.summary.totalDeleted}개 삭제 완료, ${result.summary.totalFailed}개 실패\n\n${result.results.failed.map((f: any) => `${f.fileName}: ${f.error}`).join('\n')}`);
+      }
+
+      // 모달 닫기 및 목록 새로고침
+      setShowBlogDuplicateModal(false);
+      setBlogDuplicateAnalysis(null);
+      setSelectedDuplicateHashes(new Set());
+      setTimeout(() => {
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+      }, 500);
+
+    } catch (error: any) {
+      console.error('[오류] 블로그 중복 이미지 삭제 오류:', error);
+      alert(`블로그 중복 이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsRemovingDuplicates(false);
+    }
+  };
+
   // Phase 8-9-7: 확장자 기반 중복 확인 핸들러
   const handleCheckExtensionDuplicates = async () => {
     const currentFolder = folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null;
@@ -307,7 +411,7 @@ export default function GalleryAdmin() {
       const data = await response.json();
 
       if (data.duplicateGroups.length === 0) {
-        alert(`✅ 확장자 중복 이미지가 없습니다.\n\n폴더: ${currentFolder}\n전체 파일: ${data.totalFiles}개`);
+        alert('[완료] 확장자 중복 이미지가 없습니다.\n\n폴더: ' + currentFolder + '\n전체 파일: ' + data.totalFiles + '개');
         setIsCheckingExtensionDuplicates(false);
         return;
       }
@@ -316,7 +420,7 @@ export default function GalleryAdmin() {
       setShowExtensionDuplicateModal(true);
 
     } catch (error: any) {
-      console.error('❌ 확장자 중복 감지 오류:', error);
+      console.error('[오류] 확장자 중복 감지 오류:', error);
       alert(`확장자 중복 감지 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       setIsCheckingExtensionDuplicates(false);
@@ -2965,6 +3069,14 @@ export default function GalleryAdmin() {
                 title="현재 선택된 폴더의 JPG/WebP 확장자 중복을 감지합니다"
               >
                 {isCheckingExtensionDuplicates ? '🔄 확인 중...' : '🔄 확장자 중복 확인'}
+              </button>
+              <button
+                onClick={() => handleAnalyzeBlogDuplicates()}
+                disabled={isAnalyzingBlogDuplicates}
+                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                title="블로그 글의 중복 이미지를 Hash 기반으로 감지합니다"
+              >
+                {isAnalyzingBlogDuplicates ? '[분석 중...]' : '[분석] 블로그 중복 이미지 분석'}
               </button>
               {selectedForCompare.size >= 1 && (
                 <button
@@ -6473,6 +6585,194 @@ export default function GalleryAdmin() {
                   )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 블로그 중복 이미지 분석 모달 */}
+      {showBlogDuplicateModal && blogDuplicateAnalysis && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto my-8">
+            <div className="p-6">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">블로그 중복 이미지 분석 결과</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    분석한 글: {blogDuplicateAnalysis.summary.totalBlogPosts}개 | 
+                    중복 그룹: {blogDuplicateAnalysis.summary.duplicateGroupsCount}개 | 
+                    삭제 후보: {blogDuplicateAnalysis.summary.totalImagesToRemove}개 | 
+                    예상 절약: {(blogDuplicateAnalysis.summary.estimatedSpaceToSave / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowBlogDuplicateModal(false);
+                    setBlogDuplicateAnalysis(null);
+                    setSelectedDuplicateHashes(new Set());
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* 전체 선택/해제 */}
+              <div className="mb-4 flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedDuplicateHashes.size === blogDuplicateAnalysis.deletionCandidates.length && blogDuplicateAnalysis.deletionCandidates.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedDuplicateHashes(new Set(blogDuplicateAnalysis.deletionCandidates.map((g: any) => g.hash_md5)));
+                      } else {
+                        setSelectedDuplicateHashes(new Set());
+                      }
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    전체 선택 ({selectedDuplicateHashes.size}/{blogDuplicateAnalysis.deletionCandidates.length})
+                  </span>
+                </label>
+                {selectedDuplicateHashes.size > 0 && (
+                  <button
+                    onClick={handleRemoveBlogDuplicates}
+                    disabled={isRemovingDuplicates}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {isRemovingDuplicates ? '[삭제 중...]' : `[삭제] 선택한 그룹 삭제 (${selectedDuplicateHashes.size}개)`}
+                  </button>
+                )}
+              </div>
+
+              {/* 중복 그룹 목록 */}
+              <div className="space-y-4">
+                {blogDuplicateAnalysis.deletionCandidates.map((group: any, index: number) => {
+                  const isSelected = selectedDuplicateHashes.has(group.hash_md5);
+                  return (
+                    <div
+                      key={group.hash_md5}
+                      className={`border-2 rounded-lg p-4 ${isSelected ? 'border-pink-500 bg-pink-50' : 'border-gray-200 bg-white'}`}
+                    >
+                      {/* 그룹 헤더 */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              const newSelected = new Set(selectedDuplicateHashes);
+                              if (e.target.checked) {
+                                newSelected.add(group.hash_md5);
+                              } else {
+                                newSelected.delete(group.hash_md5);
+                              }
+                              setSelectedDuplicateHashes(newSelected);
+                            }}
+                            className="w-4 h-4 mt-1"
+                          />
+                          <div>
+                            <div className="font-semibold text-gray-900">
+                              그룹 {index + 1}: Hash {group.hash_md5.substring(0, 16)}...
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              총 {group.totalCount}개 중복 | 보존 {group.keepCount}개, 삭제 {group.removeCount}개 | 
+                              사용 글: {group.blogPostCount}개
+                            </div>
+                            {group.blogPostTitles.length > 0 && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {group.blogPostTitles.slice(0, 3).join(', ')}
+                                {group.blogPostTitles.length > 3 && ` 외 ${group.blogPostTitles.length - 3}개`}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 이미지 비교 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 보존할 이미지 */}
+                        <div className="space-y-2">
+                          <div className="text-sm font-semibold text-green-700 bg-green-50 px-2 py-1 rounded">
+                            [보존] 보존할 이미지 ({group.imagesToKeep.length}개)
+                          </div>
+                          {group.imagesToKeep.map((img: any, imgIndex: number) => (
+                            <div key={imgIndex} className="border-2 border-green-300 rounded-lg p-3 bg-green-50">
+                              <div className="aspect-video bg-gray-100 rounded mb-2 overflow-hidden">
+                                <img
+                                  src={img.url}
+                                  alt={img.fileName}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                              <div className="text-xs">
+                                <div className="font-medium truncate" title={img.fileName}>{img.fileName}</div>
+                                <div className="text-gray-500">{(img.size / 1024).toFixed(1)}KB</div>
+                                <div className="text-green-600">사용: {img.usageCount}개 글</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* 삭제할 이미지 */}
+                        <div className="space-y-2">
+                          <div className="text-sm font-semibold text-red-700 bg-red-50 px-2 py-1 rounded">
+                            [삭제] 삭제할 이미지 ({group.imagesToRemove.length}개)
+                          </div>
+                          {group.imagesToRemove.map((img: any, imgIndex: number) => (
+                            <div key={imgIndex} className="border-2 border-red-300 rounded-lg p-3 bg-red-50">
+                              <div className="aspect-video bg-gray-100 rounded mb-2 overflow-hidden">
+                                <img
+                                  src={img.url}
+                                  alt={img.fileName}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                              <div className="text-xs">
+                                <div className="font-medium truncate" title={img.fileName}>{img.fileName}</div>
+                                <div className="text-gray-500">{(img.size / 1024).toFixed(1)}KB</div>
+                                <div className="text-red-600">{img.reason}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 하단 액션 버튼 */}
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowBlogDuplicateModal(false);
+                    setBlogDuplicateAnalysis(null);
+                    setSelectedDuplicateHashes(new Set());
+                  }}
+                  className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium shadow-sm"
+                >
+                  닫기
+                </button>
+                {selectedDuplicateHashes.size > 0 && (
+                  <button
+                    onClick={handleRemoveBlogDuplicates}
+                    disabled={isRemovingDuplicates}
+                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                  >
+                    {isRemovingDuplicates ? '[삭제 중...]' : `[삭제] 선택한 그룹 삭제 (${selectedDuplicateHashes.size}개)`}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

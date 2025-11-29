@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { createClient } from '@supabase/supabase-js';
 import CampaignKPIDashboard from '../components/admin/dashboard/CampaignKPIDashboard';
-import { ContactManagement } from '../components/admin/contacts/ContactManagement';
-import { BookingManagement } from '../components/admin/bookings/BookingManagement';
 import MarketingDashboardComplete from '../components/admin/marketing/MarketingDashboardComplete';
 import { TeamMemberManagement } from '../components/admin/team/TeamMemberManagement';
 import AccountManagement from '../components/admin/AccountManagement';
@@ -29,45 +27,6 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const router = useRouter();
 
-  // 데이터 상태 추가
-  const [bookings, setBookings] = useState([]);
-  const [contacts, setContacts] = useState([]);
-  const [dataLoading, setDataLoading] = useState(false);
-
-  // 데이터 로딩 함수
-  const loadData = async () => {
-    setDataLoading(true);
-    try {
-      // 예약 데이터 로드
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (bookingsError) {
-        console.error('예약 데이터 로드 오류:', bookingsError);
-      } else {
-        setBookings(bookingsData || []);
-      }
-
-      // 연락처 데이터 로드
-      const { data: contactsData, error: contactsError } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (contactsError) {
-        console.error('연락처 데이터 로드 오류:', contactsError);
-      } else {
-        setContacts(contactsData || []);
-      }
-    } catch (error) {
-      console.error('데이터 로드 오류:', error);
-    } finally {
-      setDataLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (status === 'loading') return; // 로딩 중이면 대기
     
@@ -76,9 +35,6 @@ export default function Admin() {
       window.location.href = '/admin/login';
       return;
     }
-    
-    // 인증된 경우 데이터 로드
-    loadData();
   }, [session, status]);
 
   const handleLogout = async () => {
@@ -110,8 +66,6 @@ export default function Admin() {
     { id: 'team', name: '계정 관리', icon: '👨‍💼' },
     { id: 'marketing', name: '마케팅', icon: '📈' },
     { id: 'blog', name: '블로그 관리', icon: '📝' },
-    { id: 'bookings', name: '예약 관리', icon: '📅' },
-    { id: 'contacts', name: '연락처 관리', icon: '👥' },
     { id: 'analytics', name: '분석', icon: '📊' },
     { id: 'funnel', name: '퍼널 관리', icon: '🔄' },
     { id: 'google-ads', name: '구글 광고', icon: '🎯' }
@@ -143,10 +97,6 @@ export default function Admin() {
             </div>
           </div>
         );
-      case 'bookings':
-        return <BookingManagement bookings={bookings} onUpdate={loadData} />;
-      case 'contacts':
-        return <ContactManagement contacts={contacts} onUpdate={loadData} />;
       case 'team':
         return <AccountManagement session={session} />;
       case 'analytics':
@@ -226,13 +176,7 @@ export default function Admin() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {dataLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
-        ) : (
-          renderTabContent()
-        )}
+        {renderTabContent()}
       </main>
     </div>
   );

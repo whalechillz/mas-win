@@ -65,21 +65,22 @@ export default async function handler(req, res) {
     const paragraphImages = [];
 
     // negative_prompt 동적 조정
-    let negativePrompt = "text, words, letters, korean text, chinese text, english text, watermark, caption, subtitle, written content";
+    // 기본적으로 모든 텍스트 제거 (로고는 logoOption에 따라 처리)
+    const baseTextRemoval = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers, text overlay, text on image, embedded text, floating text, text banner, text label, text sign, text graphic, text element, text decoration, text design, text illustration";
+    
+    let negativePrompt = baseTextRemoval;
     
     // logoOption 처리 (우선순위: logoOption > textOption)
     if (logoOption === 'none') {
-      // 로고 없음: MASSGOO 브랜딩 제거
-      negativePrompt = "MASSGOO, logo, branding, text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
+      // 로고 없음: MASSGOO 브랜딩 + 모든 텍스트 제거
+      negativePrompt = `MASSGOO, logo, branding, ${baseTextRemoval}`;
     } else if (textOption === 'english' || textOption === 'korean') {
       // 텍스트를 포함하려는 경우, negative_prompt에서 텍스트 제거 지시를 빼기
       negativePrompt = "watermark, caption, subtitle, low quality, blurry, distorted, bad quality";
-    } else if (textOption === 'none') {
-      // 텍스트를 완전히 제거하려는 경우, negative_prompt 강화 (로고는 허용)
-      negativePrompt = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
     } else {
-      // 기본값: 텍스트 없음, 로고는 허용
-      negativePrompt = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers";
+      // 기본값: 텍스트 완전 제거 (로고는 허용)
+      // AI 이미지 생성 메뉴에서는 항상 텍스트 제거
+      negativePrompt = baseTextRemoval;
     }
 
     // 각 프롬프트에 대해 이미지 생성
@@ -209,9 +210,9 @@ export default async function handler(req, res) {
             }
           }
           
-          // 카카오 콘텐츠인 경우 날짜별 폴더 구조로 저장
-          if (metadata && metadata.account && metadata.type && metadata.date) {
-            // originals/daily-branding/kakao/YYYY-MM-DD/account1|account2/background|profile|feed/
+          // AI 이미지 생성인 경우 originals/ai-generated/YYYY-MM-DD/ 구조로 저장
+          // (logoOption이 있거나 account가 없으면 AI 이미지 생성으로 간주)
+          if (metadata && metadata.date && (!metadata.account || logoOption)) {
             // date가 ISO 형식이거나 YYYY-MM-DD 형식일 수 있음
             let dateStr = metadata.date;
             if (dateStr.includes('T')) {
@@ -221,11 +222,36 @@ export default async function handler(req, res) {
             }
             // 이미 YYYY-MM-DD 형식이면 그대로 사용
             
+            const timestamp = Date.now();
+            const brandTone = metadata.account === 'account1' ? 'senior-emotional' : (metadata.account === 'account2' ? 'high-tech-innovative' : 'general');
+            const imageType = metadata.type || 'feed'; // background, profile, feed
+            
+            // 파일명: ai-generated-{brandTone}-{imageType}-{timestamp}-{index}.jpg|png
+            if (metadata.type === 'feed') {
+              finalFileName = `ai-generated-${brandTone}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
+              finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
+            } else {
+              finalFileName = `ai-generated-${brandTone}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.png`;
+              finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
+            }
+            
+            // 경로 검증 로깅
+            console.log(`📁 AI 이미지 저장 경로: ${finalFilePath}`);
+            console.log(`   - 날짜: ${dateStr}, 브랜딩 톤: ${brandTone}, 타입: ${imageType}`);
+          } else if (metadata && metadata.account && metadata.type && metadata.date) {
+            // 카카오 콘텐츠인 경우 날짜별 폴더 구조로 저장 (기존 방식 유지)
+            // originals/daily-branding/kakao/YYYY-MM-DD/account1|account2/background|profile|feed/
+            let dateStr = metadata.date;
+            if (dateStr.includes('T')) {
+              dateStr = dateStr.split('T')[0];
+            } else if (dateStr.includes(' ')) {
+              dateStr = dateStr.split(' ')[0];
+            }
+            
             const accountFolder = metadata.account === 'account1' ? 'account1' : 'account2';
-            const typeFolder = metadata.type; // background, profile, feed
+            const typeFolder = metadata.type;
             const timestamp = Date.now();
             
-            // 피드 이미지는 최적화된 JPEG로 저장
             if (metadata.type === 'feed') {
               finalFileName = `kakao-${metadata.account}-${metadata.type}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
               finalFilePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${finalFileName}`;
@@ -234,8 +260,7 @@ export default async function handler(req, res) {
               finalFilePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${finalFileName}`;
             }
             
-            // 경로 검증 로깅
-            console.log(`📁 파일 저장 경로: ${finalFilePath}`);
+            console.log(`📁 카카오 콘텐츠 저장 경로: ${finalFilePath}`);
             console.log(`   - 날짜: ${dateStr}, 계정: ${accountFolder}, 타입: ${typeFolder}`);
           } else {
             // 기존 방식 (블로그 등)
@@ -272,24 +297,40 @@ export default async function handler(req, res) {
           // 이미지 메타데이터 저장 (계정, 용도 정보 포함)
           if (metadata) {
             try {
+              // AI 이미지 생성인지 카카오 콘텐츠인지 구분
+              const isAIGenerated = !metadata.account || logoOption;
+              
               const metadataPayload = {
                 image_url: storedUrl,
                 file_name: finalFileName,
                 alt_text: metadata.message || promptData.prompt || '',
-                title: `${metadata.account === 'account1' ? '대표폰' : '업무폰'} - ${metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드'} (${imgIdx + 1}/${generatedImages.length})`,
+                title: isAIGenerated 
+                  ? `AI 생성 이미지 - ${metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드'} (${imgIdx + 1}/${generatedImages.length})`
+                  : `${metadata.account === 'account1' ? '대표폰' : '업무폰'} - ${metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드'} (${imgIdx + 1}/${generatedImages.length})`,
                 description: promptData.prompt || '',
-                tags: [
-                  `카카오톡`,
-                  metadata.account === 'account1' ? '대표폰' : '업무폰',
-                  metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드',
-                  metadata.account === 'account1' ? '골드톤' : '블랙톤',
-                  metadata.account === 'account1' ? '시니어' : '젊은골퍼',
-                  metadata.date || '',
-                  `옵션${imgIdx + 1}`
-                ],
-                category: metadata.account === 'account1' ? '시니어 골퍼' : '젊은 골퍼',
-                upload_source: 'kakao_content_ai',
-                channel: 'kakao',
+                tags: isAIGenerated
+                  ? [
+                      'AI 생성',
+                      metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드',
+                      metadata.account === 'account1' ? '시니어 중심 감성형' : (metadata.account === 'account2' ? '하이테크 중심 혁신형' : '일반'),
+                      logoOption === 'full-brand' ? '전체 브랜딩' : (logoOption === 'logo' ? '로고 포함' : '브랜딩 없음'),
+                      metadata.date || '',
+                      `옵션${imgIdx + 1}`
+                    ]
+                  : [
+                      `카카오톡`,
+                      metadata.account === 'account1' ? '대표폰' : '업무폰',
+                      metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드',
+                      metadata.account === 'account1' ? '골드톤' : '블랙톤',
+                      metadata.account === 'account1' ? '시니어' : '젊은골퍼',
+                      metadata.date || '',
+                      `옵션${imgIdx + 1}`
+                    ],
+                category: isAIGenerated 
+                  ? 'AI 생성 이미지'
+                  : (metadata.account === 'account1' ? '시니어 골퍼' : '젊은 골퍼'),
+                upload_source: isAIGenerated ? 'ai_image_generator' : 'kakao_content_ai',
+                channel: isAIGenerated ? 'ai' : 'kakao',
                 updated_at: new Date().toISOString()
               };
               
@@ -311,9 +352,11 @@ export default async function handler(req, res) {
             paragraphIndex: i,
             paragraph: promptData.paragraph,
             imageUrl: storedUrl, // Supabase 저장된 URL 사용
+            url: storedUrl, // AI 이미지 생성 페이지 호환성을 위해 url 필드도 추가
             originalUrl: imageData.url, // 원본 URL도 보관
             prompt: promptData.prompt,
-            optionIndex: imgIdx + 1
+            optionIndex: imgIdx + 1,
+            path: finalFilePath // 저장 경로 추가
           });
         } catch (saveError) {
           console.error(`이미지 ${imgIdx + 1} 저장 오류:`, saveError);
@@ -332,8 +375,17 @@ export default async function handler(req, res) {
       paragraphImages.push(...savedImages);
     }
 
+    // AI 이미지 생성 페이지 호환성을 위해 images 배열 형식도 제공
+    const images = paragraphImages.map(img => ({
+      url: img.imageUrl || img.url,
+      path: img.path,
+      originalUrl: img.originalUrl,
+      prompt: img.prompt
+    }));
+
     res.status(200).json({
       success: true,
+      images: images, // AI 이미지 생성 페이지용
       imageUrls: paragraphImages.map(img => img.imageUrl),
       paragraphImages: paragraphImages,
       totalGenerated: paragraphImages.length,

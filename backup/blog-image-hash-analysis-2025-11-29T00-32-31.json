@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "totalBlogPosts": 1,
+    "blogPostIds": [
+      121
+    ],
+    "totalUniqueImageUrls": 1,
+    "hashCalculationSuccess": 0,
+    "hashCalculationFailed": 1,
+    "duplicateGroupsCount": 0,
+    "totalDuplicateImages": 0,
+    "deletionCandidatesCount": 0,
+    "totalImagesToRemove": 0,
+    "estimatedSpaceToSave": 0
+  },
+  "duplicateGroups": [],
+  "deletionCandidates": [],
+  "processedImages": [
+    {
+      "url": "이미지URL",
+      "blogPostIds": [
+        121
+      ],
+      "blogPostTitles": [
+        "Mas 9 Golf Store (마쓰구 골프 스토어) 사이니지 디자인 수상작"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [],
+      "hashMd5": null,
+      "hashSha256": null,
+      "size": null,
+      "status": "failed"
+    }
+  ]
+}

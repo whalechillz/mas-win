@@ -21,7 +21,8 @@ export default async function handler(req, res) {
       type,             // 'background' | 'profile' | 'feed'
       brandStrategy,
       weeklyTheme,
-      date
+      date,
+      useForImageGeneration = false  // AI 이미지 생성 메뉴용 플래그 (365일 통용 이미지)
     } = req.body;
 
     if (!prompt || !accountType || !type) {
@@ -31,31 +32,46 @@ export default async function handler(req, res) {
       });
     }
 
-    // Phase 2.1: 날짜 기반 변형 요소 계산
-    const dateObj = date ? new Date(date) : new Date();
-    const dayOfMonth = dateObj.getDate();
-    const month = dateObj.getMonth() + 1; // 1-12
-    
-    // 월 초/중/말 분위기
+    // Phase 2.1: 날짜 기반 변형 요소 계산 (AI 이미지 생성 메뉴용이면 제외)
     let monthPhaseMood = '';
-    if (dayOfMonth <= 10) {
-      monthPhaseMood = 'new beginning, energetic atmosphere, fresh start';
-    } else if (dayOfMonth <= 20) {
-      monthPhaseMood = 'stable, balanced atmosphere, steady progress';
-    } else {
-      monthPhaseMood = 'completion, achievement, gratitude, finishing touch';
-    }
-    
-    // 계절별 분위기
     let seasonMood = '';
-    if (month >= 3 && month <= 5) {
-      seasonMood = 'spring rhythm, softness, gentle atmosphere';
-    } else if (month >= 6 && month <= 8) {
-      seasonMood = 'summer energy, distance, vibrant atmosphere';
-    } else if (month >= 9 && month <= 11) {
-      seasonMood = 'autumn precision, balance, refined atmosphere';
+    let dateContext = '';
+    let weeklyThemeText = '';
+    
+    if (!useForImageGeneration) {
+      // 카카오 콘텐츠용: 날짜/계절/테마 포함
+      const dateObj = date ? new Date(date) : new Date();
+      const dayOfMonth = dateObj.getDate();
+      const month = dateObj.getMonth() + 1; // 1-12
+      
+      // 월 초/중/말 분위기
+      if (dayOfMonth <= 10) {
+        monthPhaseMood = 'new beginning, energetic atmosphere, fresh start';
+      } else if (dayOfMonth <= 20) {
+        monthPhaseMood = 'stable, balanced atmosphere, steady progress';
+      } else {
+        monthPhaseMood = 'completion, achievement, gratitude, finishing touch';
+      }
+      
+      // 계절별 분위기
+      if (month >= 3 && month <= 5) {
+        seasonMood = 'spring rhythm, softness, gentle atmosphere';
+      } else if (month >= 6 && month <= 8) {
+        seasonMood = 'summer energy, distance, vibrant atmosphere';
+      } else if (month >= 9 && month <= 11) {
+        seasonMood = 'autumn precision, balance, refined atmosphere';
+      } else {
+        seasonMood = 'winter preparation, maintenance, calm atmosphere';
+      }
+      
+      dateContext = date || 'today';
+      weeklyThemeText = weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결';
     } else {
-      seasonMood = 'winter preparation, maintenance, calm atmosphere';
+      // AI 이미지 생성 메뉴용: 365일 통용 이미지 (날짜/계절/테마 제외)
+      monthPhaseMood = 'timeless, classic atmosphere, year-round applicable';
+      seasonMood = 'neutral seasonal elements, no specific seasonal markers';
+      dateContext = 'universal, applicable any day of the year';
+      weeklyThemeText = 'no specific weekly theme, focus on core brand message';
     }
 
     // 계정별 한국 골퍼 명시 (배경 이미지일 때는 배경 중심, 사람은 최소화)
@@ -108,18 +124,31 @@ export default async function handler(req, res) {
 - Clean composition without unnecessary textual content
 - ABSOLUTELY NO text, words, or written content in the image`;
 
-    const systemPrompt = `You are an expert image prompt generator for KakaoTalk content.
+    // AI 이미지 생성 메뉴용 추가 지시사항
+    const imageGenerationSpec = useForImageGeneration
+      ? `\n9. **CRITICAL for Universal Image (365 days applicable):**
+- Bright, well-lit image with natural lighting
+- Positive, cheerful atmosphere
+- The person should have a warm, genuine smile
+- Happy, friendly expression
+- Bright lighting that works year-round
+- No seasonal or date-specific elements
+- Timeless composition suitable for any day, any month, any season`
+      : '';
+
+    const systemPrompt = `You are an expert image prompt generator${useForImageGeneration ? ' for universal, year-round images' : ' for KakaoTalk content'}.
 Create a detailed, vivid English prompt for AI image generation.
 
 **CRITICAL REQUIREMENTS (MUST FOLLOW):**
 1. ${koreanGolferSpec}
 2. ${type === 'background' ? 'The BACKGROUND/SCENE is the main subject. STRICTLY MINIMIZE people: maximum 1-2 very small, distant silhouettes in the far background (barely visible), or preferably NO people at all. Focus exclusively on the landscape, golf course, store, or setting itself. Do NOT include multiple people or groups of people.' : 'ABSOLUTELY NO Western/Caucasian people - ONLY Korean/Asian people'}
 3. ${typeDescription}
-4. Weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
+${useForImageGeneration ? '' : `4. Weekly theme: ${weeklyThemeText}`}
 5. Brand strategy: ${JSON.stringify(brandStrategy || {})}
-6. Date context: ${date || 'today'}
-7. Month phase mood: ${monthPhaseMood} (reflects the energy of ${dayOfMonth <= 10 ? 'early' : dayOfMonth <= 20 ? 'mid' : 'late'} month)
-8. Seasonal atmosphere: ${seasonMood} (reflects the current season)
+${useForImageGeneration ? '' : `6. Date context: ${dateContext}`}
+${useForImageGeneration ? '' : `7. Month phase mood: ${monthPhaseMood}`}
+${useForImageGeneration ? '' : `8. Seasonal atmosphere: ${seasonMood}`}
+${imageGenerationSpec}
 
 ${brandGuideline}
 
@@ -164,9 +193,11 @@ Generate a compelling visual prompt that includes ALL critical requirements abov
 Enhance this prompt slightly to ensure:
 1. All critical requirements are met (Korean golfer, account type, style)
 2. NO Western/Caucasian people appear
-3. Matches the weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
-4. Optimized for ${type} image type${brandInstruction}
-5. **Maintains the original concept and visual style**
+${useForImageGeneration ? '' : `3. Matches the weekly theme: ${weeklyThemeText}`}
+${useForImageGeneration ? '3. Universal, year-round applicable (no seasonal or date-specific elements)' : '4. Optimized for ${type} image type'}
+${useForImageGeneration ? '4. Bright, well-lit image with positive, cheerful atmosphere and warm, genuine smile' : '5. Optimized for ${type} image type'}
+${useForImageGeneration ? '5. Optimized for ${type} image type' : ''}${brandInstruction}
+${useForImageGeneration ? '6. **Maintains the original concept and visual style**' : '5. **Maintains the original concept and visual style**'}
 
 Return ONLY the enhanced prompt in English, keeping the original concept, mood, and style intact.`;
     } else {
@@ -183,9 +214,11 @@ Create an enhanced image generation prompt that:
 1. **PRESERVES and EXPANDS the base prompt concept** (this is the most important requirement)
 2. Adds all critical requirements (Korean golfer, account type, style)
 3. Ensures NO Western/Caucasian people appear
-4. Matches the weekly theme: ${weeklyTheme || '비거리의 감성 – 스윙과 마음의 연결'}
-5. Is optimized for ${type} image type${brandInstruction}
-6. Maintains visual consistency with the base concept
+${useForImageGeneration ? '' : `4. Matches the weekly theme: ${weeklyThemeText}`}
+${useForImageGeneration ? '4. Universal, year-round applicable (no seasonal or date-specific elements)' : '5. Is optimized for ${type} image type'}
+${useForImageGeneration ? '5. Bright, well-lit image with positive, cheerful atmosphere and warm, genuine smile' : ''}
+${useForImageGeneration ? '6. Is optimized for ${type} image type' : ''}${brandInstruction}
+${useForImageGeneration ? '7. Maintains visual consistency with the base concept' : '6. Maintains visual consistency with the base concept'}
 
 Return ONLY the enhanced prompt in English, ready for AI image generation. The base concept must be clearly visible in the result.`;
     }

@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2025-11-29T00:32:31.019Z",
+  "summary": {
+    "totalBlogPosts": 1,
+    "blogPostIds": [
+      121
+    ],
+    "totalUniqueImageUrls": 1,
+    "hashCalculationSuccess": 0,
+    "hashCalculationFailed": 1,
+    "duplicateGroupsCount": 0,
+    "totalDuplicateImages": 0,
+    "deletionCandidatesCount": 0,
+    "totalImagesToRemove": 0,
+    "estimatedSpaceToSave": 0
+  },
+  "deletionCandidates": []
+}

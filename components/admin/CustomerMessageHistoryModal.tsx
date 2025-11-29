@@ -45,6 +45,46 @@ const statusBadgeClass = (status?: string | null) => {
   }
 };
 
+const formatSendStatus = (status?: string | null) => {
+  switch ((status || '').toLowerCase()) {
+    case 'sent':
+    case 'success':
+      return '발송 완료';
+    case 'partial':
+    case 'partial_success':
+      return '일부 발송';
+    case 'failed':
+    case 'fail':
+      return '발송 실패';
+    case 'draft':
+      return '예정';
+    case 'scheduled':
+      return '예약 발송';
+    default:
+      return '알 수 없음';
+  }
+};
+
+const formatMessageStatus = (status?: string | null) => {
+  switch ((status || '').toLowerCase()) {
+    case 'sent':
+    case 'success':
+      return '메시지 완료';
+    case 'partial':
+    case 'partial_success':
+      return '메시지 부분 발송';
+    case 'failed':
+    case 'fail':
+      return '메시지 실패';
+    case 'draft':
+      return '초안';
+    case 'scheduled':
+      return '예약됨';
+    default:
+      return status || '알 수 없음';
+  }
+};
+
 const formatDateTime = (value?: string | null) => {
   if (!value) return '-';
   try {
@@ -208,10 +248,10 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
                         {message.messageType || '유형 미정'}
                       </span>
                       <span className={`rounded-full px-2 py-1 ${statusBadgeClass(message.sendStatus)}`}>
-                        발송: {message.sendStatus || '알 수 없음'}
+                        발송 상태: {formatSendStatus(message.sendStatus)}
                       </span>
                       <span className={`rounded-full px-2 py-1 ${statusBadgeClass(message.messageStatus)}`}>
-                        메시지: {message.messageStatus || '알 수 없음'}
+                        메시지 상태: {formatMessageStatus(message.messageStatus)}
                       </span>
                     </div>
                   </div>
@@ -237,9 +277,11 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
                       <button
                         type="button"
                         className="text-purple-600 underline underline-offset-2"
-                        onClick={() =>
-                          window.open(`https://console.solapi.com/console/message/log/${message.solapiGroupId}`, '_blank')
-                        }
+                        onClick={() => {
+                          // 콤마로 구분된 여러 그룹 ID 중 첫 번째만 사용
+                          const groupId = message.solapiGroupId.split(',')[0].trim();
+                          window.open(`https://console.solapi.com/message-log?criteria=groupId&value=${groupId}&cond=eq`, '_blank');
+                        }}
                       >
                         Solapi 그룹 보기
                       </button>

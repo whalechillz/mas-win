@@ -286,13 +286,21 @@ export default async function handler(req, res) {
         console.log(`Solapi chunk ${chunkIndex}/${totalChunks} 응답:`, json);
         
         if (!resp.ok) {
+          // ⭐ 실패 응답에서도 그룹 ID 추출 시도 (잔액 부족 등으로 실패해도 그룹 ID가 생성될 수 있음)
+          const failedGroupId = json.groupInfo?.groupId || json.groupId || json.group_id || null;
+          if (failedGroupId) {
+            console.log(`⚠️ 청크 ${chunkIndex} 실패했지만 그룹 ID 발견: ${failedGroupId}`);
+            aggregated.groupIds.push(failedGroupId);
+          }
+          
           // 청크 실패 시 오류 기록하지만 계속 진행
           const errorInfo = {
             chunkIndex,
             status: resp.status,
             error: json,
             messageCount: chunk.length,
-            range: `${i + 1}-${Math.min(i + chunkSize, allMessages.length)}`
+            range: `${i + 1}-${Math.min(i + chunkSize, allMessages.length)}`,
+            groupId: failedGroupId || undefined
           };
           chunkErrors.push(errorInfo);
           console.error(`❌ 청크 ${chunkIndex} 발송 실패:`, errorInfo);
@@ -362,21 +370,43 @@ export default async function handler(req, res) {
     // per-recipient 로그 및 연락 이벤트 기록 (고객 매핑은 후속 단계에서 강화)
     try {
       const nowIso = new Date().toISOString();
-      const logsToInsert = aggregated.messageResults.map((r, idx) => ({
-        content_id: String(channelPostId),
-        customer_phone: uniqueToSend[idx] || null,
-        customer_id: null,
-        message_type: (solapiType || 'SMS').toLowerCase(),
-        status: (r.status || 'sent'),
-        channel: 'solapi',
-        sent_at: nowIso
-      }));
+      
+      // ⭐ recipient_numbers를 직접 사용하여 모든 수신자에 대해 로그 생성
+      // messageResults와 매칭하여 정확한 상태 사용
+      const messageResultMap = new Map();
+      aggregated.messageResults.forEach(r => {
+        if (r.to) {
+          const normalized = r.to.replace(/[\-\s]/g, '');
+          messageResultMap.set(normalized, r);
+        }
+      });
+      
+      // ⭐ 모든 수신자에 대해 로그 생성 (messageResults에 없는 경우도 포함)
+      const logsToInsert = uniqueToSend.map(phone => {
+        const normalized = phone.replace(/[\-\s]/g, '');
+        const result = messageResultMap.get(normalized);
+        
+        return {
+          content_id: String(channelPostId),
+          customer_phone: normalized,
+          customer_id: null,
+          message_type: (solapiType || 'SMS').toLowerCase(),
+          status: result?.status || 'sent', // messageResults에 있으면 정확한 상태, 없으면 기본값
+          channel: 'solapi',
+          sent_at: nowIso
+        };
+      });
+      
       if (logsToInsert.length) {
         // 동일 content_id+phone은 1회만 기록(재시도 시 갱신)
         const { error: logErr } = await supabase
           .from('message_logs')
           .upsert(logsToInsert, { onConflict: 'content_id,customer_phone' });
-        if (logErr) console.error('message_logs 적재 오류:', logErr);
+        if (logErr) {
+          console.error('message_logs 적재 오류:', logErr);
+        } else {
+          console.log(`✅ message_logs 저장 완료: ${logsToInsert.length}건 (수신자: ${uniqueToSend.length}명)`);
+        }
       }
       const successCount = aggregated.messageResults.filter(r => (r.status || '').toLowerCase() !== 'failed').length;
       if (successCount > 0) {
@@ -399,9 +429,34 @@ export default async function handler(req, res) {
     // 발송 결과를 데이터베이스에 업데이트 (부분 성공도 처리)
     const finalStatus = allSuccess ? 'sent' : (hasPartialSuccess ? 'partial' : 'failed');
     
-    // 모든 그룹 ID를 콤마로 구분하여 저장
-    const allGroupIds = aggregated.groupIds.filter(Boolean);
+    // ⭐ 기존 그룹 ID 조회 (재전송 시 기존 그룹 ID 유지)
+    let existingGroupIds = [];
+    try {
+      const { data: existingMessage } = await supabase
+        .from('channel_sms')
+        .select('solapi_group_id')
+        .eq('id', channelPostId)
+        .single();
+      
+      if (existingMessage?.solapi_group_id) {
+        existingGroupIds = existingMessage.solapi_group_id
+          .split(',')
+          .map(g => g.trim())
+          .filter(Boolean);
+        console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
+      }
+    } catch (e) {
+      console.error('기존 그룹 ID 조회 오류 (무시하고 진행):', e);
+    }
+    
+    // ⭐ 새 그룹 ID와 기존 그룹 ID 병합 (중복 제거)
+    const newGroupIds = aggregated.groupIds.filter(Boolean);
+    const allGroupIds = [...new Set([...existingGroupIds, ...newGroupIds])]; // 중복 제거
     const groupIdsString = allGroupIds.length > 0 ? allGroupIds.join(',') : null;
+    
+    if (existingGroupIds.length > 0 && newGroupIds.length > 0) {
+      console.log(`✅ 재전송 감지: 기존 ${existingGroupIds.length}개 + 새 ${newGroupIds.length}개 = 총 ${allGroupIds.length}개 그룹 ID`);
+    }
     
     // ⭐ 그룹별 상세 정보 수집 (발송 직후 가능한 정보만)
     const groupStatuses = [];

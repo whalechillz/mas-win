@@ -12,13 +12,13 @@ export default function V3Product() {
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
   const productImages = [
-    '/main/products/v3/마쓰구_시크리트포스_V3_05_00.webp',
-    '/main/products/v3/마쓰구_시크리트포스_V3_공홈_02.webp',
-    '/main/products/v3/마쓰구_시크리트포스_V3_공홈_03.webp',
-    '/main/products/v3/마쓰구_시크리트포스_V3_공홈_04.webp',
-    '/main/products/v3/마쓰구_시크리트포스_V3_공홈_05.webp',
-    '/main/products/v3/마쓰구_시크리트포스_V3_공홈_06.webp',
-    '/main/products/v3/마쓰구_시크리트포스_V3_공홈_07.webp',
+    '/main/products/v3/secret-force-v3-gallery-05-00.webp',
+    '/main/products/v3/secret-force-v3-gallery-02.webp',
+    '/main/products/v3/secret-force-v3-gallery-03.webp',
+    '/main/products/v3/secret-force-v3-gallery-04.webp',
+    '/main/products/v3/secret-force-v3-gallery-05.webp',
+    '/main/products/v3/secret-force-v3-gallery-06.webp',
+    '/main/products/v3/secret-force-v3-gallery-07.webp',
   ];
 
   // 블로그 후기 가져오기

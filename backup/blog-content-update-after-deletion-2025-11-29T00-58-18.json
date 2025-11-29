@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2025-11-29T00:58:18.174Z",
+  "urlMapping": [
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777702664-3.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777702116-2.webp"
+    },
+    {
+      "old": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777705122-5.webp",
+      "new": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757777704699-4.webp"
+    }
+  ],
+  "summary": {
+    "totalPosts": 164,
+    "updated": 1,
+    "failed": 0
+  },
+  "updatedPosts": [
+    {
+      "id": 305,
+      "title": "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험",
+      "contentUpdated": true,
+      "featuredUpdated": false,
+      "replacedCount": 2,
+      "replacedUrls": [
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757777702664-3.webp",
+          "newFileName": "complete-migration-1757777702116-2.webp"
+        },
+        {
+          "type": "Markdown",
+          "oldFileName": "complete-migration-1757777705122-5.webp",
+          "newFileName": "complete-migration-1757777704699-4.webp"
+        }
+      ]
+    }
+  ]
+}

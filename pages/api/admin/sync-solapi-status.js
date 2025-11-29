@@ -412,12 +412,34 @@ export default async function handler(req, res) {
       s => s.groupId === groupId
     );
     
+    // ⭐ successCount가 totalCount를 초과하지 않도록 제한
+    const maxSuccessCount = Math.min(successCount || 0, finalTotalCount || 0);
+    const maxFailCount = Math.min(failCount || 0, finalTotalCount || 0);
+    const maxSendingCount = Math.min(sendingCount || 0, finalTotalCount || 0);
+    
+    // ⭐ success + fail + sending이 totalCount를 초과하지 않도록 조정
+    let finalSuccessCount = maxSuccessCount;
+    let finalFailCount = maxFailCount;
+    let finalSendingCount = maxSendingCount;
+    
+    const totalStatusCount = maxSuccessCount + maxFailCount + maxSendingCount;
+    if (totalStatusCount > finalTotalCount && finalTotalCount > 0) {
+      console.warn(`⚠️ 그룹 ${groupId}: 상태 합계(${totalStatusCount})가 총 건수(${finalTotalCount})를 초과합니다. 조정합니다.`);
+      const ratio = finalTotalCount / totalStatusCount;
+      finalSuccessCount = Math.round(maxSuccessCount * ratio);
+      finalFailCount = Math.round(maxFailCount * ratio);
+      finalSendingCount = Math.max(0, finalTotalCount - finalSuccessCount - finalFailCount); // 나머지는 sending으로
+      
+      console.warn(`   조정 전: 성공=${maxSuccessCount}, 실패=${maxFailCount}, 발송중=${maxSendingCount}`);
+      console.warn(`   조정 후: 성공=${finalSuccessCount}, 실패=${finalFailCount}, 발송중=${finalSendingCount}`);
+    }
+    
     const statusToSave = {
       groupId: groupId,
-      successCount: successCount || 0,
-      failCount: failCount || 0,
+      successCount: finalSuccessCount,
+      failCount: finalFailCount,
       totalCount: finalTotalCount || 0,
-      sendingCount: sendingCount || 0,
+      sendingCount: finalSendingCount,
       lastSyncedAt: new Date().toISOString()
     };
     
@@ -428,7 +450,45 @@ export default async function handler(req, res) {
     }
     
     // ⭐ 전체 그룹 기준 집계 (상태 결정에 사용)
-    const aggregateCounts = updatedStatuses.reduce(
+    // solapi_group_id에 포함된 그룹만 집계 (중복 제거 및 검증)
+    const validGroupIds = currentMessage.solapi_group_id 
+      ? currentMessage.solapi_group_id.split(',').map(g => g.trim()).filter(Boolean)
+      : [];
+
+    console.log(`🔍 집계 전 상태 확인:`);
+    console.log(`   - 메시지 ID: ${messageId}`);
+    console.log(`   - 수신자 수: ${recipientCount}명`);
+    console.log(`   - 유효한 그룹 IDs: ${validGroupIds.join(', ')}`);
+    console.log(`   - 기존 group_statuses 개수: ${updatedStatuses.length}개`);
+    updatedStatuses.forEach((status, idx) => {
+      console.log(`   - [${idx}] 그룹 ID: ${status.groupId}, 성공: ${status.successCount}, 실패: ${status.failCount}, 총: ${status.totalCount}`);
+    });
+
+    // 중복 제거 및 유효한 그룹만 필터링
+    const uniqueStatuses = updatedStatuses.filter((status, index, self) => {
+      // 1. 중복 제거 (같은 groupId가 여러 번 있으면 첫 번째만 사용)
+      const firstIndex = self.findIndex(s => s.groupId === status.groupId);
+      if (firstIndex !== index) {
+        console.warn(`⚠️ 중복된 그룹 ID 발견: ${status.groupId}, 첫 번째 항목만 사용`);
+        return false;
+      }
+      
+      // 2. solapi_group_id에 포함된 그룹만 집계
+      if (validGroupIds.length > 0 && !validGroupIds.includes(status.groupId)) {
+        console.warn(`⚠️ 유효하지 않은 그룹 ID 제외: ${status.groupId} (메시지의 solapi_group_id에 없음)`);
+        return false;
+      }
+      
+      return true;
+    });
+
+    console.log(`🔍 필터링 후 상태:`);
+    console.log(`   - 유효한 group_statuses 개수: ${uniqueStatuses.length}개`);
+    uniqueStatuses.forEach((status, idx) => {
+      console.log(`   - [${idx}] 그룹 ID: ${status.groupId}, 성공: ${status.successCount}, 실패: ${status.failCount}, 총: ${status.totalCount}`);
+    });
+
+    const aggregateCounts = uniqueStatuses.reduce(
       (acc, statusEntry) => {
         acc.success += statusEntry.successCount || 0;
         acc.fail += statusEntry.failCount || 0;
@@ -438,6 +498,22 @@ export default async function handler(req, res) {
       },
       { success: 0, fail: 0, sending: 0, total: 0 }
     );
+
+    console.log(`📊 집계 결과:`);
+    console.log(`   - 성공: ${aggregateCounts.success}건`);
+    console.log(`   - 실패: ${aggregateCounts.fail}건`);
+    console.log(`   - 발송중: ${aggregateCounts.sending}건`);
+    console.log(`   - 총: ${aggregateCounts.total}건`);
+
+    // ⭐ 수신자 수를 초과하지 않도록 제한 (recipientCount는 위에서 이미 선언됨)
+    if (aggregateCounts.total > recipientCount && recipientCount > 0) {
+      console.warn(`⚠️ 집계된 총 건수(${aggregateCounts.total})가 수신자 수(${recipientCount})를 초과합니다. 수신자 수로 제한합니다.`);
+      const ratio = recipientCount / aggregateCounts.total;
+      aggregateCounts.success = Math.min(Math.round(aggregateCounts.success * ratio), recipientCount);
+      aggregateCounts.fail = Math.min(Math.round(aggregateCounts.fail * ratio), recipientCount);
+      aggregateCounts.sending = Math.min(Math.round(aggregateCounts.sending * ratio), recipientCount);
+      aggregateCounts.total = recipientCount;
+    }
 
     let aggregatedFinalStatus = currentMessage.status;
     if (aggregateCounts.sending > 0) {
@@ -464,7 +540,7 @@ export default async function handler(req, res) {
         sent_count: aggregatedTotalCount,
         success_count: aggregatedSuccessCount,
         fail_count: aggregatedFailCount,
-        group_statuses: updatedStatuses, // ⭐ 그룹별 상세 정보 저장
+        group_statuses: uniqueStatuses, // ⭐ 그룹별 상세 정보 저장 (중복 제거 및 검증된 항목만)
         updated_at: new Date().toISOString()
       })
       .eq('id', messageId);

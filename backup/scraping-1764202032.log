@@ -1,0 +1,52 @@
+🚀 알리고 템플릿 스크래핑 시작...
+
+🌐 새 브라우저 시작...
+  ✅ 새 브라우저 세션 생성 완료
+📍 현재 URL: about:blank
+  ✅ 로그인된 상태입니다.
+  ⚠️  템플릿 페이지가 아닙니다. 템플릿 페이지로 이동합니다.
+  ⏩ 이미 로그인된 상태이므로 로그인 과정을 건너뜁니다.
+
+📋 템플릿 관리 페이지로 이동 중...
+  💡 직접 URL 접근은 오류가 발생하므로 메뉴 클릭 방식 사용
+  방법: 메뉴 클릭으로 이동 시도...
+    📄 메인 페이지로 이동 중...
+    ⚠️  메뉴 클릭 이동 실패: page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "https://smartsms.aligo.in/main.html", waiting until "networkidle"
+
+    💡 브라우저에서 수동으로 템플릿 페이지로 이동해주세요.
+  💾 스크린샷 저장: backup/aligo-template-page-not-found.png
+  ⚠️  템플릿 페이지를 자동으로 찾을 수 없습니다.
+  💡 브라우저에서 수동으로 다음 경로로 이동해주세요:
+     카카오톡 → 템플릿관리 → 카카오채널 ID 선택 (마쓰구골프)
+
+⚠️  템플릿 페이지로 이동한 후 계속하시겠습니까?
+  ⏩ 비대화형 모드: 자동으로 계속 진행합니다. (3초 대기)
+
+🔍 카카오채널 ID 확인 중...
+  ⚠️  마쓰구골프 템플릿이 보이지 않습니다. 카카오채널 ID 재선택 시도...
+
+📊 현재 페이지에서 템플릿 목록 수집 중...
+  📍 현재 URL: https://smartsms.aligo.in/main.html
+  ⚠️  현재 페이지가 템플릿 페이지가 아닙니다.
+  💡 브라우저에서 수동으로 템플릿 페이지로 이동한 후 Enter를 눌러주세요.
+
+⚠️  템플릿 목록 페이지로 이동한 후 계속하시겠습니까?
+  ⏩ 비대화형 모드: 자동으로 계속 진행합니다. (3초 대기)
+
+❌ 스크래핑 실패: page.waitForTimeout: Target page, context or browser has been closed
+   스택: page.waitForTimeout: Target page, context or browser has been closed
+    at scrapeAligoTemplates (/Users/m2/MASLABS/win.masgolf.co.kr/scripts/scrape-aligo-templates.js:578:16)
+
+⚠️  에러가 발생했습니다. 스크린샷을 확인하고 계속 진행하시겠습니까?
+  ⏩ 비대화형 모드: 자동으로 계속 진행합니다. (3초 대기)
+  ⚠️  에러를 무시하고 계속 진행합니다.
+
+💡 브라우저 세션을 유지합니다. (재사용 가능)
+   브라우저를 닫으려면 Ctrl+C를 누르거나 스크립트를 종료하세요.
+
+✅ 작업 완료!
+
+💡 브라우저는 유지됩니다. 다시 실행하면 로그인 상태를 재사용합니다.
+   브라우저를 닫으려면 Ctrl+C를 누르세요.

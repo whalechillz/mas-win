@@ -1,0 +1,13 @@
+{
+  "bookings": [],
+  "customers": [
+    {
+      "id": 493,
+      "name": "정현국",
+      "phone": "01036753377",
+      "email": "jhk317@hanmeil"
+    }
+  ],
+  "totalBookings": 0,
+  "totalCustomers": 1
+}

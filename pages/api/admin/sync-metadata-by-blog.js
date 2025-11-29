@@ -198,26 +198,42 @@ const syncMetadataForBlogPost = async (blogPostId) => {
     console.log(`📊 블로그 글 "${post.title}" 이미지: ${images.length}개`);
     
     // ✅ 기존 메타데이터가 있는 이미지 먼저 확인하여 스킵 (시간 절약)
+    const { forceReanalyze = false } = req.body;
     console.log(`📊 총 ${images.length}개 이미지 중 기존 메타데이터 확인 중...`);
+    if (forceReanalyze) {
+      console.log('⚠️ 강제 재생성 모드: 모든 이미지를 재생성합니다.');
+    }
     const imagesToProcess = [];
     const imagesToSkip = [];
     
     for (const img of images) {
       try {
+        // 강제 재생성 모드면 무조건 처리
+        if (forceReanalyze) {
+          imagesToProcess.push(img);
+          continue;
+        }
+        
         // 기존 메타데이터 확인
         const normalizedUrl = normalizeUrl(img.url);
         const { data: existingMetadata } = await supabase
           .from('image_metadata')
-          .select('image_url')
+          .select('image_url, alt_text, title')
           .eq('image_url', img.url)
           .single();
         
-        if (existingMetadata) {
-          console.log(`⏭️ 이미지 메타데이터 이미 존재: ${img.url}`);
+        // 메타데이터가 있고 ALT와 Title이 모두 있으면 스킵
+        if (existingMetadata && existingMetadata.alt_text && existingMetadata.title) {
+          console.log(`⏭️ 이미지 메타데이터 이미 존재 (ALT, Title 모두 있음): ${img.url}`);
           imagesToSkip.push(img);
-        } else {
-          imagesToProcess.push(img);
+          continue;
         }
+        // 메타데이터는 있지만 ALT나 Title이 없으면 재생성 필요
+        if (existingMetadata && (!existingMetadata.alt_text || !existingMetadata.title)) {
+          console.log(`🔄 메타데이터 재생성 필요 (ALT 또는 Title 누락): ${img.url}`);
+        }
+        // 메타데이터가 없거나 불완전하면 처리 대상에 추가
+        imagesToProcess.push(img);
       } catch (error) {
         // 오류 발생 시 처리 대상에 추가
         imagesToProcess.push(img);

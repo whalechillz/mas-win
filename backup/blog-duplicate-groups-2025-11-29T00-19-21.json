@@ -1,0 +1,72 @@
+[
+  {
+    "filename": "IMG_8012.jpg",
+    "count": 2,
+    "hasBlogConnection": true,
+    "keepCount": 2,
+    "removeCount": 0,
+    "images": [
+      {
+        "path": "originals/blog/2025-11/482/IMG_8012.jpg",
+        "fileName": "IMG_8012.jpg",
+        "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-11/482/IMG_8012.jpg",
+        "blogPostIds": [
+          482
+        ],
+        "blogPostTitles": [
+          "천안 직산에서 찾은 부드러운 스윙의 비밀, 마쓰구골프 고객 후기 공개!"
+        ],
+        "keep": true,
+        "storageExists": false
+      },
+      {
+        "path": "scraped-images/2025-11-14/IMG_8012.jpg",
+        "fileName": "IMG_8012.jpg",
+        "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/scraped-images/2025-11-14/IMG_8012.jpg",
+        "blogPostIds": [
+          483
+        ],
+        "blogPostTitles": [
+          "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?"
+        ],
+        "keep": true,
+        "storageExists": false
+      }
+    ]
+  },
+  {
+    "filename": "IMG_8014.jpg",
+    "count": 2,
+    "hasBlogConnection": true,
+    "keepCount": 2,
+    "removeCount": 0,
+    "images": [
+      {
+        "path": "originals/blog/2025-11/482/IMG_8014.jpg",
+        "fileName": "IMG_8014.jpg",
+        "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-11/482/IMG_8014.jpg",
+        "blogPostIds": [
+          482
+        ],
+        "blogPostTitles": [
+          "천안 직산에서 찾은 부드러운 스윙의 비밀, 마쓰구골프 고객 후기 공개!"
+        ],
+        "keep": true,
+        "storageExists": false
+      },
+      {
+        "path": "scraped-images/2025-11-14/IMG_8014.jpg",
+        "fileName": "IMG_8014.jpg",
+        "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/scraped-images/2025-11-14/IMG_8014.jpg",
+        "blogPostIds": [
+          483
+        ],
+        "blogPostTitles": [
+          "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?"
+        ],
+        "keep": true,
+        "storageExists": false
+      }
+    ]
+  }
+]

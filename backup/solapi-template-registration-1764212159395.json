@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-11-27T02:55:59.395Z",
+  "total": 3,
+  "success": 3,
+  "failed": 0,
+  "results": [
+    {
+      "success": true,
+      "template": "기본안내"
+    },
+    {
+      "success": true,
+      "template": "시타사이트&약도안내 최신"
+    },
+    {
+      "success": true,
+      "template": "당일시타예약최신"
+    }
+  ]
+}

@@ -518,6 +518,20 @@ export default async function handler(req, res) {
             metadataMap.set(meta.image_url, meta);
           });
           
+          // ✅ image_assets 테이블에서 메타데이터 조회 (검색 결과용 fallback)
+          const searchUrls = searchFiles.map(f => f.url);
+          const { data: searchAssets } = await supabase
+            .from('image_assets')
+            .select('id, cdn_url, alt_text, title, description, ai_tags')
+            .in('cdn_url', searchUrls);
+          
+          const searchAssetsMap = new Map();
+          if (searchAssets) {
+            searchAssets.forEach(asset => {
+              searchAssetsMap.set(asset.cdn_url, asset);
+            });
+          }
+          
           // 카테고리 매핑
           const categoryIdMap = new Map();
           const categoryIds = [...new Set(metadataResults.map(m => m.category_id).filter(Boolean))];
@@ -633,10 +647,22 @@ export default async function handler(req, res) {
               updated_at: file.updated_at,
               url: file.url,
               folder_path: file.folderPath || '',
-              alt_text: metadata?.alt_text || '',
-              title: metadata?.title || '',
-              description: metadata?.description || '',
-              keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
+              // ✅ image_metadata → image_assets 순서로 fallback
+              alt_text: metadata?.alt_text || asset?.alt_text || '',
+              title: metadata?.title || asset?.title || '',
+              description: metadata?.description || asset?.description || '',
+              // ✅ keywords: image_metadata.tags → image_assets.ai_tags 순서로 fallback
+              keywords: (() => {
+                // image_metadata의 tags 우선
+                if (metadata?.tags) {
+                  return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
+                }
+                // image_assets의 ai_tags fallback
+                if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
+                  return asset.ai_tags;
+                }
+                return [];
+              })(),
               category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
               categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
               usage_count: usageCount,
@@ -738,7 +764,7 @@ export default async function handler(req, res) {
           // ✅ 성능 최적화: 폴더와 파일 분리 후 병렬 처리
           const folders = [];
           const files = [];
-          
+
           for (const file of allFilesInFolder) {
             if (!file.id) {
               folders.push(file);
@@ -764,16 +790,16 @@ export default async function handler(req, res) {
           
           // 이미지 파일 처리
           for (const file of files) {
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-            const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-            // .keep.png 마커 파일 제외
-            const isKeepFile = file.name.toLowerCase() === '.keep.png';
-            
-            if (isImage && !isKeepFile) {
-              allFiles.push({
-                ...file,
-                folderPath: folderPath // 폴더 경로 추가
-              });
+              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              // .keep.png 마커 파일 제외
+              const isKeepFile = file.name.toLowerCase() === '.keep.png';
+              
+              if (isImage && !isKeepFile) {
+                allFiles.push({
+                  ...file,
+                  folderPath: folderPath // 폴더 경로 추가
+                });
             }
           }
         };
@@ -839,7 +865,7 @@ export default async function handler(req, res) {
           // ✅ 성능 최적화: 폴더와 파일 분리 후 병렬 처리
           const folders = [];
           const files = [];
-          
+
           for (const file of allFilesInFolder) {
             if (!file.id) {
               folders.push(file);
@@ -865,16 +891,16 @@ export default async function handler(req, res) {
           
           // 이미지 파일 처리
           for (const file of files) {
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-            const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-            // .keep.png 마커 파일 제외
-            const isKeepFile = file.name.toLowerCase() === '.keep.png';
-            
-            if (isImage && !isKeepFile) {
-              allFilesForPagination.push({
-                ...file,
-                folderPath: folderPath // 폴더 경로 추가
-              });
+              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              // .keep.png 마커 파일 제외
+              const isKeepFile = file.name.toLowerCase() === '.keep.png';
+              
+              if (isImage && !isKeepFile) {
+                allFilesForPagination.push({
+                  ...file,
+                  folderPath: folderPath // 폴더 경로 추가
+                });
             }
           }
         };
@@ -962,10 +988,10 @@ export default async function handler(req, res) {
         .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
         .in('image_url', urls);
 
-      // image_assets 테이블에서 id 조회 (비교 기능용)
+      // image_assets 테이블에서 id 및 메타데이터 조회 (비교 기능용 + 메타데이터 fallback)
       const { data: allAssets } = await supabase
         .from('image_assets')
-        .select('id, cdn_url, file_path')
+        .select('id, cdn_url, file_path, alt_text, title, description, ai_tags')
         .in('cdn_url', urls);
 
       // image_assets를 URL 기준으로 매핑
@@ -1215,10 +1241,22 @@ export default async function handler(req, res) {
           updated_at: file.updated_at,
           url: url,
           folder_path: file.folderPath || '',
-          alt_text: metadata?.alt_text || '',
-          title: metadata?.title || '',
-          description: metadata?.description || '',
-          keywords: Array.isArray(metadata?.tags) ? metadata.tags : (metadata?.tags ? [metadata.tags] : []),
+          // ✅ image_metadata → image_assets 순서로 fallback
+          alt_text: metadata?.alt_text || asset?.alt_text || '',
+          title: metadata?.title || asset?.title || '',
+          description: metadata?.description || asset?.description || '',
+          // ✅ keywords: image_metadata.tags → image_assets.ai_tags 순서로 fallback
+          keywords: (() => {
+            // image_metadata의 tags 우선
+            if (metadata?.tags) {
+              return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
+            }
+            // image_assets의 ai_tags fallback
+            if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
+              return asset.ai_tags;
+            }
+            return [];
+          })(),
           // category는 category_id를 기반으로 카테고리 이름 반환 (하위 호환성)
           // 실제로는 카테고리 체크박스에서 categories 배열을 사용하므로, category_id가 있으면 해당 카테고리 이름을 배열로 반환
           category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',

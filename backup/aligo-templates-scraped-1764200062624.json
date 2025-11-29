@@ -1,0 +1,30 @@
+{
+  "scrapedAt": "2025-11-26T23:34:22.624Z",
+  "totalCount": 4,
+  "templates": [
+    {
+      "code": "",
+      "name": "",
+      "rawText": "\n              단문:SMS\n              장문:LMS\n              그림:MMS\n            ",
+      "index": 0
+    },
+    {
+      "code": "",
+      "name": "6,828건2,214건955건",
+      "rawText": "6,828건2,214건955건",
+      "index": 1
+    },
+    {
+      "code": "",
+      "name": "",
+      "rawText": "\n              알림톡\n              친구톡-텍스트형\n              친구톡-이미지형\n            ",
+      "index": 2
+    },
+    {
+      "code": "",
+      "name": "8,824건4,588건2,941건",
+      "rawText": "8,824건4,588건2,941건",
+      "index": 3
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-11-27T02:51:05.067Z",
+  "total": 3,
+  "success": 0,
+  "failed": 3,
+  "results": [
+    {
+      "success": false,
+      "template": "기본안내",
+      "error": "템플릿 등록 버튼을 찾을 수 없습니다."
+    },
+    {
+      "success": false,
+      "template": "시타사이트&약도안내 최신",
+      "error": "템플릿 등록 버튼을 찾을 수 없습니다."
+    },
+    {
+      "success": false,
+      "template": "당일시타예약최신",
+      "error": "템플릿 등록 버튼을 찾을 수 없습니다."
+    }
+  ]
+}

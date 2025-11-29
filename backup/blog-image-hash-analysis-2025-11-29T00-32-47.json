@@ -1,0 +1,765 @@
+{
+  "summary": {
+    "totalBlogPosts": 1,
+    "blogPostIds": [
+      123
+    ],
+    "totalUniqueImageUrls": 12,
+    "hashCalculationSuccess": 12,
+    "hashCalculationFailed": 0,
+    "duplicateGroupsCount": 5,
+    "totalDuplicateImages": 10,
+    "deletionCandidatesCount": 5,
+    "totalImagesToRemove": 5,
+    "estimatedSpaceToSave": 1000000
+  },
+  "duplicateGroups": [
+    {
+      "hash_md5": "ed7eea7eab1cb252f8e1037c3e93301c",
+      "count": 2,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "images": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589208-3.webp",
+          "path": "complete-migration-1757771589208-3.webp",
+          "fileName": "complete-migration-1757771589208-3.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 120164,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        },
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589662-4.webp",
+          "path": "complete-migration-1757771589662-4.webp",
+          "fileName": "complete-migration-1757771589662-4.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 120164,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        }
+      ]
+    },
+    {
+      "hash_md5": "4c424de33d4105882c750ac31eb4f6d0",
+      "count": 2,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "images": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590044-5.webp",
+          "path": "complete-migration-1757771590044-5.webp",
+          "fileName": "complete-migration-1757771590044-5.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 132192,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        },
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590440-6.webp",
+          "path": "complete-migration-1757771590440-6.webp",
+          "fileName": "complete-migration-1757771590440-6.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 132192,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        }
+      ]
+    },
+    {
+      "hash_md5": "05420f159d14d607c76d8109676bb5c6",
+      "count": 2,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "images": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590842-7.webp",
+          "path": "complete-migration-1757771590842-7.webp",
+          "fileName": "complete-migration-1757771590842-7.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 189322,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        },
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591360-8.webp",
+          "path": "complete-migration-1757771591360-8.webp",
+          "fileName": "complete-migration-1757771591360-8.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 189322,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        }
+      ]
+    },
+    {
+      "hash_md5": "e1a13782ab939490e2f7de4a35c8fbdd",
+      "count": 2,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "images": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591887-9.webp",
+          "path": "complete-migration-1757771591887-9.webp",
+          "fileName": "complete-migration-1757771591887-9.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 131716,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        },
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592268-10.webp",
+          "path": "complete-migration-1757771592268-10.webp",
+          "fileName": "complete-migration-1757771592268-10.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 131716,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        }
+      ]
+    },
+    {
+      "hash_md5": "265fb7590158630d4a9a9b3b2d973837",
+      "count": 2,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "images": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592666-11.webp",
+          "path": "complete-migration-1757771592666-11.webp",
+          "fileName": "complete-migration-1757771592666-11.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 146584,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        },
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771593103-12.webp",
+          "path": "complete-migration-1757771593103-12.webp",
+          "fileName": "complete-migration-1757771593103-12.webp",
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "size": 146584,
+          "types": [
+            "content"
+          ],
+          "sources": [
+            "content_markdown"
+          ]
+        }
+      ]
+    }
+  ],
+  "deletionCandidates": [
+    {
+      "hash_md5": "ed7eea7eab1cb252f8e1037c3e93301c",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589208-3.webp",
+          "path": "complete-migration-1757771589208-3.webp",
+          "fileName": "complete-migration-1757771589208-3.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589662-4.webp",
+          "path": "complete-migration-1757771589662-4.webp",
+          "fileName": "complete-migration-1757771589662-4.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    },
+    {
+      "hash_md5": "4c424de33d4105882c750ac31eb4f6d0",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590044-5.webp",
+          "path": "complete-migration-1757771590044-5.webp",
+          "fileName": "complete-migration-1757771590044-5.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590440-6.webp",
+          "path": "complete-migration-1757771590440-6.webp",
+          "fileName": "complete-migration-1757771590440-6.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    },
+    {
+      "hash_md5": "05420f159d14d607c76d8109676bb5c6",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590842-7.webp",
+          "path": "complete-migration-1757771590842-7.webp",
+          "fileName": "complete-migration-1757771590842-7.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591360-8.webp",
+          "path": "complete-migration-1757771591360-8.webp",
+          "fileName": "complete-migration-1757771591360-8.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    },
+    {
+      "hash_md5": "e1a13782ab939490e2f7de4a35c8fbdd",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591887-9.webp",
+          "path": "complete-migration-1757771591887-9.webp",
+          "fileName": "complete-migration-1757771591887-9.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592268-10.webp",
+          "path": "complete-migration-1757771592268-10.webp",
+          "fileName": "complete-migration-1757771592268-10.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    },
+    {
+      "hash_md5": "265fb7590158630d4a9a9b3b2d973837",
+      "totalCount": 2,
+      "keepCount": 1,
+      "removeCount": 1,
+      "blogPostCount": 1,
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "imagesToKeep": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592666-11.webp",
+          "path": "complete-migration-1757771592666-11.webp",
+          "fileName": "complete-migration-1757771592666-11.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ]
+        }
+      ],
+      "imagesToRemove": [
+        {
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771593103-12.webp",
+          "path": "complete-migration-1757771593103-12.webp",
+          "fileName": "complete-migration-1757771593103-12.webp",
+          "usageCount": 1,
+          "blogPostIds": [
+            123
+          ],
+          "blogPostTitles": [
+            "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+          ],
+          "reason": "다른 이미지가 더 많이 사용됨"
+        }
+      ]
+    }
+  ],
+  "processedImages": [
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771588300-1.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "paths": [
+        "complete-migration-1757771588300-1.webp"
+      ],
+      "path": "complete-migration-1757771588300-1.webp",
+      "fileName": "complete-migration-1757771588300-1.webp",
+      "hashMd5": "768a4573c6c842560ebb1f64dea78790",
+      "hashSha256": "e1e04e6964616b06d5caa43b6010f3185abcfd41bab954269346fada2c14bb57",
+      "size": 73638,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771588785-2.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771588785-2.webp"
+      ],
+      "path": "complete-migration-1757771588785-2.webp",
+      "fileName": "complete-migration-1757771588785-2.webp",
+      "hashMd5": "6ee4ef57b356ababe91f64bb4d9a9a20",
+      "hashSha256": "bcbd16debae51890e76e7176604aa03c49dabdce4b1b39f5551c3a5df98751d2",
+      "size": 127772,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589208-3.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771589208-3.webp"
+      ],
+      "path": "complete-migration-1757771589208-3.webp",
+      "fileName": "complete-migration-1757771589208-3.webp",
+      "hashMd5": "ed7eea7eab1cb252f8e1037c3e93301c",
+      "hashSha256": "606f4f65900cef4a529a265c1f5904be01e1d75b82b90f261c0ffb1e0513c495",
+      "size": 120164,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771589662-4.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771589662-4.webp"
+      ],
+      "path": "complete-migration-1757771589662-4.webp",
+      "fileName": "complete-migration-1757771589662-4.webp",
+      "hashMd5": "ed7eea7eab1cb252f8e1037c3e93301c",
+      "hashSha256": "606f4f65900cef4a529a265c1f5904be01e1d75b82b90f261c0ffb1e0513c495",
+      "size": 120164,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590044-5.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771590044-5.webp"
+      ],
+      "path": "complete-migration-1757771590044-5.webp",
+      "fileName": "complete-migration-1757771590044-5.webp",
+      "hashMd5": "4c424de33d4105882c750ac31eb4f6d0",
+      "hashSha256": "1520861f5345fa4f56752dff42fbe8c4cf8d54f3e0cc0cb2b8a7f06a7ecb2998",
+      "size": 132192,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590440-6.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771590440-6.webp"
+      ],
+      "path": "complete-migration-1757771590440-6.webp",
+      "fileName": "complete-migration-1757771590440-6.webp",
+      "hashMd5": "4c424de33d4105882c750ac31eb4f6d0",
+      "hashSha256": "1520861f5345fa4f56752dff42fbe8c4cf8d54f3e0cc0cb2b8a7f06a7ecb2998",
+      "size": 132192,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771590842-7.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771590842-7.webp"
+      ],
+      "path": "complete-migration-1757771590842-7.webp",
+      "fileName": "complete-migration-1757771590842-7.webp",
+      "hashMd5": "05420f159d14d607c76d8109676bb5c6",
+      "hashSha256": "2a8a03a1f6f0ef5f6414af9ea04419a78951b9947a99c3c55bcbb562736b8b42",
+      "size": 189322,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591360-8.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771591360-8.webp"
+      ],
+      "path": "complete-migration-1757771591360-8.webp",
+      "fileName": "complete-migration-1757771591360-8.webp",
+      "hashMd5": "05420f159d14d607c76d8109676bb5c6",
+      "hashSha256": "2a8a03a1f6f0ef5f6414af9ea04419a78951b9947a99c3c55bcbb562736b8b42",
+      "size": 189322,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771591887-9.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771591887-9.webp"
+      ],
+      "path": "complete-migration-1757771591887-9.webp",
+      "fileName": "complete-migration-1757771591887-9.webp",
+      "hashMd5": "e1a13782ab939490e2f7de4a35c8fbdd",
+      "hashSha256": "4a0ec52b6a135555f10898b7edc195ae2225e97939624921f2ccd551e5439999",
+      "size": 131716,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592268-10.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771592268-10.webp"
+      ],
+      "path": "complete-migration-1757771592268-10.webp",
+      "fileName": "complete-migration-1757771592268-10.webp",
+      "hashMd5": "e1a13782ab939490e2f7de4a35c8fbdd",
+      "hashSha256": "4a0ec52b6a135555f10898b7edc195ae2225e97939624921f2ccd551e5439999",
+      "size": 131716,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771592666-11.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771592666-11.webp"
+      ],
+      "path": "complete-migration-1757771592666-11.webp",
+      "fileName": "complete-migration-1757771592666-11.webp",
+      "hashMd5": "265fb7590158630d4a9a9b3b2d973837",
+      "hashSha256": "0d408162a625a87c7a6524199c6de995658cc8471b957adb91740f07b82fdf77",
+      "size": 146584,
+      "status": "success"
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757771593103-12.webp",
+      "blogPostIds": [
+        123
+      ],
+      "blogPostTitles": [
+        "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "paths": [
+        "complete-migration-1757771593103-12.webp"
+      ],
+      "path": "complete-migration-1757771593103-12.webp",
+      "fileName": "complete-migration-1757771593103-12.webp",
+      "hashMd5": "265fb7590158630d4a9a9b3b2d973837",
+      "hashSha256": "0d408162a625a87c7a6524199c6de995658cc8471b957adb91740f07b82fdf77",
+      "size": 146584,
+      "status": "success"
+    }
+  ]
+}

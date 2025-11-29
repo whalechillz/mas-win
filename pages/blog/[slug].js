@@ -185,12 +185,22 @@ const convertMarkdownToHtml = (content) => {
   return html;
 };
 
-export default function BlogPost({ post: staticPost }) {
+export default function BlogPost({ post: staticPost, relatedPosts: staticRelatedPosts = [] }) {
   const router = useRouter();
   const { slug } = router.query;
   const [post, setPost] = useState(staticPost || null);
   const [loading, setLoading] = useState(!staticPost);
-  const [relatedPosts, setRelatedPosts] = useState([]);
+  const [relatedPosts, setRelatedPosts] = useState(staticRelatedPosts || []);
+  
+  // 디버깅: props 확인
+  useEffect(() => {
+    console.log('🔍 BlogPost 컴포넌트 props:', {
+      hasStaticPost: !!staticPost,
+      hasStaticRelatedPosts: !!staticRelatedPosts,
+      relatedPostsCount: staticRelatedPosts?.length || 0,
+      relatedPosts: staticRelatedPosts
+    });
+  }, [staticPost, staticRelatedPosts]);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -346,7 +356,13 @@ export default function BlogPost({ post: staticPost }) {
   useEffect(() => {
     // 정적 데이터가 있으면 사용, 없으면 API에서 가져오기
     if (staticPost) {
+      console.log('📋 getServerSideProps에서 받은 데이터:', {
+        hasPost: !!staticPost,
+        hasRelatedPosts: !!staticRelatedPosts,
+        relatedPostsCount: staticRelatedPosts?.length || 0
+      });
       setPost(staticPost);
+      setRelatedPosts(staticRelatedPosts || []);
       setLoading(false);
     } else if (slug) {
       const fetchPost = async () => {
@@ -397,7 +413,7 @@ export default function BlogPost({ post: staticPost }) {
 
       fetchPost();
     }
-  }, [slug, staticPost]);
+  }, [slug, staticPost, staticRelatedPosts]);
 
   if (loading) {
     return (
@@ -438,7 +454,9 @@ export default function BlogPost({ post: staticPost }) {
       <Head>
         <title>{post.meta_title || post.title}</title>
         <meta name="description" content={post.meta_description || post.excerpt} />
-        <meta name="keywords" content={post.tags.join(', ')} />
+        {post.tags && post.tags.length > 0 && (
+          <meta name="keywords" content={post.tags.join(', ')} />
+        )}
         <meta property="og:title" content={post.meta_title || post.title} />
         <meta property="og:description" content={post.meta_description || post.excerpt} />
         <meta property="og:type" content="article" />
@@ -554,20 +572,36 @@ export default function BlogPost({ post: staticPost }) {
           )}
           
           <article className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl shadow-slate-900/5 border border-slate-200/50 overflow-hidden">
-            {/* 고급스러운 썸네일 이미지 */}
+            {/* 고급스러운 썸네일 이미지 또는 동영상 */}
             {post.featured_image && (
-              <div className="relative h-80 md:h-[32rem] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
-                <Image
-                  src={post.featured_image.includes('pstatic.net') || post.featured_image.includes('supabase.co')
-                    ? `/api/image-proxy?url=${encodeURIComponent(post.featured_image)}`
-                    : post.featured_image
-                  }
-                  alt={post.title}
-                  fill
-                  className="object-cover transition-transform duration-700 hover:scale-105"
-                  priority
-                />
+              <div className="relative w-full overflow-hidden">
+                {/* YouTube 썸네일인 경우 동영상으로 표시 */}
+                {(post.featured_image.includes('youtube.com') || post.featured_image.includes('img.youtube.com')) ? (
+                  <div className="relative w-full" style={{ paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
+                    <iframe
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                      src="https://www.youtube.com/embed/pdXs9OgRbFU?start=18"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={post.title}
+                    />
+                  </div>
+                ) : (
+                  <div className="relative h-80 md:h-[32rem] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent z-10"></div>
+                    <Image
+                      src={post.featured_image.includes('pstatic.net') || post.featured_image.includes('supabase.co')
+                        ? `/api/image-proxy?url=${encodeURIComponent(post.featured_image)}`
+                        : post.featured_image
+                      }
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-700 hover:scale-105"
+                      priority
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -598,18 +632,21 @@ export default function BlogPost({ post: staticPost }) {
                 </div>
               </div>
 
-              {/* 태그 */}
-              <div className="flex flex-wrap gap-3 mb-12">
-                {post.tags.map((tag, index) => (
-                  <span key={index} className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-full border border-slate-200 hover:bg-slate-200 transition-colors duration-200">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+              {/* 태그 - 태그가 있을 때만 표시 */}
+              {post.tags && post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-3 mb-12">
+                  {post.tags.map((tag, index) => (
+                    <span key={index} className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-full border border-slate-200 hover:bg-slate-200 transition-colors duration-200">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* 본문 내용 */}
               <div 
-                className="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-a:text-blue-600 prose-a:font-medium prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-li:text-gray-700 prose-li:leading-relaxed"
+                className="prose prose-lg prose-gray max-w-none prose-headings:text-gray-900 prose-headings:font-semibold prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg prose-p:text-justify prose-a:text-blue-600 prose-a:font-medium prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-li:text-gray-700 prose-li:leading-relaxed"
+                style={{ textAlign: 'justify' }}
                 dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(post.content) }}
               />
 
@@ -667,6 +704,13 @@ export default function BlogPost({ post: staticPost }) {
           </article>
 
           {/* 고급스러운 관련 게시물 섹션 */}
+          {(() => {
+            console.log('🔍 렌더링 시점 relatedPosts 상태:', {
+              length: relatedPosts.length,
+              posts: relatedPosts.map(p => ({ id: p.id, title: p.title?.substring(0, 30) }))
+            });
+            return null;
+          })()}
           {relatedPosts.length > 0 && (
             <section className="mt-20">
               <div className="text-center mb-12">

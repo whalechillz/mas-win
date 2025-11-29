@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../../components/admin/AdminNav';
 import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
+import { useRouter } from 'next/router';
 
 type Customer = {
   id: number;
@@ -17,6 +18,7 @@ type Customer = {
 };
 
 export default function CustomersPage() {
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [onlyOptOut, setOnlyOptOut] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -41,10 +43,12 @@ export default function CustomersPage() {
   const [selectedCustomerForImage, setSelectedCustomerForImage] = useState<Customer | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<Customer | null>(null);
+  const [pendingAutoEditPhone, setPendingAutoEditPhone] = useState<string | null>(null);
 
-  const fetchCustomers = async (nextPage = page) => {
+  const fetchCustomers = async (nextPage = page, searchOverride?: string) => {
     setLoading(true);
-    const params = new URLSearchParams({ q, page: String(nextPage), pageSize: String(pageSize), sortBy, sortOrder });
+    const searchValue = typeof searchOverride === 'string' ? searchOverride : q;
+    const params = new URLSearchParams({ q: searchValue, page: String(nextPage), pageSize: String(pageSize), sortBy, sortOrder });
     if (onlyOptOut) params.set('optout', 'true');
     const res = await fetch(`/api/admin/customers?${params.toString()}`);
     const json = await res.json();
@@ -60,8 +64,30 @@ export default function CustomersPage() {
     setLoading(false);
   };
 
-  // 초기 로드
-  useEffect(() => { fetchCustomers(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const normalizePhone = (phone?: string | null) => phone ? phone.replace(/[^0-9]/g, '') : '';
+
+  // 초기 로드 & URL 파라미터 반영
+  useEffect(() => {
+    if (!router.isReady) return;
+    const phoneParam = typeof router.query.phone === 'string' ? router.query.phone : undefined;
+    const queryParam = typeof router.query.q === 'string' ? router.query.q : undefined;
+    const searchValue = phoneParam || queryParam || '';
+
+    if (searchValue && searchValue !== q) {
+      setQ(searchValue);
+      fetchCustomers(1, searchValue);
+    } else if (!searchValue && q) {
+      setQ('');
+      fetchCustomers(1, '');
+    } else if (!searchValue) {
+      fetchCustomers(1);
+    }
+
+    if (router.query.autoEdit === 'true' && phoneParam) {
+      setPendingAutoEditPhone(phoneParam);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query.autoEdit, router.query.phone, router.query.q]);
 
   // 정렬/페이지사이즈 변경 시 자동 로드
   useEffect(() => { 
@@ -115,10 +141,21 @@ export default function CustomersPage() {
     }
   };
 
-  const handleEdit = (c: Customer) => {
+  const handleEdit = useCallback((c: Customer) => {
     setEditingCustomer(c);
     setShowEditModal(true);
-  };
+  }, []);
+
+  // URL 파라미터 autoEdit 처리
+  useEffect(() => {
+    if (!pendingAutoEditPhone || customers.length === 0) return;
+    const normalizedTarget = normalizePhone(pendingAutoEditPhone);
+    const target = customers.find(c => normalizePhone(c.phone) === normalizedTarget);
+    if (target) {
+      handleEdit(target);
+      setPendingAutoEditPhone(null);
+    }
+  }, [customers, pendingAutoEditPhone, handleEdit]);
 
   // 전화번호 포맷팅 (하이픈 추가)
   const formatPhone = (phone: string) => {
@@ -142,19 +179,16 @@ export default function CustomersPage() {
     }
   };
 
-  // 최근 연락 날짜 포맷팅 (시간 포함, 초 제거)
+  // 최근 연락 날짜 포맷팅 (날짜만 표시)
   const formatContactDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '-';
     try {
       const date = new Date(dateStr);
-      // 오전/오후 시간:분 형식 (초 제거)
-      return date.toLocaleString('ko-KR', {
+      // 날짜만 표시 (시간 제거)
+      return date.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
+        day: 'numeric'
       });
     } catch {
       return '-';
