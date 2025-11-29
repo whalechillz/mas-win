@@ -245,7 +245,18 @@ ${koreanGolferSpec}
       }
 
       const result = await response.json();
+      console.log('📦 API 응답:', result);
+      console.log('🖼️ result.images:', result.images);
+      console.log('📊 result.images 길이:', result.images?.length);
+      
       const modelImages = result.images || [];
+      console.log('✅ 추출된 modelImages:', modelImages);
+      console.log('📊 modelImages 길이:', modelImages.length);
+
+      if (modelImages.length === 0) {
+        console.warn('⚠️ 경고: 생성된 이미지가 없습니다. API 응답:', result);
+        alert('이미지가 생성되지 않았습니다. API 응답을 확인해주세요.');
+      }
 
       // 제품 합성 활성화 시
       if (formData.enableProductComposition && formData.selectedProductId) {
@@ -318,17 +329,29 @@ ${koreanGolferSpec}
         }
 
         setCompositionStatus('');
+        console.log('✅ 제품 합성 완료, composedImages:', composedImages);
         setGeneratedImages(composedImages);
       } else {
         // 제품 합성 비활성화 시 원본 이미지만 표시
+        console.log('✅ 원본 이미지 설정, modelImages:', modelImages);
         setGeneratedImages(modelImages);
       }
+      
+      console.log('🎉 최종 generatedImages 상태:', modelImages.length > 0 || (formData.enableProductComposition && composedImages.length > 0) ? '이미지 있음' : '이미지 없음');
     } catch (error: any) {
-      console.error('이미지 생성 오류:', error);
+      console.error('❌ 이미지 생성 오류:', error);
+      console.error('❌ 에러 상세:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
       alert(`이미지 생성 중 오류가 발생했습니다: ${error.message}`);
+      // 에러 발생 시에도 상태 초기화
+      setGeneratedImages([]);
     } finally {
       setLoading(false);
       setCompositionStatus('');
+      console.log('🏁 이미지 생성 프로세스 완료');
     }
   };
 
