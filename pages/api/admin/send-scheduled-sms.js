@@ -230,17 +230,59 @@ export default async function handler(req, res) {
           continue;
         }
 
+        // ⭐ 이미지 URL 처리: HTTP URL이면 Solapi에 재업로드하여 imageId 획득
+        let solapiImageId = sms.image_url || null;
+        if (solapiType === 'MMS' && sms.image_url) {
+          // HTTP URL인지 확인 (https:// 또는 http://로 시작)
+          const isHttpUrl = /^https?:\/\//i.test(sms.image_url);
+          
+          if (isHttpUrl) {
+            // HTTP URL이면 Solapi에 재업로드
+            try {
+              console.log(`🔄 메시지 ID ${sms.id}: HTTP URL 감지, Solapi에 재업로드 중:`, sms.image_url);
+              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://win.masgolf.co.kr';
+              const reuploadResponse = await fetch(`${baseUrl}/api/solapi/reupload-image`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageUrl: sms.image_url,
+                  messageId: sms.id
+                })
+              });
+              
+              if (reuploadResponse.ok) {
+                const reuploadResult = await reuploadResponse.json();
+                if (reuploadResult.success && reuploadResult.imageId) {
+                  solapiImageId = reuploadResult.imageId;
+                  console.log(`✅ 메시지 ID ${sms.id}: Solapi 재업로드 성공, imageId:`, solapiImageId);
+                } else {
+                  console.warn(`⚠️ 메시지 ID ${sms.id}: Solapi 재업로드 실패, 원본 URL 사용:`, reuploadResult.message);
+                }
+              } else {
+                console.warn(`⚠️ 메시지 ID ${sms.id}: Solapi 재업로드 API 오류, 원본 URL 사용`);
+              }
+            } catch (reuploadError) {
+              console.error(`❌ 메시지 ID ${sms.id}: Solapi 재업로드 중 오류:`, reuploadError);
+              // 재업로드 실패해도 계속 진행 (이미지 없이 발송 시도)
+            }
+          } else {
+            // 이미 Solapi imageId인 경우 그대로 사용
+            solapiImageId = sms.image_url;
+          }
+        }
+
         // Solapi 발송 메시지 구성
         const allMessages = uniqueToSend.map(num => ({
           to: num,
           from: fromNumber,
           text: finalMessage,
           type: solapiType,
-          ...(solapiType === 'MMS' && sms.image_url ? { imageId: sms.image_url } : {})
+          ...(solapiType === 'MMS' && solapiImageId ? { imageId: solapiImageId } : {})
         }));
 
         // MMS인데 이미지가 없으면 LMS로 변경
-        if (solapiType === 'MMS' && !sms.image_url) {
+        if (solapiType === 'MMS' && !solapiImageId) {
+          console.warn(`⚠️ 메시지 ID ${sms.id}: MMS인데 이미지가 없어 LMS로 변경`);
           for (const m of allMessages) m.type = 'LMS';
         }
 
