@@ -464,6 +464,11 @@ export default function SMSListAdmin() {
       let totalCount = 0;
       
       // 모든 그룹 ID를 순차적으로 동기화
+      // ⚠️ 주의: 여러 그룹이 있을 때 각 그룹의 totalCount를 합산하면 중복 집계가 발생할 수 있습니다.
+      //          실제 수신자 수를 기준으로 집계하거나, 그룹별로 고유한 수신자만 집계해야 합니다.
+      const uniquePhones = new Set<string>();
+      const phoneStatusMap = new Map<string, { success: boolean; fail: boolean; sending: boolean }>();
+      
       for (let i = 0; i < groupIdArray.length; i++) {
         const groupId = groupIdArray[i];
         console.log(`🔄 그룹 ${i + 1}/${groupIdArray.length} 동기화 중: ${groupId}`);
@@ -480,10 +485,27 @@ export default function SMSListAdmin() {
         const result = await response.json();
         
         if (result.success && result.data) {
+          // ⭐ 그룹별 totalCount를 합산하지 않고, 실제 수신자 수를 기준으로 집계
+          //    첫 번째 그룹의 totalCount만 사용하거나, 수신자 수를 직접 사용
+          if (i === 0) {
+            // 첫 번째 그룹의 totalCount를 기준으로 사용
+            totalCount = result.data.totalCount || 0;
+          }
+          // 성공/실패/발송중은 합산 (같은 수신자라도 여러 그룹에서 다른 상태일 수 있음)
           totalSuccess += result.data.successCount || 0;
           totalFail += result.data.failCount || 0;
           totalSending += result.data.sendingCount || 0;
-          totalCount += result.data.totalCount || 0;
+        }
+      }
+      
+      // ⭐ 실제 수신자 수를 기준으로 totalCount 재계산 (중복 제거)
+      //    여러 그룹이 있어도 실제 수신자는 한 번만 집계
+      if (currentMessage?.recipient_numbers?.length) {
+        const actualRecipientCount = currentMessage.recipient_numbers.length;
+        // totalCount가 수신자 수의 2배 이상이면 수신자 수로 재설정
+        if (totalCount > actualRecipientCount * 1.5) {
+          console.warn(`⚠️ totalCount(${totalCount})가 수신자 수(${actualRecipientCount})의 1.5배를 초과합니다. 수신자 수로 재설정합니다.`);
+          totalCount = actualRecipientCount;
         }
       }
       
