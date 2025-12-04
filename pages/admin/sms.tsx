@@ -296,12 +296,12 @@ export default function SMSAdmin() {
       if (result.success) {
         setImageId(result.imageId);
         setSelectedImage(file);
-        // ⭐ Supabase URL을 우선적으로 저장 (갤러리/표시용)
-        const imageUrlToSave = result.supabaseUrl || result.imageId;
+        // ⭐ Solapi imageId를 우선적으로 저장 (MMS 발송용 - 솔라피는 imageId만 인식)
+        const imageUrlToSave = result.imageId || result.supabaseUrl;
         if (result.supabaseUrl) {
           setImagePreviewUrl(result.supabaseUrl);
         }
-        // formData에 Supabase URL 저장 (DB에 저장될 값)
+        // formData에 Solapi imageId 저장 (DB에 저장될 값)
         updateFormData({ imageUrl: imageUrlToSave });
         alert('이미지가 업로드되었습니다.');
       } else {
