@@ -56,13 +56,14 @@ function formatPhoneNumber(phone) {
 // 한국 시간 기준으로 오후 1시부터 30분 간격 시간 생성
 function getScheduledTimes(startHour = 13, intervalMinutes = 30, batchCount = 8) {
   const times = [];
-  const today = new Date();
+  // 한국 시간 2025년 12월 4일로 설정
+  const targetDate = new Date('2025-12-04T00:00:00+09:00'); // 한국 시간 기준
   
   for (let i = 0; i < batchCount; i++) {
-    const scheduledTime = new Date(today);
-    scheduledTime.setHours(startHour, intervalMinutes * i, 0, 0);
+    const scheduledTime = new Date(targetDate);
+    scheduledTime.setHours(startHour + Math.floor((intervalMinutes * i) / 60), (intervalMinutes * i) % 60, 0, 0);
     
-    // UTC로 변환 (한국 시간은 UTC+9)
+    // UTC로 변환 (한국 시간은 UTC+9이므로 9시간 빼기)
     const utcTime = new Date(scheduledTime.getTime() - 9 * 60 * 60 * 1000);
     times.push(utcTime.toISOString());
   }
