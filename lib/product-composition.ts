@@ -9,6 +9,7 @@ export interface ProductForComposition {
   displayName: string;
   category: string;
   imageUrl: string; // 제품 단독 이미지 URL (합성에 사용)
+  referenceImages?: string[]; // 다양한 각도의 참조 이미지 배열 (뱃지/문구 없는 순수 헤드)
   slug: string;
   badge?: string;
   description?: string;
@@ -27,6 +28,13 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 골드 2 MUZIIK',
     category: 'MUZIIK 협업 제품',
     imageUrl: '/main/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
+    referenceImages: [
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14_b.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
+    ],
     slug: 'gold2-sapphire',
     badge: 'BEST',
     description: '오토플렉스 티타늄 샤프트, ONE-FLEX A200·A215',
@@ -39,6 +47,14 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 블랙 MUZIIK',
     category: 'MUZIIK 협업 제품',
     imageUrl: '/main/products/black-beryl/secret-weapon-black-sole-500.webp',
+    referenceImages: [
+      '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_12.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_13.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_15.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
+    ],
     slug: 'black-beryl',
     badge: 'LIMITED',
     description: '풀 티타늄 4X 샤프트, 40g대, 최대 X 플렉스',
@@ -51,6 +67,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 골드 2',
     category: '프리미엄 드라이버',
     imageUrl: '/main/products/gold2/secret-force-gold-2-sole-500.webp',
+    referenceImages: [
+      '/main/products/gold2/gold2_01.jpg',
+      '/main/products/gold2/gold2_02.jpg',
+      '/main/products/gold2/gold2_03.jpg',
+      '/main/products/gold2/gold2_04.jpg',
+      '/main/products/gold2/gold2_05.jpg',
+      '/main/products/gold2/gold2_06.jpg',
+      '/main/products/gold2/gold2_07.jpg',
+    ],
     slug: 'gold2',
     badge: 'BEST',
     description: 'DAT55G+ Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
@@ -63,6 +88,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 PRO 3',
     category: '고반발 드라이버',
     imageUrl: '/main/products/pro3/secret-force-pro-3-sole-500.webp',
+    referenceImages: [
+      '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-02.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-03.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-04.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-05.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-06.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-07.webp',
+    ],
     slug: 'secret-force-pro-3',
     description: 'DAT55G 티타늄, 2.3mm 페이스, COR 0.86',
     price: '1,150,000원',
@@ -74,6 +108,14 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 V3',
     category: '투어 드라이버',
     imageUrl: '/main/products/v3/secret-force-v3-sole-350-bg.webp',
+    referenceImages: [
+      '/main/products/v3/secret-force-v3-gallery-02.webp',
+      '/main/products/v3/secret-force-v3-gallery-03.webp',
+      '/main/products/v3/secret-force-v3-gallery-04.webp',
+      '/main/products/v3/secret-force-v3-gallery-05.webp',
+      '/main/products/v3/secret-force-v3-gallery-06.webp',
+      '/main/products/v3/secret-force-v3-gallery-07.webp',
+    ],
     slug: 'secret-force-v3',
     description: 'DAT55G 티타늄, 2.4mm 페이스, COR 0.85',
     price: '950,000원',
@@ -85,6 +127,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 블랙',
     category: '프리미엄 리미티드',
     imageUrl: '/main/products/black-weapon/secret-weapon-black-sole-500.webp',
+    referenceImages: [
+      '/main/products/black-weapon/secret-weapon-black-gallery-01.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-02.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-03.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-04.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-05.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-06.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-07.webp',
+    ],
     slug: 'secret-weapon-black',
     badge: 'LIMITED',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
@@ -97,6 +148,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 골드 4.1',
     category: '프리미엄 드라이버',
     imageUrl: '/main/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
+    referenceImages: [
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
+    ],
     slug: 'secret-weapon-gold-4-1',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
     price: '1,700,000원',
@@ -139,12 +199,29 @@ export function productExists(productId: string): boolean {
 }
 
 /**
+ * 로고 교체용 프롬프트 생성
+ * @returns 로고 교체 프롬프트
+ */
+export function generateLogoReplacementPrompt(): string {
+  return `Additionally, replace any text, logo, or branding on the person's cap, hat, or clothing with "MASSGOO" logo. If there is any text like "SGOO", "MASGOO", or other variations, replace it with "MASSGOO". The MASSGOO logo should be clearly visible and readable, maintaining the same style, size, and position as the original logo. Ensure natural integration with proper lighting and shadows.`;
+}
+
+/**
  * 제품 합성용 프롬프트 생성
  * @param product 제품 정보
+ * @param useReferenceImages 참조 이미지 사용 여부
  * @returns 합성 프롬프트
  */
-export function generateCompositionPrompt(product: ProductForComposition): string {
-  return `Replace the golf driver in the person's hands with the ${product.name}, maintaining natural lighting, shadows, and seamless integration. The driver should look realistic and naturally held, with proper perspective and proportions matching the person's grip.`;
+export function generateCompositionPrompt(product: ProductForComposition, useReferenceImages: boolean = false): string {
+  let prompt = `Replace ONLY the golf driver head in the person's hands with the ${product.name} driver head. Keep the person's hands, grip position, body posture, and all other elements exactly the same.`;
+  
+  if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {
+    prompt += ` Use the provided reference images to match the exact angle, perspective, and lighting of the driver in the person's hands.`;
+  }
+  
+  prompt += ` The new driver head should match the original driver's angle, position, lighting, and shadows. Maintain natural shadows and reflections. The driver shaft can remain unchanged if visible. The replacement should be seamless and realistic, with the new driver head appearing as if it was originally part of the image.`;
+  
+  return prompt;
 }
 
 /**

@@ -2,9 +2,13 @@ import { useState } from 'react';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import AdminNav from '../../components/admin/AdminNav';
 import ProductSelector from '../../components/admin/ProductSelector';
 import Image from 'next/image';
+
+// GalleryPicker는 동적 로드 (SSR 비활성화)
+const GalleryPicker = dynamic(() => import('../../components/admin/GalleryPicker'), { ssr: false });
 
 interface ImageGenerationRequest {
   prompt: string;
@@ -17,6 +21,9 @@ interface ImageGenerationRequest {
   enableProductComposition?: boolean; // 제품 합성 활성화
   selectedProductId?: string; // 선택된 제품 ID
   compositionMethod?: 'nano-banana-pro' | 'nano-banana'; // 합성 메서드
+  baseImageMode?: 'generate' | 'gallery'; // 베이스 이미지 모드: 새 이미지 생성 / 갤러리에서 선택
+  selectedBaseImageUrl?: string; // 갤러리에서 선택한 베이스 이미지 URL
+  replaceLogo?: boolean; // 로고 자동 교체 옵션
 }
 
 export default function AIImageGenerator() {
@@ -26,6 +33,7 @@ export default function AIImageGenerator() {
   const [generatedImages, setGeneratedImages] = useState<any[]>([]);
   const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null); // 최적화된 프롬프트 저장
   const [compositionStatus, setCompositionStatus] = useState<string>(''); // 제품 합성 진행 상태
+  const [showBaseImageGallery, setShowBaseImageGallery] = useState(false); // 베이스 이미지 갤러리 모달 표시
   const [formData, setFormData] = useState<ImageGenerationRequest>({
     prompt: '',
     brandTone: 'senior_emotional',
@@ -37,6 +45,9 @@ export default function AIImageGenerator() {
     enableProductComposition: false, // 기본값: 제품 합성 비활성화
     selectedProductId: undefined,
     compositionMethod: 'nano-banana-pro', // 기본값: 나노바나나 프로
+    baseImageMode: 'generate', // 기본값: 새 이미지 생성
+    selectedBaseImageUrl: undefined,
+    replaceLogo: false, // 기본값: 로고 교체 비활성화
   });
 
   if (status === 'loading') {
@@ -120,6 +131,74 @@ ${koreanGolferSpec}
   };
 
   const handleGenerate = async () => {
+    // 베이스 이미지 모드 확인
+    if (formData.baseImageMode === 'gallery') {
+      // 갤러리에서 선택한 경우: AI 생성 스킵하고 바로 제품 합성
+      if (!formData.selectedBaseImageUrl) {
+        alert('갤러리에서 베이스 이미지를 선택해주세요.');
+        return;
+      }
+
+      if (!formData.enableProductComposition || !formData.selectedProductId) {
+        alert('제품 합성을 활성화하고 제품을 선택해주세요.');
+        return;
+      }
+
+      setLoading(true);
+      setGeneratedImages([]);
+      setCompositionStatus('제품 합성 준비 중...');
+
+      try {
+        // 갤러리에서 선택한 이미지로 바로 제품 합성
+        const composeResponse = await fetch('/api/compose-product-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            modelImageUrl: formData.selectedBaseImageUrl,
+            productId: formData.selectedProductId,
+            compositionMethod: formData.compositionMethod || 'nano-banana-pro',
+            replaceLogo: formData.replaceLogo || false,
+            numImages: 1,
+            resolution: '1K',
+            aspectRatio: 'auto',
+            outputFormat: 'png',
+          }),
+        });
+
+        if (!composeResponse.ok) {
+          const error = await composeResponse.json();
+          throw new Error(error.error || '제품 합성에 실패했습니다.');
+        }
+
+        const composeResult = await composeResponse.json();
+        
+        if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+          setGeneratedImages([{
+            url: composeResult.images[0].imageUrl,
+            path: composeResult.images[0].path,
+            originalUrl: composeResult.images[0].originalUrl,
+            product: composeResult.product,
+            metadata: composeResult.metadata,
+            isComposed: true,
+          }]);
+          console.log('✅ 갤러리 이미지 제품 합성 완료:', composeResult.product.name);
+        } else {
+          throw new Error('제품 합성 결과가 없습니다.');
+        }
+
+        setCompositionStatus('');
+      } catch (error: any) {
+        console.error('❌ 제품 합성 오류:', error);
+        alert(`제품 합성 중 오류가 발생했습니다: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+      return; // 갤러리 모드에서는 여기서 종료
+    }
+
+    // 새 이미지 생성 모드 (기존 로직)
     if (!formData.prompt.trim()) {
       alert('프롬프트를 입력해주세요.');
       return;
@@ -256,13 +335,13 @@ ${koreanGolferSpec}
       if (modelImages.length === 0) {
         console.warn('⚠️ 경고: 생성된 이미지가 없습니다. API 응답:', result);
         alert('이미지가 생성되지 않았습니다. API 응답을 확인해주세요.');
+        return;
       }
 
       // 제품 합성 활성화 시
+      let composedImages: any[] = [];
       if (formData.enableProductComposition && formData.selectedProductId) {
         setCompositionStatus('제품 합성 준비 중...');
-        
-        const composedImages = [];
         
         for (let i = 0; i < modelImages.length; i++) {
           const modelImage = modelImages[i];
@@ -280,6 +359,7 @@ ${koreanGolferSpec}
                 modelImageUrl: imageUrl,
                 productId: formData.selectedProductId,
                 compositionMethod: formData.compositionMethod || 'nano-banana-pro',
+                replaceLogo: formData.replaceLogo || false,
                 numImages: 1,
                 resolution: '1K',
                 aspectRatio: 'auto',
@@ -337,7 +417,7 @@ ${koreanGolferSpec}
         setGeneratedImages(modelImages);
       }
       
-      console.log('🎉 최종 generatedImages 상태:', modelImages.length > 0 || (formData.enableProductComposition && composedImages.length > 0) ? '이미지 있음' : '이미지 없음');
+      console.log('🎉 최종 generatedImages 상태:', modelImages.length > 0 || (formData.enableProductComposition && formData.selectedProductId && composedImages.length > 0) ? '이미지 있음' : '이미지 없음');
     } catch (error: any) {
       console.error('❌ 이미지 생성 오류:', error);
       console.error('❌ 에러 상세:', {
@@ -613,33 +693,166 @@ ${koreanGolferSpec}
                         💡 Nano Banana Pro는 더 정확하고 자연스러운 합성 결과를 제공합니다.
                       </p>
                     </div>
+
+                    {/* 로고 자동 교체 옵션 */}
+                    <div className="mt-4 flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50">
+                      <div className="flex-1">
+                        <label htmlFor="replaceLogo" className="block text-sm font-medium text-gray-700 mb-1">
+                          로고 자동 교체
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          모자나 옷의 로고를 MASSGOO로 자동 변경 (SGOO, MASGOO 등 자동 감지)
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="replaceLogo"
+                          checked={formData.replaceLogo || false}
+                          onChange={(e) => setFormData({ ...formData, replaceLogo: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                      </label>
+                    </div>
                   </div>
                 )}
 
-                {/* 프롬프트 입력 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이미지 설명 (프롬프트) *
+                {/* 베이스 이미지 모드 선택 */}
+                <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    베이스 이미지 모드 *
                   </label>
-                  <textarea
-                    value={formData.prompt}
-                    onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
-                    rows={6}
-                    placeholder="예: 전문 피터가 골프 스튜디오에서 스윙 데이터를 분석하는 장면"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <p className="mt-2 text-xs text-gray-500">
-                    💡 한국 골퍼 스펙과 브랜딩 톤은 자동으로 적용됩니다. 계절/요일 구애 없이 365일 사용 가능한 이미지로 생성됩니다.
-                  </p>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ 
+                        ...formData, 
+                        baseImageMode: 'generate',
+                        selectedBaseImageUrl: undefined
+                      })}
+                      className={`p-4 border-2 rounded-lg text-left transition-all ${
+                        formData.baseImageMode === 'generate'
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold text-gray-900">✨ 새 이미지 생성</div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        AI로 새로운 이미지 생성
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ 
+                        ...formData, 
+                        baseImageMode: 'gallery',
+                        enableProductComposition: true // 갤러리 모드일 때 자동으로 제품 합성 활성화
+                      })}
+                      className={`p-4 border-2 rounded-lg text-left transition-all ${
+                        formData.baseImageMode === 'gallery'
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold text-gray-900">🖼️ 갤러리에서 선택</div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        기존 이미지에 제품 합성
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* 갤러리 모드일 때 베이스 이미지 선택 */}
+                  {formData.baseImageMode === 'gallery' && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        베이스 이미지 선택 *
+                      </label>
+                      {formData.selectedBaseImageUrl ? (
+                        <div className="relative border-2 border-green-500 rounded-lg p-4 bg-green-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <img 
+                                src={formData.selectedBaseImageUrl} 
+                                alt="선택된 베이스 이미지" 
+                                className="w-20 h-20 object-cover rounded-lg"
+                              />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">✅ 이미지 선택됨</div>
+                                <div className="text-xs text-gray-500 truncate max-w-xs">
+                                  {formData.selectedBaseImageUrl.split('/').pop()}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, selectedBaseImageUrl: undefined })}
+                              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg"
+                            >
+                              변경
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowBaseImageGallery(true)}
+                          className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center"
+                        >
+                          <div className="text-gray-500">
+                            <svg className="mx-auto h-12 w-12 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <div className="text-sm font-medium text-gray-700">
+                            갤러리에서 베이스 이미지 선택
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            클릭하여 갤러리 열기
+                          </div>
+                        </button>
+                      )}
+                      <p className="mt-2 text-xs text-gray-500">
+                        💡 갤러리에서 선택한 이미지에 제품을 합성합니다. 제품 합성이 자동으로 활성화됩니다.
+                      </p>
+                    </div>
+                  )}
                 </div>
+
+                {/* 프롬프트 입력 (새 이미지 생성 모드일 때만 표시) */}
+                {formData.baseImageMode === 'generate' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      이미지 설명 (프롬프트) *
+                    </label>
+                    <textarea
+                      value={formData.prompt}
+                      onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+                      rows={6}
+                      placeholder="예: 전문 피터가 골프 스튜디오에서 스윙 데이터를 분석하는 장면"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="mt-2 text-xs text-gray-500">
+                      💡 한국 골퍼 스펙과 브랜딩 톤은 자동으로 적용됩니다. 계절/요일 구애 없이 365일 사용 가능한 이미지로 생성됩니다.
+                    </p>
+                  </div>
+                )}
 
                 {/* 생성 버튼 */}
                 <button
                   onClick={handleGenerate}
-                  disabled={loading || !formData.prompt.trim()}
+                  disabled={
+                    loading || 
+                    (formData.baseImageMode === 'generate' && !formData.prompt.trim()) ||
+                    (formData.baseImageMode === 'gallery' && !formData.selectedBaseImageUrl) ||
+                    (formData.baseImageMode === 'gallery' && (!formData.enableProductComposition || !formData.selectedProductId))
+                  }
                   className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  {loading ? '이미지 생성 중...' : '이미지 생성하기'}
+                  {loading 
+                    ? (formData.baseImageMode === 'gallery' ? '제품 합성 중...' : '이미지 생성 중...')
+                    : (formData.baseImageMode === 'gallery' ? '제품 합성하기' : '이미지 생성하기')
+                  }
                 </button>
               </div>
             </div>
@@ -768,6 +981,23 @@ ${koreanGolferSpec}
           </div>
         </div>
       </div>
+
+      {/* 베이스 이미지 갤러리 선택 모달 */}
+      <GalleryPicker
+        isOpen={showBaseImageGallery}
+        onClose={() => setShowBaseImageGallery(false)}
+        onSelect={(imageUrl) => {
+          setFormData({ 
+            ...formData, 
+            selectedBaseImageUrl: imageUrl,
+            enableProductComposition: true // 갤러리에서 선택 시 자동으로 제품 합성 활성화
+          });
+          setShowBaseImageGallery(false);
+        }}
+        autoFilterFolder="originals/daily-branding/kakao"
+        showCompareMode={true}
+        maxCompareCount={3}
+      />
     </>
   );
 }

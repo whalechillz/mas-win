@@ -35,6 +35,87 @@
 
 ## ✅ 최근 완료된 작업
 
+### AI 이미지 생성: 다양한 각도 참조 이미지 및 로고 자동 교체 기능 추가 ✅ (2025-12-03)
+- **목적**: 제품 합성 정교도 향상 및 로고 자동 교체 기능 추가
+- **완료된 작업**:
+  1. **다양한 각도 참조 이미지 지원** ✅:
+     - `lib/product-composition.ts`: `referenceImages` 배열 추가
+     - 각 제품별로 gallery 이미지들 추가 (뱃지/문구 없는 순수 헤드 이미지)
+     - `pages/api/compose-product-image.js`: 참조 이미지들을 나노바나나 API에 전달
+     - 프롬프트에 참조 이미지 활용 지시 포함
+  2. **로고 자동 교체 기능** ✅:
+     - `lib/product-composition.ts`: `generateLogoReplacementPrompt()` 함수 추가
+     - `pages/api/compose-product-image.js`: `replaceLogo` 옵션 추가 및 프롬프트에 통합
+     - `pages/admin/ai-image-generator.tsx`: 로고 교체 토글 UI 추가
+  3. **제품별 참조 이미지 구성** ✅:
+     - gold2-sapphire: 5개 참조 이미지
+     - black-beryl: 6개 참조 이미지
+     - gold2: 7개 참조 이미지
+     - pro3: 7개 참조 이미지
+     - v3: 6개 참조 이미지
+     - weapon-black: 7개 참조 이미지
+     - weapon-gold-4-1: 7개 참조 이미지
+- **사용 방법**:
+  1. AI 이미지 생성 페이지에서 제품 합성 활성화
+  2. 제품 선택
+  3. "로고 자동 교체" 토글 활성화 (선택사항)
+  4. 이미지 생성 또는 갤러리에서 베이스 이미지 선택 후 합성
+  5. 나노바나나가 여러 각도 참조 이미지를 활용하여 정교하게 합성
+  6. 로고 교체 활성화 시 모자/옷의 로고를 MASSGOO로 자동 변경
+- **변경된 파일**:
+  - `lib/product-composition.ts` (referenceImages 추가, 로고 교체 프롬프트)
+  - `pages/api/compose-product-image.js` (참조 이미지 처리, 로고 교체 옵션)
+  - `pages/admin/ai-image-generator.tsx` (로고 교체 UI)
+
+### AI 이미지 생성: 베이스 이미지 갤러리 선택 기능 추가 ✅ (2025-12-03)
+- **목적**: 이미 생성된 이미지에 제품 합성 기능 확장 (갤러리에서 베이스 이미지 선택)
+- **완료된 작업**:
+  1. **베이스 이미지 선택 모드 추가** ✅:
+     - `pages/admin/ai-image-generator.tsx`: 베이스 이미지 모드 선택 UI 추가
+     - "새 이미지 생성" / "갤러리에서 선택" 라디오 버튼
+     - GalleryPicker 모달 통합
+  2. **워크플로우 수정** ✅:
+     - 갤러리 모드 선택 시: AI 생성 스킵하고 바로 제품 합성
+     - 새 이미지 생성 모드: 기존 플로우 유지 (AI 생성 → 제품 합성)
+  3. **프롬프트 최적화** ✅:
+     - `lib/product-composition.ts`: 드라이버 헤드만 교체하도록 프롬프트 구체화
+     - 손 위치, 그립, 각도 유지하도록 명시
+  4. **UI 개선** ✅:
+     - 갤러리 모드 선택 시 제품 합성 자동 활성화
+     - 선택된 베이스 이미지 미리보기
+     - 생성 버튼 텍스트 동적 변경 ("이미지 생성하기" / "제품 합성하기")
+- **사용 방법**:
+  1. AI 이미지 생성 페이지 접속
+  2. "갤러리에서 선택" 모드 선택
+  3. 갤러리에서 베이스 이미지 선택 (예: `kakao-account2-profile-1764661408817-1-1.png`)
+  4. 제품 선택 (시크리트웨폰 등)
+  5. "제품 합성하기" 버튼 클릭
+  6. 나노 바나나로 드라이버 헤드만 교체된 이미지 생성
+- **변경된 파일**:
+  - `pages/admin/ai-image-generator.tsx` (베이스 이미지 선택 모드 추가)
+  - `lib/product-composition.ts` (프롬프트 최적화)
+
+### 갤러리 이미지 편집 기능: Photopea → cleanup.pictures 변경 ✅ (2025-12-03)
+- **목적**: Photopea에서 이미지 로딩 실패 문제 해결 및 cleanup.pictures로 전환
+- **완료된 작업**:
+  1. **수정 버튼 핸들러 변경** ✅:
+     - `components/admin/GalleryPicker.tsx`: Photopea → cleanup.pictures로 변경
+     - 이미지 다운로드 기능 추가
+     - cleanup.pictures 자동 열기 기능 구현
+  2. **기능 구현** ✅:
+     - 이미지를 blob으로 다운로드
+     - 다운로드 폴더에 자동 저장 (사용자가 cleanup.pictures에 드래그 앤 드롭 가능)
+     - cleanup.pictures 새 창으로 자동 열기
+     - 사용자 안내 메시지 표시
+  3. **빌드 테스트** ✅:
+     - Next.js 빌드 성공 확인
+     - 린터 오류 없음 확인
+- **해결된 문제**:
+  - Photopea에서 이미지 로딩 실패 문제 해결
+  - cleanup.pictures로 원활한 편집 워크플로우 제공
+- **변경된 파일**:
+  - `components/admin/GalleryPicker.tsx` (수정 버튼 핸들러)
+
 ### 제품 이미지 파일명 영어 변환 작업 ✅ (2025-11-30)
 - **목적**: 한글 파일명으로 인한 URL 인코딩 문제 해결 및 이미지 깨짐 문제 해결
 - **완료된 작업**:

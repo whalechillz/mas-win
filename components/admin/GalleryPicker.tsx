@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { uploadImageToSupabase } from '../../lib/image-upload-utils';
 
 type ImageItem = { 
   name: string; 
@@ -55,6 +56,9 @@ const GalleryPicker: React.FC<Props> = ({
   const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
   const [showCompareView, setShowCompareView] = useState(false);
   const [likedImages, setLikedImages] = useState<Set<string>>(new Set()); // 좋아요한 이미지 URL 저장
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pageSize = 24;
 
   // 이미지 로드 함수
@@ -79,13 +83,34 @@ const GalleryPicker: React.FC<Props> = ({
         params.append('includeChildren', includeChildren);
       }
       
-      const res = await fetch(`/api/admin/all-images?${params.toString()}`);
-      const data = await res.json();
-      if (res.ok) {
-        setAllImages(data.images || []);
-        setTotal(data.total || 0);
-        if (resetPage) setPage(1);
+      const apiUrl = `/api/admin/all-images?${params.toString()}`;
+      console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl);
+      
+      const res = await fetch(apiUrl);
+      
+      if (!res.ok) {
+        console.error('❌ 이미지 로드 실패:', res.status, res.statusText);
+        const errorText = await res.text().catch(() => 'Unknown error');
+        console.error('에러 상세:', errorText);
+        setAllImages([]);
+        setTotal(0);
+        return;
       }
+      
+      const data = await res.json();
+      console.log('✅ 이미지 로드 성공:', {
+        count: data.images?.length || 0,
+        total: data.total || 0,
+        folderFilter: folderFilter || '전체'
+      });
+      
+      setAllImages(data.images || []);
+      setTotal(data.total || 0);
+      if (resetPage) setPage(1);
+    } catch (error) {
+      console.error('❌ 이미지 로드 중 오류:', error);
+      setAllImages([]);
+      setTotal(0);
     } finally {
       setIsLoading(false);
     }
@@ -95,6 +120,7 @@ const GalleryPicker: React.FC<Props> = ({
     if (!isOpen) return;
     // 모달이 열릴 때 autoFilterFolder가 있으면 폴더 필터 설정
     if (autoFilterFolder) {
+      console.log('📁 GalleryPicker autoFilterFolder:', autoFilterFolder);
       // originals/daily-branding/kakao 루트 폴더인 경우 미사용 필터 활성화 및 폴더 필터 조정
       if (autoFilterFolder.includes('originals/daily-branding/kakao') && 
           !autoFilterFolder.match(/\/\d{4}-\d{2}-\d{2}\//)) {
@@ -103,8 +129,15 @@ const GalleryPicker: React.FC<Props> = ({
         // 하위 폴더 포함하도록 폴더 필터 설정
         setFolderFilter('originals/daily-branding/kakao');
       } else {
+        // 날짜별 폴더인 경우: 특정 폴더에 이미지가 없으면 상위 폴더로 확장
+        // 예: originals/daily-branding/kakao/2025-11-29/account1/background
+        // -> 없으면 originals/daily-branding/kakao/2025-11-29/account1
+        // -> 없으면 originals/daily-branding/kakao/2025-11-29
         setFolderFilter(autoFilterFolder);
       }
+    } else {
+      // autoFilterFolder가 없으면 폴더 필터 초기화
+      setFolderFilter('');
     }
     // 모달이 닫힐 때 상태 초기화
     return () => {
@@ -119,6 +152,54 @@ const GalleryPicker: React.FC<Props> = ({
     if (!isOpen) return;
     fetchImages();
   }, [isOpen, page, folderFilter]);
+
+  // 이미지 업로드 핸들러
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+    
+    try {
+      setIsUploading(true);
+      
+      // 현재 폴더 필터를 targetFolder로 사용
+      const targetFolder = folderFilter || autoFilterFolder || undefined;
+      
+      console.log('📤 이미지 업로드 시작:', {
+        fileName: file.name,
+        targetFolder: targetFolder || '루트'
+      });
+      
+      // 공통 업로드 함수 사용
+      const { url } = await uploadImageToSupabase(file, {
+        targetFolder: targetFolder,
+        enableHEICConversion: true,
+        enableEXIFBackfill: true,
+      });
+      
+      console.log('✅ 이미지 업로드 완료:', url);
+      
+      // 업로드 후 갤러리 새로고침
+      await fetchImages(true);
+      
+      alert('이미지 업로드 완료!');
+    } catch (error: any) {
+      console.error('❌ 이미지 업로드 오류:', error);
+      alert(`업로드 실패: ${error.message || '알 수 없는 오류'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 파일 선택 핸들러
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+    // 같은 파일을 다시 선택할 수 있도록 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -649,6 +730,108 @@ const GalleryPicker: React.FC<Props> = ({
                 className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {/* 이미지 업로드 버튼 */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors shadow-sm"
+              >
+                {isUploading ? (
+                  <>
+                    <span className="animate-spin">⏳</span> 업로드 중...
+                  </>
+                ) : (
+                  <>
+                    <span>📤</span> 이미지 업로드
+                  </>
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.heic,.heif"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 드래그 앤 드롭 업로드 영역 */}
+        <div
+          className={`mx-4 mb-4 border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+            isDragging
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-blue-400 bg-gray-50'
+          }`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!isDragging) setIsDragging(true);
+          }}
+          onDragEnter={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDragging(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // 드래그가 영역을 벗어났는지 확인
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const x = e.clientX;
+            const y = e.clientY;
+            if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+              setIsDragging(false);
+            }
+          }}
+          onDrop={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDragging(false);
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              const file = files[0];
+              if (file && file.type.startsWith('image/')) {
+                await handleImageUpload(file);
+              } else {
+                alert('이미지 파일만 업로드할 수 있습니다.');
+              }
+            }
+          }}
+        >
+          <div className="space-y-2">
+            <div className="text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div>
+              <label htmlFor="gallery-picker-file-upload" className="cursor-pointer">
+                <span className="block text-sm font-medium text-gray-900">
+                  {isDragging ? '여기에 이미지를 놓으세요' : '이미지 파일을 드래그하거나 클릭하여 업로드'}
+                </span>
+                <span className="mt-1 block text-sm text-gray-500">
+                  PNG, JPG, GIF, HEIC 파일 지원
+                  {folderFilter && (
+                    <span className="block mt-1 text-xs text-blue-600">
+                      📁 업로드 위치: {folderFilter}
+                    </span>
+                  )}
+                </span>
+              </label>
+              <input
+                id="gallery-picker-file-upload"
+                type="file"
+                accept="image/*,.heic,.heif"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </div>
           </div>
         </div>
         {/* 선택 액션 바 */}
@@ -717,9 +900,39 @@ const GalleryPicker: React.FC<Props> = ({
               <div className="text-center text-gray-500">
                 <div className="text-4xl mb-4">📭</div>
                 <div className="text-lg font-medium mb-2">이미지가 없습니다</div>
-                <div className="text-sm">
-                  {folderFilter ? `"${folderFilter}" 폴더에 이미지가 없습니다.` : '검색 결과가 없습니다.'}
+                <div className="text-sm mb-4">
+                  {folderFilter ? (
+                    <>
+                      <div className="mb-2">"{folderFilter}" 폴더에 이미지가 없습니다.</div>
+                      {folderFilter.includes('originals/daily-branding/kakao') && (
+                        <div className="text-xs text-gray-400 mt-2">
+                          💡 팁: 날짜 필터를 변경하거나 상위 폴더에서 이미지를 찾아보세요.
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    '검색 결과가 없습니다.'
+                  )}
                 </div>
+                {folderFilter && (
+                  <button
+                    onClick={() => {
+                      // 상위 폴더로 이동
+                      const parts = folderFilter.split('/');
+                      if (parts.length > 1) {
+                        const parentFolder = parts.slice(0, -1).join('/');
+                        setFolderFilter(parentFolder);
+                        console.log('📁 상위 폴더로 이동:', parentFolder);
+                      } else {
+                        setFolderFilter('');
+                        console.log('📁 전체 폴더로 이동');
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                  >
+                    {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -892,14 +1105,49 @@ const GalleryPicker: React.FC<Props> = ({
                       </button>
                       <button
                         type="button"
-                        title="Photopea에서 편집"
+                        title="cleanup.pictures에서 편집"
                         className="px-4 py-2 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-lg font-medium transition-colors"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          // CORS 프록시를 통해 이미지 로드 (Photopea에서 CORS 문제 해결)
-                          const proxyUrl = `${window.location.origin}/api/kakao-content/image-proxy?url=${encodeURIComponent(img.url)}`;
-                          const photopeaUrl = `https://www.photopea.com/#local:${encodeURIComponent(proxyUrl)}`;
-                          window.open(photopeaUrl, '_blank');
+                          try {
+                            // 1. 이미지 다운로드
+                            const response = await fetch(img.url);
+                            if (!response.ok) {
+                              throw new Error(`이미지 다운로드 실패: ${response.status}`);
+                            }
+                            const blob = await response.blob();
+                            
+                            // 2. cleanup.pictures 열기
+                            const cleanupWindow = window.open('https://cleanup.pictures/', '_blank');
+                            
+                            // 3. 이미지를 다운로드 폴더에 저장 (사용자가 cleanup.pictures에 드래그 앤 드롭 가능)
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = img.name || `image-${Date.now()}.${img.name?.split('.').pop() || 'png'}`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            
+                            // 4. 안내 메시지
+                            setTimeout(() => {
+                              if (cleanupWindow) {
+                                cleanupWindow.focus();
+                                alert(
+                                  '✅ 이미지가 다운로드되었습니다.\n\n' +
+                                  '📋 다음 단계:\n' +
+                                  '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
+                                  '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
+                                  '3. 편집된 이미지를 다운로드하세요'
+                                );
+                              }
+                              window.URL.revokeObjectURL(url);
+                            }, 500);
+                            
+                          } catch (error) {
+                            console.error('이미지 처리 오류:', error);
+                            alert('이미지 처리에 실패했습니다: ' + (error instanceof Error ? error.message : String(error)));
+                          }
                         }}
                       >
                         ✏️ 수정

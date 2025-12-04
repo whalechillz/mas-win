@@ -1,6 +1,6 @@
 import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
-import { getProductById, generateCompositionPrompt, getAbsoluteImageUrl } from '../../lib/product-composition';
+import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl } from '../../lib/product-composition';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -119,6 +119,7 @@ export default async function handler(req, res) {
       productImageUrl,    // 제품 이미지 URL (선택, 제공 시 더 정확한 합성)
       compositionMethod = 'nano-banana-pro', // 'nano-banana-pro' | 'nano-banana'
       prompt,             // 커스텀 프롬프트 (선택)
+      replaceLogo = false, // 로고 교체 옵션
       numImages = 1,      // 생성할 이미지 개수
       resolution = '1K',  // '1K' | '2K' | '4K'
       aspectRatio = 'auto', // 'auto' | '1:1' | '16:9' 등
@@ -149,9 +150,17 @@ export default async function handler(req, res) {
       compositionMethod
     });
 
-    // 프롬프트 생성
-    const compositionPrompt = prompt || generateCompositionPrompt(product);
-    console.log('📝 합성 프롬프트:', compositionPrompt);
+    // 프롬프트 생성 (참조 이미지 사용 여부 확인)
+    const hasReferenceImages = product.referenceImages && product.referenceImages.length > 0;
+    let compositionPrompt = prompt || generateCompositionPrompt(product, hasReferenceImages);
+    
+    // 로고 교체 프롬프트 추가
+    if (replaceLogo) {
+      compositionPrompt += '. ' + generateLogoReplacementPrompt();
+      console.log('🔄 로고 교체 프롬프트 추가됨');
+    }
+    
+    console.log('📝 최종 합성 프롬프트:', compositionPrompt);
 
     // 모델 이미지 URL 검증 (로컬호스트인지 확인)
     if (modelImageUrl.includes('localhost') || modelImageUrl.includes('127.0.0.1')) {
@@ -200,6 +209,29 @@ export default async function handler(req, res) {
           console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행합니다.');
         }
       }
+    }
+
+    // 참조 이미지들 추가 (다양한 각도) - NEW!
+    if (product.referenceImages && product.referenceImages.length > 0) {
+      console.log(`📐 ${product.referenceImages.length}개의 참조 이미지 발견`);
+      for (const refImage of product.referenceImages) {
+        try {
+          const absoluteRefUrl = getAbsoluteProductImageUrl(refImage);
+          if (absoluteRefUrl) {
+            imageUrls.push(absoluteRefUrl);
+            console.log('✅ 참조 이미지 추가:', absoluteRefUrl);
+          } else {
+            console.warn(`⚠️ 참조 이미지 URL 변환 실패 (로컬 개발 환경): ${refImage}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ 참조 이미지 URL 변환 실패: ${refImage}`, error.message);
+          // 로컬 개발 환경에서는 에러를 던지지 않고 경고만
+          if (process.env.NODE_ENV === 'production') {
+            throw error;
+          }
+        }
+      }
+      console.log(`✅ 총 ${imageUrls.length - 1}개의 제품 참조 이미지 추가됨 (기본 이미지 + 참조 이미지)`);
     }
     
     // 모든 URL이 공개적으로 접근 가능한지 최종 확인
