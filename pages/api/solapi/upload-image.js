@@ -153,7 +153,38 @@ export default async function handler(req, res) {
     }
 
     const originalBuffer = fs.readFileSync(file.filepath);
-    const compressionInfo = await compressImageForSolapi(originalBuffer);
+    
+    // Sharp 모듈 로드 시도 및 에러 핸들링
+    let compressionInfo;
+    try {
+      compressionInfo = await compressImageForSolapi(originalBuffer);
+    } catch (sharpError) {
+      console.error('❌ Sharp 모듈 로드 실패:', sharpError.message);
+      
+      // Sharp 없이도 작동하도록 원본 이미지 사용 (200KB 이하인 경우)
+      if (originalBuffer.length <= 200 * 1024) {
+        console.warn('⚠️ Sharp 없이 원본 이미지 사용 (200KB 이하)');
+        compressionInfo = {
+          buffer: originalBuffer,
+          quality: 100,
+          width: null,
+          height: null,
+          originalWidth: null,
+          originalHeight: null,
+          originalSize: originalBuffer.length,
+          compressedSize: originalBuffer.length
+        };
+      } else {
+        // 200KB 초과 시 에러 반환
+        return res.status(500).json({
+          success: false,
+          message: `이미지 처리 모듈을 로드할 수 없습니다. 이미지 크기가 ${(originalBuffer.length / 1024).toFixed(2)}KB로 200KB를 초과합니다. 더 작은 이미지를 사용하거나 관리자에게 문의하세요.`,
+          error: 'SHARP_MODULE_LOAD_FAILED',
+          imageSize: originalBuffer.length
+        });
+      }
+    }
+    
     const uploadBuffer = compressionInfo.buffer;
 
     const messageIdField =
