@@ -654,12 +654,17 @@ export default function SMSListAdmin() {
       if (Number.isNaN(utcDate.getTime())) return '-';
       // UTC에 9시간을 더해서 한국 시간으로 변환
       const kstDate = new Date(utcDate.getTime() + KST_OFFSET_MS);
+      
+      // formatSentDate와 동일한 형식으로 변경: "2025. 12. 05. AM 10:00"
+      const year = kstDate.getFullYear();
       const month = String(kstDate.getMonth() + 1).padStart(2, '0');
       const day = String(kstDate.getDate()).padStart(2, '0');
-      const hours = String(kstDate.getHours()).padStart(2, '0');
-      const minutes = String(kstDate.getMinutes()).padStart(2, '0');
-      const seconds = String(kstDate.getSeconds()).padStart(2, '0');
-      return `${month}/${day} ${hours}:${minutes}:${seconds}`;
+      const hour = kstDate.getHours();
+      const minute = String(kstDate.getMinutes()).padStart(2, '0');
+      const ampm = hour < 12 ? 'AM' : 'PM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      
+      return `${year}. ${month}. ${day}. ${ampm} ${displayHour}:${minute}`;
     } catch {
       return '-';
     }
