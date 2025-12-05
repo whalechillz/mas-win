@@ -1176,22 +1176,27 @@ export default function SMSAdmin() {
         blogPostId ? parseInt(blogPostId as string) : undefined
       );
       
-      // 기존 메시지인 경우 메모 업데이트
-      if (id && finalNote !== note) {
+      // ⭐ 기존 메시지인 경우 이미지와 메모 업데이트
+      if (id) {
         try {
           const currentStatus = formData.status || 'draft';
           const payload = buildSmsPayload({
             id: currentSmsNumericId ?? undefined,
             note: finalNote,
-            status: currentStatus
+            status: currentStatus,
+            imageUrl: formData.imageUrl || undefined // ⭐ 이미지도 함께 업데이트
           });
           await fetch('/api/admin/sms', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+          console.log('✅ 기존 메시지 업데이트 완료 (이미지 포함):', {
+            id: currentSmsNumericId,
+            imageUrl: formData.imageUrl ? '있음' : '없음'
+          });
         } catch (updateError) {
-          console.error('메모 업데이트 오류:', updateError);
+          console.error('메시지 업데이트 오류:', updateError);
         }
       }
 
