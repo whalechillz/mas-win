@@ -1247,6 +1247,42 @@ export default function SMSAdmin() {
             // 전체 성공
             alert(`SMS가 성공적으로 발송되었습니다.\n\n총 ${successCount}건 발송 완료`);
           }
+          
+          // ⭐ 발송 성공 후 기존 메시지인 경우 데이터 다시 로드 (이미지 포함)
+          if (id && currentSmsNumericId) {
+            try {
+              console.log('🔄 발송 후 메시지 데이터 다시 로드 중...');
+              const reloadResponse = await fetch(`/api/admin/sms?id=${currentSmsNumericId}`);
+              if (reloadResponse.ok) {
+                const reloadResult = await reloadResponse.json();
+                if (reloadResult.success && reloadResult.smsContent) {
+                  const sms = reloadResult.smsContent;
+                  
+                  // formData 업데이트 (이미지 포함)
+                  updateFormData({
+                    imageUrl: sms.image_url || formData.imageUrl,
+                    status: sms.status || formData.status
+                  });
+                  
+                  // 이미지 프리뷰 업데이트
+                  if (sms.image_url) {
+                    if (isHttpUrl(sms.image_url)) {
+                      setImagePreviewUrl(sms.image_url);
+                      console.log('✅ 이미지 프리뷰 업데이트 (HTTP URL)');
+                    } else {
+                      // Solapi imageId인 경우 fetchLatestPreview 호출
+                      await fetchLatestPreview(currentSmsNumericId);
+                      console.log('✅ 이미지 프리뷰 업데이트 (Solapi imageId)');
+                    }
+                  }
+                  
+                  console.log('✅ 발송 후 메시지 데이터 다시 로드 완료');
+                }
+              }
+            } catch (reloadError) {
+              console.error('메시지 다시 로드 오류:', reloadError);
+            }
+          }
         } else if (failCount > 0) {
           // 전체 실패 (successCount가 0이고 failCount > 0)
           throw new Error(`발송 실패: 모든 메시지 발송에 실패했습니다.`);
