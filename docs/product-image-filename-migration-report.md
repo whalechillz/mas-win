@@ -133,3 +133,6 @@
 - `pages/products/*.tsx`: 제품 상세 페이지 이미지
 - `components/admin/ProductSelector.tsx`: 제품 선택 컴포넌트
 
+
+
+

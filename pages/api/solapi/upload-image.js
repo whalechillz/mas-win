@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createSolapiSignature } from '../../../utils/solapiSignature.js';
 import { compressImageForSolapi } from '../../../lib/server/compressImageForSolapi.js';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || '';
 const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || '';
@@ -28,6 +29,40 @@ const buildStoragePaths = (messageId) => {
   const fileName = `mms-${safeId}-${now.getTime()}.jpg`;
   const storagePath = `${folderPath}/${fileName}`;
   return { folderPath, storagePath, fileName, dateFolder, safeId };
+};
+
+// 이미지 해시 계산 (중복 체크용)
+const calculateImageHash = (buffer) => {
+  const md5 = crypto.createHash('md5').update(buffer).digest('hex');
+  const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+  return { md5, sha256 };
+};
+
+// 중복 이미지 체크
+const checkDuplicateImage = async (supabase, hashMd5, hashSha256) => {
+  // hash_md5로 먼저 체크
+  const { data: md5Matches } = await supabase
+    .from('image_metadata')
+    .select('*')
+    .eq('hash_md5', hashMd5)
+    .limit(1);
+
+  if (md5Matches && md5Matches.length > 0) {
+    return md5Matches[0];
+  }
+
+  // hash_sha256으로 체크
+  const { data: sha256Matches } = await supabase
+    .from('image_metadata')
+    .select('*')
+    .eq('hash_sha256', hashSha256)
+    .limit(1);
+
+  if (sha256Matches && sha256Matches.length > 0) {
+    return sha256Matches[0];
+  }
+
+  return null;
 };
 
 const uploadOriginalToSupabase = async (supabase, path, buffer, contentType) => {
@@ -66,6 +101,8 @@ const upsertImageMetadata = async (supabase, payload) => {
     upload_source: 'mms-editor',
     tags: payload.tags || [],
     original_path: payload.original_path || null,
+    hash_md5: payload.hash_md5 || null,
+    hash_sha256: payload.hash_sha256 || null,
     updated_at: new Date().toISOString()
   };
 
@@ -81,6 +118,8 @@ const upsertImageMetadata = async (supabase, payload) => {
     const fallback = { ...metadataPayload };
     delete fallback.file_name;
     delete fallback.original_path;
+    delete fallback.hash_md5;
+    delete fallback.hash_sha256;
     ({ error } = await supabase
       .from('image_metadata')
       .upsert(fallback, { onConflict: 'image_url' }));
@@ -192,27 +231,57 @@ export default async function handler(req, res) {
       getFirstFieldValue(fields?.id) ||
       null;
 
+    // 이미지 해시 계산 (중복 체크용)
+    const { md5: hashMd5, sha256: hashSha256 } = calculateImageHash(originalBuffer);
+
+    // 중복 이미지 체크
+    const duplicateImage = await checkDuplicateImage(supabase, hashMd5, hashSha256);
+    
+    let supabaseUrl;
+    let shouldUploadToSupabase = true;
+
     const { folderPath, storagePath, fileName, dateFolder, safeId } =
       buildStoragePaths(messageIdField);
 
-    const supabaseUrl = await uploadOriginalToSupabase(
-      supabase,
-      storagePath,
-      originalBuffer,
-      file.mimetype
-    );
+    if (duplicateImage) {
+      console.log('✅ 중복 이미지 발견, 기존 이미지 재사용:', duplicateImage.image_url);
+      supabaseUrl = duplicateImage.image_url;
+      
+      // 중복 이미지인 경우 태그만 추가
+      const existingTags = duplicateImage.tags || [];
+      const newTag = `sms-${safeId}`;
+      
+      if (!existingTags.includes(newTag)) {
+        await upsertImageMetadata(supabase, {
+          image_url: supabaseUrl,
+          tags: [...existingTags, newTag],
+          hash_md5: hashMd5,
+          hash_sha256: hashSha256
+        });
+      }
+    } else {
+      // 중복이 아닌 경우 Supabase에 업로드
+      supabaseUrl = await uploadOriginalToSupabase(
+        supabase,
+        storagePath,
+        originalBuffer,
+        file.mimetype
+      );
 
-    await upsertImageMetadata(supabase, {
-      image_url: supabaseUrl,
-      folder_path: folderPath,
-      date_folder: dateFolder,
-      file_size: originalBuffer.length,
-      width: compressionInfo.originalWidth,
-      height: compressionInfo.originalHeight,
-      file_name: fileName,
-      original_path: storagePath,
-      tags: [`sms-${safeId}`]
-    });
+      await upsertImageMetadata(supabase, {
+        image_url: supabaseUrl,
+        folder_path: folderPath,
+        date_folder: dateFolder,
+        file_size: originalBuffer.length,
+        width: compressionInfo.originalWidth,
+        height: compressionInfo.originalHeight,
+        file_name: fileName,
+        original_path: storagePath,
+        tags: [`sms-${safeId}`],
+        hash_md5: hashMd5,
+        hash_sha256: hashSha256
+      });
+    }
 
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
     const base64Data = uploadBuffer.toString('base64');

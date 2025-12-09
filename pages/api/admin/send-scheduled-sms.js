@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   // Vercel Cron Job에서 호출하는 경우 Authorization 헤더 확인
   const authHeader = req.headers.authorization;
   const cronSecret = process.env.CRON_SECRET;
-  
+
   // Vercel Cron Job인지 확인 (x-vercel-cron 헤더가 있으면 Vercel에서 호출)
   const vercelCronHeader = req.headers['x-vercel-cron'];
   const isVercelCron = vercelCronHeader === '1';
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   if (!isVercelCron && cronSecret) {
     // CRON_SECRET이 설정되어 있고, Authorization 헤더가 있으면 검증
     if (authHeader && authHeader !== `Bearer ${cronSecret}`) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: 'Unauthorized' });
     }
     // CRON_SECRET이 설정되어 있지만 Authorization 헤더가 없으면 허용 (Vercel Cron 대응)
   }

@@ -12,13 +12,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { imageUrl, fileName, blogPostId } = req.body;
+    const { imageUrl, fileName, blogPostId, folderPath } = req.body;
 
     if (!imageUrl || !fileName) {
       return res.status(400).json({ error: 'imageUrl and fileName are required' });
     }
 
-    console.log('🖼️ 이미지 저장 시작:', { imageUrl, fileName, blogPostId });
+    console.log('🖼️ 이미지 저장 시작:', { imageUrl, fileName, blogPostId, folderPath });
 
     // 1. 외부 이미지 URL에서 이미지 데이터 다운로드
     const imageResponse = await fetch(imageUrl);
@@ -34,10 +34,14 @@ export default async function handler(req, res) {
     const fileExtension = fileName.split('.').pop() || 'jpg';
     const finalFileName = `generated-${timestamp}-${fileName}`;
 
-    // 3. Supabase Storage에 업로드
+    // 3. Supabase Storage에 업로드 (폴더 경로 포함)
+    const uploadPath = folderPath && folderPath.trim() !== '' 
+      ? `${folderPath.trim()}/${finalFileName}` 
+      : finalFileName;
+
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('blog-images')
-      .upload(finalFileName, imageData, {
+      .upload(uploadPath, imageData, {
         contentType: `image/${fileExtension}`,
         upsert: false
       });
@@ -47,10 +51,10 @@ export default async function handler(req, res) {
       throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
-    // 4. 공개 URL 생성
+    // 4. 공개 URL 생성 (폴더 경로 포함)
     const { data: publicUrlData } = supabase.storage
       .from('blog-images')
-      .getPublicUrl(finalFileName);
+      .getPublicUrl(uploadPath);
 
     const publicUrl = publicUrlData.publicUrl;
 
