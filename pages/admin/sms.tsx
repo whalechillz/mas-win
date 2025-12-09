@@ -45,7 +45,6 @@ export default function SMSAdmin() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
   const [hasScheduledTime, setHasScheduledTime] = useState(false);
-  const [messageDate, setMessageDate] = useState<string>(''); // 메시지 날짜 (YYYY-MM-DD)
   const [savingSchedule, setSavingSchedule] = useState(false);
   const [savedSmsId, setSavedSmsId] = useState<number | null>(null); // 저장된 SMS ID
   // 길이 프리셋/사용자 지정
@@ -84,70 +83,21 @@ export default function SMSAdmin() {
     return savedSmsId;
   }, [mode, edit, id, savedSmsId]);
 
-  const fetchLatestPreview = useCallback(async (smsId: number): Promise<string | null> => {
+  const fetchLatestPreview = useCallback(async (smsId: number) => {
     try {
-      console.log(`🔍 fetchLatestPreview 호출: messageId=${smsId}`);
       const response = await fetch(`/api/admin/mms-images?messageId=${smsId}&limit=1`);
-      console.log(`📡 MMS 이미지 API 응답 상태: ${response.status}`);
       if (!response.ok) {
-        console.log(`⚠️ MMS 이미지 API 실패: ${response.status}`);
-        return null;
+        return;
       }
       const data = await response.json();
-      console.log(`📦 MMS 이미지 API 응답 데이터:`, data);
-      const previewUrl = data?.images?.[0]?.url || null;
+      const previewUrl = data?.images?.[0]?.url;
       if (previewUrl) {
-        console.log(`✅ fetchLatestPreview에서 이미지 URL 발견: ${previewUrl.substring(0, 50)}...`);
         setImagePreviewUrl(previewUrl);
-      } else {
-        console.log(`⚠️ fetchLatestPreview에서 이미지 URL 없음`);
       }
-      return previewUrl;
     } catch (err) {
-      console.error('❌ MMS 이미지 프리뷰 조회 오류:', err);
-      return null;
+      console.error('MMS 이미지 프리뷰 조회 오류:', err);
     }
   }, []);
-
-  // Solapi imageId를 HTTP URL로 변환하는 함수
-  const fetchSolapiImagePreview = useCallback(async (imageId: string, messageId?: number): Promise<string | null> => {
-    try {
-      console.log('🔍 fetchSolapiImagePreview 호출:', { imageId: imageId.substring(0, 30), messageId });
-      
-      // 먼저 image_metadata에서 해당 메시지의 이미지 찾기
-      if (messageId) {
-        const previewUrl = await fetchLatestPreview(messageId);
-        if (previewUrl) {
-          console.log('✅ image_metadata에서 찾음:', previewUrl.substring(0, 50));
-          return previewUrl;
-        }
-      }
-
-      // image_metadata에서 찾지 못한 경우, Solapi Storage API를 통해 이미지 다운로드 URL 생성 시도
-      console.log('🌐 Solapi API 호출 중...');
-      const proxyResponse = await fetch(`/api/solapi/get-image-preview?imageId=${encodeURIComponent(imageId)}&messageId=${messageId || ''}`);
-      console.log('📡 API 응답 상태:', proxyResponse.status, proxyResponse.statusText);
-      
-      if (proxyResponse.ok) {
-        const proxyData = await proxyResponse.json();
-        console.log('📦 API 응답 데이터:', proxyData);
-        if (proxyData.imageUrl) {
-          console.log('✅ Solapi API에서 이미지 URL 획득:', proxyData.imageUrl.substring(0, 50));
-          setImagePreviewUrl(proxyData.imageUrl);
-          return proxyData.imageUrl;
-        } else {
-          console.log('⚠️ API 응답에 imageUrl이 없습니다:', proxyData);
-        }
-      } else {
-        const errorText = await proxyResponse.text().catch(() => 'Unknown error');
-        console.error('❌ API 호출 실패:', proxyResponse.status, errorText);
-      }
-      return null;
-    } catch (err) {
-      console.error('❌ Solapi 이미지 프리뷰 조회 오류:', err);
-      return null;
-    }
-  }, [fetchLatestPreview]);
 
   // 한국 시간대 상수 (UTC+9)
   const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
@@ -365,6 +315,87 @@ export default function SMSAdmin() {
     }
   };
 
+  // 이미지 압축 함수 (Canvas API 사용 - 클라이언트 측)
+  const compressImageForMMS = async (imageUrl: string, maxSizeKB: number = 200): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          reject(new Error('Canvas context를 가져올 수 없습니다.'));
+          return;
+        }
+        
+        // MMS 권장 크기: 640x480 (비율 유지)
+        const maxWidth = 640;
+        const maxHeight = 480;
+        
+        let width = img.width;
+        let height = img.height;
+        
+        // 비율 유지하면서 리사이즈
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = width * ratio;
+          height = height * ratio;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 이미지 그리기
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // JPEG로 변환 (품질 조정)
+        let quality = 0.85;
+        const maxSizeBytes = maxSizeKB * 1024;
+        
+        const tryCompress = () => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('이미지 압축에 실패했습니다.'));
+                return;
+              }
+              
+              // 크기 체크
+              if (blob.size <= maxSizeBytes) {
+                resolve(blob);
+              } else if (quality > 0.5) {
+                // 품질을 낮춰서 다시 시도
+                quality -= 0.1;
+                tryCompress();
+              } else {
+                // 최소 품질로도 안되면 크기를 더 줄임
+                const newWidth = Math.floor(width * 0.9);
+                const newHeight = Math.floor(height * 0.9);
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                quality = 0.6;
+                tryCompress();
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        
+        tryCompress();
+      };
+      
+      img.onerror = () => {
+        reject(new Error('이미지를 로드할 수 없습니다.'));
+      };
+      
+      img.src = imageUrl;
+    });
+  };
+
   const handleGalleryImageSelect = async (selectedUrl: string) => {
     if (!selectedUrl) {
       handleImageRemove();
@@ -373,25 +404,50 @@ export default function SMSAdmin() {
 
     try {
       setIsUploadingImage(true);
-      const response = await fetch('/api/solapi/reupload-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: selectedUrl,
-          messageId: currentSmsNumericId
-        })
+      
+      // ⭐ 클라이언트 측에서 이미지 압축
+      console.log('🔄 이미지 압축 시작:', selectedUrl);
+      const compressedBlob = await compressImageForMMS(selectedUrl, 200);
+      console.log('✅ 이미지 압축 완료:', {
+        compressedSize: `${(compressedBlob.size / 1024).toFixed(2)}KB`
       });
+      
+      // 압축된 이미지를 FormData로 변환
+      const formData = new FormData();
+      formData.append('file', compressedBlob, 'compressed-image.jpg');
+      if (currentSmsNumericId) {
+        formData.append('messageId', String(currentSmsNumericId));
+      }
+      
+      // ⭐ 압축된 이미지를 직접 업로드 (reupload-image 대신 upload-image 사용)
+      const response = await fetch('/api/solapi/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      // Content-Type 확인
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ 이미지 업로드 API가 JSON이 아닌 응답을 반환했습니다:', {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          preview: text.substring(0, 200)
+        });
+        throw new Error(`이미지 업로드 오류: ${response.status} ${response.statusText}`);
+      }
 
       const result = await response.json();
       if (!response.ok || !result.success) {
-        throw new Error(result.message || '갤러리 이미지를 준비하는 중 오류가 발생했습니다.');
+        throw new Error(result.message || '이미지 업로드 중 오류가 발생했습니다.');
       }
 
       setSelectedImage(null);
       setImageId(result.imageId);
       // ⭐ Supabase URL을 우선적으로 저장
-      const imageUrlToSave = result.supabaseUrl || selectedUrl || result.imageId;
-      setImagePreviewUrl(result.supabaseUrl || selectedUrl);
+      const imageUrlToSave = result.supabaseUrl || result.imageId;
+      setImagePreviewUrl(result.supabaseUrl);
       
       // ⭐ 수정: messageType을 유지하면서 imageUrl만 업데이트
       updateFormData({ 
@@ -412,144 +468,30 @@ export default function SMSAdmin() {
             })
           });
           
-          if (saveResponse.ok) {
-            const saveResult = await saveResponse.json();
-            console.log('✅ channel_sms 업데이트 완료:', saveResult);
-          } else {
-            console.warn('⚠️ channel_sms 업데이트 실패:', saveResponse.status);
+          if (!saveResponse.ok) {
+            console.warn('⚠️ DB 저장 실패 (무시하고 계속 진행)');
           }
-        } catch (saveError) {
-          console.error('⚠️ channel_sms 업데이트 오류 (무시):', saveError);
+        } catch (error) {
+          console.error('DB 저장 오류:', error);
         }
       }
       
-      alert('갤러리 이미지가 MMS 전송용으로 준비되었습니다.');
+      alert('이미지가 준비되었습니다.');
     } catch (error: any) {
       console.error('갤러리 이미지 재업로드 오류:', error);
-      alert(error?.message || '갤러리 이미지 재업로드 중 오류가 발생했습니다.');
+      alert(`이미지 처리 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       setIsUploadingImage(false);
     }
   };
 
   // 이미지 제거 함수
-  const handleImageRemove = async () => {
-    // 로컬 상태 초기화
+  const handleImageRemove = () => {
     setSelectedImage(null);
     setImageId('');
     setImagePreviewUrl('');
+    // formData에서도 imageUrl 제거
     updateFormData({ imageUrl: '' });
-    
-    // ⭐ DB에서도 image_url 제거 (자동 복원 방지)
-    if (currentSmsNumericId) {
-      try {
-        const saveResponse = await fetch(`/api/admin/sms`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: currentSmsNumericId,
-            imageUrl: null
-          })
-        });
-        
-        if (saveResponse.ok) {
-          const saveResult = await saveResponse.json();
-          console.log('✅ channel_sms.image_url 삭제 완료:', saveResult);
-        } else {
-          console.warn('⚠️ channel_sms.image_url 삭제 실패:', saveResponse.status);
-        }
-      } catch (error) {
-        console.error('⚠️ channel_sms 업데이트 오류 (무시):', error);
-      }
-    }
-  };
-
-  // ⭐ MMS 이미지 검증 함수
-  const validateMMSImage = async (imageUrl: string): Promise<{ valid: boolean; error?: string }> => {
-    if (!imageUrl) {
-      return { valid: false, error: 'MMS 메시지에는 이미지가 필요합니다.\n\n갤러리에서 이미지를 선택해주세요.' };
-    }
-
-    try {
-      // 이미지 URL 유효성 검증 (접근 가능한지 확인)
-      const response = await fetch(imageUrl, { method: 'HEAD' });
-      if (!response.ok) {
-        return { 
-          valid: false, 
-          error: '이미지에 접근할 수 없습니다.\n\n이미지 URL이 유효한지 확인해주세요.' 
-        };
-      }
-
-      // Content-Type 확인
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('image/')) {
-        return { 
-          valid: false, 
-          error: '유효한 이미지 파일이 아닙니다.\n\n이미지 형식이 올바른지 확인해주세요.' 
-        };
-      }
-
-      // Content-Length 확인 (2MB 제한)
-      const contentLength = response.headers.get('content-length');
-      if (contentLength) {
-        const sizeInMB = parseInt(contentLength) / (1024 * 1024);
-        if (sizeInMB > 2) {
-          return { 
-            valid: false, 
-            error: `이미지 크기가 너무 큽니다. (${sizeInMB.toFixed(2)}MB)\n\nMMS는 2MB 이하의 이미지만 지원합니다.\n\n이미지를 압축하거나 다른 이미지를 선택해주세요.` 
-          };
-        }
-      }
-
-      // 이미지 실제 크기 확인 (가로 750px, 세로 600px 권장, 5:4 비율)
-      // 실제 이미지 로드하여 크기 확인
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        img.onload = () => {
-          const width = img.naturalWidth;
-          const height = img.naturalHeight;
-          const aspectRatio = width / height;
-          const recommendedRatio = 750 / 600; // 5:4 = 1.25
-          
-          // 비율이 너무 다르면 경고 (하지만 차단하지는 않음)
-          if (Math.abs(aspectRatio - recommendedRatio) > 0.3) {
-            console.warn(`⚠️ 이미지 비율이 권장 사양과 다릅니다. (${width}x${height}, 비율: ${aspectRatio.toFixed(2)})`);
-          }
-          
-          // 너무 작거나 큰 이미지는 경고 (하지만 차단하지는 않음)
-          if (width < 300 || height < 300) {
-            console.warn(`⚠️ 이미지 크기가 작습니다. (${width}x${height})`);
-          }
-          
-          resolve({ valid: true });
-        };
-        
-        img.onerror = () => {
-          resolve({ 
-            valid: false, 
-            error: '이미지를 불러올 수 없습니다.\n\n이미지 URL이 올바른지 확인해주세요.' 
-          });
-        };
-        
-        // 타임아웃 설정 (5초)
-        setTimeout(() => {
-          resolve({ 
-            valid: false, 
-            error: '이미지 로드 시간이 초과되었습니다.\n\n네트워크 연결을 확인하거나 다른 이미지를 선택해주세요.' 
-          });
-        }, 5000);
-        
-        img.src = imageUrl;
-      });
-    } catch (error: any) {
-      console.error('이미지 검증 오류:', error);
-      return { 
-        valid: false, 
-        error: `이미지 검증 중 오류가 발생했습니다.\n\n${error.message || '알 수 없는 오류'}` 
-      };
-    }
   };
 
   // 모바일 미리보기 텍스트 추출 및 업데이트
@@ -633,69 +575,7 @@ export default function SMSAdmin() {
             if (sms.id) {
               setSavedSmsId(sms.id);
             }
-            // 이미지 먼저 처리 (formData 업데이트 전)
-            console.log('🖼️ 이미지 로딩 시작:', {
-              hasImageUrl: !!sms.image_url,
-              imageUrl: sms.image_url ? sms.image_url.substring(0, 50) : '없음',
-              messageId: sms.id
-            });
-            
-            if (sms.image_url) {
-              const urlType = isHttpUrl(sms.image_url) ? 'HTTP URL' : 'Solapi ID';
-              console.log(`📌 이미지 URL 타입: ${urlType}`);
-              console.log(`   image_url 값: ${sms.image_url.substring(0, 80)}...`);
-              
-              if (isHttpUrl(sms.image_url)) {
-                console.log('✅ HTTP URL 감지, 바로 설정');
-                const imageUrl = sms.image_url;
-                console.log('   전체 URL:', imageUrl);
-                
-                // 즉시 설정
-                console.log('   setImagePreviewUrl 호출 전, 현재 imagePreviewUrl:', imagePreviewUrl || '(없음)');
-                setImagePreviewUrl(imageUrl);
-                console.log('✅ setImagePreviewUrl 호출 완료, 설정한 값:', imageUrl.substring(0, 50));
-                
-                // React 상태 업데이트가 비동기이므로, 강제로 다시 설정
-                setTimeout(() => {
-                  console.log('🔄 imagePreviewUrl 강제 재설정 (50ms 후)');
-                  setImagePreviewUrl(imageUrl);
-                }, 50);
-                
-                setTimeout(() => {
-                  console.log('🔄 imagePreviewUrl 최종 확인 (200ms 후)');
-                  setImagePreviewUrl(imageUrl);
-                  // 최종 확인
-                  console.log('   최종 imagePreviewUrl 상태 확인 필요 (React DevTools에서 확인)');
-                }, 200);
-              } else {
-                // Solapi imageId인 경우
-                console.log('🔍 Solapi imageId 감지:', sms.image_url.substring(0, 30));
-                if (sms.id) {
-                  // 먼저 image_metadata에서 찾기
-                  const previewUrl = await fetchLatestPreview(sms.id);
-                  if (previewUrl) {
-                    setImagePreviewUrl(previewUrl);
-                    console.log('✅ 이미지 프리뷰 설정 (image_metadata):', previewUrl.substring(0, 50));
-                  } else {
-                    // 찾지 못한 경우 Solapi imageId로 프리뷰 가져오기 시도
-                    console.log('⚠️ image_metadata에서 찾지 못함, Solapi API 시도...');
-                    const solapiUrl = await fetchSolapiImagePreview(sms.image_url, sms.id);
-                    if (solapiUrl) {
-                      setImagePreviewUrl(solapiUrl);
-                      console.log('✅ 이미지 프리뷰 설정 (Solapi API):', solapiUrl.substring(0, 50));
-                    } else {
-                      console.log('❌ 이미지 프리뷰를 가져올 수 없습니다.');
-                    }
-                  }
-                }
-              }
-            } else if (sms.id) {
-              // ⭐ 자동 복원 로직 제거: 사용자가 명시적으로 삭제한 경우 복원하지 않음
-              // 갤러리에서 수동으로 다시 선택 가능
-              console.log('ℹ️ image_url 없음, 자동 복원하지 않음 (갤러리에서 수동 선택 가능)');
-            }
-            
-            // formData 업데이트 (이미지 처리 후)
+            // formData 업데이트
             updateFormData({
               content: sms.message_text || '',
               messageType: sms.message_type || 'SMS300',
@@ -704,11 +584,15 @@ export default function SMSAdmin() {
               recipientNumbers: sms.recipient_numbers || [],
               status: sms.status || 'draft'
             });
-            
-            console.log('✅ formData 업데이트 완료');
-            console.log('   imageUrl:', sms.image_url ? sms.image_url.substring(0, 50) : '(없음)');
-            console.log('   imagePreviewUrl:', imagePreviewUrl ? imagePreviewUrl.substring(0, 50) : '(설정 안됨)');
-            
+            if (sms.image_url) {
+              if (isHttpUrl(sms.image_url)) {
+                setImagePreviewUrl(sms.image_url);
+              } else if (sms.id) {
+                fetchLatestPreview(sms.id);
+              }
+            } else if (sms.id) {
+              fetchLatestPreview(sms.id);
+            }
             // note 로드
             if (sms.note) {
               setNote(sms.note);
@@ -731,24 +615,6 @@ export default function SMSAdmin() {
               setScheduledAt('');
               setIsScheduled(false);
               setHasScheduledTime(false);
-            }
-            
-            // 메시지 날짜 저장 (created_at 또는 sent_at 사용)
-            if (sms.created_at) {
-              const date = new Date(sms.created_at);
-              const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
-              setMessageDate(dateStr);
-              console.log('📅 메시지 날짜 설정:', dateStr);
-            } else if (sms.sent_at) {
-              const date = new Date(sms.sent_at);
-              const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
-              setMessageDate(dateStr);
-              console.log('📅 메시지 날짜 설정 (sent_at):', dateStr);
-            } else {
-              // 날짜가 없으면 현재 날짜 사용
-              const dateStr = new Date().toISOString().split('T')[0];
-              setMessageDate(dateStr);
-              console.log('📅 메시지 날짜 설정 (기본값):', dateStr);
             }
           } else {
             console.error('❌ SMS 데이터 로드 실패:', result);
@@ -789,37 +655,22 @@ export default function SMSAdmin() {
       loadPost(parseInt(edit as string));
     } else if (id && mode !== 'edit' && !edit) {
       // SMS 관리에서 온 경우: ?id=26
-      console.log('📥 SMS 관리에서 로드:', id);
+      console.log('SMS 관리에서 로드:', id);
       const numericId = parseInt(id as string);
-      if (!isNaN(numericId)) {
-        console.log(`   메시지 ID: ${numericId}`);
-        loadSMSData(numericId);
-        loadPost(numericId);
-      } else {
-        console.error('❌ 유효하지 않은 메시지 ID:', id);
-      }
+      loadSMSData(numericId);
+      loadPost(parseInt(id as string));
     } else if (blogPostId) {
       // 블로그에서 가져오기
       loadFromBlog(parseInt(blogPostId as string));
     }
-  }, [mode, edit, id, blogPostId, loadPost, loadFromBlog, updateFormData, fetchLatestPreview, fetchSolapiImagePreview, imagePreviewUrl]);
+  }, [mode, edit, id, blogPostId, loadPost, loadFromBlog, updateFormData, fetchLatestPreview]);
 
   useEffect(() => {
     // formData.imageUrl이 HTTP URL이면 imagePreviewUrl 설정
-    // loadSMSData에서 이미 설정했을 수 있으므로, 다를 때만 업데이트
     if (isHttpUrl(formData.imageUrl)) {
-      // imagePreviewUrl이 없거나 다를 때만 설정
-      if (!imagePreviewUrl || imagePreviewUrl !== formData.imageUrl) {
-        console.log('🔄 useEffect: formData.imageUrl에서 imagePreviewUrl 설정');
-        console.log('   formData.imageUrl:', formData.imageUrl.substring(0, 50));
-        console.log('   현재 imagePreviewUrl:', imagePreviewUrl ? imagePreviewUrl.substring(0, 50) : '(없음)');
-        setImagePreviewUrl(formData.imageUrl);
-      } else {
-        console.log('✅ useEffect: imagePreviewUrl이 이미 올바르게 설정됨');
-      }
+      setImagePreviewUrl(formData.imageUrl);
     } else if (!formData.imageUrl && imagePreviewUrl) {
       // imageUrl이 없어지면 imagePreviewUrl도 초기화
-      console.log('🔄 useEffect: imageUrl 제거, imagePreviewUrl 초기화');
       setImagePreviewUrl('');
     }
   }, [formData.imageUrl, imagePreviewUrl]);
@@ -1416,22 +1267,6 @@ export default function SMSAdmin() {
       return;
     }
 
-    // ⭐ MMS 이미지 검증 (MMS 타입일 때만)
-    if (formData.messageType === 'MMS') {
-      if (!formData.imageUrl) {
-        alert('MMS 메시지에는 이미지가 필요합니다.\n\n갤러리에서 이미지를 선택해주세요.');
-        return;
-      }
-
-      // 이미지 검증 실행
-      const validation = await validateMMSImage(formData.imageUrl);
-      if (!validation.valid) {
-        alert(validation.error || '이미지 검증에 실패했습니다.');
-        setIsSending(false);
-        return;
-      }
-    }
-
     // ⭐ 예약 시간이 저장되어 있으면 예약 발송 안내
     if (hasScheduledTime && isScheduled && scheduledAt) {
       const scheduledKST = new Date(scheduledAt);
@@ -1567,15 +1402,8 @@ export default function SMSAdmin() {
                       setImagePreviewUrl(sms.image_url);
                       console.log('✅ 이미지 프리뷰 업데이트 (HTTP URL)');
                     } else {
-                      // Solapi imageId인 경우
-                      const previewUrl = await fetchLatestPreview(currentSmsNumericId);
-                      if (!previewUrl) {
-                        // 찾지 못한 경우 Solapi imageId로 프리뷰 가져오기 시도
-                        const solapiUrl = await fetchSolapiImagePreview(sms.image_url, currentSmsNumericId);
-                        if (solapiUrl) {
-                          setImagePreviewUrl(solapiUrl);
-                        }
-                      }
+                      // Solapi imageId인 경우 fetchLatestPreview 호출
+                      await fetchLatestPreview(currentSmsNumericId);
                       console.log('✅ 이미지 프리뷰 업데이트 (Solapi imageId)');
                     }
                   }
@@ -1882,7 +1710,106 @@ export default function SMSAdmin() {
                 </div>
               </div>
 
-              {/* 이미지 업로드 섹션은 AIImagePicker 컴포넌트로 통합됨 - 아래 "이미지 선택" 섹션 참조 */}
+              {/* 이미지 업로드 (MMS만) */}
+              {formData.messageType === 'MMS' && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3">이미지 첨부 (MMS)</h3>
+                  
+                  {selectedImage ? (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <img 
+                          src={URL.createObjectURL(selectedImage)} 
+                          alt="미리보기" 
+                          className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={handleImageRemove}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">
+                          <strong>파일명:</strong> {selectedImage.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          <strong>크기:</strong> {(selectedImage.size / 1024 / 1024).toFixed(2)}MB
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          <strong>이미지 ID:</strong> {imageId}
+                        </p>
+                      </div>
+                    </div>
+                  ) : imagePreviewUrl ? (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <img
+                          src={imagePreviewUrl}
+                          alt="선택된 이미지"
+                          className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={handleImageRemove}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      {imageId && (
+                        <p className="text-center text-xs text-blue-600">
+                          <strong>Solapi 이미지 ID:</strong> {imageId}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="image-upload"
+                        disabled={isUploadingImage}
+                      />
+                      <label
+                        htmlFor="image-upload"
+                        className={`cursor-pointer ${isUploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <div className="text-gray-400 mb-2">
+                          {isUploadingImage ? (
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                          ) : (
+                            <svg className="mx-auto h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {isUploadingImage ? '업로드 중...' : '이미지를 선택하거나 드래그하세요'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">JPG 형식만 가능 (200KB 권장)</p>
+                      </label>
+                    </div>
+                  )}
+                  
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      💡 <strong>MMS 안내:</strong> 이미지가 포함된 메시지입니다. 이미지를 업로드하거나 갤러리에서 선택해주세요.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* 메시지 타입별 안내 */}
               {formData.messageType === 'SMS' && (
@@ -2441,57 +2368,9 @@ export default function SMSAdmin() {
                 <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
                   {/* 이미지 선택 */}
                   <AIImagePicker
-                    selectedImage={(() => {
-                      // 1순위: imagePreviewUrl (이미 변환된 HTTP URL)
-                      // 2순위: formData.imageUrl이 HTTP URL인 경우
-                      // 3순위: formData.imageUrl이 Solapi imageId인 경우 - 프리뷰 URL 가져오기 시도
-                      let finalImage = imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '');
-                      
-                      // imagePreviewUrl이 없는데 formData.imageUrl이 HTTP URL이면 설정
-                      if (!imagePreviewUrl && isHttpUrl(formData.imageUrl)) {
-                        console.log('🔧 AIImagePicker: imagePreviewUrl이 없어서 formData.imageUrl 사용, 강제 설정 시도');
-                        setTimeout(() => {
-                          setImagePreviewUrl(formData.imageUrl);
-                        }, 0);
-                        finalImage = formData.imageUrl;
-                      }
-                      
-                      // imagePreviewUrl이 없고 formData.imageUrl이 Solapi imageId인 경우 프리뷰 URL 가져오기
-                      if (!imagePreviewUrl && formData.imageUrl && !isHttpUrl(formData.imageUrl) && currentSmsNumericId) {
-                        console.log('🔍 AIImagePicker: Solapi imageId 감지, 프리뷰 URL 가져오기 시도');
-                        fetchSolapiImagePreview(formData.imageUrl, currentSmsNumericId).then(previewUrl => {
-                          if (previewUrl) {
-                            console.log('✅ AIImagePicker: 프리뷰 URL 획득:', previewUrl.substring(0, 50));
-                            setImagePreviewUrl(previewUrl);
-                          } else {
-                            console.warn('⚠️ AIImagePicker: 프리뷰 URL을 가져올 수 없습니다');
-                          }
-                        }).catch(err => {
-                          console.error('❌ AIImagePicker: 프리뷰 URL 가져오기 실패:', err);
-                        });
-                      }
-                      
-                      console.log('🖼️ AIImagePicker selectedImage 계산:', {
-                        imagePreviewUrl: imagePreviewUrl || '(없음)',
-                        formDataImageUrl: formData.imageUrl || '(없음)',
-                        isHttp: formData.imageUrl ? isHttpUrl(formData.imageUrl) : false,
-                        finalImage: finalImage || '(없음)',
-                        currentSmsId: currentSmsNumericId
-                      });
-                      
-                      // 이미지 URL이 잘렸는지 확인
-                      if (finalImage && finalImage.length < 100 && finalImage.includes('supabase.co/storage/v')) {
-                        console.warn('⚠️ 이미지 URL이 잘린 것 같습니다. 전체 URL 확인 필요:', finalImage);
-                      }
-                      
-                      return finalImage;
-                    })()}
+                    selectedImage={imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '')}
                     onImageSelect={handleGalleryImageSelect}
                     channelType="sms"
-                    autoFilterFolder={currentSmsNumericId && messageDate
-                      ? `originals/mms/${messageDate}/${currentSmsNumericId}`
-                      : undefined
-                    }
                   />
                   
                   {/* 모바일 미리보기 (실시간 표시) */}
