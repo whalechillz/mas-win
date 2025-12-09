@@ -123,6 +123,12 @@ export default async function handler(req, res) {
           .maybeSingle();
         
         if (existingMetadata) {
+          console.log('🔍 기존 이미지 메타데이터 발견:', {
+            imageUrl,
+            tags: existingMetadata.tags,
+            references: existingMetadata.references
+          });
+          
           // ⭐ 이전에 Solapi에 업로드된 imageId가 있는지 확인
           // channel_sms 테이블에서 이 이미지 URL을 사용하는 메시지 찾기
           const { data: existingMessages } = await supabase
@@ -137,30 +143,77 @@ export default async function handler(req, res) {
             // Solapi imageId 형식인지 확인 (일반적으로 짧은 문자열이고 URL이 아님)
             if (existingImageUrl && !existingImageUrl.includes('http') && !existingImageUrl.includes('supabase')) {
               existingSolapiImageId = existingImageUrl;
-              console.log('✅ 기존 Solapi imageId 발견:', existingSolapiImageId);
+              console.log('✅ channel_sms에서 직접 Solapi imageId 발견:', existingSolapiImageId);
             }
           }
           
-          // 태그가 있는 다른 메시지에서 Solapi imageId 찾기
+          // ⭐ 태그가 있는 모든 메시지에서 Solapi imageId 찾기 (첫 번째만이 아닌 모든 태그 확인)
           if (!existingSolapiImageId && existingMetadata.tags) {
             const tags = Array.isArray(existingMetadata.tags) ? existingMetadata.tags : [existingMetadata.tags];
-            const smsTags = tags.filter(tag => tag.startsWith('sms-'));
+            const smsTags = tags.filter(tag => tag && tag.startsWith('sms-'));
             
-            if (smsTags.length > 0) {
-              // 첫 번째 태그의 메시지 ID 추출
-              const firstMessageId = smsTags[0].replace('sms-', '');
-              const { data: firstMessage } = await supabase
+            console.log(`🔍 ${smsTags.length}개의 SMS 태그 발견:`, smsTags);
+            
+            // 모든 태그를 확인하여 Solapi imageId 찾기
+            for (const tag of smsTags) {
+              const messageId = tag.replace('sms-', '');
+              console.log(`🔍 태그 ${tag}의 메시지 ID ${messageId} 확인 중...`);
+              
+              const { data: message } = await supabase
                 .from('channel_sms')
                 .select('image_url')
-                .eq('id', parseInt(firstMessageId))
+                .eq('id', parseInt(messageId))
                 .maybeSingle();
               
-              if (firstMessage && firstMessage.image_url && 
-                  !firstMessage.image_url.includes('http') && 
-                  !firstMessage.image_url.includes('supabase')) {
-                existingSolapiImageId = firstMessage.image_url;
-                console.log('✅ 태그를 통해 Solapi imageId 발견:', existingSolapiImageId);
+              if (message && message.image_url) {
+                console.log(`  → 메시지 ${messageId}의 image_url:`, message.image_url);
+                
+                // Solapi imageId 형식인지 확인 (URL이 아닌 짧은 문자열)
+                if (!message.image_url.includes('http') && !message.image_url.includes('supabase') && message.image_url.length < 100) {
+                  existingSolapiImageId = message.image_url;
+                  console.log(`✅ 태그 ${tag}를 통해 Solapi imageId 발견:`, existingSolapiImageId);
+                  break; // 찾았으면 중단
+                }
               }
+            }
+          }
+          
+          // ⭐ references 필드에서도 확인 (SMS 메시지 참조가 있을 수 있음)
+          if (!existingSolapiImageId && existingMetadata.references) {
+            try {
+              const references = Array.isArray(existingMetadata.references) 
+                ? existingMetadata.references 
+                : (typeof existingMetadata.references === 'string' 
+                  ? JSON.parse(existingMetadata.references) 
+                  : []);
+              
+              console.log('🔍 references 필드 확인:', references);
+              
+              // SMS 메시지 참조 찾기
+              const smsReferences = references.filter(ref => 
+                ref && (ref.type === 'sms' || ref.channel === 'sms')
+              );
+              
+              for (const ref of smsReferences) {
+                if (ref.message_id) {
+                  const { data: message } = await supabase
+                    .from('channel_sms')
+                    .select('image_url')
+                    .eq('id', parseInt(ref.message_id))
+                    .maybeSingle();
+                  
+                  if (message && message.image_url && 
+                      !message.image_url.includes('http') && 
+                      !message.image_url.includes('supabase') &&
+                      message.image_url.length < 100) {
+                    existingSolapiImageId = message.image_url;
+                    console.log(`✅ references를 통해 Solapi imageId 발견:`, existingSolapiImageId);
+                    break;
+                  }
+                }
+              }
+            } catch (refError) {
+              console.warn('⚠️ references 파싱 오류 (무시):', refError.message);
             }
           }
           
