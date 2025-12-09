@@ -324,9 +324,9 @@ const getMetadataQualityIssues = (metadata) => {
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
-  // ✅ 타임아웃 방지: Vercel Pro 60초 제한 고려하여 50초로 설정 (안전 마진)
+  // ✅ 타임아웃 방지: Vercel Pro 60초 제한 고려하여 30초로 설정 (더 빠른 응답)
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('요청 시간 초과 (50초 제한)')), 50000);
+    setTimeout(() => reject(new Error('요청 시간 초과 (30초 제한)')), 30000);
   });
   
   try {
@@ -341,11 +341,66 @@ export default async function handler(req, res) {
         }
         
         if (req.method === 'GET') {
-      const { limit = 1000, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '' } = req.query;
+      // 기본 limit을 24로 줄여서 빠른 응답 (갤러리에서 사용)
+      const { limit = 24, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '', source, channel } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
       const searchTerm = (searchQuery || '').trim();
+      
+      // 🔧 개선: prefix가 있을 때는 Storage 파일을 우선 조회
+      // source/channel 필터는 메타데이터 보강용으로만 사용 (필터링 제외)
+      // 이렇게 하면 image_metadata에 등록되지 않은 이미지도 표시됨
+      let filteredImageUrls = null;
+      const hasPrefix = prefix && prefix.trim() !== '';
+      
+      // prefix가 없을 때만 source/channel 필터로 image_metadata에서 필터링
+      if (!hasPrefix && (source || channel)) {
+        try {
+          let metadataQuery = supabase
+            .from('image_metadata')
+            .select('image_url');
+          
+          if (source) {
+            metadataQuery = metadataQuery.eq('source', source);
+          }
+          if (channel) {
+            metadataQuery = metadataQuery.eq('channel', channel);
+          }
+          
+          const { data: metadataResults, error: metadataError } = await metadataQuery;
+          
+          if (metadataError) {
+            console.error('❌ image_metadata 필터링 오류:', metadataError);
+          } else if (metadataResults && metadataResults.length > 0) {
+            filteredImageUrls = new Set(metadataResults.map(m => m.image_url));
+            console.log(`✅ image_metadata 필터링 결과: ${filteredImageUrls.size}개 이미지 (source: ${source || 'all'}, channel: ${channel || 'all'})`);
+          } else {
+            // 필터링 결과가 없으면 빈 결과 반환 (prefix가 없을 때만)
+            console.log(`⚠️ 필터링 결과 없음 (source: ${source || 'all'}, channel: ${channel || 'all'})`);
+            return res.status(200).json({
+              images: [],
+              total: 0,
+              count: 0,
+              pagination: {
+                currentPage: 1,
+                totalPages: 0,
+                pageSize,
+                hasNextPage: false,
+                hasPrevPage: false,
+                nextPage: null,
+                prevPage: null
+              }
+            });
+          }
+        } catch (filterError) {
+          console.error('❌ 필터링 처리 오류:', filterError);
+        }
+      } else if (hasPrefix && (source || channel)) {
+        // prefix가 있을 때는 source/channel 필터를 무시하고 Storage 파일을 모두 조회
+        // 메타데이터는 보강용으로만 사용
+        console.log(`📁 prefix가 있어서 source/channel 필터 무시: ${prefix} (source: ${source || 'all'}, channel: ${channel || 'all'})`);
+      }
       
       console.log('📝 전체 이미지 목록 조회 중...', { limit: pageSize, offset: currentOffset, page: currentPage, searchQuery: searchTerm });
       
@@ -448,20 +503,24 @@ export default async function handler(req, res) {
                 const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
                 // .keep.png 마커 파일 제외
                 const isKeepFile = file.name.toLowerCase() === '.keep.png';
-                if (isImage && !isKeepFile) {
-                  const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
-                  const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
-                  const publicUrl = urlData.publicUrl;
-                  
-                  // URL이 매칭된 메타데이터에 있는지 확인
-                  if (matchingUrls.has(publicUrl)) {
-                    allFilesForSearch.push({
-                      ...file,
-                      folderPath: folderPath,
-                      url: publicUrl
-                    });
-                  }
+              if (isImage && !isKeepFile) {
+                // temp 폴더 제외
+                const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+                const isTempFile = fullPath.startsWith('temp/');
+                if (isTempFile) continue;
+                
+                const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
+                const publicUrl = urlData.publicUrl;
+                
+                // URL이 매칭된 메타데이터에 있는지 확인
+                if (matchingUrls.has(publicUrl)) {
+                  allFilesForSearch.push({
+                    ...file,
+                    folderPath: folderPath,
+                    url: publicUrl
+                  });
                 }
+              }
               }
             }
           };
@@ -490,10 +549,19 @@ export default async function handler(req, res) {
                   const isKeepFile = file.name.toLowerCase() === '.keep.png';
                   if (isImage && !isKeepFile) {
                     const fullPath = searchPrefix ? `${searchPrefix}/${file.name}` : file.name;
+                    // temp 폴더 제외
+                    const isTempFile = fullPath.startsWith('temp/');
+                    if (isTempFile) continue;
+                    
                     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
                     const publicUrl = urlData.publicUrl;
                     
                     if (matchingUrls.has(publicUrl)) {
+                      // source/channel 필터 추가 확인
+                      if (filteredImageUrls && !filteredImageUrls.has(publicUrl)) {
+                        continue;
+                      }
+                      
                       allFilesForSearch.push({ ...file, folderPath: searchPrefix || '', url: publicUrl });
                     }
                   }
@@ -796,6 +864,11 @@ export default async function handler(req, res) {
               const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
               if (isImage && !isKeepFile) {
+                // temp 폴더 제외
+                const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+                const isTempFile = fullPath.startsWith('temp/');
+                if (isTempFile) continue;
+                
                 allFiles.push({
                   ...file,
                   folderPath: folderPath // 폴더 경로 추가
@@ -829,6 +902,7 @@ export default async function handler(req, res) {
         
         // 재귀적으로 모든 폴더의 이미지 조회 (페이지네이션용)
         const getAllImagesForPagination = async (folderPath = '') => {
+          console.log(`📁 [getAllImagesForPagination] 시작: "${folderPath || '루트'}"`);
           // Supabase Storage .list()는 기본적으로 한 번에 1000개까지만 반환
           // 모든 파일을 가져오기 위해 배치 조회 (offset 사용)
           let offset = 0;
@@ -845,14 +919,16 @@ export default async function handler(req, res) {
               });
 
             if (error) {
-              console.error(`❌ 폴더 조회 에러 (${folderPath}, offset: ${offset}):`, error);
+              console.error(`❌ [getAllImagesForPagination] 폴더 조회 에러 (${folderPath}, offset: ${offset}):`, error);
               break;
             }
 
             if (!files || files.length === 0) {
+              console.log(`📁 [getAllImagesForPagination] 파일 없음: "${folderPath}" (offset: ${offset})`);
               break;  // 더 이상 파일이 없음
             }
 
+            console.log(`📁 [getAllImagesForPagination] 조회 성공: "${folderPath}" - ${files.length}개 항목 (offset: ${offset})`);
             allFilesInFolder = allFilesInFolder.concat(files);
             offset += batchSize;
 
@@ -874,6 +950,8 @@ export default async function handler(req, res) {
             }
           }
           
+          console.log(`📁 [getAllImagesForPagination] 폴더/파일 분리: "${folderPath}" - 폴더 ${folders.length}개, 파일 ${files.length}개`);
+          
           // ✅ 폴더들을 병렬로 조회 (최대 10개씩 동시 처리)
           if (folders.length > 0) {
             const folderPromises = folders.map(file => {
@@ -890,6 +968,7 @@ export default async function handler(req, res) {
           }
           
           // 이미지 파일 처리
+          let imageCount = 0;
           for (const file of files) {
               const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
               const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
@@ -897,18 +976,25 @@ export default async function handler(req, res) {
               const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
               if (isImage && !isKeepFile) {
+                imageCount++;
                 allFilesForPagination.push({
                   ...file,
                   folderPath: folderPath // 폴더 경로 추가
                 });
             }
           }
+          if (imageCount > 0) {
+            console.log(`✅ [getAllImagesForPagination] 이미지 ${imageCount}개 추가: "${folderPath}"`);
+          }
+          console.log(`📁 [getAllImagesForPagination] 완료: "${folderPath}" - 총 ${allFilesForPagination.length}개 이미지 수집됨`);
         };
 
         // includeChildren 파라미터 처리 (boolean 또는 문자열 모두 지원)
         const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
+        console.log(`📊 [all-images] 조회 설정: prefix="${prefix}", includeChildren=${shouldIncludeChildren}, source=${source || 'none'}, channel=${channel || 'none'}`);
         if (shouldIncludeChildren) {
           await getAllImagesForPagination(prefix || '');
+          console.log(`✅ [all-images] getAllImagesForPagination 완료: ${allFilesForPagination.length}개 파일 수집됨`);
         } else {
           // 현재 폴더만(하위 미포함) - 배치 조회로 모든 파일 가져오기
           let offset = 0;
@@ -939,6 +1025,11 @@ export default async function handler(req, res) {
                 // .keep.png 마커 파일 제외
                 const isKeepFile = file.name.toLowerCase() === '.keep.png';
                 if (isImage && !isKeepFile) {
+                  // temp 폴더 제외
+                  const fullPath = prefix ? `${prefix}/${file.name}` : file.name;
+                  const isTempFile = fullPath.startsWith('temp/');
+                  if (isTempFile) continue;
+                  
                   allFilesForPagination.push({ ...file, folderPath: prefix || '' });
                 }
               }
@@ -967,6 +1058,251 @@ export default async function handler(req, res) {
       
       console.log(`📁 폴더 포함 조회: 총 ${allFilesForPagination.length}개 → 페이지 ${imageFiles.length}개 이미지 파일`);
 
+      // 🔗 링크된 이미지 조회
+      let linkedImages = [];
+      if (prefix) {
+        // 케이스 1: originals/mms/YYYY-MM-DD/메시지ID 형식 (특정 메시지 폴더)
+        if (prefix.match(/^originals\/mms\/\d{4}-\d{2}-\d{2}\/\d+$/)) {
+          const messageId = prefix.split('/').pop();
+          const tag = `sms-${messageId}`;
+          
+          // ⚠️ 중요: 리얼 이미지가 있으면 링크 이미지는 조회하지 않음
+          const hasRealImages = allFilesForPagination.length > 0;
+          
+          if (!hasRealImages) {
+            console.log(`🔗 링크된 이미지 조회: 메시지 ID ${messageId}, 태그 ${tag} (리얼 이미지 없음)`);
+            
+            // tags에 해당 메시지 ID가 포함된 다른 폴더의 이미지 조회
+            const { data: linkedMetadata, error: linkedError } = await supabase
+              .from('image_metadata')
+              .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
+              .contains('tags', [tag])
+              .eq('source', 'mms')
+              .eq('channel', 'sms')
+              .neq('folder_path', prefix); // 실제 폴더 제외
+            
+            if (linkedError) {
+              console.error('❌ 링크된 이미지 조회 실패:', linkedError);
+            } else if (linkedMetadata && linkedMetadata.length > 0) {
+              console.log(`✅ 링크된 이미지 ${linkedMetadata.length}개 발견`);
+              
+              // 링크된 이미지를 imageUrls 형식으로 변환
+              linkedImages = linkedMetadata.map(meta => {
+                // image_url에서 파일명 추출
+                const urlParts = meta.image_url.split('/');
+                const fileName = urlParts[urlParts.length - 1];
+                const folderPath = meta.folder_path || '';
+                
+                return {
+                  file: {
+                    name: fileName,
+                    folderPath: folderPath,
+                    created_at: meta.created_at || new Date().toISOString(),
+                    id: null, // 링크된 이미지는 파일 ID가 없음
+                    isLinked: true // 링크된 이미지 플래그
+                  },
+                  url: meta.image_url,
+                  fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
+                  isLinked: true, // 링크된 이미지 플래그
+                  originalFolder: folderPath // 원본 폴더 경로
+                };
+              });
+            }
+          } else {
+            console.log(`ℹ️  리얼 이미지가 있어서 링크 이미지 조회 스킵: ${allFilesForPagination.length}개`);
+          }
+        }
+        // 케이스 2: originals/mms/YYYY-MM-DD 형식 (날짜 폴더만)
+        else if (prefix.match(/^originals\/mms\/\d{4}-\d{2}-\d{2}$/)) {
+          const dateFolder = prefix;
+          console.log(`🔗 날짜 폴더 링크 이미지 조회: ${dateFolder}`);
+          
+          // 해당 날짜 폴더의 하위 폴더(메시지 ID) 목록 조회
+          const { data: subfolders, error: subfolderError } = await supabase.storage
+            .from('blog-images')
+            .list(dateFolder, {
+              limit: 1000,
+              sortBy: { column: 'name', order: 'asc' }
+            });
+          
+          if (subfolderError) {
+            console.error('❌ 하위 폴더 조회 실패:', subfolderError);
+          } else if (subfolders && subfolders.length > 0) {
+            // 각 하위 폴더(메시지 ID)에 대한 링크 이미지 태그 수집
+            const messageIds = subfolders
+              .filter(item => item.id === null && item.name.match(/^\d+$/)) // 폴더만, 숫자 이름만
+              .map(item => item.name);
+            
+            if (messageIds.length > 0) {
+              console.log(`🔍 발견된 메시지 ID: ${messageIds.join(', ')}`);
+              
+              // 각 메시지 ID에 대한 링크 이미지 조회
+              const allLinkedMetadata = [];
+              for (const messageId of messageIds) {
+                const tag = `sms-${messageId}`;
+                const { data: linkedMetadata, error: linkedError } = await supabase
+                  .from('image_metadata')
+                  .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
+                  .contains('tags', [tag])
+                  .eq('source', 'mms')
+                  .eq('channel', 'sms')
+                  .not('folder_path', 'like', `${dateFolder}%`); // 해당 날짜 폴더 제외
+                
+                if (!linkedError && linkedMetadata && linkedMetadata.length > 0) {
+                  allLinkedMetadata.push(...linkedMetadata);
+                }
+              }
+              
+              if (allLinkedMetadata.length > 0) {
+                console.log(`✅ 날짜 폴더 링크 이미지 ${allLinkedMetadata.length}개 발견`);
+                
+                // 중복 제거 (같은 이미지가 여러 메시지 ID에 링크될 수 있음)
+                const uniqueLinkedMetadata = Array.from(
+                  new Map(allLinkedMetadata.map(meta => [meta.image_url, meta])).values()
+                );
+                
+                // 링크된 이미지를 imageUrls 형식으로 변환
+                linkedImages = uniqueLinkedMetadata.map(meta => {
+                  const urlParts = meta.image_url.split('/');
+                  const fileName = urlParts[urlParts.length - 1];
+                  const folderPath = meta.folder_path || '';
+                  
+                  return {
+                    file: {
+                      name: fileName,
+                      folderPath: folderPath,
+                      created_at: meta.created_at || new Date().toISOString(),
+                      id: null,
+                      isLinked: true
+                    },
+                    url: meta.image_url,
+                    fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
+                    isLinked: true,
+                    originalFolder: folderPath
+                  };
+                });
+              }
+            }
+          }
+        }
+        // 케이스 3: originals/mms 형식 (mms 전체 폴더)
+        else if (prefix === 'originals/mms') {
+          console.log(`🔗 mms 전체 폴더 링크 이미지 조회: ${prefix}`);
+          
+          // ⚠️ 성능 최적화: 리얼 이미지가 많거나 페이지네이션 중이면 링크 이미지 조회 스킵
+          if (allFilesForPagination.length > 20 || currentOffset > 0) {
+            console.log(`ℹ️  리얼 이미지가 많거나 페이지네이션 중이어서 링크 이미지 조회 스킵: ${allFilesForPagination.length}개, offset: ${currentOffset}`);
+          } else {
+            // ⚠️ 제한된 수만 조회 (성능 최적화)
+            const { data: linkedMetadata, error: linkedError } = await supabase
+              .from('image_metadata')
+              .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
+              .eq('source', 'mms')
+              .eq('channel', 'sms')
+              .not('folder_path', 'like', 'originals/mms%') // mms 폴더 제외
+              .limit(50); // ⭐ 최대 50개만 조회 (타임아웃 방지)
+            
+            if (linkedError) {
+              console.error('❌ 링크된 이미지 조회 실패:', linkedError);
+            } else if (linkedMetadata && linkedMetadata.length > 0) {
+              console.log(`✅ mms 전체 폴더 링크 이미지 ${linkedMetadata.length}개 발견`);
+              
+              // tags에 'sms-'가 포함된 이미지만 필터링 (실제 링크 이미지)
+              const filteredLinkedMetadata = linkedMetadata.filter(meta => {
+                if (!meta.tags || !Array.isArray(meta.tags)) return false;
+                return meta.tags.some(tag => typeof tag === 'string' && tag.startsWith('sms-'));
+              });
+              
+              if (filteredLinkedMetadata.length > 0) {
+                // 중복 제거
+                const uniqueLinkedMetadata = Array.from(
+                  new Map(filteredLinkedMetadata.map(meta => [meta.image_url, meta])).values()
+                );
+                
+                // 링크된 이미지를 imageUrls 형식으로 변환
+                linkedImages = uniqueLinkedMetadata.map(meta => {
+                  const urlParts = meta.image_url.split('/');
+                  const fileName = urlParts[urlParts.length - 1];
+                  const folderPath = meta.folder_path || '';
+                  
+                  return {
+                    file: {
+                      name: fileName,
+                      folderPath: folderPath,
+                      created_at: meta.created_at || new Date().toISOString(),
+                      id: null,
+                      isLinked: true
+                    },
+                    url: meta.image_url,
+                    fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
+                    isLinked: true,
+                    originalFolder: folderPath
+                  };
+                });
+              }
+            }
+          }
+        }
+        // 케이스 4: originals 형식 (originals 전체 폴더)
+        else if (prefix === 'originals') {
+          console.log(`🔗 originals 전체 폴더 링크 이미지 조회: ${prefix}`);
+          
+          // ⚠️ 성능 최적화: 리얼 이미지가 많거나 페이지네이션 중이면 링크 이미지 조회 스킵
+          if (allFilesForPagination.length > 20 || currentOffset > 0) {
+            console.log(`ℹ️  리얼 이미지가 많거나 페이지네이션 중이어서 링크 이미지 조회 스킵: ${allFilesForPagination.length}개, offset: ${currentOffset}`);
+          } else {
+              // ⚠️ 제한된 수만 조회 (성능 최적화)
+            const { data: linkedMetadata, error: linkedError } = await supabase
+              .from('image_metadata')
+              .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
+              .eq('source', 'mms')
+              .eq('channel', 'sms')
+              .not('folder_path', 'like', 'originals%') // originals 폴더 제외
+              .limit(50); // ⭐ 최대 50개만 조회 (타임아웃 방지)
+            
+            if (linkedError) {
+              console.error('❌ 링크된 이미지 조회 실패:', linkedError);
+            } else if (linkedMetadata && linkedMetadata.length > 0) {
+              console.log(`✅ originals 전체 폴더 링크 이미지 ${linkedMetadata.length}개 발견`);
+              
+              // tags에 'sms-'가 포함된 이미지만 필터링 (실제 링크 이미지)
+              const filteredLinkedMetadata = linkedMetadata.filter(meta => {
+                if (!meta.tags || !Array.isArray(meta.tags)) return false;
+                return meta.tags.some(tag => typeof tag === 'string' && tag.startsWith('sms-'));
+              });
+              
+              if (filteredLinkedMetadata.length > 0) {
+                // 중복 제거
+                const uniqueLinkedMetadata = Array.from(
+                  new Map(filteredLinkedMetadata.map(meta => [meta.image_url, meta])).values()
+                );
+                
+                // 링크된 이미지를 imageUrls 형식으로 변환
+                linkedImages = uniqueLinkedMetadata.map(meta => {
+                  const urlParts = meta.image_url.split('/');
+                  const fileName = urlParts[urlParts.length - 1];
+                  const folderPath = meta.folder_path || '';
+                  
+                  return {
+                    file: {
+                      name: fileName,
+                      folderPath: folderPath,
+                      created_at: meta.created_at || new Date().toISOString(),
+                      id: null,
+                      isLinked: true
+                    },
+                    url: meta.image_url,
+                    fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
+                    isLinked: true,
+                    originalFolder: folderPath
+                  };
+                });
+              }
+            }
+          }
+        }
+      }
+
       // 이미지 URL 생성 및 메타데이터 일괄 조회
       const imageUrls = imageFiles.map(file => {
         const fullPath = file.folderPath ? `${file.folderPath}/${file.name}` : file.name;
@@ -976,9 +1312,63 @@ export default async function handler(req, res) {
         return {
           file,
           url: urlData.publicUrl,
-          fullPath
+          fullPath,
+          isLinked: false // 실제 저장된 이미지
         };
       });
+      
+      // 링크된 이미지를 imageUrls에 추가 (페이지네이션 고려하여 현재 페이지 범위 내만)
+      // 링크된 이미지는 항상 마지막에 표시
+      if (linkedImages.length > 0) {
+        imageUrls.push(...linkedImages);
+        console.log(`🔗 링크된 이미지 ${linkedImages.length}개 추가됨`);
+      }
+
+      // ✅ 빠른 반환 경로: 실제 파일이 없고 링크된 이미지만 있는 경우
+      //    메타데이터 조회/사용위치 계산 등을 생략하여 504 타임아웃 방지
+      if (imageFiles.length === 0 && linkedImages.length > 0) {
+        const images = linkedImages.map(li => ({
+          id: null,
+          name: li.file.name,
+          size: 0,
+          created_at: li.file.created_at || new Date().toISOString(),
+          updated_at: li.file.created_at || new Date().toISOString(),
+          url: li.url,
+          folder_path: prefix || '',
+          is_linked: true,
+          original_folder: li.originalFolder || null,
+          alt_text: '',
+          title: '',
+          description: '',
+          keywords: [],
+          category: '',
+          categories: [],
+          usage_count: 0,
+          used_in: [],
+          last_used_at: null,
+          upload_source: 'linked',
+          status: 'active',
+          has_metadata: false,
+          has_quality_metadata: false,
+          quality_score: 0,
+          quality_issues: ['메타데이터 없음'],
+          file_path: li.fullPath || '',
+          file_size: 0,
+          width: null,
+          height: null,
+          is_featured: false,
+          optimized_versions: null,
+        }));
+        
+        return res.status(200).json({
+          total: images.length,
+          images,
+          page,
+          limit,
+          offset,
+          has_more: false,
+        });
+      }
 
       // 모든 URL을 한 번에 조회하여 메타데이터 가져오기
       // 주의: image_metadata 테이블 스키마에 맞춰 컬럼 조회
@@ -1166,7 +1556,7 @@ export default async function handler(req, res) {
       }
       
       // 이미지 데이터 생성 (사용 횟수 실시간 계산)
-      const imagesWithUrl = await Promise.all(imageUrls.map(async ({ file, url, fullPath }) => {
+      const imagesWithUrl = await Promise.all(imageUrls.map(async ({ file, url, fullPath, isLinked, originalFolder }) => {
         const metadata = metadataMap.get(url);
         
         // ✅ 메타데이터 품질 검증
@@ -1241,6 +1631,9 @@ export default async function handler(req, res) {
           updated_at: file.updated_at,
           url: url,
           folder_path: file.folderPath || '',
+          // 🔗 링크된 이미지 정보
+          is_linked: isLinked || false,
+          original_folder: originalFolder || null,
           // ✅ image_metadata → image_assets 순서로 fallback
           alt_text: metadata?.alt_text || asset?.alt_text || '',
           title: metadata?.title || asset?.title || '',

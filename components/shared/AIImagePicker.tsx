@@ -9,17 +9,21 @@ interface AIImagePickerProps {
   onImageSelect: (imageUrl: string) => void;
   channelType: 'blog' | 'sms' | 'kakao' | 'naver';
   className?: string;
+  autoFilterFolder?: string; // 자동 필터링할 폴더 경로
 }
 
 export const AIImagePicker: React.FC<AIImagePickerProps> = ({
   selectedImage,
   onImageSelect,
   channelType,
-  className = ''
+  className = '',
+  autoFilterFolder
 }) => {
   const [showGallery, setShowGallery] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [imagePrompt, setImagePrompt] = useState('');
+  const [imageLoadError, setImageLoadError] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   // 채널별 이미지 크기 정보
   const getChannelImageInfo = () => {
@@ -90,14 +94,134 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
             선택된 이미지
           </label>
           <div className="relative">
-            <img
-              src={selectedImage}
-              alt="선택된 이미지"
-              className="w-full max-h-96 h-auto object-contain rounded-lg border border-gray-200"
-            />
+            {imageLoadError ? (
+              // 이미지 로드 실패 시 플레이스홀더
+              <div className="w-full h-64 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                <div className="text-gray-400 text-4xl mb-2">🖼️</div>
+                <div className="text-sm text-gray-500 text-center px-4">
+                  <div className="font-medium mb-1">이미지를 불러올 수 없습니다</div>
+                  <div className="text-xs break-all mt-2 max-w-full overflow-hidden text-ellipsis">
+                    {selectedImage.length > 60 
+                      ? `${selectedImage.substring(0, 60)}...` 
+                      : selectedImage}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-2">
+                    {selectedImage.startsWith('http://') || selectedImage.startsWith('https://') 
+                      ? '이미지 URL이 유효하지 않거나 접근할 수 없습니다'
+                      : selectedImage.startsWith('data:')
+                      ? '이미지 데이터가 손상되었을 수 있습니다'
+                      : '이미지 ID 또는 경로가 올바르지 않습니다'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setImageLoadError(false);
+                    setIsImageLoading(true);
+                    // 이미지 재로드 시도
+                    const img = document.createElement('img');
+                    img.onload = () => {
+                      setImageLoadError(false);
+                      setIsImageLoading(false);
+                    };
+                    img.onerror = () => {
+                      setImageLoadError(true);
+                      setIsImageLoading(false);
+                    };
+                    img.src = selectedImage;
+                  }}
+                  className="mt-3 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : (
+              <>
+                {isImageLoading && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                )}
+                <img
+                  src={selectedImage}
+                  alt="선택된 이미지"
+                  className="w-full max-h-96 h-auto object-contain rounded-lg border border-gray-200"
+                  onLoad={() => {
+                    console.log('✅ AIImagePicker: 이미지 로드 성공');
+                    console.log('   전체 URL:', selectedImage);
+                    setIsImageLoading(false);
+                    setImageLoadError(false);
+                  }}
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    const imgUrl = img.src || selectedImage;
+                    console.error('❌ AIImagePicker: 이미지 로드 실패');
+                    console.error('   img.src:', img.src);
+                    console.error('   selectedImage:', selectedImage);
+                    console.error('   imgUrl (사용된 URL):', imgUrl);
+                    console.error('   URL 길이:', imgUrl.length);
+                    console.error('   selectedImage 길이:', selectedImage.length);
+                    console.error('   URL 타입:', 
+                      imgUrl.startsWith('http://') || imgUrl.startsWith('https://') ? 'HTTP URL' :
+                      imgUrl.startsWith('data:') ? 'Data URL' :
+                      imgUrl.startsWith('/') ? '상대 경로' :
+                      '알 수 없음'
+                    );
+                    
+                    // 실제로 URL이 잘렸는지 확인
+                    if (img.src !== selectedImage) {
+                      console.error('   ⚠️ img.src와 selectedImage가 다릅니다!');
+                      console.error('   img.src 길이:', img.src.length);
+                      console.error('   selectedImage 길이:', selectedImage.length);
+                    }
+                    
+                    // Supabase Storage URL이 올바른 형식인지 확인
+                    if (imgUrl.includes('supabase.co/storage/v') && !imgUrl.includes('/object/public/')) {
+                      console.error('   ⚠️ Supabase Storage URL 형식이 잘못되었습니다!');
+                      console.error('   예상 형식: .../storage/v1/object/public/[bucket]/[path]');
+                      console.error('   실제 URL:', imgUrl);
+                    }
+                    
+                    // URL이 잘렸는지 확인
+                    if (imgUrl.length < 100 && imgUrl.includes('supabase.co/storage/v')) {
+                      console.error('   ⚠️ URL이 잘린 것 같습니다!');
+                      console.error('   원본 selectedImage:', selectedImage);
+                    }
+                    
+                    setIsImageLoading(false);
+                    setImageLoadError(true);
+                    
+                    // 이미지 URL이 상대 경로인 경우 절대 경로로 변환 시도
+                    if (typeof window !== 'undefined' && 
+                        !imgUrl.startsWith('http://') && 
+                        !imgUrl.startsWith('https://') && 
+                        !imgUrl.startsWith('data:')) {
+                      console.log('🔄 상대 경로 감지, 절대 경로로 변환 시도');
+                      const absoluteUrl = imgUrl.startsWith('/') 
+                        ? `${window.location.origin}${imgUrl}`
+                        : `${window.location.origin}/${imgUrl}`;
+                      console.log('   변환된 URL:', absoluteUrl);
+                      // 한 번만 시도
+                      if (!imgUrl.includes(window.location.origin)) {
+                        setTimeout(() => {
+                          img.src = absoluteUrl;
+                        }, 500);
+                      }
+                    }
+                  }}
+                  onLoadStart={() => {
+                    setIsImageLoading(true);
+                    setImageLoadError(false);
+                  }}
+                />
+              </>
+            )}
             <button
-              onClick={() => onImageSelect('')}
-              className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-red-600"
+              onClick={() => {
+                onImageSelect('');
+                setImageLoadError(false);
+                setIsImageLoading(false);
+              }}
+              className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-red-600 z-20"
             >
               ×
             </button>
@@ -169,6 +293,9 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
                 setShowGallery(false);
               }}
               onClose={() => setShowGallery(false)}
+              autoFilterFolder={autoFilterFolder || (channelType === 'sms' ? 'originals/mms' : undefined)}
+              sourceFilter={channelType === 'sms' ? 'mms' : undefined}
+              channelFilter={channelType === 'sms' ? 'sms' : undefined}
             />
           </div>
         </div>

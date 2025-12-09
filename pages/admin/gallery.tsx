@@ -97,6 +97,10 @@ export default function GalleryAdmin() {
   const [selectedDuplicateHashes, setSelectedDuplicateHashes] = useState<Set<string>>(new Set());
   const [isRemovingDuplicates, setIsRemovingDuplicates] = useState(false);
   
+  // 이미지 복사/링크 모달 관련 상태
+  const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
+  const [pendingImageDrop, setPendingImageDrop] = useState<{ imageData: any; targetFolder: string } | null>(null);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -971,7 +975,14 @@ export default function GalleryAdmin() {
         // 특정 폴더
         const beforeCount = filtered.length;
         filtered = filtered.filter(img => {
-          // folder_path가 문자열인지 확인하고, 정확히 일치하는지 또는 하위 경로인지 확인
+          // 🔗 링크된 이미지는 folder_path 필터를 우회 (항상 표시)
+          const isLinked = (img as any).is_linked === true;
+          if (isLinked) {
+            // 링크된 이미지는 항상 표시 (원본 폴더는 original_folder에 있음)
+            return true;
+          }
+          
+          // 일반 이미지는 folder_path로 필터링
           const imgFolderPath = String(img.folder_path || '').trim();
           const filterPath = String(folderFilter || '').trim();
           
@@ -1891,7 +1902,7 @@ export default function GalleryAdmin() {
 
   // 편집 시작
   // Replicate 변형 함수 (프롬프트 입력 불가, 빠르고 간단)
-  const generateReplicateVariation = async (imageUrl: string, imageName: string) => {
+  const generateReplicateVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string) => {
     if (!imageUrl) {
       alert('변형할 이미지를 선택해주세요.');
       return;
@@ -1930,6 +1941,13 @@ export default function GalleryAdmin() {
       const result = await response.json();
       
       if (result.images && result.images.length > 0) {
+        // 현재 이미지의 folder_path 가져오기 (전달받은 값 또는 images 배열에서 찾기)
+        let targetFolderPath = imageFolderPath;
+        if (!targetFolderPath) {
+          const currentImage = images.find(img => img.url === imageUrl || img.name === imageName);
+          targetFolderPath = currentImage?.folder_path || (folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null);
+        }
+        
         // 변형된 이미지를 Supabase에 저장
         const savedImages = [];
         for (let i = 0; i < result.images.length; i++) {
@@ -1940,7 +1958,8 @@ export default function GalleryAdmin() {
               body: JSON.stringify({
                 imageUrl: result.images[i].originalUrl || result.images[i],
                 fileName: `replicate-variation-${Date.now()}-${i + 1}.png`,
-                blogPostId: null
+                blogPostId: null,
+                folderPath: targetFolderPath // 현재 폴더 경로 전달
               })
             });
             
@@ -1961,12 +1980,8 @@ export default function GalleryAdmin() {
         // ✅ 모달 닫기
         setSelectedImageForZoom(null);
         
-        // ✅ "전체 폴더"로 리셋
-        setFolderFilter('all');
-        setIncludeChildren(true);
-        
-        // ✅ 이미지 목록 새로고침 (캐시 무효화 포함)
-        fetchImages(1, true, 'all', true, '', true);
+        // ✅ 현재 폴더 유지하고 이미지 목록만 새로고침 (캐시 무효화 포함)
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
       } else {
         throw new Error('변형된 이미지가 생성되지 않았습니다.');
       }
@@ -2526,6 +2541,54 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 이미지 복사/링크 핸들러
+  const handleImageCopyOrLink = async (imageData: any, targetFolder: string, action: 'copy' | 'link') => {
+    try {
+      setIsLoading(true);
+      
+      // 메시지 ID 추출 (targetFolder에서)
+      const messageIdMatch = targetFolder.match(/\/(\d+)$/);
+      const messageId = messageIdMatch ? parseInt(messageIdMatch[1]) : null;
+      
+      console.log('📋 이미지 복사/링크 작업:', { 
+        imageUrl: imageData.url, 
+        targetFolder, 
+        action,
+        messageId 
+      });
+      
+      const response = await fetch('/api/admin/copy-or-link-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageData.url,
+          targetFolder: targetFolder,
+          action: action,
+          messageId: messageId
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const actionText = action === 'copy' ? '복사' : '링크 생성';
+        alert(`✅ 이미지 ${actionText} 완료!\n\n${result.message}`);
+        
+        // 이미지 목록 새로고침
+        fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
+      } else {
+        alert(`❌ 이미지 ${action === 'copy' ? '복사' : '링크 생성'} 실패: ${result.error || result.details}`);
+      }
+    } catch (error: any) {
+      console.error('❌ 이미지 복사/링크 오류:', error);
+      alert(`❌ 이미지 ${action === 'copy' ? '복사' : '링크 생성'} 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+      setShowCopyLinkModal(false);
+      setPendingImageDrop(null);
+    }
+  };
+
   // 일괄 복제 실행
   const handleBulkDuplicate = async () => {
     if (selectedImages.size === 0) {
@@ -2739,7 +2802,66 @@ export default function GalleryAdmin() {
         return;
       }
 
-      // Phase 4: 삭제 전 경고 확인
+      // ⭐ 링크 이미지 삭제 처리
+      const isLinked = (image as any).is_linked === true;
+      if (isLinked) {
+        const originalFolder = (image as any).original_folder || '알 수 없음';
+        const confirmMessage = `이 이미지는 링크 이미지입니다.\n\n` +
+          `삭제하면 이 폴더에서의 링크만 제거되고, 원본 이미지는 삭제되지 않습니다.\n\n` +
+          `원본 폴더: ${originalFolder}\n\n` +
+          `링크를 삭제하시겠습니까?`;
+        
+        if (!confirm(confirmMessage)) {
+          return;
+        }
+
+        // ⭐ 링크 삭제: image_metadata에서 태그만 제거
+        try {
+          const response = await fetch('/api/admin/remove-image-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageUrl: image.url || image.cdn_url,
+              folderPath: image.folder_path,
+              messageId: image.folder_path?.match(/\/(\d+)$/)?.[1] // 폴더 경로에서 메시지 ID 추출
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ 링크 삭제 완료:', result);
+            
+            // UI에서 링크 이미지 제거
+            setImages(prev => prev.filter(img => {
+              const fullPath = img.folder_path && img.folder_path !== '' 
+                ? `${img.folder_path}/${img.name}` 
+                : img.name;
+              return fullPath !== imageName && img.name !== imageName;
+            }));
+            
+            // 현재 확대된 이미지가 삭제된 경우 모달 닫기
+            if (selectedImageForZoom && selectedImageForZoom.name === imageName) {
+              setSelectedImageForZoom(null);
+            }
+            
+            alert('링크가 삭제되었습니다.\n\n원본 이미지는 그대로 유지됩니다.');
+            
+            // 목록 새로고침
+            setTimeout(() => {
+              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+            }, 500);
+          } else {
+            const errorData = await response.json().catch(() => ({ error: '링크 삭제 실패' }));
+            alert(`링크 삭제 실패: ${errorData.error || '알 수 없는 오류'}`);
+          }
+        } catch (error) {
+          console.error('링크 삭제 오류:', error);
+          alert('링크 삭제 중 오류가 발생했습니다.');
+        }
+        return; // 링크 삭제 후 종료
+      }
+
+      // Phase 4: 삭제 전 경고 확인 (일반 이미지)
       const warning = generateDeleteWarning(image);
       if (warning) {
         const confirmMessage = `정말로 이 이미지를 삭제하시겠습니까?\n\n${warning}\n\n삭제를 계속하려면 확인을 다시 눌러주세요.`;
@@ -3425,7 +3547,7 @@ export default function GalleryAdmin() {
           {/* 메인 레이아웃: 트리 사이드바 + 콘텐츠 영역 */}
           <div className="flex gap-6">
             {/* 트리 사이드바 (왼쪽) */}
-            <div className="w-80 flex-shrink-0">
+            <div className="w-80 flex-shrink-0 relative z-10">
               <FolderTree
                 folders={availableFolders}
                 selectedFolder={folderFilter}
@@ -3452,31 +3574,23 @@ export default function GalleryAdmin() {
                     fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                   } catch {}
                 }}
-                onImageDrop={async (imageData, targetFolder) => {
-                  try {
-                    console.log('📁 이미지 드롭:', { imageData, targetFolder });
-                    
-                    const response = await fetch('/api/admin/move-image-to-folder', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        imageUrl: imageData.url,
-                        targetFolder: targetFolder
-                      })
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                      alert(`✅ 이미지가 "${targetFolder}" 폴더로 이동되었습니다.`);
-                      // 이미지 목록 새로고침
-                      fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
-                    } else {
-                      alert(`❌ 이미지 이동 실패: ${result.error || result.details}`);
-                    }
-                  } catch (error) {
-                    console.error('❌ 이미지 이동 오류:', error);
-                    alert(`❌ 이미지 이동 중 오류가 발생했습니다: ${error.message}`);
+                onImageDrop={async (imageData, targetFolder, event?: DragEvent) => {
+                  console.log('📁 이미지 드롭:', { imageData, targetFolder, event });
+                  
+                  // Shift 키 = 링크, Ctrl/Cmd 키 = 복사, 기본 = 선택 모달
+                  const isShiftPressed = event?.shiftKey || false;
+                  const isCtrlPressed = event?.ctrlKey || event?.metaKey || false;
+                  
+                  if (isShiftPressed) {
+                    // Shift 키: 바로 링크 생성
+                    await handleImageCopyOrLink(imageData, targetFolder, 'link');
+                  } else if (isCtrlPressed) {
+                    // Ctrl/Cmd 키: 바로 복사
+                    await handleImageCopyOrLink(imageData, targetFolder, 'copy');
+                  } else {
+                    // 기본: 선택 모달 표시
+                    setPendingImageDrop({ imageData, targetFolder });
+                    setShowCopyLinkModal(true);
                   }
                 }}
               />
@@ -3855,10 +3969,50 @@ export default function GalleryAdmin() {
                   </div>
                 </div>
               ) : filteredImages.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div 
+                  className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    try {
+                      const imageDataStr = e.dataTransfer.getData('image');
+                      if (imageDataStr) {
+                        const imageData = JSON.parse(imageDataStr);
+                        const targetFolder = folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : 'originals/mms';
+                        
+                        const isShiftPressed = e.shiftKey;
+                        const isCtrlPressed = e.ctrlKey || e.metaKey;
+                        
+                        if (isShiftPressed) {
+                          await handleImageCopyOrLink(imageData, targetFolder, 'link');
+                        } else if (isCtrlPressed) {
+                          await handleImageCopyOrLink(imageData, targetFolder, 'copy');
+                        } else {
+                          setPendingImageDrop({ imageData, targetFolder });
+                          setShowCopyLinkModal(true);
+                        }
+                      }
+                    } catch (error) {
+                      console.error('❌ 드롭 처리 오류:', error);
+                    }
+                  }}
+                >
                   <div className="text-4xl mb-4">🖼️</div>
                   <p className="text-lg mb-2">이미지가 없습니다</p>
-                  <p className="text-sm">검색 조건을 변경해보세요</p>
+                  <p className="text-sm mb-4">검색 조건을 변경해보세요</p>
+                  {folderFilter !== 'all' && folderFilter !== 'root' && (
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-400 mb-2">이미지를 여기에 드래그하여 복사/링크할 수 있습니다</p>
+                      <p className="text-xs text-gray-400">
+                        💡 Shift + 드롭 = 링크 | Ctrl/Cmd + 드롭 = 복사
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -3895,10 +4049,71 @@ export default function GalleryAdmin() {
                           url: image.url,
                           folder_path: image.folder_path
                         }));
-                        e.currentTarget.style.opacity = '0.5';
+                        
+                        // ⭐ 항상 캔버스 사용 (이미지 로드 여부와 관계없이)
+                        try {
+                          const canvas = document.createElement('canvas');
+                          canvas.width = 64;
+                          canvas.height = 64;
+                          const ctx = canvas.getContext('2d');
+                          
+                          if (ctx) {
+                            // 배경을 흰색으로 채우기
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, 64, 64);
+                            
+                            // ⭐ 화면에 렌더링된 이미지 요소 찾기
+                            const imgElement = e.currentTarget.querySelector('img') as HTMLImageElement;
+                            
+                            // 이미지가 로드되어 있고 CORS 문제가 없으면 그리기
+                            if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
+                              try {
+                                // 이미지를 64x64px로 그리기 (비율 유지하며 중앙 정렬)
+                                const imgAspect = imgElement.naturalWidth / imgElement.naturalHeight;
+                                let drawWidth = 64;
+                                let drawHeight = 64;
+                                let offsetX = 0;
+                                let offsetY = 0;
+                                
+                                if (imgAspect > 1) {
+                                  // 가로가 더 긴 경우
+                                  drawHeight = 64 / imgAspect;
+                                  offsetY = (64 - drawHeight) / 2;
+                                } else {
+                                  // 세로가 더 긴 경우
+                                  drawWidth = 64 * imgAspect;
+                                  offsetX = (64 - drawWidth) / 2;
+                                }
+                                
+                                // CORS 문제가 있을 수 있으므로 try-catch로 감싸기
+                                ctx.drawImage(imgElement, offsetX, offsetY, drawWidth, drawHeight);
+                              } catch (drawError) {
+                                // CORS 문제나 drawImage 실패 시 배경만 표시
+                                console.warn('이미지 그리기 실패 (CORS 문제 가능):', drawError);
+                                ctx.fillStyle = '#f3f4f6';
+                                ctx.fillRect(0, 0, 64, 64);
+                              }
+                            } else {
+                              // 이미지가 로드되지 않았으면 회색 배경만
+                              ctx.fillStyle = '#f3f4f6';
+                              ctx.fillRect(0, 0, 64, 64);
+                            }
+                            
+                            // 항상 setDragImage 호출 (캔버스는 항상 생성됨)
+                            e.dataTransfer.setDragImage(canvas, 32, 32);
+                          }
+                        } catch (err) {
+                          console.warn('드래그 이미지 설정 실패:', err);
+                        }
+                        
+                        // ⭐ 조금만 흐리게 (0.7로 조정 - 폴더가 잘 보이도록)
+                        e.currentTarget.style.opacity = '0.7';
+                        // ⭐ z-index를 낮춰서 폴더 트리가 위에 보이도록
+                        e.currentTarget.style.zIndex = '1';
                       }}
                       onDragEnd={(e) => {
                         e.currentTarget.style.opacity = '1';
+                        e.currentTarget.style.zIndex = '';
                       }}
                     >
                       {/* 선택 표시 (일반 선택 - 파란색) */}
@@ -3917,6 +4132,13 @@ export default function GalleryAdmin() {
                             <span className="text-white text-xs">🔍</span>
                           </div>
                         </div>
+                      )}
+                      
+                      {/* 🔗 링크된 이미지 배지 */}
+                      {(image as any).is_linked && (
+                        <span className="absolute top-2 right-2 z-20 px-2 py-1 text-[10px] font-bold rounded-md bg-purple-600 text-white shadow-lg">
+                          🔗 링크
+                        </span>
                       )}
                       
                       {/* 비교용 체크박스 (Phase 5-7) - 하단 우측에 배치 */}
@@ -3948,7 +4170,7 @@ export default function GalleryAdmin() {
                         <LazyImage
                           src={image.url}
                           alt={image.alt_text || image.name}
-                          className="w-full h-full object-cover"
+                          className={`w-full h-full object-cover ${(image as any).is_linked ? 'opacity-60' : ''}`}
                         />
                       </div>
                       
@@ -4006,6 +4228,13 @@ export default function GalleryAdmin() {
                         <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
                           {image.name}
                         </div>
+                        
+                        {/* 🔗 링크된 이미지 원본 폴더 표시 */}
+                        {(image as any).is_linked && (image as any).original_folder && (
+                          <div className="text-[10px] text-purple-600 mb-1 truncate" title={`원본: ${(image as any).original_folder}`}>
+                            🔗 {(image as any).original_folder.split('/').pop()}
+                          </div>
+                        )}
                         
                         {/* 메타데이터 미리보기 */}
                         {image.alt_text && (
@@ -4150,7 +4379,7 @@ export default function GalleryAdmin() {
                         )}
                       </div>
                       
-                      {/* 퀵 액션 버튼들 */}
+                      {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제만 표시 */}
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col space-y-1">
                         <button
                           onClick={(e) => {
@@ -4172,92 +4401,6 @@ export default function GalleryAdmin() {
                         >
                           ✏️
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            generateReplicateVariation(image.url, image.name);
-                          }}
-                          disabled={isGeneratingReplicateVariation}
-                          className={`p-1 rounded shadow-sm ${
-                            isGeneratingReplicateVariation
-                              ? 'bg-purple-300 text-white cursor-not-allowed'
-                              : 'bg-purple-500 text-white hover:bg-purple-600'
-                          }`}
-                          title="변형 (Replicate - 빠르고 간단, 프롬프트 입력 불가)"
-                        >
-                          {isGeneratingReplicateVariation ? '…' : '🎨'}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(image.url);
-                            alert('URL이 클립보드에 복사되었습니다.');
-                          }}
-                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                          title="URL 복사"
-                        >
-                          📋
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const link = document.createElement('a');
-                            link.href = image.url;
-                            link.download = image.name;
-                            link.click();
-                          }}
-                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                          title="다운로드"
-                        >
-                          💾
-                        </button>
-                        {image.folder_path && image.folder_path !== '' && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (confirm(`"${image.name}" 이미지를 루트 폴더로 이동하시겠습니까?`)) {
-                                try {
-                                  console.log('🔍 이미지 이동 요청 데이터:', {
-                                    imageId: image.id,
-                                    currentPath: image.name,
-                                    imageUrl: image.url
-                                  });
-                                  
-                                  if (!image.id || image.id.startsWith('temp-')) {
-                                    alert('이미지 ID가 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-                                    return;
-                                  }
-                                  
-                                  const response = await fetch('/api/admin/move-image-to-root', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ 
-                                      imageId: image.id,
-                                      currentPath: image.name
-                                    })
-                                  });
-
-                                  const result = await response.json();
-
-                                  if (result.success) {
-                                    alert(`이미지가 루트로 이동되었습니다!\n\n"${result.data.oldPath}" → "${result.data.newPath}"`);
-                                    // 갤러리 새로고침
-                                    fetchImages(1, true);
-                                  } else {
-                                    alert(`이미지 이동 실패: ${result.error}`);
-                                  }
-                                } catch (error) {
-                                  console.error('❌ 이미지 이동 오류:', error);
-                                  alert('이미지 이동 중 오류가 발생했습니다.');
-                                }
-                              }
-                            }}
-                            className="p-1 bg-yellow-100 rounded shadow-sm hover:bg-yellow-200"
-                            title="루트로 이동"
-                          >
-                            📁
-                          </button>
-                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -4573,7 +4716,7 @@ export default function GalleryAdmin() {
                     // Replicate 변형 (프롬프트 입력 불가, 빠르고 간단)
                     if (!selectedImageForZoom) return;
                     if (isGeneratingReplicateVariation) return;
-                    await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name);
+                    await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
                   }}
                   disabled={isGeneratingReplicateVariation}
                   className={`px-3 py-1 text-sm rounded transition-colors ${
@@ -6773,6 +6916,53 @@ export default function GalleryAdmin() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 이미지 복사/링크 선택 모달 */}
+      {showCopyLinkModal && pendingImageDrop && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">이미지 작업 선택</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              <strong>{pendingImageDrop.imageData.name}</strong> 이미지를<br />
+              <strong>{pendingImageDrop.targetFolder}</strong> 폴더에 어떻게 처리하시겠습니까?
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'copy')}
+                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                📋 복사 (파일 복사)
+              </button>
+              
+              <button
+                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'link')}
+                className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              >
+                🔗 링크 (태그만 추가)
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowCopyLinkModal(false);
+                  setPendingImageDrop(null);
+                }}
+                className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                취소
+              </button>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+              <p>💡 팁:</p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li><strong>Shift + 드롭</strong>: 바로 링크 생성</li>
+                <li><strong>Ctrl/Cmd + 드롭</strong>: 바로 복사</li>
+              </ul>
             </div>
           </div>
         </div>

@@ -19,6 +19,8 @@ type Props = {
   autoFilterFolder?: string; // 자동 필터링할 폴더 경로 (예: "originals/daily-branding/kakao/2025-11-15/account1/background")
   showCompareMode?: boolean; // 비교 모드 활성화
   maxCompareCount?: number; // 최대 비교 개수 (기본 3)
+  sourceFilter?: 'mms' | 'blog' | 'campaign' | 'kakao'; // source 필터 (image_metadata 테이블의 source 필드)
+  channelFilter?: 'sms' | 'kakao' | 'naver' | 'blog'; // channel 필터 (image_metadata 테이블의 channel 필드)
 };
 
 const GalleryPicker: React.FC<Props> = ({ 
@@ -30,21 +32,16 @@ const GalleryPicker: React.FC<Props> = ({
   keepOpenAfterSelect = true, // 기본값: 선택 후 모달 유지
   autoFilterFolder,
   showCompareMode = true,
-  maxCompareCount = 3
+  maxCompareCount = 3,
+  sourceFilter,
+  channelFilter
 }) => {
   const [allImages, setAllImages] = useState<ImageItem[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'webp' | 'medium' | 'thumb'>('all');
   const [folderFilter, setFolderFilter] = useState<string>(autoFilterFolder || '');
   const [selectedDate, setSelectedDate] = useState<string>('');
-  // originals/daily-branding/kakao 루트 폴더인 경우 기본값으로 미사용 필터 활성화
-  const [showUnusedOnly, setShowUnusedOnly] = useState(() => {
-    if (autoFilterFolder?.includes('originals/daily-branding/kakao') && 
-        !autoFilterFolder.match(/\/\d{4}-\d{2}-\d{2}\//)) {
-      return true; // 날짜별 폴더가 아닌 루트 kakao 폴더인 경우
-    }
-    return false;
-  });
+  // ⚠️ 미사용 필터 제거됨
   const [showLikedOnly, setShowLikedOnly] = useState(false);
   const [altText, setAltText] = useState('');
   const [page, setPage] = useState(1);
@@ -60,6 +57,10 @@ const GalleryPicker: React.FC<Props> = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pageSize = 24;
+  
+  // 이미지 복사/링크 모달 관련 상태
+  const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
+  const [pendingImageDrop, setPendingImageDrop] = useState<{ imageData: any; targetFolder: string } | null>(null);
 
   // 이미지 로드 함수
   const fetchImages = async (resetPage = false) => {
@@ -76,11 +77,22 @@ const GalleryPicker: React.FC<Props> = ({
       
       if (folderFilter) {
         params.append('prefix', folderFilter);
-        // originals/daily-branding/kakao로 시작하는 경로인 경우 하위 폴더 포함
+        // originals/daily-branding/kakao 또는 originals/mms로 시작하는 경로인 경우 하위 폴더 포함
         // 날짜별 폴더(YYYY-MM-DD 패턴)가 포함된 경우에도 하위 폴더 포함
         const isKakaoFolder = folderFilter.startsWith('originals/daily-branding/kakao');
-        const includeChildren = isKakaoFolder ? 'true' : 'false';
+        const isMmsFolder = folderFilter.startsWith('originals/mms');
+        const includeChildren = (isKakaoFolder || isMmsFolder) ? 'true' : 'false';
         params.append('includeChildren', includeChildren);
+      }
+      
+      // source 필터 추가
+      if (sourceFilter) {
+        params.append('source', sourceFilter);
+      }
+      
+      // channel 필터 추가
+      if (channelFilter) {
+        params.append('channel', channelFilter);
       }
       
       const apiUrl = `/api/admin/all-images?${params.toString()}`;
@@ -121,18 +133,25 @@ const GalleryPicker: React.FC<Props> = ({
     // 모달이 열릴 때 autoFilterFolder가 있으면 폴더 필터 설정
     if (autoFilterFolder) {
       console.log('📁 GalleryPicker autoFilterFolder:', autoFilterFolder);
-      // originals/daily-branding/kakao 루트 폴더인 경우 미사용 필터 활성화 및 폴더 필터 조정
-      if (autoFilterFolder.includes('originals/daily-branding/kakao') && 
+      
+      // ⚠️ 중요: originals/mms/YYYY-MM-DD/메시지ID 형식인 경우 상위 폴더로 자동 이동
+      const isMessageIdFolder = autoFilterFolder.match(/^originals\/mms\/\d{4}-\d{2}-\d{2}\/\d+$/);
+      if (isMessageIdFolder) {
+        // 메시지 ID 폴더인 경우 상위 폴더(날짜 폴더)로 자동 이동
+        const parts = autoFilterFolder.split('/');
+        const parentFolder = parts.slice(0, -1).join('/'); // 마지막 메시지 ID 제거
+        console.log(`📁 메시지 ID 폴더 감지, 상위 폴더로 자동 이동: ${parentFolder}`);
+        setFolderFilter(parentFolder);
+      } else if (autoFilterFolder.includes('originals/daily-branding/kakao') && 
           !autoFilterFolder.match(/\/\d{4}-\d{2}-\d{2}\//)) {
         // 날짜별 폴더가 아닌 루트 kakao 폴더인 경우
-        setShowUnusedOnly(true);
         // 하위 폴더 포함하도록 폴더 필터 설정
         setFolderFilter('originals/daily-branding/kakao');
+      } else if (autoFilterFolder.includes('originals/mms')) {
+        // originals/mms 폴더인 경우 (날짜 폴더 또는 루트)
+        setFolderFilter(autoFilterFolder);
       } else {
-        // 날짜별 폴더인 경우: 특정 폴더에 이미지가 없으면 상위 폴더로 확장
-        // 예: originals/daily-branding/kakao/2025-11-29/account1/background
-        // -> 없으면 originals/daily-branding/kakao/2025-11-29/account1
-        // -> 없으면 originals/daily-branding/kakao/2025-11-29
+        // 기타 폴더
         setFolderFilter(autoFilterFolder);
       }
     } else {
@@ -221,27 +240,7 @@ const GalleryPicker: React.FC<Props> = ({
           return false;
         }
         
-        // 미사용 이미지 필터 (usage_count가 0이거나 없음)
-        if (showUnusedOnly) {
-          const usageCount = (img as any).usage_count;
-          // 디버깅: 첫 번째 이미지만 로그
-          if (allImages.indexOf(img) === 0) {
-            console.log('🔍 미사용 필터 체크:', {
-              name: img.name,
-              usage_count: usageCount,
-              type: typeof usageCount,
-              isUndefined: usageCount === undefined,
-              isNull: usageCount === null,
-              willPass: (usageCount === undefined || usageCount === null || usageCount === 0)
-            });
-          }
-          // usage_count가 undefined이거나 null이면 0으로 간주 (미사용)
-          // usage_count가 명시적으로 0보다 크면 사용 중인 이미지이므로 제외
-          if (usageCount !== undefined && usageCount !== null && usageCount > 0) {
-            return false;
-          }
-          // usage_count가 0이거나 없으면 통과 (미사용 이미지)
-        }
+        // ⚠️ 미사용 필터 제거됨
         
         // 좋아요한 이미지 필터
         if (showLikedOnly) {
@@ -254,18 +253,7 @@ const GalleryPicker: React.FC<Props> = ({
         return true;
       });
     
-    // 디버깅: 필터 결과 로그
-    if (showUnusedOnly && filteredImages.length === 0 && allImages.length > 0) {
-      console.warn('⚠️ 미사용 필터: 이미지가 없습니다.', {
-        totalImages: allImages.length,
-        firstImageUsageCount: (allImages[0] as any).usage_count,
-        allUsageCounts: allImages.map((img, idx) => ({
-          idx,
-          name: img.name,
-          usage_count: (img as any).usage_count
-        }))
-      });
-    }
+    // ⚠️ 미사용 필터 디버깅 로그 제거됨
     
     // 정렬: 최근 생성된 이미지 우선 (URL에 타임스탬프가 포함된 경우)
     return filteredImages.sort((a, b) => {
@@ -276,7 +264,7 @@ const GalleryPicker: React.FC<Props> = ({
       }
       return 0;
     });
-  }, [allImages, query, filter, showUnusedOnly, showLikedOnly]);
+  }, [allImages, query, filter, showLikedOnly]);
 
   useEffect(() => {
     setCurrentFeatured(featuredUrl);
@@ -415,6 +403,54 @@ const GalleryPicker: React.FC<Props> = ({
     onSelect(img.url, { alt: altText || img.name });
     if (!keepOpenAfterSelect) {
       onClose();
+    }
+  };
+
+  // 이미지 복사/링크 핸들러
+  const handleImageCopyOrLink = async (imageData: any, targetFolder: string, action: 'copy' | 'link') => {
+    try {
+      setIsLoading(true);
+      
+      // 메시지 ID 추출 (targetFolder에서)
+      const messageIdMatch = targetFolder.match(/\/(\d+)$/);
+      const messageId = messageIdMatch ? parseInt(messageIdMatch[1]) : null;
+      
+      console.log('📋 이미지 복사/링크 작업:', { 
+        imageUrl: imageData.url, 
+        targetFolder, 
+        action,
+        messageId 
+      });
+      
+      const response = await fetch('/api/admin/copy-or-link-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageData.url,
+          targetFolder: targetFolder,
+          action: action,
+          messageId: messageId
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const actionText = action === 'copy' ? '복사' : '링크 생성';
+        alert(`✅ 이미지 ${actionText} 완료!\n\n${result.message}`);
+        
+        // 이미지 목록 새로고침
+        fetchImages(true);
+      } else {
+        alert(`❌ 이미지 ${action === 'copy' ? '복사' : '링크 생성'} 실패: ${result.error || result.details}`);
+      }
+    } catch (error: any) {
+      console.error('❌ 이미지 복사/링크 오류:', error);
+      alert(`❌ 이미지 ${action === 'copy' ? '복사' : '링크 생성'} 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+      setShowCopyLinkModal(false);
+      setPendingImageDrop(null);
     }
   };
 
@@ -603,12 +639,38 @@ const GalleryPicker: React.FC<Props> = ({
       <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
             <h3 className="text-xl font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
+            {/* 브레드크럼 네비게이션 */}
             {folderFilter && (
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                📁 {folderFilter.split('/').pop()}
-              </span>
+              <nav className="flex items-center gap-1 text-sm" aria-label="폴더 경로">
+                {folderFilter.split('/').map((segment, index, array) => {
+                  const path = array.slice(0, index + 1).join('/');
+                  const isLast = index === array.length - 1;
+                  return (
+                    <div key={index} className="flex items-center gap-1">
+                      {index > 0 && <span className="text-gray-400">/</span>}
+                      {isLast ? (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                          {segment}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFolderFilter(path);
+                            console.log('📁 브레드크럼 클릭:', path);
+                          }}
+                          className="px-2 py-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded text-xs font-medium transition-colors"
+                          title={`${path}로 이동`}
+                        >
+                          {segment}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </nav>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -679,26 +741,11 @@ const GalleryPicker: React.FC<Props> = ({
 
             {/* 핫키 필터 버튼 */}
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowUnusedOnly(!showUnusedOnly);
-                  setShowLikedOnly(false);
-                }}
-                className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
-                  showUnusedOnly
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                title="미사용 이미지만 표시"
-              >
-                📭 미사용
-              </button>
+              {/* ⚠️ 미사용 버튼 제거됨 */}
               <button
                 type="button"
                 onClick={() => {
                   setShowLikedOnly(!showLikedOnly);
-                  setShowUnusedOnly(false);
                 }}
                 className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
                   showLikedOnly
@@ -897,7 +944,39 @@ const GalleryPicker: React.FC<Props> = ({
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-center text-gray-500">
+              <div 
+                className="text-center text-gray-500 border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-blue-400 transition-colors"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  try {
+                    const imageDataStr = e.dataTransfer.getData('image');
+                    if (imageDataStr) {
+                      const imageData = JSON.parse(imageDataStr);
+                      const targetFolder = folderFilter || 'originals/mms';
+                      
+                      const isShiftPressed = e.shiftKey;
+                      const isCtrlPressed = e.ctrlKey || e.metaKey;
+                      
+                      if (isShiftPressed) {
+                        await handleImageCopyOrLink(imageData, targetFolder, 'link');
+                      } else if (isCtrlPressed) {
+                        await handleImageCopyOrLink(imageData, targetFolder, 'copy');
+                      } else {
+                        setPendingImageDrop({ imageData, targetFolder });
+                        setShowCopyLinkModal(true);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('❌ 드롭 처리 오류:', error);
+                  }
+                }}
+              >
                 <div className="text-4xl mb-4">📭</div>
                 <div className="text-lg font-medium mb-2">이미지가 없습니다</div>
                 <div className="text-sm mb-4">
@@ -915,23 +994,29 @@ const GalleryPicker: React.FC<Props> = ({
                   )}
                 </div>
                 {folderFilter && (
-                  <button
-                    onClick={() => {
-                      // 상위 폴더로 이동
-                      const parts = folderFilter.split('/');
-                      if (parts.length > 1) {
-                        const parentFolder = parts.slice(0, -1).join('/');
-                        setFolderFilter(parentFolder);
-                        console.log('📁 상위 폴더로 이동:', parentFolder);
-                      } else {
-                        setFolderFilter('');
-                        console.log('📁 전체 폴더로 이동');
-                      }
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                  >
-                    {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        // 상위 폴더로 이동
+                        const parts = folderFilter.split('/');
+                        if (parts.length > 1) {
+                          const parentFolder = parts.slice(0, -1).join('/');
+                          setFolderFilter(parentFolder);
+                          console.log('📁 상위 폴더로 이동:', parentFolder);
+                        } else {
+                          setFolderFilter('');
+                          console.log('📁 전체 폴더로 이동');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm mb-2"
+                    >
+                      {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
+                    </button>
+                    <div className="text-xs text-gray-400 mt-2">
+                      💡 이미지를 여기에 드래그하여 복사/링크할 수 있습니다<br />
+                      Shift + 드롭 = 링크 | Ctrl/Cmd + 드롭 = 복사
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -1004,9 +1089,16 @@ const GalleryPicker: React.FC<Props> = ({
                       </span>
                     )}
                     
+                    {/* 🔗 링크된 이미지 배지 */}
+                    {(img as any).is_linked && (
+                      <span className="absolute top-2 right-2 z-20 px-2 py-1 text-[10px] font-bold rounded-md bg-purple-500 text-white shadow-lg flex items-center gap-1">
+                        🔗 링크
+                      </span>
+                    )}
+                    
                     {/* 비교 모드 배지 */}
                     {showCompareMode && isCompareSelected && (
-                      <span className="absolute top-2 right-2 z-20 px-2 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-lg">
+                      <span className={`absolute ${(img as any).is_linked ? 'top-10' : 'top-2'} right-2 z-20 px-2 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-lg`}>
                         비교 {Array.from(selectedForCompare).indexOf(img.name) + 1}
                       </span>
                     )}
@@ -1028,7 +1120,7 @@ const GalleryPicker: React.FC<Props> = ({
                     {/* 이미지 */}
                     <button
                       type="button"
-                      className="w-full"
+                      className={`w-full ${(img as any).is_linked ? 'opacity-60' : ''}`}
                       onClick={() => {
                         // 비교 모드가 활성화되어 있으면 자동으로 비교에 추가
                         if (showCompareMode) {
@@ -1055,23 +1147,29 @@ const GalleryPicker: React.FC<Props> = ({
                           <span className="text-xs text-gray-700 truncate font-medium" title={img.name}>
                             {img.name}
                           </span>
-                          {/* 버전 배지 */}
-                          {/(_thumb\.|_thumb\.webp$)/i.test(img.name) ? (
-                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-medium flex-shrink-0">
-                              thumb
+                          {/* 🔗 링크된 이미지 원본 폴더 표시 */}
+                          {(img as any).is_linked && (img as any).original_folder && (
+                            <span className="text-[10px] text-purple-600 truncate" title={`원본: ${(img as any).original_folder}`}>
+                              🔗 {(img as any).original_folder.split('/').pop()}
                             </span>
-                          ) : /_medium\./i.test(img.name) ? (
-                            <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-medium flex-shrink-0">
-                              medium
-                            </span>
-                          ) : /\.webp$/i.test(img.name) ? (
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium flex-shrink-0">
-                              webp
-                            </span>
-                          ) : (
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium flex-shrink-0">
-                              original
-                            </span>
+                          )}
+                          {/* 버전 배지 - 링크 이미지가 아닐 때만 표시 (original 배지 제외) */}
+                          {!(img as any).is_linked && (
+                            <>
+                              {/(_thumb\.|_thumb\.webp$)/i.test(img.name) ? (
+                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-medium flex-shrink-0">
+                                  thumb
+                                </span>
+                              ) : /_medium\./i.test(img.name) ? (
+                                <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-medium flex-shrink-0">
+                                  medium
+                                </span>
+                              ) : /\.webp$/i.test(img.name) ? (
+                                <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium flex-shrink-0">
+                                  webp
+                                </span>
+                              ) : null}
+                            </>
                           )}
                         </div>
                       </div>
@@ -1269,6 +1367,53 @@ const GalleryPicker: React.FC<Props> = ({
         )}
 
       </div>
+
+      {/* 이미지 복사/링크 선택 모달 */}
+      {showCopyLinkModal && pendingImageDrop && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">이미지 작업 선택</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              <strong>{pendingImageDrop.imageData.name}</strong> 이미지를<br />
+              <strong>{pendingImageDrop.targetFolder}</strong> 폴더에 어떻게 처리하시겠습니까?
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'copy')}
+                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                📋 복사 (파일 복사)
+              </button>
+              
+              <button
+                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'link')}
+                className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              >
+                🔗 링크 (태그만 추가)
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowCopyLinkModal(false);
+                  setPendingImageDrop(null);
+                }}
+                className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                취소
+              </button>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+              <p>💡 팁:</p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li><strong>Shift + 드롭</strong>: 바로 링크 생성</li>
+                <li><strong>Ctrl/Cmd + 드롭</strong>: 바로 복사</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -16,7 +16,7 @@ interface FolderTreeProps {
   onFolderSelect: (folderPath: string) => void;
   includeChildren: boolean;
   onIncludeChildrenChange: (include: boolean) => void;
-  onImageDrop?: (imageData: { name: string; url: string; folder_path?: string }, targetFolder: string) => void;
+  onImageDrop?: (imageData: { name: string; url: string; folder_path?: string }, targetFolder: string, event?: DragEvent) => void;
   onFoldersChanged?: () => void;
 }
 
@@ -116,7 +116,8 @@ export default function FolderTree({
       const imageDataStr = e.dataTransfer.getData('image');
       if (imageDataStr && onImageDrop) {
         const imageData = JSON.parse(imageDataStr);
-        onImageDrop(imageData, folderPath);
+        // 원본 이벤트도 전달 (키보드 상태 확인용)
+        onImageDrop(imageData, folderPath, e.nativeEvent as DragEvent);
       }
     } catch (error) {
       console.error('❌ 드롭 처리 오류:', error);
