@@ -1,9 +1,4 @@
 {
-  "git": {
-    "deploymentEnabled": {
-      "fix/tiptap-keyboard-input-and-published-date": false
-    }
-  },
   "functions": {
     "pages/api/**/*.js": {
       "maxDuration": 50
