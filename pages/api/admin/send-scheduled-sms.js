@@ -316,21 +316,7 @@ export default async function handler(req, res) {
           const chunk = allMessages.slice(i, i + chunkSize);
           const chunkIndex = Math.floor(i / chunkSize) + 1;
 
-          if (isDryRun) {
-            // Dry-run 모드: 실제 API 호출 없이 시뮬레이션
-            console.log(`🧪 [DRY-RUN] 메시지 ID ${sms.id} 청크 ${chunkIndex}/${totalChunks}: ${chunk.length}건 시뮬레이션`);
-            aggregated.groupIds.push(`DRY-RUN-GROUP-${sms.id}-${chunkIndex}`);
-            chunk.forEach((msg) => {
-              aggregated.messageResults.push({
-                to: msg.to,
-                status: 'success',
-                statusCode: '2000',
-                messageId: `DRY-RUN-MSG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-              });
-            });
-            aggregated.successCount += chunk.length;
-          } else {
-            try {
+          try {
             const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
               method: 'POST',
               headers: {
@@ -360,13 +346,10 @@ export default async function handler(req, res) {
               ).length;
               aggregated.failCount += solapiResult.results.filter(r => 
                 r.statusCode !== '2000' && r.status !== 'success'
-            }
-          }              ).length;
+              ).length;
             } else {
               aggregated.successCount += chunk.length;
             }
-            }
-          }
           } catch (chunkError) {
             console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
             aggregated.failCount += chunk.length;
