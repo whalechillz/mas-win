@@ -423,6 +423,7 @@ export default async function handler(req, res) {
             fail_count: aggregated.failCount,
             // scheduled_at은 히스토리 보존을 위해 유지 (예약 시간 초기화하지 않음)
             updated_at: nowIso
+          })
           .eq('id', sms.id);
         }
 
