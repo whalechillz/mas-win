@@ -330,7 +330,7 @@ export default async function handler(req, res) {
             });
             aggregated.successCount += chunk.length;
           } else {
-            try {          try {
+            try {
             const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
               method: 'POST',
               headers: {
@@ -360,14 +360,14 @@ export default async function handler(req, res) {
               ).length;
               aggregated.failCount += solapiResult.results.filter(r => 
                 r.statusCode !== '2000' && r.status !== 'success'
-            }
-          }              ).length;
+              ).length;
             } else {
               aggregated.successCount += chunk.length;
             }
-            } catch (chunkError) {
             }
-          }            console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
+          }
+          } catch (chunkError) {
+            console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
             aggregated.failCount += chunk.length;
             chunk.forEach((msg) => {
               aggregated.messageResults.push({
