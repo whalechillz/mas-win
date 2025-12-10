@@ -18,6 +18,13 @@ export default async function handler(req, res) {
   const vercelCronHeader = req.headers['x-vercel-cron'];
   const isVercelCron = vercelCronHeader === '1';
   
+  // 크론 실행 여부 로깅 (디버깅용)
+  const requestSource = isVercelCron ? '🔄 Vercel Cron (자동 실행)' : '👤 수동 호출';
+  console.log(`\n${requestSource} - ${new Date().toISOString()}`);
+  console.log(`   x-vercel-cron 헤더: ${vercelCronHeader || '없음'}`);
+  console.log(`   요청 메서드: ${req.method}`);
+  console.log(`   요청 호스트: ${req.headers.host || '알 수 없음'}`);
+  
   // Vercel Cron은 자동으로 x-vercel-cron 헤더를 추가하므로 인증 불필요
   // 수동 호출 시에도 우선 작동하도록 허용 (긴급 상황 대응)
   // TODO: 프로덕션에서는 CRON_SECRET 검증 강화 필요
@@ -47,14 +54,23 @@ export default async function handler(req, res) {
     const now = new Date();
     const nowISO = now.toISOString();
 
-    // 예약 시간이 지난 draft 메시지 조회
+    // 예약 시간이 있는 draft 메시지 조회
     // scheduled_at은 UTC로 저장되어야 하므로 ISO 문자열로 비교
-    const { data: scheduledMessages, error: fetchError } = await supabase
+    // Supabase가 'Z'를 제거하여 저장할 수 있으므로, 클라이언트 측에서 필터링
+    const { data: allDraftMessages, error: fetchError } = await supabase
       .from('channel_sms')
       .select('*')
       .eq('status', 'draft')
-      .not('scheduled_at', 'is', null)
-      .lte('scheduled_at', nowISO);
+      .not('scheduled_at', 'is', null);
+    
+    // 클라이언트 측에서 시간 비교 (scheduled_at이 현재 시간 이하인 메시지만 필터링)
+    const scheduledMessages = (allDraftMessages || []).filter(msg => {
+      if (!msg.scheduled_at) return false;
+      // scheduled_at을 Date 객체로 변환 (Supabase가 'Z'를 제거했을 수 있으므로 명시적으로 UTC로 해석)
+      const scheduledAtStr = msg.scheduled_at.endsWith('Z') ? msg.scheduled_at : msg.scheduled_at + 'Z';
+      const scheduledDate = new Date(scheduledAtStr);
+      return !isNaN(scheduledDate.getTime()) && scheduledDate <= now;
+    });
     
     // 디버깅: 현재 시간과 조회된 메시지 로그
     console.log(`📅 예약 발송 체크 (${nowISO}):`);
@@ -381,7 +397,7 @@ export default async function handler(req, res) {
             sent_count: uniqueToSend.length,
             success_count: aggregated.successCount,
             fail_count: aggregated.failCount,
-            scheduled_at: null, // 예약 시간 초기화
+            // scheduled_at은 히스토리 보존을 위해 유지 (예약 시간 초기화하지 않음)
             updated_at: nowIso
           })
           .eq('id', sms.id);
