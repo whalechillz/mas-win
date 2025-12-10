@@ -360,7 +360,8 @@ export default async function handler(req, res) {
               ).length;
               aggregated.failCount += solapiResult.results.filter(r => 
                 r.statusCode !== '2000' && r.status !== 'success'
-              ).length;
+            }
+          }              ).length;
             } else {
               aggregated.successCount += chunk.length;
             }
