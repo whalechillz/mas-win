@@ -9,6 +9,17 @@ const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
 const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "";
 const SOLAPI_SENDER = process.env.SOLAPI_SENDER || "";
 
+
+// 캐싱 비활성화 설정 (Vercel Cron Job이 정상 실행되도록)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+    responseLimit: false,
+  },
+  runtime: 'nodejs',
+};
 export default async function handler(req, res) {
   // Vercel Cron Job에서 호출하는 경우 Authorization 헤더 확인
   const authHeader = req.headers.authorization;
