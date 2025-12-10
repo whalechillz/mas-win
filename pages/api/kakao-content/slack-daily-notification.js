@@ -4,13 +4,29 @@
 import { sendSlackNotification, formatKakaoContentSlackMessage } from '../../../lib/slack-notification';
 
 export default async function handler(req, res) {
-  // Vercel Cron Job에서 호출하는 경우 Authorization 헤더 확인
+  // Vercel Cron Job 또는 cron-job.org에서 호출하는 경우 Authorization 헤더 확인
   const authHeader = req.headers.authorization;
   const cronSecret = process.env.CRON_SECRET;
   
-  // CRON_SECRET이 설정되어 있으면 검증
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  // Vercel Cron Job인지 확인 (x-vercel-cron 헤더가 있으면 Vercel에서 호출)
+  const vercelCronHeader = req.headers['x-vercel-cron'];
+  const isVercelCron = vercelCronHeader === '1';
+  
+  // 크론 실행 여부 로깅 (디버깅용)
+  const requestSource = isVercelCron ? '🔄 Vercel Cron (자동 실행)' : '👤 수동 호출 또는 cron-job.org';
+  console.log(`\n${requestSource} - ${new Date().toISOString()}`);
+  console.log(`   x-vercel-cron 헤더: ${vercelCronHeader || '없음'}`);
+  console.log(`   요청 메서드: ${req.method}`);
+  console.log(`   요청 호스트: ${req.headers.host || '알 수 없음'}`);
+  
+  // Vercel Cron은 자동으로 x-vercel-cron 헤더를 추가하므로 인증 불필요
+  // cron-job.org에서 호출할 때는 Authorization 헤더가 있으면 검증, 없으면 허용 (긴급 상황 대응)
+  if (!isVercelCron && cronSecret) {
+    // CRON_SECRET이 설정되어 있고, Authorization 헤더가 있으면 검증
+    if (authHeader && authHeader !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    // CRON_SECRET이 설정되어 있지만 Authorization 헤더가 없으면 허용 (cron-job.org 대응)
   }
 
   try {
@@ -80,4 +96,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
