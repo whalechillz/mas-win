@@ -126,6 +126,7 @@ export default async function handler(req, res) {
             } catch {
               recipientNumbers = [sms.recipient_numbers];
             }
+            }
           }
         }
 
@@ -312,8 +313,14 @@ export default async function handler(req, res) {
         let aggregated = { groupIds: [], messageResults: [], successCount: 0, failCount: 0 };
         const totalChunks = Math.ceil(allMessages.length / chunkSize);
 
+        for (let i = 0; i < allMessages.length; i += chunkSize) {
+          const chunk = allMessages.slice(i, i + chunkSize);
+          const chunkIndex = Math.floor(i / chunkSize) + 1;
+
           if (isDryRun) {
+            // Dry-run 모드: 실제 API 호출 없이 시뮬레이션
             console.log(`🧪 [DRY-RUN] 메시지 ID ${sms.id} 청크 ${chunkIndex}/${totalChunks}: ${chunk.length}건 시뮬레이션`);
+            // 시뮬레이션된 성공 응답
             aggregated.groupIds.push(`DRY-RUN-GROUP-${sms.id}-${chunkIndex}`);
             chunk.forEach((msg) => {
               aggregated.messageResults.push({
@@ -324,45 +331,43 @@ export default async function handler(req, res) {
               });
             });
             aggregated.successCount += chunk.length;
-          } else {        for (let i = 0; i < allMessages.length; i += chunkSize) {
-          const chunk = allMessages.slice(i, i + chunkSize);
-          const chunkIndex = Math.floor(i / chunkSize) + 1;
+          } else {
+            try {
+              const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...authHeaders
+                },
+                body: JSON.stringify({
+                  messages: chunk,
+                  allowDuplicates: false
+                })
+              });
 
-          try {
-            const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...authHeaders
-              },
-              body: JSON.stringify({
-                messages: chunk,
-                allowDuplicates: false
-              })
-            });
-
-            const solapiResult = await solapiResponse.json();
-
-            if (!solapiResponse.ok) {
-              throw new Error(`Solapi API 오류: ${solapiResponse.status} - ${JSON.stringify(solapiResult)}`);
+              const solapiResult = await solapiResponse.json();
             }
           }
-            // 성공 처리
-            if (solapiResult.groupId) {
-              aggregated.groupIds.push(solapiResult.groupId);
-            }
-            if (solapiResult.results) {
-              aggregated.messageResults.push(...solapiResult.results);
-              aggregated.successCount += solapiResult.results.filter(r => 
-                r.statusCode === '2000' || r.status === 'success'
-              ).length;
-              aggregated.failCount += solapiResult.results.filter(r => 
-                r.statusCode !== '2000' && r.status !== 'success'
-              ).length;
-            } else {
-              aggregated.successCount += chunk.length;
-            }
-          } catch (chunkError) {
+              if (!solapiResponse.ok) {
+                throw new Error(`Solapi API 오류: ${solapiResponse.status} - ${JSON.stringify(solapiResult)}`);
+              }
+
+              // 성공 처리
+              if (solapiResult.groupId) {
+                aggregated.groupIds.push(solapiResult.groupId);
+              }
+              if (solapiResult.results) {
+                aggregated.messageResults.push(...solapiResult.results);
+                aggregated.successCount += solapiResult.results.filter(r => 
+                  r.statusCode === '2000' || r.status === 'success'
+                ).length;
+                aggregated.failCount += solapiResult.results.filter(r => 
+                  r.statusCode !== '2000' && r.status !== 'success'
+                ).length;
+              } else {
+                aggregated.successCount += chunk.length;
+              }
+            } catch (chunkError) {
             console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
             aggregated.failCount += chunk.length;
             chunk.forEach((msg) => {
