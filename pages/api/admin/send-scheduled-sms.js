@@ -360,7 +360,8 @@ export default async function handler(req, res) {
           } else {
             try {
             const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
-              method: 'POST',
+            }
+          }              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 ...authHeaders
