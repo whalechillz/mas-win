@@ -555,3 +555,235 @@ POST /api/slack/booking-notify
 **최종 업데이트**: 2025-11-24
 
 
+
+- **SMS 대체**: 솔라피 SMS API
+- **관리자 알림**: 슬랙 웹훅
+- **데이터베이스**: Supabase
+
+---
+
+## 10. 참고 파일
+
+- `pages/api/channels/sms/send.js` - 솔라피 SMS/MMS 발송 API
+- `pages/api/slack/notify.js` - 슬랙 알림 API
+- `utils/solapiSignature.js` - 솔라피 서명 생성 유틸리티
+- `pages/api/bookings.ts` - 예약 생성 API
+- `pages/api/bookings/[id].ts` - 예약 수정 API
+
+---
+
+## 11. 다음 단계
+
+1. ✅ 서비스명 통계 확인 (진행 중)
+2. 솔라피 카카오톡 알림톡 템플릿 등록
+3. `pages/api/bookings/notify-customer.ts` API 생성
+4. 예약 생성 시 알림 연동
+5. 예약 확정 시 알림 연동
+6. 테스트 및 모니터링
+
+---
+
+## 12. 최종 요약 (실행 관점)
+
+- **핵심 목표**  
+  - 예약 생성/확정/완료 시, 고객에게 **카카오 알림톡 우선 + 실패 시 SMS 대체**,  
+    내부 담당자에게는 **Slack 알림**을 보내는 일원화된 Notification 레이어 구축
+
+- **재사용할 기존 모듈**  
+  - SMS/카카오 발송: `pages/api/channels/sms/send.js`, `pages/api/admin/send-scheduled-sms.js`, `pages/api/admin/sms.js`, `utils/solapiSignature.js`  
+  - Slack: `lib/slack-notification.js`, `pages/api/slack/notify.js`, `pages/api/kakao-content/slack-*.js`
+
+- **신규로 추가할 핵심 API**  
+  - `/api/bookings/notify-customer`: 예약 ID + 알림 타입만 넘기면 Solapi(SMS/카카오)를 통해 고객에게 알림 발송  
+  - `/api/slack/booking-notify`: 예약 생성/확정 이벤트를 Slack `#예약-알림` 채널로 전송
+
+- **Admin UX 방향**  
+  - 예약 리스트/상세에 “예약 확정 + 알림 발송” 버튼 추가 → `/api/bookings/notify-customer` 호출  
+  - “예약 알림 센터”(또는 예약 상세 하단 섹션)에서 알림 이력/성공여부/재발송 관리
+
+- **실행 순서**  
+  1. Solapi에서 카카오 알림톡 템플릿 승인 완료  
+  2. `/api/bookings/notify-customer` 구현 및 예약 생성/확정 로직에 연동  
+  3. `/api/slack/booking-notify` 구현 및 예약 생성/확정 이벤트에 연동  
+  4. Admin UI에 버튼·이력 섹션 추가  
+  5. 실제 고객/테스트 번호 대상 E2E 테스트 및 모니터링
+
+---
+
+**최종 업데이트**: 2025-11-24
+
+
+
+- **SMS 대체**: 솔라피 SMS API
+- **관리자 알림**: 슬랙 웹훅
+- **데이터베이스**: Supabase
+
+---
+
+## 10. 참고 파일
+
+- `pages/api/channels/sms/send.js` - 솔라피 SMS/MMS 발송 API
+- `pages/api/slack/notify.js` - 슬랙 알림 API
+- `utils/solapiSignature.js` - 솔라피 서명 생성 유틸리티
+- `pages/api/bookings.ts` - 예약 생성 API
+- `pages/api/bookings/[id].ts` - 예약 수정 API
+
+---
+
+## 11. 다음 단계
+
+1. ✅ 서비스명 통계 확인 (진행 중)
+2. 솔라피 카카오톡 알림톡 템플릿 등록
+3. `pages/api/bookings/notify-customer.ts` API 생성
+4. 예약 생성 시 알림 연동
+5. 예약 확정 시 알림 연동
+6. 테스트 및 모니터링
+
+---
+
+## 12. 최종 요약 (실행 관점)
+
+- **핵심 목표**  
+  - 예약 생성/확정/완료 시, 고객에게 **카카오 알림톡 우선 + 실패 시 SMS 대체**,  
+    내부 담당자에게는 **Slack 알림**을 보내는 일원화된 Notification 레이어 구축
+
+- **재사용할 기존 모듈**  
+  - SMS/카카오 발송: `pages/api/channels/sms/send.js`, `pages/api/admin/send-scheduled-sms.js`, `pages/api/admin/sms.js`, `utils/solapiSignature.js`  
+  - Slack: `lib/slack-notification.js`, `pages/api/slack/notify.js`, `pages/api/kakao-content/slack-*.js`
+
+- **신규로 추가할 핵심 API**  
+  - `/api/bookings/notify-customer`: 예약 ID + 알림 타입만 넘기면 Solapi(SMS/카카오)를 통해 고객에게 알림 발송  
+  - `/api/slack/booking-notify`: 예약 생성/확정 이벤트를 Slack `#예약-알림` 채널로 전송
+
+- **Admin UX 방향**  
+  - 예약 리스트/상세에 “예약 확정 + 알림 발송” 버튼 추가 → `/api/bookings/notify-customer` 호출  
+  - “예약 알림 센터”(또는 예약 상세 하단 섹션)에서 알림 이력/성공여부/재발송 관리
+
+- **실행 순서**  
+  1. Solapi에서 카카오 알림톡 템플릿 승인 완료  
+  2. `/api/bookings/notify-customer` 구현 및 예약 생성/확정 로직에 연동  
+  3. `/api/slack/booking-notify` 구현 및 예약 생성/확정 이벤트에 연동  
+  4. Admin UI에 버튼·이력 섹션 추가  
+  5. 실제 고객/테스트 번호 대상 E2E 테스트 및 모니터링
+
+---
+
+**최종 업데이트**: 2025-11-24
+
+
+
+- **SMS 대체**: 솔라피 SMS API
+- **관리자 알림**: 슬랙 웹훅
+- **데이터베이스**: Supabase
+
+---
+
+## 10. 참고 파일
+
+- `pages/api/channels/sms/send.js` - 솔라피 SMS/MMS 발송 API
+- `pages/api/slack/notify.js` - 슬랙 알림 API
+- `utils/solapiSignature.js` - 솔라피 서명 생성 유틸리티
+- `pages/api/bookings.ts` - 예약 생성 API
+- `pages/api/bookings/[id].ts` - 예약 수정 API
+
+---
+
+## 11. 다음 단계
+
+1. ✅ 서비스명 통계 확인 (진행 중)
+2. 솔라피 카카오톡 알림톡 템플릿 등록
+3. `pages/api/bookings/notify-customer.ts` API 생성
+4. 예약 생성 시 알림 연동
+5. 예약 확정 시 알림 연동
+6. 테스트 및 모니터링
+
+---
+
+## 12. 최종 요약 (실행 관점)
+
+- **핵심 목표**  
+  - 예약 생성/확정/완료 시, 고객에게 **카카오 알림톡 우선 + 실패 시 SMS 대체**,  
+    내부 담당자에게는 **Slack 알림**을 보내는 일원화된 Notification 레이어 구축
+
+- **재사용할 기존 모듈**  
+  - SMS/카카오 발송: `pages/api/channels/sms/send.js`, `pages/api/admin/send-scheduled-sms.js`, `pages/api/admin/sms.js`, `utils/solapiSignature.js`  
+  - Slack: `lib/slack-notification.js`, `pages/api/slack/notify.js`, `pages/api/kakao-content/slack-*.js`
+
+- **신규로 추가할 핵심 API**  
+  - `/api/bookings/notify-customer`: 예약 ID + 알림 타입만 넘기면 Solapi(SMS/카카오)를 통해 고객에게 알림 발송  
+  - `/api/slack/booking-notify`: 예약 생성/확정 이벤트를 Slack `#예약-알림` 채널로 전송
+
+- **Admin UX 방향**  
+  - 예약 리스트/상세에 “예약 확정 + 알림 발송” 버튼 추가 → `/api/bookings/notify-customer` 호출  
+  - “예약 알림 센터”(또는 예약 상세 하단 섹션)에서 알림 이력/성공여부/재발송 관리
+
+- **실행 순서**  
+  1. Solapi에서 카카오 알림톡 템플릿 승인 완료  
+  2. `/api/bookings/notify-customer` 구현 및 예약 생성/확정 로직에 연동  
+  3. `/api/slack/booking-notify` 구현 및 예약 생성/확정 이벤트에 연동  
+  4. Admin UI에 버튼·이력 섹션 추가  
+  5. 실제 고객/테스트 번호 대상 E2E 테스트 및 모니터링
+
+---
+
+**최종 업데이트**: 2025-11-24
+
+
+
+- **SMS 대체**: 솔라피 SMS API
+- **관리자 알림**: 슬랙 웹훅
+- **데이터베이스**: Supabase
+
+---
+
+## 10. 참고 파일
+
+- `pages/api/channels/sms/send.js` - 솔라피 SMS/MMS 발송 API
+- `pages/api/slack/notify.js` - 슬랙 알림 API
+- `utils/solapiSignature.js` - 솔라피 서명 생성 유틸리티
+- `pages/api/bookings.ts` - 예약 생성 API
+- `pages/api/bookings/[id].ts` - 예약 수정 API
+
+---
+
+## 11. 다음 단계
+
+1. ✅ 서비스명 통계 확인 (진행 중)
+2. 솔라피 카카오톡 알림톡 템플릿 등록
+3. `pages/api/bookings/notify-customer.ts` API 생성
+4. 예약 생성 시 알림 연동
+5. 예약 확정 시 알림 연동
+6. 테스트 및 모니터링
+
+---
+
+## 12. 최종 요약 (실행 관점)
+
+- **핵심 목표**  
+  - 예약 생성/확정/완료 시, 고객에게 **카카오 알림톡 우선 + 실패 시 SMS 대체**,  
+    내부 담당자에게는 **Slack 알림**을 보내는 일원화된 Notification 레이어 구축
+
+- **재사용할 기존 모듈**  
+  - SMS/카카오 발송: `pages/api/channels/sms/send.js`, `pages/api/admin/send-scheduled-sms.js`, `pages/api/admin/sms.js`, `utils/solapiSignature.js`  
+  - Slack: `lib/slack-notification.js`, `pages/api/slack/notify.js`, `pages/api/kakao-content/slack-*.js`
+
+- **신규로 추가할 핵심 API**  
+  - `/api/bookings/notify-customer`: 예약 ID + 알림 타입만 넘기면 Solapi(SMS/카카오)를 통해 고객에게 알림 발송  
+  - `/api/slack/booking-notify`: 예약 생성/확정 이벤트를 Slack `#예약-알림` 채널로 전송
+
+- **Admin UX 방향**  
+  - 예약 리스트/상세에 “예약 확정 + 알림 발송” 버튼 추가 → `/api/bookings/notify-customer` 호출  
+  - “예약 알림 센터”(또는 예약 상세 하단 섹션)에서 알림 이력/성공여부/재발송 관리
+
+- **실행 순서**  
+  1. Solapi에서 카카오 알림톡 템플릿 승인 완료  
+  2. `/api/bookings/notify-customer` 구현 및 예약 생성/확정 로직에 연동  
+  3. `/api/slack/booking-notify` 구현 및 예약 생성/확정 이벤트에 연동  
+  4. Admin UI에 버튼·이력 섹션 추가  
+  5. 실제 고객/테스트 번호 대상 E2E 테스트 및 모니터링
+
+---
+
+**최종 업데이트**: 2025-11-24
+
+

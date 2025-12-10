@@ -109,150 +109,7 @@ export default async function handler(req, res) {
       contentType
     });
 
-    // 2. ⭐ 기존 Solapi imageId 확인 및 재사용 (이미지 압축 전에 먼저 확인)
-    // 이렇게 하면 Sharp 모듈 로드 실패 전에 기존 imageId를 재사용할 수 있음
-    if (messageId && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-      try {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        
-        // 이미지가 이미 Supabase Storage에 있는지 확인
-        const { data: existingMetadata, error: checkError } = await supabase
-          .from('image_metadata')
-          .select('*')
-          .eq('image_url', imageUrl)
-          .maybeSingle();
-        
-        if (existingMetadata) {
-          console.log('🔍 기존 이미지 메타데이터 발견:', {
-            imageUrl,
-            tags: existingMetadata.tags,
-            references: existingMetadata.references
-          });
-          
-          // ⭐ 이전에 Solapi에 업로드된 imageId가 있는지 확인
-          // channel_sms 테이블에서 이 이미지 URL을 사용하는 메시지 찾기
-          const { data: existingMessages } = await supabase
-            .from('channel_sms')
-            .select('image_url, id')
-            .eq('image_url', imageUrl)
-            .limit(1);
-          
-          let existingSolapiImageId = null;
-          if (existingMessages && existingMessages.length > 0) {
-            const existingImageUrl = existingMessages[0].image_url;
-            // Solapi imageId 형식인지 확인 (일반적으로 짧은 문자열이고 URL이 아님)
-            if (existingImageUrl && !existingImageUrl.includes('http') && !existingImageUrl.includes('supabase')) {
-              existingSolapiImageId = existingImageUrl;
-              console.log('✅ channel_sms에서 직접 Solapi imageId 발견:', existingSolapiImageId);
-            }
-          }
-          
-          // ⭐ 태그가 있는 모든 메시지에서 Solapi imageId 찾기 (첫 번째만이 아닌 모든 태그 확인)
-          if (!existingSolapiImageId && existingMetadata.tags) {
-            const tags = Array.isArray(existingMetadata.tags) ? existingMetadata.tags : [existingMetadata.tags];
-            const smsTags = tags.filter(tag => tag && tag.startsWith('sms-'));
-            
-            console.log(`🔍 ${smsTags.length}개의 SMS 태그 발견:`, smsTags);
-            
-            // 모든 태그를 확인하여 Solapi imageId 찾기
-            for (const tag of smsTags) {
-              const messageId = tag.replace('sms-', '');
-              console.log(`🔍 태그 ${tag}의 메시지 ID ${messageId} 확인 중...`);
-              
-              const { data: message } = await supabase
-                .from('channel_sms')
-                .select('image_url')
-                .eq('id', parseInt(messageId))
-                .maybeSingle();
-              
-              if (message && message.image_url) {
-                console.log(`  → 메시지 ${messageId}의 image_url:`, message.image_url);
-                
-                // Solapi imageId 형식인지 확인 (URL이 아닌 짧은 문자열)
-                if (!message.image_url.includes('http') && !message.image_url.includes('supabase') && message.image_url.length < 100) {
-                  existingSolapiImageId = message.image_url;
-                  console.log(`✅ 태그 ${tag}를 통해 Solapi imageId 발견:`, existingSolapiImageId);
-                  break; // 찾았으면 중단
-                }
-              }
-            }
-          }
-          
-          // ⭐ references 필드에서도 확인 (SMS 메시지 참조가 있을 수 있음)
-          if (!existingSolapiImageId && existingMetadata.references) {
-            try {
-              const references = Array.isArray(existingMetadata.references) 
-                ? existingMetadata.references 
-                : (typeof existingMetadata.references === 'string' 
-                  ? JSON.parse(existingMetadata.references) 
-                  : []);
-              
-              console.log('🔍 references 필드 확인:', references);
-              
-              // SMS 메시지 참조 찾기
-              const smsReferences = references.filter(ref => 
-                ref && (ref.type === 'sms' || ref.channel === 'sms')
-              );
-              
-              for (const ref of smsReferences) {
-                if (ref.message_id) {
-                  const { data: message } = await supabase
-                    .from('channel_sms')
-                    .select('image_url')
-                    .eq('id', parseInt(ref.message_id))
-                    .maybeSingle();
-                  
-                  if (message && message.image_url && 
-                      !message.image_url.includes('http') && 
-                      !message.image_url.includes('supabase') &&
-                      message.image_url.length < 100) {
-                    existingSolapiImageId = message.image_url;
-                    console.log(`✅ references를 통해 Solapi imageId 발견:`, existingSolapiImageId);
-                    break;
-                  }
-                }
-              }
-            } catch (refError) {
-              console.warn('⚠️ references 파싱 오류 (무시):', refError.message);
-            }
-          }
-          
-          // ⭐ 기존 Solapi imageId가 있으면 재사용 (압축/업로드 스킵)
-          if (existingSolapiImageId) {
-            console.log('✅ 기존 Solapi imageId 재사용:', existingSolapiImageId);
-            
-            const existingTags = existingMetadata.tags || [];
-            const newTag = `sms-${messageId}`;
-            
-            // 태그가 없으면 추가
-            if (!existingTags.includes(newTag)) {
-              const updatedTags = [...existingTags, newTag];
-              
-              await upsertImageMetadata(supabase, {
-                image_url: imageUrl,
-                tags: updatedTags,
-                folder_path: existingMetadata.folder_path,
-                date_folder: existingMetadata.date_folder
-              });
-              
-              console.log(`✅ 태그 추가 완료: ${newTag}`);
-            }
-            
-            // 기존 Solapi imageId 반환 (압축/업로드 스킵)
-            return res.status(200).json({
-              success: true,
-              imageId: existingSolapiImageId,
-              supabaseUrl: imageUrl,
-              message: '기존 Solapi imageId를 재사용했습니다.'
-            });
-          }
-        }
-      } catch (supabaseError) {
-        console.warn('⚠️ 기존 imageId 확인 중 오류 (무시하고 계속 진행):', supabaseError.message);
-      }
-    }
-
-    // 3. Solapi 요구사항에 맞게 이미지 압축 (기존 imageId가 없을 때만)
+    // 2. Solapi 요구사항에 맞게 이미지 압축
     let compressionInfo;
     try {
       compressionInfo = await compressImageForSolapi(imageBuffer);
@@ -303,7 +160,7 @@ export default async function handler(req, res) {
       compressedSize: compressionInfo.compressedSize
     });
 
-    // 4. ⭐ Supabase Storage에 원본 이미지 업로드 (messageId가 있는 경우, 기존 imageId가 없을 때만)
+    // 3. ⭐ Supabase Storage에 원본 이미지 업로드 (messageId가 있는 경우)
     let supabaseUrl = imageUrl; // 기본값: 원본 URL 사용
     if (messageId && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
       try {
@@ -317,8 +174,8 @@ export default async function handler(req, res) {
           .maybeSingle();
         
         if (existingMetadata) {
-          // ⭐ 이미 존재하는 이미지: 태그만 추가
-          console.log('✅ 기존 이미지 발견, 태그 추가:', imageUrl);
+          // ⭐ 이미 존재하는 이미지: 복사하지 않고 태그만 추가
+          console.log('✅ 기존 이미지 발견, 링크로 사용:', imageUrl);
           
           const existingTags = existingMetadata.tags || [];
           const newTag = `sms-${messageId}`;
@@ -430,5 +287,4 @@ export default async function handler(req, res) {
     });
   }
 }
-
 

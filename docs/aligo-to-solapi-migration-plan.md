@@ -624,3 +624,59 @@ export function convertAligoToSolapiTemplate(aligoCode: string): string | null {
 
 **최종 업데이트**: 2025-11-27
 
+
+
+---
+
+## 13. 참고 자료
+
+- [솔라피 카카오톡 알림톡 가이드](https://developers.solapi.com/references/kakao)
+- [카카오 비즈니스 템플릿 가이드](https://kakaobusiness.gitbook.io/main/ad/bizmessage/notice-friend/content-guide)
+- [마쓰구골프 약도 페이지](https://www.masgolf.co.kr/contact)
+
+---
+
+**최종 업데이트**: 2025-11-27
+
+
+
+---
+
+## 13. 참고 자료
+
+- [솔라피 카카오톡 알림톡 가이드](https://developers.solapi.com/references/kakao)
+- [카카오 비즈니스 템플릿 가이드](https://kakaobusiness.gitbook.io/main/ad/bizmessage/notice-friend/content-guide)
+- [마쓰구골프 약도 페이지](https://www.masgolf.co.kr/contact)
+
+---
+
+**최종 업데이트**: 2025-11-27
+
+
+
+---
+
+## 13. 참고 자료
+
+- [솔라피 카카오톡 알림톡 가이드](https://developers.solapi.com/references/kakao)
+- [카카오 비즈니스 템플릿 가이드](https://kakaobusiness.gitbook.io/main/ad/bizmessage/notice-friend/content-guide)
+- [마쓰구골프 약도 페이지](https://www.masgolf.co.kr/contact)
+
+---
+
+**최종 업데이트**: 2025-11-27
+
+
+
+---
+
+## 13. 참고 자료
+
+- [솔라피 카카오톡 알림톡 가이드](https://developers.solapi.com/references/kakao)
+- [카카오 비즈니스 템플릿 가이드](https://kakaobusiness.gitbook.io/main/ad/bizmessage/notice-friend/content-guide)
+- [마쓰구골프 약도 페이지](https://www.masgolf.co.kr/contact)
+
+---
+
+**최종 업데이트**: 2025-11-27
+
