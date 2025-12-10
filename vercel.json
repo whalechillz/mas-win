@@ -20,20 +20,6 @@
       "memory": 1024
     }
   },
-  "crons": [
-    {
-      "path": "/api/kakao-content/slack-daily-notification",
-      "schedule": "30 8 * * *"
-    },
-    {
-      "path": "/api/admin/send-scheduled-sms",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/admin/auto-sync-missing-groups",
-      "schedule": "*/10 * * * *"
-    }
-  ],
   "build": {
     "env": {
       "NODE_OPTIONS": "--max-old-space-size=4096",
