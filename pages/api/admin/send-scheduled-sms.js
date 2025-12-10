@@ -434,7 +434,7 @@ export default async function handler(req, res) {
           failCount: aggregated.failCount,
           groupId: groupIdsString // 모든 그룹 ID 반환
         });
-
+        ;
         console.log(`✅ 메시지 ID ${sms.id} 발송 완료: 성공 ${aggregated.successCount}건, 실패 ${aggregated.failCount}건`);
 
       } catch (error) {
