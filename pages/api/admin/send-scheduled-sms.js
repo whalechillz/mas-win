@@ -317,7 +317,6 @@ export default async function handler(req, res) {
           const chunkIndex = Math.floor(i / chunkSize) + 1;
 
           if (isDryRun) {
-            // Dry-run 모드: 실제 API 호출 없이 시뮬레이션
             console.log(`🧪 [DRY-RUN] 메시지 ID ${sms.id} 청크 ${chunkIndex}/${totalChunks}: ${chunk.length}건 시뮬레이션`);
             aggregated.groupIds.push(`DRY-RUN-GROUP-${sms.id}-${chunkIndex}`);
             chunk.forEach((msg) => {
@@ -353,6 +352,7 @@ export default async function handler(req, res) {
             if (solapiResult.groupId) {
               aggregated.groupIds.push(solapiResult.groupId);
             }
+          }            }
             if (solapiResult.results) {
               aggregated.messageResults.push(...solapiResult.results);
               aggregated.successCount += solapiResult.results.filter(r => 
@@ -365,8 +365,6 @@ export default async function handler(req, res) {
               aggregated.successCount += chunk.length;
             }
           } catch (chunkError) {
-            }
-          }
             console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
             aggregated.failCount += chunk.length;
             chunk.forEach((msg) => {
