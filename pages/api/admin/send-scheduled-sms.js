@@ -121,6 +121,20 @@ export default async function handler(req, res) {
           if (Array.isArray(sms.recipient_numbers)) {
             recipientNumbers = sms.recipient_numbers;
           } else if (typeof sms.recipient_numbers === 'string') {
+            if (isDryRun) {
+            // Dry-run 모드: 실제 API 호출 없이 시뮬레이션
+            console.log(`🧪 [DRY-RUN] 메시지 ID ${sms.id} 청크 ${chunkIndex}/${totalChunks}: ${chunk.length}건 시뮬레이션`);
+            aggregated.groupIds.push(`DRY-RUN-GROUP-${sms.id}-${chunkIndex}`);
+            chunk.forEach((msg) => {
+              aggregated.messageResults.push({
+                to: msg.to,
+                status: 'success',
+                statusCode: '2000',
+                messageId: `DRY-RUN-MSG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+              });
+            });
+            aggregated.successCount += chunk.length;
+          } else {
             try {
               recipientNumbers = JSON.parse(sms.recipient_numbers);
             } catch {
@@ -259,6 +273,20 @@ export default async function handler(req, res) {
           
           if (isHttpUrl) {
             // HTTP URL이면 Solapi에 재업로드
+            if (isDryRun) {
+            // Dry-run 모드: 실제 API 호출 없이 시뮬레이션
+            console.log(`🧪 [DRY-RUN] 메시지 ID ${sms.id} 청크 ${chunkIndex}/${totalChunks}: ${chunk.length}건 시뮬레이션`);
+            aggregated.groupIds.push(`DRY-RUN-GROUP-${sms.id}-${chunkIndex}`);
+            chunk.forEach((msg) => {
+              aggregated.messageResults.push({
+                to: msg.to,
+                status: 'success',
+                statusCode: '2000',
+                messageId: `DRY-RUN-MSG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+              });
+            });
+            aggregated.successCount += chunk.length;
+          } else {
             try {
               console.log(`🔄 메시지 ID ${sms.id}: HTTP URL 감지, Solapi에 재업로드 중:`, sms.image_url);
               const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://win.masgolf.co.kr';
@@ -360,13 +388,11 @@ export default async function handler(req, res) {
               ).length;
               aggregated.failCount += solapiResult.results.filter(r => 
                 r.statusCode !== '2000' && r.status !== 'success'
-            }
-          }              ).length;
+              ).length;
             } else {
               aggregated.successCount += chunk.length;
             }
             }
-          }
           } catch (chunkError) {
             console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
             aggregated.failCount += chunk.length;
