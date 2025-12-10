@@ -948,7 +948,7 @@ export default function SMSListAdmin() {
                                     return (
                                       <div key={idx} className="flex items-center gap-1">
                                         {/* 체크박스 */}
-                                        {message.status !== 'draft' || message.solapi_group_id) && (
+                                        {(message.status !== 'draft' || message.solapi_group_id) && (
                                           <input
                                             type="checkbox"
                                             checked={isSelected}
@@ -988,7 +988,7 @@ export default function SMSListAdmin() {
                                         )}
                                         
                                         {/* 동기화 버튼 */}
-                                        {message.status !== 'draft' || message.solapi_group_id) && (
+                                        {(message.status !== 'draft' || message.solapi_group_id) && (
                                           <button
                                             onClick={() => {
                                               handleSyncSolapi(message.id, trimmedGroupId);
@@ -1011,7 +1011,7 @@ export default function SMSListAdmin() {
                                   })}
                                   
                                   {/* 전체 동기화 및 실패 청크 분리 버튼 */}
-                                  {message.status !== 'draft' || message.solapi_group_id) && (
+                                  {(message.status !== 'draft' || message.solapi_group_id) && (
                                     <div className="flex flex-col gap-1 mt-1">
                                       <button
                                         onClick={() => {
@@ -1057,7 +1057,7 @@ export default function SMSListAdmin() {
                                       : message.solapi_group_id
                                     }
                                   </span>
-                                  {message.status !== 'draft' || message.solapi_group_id) && (
+                                  {(message.status !== 'draft' || message.solapi_group_id) && (
                                     <button
                                       onClick={() => {
                                         handleSyncSolapi(message.id, message.solapi_group_id!);
