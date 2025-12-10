@@ -17,10 +17,16 @@ export default async function handler(req, res) {
   // Vercel Cron Job인지 확인 (x-vercel-cron 헤더가 있으면 Vercel에서 호출)
   const vercelCronHeader = req.headers['x-vercel-cron'];
   const isVercelCron = vercelCronHeader === '1';
+  // Dry-run 모드 확인 (실제 발송 없이 테스트)
+  const isDryRun = req.query.dryRun === 'true' || req.query['dry-run'] === 'true';
   
   // 크론 실행 여부 로깅 (디버깅용)
   const requestSource = isVercelCron ? '🔄 Vercel Cron (자동 실행)' : '👤 수동 호출';
-  console.log(`\n${requestSource} - ${new Date().toISOString()}`);
+  const runMode = isDryRun ? '🧪 DRY-RUN 모드 (실제 발송 안 함)' : '📤 실제 발송 모드';
+  console.log(`\n${requestSource} - ${runMode} - ${new Date().toISOString()}`);
+    if (isDryRun) {
+      console.log(`   ⚠️ DRY-RUN 모드: 실제 Solapi API 호출을 건너뜁니다.`);
+    }
   console.log(`   x-vercel-cron 헤더: ${vercelCronHeader || '없음'}`);
   console.log(`   요청 메서드: ${req.method}`);
   console.log(`   요청 호스트: ${req.headers.host || '알 수 없음'}`);
@@ -120,6 +126,7 @@ export default async function handler(req, res) {
               recipientNumbers = JSON.parse(sms.recipient_numbers);
             } catch {
               recipientNumbers = [sms.recipient_numbers];
+            }
             }
           }
         }
@@ -311,41 +318,56 @@ export default async function handler(req, res) {
           const chunk = allMessages.slice(i, i + chunkSize);
           const chunkIndex = Math.floor(i / chunkSize) + 1;
 
-          try {
-            const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...authHeaders
-              },
-              body: JSON.stringify({
-                messages: chunk,
-                allowDuplicates: false
-              })
+          if (isDryRun) {
+            // Dry-run 모드: 실제 API 호출 없이 시뮬레이션
+            console.log(`🧪 [DRY-RUN] 메시지 ID ${sms.id} 청크 ${chunkIndex}/${totalChunks}: ${chunk.length}건 시뮬레이션`);
+            // 시뮬레이션된 성공 응답
+            aggregated.groupIds.push(`DRY-RUN-GROUP-${sms.id}-${chunkIndex}`);
+            chunk.forEach((msg) => {
+              aggregated.messageResults.push({
+                to: msg.to,
+                status: 'success',
+                statusCode: '2000',
+                messageId: `DRY-RUN-MSG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+              });
             });
+            aggregated.successCount += chunk.length;
+          } else {
+            try {
+              const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...authHeaders
+                },
+                body: JSON.stringify({
+                  messages: chunk,
+                  allowDuplicates: false
+                })
+              });
 
-            const solapiResult = await solapiResponse.json();
+              const solapiResult = await solapiResponse.json();
 
-            if (!solapiResponse.ok) {
-              throw new Error(`Solapi API 오류: ${solapiResponse.status} - ${JSON.stringify(solapiResult)}`);
-            }
+              if (!solapiResponse.ok) {
+                throw new Error(`Solapi API 오류: ${solapiResponse.status} - ${JSON.stringify(solapiResult)}`);
+              }
 
-            // 성공 처리
-            if (solapiResult.groupId) {
-              aggregated.groupIds.push(solapiResult.groupId);
-            }
-            if (solapiResult.results) {
-              aggregated.messageResults.push(...solapiResult.results);
-              aggregated.successCount += solapiResult.results.filter(r => 
-                r.statusCode === '2000' || r.status === 'success'
-              ).length;
-              aggregated.failCount += solapiResult.results.filter(r => 
-                r.statusCode !== '2000' && r.status !== 'success'
-              ).length;
-            } else {
-              aggregated.successCount += chunk.length;
-            }
-          } catch (chunkError) {
+              // 성공 처리
+              if (solapiResult.groupId) {
+                aggregated.groupIds.push(solapiResult.groupId);
+              }
+              if (solapiResult.results) {
+                aggregated.messageResults.push(...solapiResult.results);
+                aggregated.successCount += solapiResult.results.filter(r => 
+                  r.statusCode === '2000' || r.status === 'success'
+                ).length;
+                aggregated.failCount += solapiResult.results.filter(r => 
+                  r.statusCode !== '2000' && r.status !== 'success'
+                ).length;
+              } else {
+                aggregated.successCount += chunk.length;
+              }
+            } catch (chunkError) {
             console.error(`❌ 메시지 ID ${sms.id} 청크 ${chunkIndex} 발송 실패:`, chunkError);
             aggregated.failCount += chunk.length;
             chunk.forEach((msg) => {
@@ -359,7 +381,7 @@ export default async function handler(req, res) {
           }
         }
 
-        // 발송 로그 기록
+        // 발송 로그 기록 (dry-run 모드에서는 건너뜀)
         const nowIso = new Date().toISOString();
         try {
           const logsToInsert = aggregated.messageResults.map((r, idx) => ({
@@ -380,7 +402,7 @@ export default async function handler(req, res) {
           console.error('발송 로그 기록 오류:', e);
         }
 
-        // 상태 업데이트
+        // 상태 업데이트 (dry-run 모드에서는 건너뜀)
         const finalStatus = aggregated.failCount === 0 ? 'sent' : 
                           (aggregated.successCount > 0 ? 'partial' : 'failed');
         
