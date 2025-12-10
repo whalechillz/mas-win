@@ -383,7 +383,8 @@ export default async function handler(req, res) {
 
         // 발송 로그 기록 (dry-run 모드에서는 건너뜀)
         const nowIso = new Date().toISOString();
-        try {
+        if (!isDryRun) {
+          try {
           const logsToInsert = aggregated.messageResults.map((r, idx) => ({
             content_id: String(sms.id),
             customer_phone: uniqueToSend[idx] || null,
@@ -401,8 +402,10 @@ export default async function handler(req, res) {
         } catch (e) {
           console.error('발송 로그 기록 오류:', e);
         }
+        }
 
         // 상태 업데이트 (dry-run 모드에서는 건너뜀)
+        if (!isDryRun) {
         const finalStatus = aggregated.failCount === 0 ? 'sent' : 
                           (aggregated.successCount > 0 ? 'partial' : 'failed');
         
@@ -422,7 +425,8 @@ export default async function handler(req, res) {
             // scheduled_at은 히스토리 보존을 위해 유지 (예약 시간 초기화하지 않음)
             updated_at: nowIso
           })
-          .eq('id', sms.id);
+.eq('id', sms.id);
+        }
 
         results.push({
           id: sms.id,
