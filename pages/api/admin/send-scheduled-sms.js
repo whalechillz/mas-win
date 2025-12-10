@@ -404,13 +404,14 @@ export default async function handler(req, res) {
         }
 
         // 상태 업데이트 (dry-run 모드에서는 건너뜀)
-        if (!isDryRun) {
         const finalStatus = aggregated.failCount === 0 ? 'sent' : 
                           (aggregated.successCount > 0 ? 'partial' : 'failed');
         
         // 모든 그룹 ID를 콤마로 구분하여 저장
         const allGroupIds = aggregated.groupIds.filter(Boolean);
         const groupIdsString = allGroupIds.length > 0 ? allGroupIds.join(',') : null;
+        
+        if (!isDryRun) {
         
         await supabase
           .from('channel_sms')
