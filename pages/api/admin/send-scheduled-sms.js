@@ -129,7 +129,7 @@ export default async function handler(req, res) {
             }
             }
           }
-        }
+        };
 
         if (!recipientNumbers || recipientNumbers.length === 0) {
           console.warn(`⚠️ 메시지 ID ${sms.id}: 수신자 번호가 없습니다.`);
