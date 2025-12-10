@@ -127,7 +127,6 @@ export default async function handler(req, res) {
             } catch {
               recipientNumbers = [sms.recipient_numbers];
             }
-            }
           }
         }
         if (!recipientNumbers || recipientNumbers.length === 0) {
