@@ -130,7 +130,6 @@ export default async function handler(req, res) {
             }
           }
         };
-
         if (!recipientNumbers || recipientNumbers.length === 0) {
           console.warn(`⚠️ 메시지 ID ${sms.id}: 수신자 번호가 없습니다.`);
           // 수신자가 없으면 상태를 failed로 업데이트
