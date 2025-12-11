@@ -760,7 +760,7 @@ export default function KakaoContentPage() {
       const response = await fetch(`${baseUrl}${apiEndpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, forceRegenerate })
+        body: JSON.stringify({ date, forceRegenerate, brandStrategy: brandStrategy })
       });
 
       if (!response.ok) {

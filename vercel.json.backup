@@ -1,0 +1,98 @@
+{
+  "functions": {
+    "pages/api/**/*.js": {
+      "maxDuration": 50
+    },
+    "pages/api/kakao-content/generate-images.js": {
+      "maxDuration": 50,
+      "memory": 1024
+    },
+    "pages/api/admin/all-images.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "pages/api/admin/folders-list.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "pages/api/solapi/reupload-image.js": {
+      "maxDuration": 50,
+      "memory": 1024
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/kakao-content/slack-daily-notification",
+      "schedule": "30 8 * * *"
+    },
+    {
+      "path": "/api/admin/send-scheduled-sms",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/admin/auto-sync-missing-groups",
+      "schedule": "*/10 * * * *"
+    }
+  ],
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
+    }
+  },
+  "installCommand": "npm install --include=optional",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/:locale(ko|ja)/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/muziik/ko/sapphire",
+      "destination": "https://www.masgolf.co.kr/muziik/sapphire",
+      "permanent": true
+    },
+    {
+      "source": "/muziik/ko/beryl",
+      "destination": "https://www.masgolf.co.kr/muziik/beryl",
+      "permanent": true
+    },
+    {
+      "source": "/muziik/ko/:path*",
+      "destination": "https://www.masgolf.co.kr/muziik/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/muziik/ko",
+      "destination": "https://www.masgolf.co.kr/muziik",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "https://www.masgolf.co.kr/muziik",
+      "permanent": true
+    },
+    {
+      "source": "/:path+",
+      "has": [
+        {
+          "type": "host",
+          "value": "muziik.masgolf.co.kr"
+        }
+      ],
+      "destination": "https://www.masgolf.co.kr/muziik/:path*",
+      "permanent": true
+    }
+  ]
+}

@@ -528,25 +528,19 @@ export default function ProfileManager({
                     disabled={isRegeneratingWithTextOption.background !== null || isGeneratingBackground || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
                     title="인물 옷/모자/건물/매장/조형물에 MASSGOO 로고 추가"
-                  >
-                    L
-                  </button>
+                  >로고</button>
                   <button
                     onClick={() => handleRegenerateWithLogoOption('background', 'full-brand')}
                     disabled={isRegeneratingWithTextOption.background !== null || isGeneratingBackground || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
                     title="전체 MASSGOO 브랜딩 추가"
-                  >
-                    BL
-                  </button>
+                  >전체</button>
                   <button
                     onClick={() => handleRegenerateWithLogoOption('background', 'none')}
                     disabled={isRegeneratingWithTextOption.background !== null || isGeneratingBackground || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
                     title="브랜딩 없음"
-                  >
-                    X
-                  </button>
+                  >없음</button>
                 </>
               )}
             </div>
@@ -693,25 +687,19 @@ export default function ProfileManager({
                     disabled={isRegeneratingWithTextOption.profile !== null || isGeneratingProfile || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
                     title="인물 옷/모자/건물/매장/조형물에 MASSGOO 로고 추가"
-                  >
-                    L
-                  </button>
+                  >로고</button>
                   <button
                     onClick={() => handleRegenerateWithLogoOption('profile', 'full-brand')}
                     disabled={isRegeneratingWithTextOption.profile !== null || isGeneratingProfile || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
                     title="전체 MASSGOO 브랜딩 추가"
-                  >
-                    BL
-                  </button>
+                  >전체</button>
                   <button
                     onClick={() => handleRegenerateWithLogoOption('profile', 'none')}
                     disabled={isRegeneratingWithTextOption.profile !== null || isGeneratingProfile || isGenerating}
                     className="w-6 h-6 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
                     title="브랜딩 없음"
-                  >
-                    X
-                  </button>
+                  >없음</button>
                 </>
               )}
             </div>

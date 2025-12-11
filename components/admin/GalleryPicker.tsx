@@ -136,27 +136,38 @@ const GalleryPicker: React.FC<Props> = ({
       
       // ⚠️ 중요: originals/mms/YYYY-MM-DD/메시지ID 형식인 경우 상위 폴더로 자동 이동
       const isMessageIdFolder = autoFilterFolder.match(/^originals\/mms\/\d{4}-\d{2}-\d{2}\/\d+$/);
+      let targetFolder = '';
+      
       if (isMessageIdFolder) {
         // 메시지 ID 폴더인 경우 상위 폴더(날짜 폴더)로 자동 이동
         const parts = autoFilterFolder.split('/');
-        const parentFolder = parts.slice(0, -1).join('/'); // 마지막 메시지 ID 제거
-        console.log(`📁 메시지 ID 폴더 감지, 상위 폴더로 자동 이동: ${parentFolder}`);
-        setFolderFilter(parentFolder);
+        targetFolder = parts.slice(0, -1).join('/'); // 마지막 메시지 ID 제거
+        console.log(`📁 메시지 ID 폴더 감지, 상위 폴더로 자동 이동: ${targetFolder}`);
       } else if (autoFilterFolder.includes('originals/daily-branding/kakao') && 
           !autoFilterFolder.match(/\/\d{4}-\d{2}-\d{2}\//)) {
         // 날짜별 폴더가 아닌 루트 kakao 폴더인 경우
         // 하위 폴더 포함하도록 폴더 필터 설정
-        setFolderFilter('originals/daily-branding/kakao');
+        targetFolder = 'originals/daily-branding/kakao';
       } else if (autoFilterFolder.includes('originals/mms')) {
         // originals/mms 폴더인 경우 (날짜 폴더 또는 루트)
-        setFolderFilter(autoFilterFolder);
+        targetFolder = autoFilterFolder;
       } else {
         // 기타 폴더
-        setFolderFilter(autoFilterFolder);
+        targetFolder = autoFilterFolder;
       }
+      
+      setFolderFilter(targetFolder);
+      // 🔧 수정: 폴더 필터 설정 후 즉시 이미지 로드 (상태 업데이트를 기다리기 위해 setTimeout 사용)
+      setTimeout(() => {
+        fetchImages(true);
+      }, 0);
     } else {
       // autoFilterFolder가 없으면 폴더 필터 초기화
       setFolderFilter('');
+      // 🔧 수정: 폴더 필터 초기화 후에도 이미지 로드
+      setTimeout(() => {
+        fetchImages(true);
+      }, 0);
     }
     // 모달이 닫힐 때 상태 초기화
     return () => {

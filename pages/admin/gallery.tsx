@@ -3552,10 +3552,19 @@ export default function GalleryAdmin() {
                 folders={availableFolders}
                 selectedFolder={folderFilter}
                 onFolderSelect={(folderPath) => {
-                  setFolderFilter(folderPath);
+                  // 🔧 수정: daily-branding/kakao 또는 mms로 시작하는 경로에 originals/ 프리픽스 자동 추가
+                  let adjustedPath = folderPath;
+                  if (folderPath && folderPath !== 'all' && folderPath !== 'root') {
+                    // originals/ 프리픽스가 없고, daily-branding/kakao 또는 mms로 시작하는 경우만 추가
+                    if ((folderPath.startsWith('daily-branding/kakao') || folderPath.startsWith('mms')) && !folderPath.startsWith('originals/')) {
+                      adjustedPath = `originals/${folderPath}`;
+                    }
+                  }
+                  
+                  setFolderFilter(adjustedPath);
                   setCurrentPage(1);
                   // "all" 클릭 시 항상 초기화 (reset=true)
-                  fetchImages(1, true, folderPath, includeChildren, searchQuery);
+                  fetchImages(1, true, adjustedPath, includeChildren, searchQuery);
                 }}
                 includeChildren={includeChildren}
                 onIncludeChildrenChange={(include) => {

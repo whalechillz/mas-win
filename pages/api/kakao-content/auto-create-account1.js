@@ -10,8 +10,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { date, forceRegenerate = false } = req.body;
+    const { date, forceRegenerate = false, brandStrategy } = req.body;
     if (!date) {
+
+    // brandStrategy 헬퍼 함수
+    const getBrandStrategyConfig = (brandStrategy, accountType) => {
+      if (brandStrategy) {
+        return {
+          customerpersona: brandStrategy.persona || brandStrategy.customerpersona || (accountType === 'account1' ? 'senior_fitting' : 'tech_enthusiast'),
+          customerChannel: brandStrategy.channel || brandStrategy.customerChannel || 'local_customers',
+          brandWeight: brandStrategy.brandStrength || brandStrategy.brandWeight || '중간',
+          audienceTemperature: brandStrategy.audienceTemperature || 'warm',
+          audienceWeight: brandStrategy.audienceWeight || '높음'
+        };
+      }
+      
+      // 기본값
+      return {
+        customerpersona: accountType === 'account1' ? 'senior_fitting' : 'tech_enthusiast',
+        customerChannel: 'local_customers',
+        brandWeight: '중간',
+        audienceTemperature: 'warm',
+        audienceWeight: '높음'
+      };
+    };
+    
+    const brandStrategyConfig = getBrandStrategyConfig(brandStrategy, 'account1');
       return res.status(400).json({ error: 'date is required' });
     }
 
@@ -135,13 +159,7 @@ export default async function handler(req, res) {
             prompt: bgPrompt,
             accountType: 'account1',
             type: 'background',
-            brandStrategy: {
-              customerpersona: 'senior_fitting',
-              customerChannel: 'local_customers',
-              brandWeight: '높음',
-              audienceTemperature: 'warm',
-              audienceWeight: '높음'
-            },
+            brandStrategy: brandStrategyConfig,
             weeklyTheme,
             date
           })
@@ -247,13 +265,7 @@ export default async function handler(req, res) {
             prompt: profilePrompt,
             accountType: 'account1',
             type: 'profile',
-            brandStrategy: {
-              customerpersona: 'senior_fitting',
-              customerChannel: 'local_customers',
-              brandWeight: '높음',
-              audienceTemperature: 'warm',
-              audienceWeight: '높음'
-            },
+            brandStrategy: brandStrategyConfig,
             weeklyTheme,
             date
           })
@@ -325,13 +337,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             type: 'message',
             accountType: 'account1',
-            brandStrategy: {
-              customerpersona: 'senior_fitting',
-              customerChannel: 'local_customers',
-              brandWeight: '높음',
-              audienceTemperature: 'warm',
-              audienceWeight: '높음'
-            },
+            brandStrategy: brandStrategyConfig,
             weeklyTheme,
             date
           })
@@ -419,12 +425,7 @@ export default async function handler(req, res) {
             prompt: feedPrompt,
             accountType: 'account1',
             type: 'feed',
-            brandStrategy: {
-              customerpersona: 'senior_fitting',
-              customerChannel: 'local_customers',
-              brandWeight: '중간',
-              audienceTemperature: 'warm'
-            },
+            brandStrategy: brandStrategyConfig,
             weeklyTheme,
             date
           })
