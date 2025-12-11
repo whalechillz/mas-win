@@ -28,6 +28,8 @@ interface ImageGenerationRequest {
   replaceLogo?: boolean; // 로고 자동 교체 옵션
   changeProductColor?: boolean; // 제품 색상 변경 활성화
   productColor?: string; // 변경할 제품 색상
+  compositionBackground?: 'natural' | 'studio' | 'product-page'; // 배경 타입
+  productOnlyMode?: boolean; // 제품컷 전용 모드 (사람 없이 제품만)
 }
 
 export default function AIImageGenerator() {
@@ -56,6 +58,8 @@ export default function AIImageGenerator() {
     replaceLogo: false, // 기본값: 로고 교체 비활성화
     changeProductColor: false, // 기본값: 색상 변경 비활성화
     productColor: undefined, // 기본값: 색상 미선택
+    compositionBackground: 'natural', // 기본값: 자연 배경
+    productOnlyMode: false, // 기본값: 인물 합성 (제품컷 모드 아님)
   });
 
   if (status === 'loading') {
@@ -139,7 +143,62 @@ ${koreanGolferSpec}
   };
 
   const handleGenerate = async () => {
+    const promptText = (formData.prompt || '').trim() || 'product-only, no people, natural light, high detail, 4k';
+
     // 베이스 이미지 모드 확인
+    if (formData.productOnlyMode) {
+      // 제품컷 전용 모드: 모델 이미지 없이 제품만 생성
+      if (!formData.selectedProductId) {
+        alert('제품을 선택해주세요.');
+        return;
+      }
+
+      setLoading(true);
+      setGeneratedImages([]);
+      setCompositionStatus('제품컷 생성 중...');
+
+      try {
+        const composeResponse = await fetch('/api/compose-product-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            productId: formData.selectedProductId,
+            productOnlyMode: true,
+            compositionBackground: formData.compositionBackground || 'natural',
+            prompt: promptText,
+            numImages: 1,
+            resolution: '1K',
+            aspectRatio: 'auto',
+            outputFormat: 'png',
+          }),
+        });
+
+        if (!composeResponse.ok) {
+          const error = await composeResponse.json();
+          console.error('제품컷 생성 실패:', error);
+          alert(error.error || '제품컷 생성에 실패했습니다.');
+          setLoading(false);
+          return;
+        }
+
+        const composeResult = await composeResponse.json();
+        if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+          setGeneratedImages(composeResult.images);
+        } else {
+          alert('제품컷 결과가 없습니다.');
+        }
+      } catch (error: any) {
+        console.error('제품컷 생성 오류:', error);
+        alert(error.message || '제품컷 생성 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+        setCompositionStatus('');
+      }
+      return;
+    }
+
     if (formData.baseImageMode === 'gallery') {
       // 갤러리에서 선택한 경우: AI 생성 스킵하고 바로 제품 합성
       if (!formData.selectedBaseImageUrl) {
@@ -172,6 +231,9 @@ ${koreanGolferSpec}
             resolution: '1K',
             aspectRatio: 'auto',
             outputFormat: 'png',
+            compositionBackground: formData.compositionTarget === 'head'
+              ? formData.compositionBackground || 'natural'
+              : undefined,
           }),
         });
 
@@ -207,17 +269,12 @@ ${koreanGolferSpec}
     }
 
     // 새 이미지 생성 모드 (기존 로직)
-    if (!formData.prompt.trim()) {
-      alert('프롬프트를 입력해주세요.');
-      return;
-    }
-
     setLoading(true);
     setGeneratedImages([]);
     setOptimizedPrompt(null); // 최적화된 프롬프트 초기화
 
     try {
-      let userPrompt = formData.prompt;
+      let userPrompt = (formData.prompt || '').trim() || 'product-only, no people, natural light, high detail, 4k';
       let optimizedByChatGPT = false;
 
       // 로고 옵션이 활성화된 경우, 사용자 프롬프트에 로고 관련 내용이 없으면 추가
@@ -376,6 +433,9 @@ ${koreanGolferSpec}
                 resolution: '1K',
                 aspectRatio: 'auto',
                 outputFormat: 'png',
+                compositionBackground: formData.compositionTarget === 'head'
+                  ? formData.compositionBackground || 'natural'
+                  : undefined,
               }),
             });
 
@@ -758,6 +818,64 @@ ${koreanGolferSpec}
                       </div>
                     )}
 
+                    {/* 배경 타입 선택 (모자 합성 시) */}
+                    {formData.compositionTarget === 'head' && formData.selectedProductId && (
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          배경 스타일
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {([
+                            { value: 'natural', label: '자연 배경' },
+                            { value: 'studio', label: '스튜디오(백화점/골프샵 DP)' },
+                            { value: 'product-page', label: '상품페이지(단색 배경)' },
+                          ] as const).map(option => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, compositionBackground: option.value })}
+                              className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                                formData.compositionBackground === option.value
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          자연: 야외/자연광 / 스튜디오: 백화점·골프샵 DP 스타일 / 상품페이지: 화이트·라이트그레이 단색 e-commerce 스타일
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 제품컷 전용 모드 */}
+                    <div className="mt-4 flex items-center justify-between p-4 border border-purple-200 rounded-lg bg-purple-50">
+                      <div className="flex-1">
+                        <label htmlFor="productOnlyMode" className="block text-sm font-medium text-gray-700 mb-1">
+                          제품컷 전용 모드 (사람 없이 제품만)
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          사람 합성 없이 선택한 제품만 배경 옵션에 맞춰 생성합니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="productOnlyMode"
+                          checked={formData.productOnlyMode || false}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            productOnlyMode: e.target.checked,
+                            enableProductComposition: e.target.checked ? true : formData.enableProductComposition
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+
                     {/* 합성 메서드 선택 */}
                     <div className="mt-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -967,11 +1085,11 @@ ${koreanGolferSpec}
                   )}
                 </div>
 
-                {/* 프롬프트 입력 (새 이미지 생성 모드일 때만 표시) */}
-                {formData.baseImageMode === 'generate' && (
+                {/* 프롬프트 입력 (새 이미지 생성 모드 또는 제품컷 모드일 때 표시) */}
+                {(formData.baseImageMode === 'generate' || formData.productOnlyMode) && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이미지 설명 (프롬프트) *
+                      이미지 설명 (프롬프트)
                     </label>
                     <textarea
                       value={formData.prompt}
@@ -991,9 +1109,9 @@ ${koreanGolferSpec}
                   onClick={handleGenerate}
                   disabled={
                     loading || 
-                    (formData.baseImageMode === 'generate' && !formData.prompt.trim()) ||
-                    (formData.baseImageMode === 'gallery' && !formData.selectedBaseImageUrl) ||
-                    (formData.baseImageMode === 'gallery' && (!formData.enableProductComposition || !formData.selectedProductId))
+                    (!formData.productOnlyMode && formData.baseImageMode === 'gallery' && !formData.selectedBaseImageUrl) ||
+                    (!formData.productOnlyMode && formData.baseImageMode === 'gallery' && (!formData.enableProductComposition || !formData.selectedProductId)) ||
+                    (formData.productOnlyMode && !formData.selectedProductId)
                   }
                   className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >

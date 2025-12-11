@@ -843,3 +843,30 @@ Replace the golf driver in the person's hands with the premium {PRODUCT_NAME}, m
 
 **다음 단계**: Phase 1부터 순차적으로 구현 시작
 
+---
+
+## 🎨 배경 제어 옵션 (향후 구현)
+
+### 배경 타입 옵션
+
+모자 합성 시 배경을 제어할 수 있는 옵션:
+
+1. **자연 배경 (natural)** - 기본값
+   - 기존 배경 유지
+   - 프롬프트: "Keep the original background exactly as it is."
+
+2. **스튜디오 (studio)**
+   - 깔끔한 스튜디오 배경
+   - 프롬프트: "The background should be a professional studio setting with clean, neutral background (white, gray, or subtle gradient). Professional product photography style with even lighting, no distracting elements."
+
+3. **상품페이지 스튜디오 (product-page)**
+   - 화이트/그레이 배경의 제품 사진 스타일
+   - 프롬프트: "The background should be a professional product photography studio setting with clean, minimalist background (white or light gray). High-end e-commerce product page style with professional lighting, soft shadows, and no distracting elements. The person should be positioned as if modeling the product for a product catalog or e-commerce website."
+
+### 구현 계획
+
+- [ ] `generateCompositionPrompt` 함수에 `backgroundType` 파라미터 추가
+- [ ] AI 이미지 생성기 UI에 배경 선택 옵션 추가 (모자 합성 시에만 표시)
+- [ ] API에 `compositionBackground` 파라미터 추가
+- [ ] 프롬프트에 배경 지시 추가
+

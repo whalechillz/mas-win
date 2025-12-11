@@ -27,6 +27,7 @@ export interface ProductForComposition {
   description?: string;
   price?: string;
   features?: string[];
+  colorVariants?: Record<string, string>; // 색상별 이미지 URL: { "black": "/path/to/black.png", "white": "/path/to/white.png", ... }
 }
 
 /**
@@ -230,12 +231,14 @@ export function generateLogoReplacementPrompt(): string {
  * @param product 제품 정보
  * @param useReferenceImages 참조 이미지 사용 여부
  * @param driverPart 드라이버 부위 (드라이버 전용): 'crown' | 'sole' | 'face' | 'full'
+ * @param backgroundType 배경 타입 (모자 합성 전용): 'natural' | 'studio' | 'product-page'
  * @returns 합성 프롬프트
  */
 export function generateCompositionPrompt(
   product: ProductForComposition, 
   useReferenceImages: boolean = false,
-  driverPart: DriverPart = 'full'
+  driverPart: DriverPart = 'full',
+  backgroundType: 'natural' | 'studio' | 'product-page' = 'natural'
 ): string {
   // 합성 타겟에 따라 프롬프트 생성
   if (product.compositionTarget === 'head') {
@@ -245,6 +248,15 @@ export function generateCompositionPrompt(
                        product.hatType === 'visor' ? '비저' : '모자';
     
     let prompt = `Place the ${product.name} ${hatTypeText} on the person's head. The hat should fit naturally on the head, maintaining the person's facial features, hair, and all other elements exactly the same.`;
+
+    // 배경 타입 지시
+    if (backgroundType === 'studio') {
+      prompt += ` The background should be a professional studio setting with clean, neutral background (white, gray, or subtle gradient). Professional product photography style with even lighting, no distracting elements.`;
+    } else if (backgroundType === 'product-page') {
+      prompt += ` The background should be a professional product photography studio setting with clean, minimalist background (white or light gray). High-end e-commerce product page style with professional lighting, soft shadows, and no distracting elements. The person should be positioned as if modeling the product for a product catalog or e-commerce website.`;
+    } else {
+      prompt += ` Keep the original background exactly as it is.`;
+    }
     
     if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {
       prompt += ` Use the provided reference images to match the exact angle, perspective, and lighting of the hat on the person's head.`;
@@ -348,6 +360,48 @@ The color change should be natural and realistic, maintaining proper lighting an
 
 
 /**
+ * 이미지 URL에서 .png를 .webp로 자동 변환
+ * @param url 이미지 URL
+ * @returns 변환된 이미지 URL
+ */
+function convertPngToWebp(url: string | null | undefined): string {
+  if (!url) return '';
+  // .png로 끝나는 경우 .webp로 변환
+  if (url.endsWith('.png')) {
+    return url.replace(/\.png$/, '.webp');
+  }
+  return url;
+}
+
+/**
+ * JSONB 객체의 모든 값에서 .png를 .webp로 변환
+ * @param obj JSONB 객체 (color_variants 등)
+ * @returns 변환된 객체
+ */
+function convertPngToWebpInObject(obj: any): Record<string, string> {
+  if (!obj || typeof obj !== 'object') return {};
+  const converted: Record<string, string> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string') {
+      converted[key] = convertPngToWebp(value);
+    } else {
+      converted[key] = value as string;
+    }
+  }
+  return converted;
+}
+
+/**
+ * 배열의 모든 요소에서 .png를 .webp로 변환
+ * @param arr 문자열 배열
+ * @returns 변환된 배열
+ */
+function convertPngToWebpInArray(arr: any[]): string[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(item => typeof item === 'string' ? convertPngToWebp(item) : item);
+}
+
+/**
  * Supabase에서 제품 목록 가져오기 (클라이언트 사이드)
  * @param category 제품 카테고리 필터 (선택)
  * @param target 합성 타겟 필터 (선택)
@@ -375,21 +429,27 @@ export async function getProductsFromSupabase(
 
     if (data.success && data.products) {
       // Supabase 데이터를 ProductForComposition 형식으로 변환
+      // .png를 .webp로 자동 변환
       return data.products.map((p: any) => ({
         id: p.id,
         name: p.name,
         displayName: p.display_name || p.name,
         category: p.category as ProductCategory,
         compositionTarget: p.composition_target as CompositionTarget,
-        imageUrl: p.image_url,
-        referenceImages: p.reference_images || [],
-        driverParts: p.driver_parts || undefined,
+        imageUrl: convertPngToWebp(p.image_url), // .png를 .webp로 변환
+        referenceImages: convertPngToWebpInArray(p.reference_images || []), // 배열 내부도 변환
+        driverParts: p.driver_parts ? {
+          crown: p.driver_parts.crown ? convertPngToWebpInArray(p.driver_parts.crown) : undefined,
+          sole: p.driver_parts.sole ? convertPngToWebpInArray(p.driver_parts.sole) : undefined,
+          face: p.driver_parts.face ? convertPngToWebpInArray(p.driver_parts.face) : undefined,
+        } : undefined,
         hatType: p.hat_type as HatType | undefined,
         slug: p.slug,
         badge: p.badge,
         description: p.description,
         price: p.price,
         features: p.features || [],
+        colorVariants: convertPngToWebpInObject(p.color_variants || {}), // color_variants 내부도 변환
       }));
     }
 
@@ -447,7 +507,14 @@ export async function getProductsByCategory(category: ProductCategory): Promise<
  */
 export async function getProductsByTarget(target: CompositionTarget): Promise<ProductForComposition[]> {
   try {
-    return await getProductsFromSupabase(undefined, target);
+    const supabaseProducts = await getProductsFromSupabase(undefined, target);
+    // Supabase에서 데이터가 있으면 반환, 없으면 fallback 사용
+    if (supabaseProducts.length > 0) {
+      return supabaseProducts;
+    }
+    // 빈 배열이면 fallback 사용
+    console.log(`⚠️ Supabase에서 ${target} 타겟 제품이 없어 fallback 데이터 사용`);
+    return PRODUCTS_FOR_COMPOSITION.filter(p => p.compositionTarget === target);
   } catch (error) {
     console.error('❌ 합성 타겟별 제품 조회 실패:', error);
     // Fallback: 기존 하드코딩된 데이터 사용

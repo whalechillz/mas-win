@@ -105,6 +105,11 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
                   className="object-contain"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   unoptimized
+                  onError={(e) => {
+                    console.error('제품 이미지 로드 실패:', product.imageUrl, product.name);
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-image.jpg';
+                  }}
                 />
               </div>
 
@@ -183,6 +188,11 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
                   className="object-contain"
                   sizes="80px"
                   unoptimized
+                  onError={(e) => {
+                    console.error('제품 이미지 로드 실패:', product.imageUrl, product.name);
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-image.jpg';
+                  }}
                 />
               </div>
 

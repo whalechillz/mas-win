@@ -127,11 +127,19 @@ export default async function handler(req, res) {
       numImages = 1,      // 생성할 이미지 개수
       resolution = '1K',  // '1K' | '2K' | '4K'
       aspectRatio = 'auto', // 'auto' | '1:1' | '16:9' 등
-      outputFormat = 'png'  // 'png' | 'jpeg' | 'webp'
+      outputFormat = 'png',  // 'png' | 'jpeg' | 'webp'
+      compositionBackground = 'natural', // 배경 타입: 'natural' | 'studio' | 'product-page'
+      productOnlyMode = false // 제품컷 전용 모드
     } = req.body;
 
     // 필수 파라미터 확인
-    if (!modelImageUrl || !productId) {
+    if (!productId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'productId는 필수입니다.' 
+      });
+    }
+    if (!productOnlyMode && !modelImageUrl) {
       return res.status(400).json({ 
         success: false, 
         error: 'modelImageUrl과 productId는 필수입니다.' 
@@ -153,6 +161,36 @@ export default async function handler(req, res) {
         .maybeSingle();
 
       if (!supabaseError && supabaseProduct) {
+        // .png를 .webp로 변환하는 헬퍼 함수
+        const convertPngToWebp = (url) => {
+          if (!url) return url;
+          return url.endsWith('.png') ? url.replace(/\.png$/, '.webp') : url;
+        };
+        
+        // 색상 변경이 요청된 경우 color_variants에서 해당 색상 이미지 사용
+        let productImageUrl = convertPngToWebp(supabaseProduct.image_url);
+        if (changeProductColor && productColor && supabaseProduct.color_variants) {
+          const colorVariants = supabaseProduct.color_variants;
+          const colorVariantImage = colorVariants[productColor] || colorVariants[productColor.toLowerCase()];
+          if (colorVariantImage) {
+            productImageUrl = convertPngToWebp(colorVariantImage);
+            console.log(`🎨 색상 변형 이미지 사용: ${productColor} → ${productImageUrl}`);
+          } else {
+            console.warn(`⚠️ 색상 변형 이미지 없음: ${productColor}, 기본 이미지 사용`);
+          }
+        }
+        
+        // color_variants 객체의 모든 값 변환
+        const convertedColorVariants = {};
+        if (supabaseProduct.color_variants) {
+          for (const [key, value] of Object.entries(supabaseProduct.color_variants)) {
+            convertedColorVariants[key] = convertPngToWebp(value);
+          }
+        }
+        
+        // reference_images 배열 변환
+        const convertedReferenceImages = (supabaseProduct.reference_images || []).map(img => convertPngToWebp(img));
+        
         // Supabase 데이터를 ProductForComposition 형식으로 변환
         product = {
           id: supabaseProduct.id,
@@ -160,8 +198,8 @@ export default async function handler(req, res) {
           displayName: supabaseProduct.display_name || supabaseProduct.name,
           category: supabaseProduct.category,
           compositionTarget: supabaseProduct.composition_target,
-          imageUrl: supabaseProduct.image_url,
-          referenceImages: supabaseProduct.reference_images || [],
+          imageUrl: productImageUrl, // 색상 변형 이미지 또는 기본 이미지 (.png → .webp 변환됨)
+          referenceImages: convertedReferenceImages, // .png → .webp 변환됨
           driverParts: supabaseProduct.driver_parts || undefined,
           hatType: supabaseProduct.hat_type,
           slug: supabaseProduct.slug,
@@ -169,8 +207,9 @@ export default async function handler(req, res) {
           description: supabaseProduct.description,
           price: supabaseProduct.price,
           features: supabaseProduct.features || [],
+          colorVariants: convertedColorVariants, // .png → .webp 변환됨
         };
-        console.log('✅ Supabase에서 제품 조회 성공:', product.id, product.name);
+        console.log('✅ Supabase에서 제품 조회 성공:', product.id, product.name, 'imageUrl:', product.imageUrl);
       } else if (supabaseError) {
         console.warn('⚠️ Supabase에서 제품 조회 실패:', supabaseError.message);
       }
@@ -197,26 +236,42 @@ export default async function handler(req, res) {
       compositionMethod
     });
 
-    // 프롬프트 생성 (참조 이미지 사용 여부 확인)
+    // 제품컷 전용 모드: 모델 이미지 없이 제품/참조 이미지만 사용
     const hasReferenceImages = product.referenceImages && product.referenceImages.length > 0;
-    // 합성 타겟과 드라이버 부위 파라미터 사용
     const targetCompositionTarget = compositionTarget || product.compositionTarget || 'hands';
     const targetDriverPart = driverPart || 'full';
+    const backgroundPrompt = compositionBackground === 'studio'
+      ? 'premium golf shop display, well-lit shelves, product-only, no people, upscale retail'
+      : compositionBackground === 'product-page'
+        ? 'clean white or light-gray studio background, product-only, e-commerce product page style, soft shadows, no people, no distractions'
+        : 'outdoor golf course vibe, product-only, no people, natural light';
     let compositionPrompt = prompt || generateCompositionPrompt(
       product, 
       hasReferenceImages,
-      targetDriverPart
+      targetDriverPart,
+      compositionBackground
     );
+    if (productOnlyMode) {
+      // 사람 없이 제품컷 전용 프롬프트
+      compositionPrompt = prompt || `Product-only shot, no people. ${backgroundPrompt}. High detail, sharp focus, 4k.`;
+    }
     
-    // 색상 변경 프롬프트 추가 (로고 교체보다 먼저)
+    // 색상 변경 처리: color_variants가 있으면 이미지 사용, 없으면 프롬프트 사용
     if (changeProductColor && productColor) {
-      const colorChangePrompt = generateColorChangePrompt(
-        product,
-        productColor,
-        targetCompositionTarget
-      );
-      compositionPrompt = `${compositionPrompt}. ${colorChangePrompt}`;
-      console.log('🎨 색상 변경 프롬프트 추가:', productColor);
+      // color_variants에서 색상별 이미지가 있는 경우 프롬프트 없이 이미지만 사용
+      if (product.colorVariants && product.colorVariants[productColor]) {
+        console.log(`🎨 색상 변형 이미지 사용 (프롬프트 불필요): ${productColor}`);
+        // 이미 product.imageUrl이 색상 변형 이미지로 설정되어 있음
+      } else {
+        // color_variants가 없으면 프롬프트로 색상 변경 시도
+        const colorChangePrompt = generateColorChangePrompt(
+          product,
+          productColor,
+          targetCompositionTarget
+        );
+        compositionPrompt = `${compositionPrompt}. ${colorChangePrompt}`;
+        console.log('🎨 색상 변경 프롬프트 추가 (color_variants 없음):', productColor);
+      }
     }
     
     // 로고 교체 프롬프트 추가
@@ -233,77 +288,56 @@ export default async function handler(req, res) {
     }
     
     // 이미지 URL 배열 구성
-    const imageUrls = [modelImageUrl];
-    console.log('📸 모델 이미지 URL:', modelImageUrl);
+    const imageUrls = [];
+    if (!productOnlyMode && modelImageUrl) {
+      imageUrls.push(modelImageUrl);
+      console.log('📸 모델 이미지 URL:', modelImageUrl);
+    }
     
     // 제품 이미지 URL 추가 (제공된 경우)
+    const addImageUrl = (url, label) => {
+      try {
+        const absolute = getAbsoluteProductImageUrl(url);
+        if (absolute) {
+          imageUrls.push(absolute);
+          console.log(`✅ ${label}:`, absolute);
+        } else {
+          console.warn(`⚠️ 로컬 개발 환경에서는 ${label}를 제외합니다.`);
+        }
+      } catch (error) {
+        console.error(`❌ ${label} URL 변환 실패:`, error.message);
+        if (process.env.NODE_ENV === 'production') {
+          throw error;
+        } else {
+          console.warn(`⚠️ 로컬 개발 환경에서는 ${label}를 제외하고 계속 진행합니다.`);
+        }
+      }
+    };
+
     if (productImageUrl) {
-      try {
-        const absoluteProductUrl = getAbsoluteProductImageUrl(productImageUrl);
-        if (absoluteProductUrl) {
-          imageUrls.push(absoluteProductUrl);
-          console.log('✅ 제품 이미지 포함:', absoluteProductUrl);
-        } else {
-          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외합니다. FAL AI는 로컬호스트에 접근할 수 없습니다.');
-        }
-      } catch (error) {
-        console.error('❌ 제품 이미지 URL 변환 실패:', error.message);
-        // 로컬 개발 환경에서는 에러를 던지지 않고 경고만
-        if (process.env.NODE_ENV === 'production') {
-          throw error;
-        } else {
-          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행합니다.');
-        }
-      }
+      addImageUrl(productImageUrl, '제품 이미지');
     } else if (product.imageUrl) {
-      // 제품 데이터에서 이미지 URL 사용
-      try {
-        const absoluteProductUrl = getAbsoluteProductImageUrl(product.imageUrl);
-        if (absoluteProductUrl) {
-          imageUrls.push(absoluteProductUrl);
-          console.log('✅ 제품 이미지 포함 (데이터베이스):', absoluteProductUrl);
-        } else {
-          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외합니다.');
-        }
-      } catch (error) {
-        console.error('❌ 제품 이미지 URL 변환 실패:', error.message);
-        // 로컬 개발 환경에서는 에러를 던지지 않고 경고만
-        if (process.env.NODE_ENV === 'production') {
-          throw error;
-        } else {
-          console.warn('⚠️ 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행합니다.');
-        }
-      }
+      addImageUrl(product.imageUrl, '제품 이미지 (데이터베이스)');
     }
 
     // 참조 이미지들 추가 (다양한 각도) - NEW!
     if (product.referenceImages && product.referenceImages.length > 0) {
       console.log(`📐 ${product.referenceImages.length}개의 참조 이미지 발견`);
       for (const refImage of product.referenceImages) {
-        try {
-          const absoluteRefUrl = getAbsoluteProductImageUrl(refImage);
-          if (absoluteRefUrl) {
-            imageUrls.push(absoluteRefUrl);
-            console.log('✅ 참조 이미지 추가:', absoluteRefUrl);
-          } else {
-            console.warn(`⚠️ 참조 이미지 URL 변환 실패 (로컬 개발 환경): ${refImage}`);
-          }
-        } catch (error) {
-          console.warn(`⚠️ 참조 이미지 URL 변환 실패: ${refImage}`, error.message);
-          // 로컬 개발 환경에서는 에러를 던지지 않고 경고만
-          if (process.env.NODE_ENV === 'production') {
-            throw error;
-          }
-        }
+        addImageUrl(refImage, '참조 이미지');
       }
-      console.log(`✅ 총 ${imageUrls.length - 1}개의 제품 참조 이미지 추가됨 (기본 이미지 + 참조 이미지)`);
+      console.log(`✅ 총 ${imageUrls.length - (productOnlyMode ? 0 : 1)}개의 제품 참조 이미지 추가됨`);
     }
     
     // 모든 URL이 공개적으로 접근 가능한지 최종 확인
-    for (const url of imageUrls) {
+    const sanitizedUrls = imageUrls.filter(Boolean);
+    for (const url of sanitizedUrls) {
       if (!url.startsWith('https://') || url.includes('localhost') || url.includes('127.0.0.1')) {
         throw new Error(`공개적으로 접근 가능하지 않은 URL이 포함되어 있습니다: ${url}. 모든 이미지 URL은 HTTPS로 시작하는 공개 URL이어야 합니다.`);
       }
+    }
+    if (productOnlyMode && sanitizedUrls.length === 0) {
+      throw new Error('제품컷 모드에서는 제품/참조 이미지가 최소 1개 이상 필요합니다.');
     }
 
     // 나노바나나 API 호출
