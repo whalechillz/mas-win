@@ -316,6 +316,11 @@ export async function getProductsFromSupabase(
     if (active !== undefined) params.append('active', String(active));
 
     const response = await fetch(`/api/admin/product-composition?${params.toString()}`);
+    
+    if (!response.ok) {
+      throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
+    }
+    
     const data = await response.json();
 
     if (data.success && data.products) {
@@ -338,11 +343,19 @@ export async function getProductsFromSupabase(
       }));
     }
 
+    // 데이터가 없으면 빈 배열 반환 (Fallback으로 넘어감)
     return [];
   } catch (error) {
     console.error('❌ Supabase에서 제품 목록 가져오기 실패:', error);
-    // Fallback: 기존 하드코딩된 데이터 사용
-    return PRODUCTS_FOR_COMPOSITION;
+    // Fallback: 기존 하드코딩된 데이터에서 필터링하여 반환
+    let filtered = PRODUCTS_FOR_COMPOSITION;
+    if (category) {
+      filtered = filtered.filter(p => p.category === category);
+    }
+    if (target) {
+      filtered = filtered.filter(p => p.compositionTarget === target);
+    }
+    return filtered;
   }
 }
 
