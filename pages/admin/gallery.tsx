@@ -2542,7 +2542,7 @@ export default function GalleryAdmin() {
   };
 
   // 이미지 복사/링크 핸들러
-  const handleImageCopyOrLink = async (imageData: any, targetFolder: string, action: 'copy' | 'link') => {
+  const handleImageCopyOrLink = async (imageData: any, targetFolder: string, action: 'copy' | 'link' | 'move') => {
     try {
       setIsLoading(true);
       
@@ -2557,7 +2557,35 @@ export default function GalleryAdmin() {
         messageId 
       });
       
-      const response = await fetch('/api/admin/copy-or-link-image', {
+      // move인 경우 다른 API 호출
+      if (action === 'move') {
+        const moveResponse = await fetch('/api/admin/move-image-to-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageUrl: imageData.url,
+            targetFolder: targetFolder
+          })
+        });
+
+        const moveResult = await moveResponse.json();
+
+        if (moveResult.success) {
+          alert(`✅ 이미지 이동 완료!\n\n${moveResult.message || '이미지가 성공적으로 이동되었습니다.'}`);
+          
+          // 이미지 목록 새로고침
+          fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
+        } else {
+          alert(`❌ 이미지 이동 실패: ${moveResult.error || moveResult.details || '알 수 없는 오류'}`);
+        }
+        
+        setShowCopyLinkModal(false);
+        setPendingImageDrop(null);
+        setIsLoading(false);
+        return;
+      }
+      
+            const response = await fetch('/api/admin/copy-or-link-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2571,17 +2599,17 @@ export default function GalleryAdmin() {
       const result = await response.json();
 
       if (result.success) {
-        const actionText = action === 'copy' ? '복사' : '링크 생성';
+        const actionText = action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동';
         alert(`✅ 이미지 ${actionText} 완료!\n\n${result.message}`);
         
         // 이미지 목록 새로고침
         fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
       } else {
-        alert(`❌ 이미지 ${action === 'copy' ? '복사' : '링크 생성'} 실패: ${result.error || result.details}`);
+        alert(`❌ 이미지 ${action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동'} 실패: ${result.error || result.details}`);
       }
     } catch (error: any) {
       console.error('❌ 이미지 복사/링크 오류:', error);
-      alert(`❌ 이미지 ${action === 'copy' ? '복사' : '링크 생성'} 중 오류가 발생했습니다: ${error.message}`);
+      alert(`❌ 이미지 ${action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동'} 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       setIsLoading(false);
       setShowCopyLinkModal(false);
@@ -3586,11 +3614,15 @@ export default function GalleryAdmin() {
                 onImageDrop={async (imageData, targetFolder, event?: DragEvent) => {
                   console.log('📁 이미지 드롭:', { imageData, targetFolder, event });
                   
-                  // Shift 키 = 링크, Ctrl/Cmd 키 = 복사, 기본 = 선택 모달
+                  // Alt 키 = 이동, Shift 키 = 링크, Ctrl/Cmd 키 = 복사, 기본 = 선택 모달
+                  const isAltPressed = event?.altKey || false;
                   const isShiftPressed = event?.shiftKey || false;
                   const isCtrlPressed = event?.ctrlKey || event?.metaKey || false;
                   
-                  if (isShiftPressed) {
+                  if (isAltPressed) {
+                    // Alt 키: 바로 이동
+                    await handleImageCopyOrLink(imageData, targetFolder, 'move');
+                  } else if (isShiftPressed) {
                     // Shift 키: 바로 링크 생성
                     await handleImageCopyOrLink(imageData, targetFolder, 'link');
                   } else if (isCtrlPressed) {
@@ -6956,6 +6988,13 @@ export default function GalleryAdmin() {
               </button>
               
               <button
+                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'move')}
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                📁 이동 (파일 이동)
+              </button>
+              
+              <button
                 onClick={() => {
                   setShowCopyLinkModal(false);
                   setPendingImageDrop(null);
@@ -6969,6 +7008,7 @@ export default function GalleryAdmin() {
             <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
               <p>💡 팁:</p>
               <ul className="list-disc list-inside mt-1 space-y-1">
+                <li><strong>Alt + 드롭</strong>: 바로 이동</li>
                 <li><strong>Shift + 드롭</strong>: 바로 링크 생성</li>
                 <li><strong>Ctrl/Cmd + 드롭</strong>: 바로 복사</li>
               </ul>
