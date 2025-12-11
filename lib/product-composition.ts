@@ -296,6 +296,56 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
   return `${base}${imageUrl}`;
 }
 
+/**
+ * 제품 색상 변경 프롬프트 생성
+ * 로고와 텍스트는 그대로 유지하고 제품 색상만 변경
+ * @param product 제품 정보
+ * @param targetColor 변경할 색상 (예: 'red', 'blue', 'navy', 'beige')
+ * @param compositionTarget 합성 타겟
+ * @returns 색상 변경 프롬프트
+ */
+export function generateColorChangePrompt(
+  product: ProductForComposition,
+  targetColor: string,
+  compositionTarget: CompositionTarget
+): string {
+  const colorNames: Record<string, string> = {
+    'red': '빨간색',
+    'orange': '주황색',
+    'yellow': '노란색',
+    'green': '초록색',
+    'blue': '파란색',
+    'navy': '네이비 블루',
+    'purple': '보라색',
+    'black': '검은색',
+    'white': '흰색',
+    'gray': '회색',
+    'grey': '회색',
+    'brown': '갈색',
+    'beige': '베이지색',
+    'khaki': '카키색'
+  };
+
+  const colorName = colorNames[targetColor.toLowerCase()] || targetColor;
+  const productName = compositionTarget === 'head' ? '모자' : '드라이버';
+
+  if (compositionTarget === 'head') {
+    return `Change ONLY the hat's fabric color to ${colorName} while keeping:
+- The logo, text, and branding exactly the same (same position, size, color, and design)
+- The hat's shape, style, fit, and all structural elements exactly the same
+- All other elements of the image unchanged
+The color change should be natural and realistic, maintaining proper lighting, shadows, and fabric texture. The logo and text should remain completely unchanged.`;
+  } else if (compositionTarget === 'hands' && product.category === 'driver') {
+    return `Change ONLY the driver head's color to ${colorName} while keeping:
+- All logos, text, and branding exactly the same (same position, size, color, and design)
+- The driver's shape, design, and all structural elements exactly the same
+- All other elements of the image unchanged
+The color change should be natural and realistic, maintaining proper lighting and shadows.`;
+  } else {
+    return `Change ONLY the ${productName}'s color to ${colorName} while keeping all logos, text, branding, and structural elements exactly the same.`;
+  }
+}
+
 
 /**
  * Supabase에서 제품 목록 가져오기 (클라이언트 사이드)
@@ -404,3 +454,4 @@ export async function getProductsByTarget(target: CompositionTarget): Promise<Pr
     return PRODUCTS_FOR_COMPOSITION.filter(p => p.compositionTarget === target);
   }
 }
+

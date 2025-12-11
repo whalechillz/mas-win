@@ -1,6 +1,6 @@
 import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
-import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl } from '../../lib/product-composition';
+import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl, generateColorChangePrompt } from '../../lib/product-composition';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -122,6 +122,8 @@ export default async function handler(req, res) {
       compositionMethod = 'nano-banana-pro', // 'nano-banana-pro' | 'nano-banana'
       prompt,             // 커스텀 프롬프트 (선택)
       replaceLogo = false, // 로고 교체 옵션
+      changeProductColor = false, // 제품 색상 변경 활성화 여부
+      productColor,       // 변경할 제품 색상 (예: 'red', 'blue', 'navy', 'beige')
       numImages = 1,      // 생성할 이미지 개수
       resolution = '1K',  // '1K' | '2K' | '4K'
       aspectRatio = 'auto', // 'auto' | '1:1' | '16:9' 등
@@ -205,6 +207,17 @@ export default async function handler(req, res) {
       hasReferenceImages,
       targetDriverPart
     );
+    
+    // 색상 변경 프롬프트 추가 (로고 교체보다 먼저)
+    if (changeProductColor && productColor) {
+      const colorChangePrompt = generateColorChangePrompt(
+        product,
+        productColor,
+        targetCompositionTarget
+      );
+      compositionPrompt = `${compositionPrompt}. ${colorChangePrompt}`;
+      console.log('🎨 색상 변경 프롬프트 추가:', productColor);
+    }
     
     // 로고 교체 프롬프트 추가
     if (replaceLogo) {

@@ -26,6 +26,8 @@ interface ImageGenerationRequest {
   baseImageMode?: 'generate' | 'gallery'; // 베이스 이미지 모드: 새 이미지 생성 / 갤러리에서 선택
   selectedBaseImageUrl?: string; // 갤러리에서 선택한 베이스 이미지 URL
   replaceLogo?: boolean; // 로고 자동 교체 옵션
+  changeProductColor?: boolean; // 제품 색상 변경 활성화
+  productColor?: string; // 변경할 제품 색상
 }
 
 export default function AIImageGenerator() {
@@ -52,6 +54,8 @@ export default function AIImageGenerator() {
     baseImageMode: 'generate', // 기본값: 새 이미지 생성
     selectedBaseImageUrl: undefined,
     replaceLogo: false, // 기본값: 로고 교체 비활성화
+    changeProductColor: false, // 기본값: 색상 변경 비활성화
+    productColor: undefined, // 기본값: 색상 미선택
   });
 
   if (status === 'loading') {
@@ -366,6 +370,8 @@ ${koreanGolferSpec}
                 driverPart: formData.driverPart || 'full',
                 compositionMethod: formData.compositionMethod || 'nano-banana-pro',
                 replaceLogo: formData.replaceLogo || false,
+                changeProductColor: formData.changeProductColor || false,
+                productColor: formData.productColor,
                 numImages: 1,
                 resolution: '1K',
                 aspectRatio: 'auto',
@@ -772,6 +778,68 @@ ${koreanGolferSpec}
                         💡 Nano Banana Pro는 더 정확하고 자연스러운 합성 결과를 제공합니다.
                       </p>
                     </div>
+
+                    {/* 제품 색상 변경 옵션 (제품 선택 시에만 표시) */}
+                    {formData.selectedProductId && (
+                      <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <div className="flex items-center gap-2 mb-3">
+                          <input
+                            type="checkbox"
+                            id="changeProductColor"
+                            checked={formData.changeProductColor || false}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              changeProductColor: e.target.checked,
+                              productColor: e.target.checked ? formData.productColor : undefined
+                            })}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <label htmlFor="changeProductColor" className="text-sm font-medium text-gray-700 cursor-pointer">
+                            제품 색상 변경
+                          </label>
+                        </div>
+                        
+                        {formData.changeProductColor && (
+                          <div className="mt-3">
+                            <label className="block text-xs text-gray-600 mb-2">색상 선택:</label>
+                            <div className="grid grid-cols-6 gap-2">
+                              {[
+                                { name: 'black', label: '검정', color: '#000000' },
+                                { name: 'white', label: '흰색', color: '#FFFFFF' },
+                                { name: 'gray', label: '회색', color: '#808080' },
+                                { name: 'navy', label: '네이비', color: '#001f3f' },
+                                { name: 'beige', label: '베이지', color: '#f5f5dc' },
+                                { name: 'brown', label: '갈색', color: '#8b4513' },
+                                { name: 'red', label: '빨강', color: '#FF0000' },
+                                { name: 'blue', label: '파랑', color: '#0000FF' },
+                                { name: 'green', label: '초록', color: '#008000' },
+                                { name: 'yellow', label: '노랑', color: '#FFFF00' },
+                                { name: 'orange', label: '주황', color: '#FFA500' },
+                                { name: 'purple', label: '보라', color: '#800080' }
+                              ].map((colorOption) => (
+                                <button
+                                  key={colorOption.name}
+                                  type="button"
+                                  onClick={() => setFormData({ ...formData, productColor: colorOption.name })}
+                                  className={`w-10 h-10 rounded border-2 transition-all ${
+                                    formData.productColor === colorOption.name
+                                      ? 'border-blue-500 ring-2 ring-blue-200 scale-110'
+                                      : 'border-gray-200 hover:border-gray-300 hover:scale-105'
+                                  }`}
+                                  style={{
+                                    backgroundColor: colorOption.color
+                                  }}
+                                  title={colorOption.label}
+                                />
+                              ))}
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500">
+                              💡 로고와 텍스트는 그대로 유지되고 제품 색상만 변경됩니다. 체크 해제 시 원본 제품 색상이 사용됩니다.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* 로고 자동 교체 옵션 */}
                     <div className="mt-4 flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50">
