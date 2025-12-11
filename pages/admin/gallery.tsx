@@ -2571,7 +2571,7 @@ export default function GalleryAdmin() {
         const moveResult = await moveResponse.json();
 
         if (moveResult.success) {
-          alert(`✅ 이미지 이동 완료!\n\n${moveResult.message || '이미지가 성공적으로 이동되었습니다.'}`);
+          alert(`✅ 이미지 이동 완료!\n\n${moveResult.message || '이미지가 성공적으로 이동되었습니다.'}\n\n💡 카카오 콘텐츠 생성 페이지에서 변경사항을 보려면 페이지를 새로고침하세요.`);
           
           // 이미지 목록 새로고침
           fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
