@@ -117,6 +117,8 @@ export default async function handler(req, res) {
       modelImageUrl,      // 생성된 모델 이미지 URL (필수)
       productId,          // 제품 ID (필수)
       productImageUrl,    // 제품 이미지 URL (선택, 제공 시 더 정확한 합성)
+      compositionTarget, // 합성 타겟: 'hands' | 'head' | 'body' | 'accessory'
+      driverPart,         // 드라이버 부위 (드라이버 전용): 'crown' | 'sole' | 'face' | 'full'
       compositionMethod = 'nano-banana-pro', // 'nano-banana-pro' | 'nano-banana'
       prompt,             // 커스텀 프롬프트 (선택)
       replaceLogo = false, // 로고 교체 옵션
@@ -134,8 +136,50 @@ export default async function handler(req, res) {
       });
     }
 
-    // 제품 정보 조회
-    const product = getProductById(productId);
+    // 제품 정보 조회 (Supabase 우선, Fallback: 기존 하드코딩)
+    let product = null;
+    
+    // Supabase에서 조회 시도
+    try {
+      const supabaseResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/product-composition`
+      );
+      if (supabaseResponse.ok) {
+        const supabaseData = await supabaseResponse.json();
+        if (supabaseData.success && supabaseData.products) {
+          product = supabaseData.products.find((p) => 
+            p.id === productId || p.slug === productId
+          );
+          if (product) {
+            // Supabase 데이터를 ProductForComposition 형식으로 변환
+            product = {
+              id: product.id,
+              name: product.name,
+              displayName: product.display_name || product.name,
+              category: product.category,
+              compositionTarget: product.composition_target,
+              imageUrl: product.image_url,
+              referenceImages: product.reference_images || [],
+              driverParts: product.driver_parts || undefined,
+              hatType: product.hat_type,
+              slug: product.slug,
+              badge: product.badge,
+              description: product.description,
+              price: product.price,
+              features: product.features || [],
+            };
+          }
+        }
+      }
+    } catch (supabaseError) {
+      console.warn('⚠️ Supabase에서 제품 조회 실패, 기존 데이터 사용:', supabaseError.message);
+    }
+    
+    // Supabase에서 찾지 못한 경우 기존 하드코딩 데이터 사용
+    if (!product) {
+      product = getProductById(productId);
+    }
+    
     if (!product) {
       return res.status(400).json({ 
         success: false, 
@@ -152,7 +196,14 @@ export default async function handler(req, res) {
 
     // 프롬프트 생성 (참조 이미지 사용 여부 확인)
     const hasReferenceImages = product.referenceImages && product.referenceImages.length > 0;
-    let compositionPrompt = prompt || generateCompositionPrompt(product, hasReferenceImages);
+    // 합성 타겟과 드라이버 부위 파라미터 사용
+    const targetCompositionTarget = compositionTarget || product.compositionTarget || 'hands';
+    const targetDriverPart = driverPart || 'full';
+    let compositionPrompt = prompt || generateCompositionPrompt(
+      product, 
+      hasReferenceImages,
+      targetDriverPart
+    );
     
     // 로고 교체 프롬프트 추가
     if (replaceLogo) {
