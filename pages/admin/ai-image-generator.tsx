@@ -717,6 +717,7 @@ ${koreanGolferSpec}
                       <ProductSelector
                       selectedProductId={formData.selectedProductId}
                       onSelect={(productId) => setFormData({ ...formData, selectedProductId: productId })}
+                      compositionTarget={formData.compositionTarget || 'hands'}
                       showDescription={false}
                       layout="grid"
                     />

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { PRODUCTS_FOR_COMPOSITION, ProductForComposition } from '../../lib/product-composition';
+import { PRODUCTS_FOR_COMPOSITION, ProductForComposition, getProductsByTarget, CompositionTarget } from '../../lib/product-composition';
 
 interface ProductSelectorProps {
   selectedProductId?: string;
   onSelect: (productId: string) => void;
+  compositionTarget?: CompositionTarget; // 합성 타겟
   showDescription?: boolean;
   layout?: 'grid' | 'list';
   className?: string;
@@ -13,10 +14,45 @@ interface ProductSelectorProps {
 export const ProductSelector: React.FC<ProductSelectorProps> = ({
   selectedProductId,
   onSelect,
+  compositionTarget = 'hands', // 기본값: 손에 드라이버
   showDescription = false,
   layout = 'grid',
   className = ''
 }) => {
+  const [products, setProducts] = useState<ProductForComposition[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Supabase에서 합성 타겟별 제품 조회
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        // Supabase에서 합성 타겟별 제품 가져오기
+        const supabaseProducts = await getProductsByTarget(compositionTarget);
+        if (supabaseProducts.length > 0) {
+          setProducts(supabaseProducts);
+        } else {
+          // Fallback: 기존 하드코딩 데이터에서 필터링
+          const filtered = PRODUCTS_FOR_COMPOSITION.filter(
+            p => p.compositionTarget === compositionTarget
+          );
+          setProducts(filtered);
+        }
+      } catch (error) {
+        console.error('제품 목록 로드 실패:', error);
+        // Fallback: 기존 하드코딩 데이터
+        const filtered = PRODUCTS_FOR_COMPOSITION.filter(
+          p => p.compositionTarget === compositionTarget
+        );
+        setProducts(filtered);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [compositionTarget]);
+
   const getBadgeColor = (badge?: string) => {
     switch (badge) {
       case 'BEST':
@@ -37,13 +73,19 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
           합성할 제품 선택 *
         </label>
         <p className="text-xs text-gray-500 mb-3">
-          7개 제품 중 하나를 선택하여 모델 이미지에 합성합니다.
+          {loading ? '로딩 중...' : `${products.length}개 ${compositionTarget === 'head' ? '모자' : '드라이버'} 제품 중 하나를 선택하여 모델 이미지에 합성합니다.`}
         </p>
       </div>
 
-      {layout === 'grid' ? (
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">로딩 중...</div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          {compositionTarget === 'head' ? '모자' : '드라이버'} 제품이 없습니다.
+        </div>
+      ) : layout === 'grid' ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {PRODUCTS_FOR_COMPOSITION.map((product) => (
+          {products.map((product) => (
             <button
               key={product.id}
               type="button"
@@ -121,7 +163,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
         </div>
       ) : (
         <div className="space-y-2">
-          {PRODUCTS_FOR_COMPOSITION.map((product) => (
+          {products.map((product) => (
             <button
               key={product.id}
               type="button"
@@ -205,7 +247,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-xs text-blue-800">
             <span className="font-semibold">선택된 제품:</span>{' '}
-            {PRODUCTS_FOR_COMPOSITION.find((p) => p.id === selectedProductId)?.displayName}
+            {products.find((p) => p.id === selectedProductId)?.displayName}
           </p>
         </div>
       )}
