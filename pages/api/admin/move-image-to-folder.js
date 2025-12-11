@@ -136,13 +136,70 @@ export default async function handler(req, res) {
       const normalizedOldUrl = imageUrl.split('?')[0].split('#')[0];
       const normalizedNewUrl = newUrlData.publicUrl.split('?')[0].split('#')[0];
 
-      // image_url로 메타데이터 찾기
-      const { data: metadata, error: metadataError } = await supabase
+      // image_url로 메타데이터 찾기 (여러 방법 시도)
+      let metadata = null;
+      let metadataError = null;
+      
+      // 방법 1: 정확한 imageUrl로 검색
+      const { data: metadata1, error: error1 } = await supabase
         .from('image_metadata')
         .select('id, image_url, original_path')
-        .or(`image_url.eq.${imageUrl},image_url.eq.${normalizedOldUrl}`)
+        .eq('image_url', imageUrl)
         .limit(1)
-        .single();
+        .maybeSingle();
+      
+      if (metadata1 && !error1) {
+        metadata = metadata1;
+        console.log('✅ 메타데이터 발견 (방법 1: 정확한 URL):', metadata.id);
+      } else {
+        // 방법 2: 정규화된 URL로 검색
+        const { data: metadata2, error: error2 } = await supabase
+          .from('image_metadata')
+          .select('id, image_url, original_path')
+          .eq('image_url', normalizedOldUrl)
+          .limit(1)
+          .maybeSingle();
+        
+        if (metadata2 && !error2) {
+          metadata = metadata2;
+          console.log('✅ 메타데이터 발견 (방법 2: 정규화된 URL):', metadata.id);
+        } else {
+          // 방법 3: 파일명으로 original_path 검색
+          const fileName = currentPath.split('/').pop();
+          if (fileName) {
+            const { data: metadata3, error: error3 } = await supabase
+              .from('image_metadata')
+              .select('id, image_url, original_path')
+              .ilike('original_path', `%${fileName}`)
+              .limit(5); // 여러 개일 수 있으므로 limit 증가
+            
+            if (metadata3 && metadata3.length > 0 && !error3) {
+              // 정확한 경로와 일치하는 것 찾기
+              const exactMatch = metadata3.find(m => 
+                m.original_path === currentPath || 
+                m.original_path.endsWith(`/${fileName}`) ||
+                m.image_url.includes(fileName)
+              );
+              
+              if (exactMatch) {
+                metadata = exactMatch;
+                console.log('✅ 메타데이터 발견 (방법 3: 파일명 기반):', metadata.id);
+              } else if (metadata3.length === 1) {
+                // 하나만 있으면 그것 사용
+                metadata = metadata3[0];
+                console.log('✅ 메타데이터 발견 (방법 3: 파일명 기반, 단일 결과):', metadata.id);
+              } else {
+                metadataError = new Error('파일명으로 여러 메타데이터 발견, 정확한 매칭 실패');
+                console.warn('⚠️ 파일명으로 여러 메타데이터 발견:', metadata3.length);
+              }
+            } else {
+              metadataError = error3 || error2 || error1;
+            }
+          } else {
+            metadataError = error2 || error1;
+          }
+        }
+      }
 
       if (metadata && !metadataError) {
         // 메타데이터 업데이트
@@ -158,10 +215,16 @@ export default async function handler(req, res) {
         if (updateError) {
           console.warn('⚠️ 메타데이터 업데이트 실패:', updateError);
         } else {
-          console.log('✅ 메타데이터 업데이트 완료:', metadata.id);
+          console.log('✅ 메타데이터 업데이트 완료:', metadata.id, '→', targetPath);
         }
       } else {
-        console.warn('⚠️ 메타데이터를 찾을 수 없음:', { imageUrl, metadataError });
+        console.warn('⚠️ 메타데이터를 찾을 수 없음:', { 
+          imageUrl, 
+          normalizedOldUrl,
+          currentPath,
+          fileName: currentPath.split('/').pop(),
+          error: metadataError?.message || metadataError 
+        });
       }
     } catch (metadataError) {
       console.warn('⚠️ 메타데이터 업데이트 중 오류 (계속 진행):', metadataError);
