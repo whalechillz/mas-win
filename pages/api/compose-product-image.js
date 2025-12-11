@@ -139,37 +139,38 @@ export default async function handler(req, res) {
     // 제품 정보 조회 (Supabase 우선, Fallback: 기존 하드코딩)
     let product = null;
     
-    // Supabase에서 조회 시도
+    // Supabase에서 직접 조회 (서버 사이드에서는 클라이언트 직접 사용)
     try {
-      const supabaseResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/product-composition`
-      );
-      if (supabaseResponse.ok) {
-        const supabaseData = await supabaseResponse.json();
-        if (supabaseData.success && supabaseData.products) {
-          product = supabaseData.products.find((p) => 
-            p.id === productId || p.slug === productId
-          );
-          if (product) {
-            // Supabase 데이터를 ProductForComposition 형식으로 변환
-            product = {
-              id: product.id,
-              name: product.name,
-              displayName: product.display_name || product.name,
-              category: product.category,
-              compositionTarget: product.composition_target,
-              imageUrl: product.image_url,
-              referenceImages: product.reference_images || [],
-              driverParts: product.driver_parts || undefined,
-              hatType: product.hat_type,
-              slug: product.slug,
-              badge: product.badge,
-              description: product.description,
-              price: product.price,
-              features: product.features || [],
-            };
-          }
-        }
+      // UUID 또는 slug로 제품 조회
+      const { data: supabaseProduct, error: supabaseError } = await supabase
+        .from('product_composition')
+        .select('*')
+        .or(`id.eq.${productId},slug.eq.${productId}`)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (!supabaseError && supabaseProduct) {
+        // Supabase 데이터를 ProductForComposition 형식으로 변환
+        product = {
+          id: supabaseProduct.id,
+          name: supabaseProduct.name,
+          displayName: supabaseProduct.display_name || supabaseProduct.name,
+          category: supabaseProduct.category,
+          compositionTarget: supabaseProduct.composition_target,
+          imageUrl: supabaseProduct.image_url,
+          referenceImages: supabaseProduct.reference_images || [],
+          driverParts: supabaseProduct.driver_parts || undefined,
+          hatType: supabaseProduct.hat_type,
+          slug: supabaseProduct.slug,
+          badge: supabaseProduct.badge,
+          description: supabaseProduct.description,
+          price: supabaseProduct.price,
+          features: supabaseProduct.features || [],
+        };
+        console.log('✅ Supabase에서 제품 조회 성공:', product.id, product.name);
+      } else if (supabaseError) {
+        console.warn('⚠️ Supabase에서 제품 조회 실패:', supabaseError.message);
       }
     } catch (supabaseError) {
       console.warn('⚠️ Supabase에서 제품 조회 실패, 기존 데이터 사용:', supabaseError.message);
