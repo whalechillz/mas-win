@@ -285,11 +285,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const smsResult = await smsResponse.json();
         if (smsResponse.ok && smsResult.statusCode === '2000') {
           smsSuccess = true;
+          
+          // channel_sms 테이블에 메시지 저장 (예약 관련 메시지 관리용)
+          try {
+            const { error: saveError } = await supabase
+              .from('channel_sms')
+              .insert({
+                message_type: messageType,
+                message_text: smsMessage,
+                recipient_numbers: [phone],
+                status: 'sent',
+                sent_at: new Date().toISOString(),
+                sent_count: 1,
+                success_count: 1,
+                fail_count: 0,
+                solapi_group_id: smsResult.groupId || null,
+                note: `예약 ${notificationType}: 예약 ID ${bookingId}, 고객 ${variables.고객명}`,
+                // 메타데이터에 예약 정보 저장 (JSONB 컬럼이 있다면)
+                // metadata: {
+                //   booking_id: bookingId,
+                //   notification_type: notificationType,
+                //   customer_id: booking.customer_id || null
+                // }
+              });
+            
+            if (saveError) {
+              console.error('예약 메시지 channel_sms 저장 오류:', saveError);
+              // 저장 실패해도 발송은 성공한 것으로 처리
+            }
+          } catch (saveErr: any) {
+            console.error('예약 메시지 저장 중 오류:', saveErr);
+            // 저장 실패해도 발송은 성공한 것으로 처리
+          }
         } else {
           smsError = smsResult.errorMessage || `${messageType} 발송 실패`;
+          
+          // 실패한 메시지도 channel_sms에 저장 (이력 관리용)
+          try {
+            await supabase
+              .from('channel_sms')
+              .insert({
+                message_type: messageType,
+                message_text: smsMessage,
+                recipient_numbers: [phone],
+                status: 'failed',
+                sent_at: new Date().toISOString(),
+                sent_count: 1,
+                success_count: 0,
+                fail_count: 1,
+                note: `예약 ${notificationType} 실패: 예약 ID ${bookingId}, 오류: ${smsError}`,
+              });
+          } catch (saveErr: any) {
+            console.error('실패 메시지 저장 중 오류:', saveErr);
+          }
         }
       } catch (err: any) {
         smsError = err.message || '메시지 발송 중 오류 발생';
+        
+        // 예외 발생 시에도 channel_sms에 저장
+        try {
+          await supabase
+            .from('channel_sms')
+            .insert({
+              message_type: messageType,
+              message_text: smsMessage,
+              recipient_numbers: [phone],
+              status: 'failed',
+              sent_at: new Date().toISOString(),
+              sent_count: 1,
+              success_count: 0,
+              fail_count: 1,
+              note: `예약 ${notificationType} 예외: 예약 ID ${bookingId}, 오류: ${smsError}`,
+            });
+        } catch (saveErr: any) {
+          console.error('예외 메시지 저장 중 오류:', saveErr);
+        }
       }
     }
 

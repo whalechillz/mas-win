@@ -172,11 +172,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const smsResult = await smsResponse.json();
         if (smsResponse.ok && smsResult.statusCode === '2000') {
           results.push({ phone, success: true });
+          
+          // channel_sms 테이블에 스탭진 메시지 저장
+          try {
+            await supabase
+              .from('channel_sms')
+              .insert({
+                message_type: messageType,
+                message_text: message,
+                recipient_numbers: [normalizedPhone],
+                status: 'sent',
+                sent_at: new Date().toISOString(),
+                sent_count: 1,
+                success_count: 1,
+                fail_count: 0,
+                solapi_group_id: smsResult.groupId || null,
+                note: `스탭진 알림 ${notificationType}: 예약 ID ${bookingId}`,
+              });
+          } catch (saveErr: any) {
+            console.error('스탭진 메시지 channel_sms 저장 오류:', saveErr);
+          }
         } else {
-          results.push({ phone, success: false, error: smsResult.errorMessage || `${messageType} 발송 실패` });
+          const errorMsg = smsResult.errorMessage || `${messageType} 발송 실패`;
+          results.push({ phone, success: false, error: errorMsg });
+          
+          // 실패한 메시지도 저장
+          try {
+            await supabase
+              .from('channel_sms')
+              .insert({
+                message_type: messageType,
+                message_text: message,
+                recipient_numbers: [normalizedPhone],
+                status: 'failed',
+                sent_at: new Date().toISOString(),
+                sent_count: 1,
+                success_count: 0,
+                fail_count: 1,
+                note: `스탭진 알림 ${notificationType} 실패: 예약 ID ${bookingId}, 오류: ${errorMsg}`,
+              });
+          } catch (saveErr: any) {
+            console.error('스탭진 실패 메시지 저장 오류:', saveErr);
+          }
         }
       } catch (err: any) {
-        results.push({ phone, success: false, error: err.message || '메시지 발송 중 오류 발생' });
+        const errorMsg = err.message || '메시지 발송 중 오류 발생';
+        results.push({ phone, success: false, error: errorMsg });
+        
+        // 예외 발생 시에도 저장
+        try {
+          await supabase
+            .from('channel_sms')
+            .insert({
+              message_type: messageType,
+              message_text: message,
+              recipient_numbers: [normalizedPhone],
+              status: 'failed',
+              sent_at: new Date().toISOString(),
+              sent_count: 1,
+              success_count: 0,
+              fail_count: 1,
+              note: `스탭진 알림 ${notificationType} 예외: 예약 ID ${bookingId}, 오류: ${errorMsg}`,
+            });
+        } catch (saveErr: any) {
+          console.error('스탭진 예외 메시지 저장 오류:', saveErr);
+        }
       }
     }
 

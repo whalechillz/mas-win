@@ -93,18 +93,588 @@
       "timeout": 120000
     }
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: Timed out waiting 120000ms from config.webServer.",
-      "stack": "Error: Timed out waiting 120000ms from config.webServer."
+      "title": "booking.spec.ts",
+      "file": "booking.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "시타 예약 E2E 테스트",
+          "file": "booking.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "예약 생성 플로우",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-7b8241a98471306241e6",
+              "file": "booking.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "예약 폼 유효성 검사",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-e6ed68e87bcc34bc7408",
+              "file": "booking.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "관리자 페이지에서 예약 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-f857900ef17a0150aee9",
+              "file": "booking.spec.ts",
+              "line": 57,
+              "column": 7
+            },
+            {
+              "title": "예약 확정 시 SMS 발송 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-a349d063b8c35a89e634",
+              "file": "booking.spec.ts",
+              "line": 72,
+              "column": 7
+            },
+            {
+              "title": "예약 페이지 네비게이션",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-1801172202f26c99ed21",
+              "file": "booking.spec.ts",
+              "line": 101,
+              "column": 7
+            },
+            {
+              "title": "예약 생성 플로우",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-a6cc4d102d91a9f0f238",
+              "file": "booking.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "예약 폼 유효성 검사",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-786450683645da78c858",
+              "file": "booking.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "관리자 페이지에서 예약 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-510d45f7754a3058f9fc",
+              "file": "booking.spec.ts",
+              "line": 57,
+              "column": 7
+            },
+            {
+              "title": "예약 확정 시 SMS 발송 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-a2f1e04d519d8dcc9005",
+              "file": "booking.spec.ts",
+              "line": 72,
+              "column": 7
+            },
+            {
+              "title": "예약 페이지 네비게이션",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-428504ffe8a93ec491d3",
+              "file": "booking.spec.ts",
+              "line": 101,
+              "column": 7
+            },
+            {
+              "title": "예약 생성 플로우",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-136a981c05279df47a79",
+              "file": "booking.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "예약 폼 유효성 검사",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-7fa5284d33a241452a67",
+              "file": "booking.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "관리자 페이지에서 예약 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-222e9a369730f508638e",
+              "file": "booking.spec.ts",
+              "line": 57,
+              "column": 7
+            },
+            {
+              "title": "예약 확정 시 SMS 발송 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-65549bcf230970fb7ff2",
+              "file": "booking.spec.ts",
+              "line": 72,
+              "column": 7
+            },
+            {
+              "title": "예약 페이지 네비게이션",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a3a10f2351dcc49e1cb9-fcddc8e3bca4a19cc84f",
+              "file": "booking.spec.ts",
+              "line": 101,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "survey.spec.ts",
+      "file": "survey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "설문 조사 E2E 테스트",
+          "file": "survey.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "설문 조사 전체 플로우",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-87723f338e773a22d51b",
+              "file": "survey.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "설문 랜딩 페이지 CTA 버튼 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-1ff719b49c88dec2b204",
+              "file": "survey.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "설문 폼 유효성 검사",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-fc6d1213e6a696116178",
+              "file": "survey.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "설문 진행률 표시 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-65ca95eb35207301b7e0",
+              "file": "survey.spec.ts",
+              "line": 87,
+              "column": 7
+            },
+            {
+              "title": "설문 조사 전체 플로우",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-d5122a43723dafe03947",
+              "file": "survey.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "설문 랜딩 페이지 CTA 버튼 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-578f3560199dfdebc8ec",
+              "file": "survey.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "설문 폼 유효성 검사",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-e279f1844711205e87d9",
+              "file": "survey.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "설문 진행률 표시 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-e4d68f53269bc4df4cf1",
+              "file": "survey.spec.ts",
+              "line": 87,
+              "column": 7
+            },
+            {
+              "title": "설문 조사 전체 플로우",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-de0aaca22f307577c578",
+              "file": "survey.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "설문 랜딩 페이지 CTA 버튼 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-e96add762ffc02558ecf",
+              "file": "survey.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "설문 폼 유효성 검사",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-c8b401480e0923d4801b",
+              "file": "survey.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "설문 진행률 표시 확인",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "123bb71b4ab148fc4f34-c3acfd62f4e5364869ce",
+              "file": "survey.spec.ts",
+              "line": 87,
+              "column": 7
+            }
+          ]
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2025-12-03T05:29:04.048Z",
-    "duration": 120501.858,
+    "startTime": "2025-12-12T07:46:33.206Z",
+    "duration": 65.02599999999995,
     "expected": 0,
-    "skipped": 0,
+    "skipped": 27,
     "unexpected": 0,
     "flaky": 0
   }
